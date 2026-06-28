@@ -468,8 +468,8 @@ describe('useNewTransactions with an unfocused report', () => {
     ];
     const newTransaction = {transactionID: '1', amount: 100, created: '2023-10-01T00:00:00Z', currency: 'USD', reportID: 'report1', merchant: ''};
 
-    it('returns newly added transactions even when the report is unfocused', () => {
-        // The diff branch runs regardless of focus, so a report behind an overlay still highlights a new expense.
+    it('stays silent for an explicitly-unfocused consumer (the rail re-delivers on refocus)', () => {
+        // A background chat preview must not animate a highlight off-screen; only a focused consumer surfaces adds.
         const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; isFocused: boolean}>(
             (props) => useNewTransactions(true, props.transactions, undefined, 'report1', props.isFocused),
             {initialProps: {transactions: transactionsAlreadyInReport, isFocused: false}},
@@ -477,7 +477,7 @@ describe('useNewTransactions with an unfocused report', () => {
         expect(result.current).toEqual([]);
 
         rerender({transactions: [...transactionsAlreadyInReport, newTransaction], isFocused: false});
-        expect(result.current).toEqual([newTransaction]);
+        expect(result.current).toEqual([]);
     });
 
     it('returns pending transactions only once the report is focused', () => {
@@ -515,7 +515,7 @@ describe('useNewTransactions with an unfocused report', () => {
     });
 
     it('schedules the rail cleanup only from a focused consumer', () => {
-        // An unfocused consumer's diff can surface a pending tx, but it must not clear the rail — a later focused mount of the same key still needs it.
+        // Only a focused consumer schedules the rail cleanup; an unfocused one stays silent and must not clear a flag a later focused mount needs.
         const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
         const txD = {transactionID: 'D', amount: 100, created: '2023-10-09', currency: 'USD', reportID: 'report1', merchant: ''};
         const scheduledCleanups = () => setTimeoutSpy.mock.calls.filter(([, ms]) => ms === CONST.PENDING_TRANSACTION_DELETION_DELAY).length;

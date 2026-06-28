@@ -15,10 +15,7 @@ function getWidthOrder(width: RHPWidth): number {
     return 0;
 }
 
-/**
- * Manages a screen's RHP width. Optimistic hints on the reportID win until the caller settles on a width that meets or exceeds the hint —
- * so Search can pre-mark a multi-tx report as super-wide and the screen won't flash at the loading-state width first.
- */
+/** Sets a screen's RHP width. A per-report hint outranks the caller until the caller's own width catches up — so a pre-marked report opens at the right width without a loading-state flash. */
 function useRHPWidth(width: RHPWidth) {
     const route = useRoute();
     const reportID = route.params && 'reportID' in route.params && typeof route.params.reportID === 'string' ? route.params.reportID : '';
@@ -26,7 +23,7 @@ function useRHPWidth(width: RHPWidth) {
 
     const onClose = useCallback(() => {
         removeRHPRouteKey(route);
-        // Clear the one-shot hint on unmount so a stale one can't outlive this screen and pin the report wide on a later visit.
+        // Clear the one-shot hint on unmount so it can't pin the report wide on a later visit.
         if (reportID) {
             unmarkReportRHPWidth(reportID);
         }
@@ -38,14 +35,14 @@ function useRHPWidth(width: RHPWidth) {
 
     useEffect(() => () => onClose(), [onClose]);
 
-    // Register the route's width. The optimistic hint outranks the caller while it's higher, so the screen opens at the pre-marked width before its own data loads.
+    // Register the width; a higher hint outranks the caller so the screen opens pre-marked before its data loads.
     useEffect(() => {
         const hint = reportID ? getReportRHPWidthHint(reportID) : undefined;
         const effectiveWidth: RHPWidth = hint && getWidthOrder(hint) > getWidthOrder(width) ? hint : width;
         setRHPWidth(route, effectiveWidth);
     }, [width, reportID, route, setRHPWidth, getReportRHPWidthHint]);
 
-    // Consume the hint once the caller's own width catches up to it (its data has loaded); onClose covers the case where it never does.
+    // Clear the hint once the caller's width reaches it; onClose handles the never-reached case.
     useEffect(() => {
         if (!reportID) {
             return;

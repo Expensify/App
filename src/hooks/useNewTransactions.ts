@@ -4,6 +4,9 @@ import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import usePrevious from './usePrevious';
 
+// Stable empty result so a "nothing new" return keeps a constant reference (no consumer re-render).
+const EMPTY_TRANSACTIONS: Transaction[] = [];
+
 /**
  * This hook returns new transactions that have been added since the last transactions update.
  * This hook should be used only in the context of highlighting the new transactions on the Report table view.
@@ -26,13 +29,25 @@ function useNewTransactions(
     const skipFirstTransactionsChange = useRef(!hasOnceLoadedReportActions);
 
     const newTransactions = useMemo(() => {
-        // Rail-flagged adds survive the remount the diff can't see (a duplicate flips a 1-tx report to the table view). Truthy only — an all-cleared rail leaves just the diff.
-        const activePendingTransactionIDs = pendingNewTransactionIDs ? Object.keys(pendingNewTransactionIDs).filter((id) => pendingNewTransactionIDs[id]) : [];
-        const railSet = new Set(activePendingTransactionIDs);
-        const railTransactions =
-            isFocused && reportID && activePendingTransactionIDs.length && transactions?.length ? transactions.filter(({transactionID}) => railSet.has(transactionID)) : [];
+        if (isFocused === false) {
+            return EMPTY_TRANSACTIONS;
+        }
 
-        // Diff-detected adds: render-to-render growth the rail never flagged (e.g. a Pusher add landing inside the rail's cleanup delay). Focus-independent — useAnimatedHighlightStyle latches until didScreenTransitionEnd, so an unfocused table behind an overlay still highlights.
+        // Rail-flagged adds survive the remount the diff can't see. Built only when focused; truthy-only so an all-cleared tombstone rail falls through to the diff.
+        const railSet = new Set<string>();
+        let railTransactions: Transaction[] = EMPTY_TRANSACTIONS;
+        if (isFocused && reportID && transactions?.length && pendingNewTransactionIDs) {
+            for (const id of Object.keys(pendingNewTransactionIDs)) {
+                if (pendingNewTransactionIDs[id]) {
+                    railSet.add(id);
+                }
+            }
+            if (railSet.size) {
+                railTransactions = transactions.filter(({transactionID}) => railSet.has(transactionID));
+            }
+        }
+
+        // Diff-detected adds: render-to-render growth the rail never flagged (e.g. a Pusher add).
         let diffTransactions: Transaction[] = [];
         if (transactions !== undefined && prevTransactions !== undefined && transactions.length > prevTransactions.length) {
             if (skipFirstTransactionsChange.current) {
@@ -42,9 +57,9 @@ function useNewTransactions(
             }
         }
 
-        // Union both so a rail add and a concurrent diff add both highlight; rail first keeps newTransactions[0] (the scroll target) stable across a later add.
+        // Union, rail first so newTransactions[0] (the scroll target) stays stable across a later add.
         if (!railTransactions.length) {
-            return diffTransactions.length ? diffTransactions : (CONST.EMPTY_ARRAY as unknown as Transaction[]);
+            return diffTransactions.length ? diffTransactions : EMPTY_TRANSACTIONS;
         }
         const extraDiff = diffTransactions.filter(({transactionID}) => !railSet.has(transactionID));
         return extraDiff.length ? [...railTransactions, ...extraDiff] : railTransactions;

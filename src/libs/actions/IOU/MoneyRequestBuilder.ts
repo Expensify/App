@@ -1120,7 +1120,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     });
 
     if (violationsOnyxData) {
-        const reportTransactions = [...getReportTransactions(iou.report.reportID).filter((reportTransaction) => reportTransaction.transactionID !== transaction.transactionID), transaction];
+        const reportTransactions = [...existingReportTransactions, transaction];
         const shouldFixViolations = hasSubmissionBlockingViolationInReport(
             reportTransactions,
             transactionViolations,
