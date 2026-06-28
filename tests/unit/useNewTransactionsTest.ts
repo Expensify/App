@@ -1,6 +1,12 @@
 import {renderHook} from '@testing-library/react-native';
 import useNewTransactions from '@hooks/useNewTransactions';
+import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
+
+// Keep the rail-cleanup timer from touching Onyx; tests assert on whether it is scheduled, not on the merge itself.
+jest.mock('@libs/actions/IOU/PendingNewTransactions', () => ({
+    deletePendingNewTransactionIDs: jest.fn(),
+}));
 
 // We need to mock requestAnimationFrame to mimic long Onyx merge overhead
 jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback: FrameRequestCallback) => {
@@ -496,6 +502,28 @@ describe('useNewTransactions with an unfocused report', () => {
         rerender({transactions: [...transactionsAlreadyInReport, txB, txC], pendingNewTransactionIDs: {B: true, C: true}});
         expect(result.current).toEqual(expect.arrayContaining([txB, txC]));
         expect(result.current).toHaveLength(2);
+    });
+
+    it('schedules the rail cleanup only from a focused consumer', () => {
+        // An unfocused consumer's diff can surface a pending tx, but it must not clear the rail — a later focused mount of the same key still needs it.
+        const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+        const txD = {transactionID: 'D', amount: 100, created: '2023-10-09', currency: 'USD', reportID: 'report1', merchant: ''};
+        const scheduledCleanups = () => setTimeoutSpy.mock.calls.filter(([, ms]) => ms === CONST.PENDING_TRANSACTION_DELETION_DELAY).length;
+
+        const {rerender} = renderHook<Transaction[], {transactions: Transaction[]; pendingNewTransactionIDs: Record<string, true | null>; isFocused: boolean}>(
+            (props) => useNewTransactions(true, props.transactions, props.pendingNewTransactionIDs, 'report1', props.isFocused),
+            {initialProps: {transactions: transactionsAlreadyInReport, pendingNewTransactionIDs: {D: true}, isFocused: false}},
+        );
+
+        // Unfocused: D surfaces via the diff, but no cleanup is scheduled.
+        rerender({transactions: [...transactionsAlreadyInReport, txD], pendingNewTransactionIDs: {D: true}, isFocused: false});
+        expect(scheduledCleanups()).toBe(0);
+
+        // Focused: the cleanup is now scheduled.
+        rerender({transactions: [...transactionsAlreadyInReport, txD], pendingNewTransactionIDs: {D: true}, isFocused: true});
+        expect(scheduledCleanups()).toBeGreaterThan(0);
+
+        setTimeoutSpy.mockRestore();
     });
 });
 

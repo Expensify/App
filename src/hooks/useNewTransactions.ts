@@ -26,8 +26,7 @@ function useNewTransactions(
     const skipFirstTransactionsChange = useRef(!hasOnceLoadedReportActions);
 
     const newTransactions = useMemo(() => {
-        // Rail-active path: return every still-flagged tx as one continuous set so a later add can't flicker an earlier one out and back in (which re-fires its highlight). isFocused stops unfocused previews consuming it.
-        // Gate on a TRUTHY flag — an all-cleared rail ({id: null} tombstones) must fall through to the diff so a later Pusher/import add still highlights.
+        // Rail-active (truthy flags only — an all-cleared rail falls through to the diff): return all flagged txs at once so a later add can't flicker an earlier one's highlight.
         const activePendingTransactionIDs = pendingNewTransactionIDs ? Object.keys(pendingNewTransactionIDs).filter((id) => pendingNewTransactionIDs[id]) : [];
         if (isFocused && reportID && activePendingTransactionIDs.length && transactions?.length) {
             const pendingSet = new Set(activePendingTransactionIDs);
@@ -50,7 +49,8 @@ function useNewTransactions(
     }, [transactions, reportID, isFocused, pendingNewTransactionIDs]);
 
     useEffect(() => {
-        if (!pendingNewTransactionIDs) {
+        // Only the focused consumer clears the rail — else an unfocused diff could clear the flag before the focused view of the same key consumes it.
+        if (isFocused === false || !pendingNewTransactionIDs) {
             return;
         }
         const pendingSet = new Set(Object.keys(pendingNewTransactionIDs));
@@ -66,7 +66,7 @@ function useNewTransactions(
                 pendingTransactions.map((transaction) => transaction.transactionID),
             );
         }, CONST.PENDING_TRANSACTION_DELETION_DELAY);
-    }, [pendingNewTransactionIDs, newTransactions, reportID]);
+    }, [isFocused, pendingNewTransactionIDs, newTransactions, reportID]);
 
     // In case when we have loaded the report, but there were no transactions in it, then we need to explicitly set skipFirstTransactionsChange to false, as it will be not set in the useMemo above.
     useEffect(() => {
