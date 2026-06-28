@@ -512,7 +512,7 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
-    it('falls back to the vendor externalID when the assigned vendor is missing from every connection', async () => {
+    it('renders an empty vendor title when the assigned vendor is missing from every connection', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
             parentReportID: expenseReportID,
@@ -541,12 +541,13 @@ describe('MoneyRequestView edit fields', () => {
 
         await waitFor(() => {
             const vendorTitle = screen.getByTestId('menu-item-title-common.vendor');
-            expect(vendorTitle).toHaveTextContent('stale-vendor-id');
+            expect(vendorTitle).toHaveTextContent('');
+            expect(vendorTitle).not.toHaveTextContent('stale-vendor-id');
             expect(vendorTitle).not.toHaveTextContent('violations.inactiveVendor');
         });
     });
 
-    it('falls back to the vendor externalID before the synced vendor list has loaded', async () => {
+    it('renders an empty vendor title before the synced vendor list has loaded', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
             parentReportID: expenseReportID,
@@ -574,7 +575,8 @@ describe('MoneyRequestView edit fields', () => {
 
         await waitFor(() => {
             const vendorTitle = screen.getByTestId('menu-item-title-common.vendor');
-            expect(vendorTitle).toHaveTextContent('still-valid-vendor-id');
+            expect(vendorTitle).toHaveTextContent('');
+            expect(vendorTitle).not.toHaveTextContent('still-valid-vendor-id');
             expect(vendorTitle).not.toHaveTextContent('violations.inactiveVendor');
         });
     });

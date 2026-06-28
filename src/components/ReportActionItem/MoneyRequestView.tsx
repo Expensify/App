@@ -479,12 +479,12 @@ function MoneyRequestView({
 
     const transactionVendor = transaction?.comment?.vendor;
 
-    // The title always shows the assigned vendor's name when we can resolve it from any connection
+    // The title shows the assigned vendor's name when we can resolve it from any connection
     // (preferring the active vendor-matching integration, then falling back to QBO/Intacct). The
     // INACTIVE_VENDOR violation (from ViolationsUtils, scoped to the active integration) provides
-    // the "Vendor no longer valid" indicator separately — so the title stays informative about what
-    // was set without duplicating the violation text.
-    const transactionVendorName = findVendorByID(policy, transactionVendor?.externalID)?.name ?? transactionVendor?.externalID ?? '';
+    // the "Vendor no longer valid" indicator separately — so the title stays focused on what was
+    // assigned without duplicating the violation text.
+    const transactionVendorName = findVendorByID(policy, transactionVendor?.externalID)?.name ?? '';
     const shouldShowVendor = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)) && !(updatedTransaction?.reimbursable ?? !!transactionReimbursable) && !isInvoice;
 
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);

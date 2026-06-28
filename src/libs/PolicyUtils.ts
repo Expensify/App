@@ -2593,7 +2593,6 @@ export {
     getConnectedIntegrationNamesForPolicies,
     getConnectionExporters,
     findVendorByID,
-    getActiveVendorMatchingVendors,
     getMatchingVendorByID,
     getMatchingVendors,
     hasVendorFeature,
