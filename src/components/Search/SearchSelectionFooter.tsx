@@ -7,10 +7,9 @@ import {isGroupEntry} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
-import type SearchFooterConversion from '@src/types/onyx/SearchFooterConversion';
 import {useSearchQueryContext, useSearchSelectionContext} from './SearchContext';
 import SearchPageFooter from './SearchPageFooter';
-import type {SelectedTransactions} from './types';
+import type {SelectedTransactionInfo, SelectedTransactions} from './types';
 
 type SearchSelectionFooterProps = {
     /** The (sorting-aware) results the page is displaying; source of the footer's totals metadata. */
@@ -36,18 +35,20 @@ function getGroupCount(group: unknown): number {
     return 0;
 }
 
-// Every selected row needs a cached converted amount for the target currency before the selected total can be shown
+// The live default-currency figure a row contributes to the footer total (also what the footer falls back to before a
+// conversion arrives). The footer stamps each conversion against this value and compares it on every render, so an
+// inline edit that moves it is detected and the cached conversion is refetched.
+function getEntrySource(entry: SelectedTransactionInfo): number {
+    return entry.groupAmount ?? -Math.abs(entry.amount);
+}
+
+// Every selected row needs a fresh cached conversion for the target currency before the selected total can be shown
 // in that currency. A whole-group selection converts by group; an individual row converts by its transaction (so a
 // grouped selection can mix the two). Report-view rows carry no transaction of their own and are ignored.
-function areAllSelectedEntriesConverted(
-    selectedTransactions: SelectedTransactions,
-    convertedGroups: SearchFooterConversion['groups'],
-    convertedTransactions: SearchFooterConversion['transactions'],
-    currency: string,
-): boolean {
+function areAllSelectedEntriesConverted(selectedTransactions: SelectedTransactions, isGroupFresh: (key: string) => boolean, isTransactionFresh: (transactionID: string) => boolean): boolean {
     return Object.keys(selectedTransactions).every((key) => {
         if (isGroupEntry(key)) {
-            return convertedGroups?.[key]?.[currency] !== undefined;
+            return isGroupFresh(key);
         }
 
         const transaction = selectedTransactions[key];
@@ -60,19 +61,19 @@ function areAllSelectedEntriesConverted(
             return false;
         }
 
-        return convertedTransactions?.[transactionID]?.[currency] !== undefined;
+        return isTransactionFresh(transactionID);
     });
 }
 
-// The Reports search converts a selection by report, so every selected report needs a cached converted total.
-function areAllSelectedReportsConverted(selectedReportIDs: string[], convertedReports: SearchFooterConversion['reports'], currency: string): boolean {
-    return selectedReportIDs.every((reportID) => convertedReports?.[reportID]?.[currency] !== undefined);
+// The Reports search converts a selection by report, so every selected report needs a fresh cached converted total.
+function areAllSelectedReportsConverted(selectedReportIDs: string[], isReportFresh: (reportID: string) => boolean): boolean {
+    return selectedReportIDs.every(isReportFresh);
 }
 
 // Self-subscribing footer leaf. Owns the `selectedTransactions` read so a checkbox press re-renders only this
 // footer — not SearchPage and the <Search> list it contains.
 function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
-    const {selectedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {selectedTransactions, areAllMatchingItemsSelected, selectedReports} = useSearchSelectionContext();
     const {currentSearchHash, currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
     const [footerCurrencyState, setFooterCurrencyState] = useState<FooterCurrencyState>({
@@ -91,6 +92,9 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const convertedReports = footerConversion?.reports;
     const convertedGroups = footerConversion?.groups;
     const convertedSearchTotal = footerConversion?.searchTotals?.[currentSearchHash];
+    // Source figures the footer stamped each conversion against. A conversion is "fresh" only while its stamped source
+    // still equals the live snapshot value; an inline edit moves the live value and makes the conversion stale.
+    const conversionSources = footerConversion?.sources;
 
     // The Reports search converts a selection by report. Other searches convert per row — by group for a whole-group
     // selection (grouped views) and by transaction otherwise — so a grouped selection can mix whole groups and
@@ -130,6 +134,52 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     );
     const selectedGroupKeys = useMemo(() => selectedTransactionsKeys.filter(isGroupEntry), [selectedTransactionsKeys]);
 
+    // Live default-currency source figures, keyed the same way as the conversion cache, captured from the current
+    // selection/snapshot on every render. The freshness checks below compare these to the figures stamped when each
+    // conversion was requested.
+    const transactionSourceByID = useMemo(() => {
+        const sources: Record<string, number> = {};
+        for (const key of selectedTransactionsKeys) {
+            const transactionID = selectedTransactions[key]?.transaction?.transactionID;
+            if (!isGroupEntry(key) && transactionID) {
+                sources[transactionID] = getEntrySource(selectedTransactions[key]);
+            }
+        }
+        return sources;
+    }, [selectedTransactions, selectedTransactionsKeys]);
+    const groupSourceByKey = useMemo(() => {
+        const sources: Record<string, number> = {};
+        for (const key of selectedGroupKeys) {
+            sources[key] = getEntrySource(selectedTransactions[key]);
+        }
+        return sources;
+    }, [selectedGroupKeys, selectedTransactions]);
+    const reportSourceByID = useMemo(() => {
+        const sources: Record<string, number> = {};
+        for (const report of selectedReports) {
+            if (report.reportID) {
+                sources[report.reportID] = report.total;
+            }
+        }
+        return sources;
+    }, [selectedReports]);
+
+    // A conversion is fresh only when its converted figure is cached AND the source it was stamped against still equals
+    // the live source — so an inline edit that moves the live source makes it stale and triggers a refetch below.
+    const isTransactionFresh = useCallback(
+        (transactionID: string, currency: string) =>
+            convertedTransactions?.[transactionID]?.[currency] !== undefined && conversionSources?.transactions?.[transactionID]?.[currency] === transactionSourceByID[transactionID],
+        [conversionSources, convertedTransactions, transactionSourceByID],
+    );
+    const isGroupFresh = useCallback(
+        (key: string, currency: string) => convertedGroups?.[key]?.[currency] !== undefined && conversionSources?.groups?.[key]?.[currency] === groupSourceByKey[key],
+        [conversionSources, convertedGroups, groupSourceByKey],
+    );
+    const isReportFresh = useCallback(
+        (reportID: string, currency: string) => convertedReports?.[reportID]?.[currency] !== undefined && conversionSources?.reports?.[reportID]?.[currency] === reportSourceByID[reportID],
+        [conversionSources, convertedReports, reportSourceByID],
+    );
+
     const areAllSelectedForFooter = areAllMatchingItemsSelected || (selectedTransactionsKeys.length > 0 && metadataCount !== undefined && selectedExpenseCount === metadataCount);
     const hasPartialSelection = selectedTransactionsKeys.length > 0 && !areAllSelectedForFooter;
     // Use the per-selection (client) total for a partial selection; nothing-selected and everything-selected both fall
@@ -142,6 +192,8 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const hasCustomFooterCurrency = !!selectedCurrency && selectedCurrency !== effectiveDefaultCurrency;
 
     const selectedCurrencyConvertedTotal = hasCustomFooterCurrency && selectedCurrency ? convertedSearchTotal?.[selectedCurrency] : undefined;
+    // The whole-search grand total is fresh only while its stamped source still equals the live snapshot total.
+    const isSearchTotalFresh = !!selectedCurrencyConvertedTotal && !!selectedCurrency && conversionSources?.searchTotals?.[currentSearchHash]?.[selectedCurrency] === metadataTotal;
 
     // Whether the selection has anything to convert per-row: reports on the Reports search, otherwise selected whole
     // groups and/or individual transactions.
@@ -152,14 +204,19 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             return false;
         }
         return isReportsSearch
-            ? areAllSelectedReportsConverted(selectedReportIDs, convertedReports, selectedCurrency)
-            : areAllSelectedEntriesConverted(selectedTransactions, convertedGroups, convertedTransactions, selectedCurrency);
-    }, [convertedGroups, convertedReports, convertedTransactions, hasCustomFooterCurrency, isReportsSearch, selectedCurrency, selectedReportIDs, selectedTransactions]);
+            ? areAllSelectedReportsConverted(selectedReportIDs, (reportID) => isReportFresh(reportID, selectedCurrency))
+            : areAllSelectedEntriesConverted(
+                  selectedTransactions,
+                  (key) => isGroupFresh(key, selectedCurrency),
+                  (transactionID) => isTransactionFresh(transactionID, selectedCurrency),
+              );
+    }, [hasCustomFooterCurrency, isGroupFresh, isReportFresh, isReportsSearch, isTransactionFresh, selectedCurrency, selectedReportIDs, selectedTransactions]);
 
-    // While a custom currency is chosen but its converted figures haven't arrived, the footer keeps showing the
-    // default-currency total behind a skeleton until the cache fills — but only when there's something to convert, so
-    // a selection with nothing convertible stays on the default total rather than a skeleton that never resolves.
-    const isFooterTotalConverting = hasCustomFooterCurrency && (shouldUseClientTotal ? hasConvertibleSelection && !areAllSelectedConverted : !selectedCurrencyConvertedTotal);
+    // While a custom currency is chosen but its converted figures haven't arrived (or have gone stale after an edit),
+    // the footer keeps showing the default-currency total behind a skeleton until the cache catches up — but only when
+    // there's something to convert, so a selection with nothing convertible stays on the default total rather than a
+    // skeleton that never resolves.
+    const isFooterTotalConverting = hasCustomFooterCurrency && (shouldUseClientTotal ? hasConvertibleSelection && !areAllSelectedConverted : !isSearchTotalFresh);
 
     const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || (shouldAllowFooterTotals && !!metadata?.count);
 
@@ -175,8 +232,9 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         });
     }
 
-    // Fetch converted figures whenever a custom currency is chosen and the cache does not yet cover what the footer
-    // needs. The cache check keeps this to one request per out-of-coverage change rather than one per checkbox.
+    // Fetch converted figures whenever a custom currency is chosen and the cache does not yet hold a fresh conversion
+    // for what the footer needs. Each request stamps the source figures it converts, so the freshness checks keep this
+    // to one request per out-of-coverage change (or per edit) rather than one per checkbox.
     useEffect(() => {
         if (!hasCustomFooterCurrency || !currentSearchQueryJSON || !selectedCurrency) {
             return;
@@ -188,41 +246,64 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             }
             if (isReportsSearch) {
                 if (selectedReportIDs.length > 0) {
-                    getFooterConvertedAmounts({queryJSON: currentSearchQueryJSON, targetCurrency: selectedCurrency, reportIDList: selectedReportIDs.join(',')});
+                    getFooterConvertedAmounts({
+                        queryJSON: currentSearchQueryJSON,
+                        targetCurrency: selectedCurrency,
+                        reportIDList: selectedReportIDs.join(','),
+                        sources: {reports: Object.fromEntries(selectedReportIDs.map((reportID) => [reportID, {[selectedCurrency]: reportSourceByID[reportID]}]))},
+                    });
                 }
                 return;
             }
             // Selected whole groups: one grouped request (derived from the query's groupBy) returns every group's
             // converted total, so no ID list is sent.
-            if (selectedGroupKeys.some((key) => convertedGroups?.[key]?.[selectedCurrency] === undefined)) {
-                getFooterConvertedAmounts({queryJSON: currentSearchQueryJSON, targetCurrency: selectedCurrency});
+            if (selectedGroupKeys.some((key) => !isGroupFresh(key, selectedCurrency))) {
+                getFooterConvertedAmounts({
+                    queryJSON: currentSearchQueryJSON,
+                    targetCurrency: selectedCurrency,
+                    sources: {groups: Object.fromEntries(selectedGroupKeys.map((key) => [key, {[selectedCurrency]: groupSourceByKey[key]}]))},
+                });
             }
             // Individually-selected transactions convert by transaction ID (the loose rows in a grouped view, or the
             // whole selection on a flat search).
-            if (selectedTransactionIDs.some((transactionID) => convertedTransactions?.[transactionID]?.[selectedCurrency] === undefined)) {
-                getFooterConvertedAmounts({queryJSON: currentSearchQueryJSON, targetCurrency: selectedCurrency, transactionIDList: selectedTransactionIDs.join(',')});
+            if (selectedTransactionIDs.some((transactionID) => !isTransactionFresh(transactionID, selectedCurrency))) {
+                getFooterConvertedAmounts({
+                    queryJSON: currentSearchQueryJSON,
+                    targetCurrency: selectedCurrency,
+                    transactionIDList: selectedTransactionIDs.join(','),
+                    sources: {transactions: Object.fromEntries(selectedTransactionIDs.map((transactionID) => [transactionID, {[selectedCurrency]: transactionSourceByID[transactionID]}]))},
+                });
             }
             return;
         }
 
         // Nothing/everything selected: fetch the whole-search converted grand total (returned keyed by the search
         // hash — flat via the window total, reports via searchTotalsMetadata, grouped via the summed groups).
-        if (!selectedCurrencyConvertedTotal) {
-            getFooterConvertedAmounts({queryJSON: currentSearchQueryJSON, targetCurrency: selectedCurrency});
+        if (!isSearchTotalFresh) {
+            getFooterConvertedAmounts({
+                queryJSON: currentSearchQueryJSON,
+                targetCurrency: selectedCurrency,
+                sources: metadataTotal !== undefined ? {searchTotals: {[currentSearchHash]: {[selectedCurrency]: metadataTotal}}} : undefined,
+            });
         }
     }, [
         areAllSelectedConverted,
-        convertedGroups,
-        convertedTransactions,
+        currentSearchHash,
         currentSearchQueryJSON,
+        groupSourceByKey,
         hasCustomFooterCurrency,
+        isGroupFresh,
         isReportsSearch,
+        isSearchTotalFresh,
+        isTransactionFresh,
+        metadataTotal,
+        reportSourceByID,
         selectedCurrency,
-        selectedCurrencyConvertedTotal,
         selectedGroupKeys,
         selectedReportIDs,
         selectedTransactionIDs,
         shouldUseClientTotal,
+        transactionSourceByID,
     ]);
 
     const handleFooterCurrencyChange = useCallback(
@@ -271,7 +352,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             return {count: selectedExpenseCount, total, currency: shouldUseConvertedSelectedTotal ? selectedCurrency : fallbackCurrency};
         }
 
-        if (hasCustomFooterCurrency && selectedCurrencyConvertedTotal) {
+        if (hasCustomFooterCurrency && isSearchTotalFresh && selectedCurrencyConvertedTotal) {
             return {count: selectedCurrencyConvertedTotal.count, total: selectedCurrencyConvertedTotal.total, currency: selectedCurrency};
         }
 
@@ -284,6 +365,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         effectiveDefaultCurrency,
         hasCustomFooterCurrency,
         isReportsSearch,
+        isSearchTotalFresh,
         metadataCount,
         metadataCurrency,
         metadataTotal,

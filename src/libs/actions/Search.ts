@@ -74,6 +74,7 @@ import type {
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {AnyOnyxUpdate, OnyxData} from '@src/types/onyx/Request';
+import type SearchFooterConversion from '@src/types/onyx/SearchFooterConversion';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
@@ -870,11 +871,14 @@ function getFooterConvertedAmounts({
     targetCurrency,
     transactionIDList,
     reportIDList,
+    sources,
 }: {
     queryJSON: Readonly<SearchQueryJSON>;
     targetCurrency: string;
     transactionIDList?: string;
     reportIDList?: string;
+    /** Default-currency source figures to stamp the requested conversions against (for stale detection on edit). */
+    sources?: SearchFooterConversion['sources'];
 }) {
     if (!targetCurrency) {
         return;
@@ -885,6 +889,12 @@ function getFooterConvertedAmounts({
         ...queryJSONWithoutFlatFilters,
         filters: queryJSONWithoutFlatFilters.filters ?? null,
     });
+
+    // Stamp the source figures this request converts, so a later edit that moves them is detected as stale. The
+    // command merges its converted figures into the same key, so the two halves live side by side.
+    if (sources) {
+        Onyx.merge(ONYXKEYS.SEARCH_FOOTER_CONVERSION, {sources});
+    }
 
     read(READ_COMMANDS.GET_TRANSACTIONS_CONVERTED_AMOUNT, {
         jsonQuery,
