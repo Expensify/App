@@ -291,6 +291,14 @@ type SortedReportActionsDerivedValue = {
  */
 type PersonalAndWorkspaceCardListDerivedValue = CardList;
 
+/**
+ * The derived value mapping each user's login (lowercased) to their accountID.
+ *
+ * Replaces the imperative `emailToPersonalDetailsCache` login lookup that was built via `Onyx.connect`
+ * in `PersonalDetailsUtils` (see issue #66391). Keys are lowercased since logins/emails are case-insensitive.
+ */
+type LoginToAccountIDMapDerivedValue = Record<string, number>;
+
 export type {
     ReportAttributes,
     ReportAttributesDerivedValue,
@@ -305,6 +313,7 @@ export type {
     TodosDerivedValue,
     TodoMetadata,
     FlaggedExpensesDerivedValue,
+    LoginToAccountIDMapDerivedValue,
     CardFeedErrorsObject,
     CardFeedErrorState,
     CardFeedErrors,

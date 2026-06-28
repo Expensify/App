@@ -73,11 +73,9 @@ describe('useAttendees', () => {
 
     it('should return existing attendees if transaction already has attendees', async () => {
         const attendee: Attendee = {
-            accountID: 1,
-            login: 'attendee@test.com',
+            email: 'attendee@test.com',
             displayName: 'Attendee',
             avatarUrl: '',
-            selected: true,
         };
 
         const mockTransaction: Transaction = {

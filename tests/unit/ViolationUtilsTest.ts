@@ -1454,7 +1454,6 @@ describe('getViolationsOnyxData', () => {
         };
 
         const ownerAccountID = 123;
-        const otherAccountID = 456;
 
         let iouReport: Report;
 
@@ -1493,7 +1492,7 @@ describe('getViolationsOnyxData', () => {
 
         it('should add missingAttendees violation when only owner is an attendee', () => {
             transaction.comment = {
-                attendees: [{email: 'owner@example.com', displayName: 'Owner', avatarUrl: '', accountID: ownerAccountID}],
+                attendees: [{email: 'owner@example.com', displayName: 'Owner', avatarUrl: ''}],
             };
             const result = ViolationsUtils.getViolationsOnyxData({
                 updatedTransaction: transaction,
@@ -1512,8 +1511,8 @@ describe('getViolationsOnyxData', () => {
         it('should not add missingAttendees violation when there is at least one non-owner attendee', () => {
             transaction.comment = {
                 attendees: [
-                    {email: 'owner@example.com', displayName: 'Owner', avatarUrl: '', accountID: ownerAccountID},
-                    {email: 'other@example.com', displayName: 'Other', avatarUrl: '', accountID: otherAccountID},
+                    {email: 'owner@example.com', displayName: 'Owner', avatarUrl: ''},
+                    {email: 'other@example.com', displayName: 'Other', avatarUrl: ''},
                 ],
             };
             const result = ViolationsUtils.getViolationsOnyxData({
@@ -1534,8 +1533,8 @@ describe('getViolationsOnyxData', () => {
             transactionViolations = [missingAttendeesViolation];
             transaction.comment = {
                 attendees: [
-                    {email: 'owner@example.com', displayName: 'Owner', avatarUrl: '', accountID: ownerAccountID},
-                    {email: 'other@example.com', displayName: 'Other', avatarUrl: '', accountID: otherAccountID},
+                    {email: 'owner@example.com', displayName: 'Owner', avatarUrl: ''},
+                    {email: 'other@example.com', displayName: 'Other', avatarUrl: ''},
                 ],
             };
             const result = ViolationsUtils.getViolationsOnyxData({

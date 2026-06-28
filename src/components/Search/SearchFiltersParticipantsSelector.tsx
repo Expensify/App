@@ -30,10 +30,10 @@ function getOptionDataFromAttendee(attendee: Attendee): OptionData {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- need || to handle empty string email
         login: attendee.email || attendee.displayName,
         displayName: attendee.displayName,
-        accountID: attendee.accountID ?? CONST.DEFAULT_NUMBER_ID,
+        accountID: CONST.DEFAULT_NUMBER_ID,
 
         reportID: '-1',
-        keyForList: `${attendee.accountID ?? attendee.email}`,
+        keyForList: attendee.email ?? '',
         selected: true,
         icons: attendee.avatarUrl
             ? [
@@ -44,7 +44,7 @@ function getOptionDataFromAttendee(attendee: Attendee): OptionData {
                   },
               ]
             : [],
-        searchText: attendee.searchText ?? attendee.displayName,
+        searchText: attendee.displayName,
     };
 }
 
