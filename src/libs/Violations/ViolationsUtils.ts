@@ -14,6 +14,7 @@ import {isReceiptError} from '@libs/ErrorUtils';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {
     getDistanceRateCustomUnitRate,
     getMatchingVendorByID,
@@ -591,12 +592,13 @@ const ViolationsUtils = {
         const isAttendeeTrackingEnabled = isAttendeeTrackingEnabledForPolicy(policy);
         // Filter out the owner/creator when checking attendance count - expense is valid if at least one non-owner attendee is present
         let attendeesMinusOwnerCount: number;
-        const currentUserEmail = getCurrentUserEmail();
-        if (currentUserEmail) {
+        // Prefer the actual report owner's login; fall back to the current user when the report is unavailable (e.g. an offline-created expense)
+        const ownerLogin = getLoginByAccountID(iouReport?.ownerAccountID) ?? getCurrentUserEmail();
+        if (ownerLogin) {
             // Filter by login or email to identify owner
             attendeesMinusOwnerCount = attendees.filter((a) => {
                 const attendeeIdentifier = a?.email;
-                return attendeeIdentifier !== currentUserEmail;
+                return attendeeIdentifier !== ownerLogin;
             }).length;
         } else {
             // Can't identify owner at all - if there are attendees, assume owner is one of them

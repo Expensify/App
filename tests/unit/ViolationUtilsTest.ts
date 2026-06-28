@@ -1585,6 +1585,57 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
         });
 
+        describe('owner identified via report ownerAccountID', () => {
+            const ownerLogin = 'owner@example.com';
+
+            beforeEach(async () => {
+                // Seed personal details so the report owner's accountID resolves to a login via getLoginByAccountID.
+                // This populates the allPersonalDetails cache that PersonalDetailsUtils reads from.
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ownerAccountID]: {accountID: ownerAccountID, login: ownerLogin}});
+                await waitForBatchedUpdates();
+            });
+
+            it('should not add missingAttendees violation for a single non-owner attendee when the owner is resolved from ownerAccountID', () => {
+                // The report owner (owner@example.com) is NOT in the attendee list, so the single attendee is a genuine
+                // non-owner. Without owner-aware identification, the count-based fallback would wrongly flag this as missing.
+                transactionViolations = [];
+                transaction.comment = {
+                    attendees: [{email: 'other@example.com', displayName: 'Other', avatarUrl: ''}],
+                };
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                    isSelfDM: false,
+                    iouReport,
+                });
+                expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
+            });
+
+            it('should add missingAttendees violation when the only attendee is the report owner resolved from ownerAccountID', () => {
+                transactionViolations = [];
+                transaction.comment = {
+                    attendees: [{email: ownerLogin, displayName: 'Owner', avatarUrl: ''}],
+                };
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                    isSelfDM: false,
+                    iouReport,
+                });
+                expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
+            });
+        });
+
         describe('optimistic / offline scenarios (iouReport is undefined)', () => {
             // In offline scenarios, iouReport is undefined so we can't get ownerAccountID.
             // The code falls back to using getCurrentUserEmail() to identify the owner by login/email.
