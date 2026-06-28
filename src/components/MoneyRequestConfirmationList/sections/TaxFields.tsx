@@ -1,9 +1,10 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
+import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -42,6 +43,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {isNewManualExpenseFlowEnabled, isEditingSplitBill} = useConfirmationFields();
+    const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
@@ -67,12 +69,16 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     const formattedMaxTaxAmount = convertToDisplayString(maxTaxAmount, effectiveCurrency);
     const shouldDisplayTaxAmountError = formError === 'iou.error.invalidTaxAmount';
 
+    // Converts the raw text from the tax amount input into a backend (smallest-currency-unit) amount,
+    // treating an empty field as 0. Kept in one place so the parsing rules can't drift between call sites.
+    const toBackendTaxAmount = (input: string) => (input.trim() === '' ? 0 : convertToBackendAmount(Number.parseFloat(input)));
+
     const handleTaxAmountChange = (newAmount: string) => {
         if (!transactionID) {
             return;
         }
 
-        const taxAmountInSmallestCurrencyUnits = newAmount.trim() === '' ? 0 : convertToBackendAmount(Number.parseFloat(newAmount));
+        const taxAmountInSmallestCurrencyUnits = toBackendTaxAmount(newAmount);
 
         // Clear a previously surfaced tax error as the user edits; validation re-runs on submit.
         clearFormErrors(['iou.error.invalidTaxAmount']);
@@ -86,6 +92,31 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
 
         setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
     };
+
+    useEffect(() => {
+        if (!isNewManualExpenseFlowEnabled) {
+            return;
+        }
+        // Compare the numeric value rather than the formatted string. An in-progress edit such as "5.0" (or an
+        // empty field) represents the same stored amount as the re-padded "5.00", so it must not be overwritten
+        // while the user is typing. Only refresh the field when the stored tax amount genuinely differs (e.g. the
+        // tax rate changed and the amount was recalculated externally).
+        const currentInput = numberFormRef.current?.getNumber();
+        if (currentInput !== undefined) {
+            const currentBackendAmount = toBackendTaxAmount(currentInput);
+            if (currentBackendAmount === taxAmount) {
+                return;
+            }
+        }
+        numberFormRef.current?.updateNumber(taxAmountInput);
+    }, [isNewManualExpenseFlowEnabled, taxAmount, taxAmountInput]);
+
+    useEffect(() => {
+        if (!isNewManualExpenseFlowEnabled || formError !== 'iou.error.invalidTaxAmount' || taxAmount > maxTaxAmount) {
+            return;
+        }
+        clearFormErrors(['iou.error.invalidTaxAmount']);
+    }, [isNewManualExpenseFlowEnabled, formError, taxAmount, maxTaxAmount, clearFormErrors]);
 
     return (
         <>
@@ -112,6 +143,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
             {isNewManualExpenseFlowEnabled && canModifyTaxFields ? (
                 <View style={[styles.mh4, styles.mv2]}>
                     <NumberWithSymbolForm
+                        numberFormRef={numberFormRef}
                         key={taxAmountInputKey}
                         displayAsTextInput
                         autoFocus={false}

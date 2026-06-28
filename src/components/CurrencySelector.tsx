@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
 type CurrencySelectorProps = {
@@ -28,8 +28,8 @@ type CurrencySelectorProps = {
     /** Callback to call when the picker modal is dismissed */
     onBlur?: () => void;
 
-    /** Optional route override; when omitted the selector opens the dynamic payment-card currency picker. */
-    currencySelectorRoute?: typeof ROUTES.WORKSPACE_CURRENCY_SELECTION;
+    /** When true, opens the workspace confirmation currency selector dynamic route. */
+    useWorkspaceConfirmationCurrencySelector?: boolean;
 
     /** Label for the input */
     label?: string;
@@ -41,7 +41,16 @@ type CurrencySelectorProps = {
     ref: ForwardedRef<View>;
 };
 
-function CurrencySelector({errorText = '', value: currency, onInputChange = () => {}, onBlur, currencySelectorRoute, label, shouldShowCurrencySymbol = false, ref}: CurrencySelectorProps) {
+function CurrencySelector({
+    errorText = '',
+    value: currency,
+    onInputChange = () => {},
+    onBlur,
+    useWorkspaceConfirmationCurrencySelector = false,
+    label,
+    shouldShowCurrencySymbol = false,
+    ref,
+}: CurrencySelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
@@ -76,8 +85,8 @@ function CurrencySelector({errorText = '', value: currency, onInputChange = () =
             errorText={errorText}
             onPress={() => {
                 didOpenCurrencySelector.current = true;
-                if (currencySelectorRoute === ROUTES.WORKSPACE_CURRENCY_SELECTION) {
-                    Navigation.navigate(currencySelectorRoute.getRoute(Navigation.getActiveRoute()));
+                if (useWorkspaceConfirmationCurrencySelector) {
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION_CURRENCY.path));
                     return;
                 }
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PAYMENT_CARD_CURRENCY_SELECTOR.path));

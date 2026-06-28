@@ -6,7 +6,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentCarousel from '@components/Attachments/AttachmentCarousel';
 import {AttachmentCarouselPagerActionsContext, AttachmentCarouselPagerStateContext} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {AttachmentCarouselPagerActionsContextType, AttachmentCarouselPagerStateContextType} from '@components/Attachments/AttachmentCarousel/Pager/types';
-import AttachmentView from '@components/Attachments/AttachmentView';
+import AttachmentView, {checkIsFileImage} from '@components/Attachments/AttachmentView';
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import type {Attachment} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -99,6 +99,7 @@ function AttachmentModalBaseContent({
     const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const transaction = transactionProp ?? transactionFromOnyx;
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
+    const [currentPreviewSource, setCurrentPreviewSource] = useState<Attachment['previewSource']>();
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
         addOfflineIndicatorBottomSafeAreaPadding: true,
@@ -135,6 +136,7 @@ function AttachmentModalBaseContent({
         (attachment: Attachment) => {
             setSource(attachment.source);
             setFile(attachment.file);
+            setCurrentPreviewSource(attachment.previewSource);
             setIsAuthTokenRequiredState(attachment.isAuthTokenRequired ?? false);
             onCarouselAttachmentChange(attachment);
             setCurrentAttachmentLink(attachment?.attachmentLink ?? '');
@@ -188,19 +190,22 @@ function AttachmentModalBaseContent({
 
     const {isAttachmentLoaded} = useContext(AttachmentStateContext);
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
+    const isFileImage = typeof source !== 'function' && checkIsFileImage(source, fileToDisplay?.name);
+    const isSourceLoaded = isAttachmentLoaded?.(source) || (!!currentPreviewSource && isAttachmentLoaded?.(currentPreviewSource));
     const shouldShowDownloadButton = useMemo(() => {
         const isValidContext = !isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH || shouldAllowDownloadOutsideReportContext;
         if (!isValidContext || isErrorInAttachment(source) || isEReceipt) {
             return false;
         }
 
-        return !!onDownloadAttachment && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isOffline && !isLocalSource && isAttachmentLoaded?.(source);
+        return !!onDownloadAttachment && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isOffline && !isLocalSource && (!isFileImage || isSourceLoaded);
     }, [
-        isAttachmentLoaded,
         isDownloadButtonReadyToBeShown,
         isErrorInAttachment,
+        isFileImage,
         isLocalSource,
         isOffline,
+        isSourceLoaded,
         onDownloadAttachment,
         report,
         shouldAllowDownloadOutsideReportContext,

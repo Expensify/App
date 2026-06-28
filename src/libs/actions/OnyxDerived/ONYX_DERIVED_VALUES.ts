@@ -1,8 +1,8 @@
 import type {ValueOf} from 'type-fest';
 import ONYXKEYS from '@src/ONYXKEYS';
 import cardFeedErrorsConfig from './configs/cardFeedErrors';
+import flaggedExpensesConfig from './configs/flaggedExpenses';
 import nonPersonalAndWorkspaceCardListConfig from './configs/nonPersonalAndWorkspaceCardList';
-import openAndSubmittedReportsByPolicyIDConfig from './configs/openAndSubmittedReportsByPolicyID';
 import outstandingReportsByPolicyIDConfig from './configs/outstandingReportsByPolicyID';
 import personalAndWorkspaceCardListConfig from './configs/personalAndWorkspaceCardList';
 import reportAttributesConfig from './configs/reportAttributes';
@@ -26,7 +26,7 @@ const ONYX_DERIVED_VALUES = {
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: cardFeedErrorsConfig,
     [ONYXKEYS.DERIVED.TODOS]: todosConfig,
     [ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS]: sortedReportActionsConfig,
-    [ONYXKEYS.DERIVED.OPEN_AND_SUBMITTED_REPORTS_BY_POLICY_ID]: openAndSubmittedReportsByPolicyIDConfig,
+    [ONYXKEYS.DERIVED.FLAGGED_EXPENSES]: flaggedExpensesConfig,
 } as const satisfies {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [Key in ValueOf<typeof ONYXKEYS.DERIVED>]: OnyxDerivedValueConfig<Key, any>;

@@ -71,6 +71,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         setIsPdfModalVisible,
         pdfReportID,
         handlePdfModalHide,
+        exportDownloadStatusModal,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
@@ -273,6 +274,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                     onConfirm={dismissModalAndUpdateUseHold}
                 />
             )}
+            {exportDownloadStatusModal}
         </>
     );
 }

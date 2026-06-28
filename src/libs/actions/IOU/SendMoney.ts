@@ -151,7 +151,7 @@ function getSendMoneyParams({
             delegateAccountIDParam: delegateAccountID,
         });
 
-    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticIOUReport, undefined, undefined, undefined, undefined, undefined, delegateAccountID);
+    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticIOUReport, undefined, undefined, undefined, undefined, delegateAccountID);
 
     // Change the method to set for new reports because it doesn't exist yet, is faster,
     // and we need the data to be available when we navigate to the chat page

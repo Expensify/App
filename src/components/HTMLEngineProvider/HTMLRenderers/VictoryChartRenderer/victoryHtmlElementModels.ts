@@ -33,6 +33,10 @@ const VICTORY_HTML_ELEMENT_MODELS = {
         tagName: 'victorypie',
         contentModel: HTMLContentModel.block,
     }),
+    shiftedlinesegment: HTMLElementModel.fromCustomModel({
+        tagName: 'shiftedlinesegment',
+        contentModel: HTMLContentModel.block,
+    }),
 } as const;
 
 export default VICTORY_HTML_ELEMENT_MODELS;

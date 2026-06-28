@@ -161,20 +161,20 @@ function TagPicker({
         ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
     };
 
-    const listItemTitleStyles = [styles.breakAll, styles.w100];
-
     return (
         <SelectionListWithSections
             sections={sections}
             ListItem={SingleSelectListItem}
             style={{
                 sectionTitleStyles: styles.mt5,
-                listItemTitleStyles,
+                listItemTitleStyles: styles.w100,
             }}
             textInputOptions={textInputOptions}
             shouldShowTextInput={availableTagsCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
             initiallyFocusedItemKey={selectedOptionKey}
             onSelectRow={onSubmit}
+            isRowMultilineSupported
+            titleNumberOfLines={CONST.TRANSACTION_TAG_AND_CATEGORY_PICKER_MAX_TITLE_LINES}
         />
     );
 }
