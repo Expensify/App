@@ -812,7 +812,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             approveMoneyRequest({
                 expenseReport,
                 expenseReportPolicy: reportPolicy,
-                policy: reportPolicy,
                 currentUserAccountIDParam: accountID,
                 currentUserEmailParam: email ?? '',
                 hasViolations,
