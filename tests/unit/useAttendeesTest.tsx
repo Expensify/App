@@ -59,13 +59,8 @@ describe('useAttendees', () => {
 
         expect(result.current).toEqual([
             {
-                accountID: ownerDetails.accountID,
-                login: ownerDetails.login,
                 displayName: ownerDetails.displayName,
-                selected: true,
                 email: ownerDetails.login,
-                text: ownerDetails.displayName,
-                searchText: ownerDetails.displayName,
                 avatarUrl: ownerDetails.avatar,
             },
         ]);
