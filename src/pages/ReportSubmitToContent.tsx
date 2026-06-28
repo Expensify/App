@@ -20,6 +20,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {search} from '@libs/actions/Search';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -68,6 +69,7 @@ function ReportSubmitToContent({
     canSubmitRef,
 }: ReportSubmitToContentProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate, localeCompare} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -308,8 +310,8 @@ function ReportSubmitToContent({
                         isLoading: !!currentSearchResults?.search?.isLoading,
                     });
                 }
-                onDismiss();
                 onSubmitSuccess?.();
+                onDismiss();
                 if (shouldDismissRHPAfterSubmit) {
                     Navigation.dismissToPreviousRHP();
                 }
@@ -399,6 +401,15 @@ function ReportSubmitToContent({
         [handleSubmit, translate],
     );
 
+    const containerStyle = useMemo(() => {
+        const baseStyle = [styles.w100, styles.flex1, styles.pt3, styles.pb3];
+        if (isBottomDockedInLandscape) {
+            return baseStyle;
+        }
+
+        return [...baseStyle, StyleUtils.getMinimumHeight(CONST.POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT)];
+    }, [StyleUtils, isBottomDockedInLandscape, styles.flex1, styles.pb3, styles.pt3, styles.w100]);
+
     if (shouldShowNotFoundView) {
         return (
             <View style={[styles.ph5, styles.pv4]}>
@@ -408,7 +419,7 @@ function ReportSubmitToContent({
     }
 
     return (
-        <View style={[styles.w100, styles.flex1, styles.pt3, styles.pb3, !isBottomDockedInLandscape && {minHeight: CONST.POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT}]}>
+        <View style={containerStyle}>
             <SelectionList
                 data={submitToSelectionData}
                 ListItem={InviteMemberListItem}

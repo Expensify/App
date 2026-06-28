@@ -189,9 +189,18 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         [reportID, willAlertModalBecomeVisible, showReportSubmitToPopover],
     );
 
+    const innerContainerStyle = useMemo(
+        () => ({
+            ...(isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH}),
+            ...(isBottomDockedInLandscape ? styles.getPopoverMaxHeight(windowHeight, true) : {minHeight: popoverDimensions.minHeight}),
+        }),
+        [isSmallScreenWidth, isBottomDockedInLandscape, windowHeight, styles],
+    );
+
     const reportSubmitToPopover = useMemo(
         () => (
             <PopoverWithMeasuredContent
+                innerContainerStyle={innerContainerStyle}
                 anchorRef={anchorRef}
                 isVisible={isVisible}
                 onClose={closeReportSubmitToPopover}
@@ -199,10 +208,6 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
                 anchorPosition={anchorPosition}
                 popoverDimensions={popoverDimensions}
                 anchorAlignment={anchorAlignment}
-                innerContainerStyle={{
-                    ...(isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH}),
-                    ...(isBottomDockedInLandscape ? styles.getPopoverMaxHeight(windowHeight, true) : {minHeight: popoverDimensions.minHeight}),
-                }}
                 restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
                 shouldSwitchPositionIfOverflow
                 shouldEnableNewFocusManagement
@@ -231,13 +236,10 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         ),
         [
             StyleUtils,
-            styles.w100,
             styles.flexColumn,
             styles.pt4,
-            isSmallScreenWidth,
-            isBottomDockedInLandscape,
+            innerContainerStyle,
             submitToPopoverContentHeight,
-            windowHeight,
             isVisible,
             closeReportSubmitToPopover,
             handleReportSubmitToPopoverModalHide,
