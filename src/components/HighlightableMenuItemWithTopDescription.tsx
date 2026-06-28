@@ -1,8 +1,8 @@
 import React from 'react';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useTheme from '@hooks/useTheme';
-import MenuItem from './MenuItem';
 import type {MenuItemProps} from './MenuItem';
+import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
 type HighlightableMenuItemWithTopDescriptionProps = MenuItemProps & {
     /** Should the menu item be highlighted? */
@@ -18,14 +18,9 @@ function HighlightableMenuItemWithTopDescription({highlighted, outerWrapperStyle
     });
 
     return (
-        <MenuItem
+        <MenuItemWithTopDescription
             {...props}
             ref={ref}
-            shouldShowBasicTitle
-            shouldShowDescriptionOnTop
-            // The animated highlight style is always applied (never swapped on `highlighted`) so the entry fade is never
-            // detached from the node mid-animation. When `highlighted` is false the hook returns a static opacity: 1, so
-            // this is inert for non-highlighted rows. See https://github.com/Expensify/App/issues/94005.
             outerWrapperStyle={[outerWrapperStyle, animatedHighlightStyle]}
         />
     );
