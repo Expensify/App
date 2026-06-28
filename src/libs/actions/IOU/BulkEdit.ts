@@ -24,6 +24,7 @@ import {
     isSelfDM,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {calculateTaxAmount, getAmount, getClearedPendingFields, getCurrency, getTaxValue, getUpdatedTransaction, isOnHold, isSplitChildTransaction} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
@@ -82,6 +83,7 @@ type UpdateMultipleMoneyRequestsParams = {
     allPolicies?: OnyxCollection<OnyxTypes.Policy>;
     currentUserAccountID: number;
     delegateAccountID: number | undefined;
+    archivedReportsIDSet: ArchivedReportsIDSet;
 };
 
 function updateMultipleMoneyRequests({
@@ -98,6 +100,7 @@ function updateMultipleMoneyRequests({
     allPolicies,
     currentUserAccountID,
     delegateAccountID,
+    archivedReportsIDSet,
 }: UpdateMultipleMoneyRequestsParams) {
     // Track running totals per report so multiple edits in the same report compound correctly.
     const optimisticReportsByID: Record<string, OnyxTypes.Report> = {};
@@ -166,7 +169,7 @@ function updateMultipleMoneyRequests({
                 return true;
             }
 
-            return canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report: iouReport, policy: transactionPolicy});
+            return canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report: iouReport, policy: transactionPolicy, archivedReportsIDSet});
         };
 
         let transactionChanges: TransactionChanges = {};

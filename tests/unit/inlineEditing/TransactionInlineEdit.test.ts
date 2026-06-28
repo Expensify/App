@@ -56,6 +56,7 @@ describe('getTransactionEditPermissions', () => {
         parentReportAction: baseParentReportAction,
         parentReport: baseParentReport,
         policy: basePolicy,
+        archivedReportsIDSet: new Set<string>(),
     };
 
     const policyCategories: PolicyCategories = {

@@ -26,6 +26,7 @@ import {isExpenseUnreported, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
+import useArchivedReportsIDSet from './useArchivedReportsIDSet';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
@@ -134,6 +135,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const isTrackExpense = isTrackExpenseReportNew(transactionThreadReport, effectiveParentReport, parentReportAction);
 
     const {isOffline} = useNetwork();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
 
     const permissions = getTransactionEditPermissions({
         transaction,
@@ -145,6 +147,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
         policyTags,
         transactionThreadNVP,
         chatReportNVP,
+        archivedReportsIDSet,
         originalTransaction,
         disabled: hasSelectedTransactions,
         shouldSelectPolicyForUnreported: shouldSelectPolicy,
@@ -169,6 +172,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             isOffline,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed ?? false,
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow ?? false,
+            archivedReportsIDSet,
         };
     };
 

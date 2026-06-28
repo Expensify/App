@@ -25,6 +25,7 @@ import {
     isReportInGroupPolicy,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     calculateTaxAmount,
@@ -163,6 +164,8 @@ type TransactionEditPermissionsParams = {
 
     chatReportNVP?: OnyxEntry<ReportNameValuePairs>;
 
+    archivedReportsIDSet: ArchivedReportsIDSet;
+
     originalTransaction?: OnyxEntry<Transaction>;
 
     /** When true, all editing is disabled regardless of permissions. */
@@ -186,6 +189,7 @@ type GetIouParamsInput = {
     parentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     isSelfTourViewed: boolean | undefined;
     hasCompletedGuidedSetupFlow: boolean | undefined;
+    archivedReportsIDSet: ArchivedReportsIDSet;
 };
 
 type TransactionInlineEditParams = GetIouParamsInput & {
@@ -214,6 +218,7 @@ function getIouParamsForTransaction({
     parentReportNextStep,
     isSelfTourViewed,
     hasCompletedGuidedSetupFlow,
+    archivedReportsIDSet,
 }: GetIouParamsInput) {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
@@ -282,6 +287,7 @@ function getIouParamsForTransaction({
         policyTagList: policyTags,
         policyRecentlyUsedCategories,
         policyRecentlyUsedTags,
+        archivedReportsIDSet,
     };
 }
 
@@ -400,6 +406,7 @@ function getTransactionEditPermissions({
     policyTags,
     transactionThreadNVP,
     chatReportNVP,
+    archivedReportsIDSet,
     originalTransaction,
     disabled,
     shouldSelectPolicyForUnreported,
@@ -497,6 +504,7 @@ function getTransactionEditPermissions({
                 transaction,
                 report: parentReport,
                 policy,
+                archivedReportsIDSet,
             })
         );
     };

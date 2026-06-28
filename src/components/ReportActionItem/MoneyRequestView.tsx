@@ -23,6 +23,7 @@ import UserPills from '@components/UserPills';
 import ViolationMessages from '@components/ViolationMessages';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useActiveRoute from '@hooks/useActiveRoute';
+import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import useAttendees from '@hooks/useAttendees';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -356,6 +357,7 @@ function MoneyRequestView({
     const isSettled = isSettledReportUtils(moneyRequestReport);
     const isCancelled = moneyRequestReport?.isCancelledIOU;
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
+    const archivedReportsIDSet = useArchivedReportsIDSet();
     const pendingAction = transaction?.pendingAction;
     const shouldShowPaid = isSettled && transactionReimbursable && !pendingAction;
 
@@ -382,15 +384,31 @@ function MoneyRequestView({
     const canEditAmount =
         !isGPSDistanceRequest &&
         isEditable &&
-        (canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.AMOUNT, isChatReportArchived, transaction}) ||
+        (canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.AMOUNT, isChatReportArchived, transaction, archivedReportsIDSet}) ||
             (shouldShowSplitIndicator && isSplitAvailable));
     const canEditMerchant =
         isEditable &&
-        canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.MERCHANT, isChatReportArchived, transaction, report: moneyRequestReport, policy});
+        canEditFieldOfMoneyRequest({
+            reportAction: parentReportAction,
+            fieldToEdit: CONST.EDIT_REQUEST_FIELD.MERCHANT,
+            isChatReportArchived,
+            transaction,
+            report: moneyRequestReport,
+            policy,
+            archivedReportsIDSet,
+        });
 
     const canEditDate =
         isEditable &&
-        canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.DATE, isChatReportArchived, transaction, report: moneyRequestReport, policy});
+        canEditFieldOfMoneyRequest({
+            reportAction: parentReportAction,
+            fieldToEdit: CONST.EDIT_REQUEST_FIELD.DATE,
+            isChatReportArchived,
+            transaction,
+            report: moneyRequestReport,
+            policy,
+            archivedReportsIDSet,
+        });
 
     const canEditDistanceOrRate = isPolicyAccessible(policy, currentUserEmailParam) || isTrackExpense || isP2PDistanceRequest;
 
@@ -404,6 +422,7 @@ function MoneyRequestView({
             transaction,
             report: moneyRequestReport,
             policy,
+            archivedReportsIDSet,
         }) &&
         canEditDistanceOrRate;
 
@@ -416,6 +435,7 @@ function MoneyRequestView({
             transaction,
             report: moneyRequestReport,
             policy,
+            archivedReportsIDSet,
         }) &&
         canEditDistanceOrRate;
 
@@ -429,6 +449,7 @@ function MoneyRequestView({
             transaction,
             report: moneyRequestReport,
             policy,
+            archivedReportsIDSet,
         }) &&
         (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy) || (isExpenseUnreported && !!perDiemOriginalPolicy));
 
@@ -474,6 +495,7 @@ function MoneyRequestView({
             transaction,
             report: moneyRequestReport,
             policy,
+            archivedReportsIDSet,
         });
     const shouldShowAttendees = shouldShowAttendeesTransactionUtils(iouType, policy);
 
