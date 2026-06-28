@@ -11583,13 +11583,15 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const https_1 = __importDefault(__nccwpck_require__(5687));
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
+const isTeamMember_1 = __importDefault(__nccwpck_require__(1077));
 const pathToReviewerChecklist = 'https://raw.githubusercontent.com/Expensify/App/main/contributingGuides/REVIEWER_CHECKLIST.md';
 const reviewerChecklistContains = '# Reviewer Checklist';
 const issue = github.context.payload.issue?.number ?? github.context.payload.pull_request?.number ?? -1;
 const combinedComments = [];
-// Org members and owners are internal Expensify engineers; external contributors (including C+) are not.
-const INTERNAL_EXPENSIFY_ASSOCIATIONS = new Set(['MEMBER', 'OWNER']);
+// Internal Expensify engineers belong to this team. We can't rely on author_association, which only reports MEMBER for publicly visible org members.
+const ENGINEERING_TEAM_SLUG = 'engineering';
 // A reviewer's standing is their latest review in one of these states; plain "commented" reviews don't change it.
 const DECISIVE_REVIEW_STATES = new Set(['APPROVED', 'CHANGES_REQUESTED', 'DISMISSED']);
 function getNumberOfItemsFromReviewerChecklist() {
@@ -11664,7 +11666,11 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
 // An approval from an internal Expensify engineer means we've decided this PR doesn't need a C+ checklist, so let the check pass.
 // This workflow re-runs on every pull_request_review event, so we scan the whole review history: once an internal approval
 // stands, a later "commented" or "changes requested" review from anyone must not re-require the checklist.
-async function hasStandingInternalApproval() {
+async function hasStandingInternalApproval(orgToken) {
+    // Fork-triggered runs don't receive org secrets, so we can't verify engineering-team membership and must fall back to requiring the checklist.
+    if (!orgToken) {
+        return false;
+    }
     const { owner, repo } = github.context.repo;
     const reviews = await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.pulls.listReviews, {
         owner,
@@ -11674,15 +11680,20 @@ async function hasStandingInternalApproval() {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         per_page: 100,
     });
+    const decisiveReviews = reviews.filter((review) => !!review.user?.login && DECISIVE_REVIEW_STATES.has(review.state ?? ''));
+    // Resolve internal status from engineering-team membership using a read:org token, since concealed members aren't reflected in author_association.
+    const orgOctokit = github.getOctokit(orgToken);
+    const reviewerLogins = [...new Set(decisiveReviews.map((review) => review.user?.login ?? ''))];
+    const membershipResults = await Promise.all(reviewerLogins.map((login) => (0, isTeamMember_1.default)(orgOctokit.rest, CONST_1.default.GITHUB_OWNER, ENGINEERING_TEAM_SLUG, login)));
+    const internalReviewerLogins = new Set(reviewerLogins.filter((_, index) => membershipResults.at(index)));
     // GitHub treats a reviewer's latest decisive review as their standing, so keep only that per internal engineer.
     const latestStateByInternalReviewer = new Map();
-    for (const review of reviews) {
-        const login = review.user?.login;
-        const state = review.state ?? '';
-        if (!login || !INTERNAL_EXPENSIFY_ASSOCIATIONS.has(review.author_association ?? '') || !DECISIVE_REVIEW_STATES.has(state)) {
+    for (const review of decisiveReviews) {
+        const login = review.user?.login ?? '';
+        if (!internalReviewerLogins.has(login)) {
             continue;
         }
-        latestStateByInternalReviewer.set(login, state);
+        latestStateByInternalReviewer.set(login, review.state ?? '');
     }
     for (const state of latestStateByInternalReviewer.values()) {
         if (state === 'APPROVED') {
@@ -11691,7 +11702,7 @@ async function hasStandingInternalApproval() {
     }
     return false;
 }
-hasStandingInternalApproval()
+hasStandingInternalApproval(core.getInput('OS_BOTIFY_TOKEN'))
     .then((isApproved) => {
     if (isApproved) {
         console.log('PR has a standing approval from an internal Expensify engineer, so the reviewer checklist is not required 🎉');
@@ -12233,6 +12244,75 @@ class GithubUtils {
     }
 }
 exports["default"] = GithubUtils;
+
+
+/***/ }),
+
+/***/ 1077:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+/* eslint-disable @typescript-eslint/naming-convention */
+const core = __importStar(__nccwpck_require__(2186));
+const request_error_1 = __nccwpck_require__(537);
+/**
+ * Whether a user is a member of the given org team.
+ * The octokit must be authenticated with a token that has read:org scope, otherwise concealed (private) members are reported as non-members.
+ */
+async function isTeamMember(octokit, org, teamSlug, username) {
+    try {
+        await octokit.teams.getMembershipForUserInOrg({
+            org,
+            team_slug: teamSlug,
+            username,
+        });
+        return true;
+    }
+    catch (error) {
+        if (error instanceof request_error_1.RequestError && error.status === 404) {
+            return false;
+        }
+        const message = error instanceof Error ? error.message : String(error);
+        core.warning(`Could not verify ${teamSlug} membership for ${username}. Assuming they are not a member: ${message}`);
+        return false;
+    }
+}
+exports["default"] = isTeamMember;
 
 
 /***/ }),

@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -63,6 +64,7 @@ const DATA_TYPE_VALUES = Object.values(CONST.SEARCH.DATA_TYPES);
 const GROUP_BY_FRIENDLY_VALUES = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
 const VIEW_FRIENDLY_VALUES = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
 const EXPENSE_TYPE_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
+const RECEIPT_TYPE_FRIENDLY_VALUES = Object.values(CONST.SEARCH.RECEIPT_TYPE).map((value) => getUserFriendlyValue(value));
 const WITHDRAWAL_TYPE_VALUES = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
 const WITHDRAWAL_STATUS_VALUES = Object.values(CONST.SEARCH.SETTLEMENT_STATUS);
 const BOOLEAN_VALUES = Object.values(CONST.SEARCH.BOOLEAN);
@@ -113,6 +115,7 @@ function useAutocompleteSuggestions({
     const sortedActions = useSortedActions();
     const {currencyList} = useCurrencyListState();
     const {exportedToFilterOptions} = useExportedToFilterOptions();
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
     const {autocomplete, ranges = []} = parsedQuery ?? {};
@@ -244,6 +247,7 @@ function useAutocompleteSuggestions({
                 sortedActions,
                 conciergeReportID,
                 excludeFromSuggestionsOnly: memberExclusions,
+                isTrackIntentUser,
             }).options.personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
             return participants.map((participant) => ({
@@ -281,6 +285,7 @@ function useAutocompleteSuggestions({
                 personalDetails,
                 sortedActions,
                 conciergeReportID,
+                isTrackIntentUser,
             }).options.recentReports.filter((chat) => {
                 if (!chat.text) {
                     return false;
@@ -361,6 +366,16 @@ function useAutocompleteSuggestions({
             return filteredExpenseTypes.map((expenseType) => ({
                 filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPENSE_TYPE,
                 text: expenseType,
+            }));
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE: {
+            const filteredReceiptTypes = RECEIPT_TYPE_FRIENDLY_VALUES.filter(
+                (receiptType) => receiptType.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(receiptType),
+            ).sort();
+
+            return filteredReceiptTypes.map((receiptType) => ({
+                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.RECEIPT_TYPE,
+                text: receiptType,
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE: {

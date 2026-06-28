@@ -31,11 +31,10 @@ jobs:
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: authorChecklist.ts
-        # Internal Expensify engineers (org members/owners) skip the author checklist; external contributors still fill it out.
+        # Internal Expensify engineers skip the author checklist; external contributors still fill it out.
         if: |
           steps.gate.outputs.IS_AUTHORIZED == 'true'
-          && github.event.pull_request.author_association != 'MEMBER'
-          && github.event.pull_request.author_association != 'OWNER'
+          && steps.gate.outputs.IS_INTERNAL != 'true'
         uses: ./.github/actions/javascript/authorChecklist
         with:
           GITHUB_TOKEN: ${{ github.token }}

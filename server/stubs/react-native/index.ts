@@ -6,11 +6,12 @@
 // only need enough surface area for `victory-native` and `@shopify/react-native-skia`
 // modules to load without throwing while we walk the headless branch.
 //
-// Anything that escapes into the render tree (e.g. `<View>`) renders to `null`
-// so it cannot affect the Skia output.
+// UI primitives pass children through so layout wrappers and label containers
+// preserve the Skia subtree without mounting native views. Styles and layout
+// callbacks are ignored.
 import type {FunctionComponent, PropsWithChildren} from 'react';
 
-const noopComponent: FunctionComponent<PropsWithChildren<unknown>> = () => null;
+const passThroughComponent: FunctionComponent<PropsWithChildren<unknown>> = ({children}) => children;
 
 type LayoutChangeEvent = {nativeEvent: {layout: {x: number; y: number; width: number; height: number}}};
 type ViewStyle = Record<string, unknown>;
@@ -19,10 +20,11 @@ type TextStyle = Record<string, unknown>;
 type StyleProp<T> = T | T[] | null | undefined | false;
 type TransformsStyle = Record<string, unknown>;
 
-const View = noopComponent;
 type ImageResolvedAssetSource = {uri: string};
 
-const Image = Object.assign(noopComponent, {
+const View = passThroughComponent;
+
+const Image = Object.assign(passThroughComponent, {
     resolveAssetSource: (source: unknown): ImageResolvedAssetSource => {
         if (source && typeof source === 'object' && 'uri' in source) {
             const {uri} = source as {uri: unknown};
@@ -31,7 +33,8 @@ const Image = Object.assign(noopComponent, {
         return {uri: String(source)};
     },
 });
-const Text = noopComponent;
+
+const Text = passThroughComponent;
 
 const Platform = {
     OS: 'web' as const,
@@ -66,5 +69,21 @@ const TurboModuleRegistry = {
     getEnforcing: (): null => null,
 };
 
+const AppRegistry = {
+    registerComponent: () => {},
+    runApplication: () => {},
+};
+
+const AppState = {
+    addEventListener: () => ({remove: () => {}}),
+    currentState: 'active',
+};
+
+const NativeModules = {};
+
+const Dimensions = {
+    get: () => ({width: 680, height: 530, scale: 1, fontScale: 1}),
+};
+
 export type {LayoutChangeEvent, ViewStyle, ImageStyle, TextStyle, StyleProp, TransformsStyle};
-export {View, Image, Text, Platform, PixelRatio, StyleSheet, findNodeHandle, TurboModuleRegistry};
+export {AppRegistry, AppState, Dimensions, NativeModules, View, Image, Text, Platform, PixelRatio, StyleSheet, findNodeHandle, TurboModuleRegistry};

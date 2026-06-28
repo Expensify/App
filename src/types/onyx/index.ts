@@ -46,11 +46,10 @@ import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
-import type DeferredAgentWorkflowSave from './DeferredAgentWorkflowSave';
 import type {
     CardFeedErrorsDerivedValue,
+    FlaggedExpensesDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
-    OpenAndSubmittedReportsByPolicyIDDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     ReportAttributesDerivedValue,
@@ -113,7 +112,7 @@ import type Pages from './Pages';
 import type PendingConciergeResponse from './PendingConciergeResponse';
 import type {PendingContactAction} from './PendingContactAction';
 import type PersonalBankAccount from './PersonalBankAccount';
-import type {AddNewPersonalCard, PersonalCardFeed} from './PersonalCard';
+import type {AddNewPersonalCard} from './PersonalCard';
 import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
 import type PlaidData from './PlaidData';
@@ -143,7 +142,7 @@ import type ReportActionReactions from './ReportActionReactions';
 import type ReportActionsDraft from './ReportActionsDraft';
 import type ReportActionsDrafts from './ReportActionsDrafts';
 import type ReportLastVisitTimes from './ReportLastVisitTimes';
-import type {GroupedTransactions, ReportLayoutGroupBy} from './ReportLayout';
+import type {GroupedTransactions, ReportLayoutGroupBy, ReportLayoutOption, ReportLayoutSelection} from './ReportLayout';
 import type ReportLoadingState from './ReportLoadingState';
 import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
@@ -211,7 +210,6 @@ export type {
     Beta,
     AddNewPersonalCard,
     BetaConfiguration,
-    PersonalCardFeed,
     BlockedFromConcierge,
     Card,
     CardList,
@@ -314,6 +312,8 @@ export type {
     ReportPaginationState,
     ReportViolationName,
     ReportLayoutGroupBy,
+    ReportLayoutOption,
+    ReportLayoutSelection,
     GroupedTransactions,
     AnyRequest,
     Request,
@@ -364,7 +364,6 @@ export type {
     BillingStatus,
     CancellationDetails,
     ApprovalWorkflowOnyx,
-    DeferredAgentWorkflowSave,
     CardFeeds,
     CardFeedsStatus,
     CardFeedsStatusByDomainID,
@@ -395,7 +394,6 @@ export type {
     LastSearchParams,
     ReportTransactionsAndViolationsDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
-    OpenAndSubmittedReportsByPolicyIDDerivedValue,
     VisibleReportActionsDerivedValue,
     SortedReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
@@ -403,6 +401,7 @@ export type {
     CardFeedErrorsDerivedValue,
     TodosDerivedValue,
     TodoMetadata,
+    FlaggedExpensesDerivedValue,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     VacationDelegate,

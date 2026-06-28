@@ -39,7 +39,7 @@ import {
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import {getButtonRole} from './Button/utils';
 import DisplayNames from './DisplayNames';
@@ -201,7 +201,7 @@ function AvatarWithDisplayName({
     const isReportArchived = useReportIsArchived(report?.reportID);
     const title = getReportName(report, reportAttributes);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
-    const subtitle = getChatRoomSubtitle(report, policy, true, isReportArchived);
+    const subtitle = getChatRoomSubtitle(report, policy, conciergeReportID, true, isReportArchived);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, isParentReportArchived, reportAttributes);
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
     const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
@@ -251,7 +251,7 @@ function AvatarWithDisplayName({
         }
 
         if (isIOUReport(report) && report?.reportID) {
-            Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report.reportID));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS.path));
             return;
         }
 
