@@ -1,4 +1,4 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -144,13 +144,8 @@ function IOURequestStepDistanceManual({
     const distanceInMeters = getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit ? transaction.comment.customUnit.distanceUnit : unit);
     const distance = typeof transaction?.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit)) : undefined;
 
-    const isFocused = useIsFocused();
-    const isSavingRef = useRef(false);
-    useDiscardChangesConfirmation({
+    const {notifySaving} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => {
-            if (!isFocused || isSavingRef.current) {
-                return false;
-            }
             const typedDistance = numberFormRef.current?.getNumber() ?? '';
             return typedDistance !== (distance?.toString() ?? '');
         },
@@ -182,7 +177,6 @@ function IOURequestStepDistanceManual({
     }, [distance, selectedTab]);
 
     useFocusEffect(() => {
-        isSavingRef.current = false;
         focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
         return () => {
             if (!focusTimeoutRef.current) {
@@ -300,7 +294,7 @@ function IOURequestStepDistanceManual({
             return;
         }
 
-        isSavingRef.current = true;
+        notifySaving();
         navigateToNextPage(value);
     };
 

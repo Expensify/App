@@ -1,4 +1,4 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
@@ -122,13 +122,8 @@ function IOURequestStepAmount({
     const [selectedCurrency, setSelectedCurrency] = useState(originalCurrency);
     const decimals = getCurrencyDecimals(selectedCurrency || CONST.CURRENCY.USD);
 
-    const isFocused = useIsFocused();
-    const isSavingRef = useRef(false);
-    useDiscardChangesConfirmation({
+    const {notifySaving} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => {
-            if (!isFocused || isSavingRef.current) {
-                return false;
-            }
             const typedAmount = amountFormRef.current?.getNumber() ?? '';
             const typedAmountInBackendUnits = typedAmount ? convertToBackendAmount(Number.parseFloat(typedAmount)) : 0;
             return typedAmountInBackendUnits !== transactionAmount || selectedCurrency !== originalCurrency;
@@ -153,7 +148,6 @@ function IOURequestStepAmount({
 
     useFocusEffect(
         useCallback(() => {
-            isSavingRef.current = false;
             if (isCurrencyPickerVisible) {
                 return;
             }
@@ -177,7 +171,7 @@ function IOURequestStepAmount({
     };
 
     const handleSubmit = ({amount, paymentMethod}: {amount: string; paymentMethod?: PaymentMethodType}) => {
-        isSavingRef.current = true;
+        notifySaving();
         submitAmount({
             report,
             transaction,

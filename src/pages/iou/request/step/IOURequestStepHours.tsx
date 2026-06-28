@@ -1,4 +1,4 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import Button from '@components/Button';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
@@ -70,7 +70,6 @@ function IOURequestStepHours({
     const textInputRef = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const moneyRequestTimeInputRef = useRef<NumberWithSymbolFormRef | null>(null);
-    const isSavingRef = useRef(false);
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
     const [formError, setFormError] = useState('');
@@ -81,12 +80,8 @@ function IOURequestStepHours({
         moneyRequestTimeInputRef.current?.updateNumber(`${transaction?.comment?.units?.count ?? ''}`);
     }, [selectedTab, transaction?.comment?.units?.count]);
 
-    const isFocused = useIsFocused();
-    useDiscardChangesConfirmation({
+    const {notifySaving} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => {
-            if (!isFocused || isSavingRef.current) {
-                return false;
-            }
             const typedCount = moneyRequestTimeInputRef.current?.getNumber() ?? '';
             return typedCount !== `${transaction?.comment?.units?.count ?? ''}`;
         },
@@ -96,7 +91,6 @@ function IOURequestStepHours({
     });
 
     useFocusEffect(() => {
-        isSavingRef.current = false;
         focusTimeoutRef.current = setTimeout(() => textInputRef.current?.focus(), CONST.ANIMATED_TRANSITION);
         return () => {
             if (!focusTimeoutRef.current) {
@@ -119,7 +113,7 @@ function IOURequestStepHours({
             return;
         }
 
-        isSavingRef.current = true;
+        notifySaving();
         setMoneyRequestAmount(transactionID, computeTimeAmount(rate, count), currency);
         setMoneyRequestMerchant(transactionID, formatTimeMerchant(count, rate, currency, translate, convertToDisplayString), isTransactionDraft);
         setMoneyRequestTimeCount(transactionID, count, isTransactionDraft);
@@ -188,7 +182,7 @@ function IOURequestStepHours({
                         style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
                         onPress={() => {
                             if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
-                                isSavingRef.current = true;
+                                notifySaving();
                                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                                 return;
                             }

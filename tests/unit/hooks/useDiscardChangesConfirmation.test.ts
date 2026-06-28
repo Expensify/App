@@ -1,5 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 import {withInternalPopstate} from '@components/Modal/internalPopstateGuard';
+import type {DiscardChangesConfirmation} from '@hooks/useDiscardChangesConfirmation/types';
 import type UseDiscardChangesConfirmationOptions from '@hooks/useDiscardChangesConfirmation/types';
 
 type MockBeforeRemoveEvent = {
@@ -13,6 +14,13 @@ jest.mock('@hooks/useBeforeRemove', () => ({
     __esModule: true,
     default: (callback: (e: MockBeforeRemoveEvent) => void) => {
         mockBeforeRemoveCallback = callback;
+    },
+}));
+
+jest.mock('@react-navigation/native', () => ({
+    useIsFocused: () => true,
+    useFocusEffect: (callback: () => undefined | (() => void)) => {
+        jest.requireActual<{useEffect: (effect: () => undefined | (() => void), deps: unknown[]) => void}>('react').useEffect(callback, []);
     },
 }));
 
@@ -53,7 +61,7 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
     },
 }));
 
-type DiscardHookModule = {default: (options: UseDiscardChangesConfirmationOptions) => void};
+type DiscardHookModule = {default: (options: UseDiscardChangesConfirmationOptions) => DiscardChangesConfirmation};
 
 // Jest resolves platform extensions native-first, so the web implementation is loaded explicitly
 const useDiscardChangesConfirmation = jest.requireActual<DiscardHookModule>('@hooks/useDiscardChangesConfirmation/index.ts').default;
@@ -256,6 +264,22 @@ describe('useDiscardChangesConfirmation (web)', () => {
 
             expect(event.defaultPrevented).toBe(false);
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        });
+
+        it('suppresses the prompt while a save is in progress, and re-arms when notified it ended', () => {
+            const {result} = renderDiscardHook(() => true);
+
+            act(() => result.current.notifySaving());
+            const duringSave = invokeBeforeRemove('RESET');
+
+            expect(duringSave.defaultPrevented).toBe(false);
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+
+            act(() => result.current.notifySaving(false));
+            const afterSave = invokeBeforeRemove('RESET');
+
+            expect(afterSave.defaultPrevented).toBe(true);
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         });
     });
 

@@ -1,4 +1,5 @@
 import type {NavigationAction} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {isInternalPopstateInProgress} from '@components/Modal/internalPopstateGuard';
@@ -8,9 +9,10 @@ import useLocalize from '@hooks/useLocalize';
 import Log from '@libs/Log';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import navigationRef from '@libs/Navigation/navigationRef';
+import type {DiscardChangesConfirmation} from './types';
 import type UseDiscardChangesConfirmationOptions from './types';
 
-function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibilityChange, onConfirm}: UseDiscardChangesConfirmationOptions) {
+function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibilityChange, onConfirm}: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
     const {translate} = useLocalize();
     const {showConfirmModal, closeModal} = useConfirmModal();
     const blockedNavigationAction = useRef<NavigationAction>(undefined);
@@ -19,6 +21,14 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
     const isRestoringHistory = useRef(false);
     const didPreventResetOnPopstate = useRef(false);
     const shouldDismissModalOnRestore = useRef(false);
+
+    // Only the focused screen should prompt — a flow-leave reset fires `beforeRemove` for hidden siblings too.
+    const isFocused = useIsFocused();
+    const isSavingRef = useRef(false);
+    useFocusEffect(() => {
+        isSavingRef.current = false;
+    });
+    const hasUnsavedChanges = () => isFocused && !isSavingRef.current && getHasUnsavedChanges();
 
     const navigateBack = () => {
         if (!blockedNavigationAction.current) {
@@ -71,7 +81,7 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
             return;
         }
 
-        if (!getHasUnsavedChanges()) {
+        if (!hasUnsavedChanges()) {
             return;
         }
 
@@ -133,6 +143,12 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
         window.addEventListener('popstate', handlePopState);
         return () => window.removeEventListener('popstate', handlePopState);
     }, []);
+
+    const notifySaving = (isSaving = true) => {
+        isSavingRef.current = isSaving;
+    };
+
+    return {notifySaving};
 }
 
 export default useDiscardChangesConfirmation;

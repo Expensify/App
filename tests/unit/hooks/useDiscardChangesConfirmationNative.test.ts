@@ -11,6 +11,7 @@ jest.mock('@react-navigation/native', () => ({
         mockPreventRemoveFlag = flag;
         mockPreventRemoveCallback = callback;
     },
+    useIsFocused: () => true,
     // Focus effects behave like plain effects in these tests — the screen is always focused
     useFocusEffect: (callback: () => undefined | (() => void)) => {
         jest.requireActual<{useEffect: (effect: () => undefined | (() => void), deps: unknown[]) => void}>('react').useEffect(callback, [callback]);

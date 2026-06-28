@@ -1,4 +1,3 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -157,19 +156,8 @@ function IOURequestStepDistance({
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, currentTransaction);
 
-    const isFocused = useIsFocused();
-    const isSavingRef = useRef(false);
-    useDiscardChangesConfirmation({
-        getHasUnsavedChanges: () => {
-            if (!isCreatingNewRequest || !isFocused || isSavingRef.current) {
-                return false;
-            }
-            return doesMoneyRequestDraftHaveUserInput(transaction);
-        },
-    });
-
-    useFocusEffect(() => {
-        isSavingRef.current = false;
+    const {notifySaving} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => isCreatingNewRequest && doesMoneyRequestDraftHaveUserInput(transaction),
     });
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -510,7 +498,7 @@ function IOURequestStepDistance({
             return;
         }
 
-        isSavingRef.current = true;
+        notifySaving();
         navigateToNextStep();
     }, [
         duplicateWaypointsError,
@@ -522,6 +510,7 @@ function IOURequestStepDistance({
         isCreatingNewRequest,
         navigateToNextStep,
         navigateBackAfterSave,
+        notifySaving,
         isEditingSplit,
         originalSplitTransactionDraft,
         transactionBackup,
