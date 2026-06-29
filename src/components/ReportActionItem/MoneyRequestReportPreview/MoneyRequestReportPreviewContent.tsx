@@ -41,6 +41,7 @@ import {
     getNonHeldAndFullAmount,
     getPolicyName,
     getReportStatusColorStyle,
+    getReportStatusTooltipTranslation,
     getReportStatusTranslation,
     getTransactionsWithReceipts,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
@@ -321,6 +322,16 @@ function MoneyRequestReportPreviewContent({
     const reportStatusColorStyle = useMemo(
         () => getReportStatusColorStyle(theme, iouReport?.stateNum ?? action?.childStateNum, iouReport?.statusNum ?? action?.childStatusNum),
         [action?.childStateNum, action?.childStatusNum, iouReport?.stateNum, iouReport?.statusNum, theme],
+    );
+
+    const reportStatusTooltip = useMemo(
+        () =>
+            getReportStatusTooltipTranslation({
+                stateNum: iouReport?.stateNum ?? action?.childStateNum,
+                statusNum: iouReport?.statusNum ?? action?.childStatusNum,
+                translate,
+            }),
+        [action?.childStateNum, action?.childStatusNum, iouReport?.stateNum, iouReport?.statusNum, translate],
     );
 
     const totalAmountStyle = shouldUseNarrowLayout ? [styles.flexColumnReverse, styles.alignItemsStretch] : [styles.flexRow, styles.alignItemsCenter];
@@ -687,6 +698,7 @@ function MoneyRequestReportPreviewContent({
                                                                     backgroundColor={reportStatusColorStyle?.backgroundColor}
                                                                     textColor={reportStatusColorStyle?.textColor}
                                                                     badgeStyles={styles.mr1}
+                                                                    tooltipText={reportStatusTooltip}
                                                                 />
                                                             )}
                                                             {!shouldShowAccessPlaceHolder && <Text style={[styles.textLabelSupporting, styles.lh16]}>{expenseCount}</Text>}
