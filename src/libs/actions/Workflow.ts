@@ -281,8 +281,7 @@ type SetApprovalWorkflowRulesParams = {
 
     /**
      * Diff to apply to `Policy.rules.approvalWorkflows`. A value of `ApprovalWorkflowRule`
-     * upserts the rule under its `ruleID`; a value of `null` removes it. Produced by the
-     * `reconcileApprovalWorkflowRules*` helpers in `WorkflowUtils`.
+     * sets/replaces the rule under its `ruleID`; a value of `null` removes it
      */
     rulesDiff: ApprovalWorkflowRulesDiff;
 
@@ -291,11 +290,9 @@ type SetApprovalWorkflowRulesParams = {
 };
 
 /**
- * Apply a set of approval-workflow rule changes to a policy via the new SetApprovalWorkflow
- * Auth command. Mirrors the optimistic/success/failure dance of `createApprovalWorkflow`,
- * but operates on `rules.approvalWorkflows` instead of `employeeList`.
+ * Apply a set of approval-workflow rule changes to a policy via the SetApprovalWorkflow
+ * Auth command.
  *
- * No-op when `rulesDiff` is empty — there's nothing to send to the backend.
  */
 function setApprovalWorkflowRules({policyID, rulesDiff, previousApprovalWorkflows}: SetApprovalWorkflowRulesParams) {
     if (!policyID || isEmptyObject(rulesDiff)) {
@@ -304,9 +301,7 @@ function setApprovalWorkflowRules({policyID, rulesDiff, previousApprovalWorkflow
 
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
 
-    // Build the rollback shape: for every rule we're about to touch, either restore the
-    // previous value (if one existed) or clear the optimistic upsert with `null`. Without
-    // the explicit `null`s, newly-added rules would survive the failure rollback.
+    // Build the rollback shape
     const failureApprovalWorkflows: Record<string, ApprovalWorkflowRule | null> = {};
     for (const ruleID of Object.keys(rulesDiff)) {
         failureApprovalWorkflows[ruleID] = previousApprovalWorkflows[ruleID] ?? null;
@@ -355,10 +350,7 @@ function setApprovalWorkflowRules({policyID, rulesDiff, previousApprovalWorkflow
 }
 
 /**
- * Create an approval workflow using the new rules-based backend (SetApprovalWorkflow), gated
- * behind the `multipleApprovers` beta. Mirrors `createApprovalWorkflow`'s signature and its
- * onboarding-task side-effect, but writes to `Policy.rules.approvalWorkflows` instead of
- * `employeeList`.
+ * Create an approval workflow using the rules-based backend structure,
  */
 function createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprovalsTaskReport}: CreateApprovalWorkflowParams) {
     if (!policy) {
@@ -395,14 +387,7 @@ type UpdateApprovalWorkflowRulesParams = {
 };
 
 /**
- * Update an existing workflow using the new rules-based backend, gated behind the `multipleApprovers`
- * beta. A single edit can change both the membership and the approver chain, so we reconcile in two
- * composable steps against the existing `rules.approvalWorkflows`:
- *   1. Membership: add joiners / drop leavers across the workflow's rules (so an added member lands in
- *      the same rules and stays in the same workflow rather than splitting off).
- *   2. Chain: reconcile the (possibly changed) approver chain against the membership-updated rules.
- * The two diffs are merged (the chain diff, computed against the membership-updated rules, wins on
- * overlap) and sent as one SetApprovalWorkflow command.
+ * Update an existing workflow using the rules-based backend structure
  */
 function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow, policy}: UpdateApprovalWorkflowRulesParams) {
     if (!policy) {
@@ -414,8 +399,7 @@ function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow,
     const newMemberEmails = approvalWorkflow.members.map((member) => member.email).filter((email): email is string => !!email);
 
     // 1. A submitter can only belong to one workflow, so drop joining members (those not previously in
-    // this workflow) from any OTHER workflow's rules first. Joiners aren't in this workflow's rules
-    // yet, so this only touches other workflows.
+    // this workflow) from any OTHER workflow's rules first.
     const joiningMemberEmails = newMemberEmails.filter((email) => !previousMemberEmails.includes(email));
     const removeFromOthersDiff = reconcileApprovalWorkflowRulesForRemove(joiningMemberEmails, {existingRules});
     const rulesAfterRemoval = applyApprovalWorkflowRulesDiff(existingRules, removeFromOthersDiff);
@@ -424,7 +408,7 @@ function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow,
     const memberDiff = reconcileApprovalWorkflowRulesForMembersChange(previousMemberEmails, newMemberEmails, {existingRules: rulesAfterRemoval});
     const rulesAfterMembers = applyApprovalWorkflowRulesDiff(rulesAfterRemoval, memberDiff);
 
-    // 3. Reconcile the approver chain against the membership-updated rules.
+    // 3. Reconcile the approver chain with the membership-updated rules.
     const newRules = buildApprovalWorkflowRules(approvalWorkflow);
     const chainDiff = reconcileApprovalWorkflowRulesForEdit(newRules, newMemberEmails, {existingRules: rulesAfterMembers});
 
@@ -434,9 +418,7 @@ function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow,
 }
 
 /**
- * Delete a workflow using the new rules-based backend, gated behind the `multipleApprovers` beta.
- * Strips the workflow's members from every rule's `from` filter and removes any rule that ends up
- * with no submitters, via the SetApprovalWorkflow command.
+ * Delete an approval workflow using the rules-based backend structure, gated behind the `multipleApprovers` beta.
  */
 function removeApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow, policy: OnyxEntry<Policy>) {
     if (!policy) {
