@@ -45,6 +45,9 @@ const testConfig = {
     },
 };
 
+// getSimplePaths reaches every state. The lifecycle paths add the MODAL_CLOSED teardown that simple paths skip.
+const walkedPaths = [...testModel.getSimplePaths(), ...testModel.getLifecyclePaths()];
+
 describe('the real MFA modal follows the machine', () => {
     beforeEach(() => {
         resetMfaUiMocks();
@@ -55,16 +58,25 @@ describe('the real MFA modal follows the machine', () => {
         jest.clearAllMocks();
     });
 
-    // getSimplePaths reaches every state. The lifecycle paths add the MODAL_CLOSED teardown that simple paths skip.
-    const paths = [...testModel.getSimplePaths(), ...testModel.getLifecyclePaths()];
-
-    for (const path of paths) {
+    for (const path of walkedPaths) {
         it(`reaches ${JSON.stringify(path.state.value)} via [${path.description}]`, async () => {
             renderMfaUi();
             await flushMfaUi();
             await path.test(testConfig);
         });
     }
+});
+
+// Loud UI-walk counterpart to everyStateReachable: every settleable leaf must be the endpoint of a path we
+// actually drive. The walk only asserts states a generated path reaches, so a leaf that stops being reached
+// (e.g. a future guard needs a payload the bare-synthesized event lacks) would silently drop its coverage.
+// Asserting reachability over walkedPaths turns that silent drop into a failure that names the leaf.
+describe('the UI walk reaches every settleable leaf', () => {
+    const walkedLeafValues = walkedPaths.map((path) => path.state.value);
+
+    it.each(getSettleableLeafStates(mfaMachine))('walks the $description state', ({value}) => {
+        expect(walkedLeafValues.some((reached) => matchesState(value, reached))).toBe(true);
+    });
 });
 
 // assertMatchingStates runs only the entries whose key matches the reached state, so if no key matches a
