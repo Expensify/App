@@ -1018,6 +1018,7 @@ const translations: TranslationDeepObject<typeof en> = {
             inviteAccountant: 'Invita a tu contador',
             linkCompanyCards: 'Vincular tarjetas corporativas',
             setupRules: 'Configurar reglas de gasto',
+            talkToAccountExecutive: 'Habla con tu ejecutivo de cuenta',
         },
         upcomingTravel: 'Próximos viajes',
         upcomingTravelSection: {
