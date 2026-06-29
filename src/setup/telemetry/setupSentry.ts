@@ -30,9 +30,9 @@ function setupSentry(): void {
         beforeSendTransaction: processBeforeSendTransactions,
         enableLogs: true,
         beforeSendLog: processBeforeSendLogs,
-        // In HybridApp, native SDK is initialized early in Application.onCreate (Android) and
-        // AppDelegate (iOS) to capture breadcrumbs during native startup before JS loads.
-        autoInitializeNativeSdk: !CONFIG.IS_HYBRID_APP,
+        // Native SDK is initialized early in Application.onCreate (Android) and AppDelegate (iOS)
+        // via SentryNativeSDKManager so native code can report to Sentry before JS loads.
+        autoInitializeNativeSdk: false,
         // We set experimental lifecycle value to enable profiling for whole spans. Without this option profile often is dropped early and we haven't the whole picture
         // See https://github.com/Expensify/App/issues/87489
         // eslint-disable-next-line @typescript-eslint/naming-convention
