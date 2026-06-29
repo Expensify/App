@@ -1,25 +1,12 @@
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
+import React from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {downloadExpensifyCardStatementPDF} from '@libs/ExpensifyCardStatementUtils';
 import type {ExpensifyCardStatementParams} from '@libs/ExpensifyCardStatementUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ActivityIndicator from './ActivityIndicator';
-import Button from './Button';
-import Header from './Header';
-import Icon from './Icon';
-import Modal from './Modal';
-import {PressableWithFeedback} from './Pressable';
-import Text from './Text';
+import PDFDownloadModal from './PDFDownloadModal';
 
 type ExpensifyCardStatementPDFDownloadModalProps = {
     statementParams: ExpensifyCardStatementParams;
@@ -29,105 +16,40 @@ type ExpensifyCardStatementPDFDownloadModalProps = {
 };
 
 function ExpensifyCardStatementPDFDownloadModal({statementParams, isVisible, onClose, onModalHide}: ExpensifyCardStatementPDFDownloadModalProps) {
-    const shouldAutoDownloadPDF = useRef(false);
-
     const [expensifyCardStatement] = useOnyx(ONYXKEYS.EXPENSIFY_CARD_STATEMENT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
-    // We need to use isSmallScreenWidth here because the Modal breaks in RHP with shouldUseNarrowLayout.
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const styles = useThemeStyles();
-    const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close']);
-
     const {environment} = useEnvironment();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserLogin = currentUserPersonalDetails?.login ?? '';
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
+
     const statementKey = statementParams.statementKey;
     const isGeneratingPDF = expensifyCardStatement?.isGenerating === true;
     const statementFileName = statementKey ? expensifyCardStatement?.[statementKey] : undefined;
     const hasFinishedPDFDownload = !!statementKey && !isGeneratingPDF && typeof statementFileName === 'string' && statementFileName.length > 0;
-
-    const messagePDF = hasFinishedPDFDownload ? translate('reportDetailsPage.successPDF') : translate('reportDetailsPage.waitForPDF');
-
-    useEffect(() => {
-        shouldAutoDownloadPDF.current = isVisible;
-    }, [isVisible]);
-
-    useEffect(() => {
-        if (!isVisible || !shouldAutoDownloadPDF.current || !hasFinishedPDFDownload || !statementKey || !statementFileName) {
-            return;
-        }
-
-        downloadExpensifyCardStatementPDF(translate, statementFileName, statementKey, currentUserLogin, encryptedAuthToken, environment);
-        shouldAutoDownloadPDF.current = false;
-    }, [currentUserLogin, encryptedAuthToken, environment, hasFinishedPDFDownload, isVisible, statementFileName, statementKey, translate]);
-
-    const pdfLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'SearchBulkActions.ExpensifyCardStatementPDFModal',
-    };
+    const message = hasFinishedPDFDownload ? translate('reportDetailsPage.successPDF') : translate('reportDetailsPage.waitForPDF');
 
     return (
-        <Modal
+        <PDFDownloadModal
+            isVisible={isVisible}
             onClose={onClose}
             onModalHide={onModalHide}
-            isVisible={isVisible}
-            type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
-            innerContainerStyle={styles.pv0}
-        >
-            <View style={[styles.flexRow, styles.m5]}>
-                <View style={[styles.flex1]}>
-                    <View style={[styles.flexRow, styles.mb4]}>
-                        <View style={[styles.flex1]}>
-                            <View style={[styles.flexRow]}>
-                                <Header title={translate('reportDetailsPage.generatingPDF')} />
-                            </View>
-                            <Text style={[styles.mt5, styles.textAlignLeft]}>{messagePDF}</Text>
-                        </View>
-
-                        {!hasFinishedPDFDownload && (
-                            <View style={[styles.dFlex, styles.justifyContentEnd]}>
-                                <ActivityIndicator
-                                    size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
-                                    color={theme.textSupporting}
-                                    style={styles.ml3}
-                                    reasonAttributes={pdfLoadingReasonAttributes}
-                                />
-                            </View>
-                        )}
-                    </View>
-                    <Button
-                        style={[styles.mt3, styles.noSelect]}
-                        success={hasFinishedPDFDownload}
-                        onPress={() => {
-                            if (!hasFinishedPDFDownload || !statementKey || !statementFileName) {
-                                onClose();
-                                return;
-                            }
-
-                            downloadExpensifyCardStatementPDF(translate, statementFileName, statementKey, currentUserLogin, encryptedAuthToken, environment);
-                            onClose();
-                        }}
-                        text={hasFinishedPDFDownload ? translate('common.download') : translate('common.cancel')}
-                    />
-                </View>
-                <PressableWithFeedback
-                    onPress={onClose}
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.close')}
-                    wrapperStyle={[styles.pAbsolute, styles.r0]}
-                    sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.CLOSE_PDF_MODAL}
-                >
-                    <Icon
-                        src={expensifyIcons.Close}
-                        fill={theme.icon}
-                    />
-                </PressableWithFeedback>
-            </View>
-        </Modal>
+            hasFinishedPDFDownload={hasFinishedPDFDownload}
+            message={message}
+            loadingReasonContext="SearchBulkActions.ExpensifyCardStatementPDFModal"
+            shouldCloseOnDownload
+            shouldUseSuccessButton
+            onDownloadPDF={() => {
+                if (!statementKey || !statementFileName) {
+                    return;
+                }
+                downloadExpensifyCardStatementPDF(translate, statementFileName, statementKey, currentUserLogin, encryptedAuthToken, environment);
+            }}
+        />
     );
 }
+
+ExpensifyCardStatementPDFDownloadModal.displayName = 'ExpensifyCardStatementPDFDownloadModal';
 
 export default ExpensifyCardStatementPDFDownloadModal;
