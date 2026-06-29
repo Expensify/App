@@ -3,7 +3,6 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Policy, Report, ReportAction, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
-import {canIOUBePaid as canIOUBePaidAction} from './actions/IOU/ReportWorkflow';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     getSubmitToAccountID,
@@ -92,6 +91,7 @@ type IsPrimaryPayActionParams = {
     invoiceReceiverPolicy?: Policy;
     reportActions?: ReportAction[];
     isSecondaryAction?: boolean;
+    canNonPayerAdminPay?: boolean;
 };
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived: boolean) {
@@ -206,6 +206,7 @@ function isPrimaryPayAction({
     invoiceReceiverPolicy,
     reportActions,
     isSecondaryAction,
+    canNonPayerAdminPay,
 }: IsPrimaryPayActionParams) {
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
@@ -215,6 +216,8 @@ function isPrimaryPayAction({
         return false;
     }
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, report, bankAccountList, policy, false);
+    const canPayReport =
+        isReportPayer || (canNonPayerAdminPay && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && isPolicyAdminPolicyUtils(policy));
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);
@@ -230,7 +233,7 @@ function isPrimaryPayAction({
     const {reimbursableSpend, nonReimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
     if (
-        isReportPayer &&
+        canPayReport &&
         isExpenseReport &&
         arePaymentsEnabled &&
         isReportFinished &&
@@ -245,7 +248,7 @@ function isPrimaryPayAction({
 
     const isIOUReport = isIOUReportUtils(report);
 
-    if (isIOUReport && isReportPayer && reimbursableSpend > 0) {
+    if (isIOUReport && canPayReport && reimbursableSpend > 0) {
         return true;
     }
 
@@ -480,9 +483,6 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     }
 
     const allExpensesHeld = hasOnlyHeldExpenses(reportTransactions);
-    const isExported = isExportedUtil(reportActions, report);
-    const hasExportError = hasExportErrorUtil(reportActions, report);
-    const didExportFail = !isExported && hasExportError;
     const isPayActionWithAllExpensesHeld =
         isPrimaryPayAction({
             report,
@@ -523,10 +523,19 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     }
 
     if (
-        canIOUBePaidAction(report, chatReport, policy, bankAccountList, currentUserLogin, currentUserAccountID, reportTransactions, false, reportNameValuePairs, invoiceReceiverPolicy) &&
-        // For invoice reports, also require a positive reimbursable amount because canIOUBePaid does not check invoice totals.
-        (!isInvoiceReportUtils(report) || getMoneyRequestSpendBreakdown(report).reimbursableSpend > 0) &&
-        !didExportFail &&
+        isPrimaryPayAction({
+            report,
+            reportTransactions,
+            currentUserAccountID,
+            currentUserLogin,
+            bankAccountList,
+            policy,
+            reportNameValuePairs,
+            isChatReportArchived,
+            invoiceReceiverPolicy,
+            reportActions,
+            canNonPayerAdminPay: true,
+        }) &&
         !allExpensesHeld
     ) {
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;

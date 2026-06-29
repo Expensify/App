@@ -603,7 +603,7 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
         return false;
     }
 
-    const reimburserEmail = policy.achAccount?.reimburser;
+    const reimburserEmail = policy.achAccount?.reimburser ?? (isManualReimbursement ? policy.owner : undefined);
 
     // No designated reimburser means any workspace admin can pay.
     if (!reimburserEmail) {
