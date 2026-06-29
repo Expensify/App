@@ -918,6 +918,12 @@ jobs:
                 --target "${{ env.DEPLOY_ENV }}"; then
                 break
               fi
+
+              # A transient GitHub error during create doesn't necessarily mean the release failed; it may have been created anyway, so a later "already exists" error means it's present.
+              if gh release view "${{ needs.prep.outputs.TAG }}" --repo "${{ github.repository }}" &> /dev/null; then
+                echo "Release ${{ needs.prep.outputs.TAG }} exists despite a create error (likely a transient 502), treating as success."
+                break
+              fi
               if [[ $i -lt $CREATE_MAX_RETRIES ]]; then
                 echo "Failed to create release. Retrying in 3 seconds... ($((CREATE_MAX_RETRIES - i)) attempts left)"
                 sleep 3

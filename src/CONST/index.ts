@@ -270,7 +270,6 @@ const CONST = {
     POPOVER_DROPDOWN_MAX_HEIGHT: 416,
     POPOVER_MENU_MAX_HEIGHT: 496,
     POPOVER_MENU_MAX_HEIGHT_MOBILE: 432,
-    MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD: 8,
     POPOVER_DATE_WIDTH: 338,
     POPOVER_DATE_RANGE_WIDTH: 672,
     POPOVER_DATE_MAX_HEIGHT: 366,
@@ -1333,7 +1332,7 @@ const CONST = {
     ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement',
     DOMAIN_VERIFICATION_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Claim-and-Verify-a-Domain',
     SAML_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/domains/Set-Up-SAML-SSO',
-    TRAVEL_INVOICING_HELP_URL: 'https://help.expensify.com/articles/travel/travel-invoicing/Enable-Travel-Invoicing-in-a-Workspace',
+    TRAVEL_INVOICING_HELP_URL: 'https://help.expensify.com/articles/travel/consolidated-travel-billing/Enable-Consolidated-Travel-Billing-in-a-Workspace',
     REGISTER_FOR_WEBINAR_URL: 'https://events.zoom.us/eo/Aif1I8qCi1GZ7KnLnd1vwGPmeukSRoPjFpyFAZ2udQWn0-B86e1Z~AggLXsr32QYFjq8BlYLZ5I06Dg',
     UNLOCK_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Unlock-a-Business-Bank-Account',
     // Use Environment.getEnvironmentURL to get the complete URL with port number
@@ -5862,6 +5861,10 @@ const CONST = {
         // Fake history entry used to keep browser Back behavior correct after revealing a route under an RHP.
         // addRootHistoryRouterExtension owns when this is added, carried forward, and removed.
         CUSTOM_HISTORY_ENTRY_REVEAL_PADDING: 'CUSTOM_HISTORY-REVEAL_PADDING',
+        // Prefix for the back-guard history entry pushed by a `shouldHandleNavigationBack` Modal. Each
+        // modal instance appends `${CUSTOM_HISTORY_ENTRY_MODAL}:${modalId}` to the root state.history so
+        // browser Back closes the modal; the per-instance tag lets nested modals close one at a time.
+        CUSTOM_HISTORY_ENTRY_MODAL: 'CUSTOM_HISTORY-MODAL',
         ACTION_TYPE: {
             REPLACE: 'REPLACE',
             PUSH: 'PUSH',
@@ -5877,12 +5880,11 @@ const CONST = {
             DISMISS_MODAL: 'DISMISS_MODAL',
             REPLACE_FULLSCREEN_UNDER_RHP: 'REPLACE_FULLSCREEN_UNDER_RHP',
             REMOVE_FULLSCREEN_UNDER_RHP: 'REMOVE_FULLSCREEN_UNDER_RHP',
-            OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
-            OPEN_DOMAIN_SPLIT: 'OPEN_DOMAIN_SPLIT',
             PUSH_PARAMS: 'PUSH_PARAMS',
             REPLACE_PARAMS: 'REPLACE_PARAMS',
             TOGGLE_SIDE_PANEL_WITH_HISTORY: 'TOGGLE_SIDE_PANEL_WITH_HISTORY',
             TOGGLE_MFA_MODAL_NAVIGATOR_WITH_HISTORY: 'TOGGLE_MFA_MODAL_NAVIGATOR_WITH_HISTORY',
+            TOGGLE_MODAL_WITH_HISTORY: 'TOGGLE_MODAL_WITH_HISTORY',
         },
     },
     TIME_PERIOD: {
@@ -6409,6 +6411,11 @@ const CONST = {
             PER_DIEM: 'perDiem',
             TIME: 'time',
         },
+        RECEIPT_TYPE: {
+            ERECEIPT: 'ereceipt',
+            ITEMIZED: 'itemized',
+            HOTEL: 'hotel',
+        },
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
@@ -6788,6 +6795,7 @@ const CONST = {
             DATE: 'date',
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expenseType',
+            RECEIPT_TYPE: 'receiptType',
             CURRENCY: 'currency',
             GROUP_CURRENCY: 'groupCurrency',
             MERCHANT: 'merchant',
@@ -6801,6 +6809,7 @@ const CONST = {
             TAX_RATE: 'taxRate',
             CARD_ID: 'cardID',
             FEED: 'feed',
+            BANK_ACCOUNT: 'bankAccount',
             REPORT_ID: 'reportID',
             KEYWORD: 'keyword',
             IN: 'in',
@@ -6863,6 +6872,7 @@ const CONST = {
             AMOUNT: 'amount',
             TOTAL: 'total',
             EXPENSE_TYPE: 'expense-type',
+            RECEIPT_TYPE: 'receipt-type',
             CURRENCY: 'currency',
             GROUP_CURRENCY: 'group-currency',
             MERCHANT: 'merchant',
@@ -6876,6 +6886,7 @@ const CONST = {
             TAX_RATE: 'tax-rate',
             CARD_ID: 'card',
             FEED: 'feed',
+            BANK_ACCOUNT: 'bank-account',
             REPORT_ID: 'report-id',
             KEYWORD: 'keyword',
             IN: 'in',
@@ -8588,6 +8599,9 @@ const CONST = {
             GROUPS: {
                 CREATE_GROUP_BUTTON: 'DomainGroups-CreateGroupButton',
                 ROW: 'DomainGroups-Row',
+            },
+            MEMBERS: {
+                ROW: 'DomainMembers-Row',
             },
         },
     },
