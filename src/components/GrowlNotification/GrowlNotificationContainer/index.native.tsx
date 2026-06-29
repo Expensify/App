@@ -5,11 +5,11 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type GrowlNotificationContainerProps from './types';
 
-function GrowlNotificationContainer({children, translateY}: GrowlNotificationContainerProps) {
+function GrowlNotificationContainer({children, progress, inactiveY}: GrowlNotificationContainerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const insets = useSafeAreaInsets();
-    const animatedStyles = useAnimatedStyle(() => styles.growlNotificationTranslateY(translateY));
+    const animatedStyles = useAnimatedStyle(() => ({transform: [{translateY: inactiveY * (1 - progress.get())}]}), [inactiveY]);
 
     return <Animated.View style={[StyleUtils.getPlatformSafeAreaPadding(insets), styles.growlNotificationContainer, animatedStyles]}>{children}</Animated.View>;
 }
