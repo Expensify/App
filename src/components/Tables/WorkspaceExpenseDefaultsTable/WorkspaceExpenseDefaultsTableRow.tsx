@@ -12,7 +12,6 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -49,11 +48,6 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
     const tableRowItem = processedData.at(rowIndex) ?? item;
     const isDeleting = tableRowItem.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'WorkspaceExpenseDefaultsTableItem',
-        isDeleting,
-    };
-
     const accessibilityLabel = `${tableRowItem.typeLabel}. ${tableRowItem.conditionText}. ${tableRowItem.ruleDescription}`;
     const badgeColors = tableRowItem.isRename ? theme.reportStatusBadge.approved : theme.reportStatusBadge.draft;
 
@@ -87,9 +81,8 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
             <Table.Row
                 interactive
                 rowIndex={rowIndex}
-                disabled={tableRowItem.disabled}
+                disabled={isDeleting}
                 accessibilityLabel={accessibilityLabel}
-                skeletonReasonAttributes={reasonAttributes}
                 sentryLabel={tableRowItem.isMerchantType ? CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_TYPE_RULE_ITEM : CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_ITEM}
                 offlineWithFeedback={{pendingAction: tableRowItem.pendingAction, shouldHideOnDelete: false, errors: tableRowItem.errors, onClose: tableRowItem.onCloseError}}
                 onPress={tableRowItem.action}
@@ -166,7 +159,7 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
                         <Icon
                             src={Expensicons.ArrowRight}
                             fill={theme.icon}
-                            additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || tableRowItem.disabled) && styles.opacitySemiTransparent]}
+                            additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || isDeleting) && styles.opacitySemiTransparent]}
                             width={variables.iconSizeNormal}
                             height={variables.iconSizeNormal}
                         />
