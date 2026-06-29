@@ -139,6 +139,11 @@ RCT_EXPORT_MODULE();
 }
 
 + (void)onJavaScriptDidFailToLoad {
+  if (DIC_SHOULD_BLOCK_SPLASH) {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    return;
+  }
+
   [self hideAndClearPromiseQueue];
   [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
