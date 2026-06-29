@@ -846,14 +846,7 @@ function MoneyRequestReportTransactionList({
                                 return;
                             }
                             setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
-                            const firstSelectable = visualOrderTransactions.find((t) => !isTransactionPendingDelete(t));
-                            const lastSelectable = visualOrderTransactions.findLast((t) => !isTransactionPendingDelete(t));
-                            if (firstSelectable && lastSelectable) {
-                                // Mark a virtual range spanning the whole list so the next shift+click deselects items outside the new range.
-                                rangeApi.notifyRange(firstSelectable, lastSelectable);
-                            } else {
-                                rangeApi.clearAnchor();
-                            }
+                            rangeApi.seedFullRange();
                         }}
                         accessibilityLabel={translate('accessibilityHints.selectAllTransactions')}
                         isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}

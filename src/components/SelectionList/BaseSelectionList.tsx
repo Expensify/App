@@ -489,22 +489,14 @@ function BaseSelectionList<TItem extends ListItem>({
         const willSelectAll = !dataDetails.allSelected;
         onSelectAll?.();
         if (willSelectAll) {
-            // Mark a virtual range spanning the whole list so the next shift+click deselects items outside the new range.
-            const isSelectable = (item: TItem) => !item.isDisabled && !item.isDisabledCheckbox;
-            const firstSelectable = data.find(isSelectable);
-            const lastSelectable = data.findLast(isSelectable);
-            if (firstSelectable && lastSelectable) {
-                rangeApi.notifyRange(firstSelectable, lastSelectable);
-            } else {
-                rangeApi.clearAnchor();
-            }
+            rangeApi.seedFullRange();
         } else {
             rangeApi.clearAnchor();
         }
         if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow) {
             focusTextInput();
         }
-    }, [onSelectAll, rangeApi, dataDetails.allSelected, data, shouldShowTextInput, shouldPreventDefaultFocusOnSelectRow, focusTextInput]);
+    }, [onSelectAll, rangeApi, dataDetails.allSelected, shouldShowTextInput, shouldPreventDefaultFocusOnSelectRow, focusTextInput]);
 
     useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex, updateFocusedIndex, scrollToFocusedInput, focusTextInput}), [
         focusTextInput,

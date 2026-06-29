@@ -454,16 +454,9 @@ function SearchWriteActionsProvider({
         isHeaderItem: isShiftRangeHeaderItem,
     });
 
-    // Seeds a virtual full-list range after Select All so the next shift+click collapses (deselects outside the new range).
-    // Called inside the `applySelection` updater; it only writes the hook's ref, so re-invocation (StrictMode) is idempotent.
+    // Wraps seedFullRange so it can run inside the `applySelection` updater: it only writes the hook's ref, so StrictMode double-invocation stays idempotent.
     const seedSelectAllRange = (result: SelectedTransactions) => {
-        const firstSelectable = flattenedShiftRangeItems.find((row) => !isShiftRangeHeaderItem(row));
-        const lastSelectable = flattenedShiftRangeItems.findLast((row) => !isShiftRangeHeaderItem(row));
-        if (firstSelectable && lastSelectable) {
-            rangeApi.notifyRange(firstSelectable, lastSelectable);
-        } else {
-            rangeApi.clearAnchor();
-        }
+        rangeApi.seedFullRange();
         return result;
     };
 

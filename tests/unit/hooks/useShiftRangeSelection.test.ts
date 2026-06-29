@@ -419,6 +419,41 @@ describe('useShiftRangeSelection', () => {
         });
     });
 
+    describe('seedFullRange', () => {
+        it('seeds a span across the whole list so a subsequent shift+click collapses the selection', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
+            act(() => result.current.seedFullRange());
+            act(() => {
+                result.current.applyShiftClick(ROWS[2], {shiftKey: true});
+            });
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: ['d', 'e']});
+        });
+
+        it('reports the first selectable row as the anchor', () => {
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams()));
+            act(() => result.current.seedFullRange());
+            expect(result.current.getAnchorKey()).toBe('a');
+        });
+
+        it('spans only selectable rows, skipping excluded ones', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({items: MIXED, onApplyRange, isDisabledItem: (row) => !!row.isDisabled})));
+            act(() => result.current.seedFullRange());
+            act(() => {
+                result.current.applyShiftClick(MIXED[2], {shiftKey: true});
+            });
+            // Span is a..e (first/last selectable); collapsing to a..c drops the selectable tail (e), and disabled rows never appear.
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'c'], toDeselect: ['e']});
+        });
+
+        it('clears the anchor when there are no selectable rows', () => {
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({items: []})));
+            act(() => result.current.seedFullRange());
+            expect(result.current.getAnchorKey()).toBeNull();
+        });
+    });
+
     describe('items change mid-session', () => {
         it('extends from the anchor when the previous endpoint disappears mid-session', () => {
             const onApplyRange = makeApplyMock();

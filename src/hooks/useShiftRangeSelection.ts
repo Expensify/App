@@ -1,4 +1,4 @@
-import {useRef} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import type {Modifiers, ShiftRangeBatch} from '@libs/shiftRangeSelection';
 
 type ItemWithKey = {keyForList?: string | null};
@@ -16,6 +16,7 @@ type Api<TItem> = {
     applyShiftClick: (item: TItem, options?: Partial<Modifiers>) => boolean;
     notifyAnchor: (item: TItem) => void;
     notifyRange: (anchor: TItem, end: TItem) => void;
+    seedFullRange: () => void;
     clearAnchor: () => void;
     getAnchorKey: () => string | null;
 };
@@ -43,42 +44,76 @@ function sessionReducer(state: SessionState, event: SessionEvent): SessionState 
 
 /** Shift+click range selection. Consumers notify on plain clicks / select-all so the hook can resolve an anchor for the next shift+click. */
 function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
-    // Session lives entirely in event handlers, never in render output — useRef avoids re-renders that useReducer/useState would trigger.
+    // The session lives entirely in event handlers, never in render output, so a ref avoids the re-renders that updating state would trigger.
     const sessionRef = useRef<SessionState>(IDLE);
 
-    return {
+    // The API methods are built once but read the latest params through this ref, refreshed after every commit.
+    const paramsRef = useRef(params);
+    useEffect(() => {
+        paramsRef.current = params;
+    });
+
+    // useState's lazy initializer builds the API exactly once (the setter is never called), giving a stable reference consumers can list
+    // in dependency arrays — without reading a ref during render.
+    const [api] = useState<Api<TItem>>(() => ({
         applyShiftClick: (target, options) => {
             if (!options?.shiftKey) {
                 return false;
             }
-            const result = computeShiftRange(params, sessionRef.current, target);
+            const currentParams = paramsRef.current;
+            const result = computeShiftRange(currentParams, sessionRef.current, target);
             if (!result) {
                 return false;
             }
             if (result.batch.toSelect.length || result.batch.toDeselect.length) {
-                params.onApplyRange?.(result.batch);
+                currentParams.onApplyRange?.(result.batch);
             }
             sessionRef.current = sessionReducer(sessionRef.current, {type: 'range', anchor: result.anchor, prevEnd: result.prevEnd});
             return true;
         },
         notifyAnchor: (item) => {
-            const key = keyOf(params, item);
+            const key = keyOf(paramsRef.current, item);
             if (key) {
                 sessionRef.current = sessionReducer(sessionRef.current, {type: 'notify', key});
             }
         },
         notifyRange: (anchor, end) => {
-            const anchorKey = keyOf(params, anchor);
-            const endKey = keyOf(params, end);
+            const currentParams = paramsRef.current;
+            const anchorKey = keyOf(currentParams, anchor);
+            const endKey = keyOf(currentParams, end);
             if (anchorKey && endKey) {
                 sessionRef.current = sessionReducer(sessionRef.current, {type: 'range', anchor: anchorKey, prevEnd: endKey});
+            }
+        },
+        seedFullRange: () => {
+            // Seed a virtual range spanning every selectable row so the next shift+click collapses the selection to it (used after Select All).
+            const currentParams = paramsRef.current;
+            let first: TItem | null = null;
+            let last: TItem | null = null;
+            for (const item of currentParams.items) {
+                if (isExcluded(currentParams, item) || !keyOf(currentParams, item)) {
+                    continue;
+                }
+                if (first === null) {
+                    first = item;
+                }
+                last = item;
+            }
+            const anchorKey = keyOf(currentParams, first);
+            const endKey = keyOf(currentParams, last);
+            if (anchorKey && endKey) {
+                sessionRef.current = sessionReducer(sessionRef.current, {type: 'range', anchor: anchorKey, prevEnd: endKey});
+            } else {
+                sessionRef.current = sessionReducer(sessionRef.current, {type: 'clear'});
             }
         },
         clearAnchor: () => {
             sessionRef.current = sessionReducer(sessionRef.current, {type: 'clear'});
         },
-        getAnchorKey: () => (sessionRef.current.kind === 'idle' ? resolveAnchor(params, null) : sessionRef.current.anchor),
-    };
+        getAnchorKey: () => (sessionRef.current.kind === 'idle' ? resolveAnchor(paramsRef.current, null) : sessionRef.current.anchor),
+    }));
+
+    return api;
 }
 
 type ShiftRangeResult<TItem> = {
