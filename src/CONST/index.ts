@@ -32,12 +32,6 @@ const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze({});
 // Shared immutable map used in hot paths that only read from the instance.
 const EMPTY_MAP = new Map<string, string>();
-const EMPTY_TODOS_REPORT_COUNTS = Object.freeze({
-    submit: 0,
-    approve: 0,
-    pay: 0,
-    export: 0,
-});
 
 // Using 28 days to align with OldDot and because all months are guaranteed to be at least 28 days.
 const MONTH_DAYS = Object.freeze([...Array(28).keys()].map((i) => i + 1));
@@ -1241,7 +1235,6 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     EMPTY_MAP,
-    EMPTY_TODOS_REPORT_COUNTS,
     DEFAULT_NUMBER_ID,
     DEFAULT_MISSING_ID,
     DEFAULT_COUNTRY_CODE,
