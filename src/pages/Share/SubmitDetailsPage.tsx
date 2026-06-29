@@ -264,6 +264,8 @@ function SubmitDetailsPage({
                 isSelfTourViewed,
                 optimisticTransactionID,
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+                // Navigation is owned by cleanupAndNavigateAfterExpenseCreate below; don't let the action navigate too.
+                shouldHandleNavigation: false,
             });
         } else {
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
@@ -308,6 +310,8 @@ function SubmitDetailsPage({
                 betas,
                 personalDetails,
                 optimisticTransactionID,
+                // Navigation is owned by cleanupAndNavigateAfterExpenseCreate below; don't let the action navigate too.
+                shouldHandleNavigation: false,
             });
         }
         cleanupAndNavigateAfterExpenseCreate({

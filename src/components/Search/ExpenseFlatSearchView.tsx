@@ -69,9 +69,6 @@ type ExpenseFlatSearchViewProps = {
     /** Whether every transaction has been loaded (gates the fully-checked select-all state). */
     hasLoadedAllTransactions?: boolean;
 
-    /** Transactions flagged for the post-create highlight animation (feeds BaseSearchList extraData). */
-    newTransactions: Transaction[];
-
     /** The navigation/thread-creation handler for a row tap (owned by the router). */
     onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
 
@@ -109,8 +106,7 @@ const isRowDeleted = (item: SearchListItem) => item.pendingAction === CONST.RED_
  * primitives directly around `BaseSearchList` — no `SearchList` shell, no `ListItem` prop, no factory.
  * `TransactionListItem` is the only row renderer for the flat-expense path, and rows always animate, so the
  * group/sticky/chat/task branches of `SearchList` do not apply here. Keyboard navigation is inherited from
- * `BaseSearchList`; the post-create highlight stays in the router (the snapshot stamps
- * `shouldAnimateInHighlight`, and `newTransactions` flows into `extraData`).
+ * `BaseSearchList`.
  */
 function ExpenseFlatSearchView({
     queryJSON,
@@ -124,7 +120,6 @@ function ExpenseFlatSearchView({
     SearchTableHeader: searchTableHeader,
     tableHeaderVisible,
     hasLoadedAllTransactions,
-    newTransactions,
     onSelectRow,
     ListFooterComponent,
     onEndReached,
@@ -279,7 +274,6 @@ function ExpenseFlatSearchView({
                     ListFooterComponent={ListFooterComponent}
                     onLayout={onLayout}
                     contentContainerStyle={contentContainerStyle}
-                    newTransactions={newTransactions}
                     isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                 />

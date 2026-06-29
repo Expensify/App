@@ -202,7 +202,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                         shouldHandleNavigation: overrides.shouldHandleNavigation,
                         shouldDeferForSearch: false,
                     });
-                    cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
+                    cleanupAfterSkipConfirmSubmit({
                         report,
                         action,
                         draftTransactionIDs,
@@ -272,7 +272,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             executeWrite: (overrides) => {
                 // Cleanup runs after each write (not once up front) so a stalled GPS lookup can't clear the draft before the expense exists.
                 const runCleanup = () =>
-                    cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
+                    cleanupAfterSkipConfirmSubmit({
                         report,
                         action,
                         draftTransactionIDs,
@@ -291,19 +291,20 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                                     lat: successData.coords.latitude,
                                     long: successData.coords.longitude,
                                 },
+                                shouldHandleNavigation: overrides.shouldHandleNavigation,
                             });
                             runCleanup();
                         },
                         (errorData) => {
                             Log.info('[ScanSkipConfirmation] getCurrentPosition failed', false, errorData);
                             // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                            createTransaction(baseParams);
+                            createTransaction({...baseParams, shouldHandleNavigation: overrides.shouldHandleNavigation});
                             runCleanup();
                         },
                     );
                     return;
                 }
-                createTransaction(baseParams);
+                createTransaction({...baseParams, shouldHandleNavigation: overrides.shouldHandleNavigation});
                 runCleanup();
             },
             destinationReportID: scanDestinationReportID,

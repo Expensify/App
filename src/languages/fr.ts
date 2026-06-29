@@ -1209,6 +1209,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         amount: 'Montant',
+        expenseAdded: 'Dépense ajoutée',
+        invoiceSent: 'Facture envoyée',
         percent: 'Pourcentage',
         date: 'Date',
         taxAmount: 'Montant de la taxe',
