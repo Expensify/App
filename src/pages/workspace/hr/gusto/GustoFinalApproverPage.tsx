@@ -23,7 +23,7 @@ function GustoFinalApproverPage({
         getCurrentFinalApprover: (policy) => policy?.connections?.gusto?.config?.finalApprover ?? null,
         getProviderName: () => translate('workspace.hr.gusto.title'),
         getHeaderTitle: () => translate('workspace.hr.finalApprover'),
-        handleSave: ({policyID: id, email, currentFinalApprover, connectionSyncProgress}) => updateGustoFinalApprover(id, email, currentFinalApprover, connectionSyncProgress),
+        handleSave: ({policyID: id, email, currentFinalApprover}) => updateGustoFinalApprover(id, email, currentFinalApprover),
     };
 
     return (

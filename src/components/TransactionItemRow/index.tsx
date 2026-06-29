@@ -1,12 +1,14 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import useAttendees from '@hooks/useAttendees';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCompanyCardDescription} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {isExpenseReport, isSettled} from '@libs/ReportUtils';
+import {isExpenseReport, isSettled, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getAmount,
@@ -22,6 +24,7 @@ import {
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import TransactionItemRowNarrow from './TransactionItemRowNarrow';
 import TransactionItemRowWide from './TransactionItemRowWide';
 import type {TransactionItemRowProps, TransactionWithOptionalSearchFields} from './types';
@@ -45,6 +48,7 @@ function TransactionItemRow({
     transactionItem,
     report,
     policy,
+    policyCategories,
     shouldUseNarrowLayout,
     isSelected,
     shouldShowTooltip,
@@ -65,6 +69,9 @@ function TransactionItemRow({
     isInSingleTransactionReport = false,
     shouldShowRadioButton = false,
     onRadioButtonPress = () => {},
+    shouldStopRadioButtonMouseDownPropagation = false,
+    radioButtonContainerStyle,
+    radioButtonWrapperStyle,
     shouldShowErrors = true,
     shouldHighlightItemWhenSelected = true,
     isDisabled = false,
@@ -74,6 +81,7 @@ function TransactionItemRow({
     isHover = false,
     shouldShowArrowRightOnNarrowLayout,
     reportActions,
+    transactionThreadReportID: transactionThreadReportIDProp,
     checkboxSentryLabel,
     nonPersonalAndWorkspaceCards = {},
     isAttendeesEnabledForMovingPolicy,
@@ -92,10 +100,17 @@ function TransactionItemRow({
     canEditAmount,
     canEditTag,
 }: TransactionItemRowProps) {
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+        policy,
+        report,
+        isTrackIntentUser,
+    });
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const createdAt = getTransactionCreated(transactionItem);
-    const transactionThreadReportID = reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined;
+    const transactionThreadReportID =
+        transactionThreadReportIDProp ?? (reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined);
     const transactionAttendees = useAttendees(transactionItem);
 
     const bgActiveStyles = isSelected && shouldHighlightItemWhenSelected ? styles.activeComponentBG : EMPTY_ACTIVE_STYLE;
@@ -136,6 +151,7 @@ function TransactionItemRow({
         const narrowForwardedProps = {
             transactionItem,
             report,
+            policy,
             isSelected,
             shouldShowTooltip,
             onCheckboxPress,
@@ -144,6 +160,9 @@ function TransactionItemRow({
             isInSingleTransactionReport,
             shouldShowRadioButton,
             onRadioButtonPress,
+            shouldStopRadioButtonMouseDownPropagation,
+            radioButtonContainerStyle,
+            radioButtonWrapperStyle,
             shouldShowErrors,
             isDisabled,
             violations,
@@ -172,6 +191,7 @@ function TransactionItemRow({
         transactionItem,
         report,
         policy,
+        policyCategories,
         isSelected,
         shouldShowTooltip,
         dateColumnSize,
@@ -190,6 +210,8 @@ function TransactionItemRow({
         isInSingleTransactionReport,
         shouldShowRadioButton,
         onRadioButtonPress,
+        shouldStopRadioButtonMouseDownPropagation,
+        radioButtonContainerStyle,
         shouldShowErrors,
         shouldHighlightItemWhenSelected,
         isDisabled,
@@ -240,6 +262,7 @@ function TransactionItemRow({
             totalPerAttendee={!attendeesCount || totalAmount === undefined ? undefined : totalAmount / attendeesCount}
             createdAt={createdAt}
             transactionThreadReportID={transactionThreadReportID}
+            isMarkAsDone={shouldUseMarkAsDoneCopy}
         />
     );
 }

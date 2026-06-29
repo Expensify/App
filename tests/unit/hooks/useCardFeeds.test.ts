@@ -26,7 +26,7 @@ describe('useCardFeeds', () => {
 
     describe('effectiveWorkspaceAccountID fallback for domain-based card accounts', () => {
         it('returns feeds from the linked domain when workspaceAccountID is 0 and a feed has preferredPolicy matching the policy', async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {workspaceAccountID: 0});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {policyAccountID: 0});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainID}`, {
                 settings: {
                     companyCards: {
@@ -57,7 +57,7 @@ describe('useCardFeeds', () => {
         });
 
         it('returns no feeds when workspaceAccountID is 0 and no domain has a feed linked to the policy', async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {workspaceAccountID: 0});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {policyAccountID: 0});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainID}`, {
                 settings: {
                     companyCards: {
@@ -83,8 +83,8 @@ describe('useCardFeeds', () => {
         });
 
         it('does not use the fallback when workspaceAccountID is non-zero', async () => {
-            const workspaceAccountID = 99999999;
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {workspaceAccountID});
+            const policyAccountID = 99999999;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {policyAccountID});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainID}`, {
                 settings: {
                     companyCards: {
@@ -115,7 +115,7 @@ describe('useCardFeeds', () => {
         const combinedFeedKey = getCardFeedWithDomainID(oauthFeed, domainID);
 
         const setupDomainFeed = async (companyCardSettings: {preferredPolicy: string; linkedPolicyIDs?: string[]}) => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {workspaceAccountID: 0});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {policyAccountID: 0});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainID}`, {
                 settings: {
                     companyCards: {

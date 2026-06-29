@@ -38,14 +38,14 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
         let ignore = false;
 
-        const showPermissionModal = async (hasError: boolean) => {
+        const showPermissionModal = (hasError: boolean) => {
             if (ignore) {
                 return;
             }
 
             isModalActiveRef.current = true;
 
-            const {action} = await showConfirmModal({
+            showConfirmModal({
                 confirmText: hasError ? translate('common.settings') : translate('common.continue'),
                 cancelText: translate('common.notNow'),
                 prompt: translate(hasError ? 'receipt.locationErrorMessage' : 'receipt.locationAccessMessage'),
@@ -60,55 +60,57 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 shouldCenterIcon: true,
                 shouldReverseStackedButtons: true,
                 onBackdropPress: () => resetPermissionFlowRef.current(),
+            }).then(({action}) => {
+                if (ignore) {
+                    return;
+                }
+
+                isModalActiveRef.current = false;
+
+                if (action !== ModalActions.CONFIRM) {
+                    onDenyRef.current(true);
+                    return;
+                }
+
+                // Open settings if permission is blocked
+                if (hasError) {
+                    Linking.openSettings?.();
+                    resetPermissionFlowRef.current();
+                    return;
+                }
+
+                // Request permission and handle result
+                requestLocationPermission().then((status) => {
+                    if (ignore) {
+                        return;
+                    }
+
+                    if (isPermissionGranted(status)) {
+                        onGrantRef.current();
+                    } else if (status === RESULTS.BLOCKED) {
+                        closeModal();
+                        showPermissionModal(true);
+                    } else {
+                        onDenyRef.current(false);
+                    }
+                });
             });
-
-            if (ignore) {
-                return;
-            }
-
-            isModalActiveRef.current = false;
-
-            if (action !== ModalActions.CONFIRM) {
-                onDenyRef.current();
-                return;
-            }
-
-            // Open settings if permission is blocked
-            if (hasError) {
-                Linking.openSettings?.();
-                resetPermissionFlowRef.current();
-                return;
-            }
-
-            // Request permission and handle result
-            const status = await requestLocationPermission();
-            if (ignore) {
-                return;
-            }
-
-            if (isPermissionGranted(status)) {
-                onGrantRef.current();
-            } else if (status === RESULTS.BLOCKED) {
-                closeModal();
-                showPermissionModal(true);
-            } else {
-                onDenyRef.current();
-            }
         };
 
-        const checkInitialPermission = async () => {
-            const status = await getLocationPermission();
-            if (ignore) {
-                return;
-            }
+        const checkInitialPermission = () => {
+            getLocationPermission().then((status) => {
+                if (ignore) {
+                    return;
+                }
 
-            onInitialGetLocationCompleted?.();
+                onInitialGetLocationCompleted?.();
 
-            if (isPermissionGranted(status)) {
-                onGrantRef.current();
-            } else {
-                showPermissionModal(status === RESULTS.BLOCKED);
-            }
+                if (isPermissionGranted(status)) {
+                    onGrantRef.current();
+                } else {
+                    showPermissionModal(status === RESULTS.BLOCKED);
+                }
+            });
         };
 
         checkInitialPermission();

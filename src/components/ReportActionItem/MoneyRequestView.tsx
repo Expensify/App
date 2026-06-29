@@ -1,7 +1,11 @@
+import {policyTypeSelector} from '@selectors/Policy';
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+// Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
+// eslint-disable-next-line no-restricted-imports
+import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import Icon from '@components/Icon';
@@ -10,6 +14,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails, usePolicyCategories, usePolicyTags} from '@components/OnyxListItemProvider';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 import Switch from '@components/Switch';
@@ -38,13 +43,16 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactions from '@hooks/useReportTransactions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRestrictedActionPolicyID from '@hooks/useRestrictedActionPolicyID';
+import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import useViolations from '@hooks/useViolations';
-import {updateMoneyRequestBillable, updateMoneyRequestReimbursable, updateMoneyRequestTaxRate} from '@libs/actions/IOU/UpdateMoneyRequest';
+import {updateMoneyRequestBillable, updateMoneyRequestCategory, updateMoneyRequestReimbursable, updateMoneyRequestTag, updateMoneyRequestTaxRate} from '@libs/actions/IOU/UpdateMoneyRequest';
+import {openExternalLink} from '@libs/actions/Link';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {enrichAndSortAttendees, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {getBrokenConnectionUrlToFixPersonalCard, getCompanyCardDescription} from '@libs/CardUtils';
@@ -57,12 +65,16 @@ import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {
     canSubmitPerDiemExpenseFromWorkspace,
+    findVendorByID,
     getLengthOfTag,
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
     getTagLists,
     hasDependentTags as hasDependentTagsPolicyUtils,
+    hasVendorFeature,
     isAttendeeTrackingEnabled,
+    isGroupPolicyByType,
+    isMultiLevelTags,
     isPolicyAccessible,
     isTaxTrackingEnabled,
 } from '@libs/PolicyUtils';
@@ -79,7 +91,6 @@ import {
     isExpenseReport,
     isInvoiceReport,
     isOpenReport,
-    isPaidGroupPolicy,
     isReportApproved,
     isReportInGroupPolicy,
     isSettled as isSettledReportUtils,
@@ -123,6 +134,7 @@ import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
 import AnimatedEmptyStateBackground from '@pages/inbox/report/AnimatedEmptyStateBackground';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -178,7 +190,7 @@ function MoneyRequestView({
     isFromReviewDuplicates = false,
     mergeTransactionID,
 }: MoneyRequestViewProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark', 'Suitcase']);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark', 'Suitcase', 'NewWindow']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -203,10 +215,8 @@ function MoneyRequestView({
 
     const isFromMergeTransaction = !!mergeTransactionID;
     const linkedTransactionID = parentReportAction && isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
-    let [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`);
-    if (updatedTransaction) {
-        transaction = updatedTransaction;
-    }
+    const [onyxTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`);
+    const transaction = updatedTransaction ?? onyxTransaction;
     const isExpenseUnreported = isExpenseUnreportedTransactionUtils(transaction);
     const personalPolicy = usePersonalPolicy();
     const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
@@ -215,6 +225,7 @@ function MoneyRequestView({
     const [policiesWithPerDiem] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: perDiemPoliciesSelector,
     });
+    const splitEffectivePolicy = useSplitEffectivePolicy(transactionThreadReport, undefined, transaction);
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
     const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, policiesWithPerDiem);
 
@@ -237,6 +248,8 @@ function MoneyRequestView({
         policyID = parentReport?.policyID;
     }
 
+    const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
+
     const allPolicyCategories = usePolicyCategories();
     const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
     const targetPolicyID = updatedTransaction?.reportID ? parentReport?.policyID : policyID;
@@ -244,6 +257,7 @@ function MoneyRequestView({
     const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyID}`];
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${getNonEmptyStringOnyxID(linkedTransactionID)}`);
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
@@ -324,6 +338,8 @@ function MoneyRequestView({
         updatedTransaction?.taxAmount !== undefined
             ? convertToDisplayString(Math.abs(updatedTransaction?.taxAmount), actualCurrency)
             : convertToDisplayString(Math.abs(transactionTaxAmount ?? 0), actualCurrency);
+    // Skip a zero converted tax (e.g. tax exempt) so we don't render a redundant "Converted 0.00".
+    const formattedConvertedTaxAmount = transaction?.convertedTaxAmount ? convertToDisplayString(Math.abs(transaction.convertedTaxAmount), moneyRequestReport?.currency) : '';
 
     const taxRatesDescription = taxRates?.name;
 
@@ -418,7 +434,10 @@ function MoneyRequestView({
 
     // A flag for verifying that the current report is a sub-report of a expense chat
     // if the policy of the report is either Collect or Control, then this report must be tied to expense chat
-    const isPolicyExpenseChat = isReportInGroupPolicy(moneyRequestReport);
+    const [moneyRequestReportPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`, {
+        selector: policyTypeSelector,
+    });
+    const isPolicyExpenseChat = isGroupPolicyByType(moneyRequestReportPolicyType);
     const policyTagLists = getTagLists(policyTagList);
 
     const category = transactionCategory ?? '';
@@ -433,6 +452,11 @@ function MoneyRequestView({
     // transactionTag can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowTag = (isPolicyExpenseChat || isExpenseUnreported) && (transactionTag || (canEdit && hasEnabledTags(policyTagLists)));
+    // Surface a delete confirmation (like tax) when the value is stale and there's nothing valid to select, instead
+    // of navigating to edit. Categories need at least one, so they only hit this when disabled; tags can be fully
+    // emptied, so also cover "no enabled tags remain". Scoped to single-level tag lists.
+    const shouldShowCategoryDisabledAlert = !policy?.areCategoriesEnabled && !!category;
+    const shouldShowTagDisabledAlert = (!policy?.areTagsEnabled || !hasEnabledTags(policyTagLists)) && !!transactionTag && !isMultiLevelTags(policyTagList);
     const shouldShowBillable = (isPolicyExpenseChat || isExpenseUnreported) && (!!transactionBillable || isBillableEnabledOnPolicy(policy) || !!updatedTransaction?.billable);
     const isCurrentTransactionReimbursableDifferentFromPolicyDefault =
         policy?.defaultReimbursable !== undefined && !!(updatedTransaction?.reimbursable ?? transactionReimbursable) !== policy.defaultReimbursable;
@@ -453,10 +477,38 @@ function MoneyRequestView({
         });
     const shouldShowAttendees = shouldShowAttendeesTransactionUtils(iouType, policy);
 
+    const transactionVendor = transaction?.comment?.vendor;
+    const transactionVendorName = findVendorByID(policy, transactionVendor?.externalID)?.name ?? '';
+    const shouldShowVendor = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)) && !(updatedTransaction?.reimbursable ?? !!transactionReimbursable) && !isInvoice;
+
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
 
-    const {getViolationsForField} = useViolations(transactionViolations ?? [], isTransactionScanning || !isPaidGroupPolicy(transactionThreadReport));
+    const transactionTripID = transaction?.comment?.tripID;
+
+    // Trip rooms are the grandparent report, so check that first before scanning the collection.
+    const grandparentReportID = parentReport?.parentReportID;
+    const tripRoomReportSelector = (reports: OnyxCollection<OnyxTypes.Report>) => {
+        if (!transactionTripID || !reports) {
+            return undefined;
+        }
+        const grandparent = grandparentReportID ? reports[`${ONYXKEYS.COLLECTION.REPORT}${grandparentReportID}`] : undefined;
+        const match =
+            grandparent?.tripData?.tripID === transactionTripID ? grandparent : Object.values(reports).find((candidateReport) => candidateReport?.tripData?.tripID === transactionTripID);
+        if (!match?.reportID) {
+            return undefined;
+        }
+        return {
+            reportID: match.reportID,
+            name: getReportName(match, reportAttributes) || match.reportName,
+        };
+    };
+    const [tripRoomInfo] = originalUseOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: tripRoomReportSelector}, [transactionTripID, grandparentReportID, reportAttributes]);
+    const tripRoomReportID = tripRoomInfo?.reportID;
+    const tripRoomName = tripRoomInfo?.name;
+    const shouldShowTripRoomLink = !!tripRoomReportID && !!tripRoomName;
+
+    const {getViolationsForField} = useViolations(transactionViolations ?? [], isTransactionScanning || !isReportInGroupPolicy(transactionThreadReport));
     const hasViolations = (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string): boolean =>
         getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0;
     const isMarkAsCash = parentReport && currentUserEmailParam ? isMarkAsCashActionForTransaction(currentUserEmailParam, parentReport, transactionViolations, policy) : false;
@@ -511,6 +563,30 @@ function MoneyRequestView({
     const shouldHideEmptyDescription = (isFromReviewDuplicates || isFromMergeTransaction) && !(updatedTransactionDescription ?? transactionDescription);
     const isEmptyUpdatedMerchant = isInvalidMerchantValue(updatedTransaction?.modifiedMerchant);
     const updatedMerchantTitle = isEmptyUpdatedMerchant ? '' : (updatedTransaction?.modifiedMerchant ?? merchantTitle);
+    const originalMerchantForGoogleSearch = isInvalidMerchantValue(onyxTransaction?.merchant) ? '' : Str.recapitalize(onyxTransaction?.merchant ?? '');
+    const shouldShowGoogleMerchantSearchLink = !!originalMerchantForGoogleSearch && !isTransactionScanning && isFromCardImport;
+
+    const renderGoogleMerchantSearchLink = () => (
+        <PressableWithoutFeedback
+            accessibilityLabel={translate('common.searchOnGoogle', {merchant: originalMerchantForGoogleSearch})}
+            role={CONST.ROLE.BUTTON}
+            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.GOOGLE_MERCHANT_SEARCH_BUTTON}
+            onPress={(event) => {
+                event?.stopPropagation();
+                openExternalLink(`${CONST.GOOGLE_SEARCH_URL}${encodeURIComponent(originalMerchantForGoogleSearch)}`);
+            }}
+            style={[styles.flexRow, styles.alignItemsCenter, styles.mt1, styles.alignSelfStart]}
+        >
+            <Text style={styles.textLabelSupporting}>{translate('common.googleThisMerchant', {merchant: originalMerchantForGoogleSearch})}</Text>
+            <Icon
+                src={icons.NewWindow}
+                height={variables.iconSizeExtraSmall}
+                width={variables.iconSizeExtraSmall}
+                fill={theme.textSupporting}
+                additionalStyles={styles.ml1}
+            />
+        </PressableWithoutFeedback>
+    );
 
     const shouldShowConvertedAmount =
         transactionConvertedAmount &&
@@ -561,6 +637,7 @@ function MoneyRequestView({
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             parentReportNextStep,
+            isOffline,
             delegateAccountID,
         });
     };
@@ -591,6 +668,12 @@ function MoneyRequestView({
     const isCurrentTransactionReimbursable = updatedTransaction?.reimbursable ?? !!transactionReimbursable;
     if (!isCurrentTransactionReimbursable && isSingleTransactionReport(moneyRequestReport, visibleParentReportTransactions)) {
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${Str.UCFirst(translate('iou.nonReimbursable'))}`;
+    }
+
+    // Show the converted tax here since the redundant report-level Tax total is hidden for a single-expense report.
+    let taxAmountDescription = translate('iou.taxAmount');
+    if (shouldShowConvertedAmount && formattedConvertedTaxAmount) {
+        taxAmountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('common.converted')} ${formattedConvertedTaxAmount}`;
     }
 
     if (isFromMergeTransaction && !rateName) {
@@ -649,6 +732,7 @@ function MoneyRequestView({
                     return ViolationsUtils.getViolationTranslation({
                         violation,
                         translate,
+                        convertToDisplayString,
                         canEdit,
                         companyCardPageURL,
                         connectionLink,
@@ -693,6 +777,73 @@ function MoneyRequestView({
                 currentUserEmailParam,
                 isASAPSubmitBetaEnabled,
                 parentReportNextStep,
+                delegateAccountID,
+            });
+        });
+    };
+
+    const showCategoryDisabledAlert = () => {
+        const transactionID = transaction?.transactionID;
+        if (!transactionID) {
+            return;
+        }
+        showConfirmModal({
+            title: translate('iou.categoryDisabledAlert.title'),
+            prompt: translate('iou.categoryDisabledAlert.prompt'),
+            confirmText: translate('iou.categoryDisabledAlert.confirmText'),
+            cancelText: translate('common.cancel'),
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM || !canEdit) {
+                return;
+            }
+
+            updateMoneyRequestCategory({
+                transactionID,
+                transactionThreadReport,
+                parentReport,
+                category: '',
+                policy,
+                policyTagList,
+                policyCategories,
+                policyRecentlyUsedCategories: undefined,
+                currentUserAccountIDParam,
+                currentUserEmailParam,
+                isASAPSubmitBetaEnabled,
+                parentReportNextStep,
+                delegateAccountID,
+            });
+        });
+    };
+
+    const showTagDisabledAlert = () => {
+        const transactionID = transaction?.transactionID;
+        if (!transactionID) {
+            return;
+        }
+        showConfirmModal({
+            title: translate('iou.tagDisabledAlert.title'),
+            prompt: translate('iou.tagDisabledAlert.prompt'),
+            confirmText: translate('iou.tagDisabledAlert.confirmText'),
+            cancelText: translate('common.cancel'),
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM || !canEdit) {
+                return;
+            }
+
+            updateMoneyRequestTag({
+                transactionID,
+                transactionThreadReport,
+                parentReport,
+                tag: '',
+                policy,
+                policyTagList,
+                policyRecentlyUsedTags: undefined,
+                policyCategories,
+                currentUserAccountIDParam,
+                currentUserEmailParam,
+                isASAPSubmitBetaEnabled,
+                parentReportNextStep,
+                isOffline,
                 delegateAccountID,
             });
         });
@@ -884,6 +1035,10 @@ function MoneyRequestView({
                         if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
                             return;
                         }
+                        if (shouldShowTagDisabledAlert) {
+                            showTagDisabledAlert();
+                            return;
+                        }
                         Navigation.navigate(
                             ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
                                 CONST.IOU.ACTION.EDIT,
@@ -967,7 +1122,7 @@ function MoneyRequestView({
                             }
 
                             if (shouldShowSplitIndicator && isSplitAvailable) {
-                                initSplitExpense(transaction, policy, transactionThreadReport, currentUserAccountIDParam, {isProduction});
+                                initSplitExpense(transaction, transactionThreadReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, {isProduction});
                                 return;
                             }
 
@@ -1040,6 +1195,7 @@ function MoneyRequestView({
                                 );
                             }}
                             wrapperStyle={[styles.taskDescriptionMenuItem]}
+                            furtherDetailsComponent={shouldShowGoogleMerchantSearchLink ? renderGoogleMerchantSearchLink() : undefined}
                             brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('merchant')}
                             numberOfLinesTitle={0}
@@ -1083,6 +1239,11 @@ function MoneyRequestView({
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
                             onPress={() => {
+                                if (shouldShowCategoryDisabledAlert) {
+                                    showCategoryDisabledAlert();
+                                    return;
+                                }
+
                                 if (shouldNavigateToUpgradePath && transactionThreadReport) {
                                     Navigation.navigate(
                                         ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
@@ -1128,6 +1289,26 @@ function MoneyRequestView({
                             errorText={getErrorForField('category')}
                             copyValue={categoryCopyValue}
                             copyable={!!categoryCopyValue}
+                        />
+                    </OfflineWithFeedback>
+                )}
+                {shouldShowVendor && (
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('vendor')}>
+                        <MenuItemWithTopDescription
+                            description={translate('common.vendor')}
+                            title={transactionVendorName}
+                            numberOfLinesTitle={2}
+                            interactive={canEdit}
+                            shouldShowRightIcon={canEdit}
+                            titleStyle={styles.flex1}
+                            onPress={() => {
+                                if (!transactionThreadReport?.reportID) {
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_VENDOR.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport.reportID));
+                            }}
+                            brickRoadIndicator={getErrorForField('vendor') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            errorText={getErrorForField('vendor')}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -1181,7 +1362,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('taxAmount')}>
                         <MenuItemWithTopDescription
                             title={taxAmountTitle}
-                            description={translate('iou.taxAmount')}
+                            description={taxAmountDescription}
                             numberOfLinesTitle={2}
                             interactive={canEditTaxFields}
                             shouldShowRightIcon={canEditTaxFields}
@@ -1341,6 +1522,23 @@ function MoneyRequestView({
                             copyable={!!reportCopyValue}
                         />
                     </OfflineWithFeedback>
+                )}
+                {shouldShowTripRoomLink && (
+                    <>
+                        <MenuItemWithTopDescription
+                            title={tripRoomName}
+                            description={translate('travel.trip')}
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                            numberOfLinesTitle={2}
+                            shouldShowRightIcon
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(tripRoomReportID, undefined, undefined, Navigation.getActiveRoute()));
+                            }}
+                            interactive
+                        />
+                        <View style={styles.reportHorizontalRule} />
+                    </>
                 )}
                 {/* Note: "View trip details" should be always the last item */}
                 {shouldShowViewTripDetails && (

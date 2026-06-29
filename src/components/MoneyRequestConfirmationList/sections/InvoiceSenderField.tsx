@@ -31,8 +31,8 @@ type InvoiceSenderFieldProps = {
     /** The report ID */
     reportID: string;
 
-    /** The transaction */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    /** The transaction (only the fields this field reads) */
+    transaction: OnyxEntry<Pick<OnyxTypes.Transaction, 'isFromGlobalCreate' | 'transactionID'>>;
 };
 
 const senderWorkspaceSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => (policy ? {id: policy.id, name: policy.name, avatarURL: policy.avatarURL} : undefined);

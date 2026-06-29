@@ -8,7 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 import {getDeviceBiometricsOnyxKey} from '@libs/actions/MultifactorAuthentication';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {useMultifactorAuthenticationState} from './State';
+import {useMultifactorAuthenticationState} from './MultifactorAuthenticationStateContext';
 
 type PromptContent = {
     illustration: DotLottieAnimation | IconAsset;

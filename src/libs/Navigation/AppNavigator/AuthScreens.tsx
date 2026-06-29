@@ -9,6 +9,7 @@ import GPSTripStateChecker from '@components/GPSTripStateChecker';
 import {KeyboardDismissibleFlatListContextProvider} from '@components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext';
 import KYCWallContextProvider from '@components/KYCWall/KYCWallContext';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
+import {MultifactorAuthenticationContextProviders} from '@components/MultifactorAuthentication/Context';
 import OpenAppFailureModal from '@components/OpenAppFailureModal';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import PriorityModeController from '@components/PriorityModeController';
@@ -55,11 +56,10 @@ import DelegatorConnectGuard from './DelegatorConnectGate';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import KeyboardShortcutsHandler from './KeyboardShortcutsHandler';
 import {ShareModalStackNavigator} from './ModalStackNavigators';
-import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
 import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
+import MultifactorAuthenticationModalNavigator from './Navigators/MultifactorAuthenticationModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
-import TestDriveModalNavigator from './Navigators/TestDriveModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
 import ThreeDSAuthHandler from './ThreeDSAuthHandler';
@@ -178,6 +178,7 @@ function AuthScreens() {
                         SearchContextProvider,
                         LockedAccountModalProvider,
                         DelegateNoAccessModalProvider,
+                        MultifactorAuthenticationContextProviders,
                     ]}
                 >
                     <KeyboardShortcutsHandler />
@@ -300,19 +301,9 @@ function AuthScreens() {
                             listeners={modalScreenListeners}
                         />
                         <RootStack.Screen
-                            name={NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.basicModalNavigator}
-                            component={ExplanationModalNavigator}
-                        />
-                        <RootStack.Screen
                             name={NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.basicModalNavigator}
+                            options={rootNavigatorScreenOptions.centeredModalNavigator}
                             component={MigratedUserWelcomeModalNavigator}
-                        />
-                        <RootStack.Screen
-                            name={NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.basicModalNavigator}
-                            component={TestDriveModalNavigator}
                         />
                         <RootStack.Screen
                             name={NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR}
@@ -321,7 +312,7 @@ function AuthScreens() {
                         />
                         <RootStack.Screen
                             name={NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.basicModalNavigator}
+                            options={rootNavigatorScreenOptions.centeredModalNavigator}
                             component={FeatureTrainingModalNavigator}
                             listeners={modalScreenListeners}
                         />
@@ -377,6 +368,7 @@ function AuthScreens() {
                         />
                     </RootStack.Navigator>
                     <RequireTwoFactorAuthenticationOverlay />
+                    <MultifactorAuthenticationModalNavigator />
                     <SearchRouterModal />
                     <GPSTripStateChecker />
                     <GPSInProgressModal />

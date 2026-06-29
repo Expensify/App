@@ -22,10 +22,6 @@ type HRProviderInfo = {
     mergeSlug?: MergeHRProviderSlug;
 };
 
-function getHRConnectionNames(): HRConnectionName[] {
-    return [...CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES];
-}
-
 function isGustoConnected(policy?: OnyxEntry<Policy>) {
     return !!policy?.connections?.gusto;
 }
@@ -37,6 +33,18 @@ function isZenefitsConnected(policy?: OnyxEntry<Policy>) {
 /** Returns true if the policy has a Merge HR integration connected. */
 function isMergeHRConnected(policy?: OnyxEntry<Policy>): boolean {
     return !!policy?.connections?.merge_hris;
+}
+
+/** True when the admin still needs to complete the Merge HR setup (select groups). */
+function isMergeHRCompleteSetupNeeded(policy?: OnyxEntry<Policy>): boolean {
+    const mergeHR = policy?.connections?.merge_hris;
+    if (!mergeHR) {
+        return false;
+    }
+    const syncDone = mergeHR.lastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.DONE;
+    const hasGroups = (mergeHR.data?.groups?.length ?? 0) > 0;
+    const setupComplete = !!mergeHR.config?.groups;
+    return syncDone && hasGroups && !setupComplete;
 }
 
 /** Returns display info for the HR provider currently connected to the policy (Gusto, Zenefits, or Merge HR), or null if none are connected. */
@@ -161,7 +169,6 @@ function getHRFinalApprover(policy?: OnyxEntry<Policy>): string | null {
 export {
     getConnectedHRProvider,
     getHRApprovalMode,
-    getHRConnectionNames,
     getHRAdvancedModeFinalApprover,
     getHRFinalApprover,
     getMergeHRFinalApprover,
@@ -169,8 +176,9 @@ export {
     isAnyHRReadOnlyWorkflowMode,
     isGustoConnected,
     isHRAdvancedMode,
+    isMergeHRCompleteSetupNeeded,
     isMergeHRConnected,
     isZenefitsConnected,
 };
 
-export type {HRConnectionName, HRProviderInfo};
+export type {HRConnectionName};

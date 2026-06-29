@@ -9,6 +9,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -76,6 +77,7 @@ function IOURequestStepTag({
     const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const {isOffline} = useNetwork();
 
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
@@ -159,6 +161,7 @@ function IOURequestStepTag({
                 isASAPSubmitBetaEnabled,
                 hash: currentSearchHash,
                 parentReportNextStep,
+                isOffline,
                 delegateAccountID,
             });
             navigateBack();

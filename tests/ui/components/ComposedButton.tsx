@@ -117,7 +117,7 @@ describe('ButtonComposed — Button', () => {
             expect(screen.getByTestId('ctx-isHovered')).toHaveTextContent('false');
         });
 
-        it.each(['success', 'danger', 'link'] as const)('propagates variant="%s" to children via context', (variant) => {
+        it.each(['success', 'danger'] as const)('propagates variant="%s" to children via context', (variant) => {
             renderButton({variant});
             expect(screen.getByTestId('ctx-variant')).toHaveTextContent(variant);
         });
@@ -144,9 +144,9 @@ describe('ButtonComposed — Button', () => {
             expect(screen.getByTestId('ctx-isHovered')).toHaveTextContent('false');
         });
 
-        it('suppresses isHovered when isDisabled and shouldStayNormalOnDisable are both true', () => {
+        it('suppresses isHovered when isDisabled and stayNormalOnDisable are both true', () => {
             // When both flags are set, onHoverIn/Out are not wired up at all.
-            renderButton({isDisabled: true, shouldStayNormalOnDisable: true});
+            renderButton({isDisabled: true, stayNormalOnDisable: true});
 
             fireEvent(getButton(), 'hoverIn');
 
@@ -249,12 +249,12 @@ describe('ButtonComposed — Button', () => {
             expect(screen.getByLabelText(LABEL)).toHaveStyle({opacity: 0.5});
         });
 
-        it('keeps the button looking active when shouldStayNormalOnDisable is true', () => {
+        it('keeps the button looking active when stayNormalOnDisable is true', () => {
             // Real-world use-case: a "Save" button that is functionally disabled
             // (e.g., while a form is being validated) but must not look grayed-out to
-            // avoid confusing the user. shouldStayNormalOnDisable preserves the normal
+            // avoid confusing the user. stayNormalOnDisable preserves the normal
             // appearance while the button remains not clickable.
-            renderButton({isDisabled: true, shouldStayNormalOnDisable: true});
+            renderButton({isDisabled: true, stayNormalOnDisable: true});
 
             // Then there is no opacity reduction — the button looks fully active
             expect(screen.getByLabelText(LABEL)).not.toHaveStyle({opacity: 0.5});
@@ -280,11 +280,9 @@ describe('ButtonComposed — Button', () => {
             expect(screen.getByLabelText(LABEL)).toHaveStyle({backgroundColor: expectedBg});
         });
 
-        it('variant="link" sets a transparent background', () => {
-            // Link buttons must not obscure underlying content.
-            renderButton({variant: 'link'});
-            expect(screen.getByLabelText(LABEL)).toHaveStyle({backgroundColor: 'transparent'});
-        });
+        // The transparent-background invariant for link-style buttons now lives in the
+        // Link component (see tests/ui/components/Link.tsx) — Button itself no longer
+        // exposes a 'link' variant.
 
         it('no variant uses the default button background', () => {
             // Implicit check that nothing accidentally overrides the base background.
@@ -310,31 +308,31 @@ describe('ButtonComposed — Button', () => {
         });
     });
 
-    // ── shouldRemoveBorderRadius ──────────────────────────────────────────────
+    // ── removeBorderRadius ──────────────────────────────────────────────
     //
     // When Button is placed in a ButtonGroup, one or both ends must be squared
     // off so adjacent buttons sit flush. This verifies that the correct corners
     // are zeroed out for each option.
 
-    describe('shouldRemoveBorderRadius', () => {
+    describe('removeBorderRadius', () => {
         it.each([
             {
                 label: 'right',
-                shouldRemoveBorderRadius: 'right' as const,
+                removeBorderRadius: 'right' as const,
                 expectedStyle: {borderTopRightRadius: 0, borderBottomRightRadius: 0},
             },
             {
                 label: 'left',
-                shouldRemoveBorderRadius: 'left' as const,
+                removeBorderRadius: 'left' as const,
                 expectedStyle: {borderTopLeftRadius: 0, borderBottomLeftRadius: 0},
             },
             {
                 label: 'all',
-                shouldRemoveBorderRadius: 'all' as const,
+                removeBorderRadius: 'all' as const,
                 expectedStyle: {borderTopRightRadius: 0, borderBottomRightRadius: 0, borderTopLeftRadius: 0, borderBottomLeftRadius: 0},
             },
-        ])('shouldRemoveBorderRadius="$label" zeros out the correct corners', ({shouldRemoveBorderRadius, expectedStyle}) => {
-            renderButton({shouldRemoveBorderRadius});
+        ])('removeBorderRadius="$label" zeros out the correct corners', ({removeBorderRadius, expectedStyle}) => {
+            renderButton({removeBorderRadius});
             expect(screen.getByLabelText(LABEL)).toHaveStyle(expectedStyle);
         });
     });
@@ -345,8 +343,8 @@ describe('ButtonComposed — Button', () => {
     // to normal when the pointer leaves.
 
     describe('hover styles', () => {
-        it('applies the default hover background when shouldUseDefaultHover is true', () => {
-            // Given a default Button (shouldUseDefaultHover defaults to true)
+        it('applies the default hover background on hover', () => {
+            // Given a default Button
             renderButton();
 
             // When the pointer enters
@@ -354,17 +352,6 @@ describe('ButtonComposed — Button', () => {
 
             // Then the button shows the hover background
             expect(screen.getByLabelText(LABEL)).toHaveStyle({backgroundColor: colors.productDark500});
-        });
-
-        it('does not apply the default hover background when shouldUseDefaultHover is false', () => {
-            // Given a Button that opts out of default hover styling
-            renderButton({shouldUseDefaultHover: false});
-
-            // When the pointer enters
-            fireEvent(getButton(), 'hoverIn');
-
-            // Then the background stays unchanged
-            expect(screen.getByLabelText(LABEL)).toHaveStyle({backgroundColor: colors.productDark400});
         });
 
         it.each([
@@ -473,9 +460,9 @@ describe('ButtonComposed — Button', () => {
     // ── Haptic feedback ───────────────────────────────────────────────────────
 
     describe('haptic feedback', () => {
-        it('triggers HapticFeedback.press on press when shouldEnableHapticFeedback is true', () => {
+        it('triggers HapticFeedback.press on press when enableHapticFeedback is true', () => {
             // Given a Button with haptic feedback enabled (e.g. a primary CTA on mobile)
-            renderButton({shouldEnableHapticFeedback: true});
+            renderButton({enableHapticFeedback: true});
 
             // When the button is pressed
             fireEvent.press(getButton());
@@ -495,16 +482,16 @@ describe('ButtonComposed — Button', () => {
             expect(HapticFeedback.press).not.toHaveBeenCalled();
         });
 
-        it('triggers HapticFeedback.longPress on long press when shouldEnableHapticFeedback is true', () => {
+        it('triggers HapticFeedback.longPress on long press when enableHapticFeedback is true', () => {
             // Given a Button with haptic feedback enabled
-            renderButton({shouldEnableHapticFeedback: true});
+            renderButton({enableHapticFeedback: true});
 
             // When the button is long-pressed
             fireEvent(getButton(), 'longPress');
 
             // BaseGenericPressable fires HapticFeedback.longPress once by default
             // (shouldUseHapticsOnLongPress=true). Button.tsx adds a second call when
-            // shouldEnableHapticFeedback=true, so the total is 2.
+            // enableHapticFeedback=true, so the total is 2.
             expect(HapticFeedback.longPress).toHaveBeenCalledTimes(2);
         });
     });
@@ -532,10 +519,10 @@ describe('ButtonComposed — Button', () => {
             expect(contentWrapper).toBeDefined();
         });
 
-        it('renders a full-size absolute overlay when shouldBlendOpacity is true', () => {
+        it('renders a full-size absolute overlay when blendOpacity is true', () => {
             // Button.tsx renders <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />
-            // when shouldBlendOpacity=true — an overlay that lets content beneath show through.
-            const renderResult = renderButton({shouldBlendOpacity: true});
+            // when blendOpacity=true — an overlay that lets content beneath show through.
+            const renderResult = renderButton({blendOpacity: true});
 
             const overlayView = renderResult.UNSAFE_getAllByType(View).find((v) => {
                 const flat = StyleSheet.flatten(v.props.style ?? []) as {position?: string};

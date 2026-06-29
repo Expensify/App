@@ -3,11 +3,10 @@
 // For the web version, we use the Mapbox Web library called react-map-gl, while for the native mobile version,
 // we utilize a different Mapbox library @rnmapbox/maps tailored for mobile development.
 import {useFocusEffect} from '@react-navigation/native';
-import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {MapRef, ViewState} from 'react-map-gl';
-import Map, {Marker} from 'react-map-gl';
+import type {MapRef, ViewState} from 'react-map-gl/mapbox';
+import Map, {Marker} from 'react-map-gl/mapbox';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import ImageSVG from '@components/ImageSVG';
@@ -265,7 +264,6 @@ function MapViewImpl({
             <Map
                 onDrag={() => setUserInteractedWithMap(true)}
                 ref={setRef}
-                mapLib={mapboxgl}
                 mapboxAccessToken={accessToken}
                 initialViewState={initialViewState}
                 style={{...StyleUtils.getTextColorStyle(theme.mapAttributionText), zIndex: -1}}
@@ -325,7 +323,7 @@ function MapViewImpl({
                 {!!directionCoordinatesProp && <Direction coordinates={directionCoordinatesProp} />}
             </Map>
             {interactive && (
-                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
+                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, styles.zIndex1]}>
                     <Button
                         onPress={centerMap}
                         iconFill={theme.icon}

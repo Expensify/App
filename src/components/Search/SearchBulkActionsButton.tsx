@@ -71,6 +71,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         setIsPdfModalVisible,
         pdfReportID,
         handlePdfModalHide,
+        exportDownloadStatusModal,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
@@ -106,8 +107,14 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
             return reportIDs.size;
         }
 
-        return selectedTransactionsKeys.length;
-    }, [selectedTransactions, selectedTransactionsKeys.length, isExpenseReportType]);
+        return selectedTransactionsKeys.reduce((count, key) => {
+            if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
+                const group = searchData?.[key as keyof typeof searchData] as {count?: number} | undefined;
+                return count + (group?.count ?? 0);
+            }
+            return count + 1;
+        }, 0);
+    }, [selectedTransactions, selectedTransactionsKeys, isExpenseReportType, searchData]);
 
     const selectionButtonText = areAllMatchingItemsSelected ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: selectedItemsCount});
 
@@ -267,6 +274,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                     onConfirm={dismissModalAndUpdateUseHold}
                 />
             )}
+            {exportDownloadStatusModal}
         </>
     );
 }

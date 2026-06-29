@@ -6,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePersonalBankAccountDetailsFormSubmit from '@hooks/usePersonalBankAccountDetailsFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import {appendCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
-import {getFieldRequiredErrors, isValidPhoneNumber, isValidUSPhone} from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidNANPPhone, isValidPhoneNumber} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
@@ -36,7 +36,7 @@ function PhoneNumberStep({onNext, onMove, isEditing, shouldDelayAutoFocus, enabl
             const phoneNumberWithCountryCode = appendCountryCode(values.phoneNumber, countryCode);
             const e164FormattedPhoneNumber = formatE164PhoneNumber(values.phoneNumber, countryCode);
 
-            if (!isValidPhoneNumber(phoneNumberWithCountryCode) || !isValidUSPhone(e164FormattedPhoneNumber)) {
+            if (!isValidPhoneNumber(phoneNumberWithCountryCode) || !isValidNANPPhone(e164FormattedPhoneNumber)) {
                 errors.phoneNumber = translate('common.error.phoneNumber');
             }
         }
