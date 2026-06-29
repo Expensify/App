@@ -3,7 +3,7 @@ import Log from '@libs/Log';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 /** A Search loading skeleton visible longer than this is treated as stuck and worth a diagnostic log. */
-const STUCK_SKELETON_THRESHOLD_MS = 5000;
+const STUCK_SKELETON_THRESHOLD_MS = 10000;
 
 /**
  * Diagnostic only, does not affect rendering.
