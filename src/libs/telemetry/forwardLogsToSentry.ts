@@ -21,7 +21,7 @@ const PARAMETERS_WHITELIST: ReadonlyArray<string | RegExp> = [
 /**
  * Only log lines whose message contains one of these prefixes are forwarded to Sentry.
  */
-const FORWARDED_LOG_PREFIXES = ['[Reauthenticate]', '[MFA]', '[OnyxUpdateManager]'] as const;
+const FORWARDED_LOG_PREFIXES = ['[Reauthenticate]', '[MFA]', '[OnyxUpdateManager] lastUpdateID was advanced but applying the updates failed'] as const;
 
 /**
  * Method deciding whether a log packet should be forwarded to Sentry.
