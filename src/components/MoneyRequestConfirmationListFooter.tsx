@@ -27,6 +27,7 @@ import DistanceMapSection from './MoneyRequestConfirmationListFooter/sections/Di
 import InvoiceSenderSection from './MoneyRequestConfirmationListFooter/sections/InvoiceSenderSection';
 import PerDiemSection from './MoneyRequestConfirmationListFooter/sections/PerDiemSection';
 import ReceiptSection from './MoneyRequestConfirmationListFooter/sections/ReceiptSection';
+import type {MeasurableInput} from './SelectionList/SelectionListWithSections/types';
 
 const noopSetShowMoreFields = () => {};
 
@@ -108,6 +109,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Triggers submit from inline inputs */
     onSubmitForm?: () => void;
+
+    /** Scrolls the surface so an inline field's input is not hidden behind the keyboard when focused (new manual expense flow) */
+    scrollFocusedInputIntoView?: (input: MeasurableInput) => void;
 };
 
 function MoneyRequestConfirmationListFooter({
@@ -137,6 +141,7 @@ function MoneyRequestConfirmationListFooter({
     receiptOptions,
     compactControls,
     onSubmitForm,
+    scrollFocusedInputIntoView,
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
@@ -167,6 +172,7 @@ function MoneyRequestConfirmationListFooter({
             isManualDistanceRequest={distanceFlags.isManualDistanceRequest}
             isOdometerDistanceRequest={distanceFlags.isOdometerDistanceRequest}
             isGPSDistanceRequest={distanceFlags.isGPSDistanceRequest}
+            scrollFocusedInputIntoView={scrollFocusedInputIntoView}
         >
             <View style={isCompactMode ? styles.flex1 : undefined}>
                 <View>
