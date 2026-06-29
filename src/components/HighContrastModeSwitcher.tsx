@@ -18,10 +18,11 @@ function HighContrastModeSwitcher() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
+    const [highContrastIntent] = useOnyx(ONYXKEYS.SIGN_IN_HIGH_CONTRAST_INTENT);
     const icons = useMemoizedLazyExpensifyIcons(['Moon']);
 
     const currentTheme = preferredTheme ?? CONST.THEME.DEFAULT;
-    const isHighContrast = isHighContrastTheme(currentTheme);
+    const isHighContrast = highContrastIntent ?? isHighContrastTheme(currentTheme);
     const label = translate(isHighContrast ? 'themePage.disableHighContrast' : 'themePage.enableHighContrast');
 
     const toggleHighContrast = () => {

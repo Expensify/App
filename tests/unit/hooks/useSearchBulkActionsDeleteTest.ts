@@ -1,5 +1,6 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 import {deleteMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
@@ -38,7 +39,8 @@ jest.mock('@libs/actions/Search', () => ({
     exportSearchItemsToCSV: jest.fn(),
     queueExportSearchItemsToCSV: jest.fn(),
     queueExportSearchWithTemplate: jest.fn(),
-    approveMoneyRequestOnSearch: jest.fn(),
+    getSearchApproveOnyxData: jest.fn(() => ({})),
+    getSearchPayOnyxData: jest.fn(() => ({})),
     getLastPolicyBankAccountID: jest.fn(),
     getLastPolicyPaymentMethod: jest.fn(),
     getPayMoneyOnSearchInvoiceParams: jest.fn(),
@@ -124,6 +126,11 @@ jest.mock('@hooks/useDefaultExpensePolicy', () => ({
     default: () => undefined,
 }));
 
+jest.mock('@hooks/usePolicyForMovingExpenses', () => ({
+    __esModule: true,
+    default: () => ({policyForMovingExpensesID: 'policy1'}),
+}));
+
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: () => ({}),
 }));
@@ -133,11 +140,6 @@ jest.mock('@hooks/useCurrencyList', () => ({
         getCurrencyDecimals: jest.fn(() => 2),
         convertToDisplayString: jest.fn((amount: number) => `$${amount}`),
     }),
-}));
-
-jest.mock('@hooks/useAllPolicyExpenseChatReportActions', () => ({
-    __esModule: true,
-    default: () => undefined,
 }));
 
 jest.mock('@hooks/useUndeleteTransactions', () => ({
@@ -154,6 +156,9 @@ jest.mock('@libs/SearchUIUtils', () => ({
     shouldShowDeleteOption: () => mockShouldShowDeleteOption,
     getSelectedGroupFilterEntry: jest.fn(),
     navigateToSearchRHP: jest.fn(),
+    getValidGroupBy: jest.fn(),
+    getColumnsToShow: jest.fn(() => []),
+    getSearchColumnTranslationKey: jest.fn(),
 }));
 
 jest.mock('@hooks/useDuplicateTransactionsAndViolations', () => ({
@@ -284,6 +289,8 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
 // Tests
 // ---------------------------------------------------------------------------
 
+const renderHookWithProvider: typeof renderHook = (callback, options) => renderHook(callback, {...options, wrapper: OnyxListItemProvider});
+
 describe('useSearchBulkActions - delete unreported expenses', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -364,7 +371,7 @@ describe('useSearchBulkActions - delete unreported expenses', () => {
         // Confirm the delete modal.
         mockShowConfirmModal.mockResolvedValue({action: 'CONFIRM'});
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
 
         // Wait for the DELETE option to appear.
         await waitFor(() => {
@@ -426,7 +433,7 @@ describe('useSearchBulkActions - delete unreported expenses', () => {
         mockShouldShowDeleteOption = true;
         mockShowConfirmModal.mockResolvedValue({action: 'CONFIRM'});
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE)).toBeDefined();

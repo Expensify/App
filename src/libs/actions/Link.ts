@@ -8,6 +8,7 @@ import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Environment from '@libs/Environment/Environment';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
+import Log from '@libs/Log';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
@@ -292,12 +293,20 @@ function openReportFromDeepLink(
 
     // Navigate to the report after sign-in/sign-up.
     waitForUserSignIn().then(() => {
+        // `false` when the user still had to onboard as this deep link was captured (fresh sign-up, or a
+        // stale react-native-web URL); honoring it after onboarding flashes the "Not here" page (#91437).
+        let initialHasCompletedGuidedSetupFlow: boolean | undefined;
         // Subscribe to onboarding data using connectWithoutView to determine if user has completed the onboarding flow without affecting UI
         const connection = Onyx.connectWithoutView({
             key: ONYXKEYS.NVP_ONBOARDING,
             callback: (val) => {
                 if (!val && !isAnonymousUser()) {
                     return;
+                }
+
+                // Capture once. Use the raw flag, not the selector, which returns `true` for the empty NVP a fresh sign-up briefly has.
+                if (!isAuthenticated && initialHasCompletedGuidedSetupFlow === undefined && val && !isAnonymousUser()) {
+                    initialHasCompletedGuidedSetupFlow = val.hasCompletedGuidedSetupFlow;
                 }
 
                 Navigation.waitForProtectedRoutes().then(() => {
@@ -331,6 +340,12 @@ function openReportFromDeepLink(
                         }
 
                         if (currentFocusedRoute?.name !== SCREENS.HOME && route === ROUTES.HOME) {
+                            return;
+                        }
+
+                        // Drop a deep link captured before onboarding finished: navigateAfterOnboarding owns the
+                        // post-onboarding destination and overrides it anyway, so honoring it only risks the flash (#91437).
+                        if (initialHasCompletedGuidedSetupFlow === false) {
                             return;
                         }
 
@@ -403,6 +418,25 @@ function getTravelDotLink(policyID: OnyxEntry<string>) {
     });
 }
 
+/**
+ * Fetches a short-lived auth token and appends it to the given setup link.
+ * Falls back to returning the original link if the token request fails.
+ */
+function getShortLivedAuthTokenURL(setupLink: string): Promise<string> {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK, {}, {})
+        .then((response) => {
+            if (!response?.shortLivedAuthToken) {
+                return setupLink;
+            }
+            return Url.appendParam(setupLink, 'authToken', response.shortLivedAuthToken);
+        })
+        .catch((error) => {
+            Log.warn('[Link] Failed to fetch short-lived auth token', {error});
+            return setupLink;
+        });
+}
+
 export {
     openOldDotLink,
     openExternalLink,
@@ -414,4 +448,5 @@ export {
     getTravelDotLink,
     buildOldDotURL,
     openReportFromDeepLink,
+    getShortLivedAuthTokenURL,
 };

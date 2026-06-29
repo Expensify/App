@@ -64,6 +64,7 @@ function BaseTextInput({
     shouldRenderHintAsHTML = false,
     onInputChange = () => {},
     multiline = false,
+    shouldLabelStayOnSingleLine = false,
     autoCorrect = true,
     prefixCharacter = '',
     suffixCharacter = '',
@@ -83,6 +84,7 @@ function BaseTextInput({
     onClearInput,
     iconContainerStyle,
     clearButtonStyle,
+    clearButtonIconSize,
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
     sentryLabel,
@@ -345,6 +347,7 @@ function BaseTextInput({
                                 labelScale={labelScale}
                                 for={inputProps.nativeID}
                                 isMultiline={isMultiline}
+                                shouldLabelStayOnSingleLine={shouldLabelStayOnSingleLine}
                             />
                         ) : null}
                         {hiddenLabel}
@@ -458,6 +461,7 @@ function BaseTextInput({
                                         setValue('');
                                         onClearInput?.();
                                     }}
+                                    iconSize={clearButtonIconSize}
                                     style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), clearButtonStyle]}
                                 />
                             )}

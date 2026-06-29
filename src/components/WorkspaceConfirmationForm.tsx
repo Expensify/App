@@ -20,7 +20,7 @@ import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -251,7 +251,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                                 label={translate('workspace.editor.currencyInputLabel')}
                                 value={userCurrency}
                                 shouldShowCurrencySymbol
-                                currencySelectorRoute={ROUTES.WORKSPACE_CURRENCY_SELECTION}
+                                useWorkspaceConfirmationCurrencySelector
                             />
                         </View>
                         {isApprovedAccountant && (

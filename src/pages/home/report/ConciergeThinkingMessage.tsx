@@ -18,7 +18,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import Parser from '@libs/Parser';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import type {ReasoningEntry} from '@pages/inbox/AgentZeroStatusContext';
 import {useAgentZeroStatus} from '@pages/inbox/AgentZeroStatusContext';
 import ReportActionItemMessageHeaderSender from '@pages/inbox/report/ReportActionItemMessageHeaderSender';
@@ -51,7 +51,6 @@ function ConciergeThinkingMessage({report}: ConciergeThinkingMessageProps) {
             {candidateAgentIDs.map((agentAccountID) => (
                 <ConciergeThinkingBubble
                     key={agentAccountID}
-                    report={report}
                     reportID={reportID}
                     agentAccountID={agentAccountID}
                 />
@@ -60,7 +59,7 @@ function ConciergeThinkingMessage({report}: ConciergeThinkingMessageProps) {
     );
 }
 
-function ConciergeThinkingBubble({report, reportID, agentAccountID}: {report: OnyxEntry<Report>; reportID: string; agentAccountID: number}) {
+function ConciergeThinkingBubble({reportID, agentAccountID}: {reportID: string; agentAccountID: number}) {
     const {isProcessing, reasoningHistory, statusLabel} = useAgentZeroStatusIndicator(reportID, agentAccountID);
 
     if (!isProcessing) {
@@ -69,7 +68,6 @@ function ConciergeThinkingBubble({report, reportID, agentAccountID}: {report: On
 
     return (
         <ConciergeThinkingMessageContent
-            report={report}
             accountID={agentAccountID}
             reasoningHistory={reasoningHistory}
             statusLabel={statusLabel}
@@ -77,17 +75,7 @@ function ConciergeThinkingBubble({report, reportID, agentAccountID}: {report: On
     );
 }
 
-function ConciergeThinkingMessageContent({
-    report,
-    accountID,
-    reasoningHistory,
-    statusLabel,
-}: {
-    report: OnyxEntry<Report>;
-    accountID: number;
-    reasoningHistory: ReasoningEntry[];
-    statusLabel: string;
-}) {
+function ConciergeThinkingMessageContent({accountID, reasoningHistory, statusLabel}: {accountID: number; reasoningHistory: ReasoningEntry[]; statusLabel: string}) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -141,7 +129,7 @@ function ConciergeThinkingMessageContent({
     }));
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const displayName = getDisplayNameOrDefault(personalDetails?.[accountID]) ?? CONST.CONCIERGE_DISPLAY_NAME;
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[accountID], translate}) ?? CONST.CONCIERGE_DISPLAY_NAME;
     const actorIcon = personalDetails?.[accountID]?.avatar ? {source: personalDetails[accountID].avatar, name: displayName, type: CONST.ICON_TYPE_AVATAR} : undefined;
 
     const handleToggle = () => {
@@ -177,8 +165,6 @@ function ConciergeThinkingMessageContent({
                             StyleUtils.getBackgroundAndBorderStyle(theme.appBG),
                             isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined,
                         ]}
-                        reportID={report?.reportID}
-                        chatReportID={report?.chatReportID ?? report?.reportID}
                         accountIDs={[accountID]}
                     />
                 </OfflineWithFeedback>

@@ -378,7 +378,6 @@ describe('DomainUtils', () => {
             const result = getMemberCustomRowProps(accountID, undefined, undefined);
             expect(result.errors).toEqual({});
             expect(result.pendingAction).toBeUndefined();
-            expect(result.brickRoadIndicator).toBeUndefined();
         });
 
         it('should return pendingAction from email key', () => {
@@ -461,7 +460,7 @@ describe('DomainUtils', () => {
             expect(result.errors).toEqual({[EARLY_TIMESTAMP]: 'Lock error'});
         });
 
-        it('should set brickRoadIndicator to ERROR when vacationDelegateErrors exist', () => {
+        it('should surface vacationDelegateErrors in result errors', () => {
             const domainErrors: DomainErrors = {
                 errors: {},
                 memberErrors: {
@@ -469,10 +468,10 @@ describe('DomainUtils', () => {
                 },
             };
             const result = getMemberCustomRowProps(accountID, undefined, domainErrors, email);
-            expect(result.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+            expect(result.errors).toEqual({[EARLY_TIMESTAMP]: 'Delegate error'});
         });
 
-        it('should set brickRoadIndicator to ERROR when twoFactorAuthExemptEmailsError exist', () => {
+        it('should surface twoFactorAuthExemptEmailsError in result errors', () => {
             const domainErrors: DomainErrors = {
                 errors: {},
                 memberErrors: {
@@ -480,10 +479,10 @@ describe('DomainUtils', () => {
                 },
             };
             const result = getMemberCustomRowProps(accountID, undefined, domainErrors, email);
-            expect(result.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+            expect(result.errors).toEqual({[EARLY_TIMESTAMP]: '2FA error'});
         });
 
-        it('should surface changeDomainSecurityGroupErrors in result errors (not brickRoadIndicator)', () => {
+        it('should surface changeDomainSecurityGroupErrors in result errors', () => {
             // changeDomainSecurityGroupErrors are merged into base errors, not tracked as a separate field
             const domainErrors: DomainErrors = {
                 errors: {},
@@ -493,10 +492,9 @@ describe('DomainUtils', () => {
             };
             const result = getMemberCustomRowProps(accountID, undefined, domainErrors);
             expect(result.errors).toEqual({[EARLY_TIMESTAMP]: 'Group error'});
-            expect(result.brickRoadIndicator).toBeUndefined();
         });
 
-        it('should leave brickRoadIndicator undefined when there are only base errors', () => {
+        it('should return only base errors when there are no detail-page errors', () => {
             const domainErrors: DomainErrors = {
                 errors: {},
                 memberErrors: {
@@ -504,7 +502,7 @@ describe('DomainUtils', () => {
                 },
             };
             const result = getMemberCustomRowProps(accountID, undefined, domainErrors);
-            expect(result.brickRoadIndicator).toBeUndefined();
+            expect(result.errors).toEqual({[EARLY_TIMESTAMP]: 'Some error'});
         });
     });
 });
