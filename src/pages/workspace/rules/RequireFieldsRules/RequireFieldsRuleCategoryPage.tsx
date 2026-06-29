@@ -16,11 +16,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type RequireFieldsRuleCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_CATEGORY>;
+type RequireFieldsRuleCategoryPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_CATEGORY>
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_CATEGORY_EDIT>;
 
 function RequireFieldsRuleCategoryPage({route}: RequireFieldsRuleCategoryPageProps) {
-    const {policyID, ruleKey} = route.params;
-    const isEditing = ruleKey !== ROUTES.NEW;
+    const {policyID} = route.params;
+    const categoryName = 'categoryName' in route.params ? route.params.categoryName : undefined;
+    const isEditing = !!categoryName;
     const policy = usePolicy(policyID);
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
@@ -39,7 +42,7 @@ function RequireFieldsRuleCategoryPage({route}: RequireFieldsRuleCategoryPagePro
             return {name: decodedCategoryName, value: category.name};
         });
 
-    const backToRoute = isEditing ? ROUTES.RULES_REQUIRE_FIELDS_RULE_EDIT.getRoute(policyID, ruleKey) : ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID);
+    const backToRoute = isEditing ? ROUTES.RULES_REQUIRE_FIELDS_RULE_EDIT.getRoute(policyID, categoryName) : ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID);
 
     const onSave = (value?: string) => {
         const selectedCategory = value ? policyCategories?.[value] : undefined;

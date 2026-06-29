@@ -1542,7 +1542,10 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_CATEGORY]: {
         policyID: string;
-        ruleKey: string;
+    };
+    [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_CATEGORY_EDIT]: {
+        policyID: string;
+        categoryName: string;
     };
     [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_NEW]: {
         policyID: string;
@@ -1553,15 +1556,24 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY]: {
         policyID: string;
-        ruleKey: string;
+    };
+    [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY_EDIT]: {
+        policyID: string;
+        categoryName: string;
     };
     [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT]: {
         policyID: string;
-        ruleKey: string;
+    };
+    [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT_EDIT]: {
+        policyID: string;
+        categoryName: string;
     };
     [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE]: {
         policyID: string;
-        ruleKey: string;
+    };
+    [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE_EDIT]: {
+        policyID: string;
+        categoryName: string;
     };
     [SCREENS.WORKSPACE.RULES_MERCHANT_TYPE_EDIT]: {
         policyID: string;

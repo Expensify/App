@@ -27,7 +27,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {getFlagForReviewRuleAmountRoute, getFlagForReviewRuleCategoryRoute, getFlagForReviewRuleExpenseLimitTypeRoute} from '@src/ROUTES';
 import type {FlagForReviewRuleForm} from '@src/types/form/FlagForReviewRuleForm';
 
 type FlagForReviewRulePageBaseProps = {
@@ -63,7 +63,6 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const icons = useMemoizedLazyExpensifyIcons(['Folder', 'CoinsButton']);
     const isEditing = !!categoryName;
-    const ruleKey = categoryName ?? ROUTES.NEW;
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const [form] = useOnyx(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM);
@@ -190,7 +189,7 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
                         description={translate('common.category')}
                         title={categoryDisplayName}
                         errorText={canWriteRules && shouldShowError && !form?.[FLAG_FOR_REVIEW_RULE_FIELDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
-                        onPress={canWriteRules ? () => Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY.getRoute(policyID, ruleKey)) : undefined}
+                        onPress={canWriteRules ? () => Navigation.navigate(getFlagForReviewRuleCategoryRoute(policyID, categoryName)) : undefined}
                         shouldShowRightIcon={canWriteRules}
                         interactive={canWriteRules}
                         icon={icons.Folder}
@@ -206,7 +205,7 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
                         description={translate('iou.amount')}
                         title={maxAmountMenuTitle ? translate('workspace.rules.spendRules.maxAmountAbove', {amount: maxAmountMenuTitle}) : undefined}
                         errorText={canWriteRules && shouldShowError && !form?.[FLAG_FOR_REVIEW_RULE_FIELDS.MAX_EXPENSE_AMOUNT]?.trim() ? translate('common.error.fieldRequired') : ''}
-                        onPress={canWriteRules ? () => Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT.getRoute(policyID, ruleKey)) : undefined}
+                        onPress={canWriteRules ? () => Navigation.navigate(getFlagForReviewRuleAmountRoute(policyID, categoryName)) : undefined}
                         shouldShowRightIcon={canWriteRules}
                         interactive={canWriteRules}
                         icon={icons.CoinsButton}
@@ -218,7 +217,7 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
                     <MenuItemWithTopDescription
                         description={translate('common.type')}
                         title={expenseLimitTypeTitle}
-                        onPress={canWriteRules ? () => Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE.getRoute(policyID, ruleKey)) : undefined}
+                        onPress={canWriteRules ? () => Navigation.navigate(getFlagForReviewRuleExpenseLimitTypeRoute(policyID, categoryName)) : undefined}
                         shouldShowRightIcon={canWriteRules}
                         interactive={canWriteRules}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE}

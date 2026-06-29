@@ -29,7 +29,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {getRequireFieldsRuleCategoryRoute} from '@src/ROUTES';
 import type {RequireFieldsRuleForm, RequireFieldsRuleToggleFieldKey} from '@src/types/form/RequireFieldsRuleForm';
 import type {Policy, PolicyCategory} from '@src/types/onyx';
 
@@ -75,7 +75,6 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
     const isAttendeeFieldApplicable = isAttendeeTrackingEnabled(policy);
     const icons = useMemoizedLazyExpensifyIcons(['Folder']);
     const isEditing = !!categoryName;
-    const ruleKey = categoryName ?? ROUTES.NEW;
 
     const [form] = useOnyx(ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -210,7 +209,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
                         description={translate('common.category')}
                         title={categoryDisplayName}
                         errorText={canWriteRules && shouldShowError && !form?.[REQUIRE_FIELDS_RULE_FIELDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
-                        onPress={canWriteRules ? () => Navigation.navigate(ROUTES.RULES_REQUIRE_FIELDS_RULE_CATEGORY.getRoute(policyID, ruleKey)) : undefined}
+                        onPress={canWriteRules ? () => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, categoryName)) : undefined}
                         shouldShowRightIcon={canWriteRules}
                         interactive={canWriteRules}
                         icon={icons.Folder}

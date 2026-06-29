@@ -15,11 +15,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type FlagForReviewRuleCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY>;
+type FlagForReviewRuleCategoryPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY>
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY_EDIT>;
 
 function FlagForReviewRuleCategoryPage({route}: FlagForReviewRuleCategoryPageProps) {
-    const {policyID, ruleKey} = route.params;
-    const isEditing = ruleKey !== ROUTES.NEW;
+    const {policyID} = route.params;
+    const categoryName = 'categoryName' in route.params ? route.params.categoryName : undefined;
+    const isEditing = !!categoryName;
     const policy = usePolicy(policyID);
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
@@ -38,7 +41,7 @@ function FlagForReviewRuleCategoryPage({route}: FlagForReviewRuleCategoryPagePro
             return {name: decodedCategoryName, value: category.name};
         });
 
-    const backToRoute = isEditing ? ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, ruleKey) : ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID);
+    const backToRoute = isEditing ? ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName) : ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID);
 
     const onSave = (value?: string) => {
         updateDraftFlagForReviewRule({[CONST.FLAG_FOR_REVIEW_RULE.FIELDS.CATEGORY]: value});

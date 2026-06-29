@@ -20,11 +20,14 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 
-type FlagForReviewRuleExpenseLimitTypePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE>;
+type FlagForReviewRuleExpenseLimitTypePageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE>
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE_EDIT>;
 
 function FlagForReviewRuleExpenseLimitTypePage({route}: FlagForReviewRuleExpenseLimitTypePageProps) {
-    const {policyID, ruleKey} = route.params;
-    const isEditing = ruleKey !== ROUTES.NEW;
+    const {policyID} = route.params;
+    const categoryName = 'categoryName' in route.params ? route.params.categoryName : undefined;
+    const isEditing = !!categoryName;
     const policy = usePolicy(policyID);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -35,7 +38,7 @@ function FlagForReviewRuleExpenseLimitTypePage({route}: FlagForReviewRuleExpense
     const [form] = useOnyx(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM);
     const currentExpenseLimitType = form?.[CONST.FLAG_FOR_REVIEW_RULE.FIELDS.EXPENSE_LIMIT_TYPE] ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
 
-    const backToRoute = isEditing ? ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, ruleKey) : ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID);
+    const backToRoute = isEditing ? ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName) : ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID);
 
     const expenseLimitTypes = Object.values(CONST.POLICY.EXPENSE_LIMIT_TYPES).map((value) => ({
         value,

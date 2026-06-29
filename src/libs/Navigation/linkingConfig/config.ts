@@ -1288,6 +1288,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_CATEGORY]: {
                             path: ROUTES.RULES_REQUIRE_FIELDS_RULE_CATEGORY.route,
                         },
+                        [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_CATEGORY_EDIT]: {
+                            path: ROUTES.RULES_REQUIRE_FIELDS_RULE_CATEGORY_EDIT.route,
+                        },
                         [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_NEW]: {
                             path: ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.route,
                         },
@@ -1297,11 +1300,20 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY]: {
                             path: ROUTES.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY.route,
                         },
+                        [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY_EDIT]: {
+                            path: ROUTES.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY_EDIT.route,
+                        },
                         [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT]: {
                             path: ROUTES.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT.route,
                         },
+                        [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT_EDIT]: {
+                            path: ROUTES.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT_EDIT.route,
+                        },
                         [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE]: {
                             path: ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE_EDIT]: {
+                            path: ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE_EDIT.route,
                         },
                         [SCREENS.WORKSPACE.RULES_MERCHANT_TYPE_EDIT]: {
                             path: ROUTES.RULES_MERCHANT_TYPE_EDIT.route,
