@@ -137,14 +137,27 @@ describe('GithubUtils', () => {
         });
     });
 
+    // A reusable base_commit fixture representing the commit that the base tag points to.
+    // Its committer.date is the boundary used by the cherry-pick staleness filter:
+    // any PR commit dated before this value was brought in by a post-deploy sync and
+    // should be excluded from the new checklist.
+    const BASE_COMMIT_DATE = '2024-01-01T00:00:00Z';
+    const baseCommitFixture = {
+        commit: {
+            committer: {date: BASE_COMMIT_DATE},
+        },
+    };
+
     const commitHistoryData = {
         emptyResponse: {
             data: {
                 commits: [],
+                base_commit: baseCommitFixture,
             },
         },
         singleCommit: {
             data: {
+                base_commit: baseCommitFixture,
                 commits: [
                     {
                         sha: 'abc123',
@@ -152,10 +165,10 @@ describe('GithubUtils', () => {
                             message: 'Test commit message',
                             author: {
                                 name: 'Test Author',
-                                date: '2024-01-01T00:00:00Z',
+                                date: '2024-01-02T00:00:00Z',
                             },
                             committer: {
-                                date: '2024-01-01T00:00:00Z',
+                                date: '2024-01-02T00:00:00Z',
                             },
                         },
                         author: {
@@ -170,11 +183,12 @@ describe('GithubUtils', () => {
                 commit: 'abc123',
                 subject: 'Test commit message',
                 authorName: 'Test Author',
-                date: '2024-01-01T00:00:00Z',
+                date: '2024-01-02T00:00:00Z',
             },
         ],
         multipleCommitsResponse: {
             data: {
+                base_commit: baseCommitFixture,
                 commits: [
                     {
                         sha: 'abc123',
@@ -243,38 +257,50 @@ describe('GithubUtils', () => {
             });
         });
 
-        test('should return empty array when no commits found', async () => {
+        test('should return empty commits array and baseCommitDate when no commits found', async () => {
             mockCompareCommits.mockResolvedValue(commitHistoryData.emptyResponse);
 
             const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO);
-            expect(result).toEqual([]);
+            // getCommitHistoryBetweenTags now returns {commits, baseCommitDate} so callers can
+            // filter out stale cherry-picked entries (commits dated before the base tag).
+            expect(result).toEqual({commits: [], baseCommitDate: BASE_COMMIT_DATE});
         });
 
-        test('should return formatted commit history when commits exist', async () => {
+        test('should return formatted commit history and baseCommitDate when commits exist', async () => {
             mockCompareCommits.mockResolvedValue(commitHistoryData.singleCommit);
 
             const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO);
-            expect(result).toEqual(commitHistoryData.expectedFormattedCommit);
+            expect(result).toEqual({commits: commitHistoryData.expectedFormattedCommit, baseCommitDate: BASE_COMMIT_DATE});
         });
 
-        test('should handle multiple commits correctly', async () => {
+        test('should handle multiple commits correctly and include baseCommitDate', async () => {
             mockCompareCommits.mockResolvedValue(commitHistoryData.multipleCommitsResponse);
 
             const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO);
 
-            expect(result).toHaveLength(2);
-            expect(result.at(0)).toEqual({
+            expect(result.baseCommitDate).toBe(BASE_COMMIT_DATE);
+            expect(result.commits).toHaveLength(2);
+            expect(result.commits.at(0)).toEqual({
                 commit: 'abc123',
                 subject: 'First commit',
                 authorName: 'Author One',
                 date: '2024-01-02T00:00:00Z',
             });
-            expect(result.at(1)).toEqual({
+            expect(result.commits.at(1)).toEqual({
                 commit: 'def456',
                 subject: 'Second commit',
                 authorName: 'Author Two',
                 date: '2024-01-03T00:00:00Z',
             });
+        });
+
+        test('should return empty baseCommitDate when base_commit is missing from API response', async () => {
+            // Defensive test: if the API omits base_commit for any reason, baseCommitDate falls
+            // back to '' so the staleness filter is safely skipped (no PRs are incorrectly removed).
+            mockCompareCommits.mockResolvedValue({data: {commits: []}});
+
+            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO);
+            expect(result).toEqual({commits: [], baseCommitDate: ''});
         });
 
         test('should handle 404 RequestError with specific error message', async () => {

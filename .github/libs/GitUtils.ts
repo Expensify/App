@@ -134,16 +134,27 @@ function getValidMergedPRs(commits: CommitType[]): MergedPR[] {
 type MergedPRsResult = {
     mergedPRs: MergedPR[];
     submoduleUpdates: SubmoduleUpdate[];
+    /**
+     * The committer date of the commit that fromTag points to.
+     *
+     * This is used to detect cherry-picked PRs that were already deployed to production
+     * in a previous cycle. When a PR is cherry-picked to staging and deployed, the
+     * original merge commit later enters the staging range via a post-deploy sync.
+     * Because that original commit predates the previous staging tag, its date will be
+     * earlier than baseCommitDate — which is the signal we use to filter it out.
+     */
+    baseCommitDate: string;
 };
 
 /**
  * Takes in two git tags and returns a list of merged PRs entries between those two tags,
- * along with any Mobile-Expensify submodule version updates found in the commit history.
+ * along with any Mobile-Expensify submodule version updates found in the commit history,
+ * and the committer date of the base tag's commit (used for cherry-pick filtering).
  * Returns PRs in the order they appear in the commit history from the GitHub API.
  */
 async function getMergedPRsDeployedBetween(fromTag: string, toTag: string, repositoryName: string): Promise<MergedPRsResult> {
     console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
-    const apiCommitList = await GithubUtils.getCommitHistoryBetweenTags(fromTag, toTag, repositoryName);
+    const {commits: apiCommitList, baseCommitDate} = await GithubUtils.getCommitHistoryBetweenTags(fromTag, toTag, repositoryName);
     const mergedPRs = getValidMergedPRs(apiCommitList);
     const submoduleUpdates = getSubmoduleUpdates(apiCommitList);
 
@@ -158,7 +169,7 @@ async function getMergedPRsDeployedBetween(fromTag: string, toTag: string, repos
         core.endGroup();
     }
 
-    return {mergedPRs, submoduleUpdates};
+    return {mergedPRs, submoduleUpdates, baseCommitDate};
 }
 
 /**
