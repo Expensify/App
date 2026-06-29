@@ -36,6 +36,13 @@ function init() {
         OnyxUtils.get(key).then((storedDerivedValue) => {
             let derivedValue = storedDerivedValue;
             let hasSyncedDerivedValueFromOnyx = key !== ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS;
+            let pendingRecomputeAfterDerivedValueSync:
+                | {
+                      sourceKey?: string;
+                      sourceValue?: unknown;
+                      triggeredByIndex?: number;
+                  }
+                | undefined;
             if (derivedValue) {
                 Log.info(`Derived value for ${key} restored from disk`);
             }
@@ -62,16 +69,6 @@ function init() {
                 sourceValues: undefined,
             };
 
-            if (key === ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS) {
-                Onyx.connectWithoutView({
-                    key,
-                    callback: (value) => {
-                        derivedValue = value;
-                        hasSyncedDerivedValueFromOnyx = true;
-                    },
-                });
-            }
-
             const recomputeDerivedValue = (sourceKey?: string, sourceValue?: unknown, triggeredByIndex?: number) => {
                 // If this recompute was triggered by a connection callback, check if it initializes the connection
                 if (!areAllConnectionsSet && triggeredByIndex !== undefined) {
@@ -88,6 +85,7 @@ function init() {
                 }
 
                 if (!hasSyncedDerivedValueFromOnyx) {
+                    pendingRecomputeAfterDerivedValueSync = {sourceKey, sourceValue, triggeredByIndex};
                     Log.info(`[OnyxDerived] waiting for current value sync before recomputing ${key}`);
                     return;
                 }
@@ -119,6 +117,24 @@ function init() {
                     endSpan(spanId);
                 }
             };
+
+            if (key === ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS) {
+                Onyx.connectWithoutView({
+                    key,
+                    callback: (value) => {
+                        derivedValue = value;
+                        hasSyncedDerivedValueFromOnyx = true;
+
+                        if (!pendingRecomputeAfterDerivedValueSync) {
+                            return;
+                        }
+
+                        const {sourceKey, sourceValue, triggeredByIndex} = pendingRecomputeAfterDerivedValueSync;
+                        pendingRecomputeAfterDerivedValueSync = undefined;
+                        recomputeDerivedValue(sourceKey, sourceValue, triggeredByIndex);
+                    },
+                });
+            }
 
             for (let i = 0; i < dependencies.length; i++) {
                 const dependencyIndex = i;
