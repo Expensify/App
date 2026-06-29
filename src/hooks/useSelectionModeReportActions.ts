@@ -11,7 +11,6 @@ import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
-import {useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
@@ -21,9 +20,11 @@ import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
 import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
-import {handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
-import {isSubmitPolicy, sortPoliciesByName} from '@libs/PolicyUtils';
+import {selectPaymentType} from '@libs/PaymentUtils';
+import {sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
@@ -45,6 +46,7 @@ import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -60,6 +62,7 @@ import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import useParticipantsInvoiceReport from './useParticipantsInvoiceReport';
+import usePayChatReportActions from './usePayChatReportActions';
 import usePaymentOptions from './usePaymentOptions';
 import usePermissions from './usePermissions';
 import usePolicy from './usePolicy';
@@ -88,7 +91,6 @@ function useSelectionModeReportActions({
     transactions,
     selectedTransactionIDs,
 }: UseSelectionModeReportActionsParams) {
-    const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {translate, localeCompare} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const {accountID: currentUserAccountID, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
@@ -132,6 +134,7 @@ function useSelectionModeReportActions({
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
+    const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
     const activeAdminPolicies = useActiveAdminPolicies();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -151,11 +154,6 @@ function useSelectionModeReportActions({
         markPendingRTERTransactionsAsCash(transactions, allTransactionViolations, reportActions);
     };
 
-    const selectedTransactions = transactions.filter((transaction) => selectedTransactionIDs.includes(transaction.transactionID));
-
-    const hasSelectedTransactionsOnSubmitPolicy = isSubmitPolicy(policy) && selectedTransactions.length > 0;
-    const isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy = hasSelectedTransactionsOnSubmitPolicy && selectedTransactions.length > 1;
-
     const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
 
     const nextApproverAccountID = getNextApproverAccountID(report);
@@ -169,8 +167,7 @@ function useSelectionModeReportActions({
         currentUserEmail ?? '',
         transactions,
     );
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- this is a valid use case, we want to check if any of the conditions are true
-    const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval || isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy;
+    const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval;
 
     const canAllowSettlement = hasUpdatedTotal(report, policy);
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
@@ -243,6 +240,7 @@ function useSelectionModeReportActions({
         reportMetadata,
         isChatReportArchived,
         invoiceReceiverPolicy,
+        ownerLogin: submitterLogin,
     });
 
     const secondaryActions = (() => {
@@ -292,7 +290,7 @@ function useSelectionModeReportActions({
             return true;
         }
         if (!isUserValidated && paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-            handleUnvalidatedAccount(report);
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
             return true;
         }
         return false;
@@ -307,15 +305,6 @@ function useSelectionModeReportActions({
             return;
         }
         const doSubmit = () => {
-            if (isSubmitPolicy(policy)) {
-                openReportSubmitToPopover({
-                    onSubmitSuccess: () => {
-                        clearSelectedTransactions(true);
-                        turnOffMobileSelectionMode();
-                    },
-                });
-                return;
-            }
             submitReport({
                 expenseReport: report,
                 policy,
@@ -328,6 +317,7 @@ function useSelectionModeReportActions({
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 delegateEmail,
+                submitterLogin,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
@@ -354,7 +344,6 @@ function useSelectionModeReportActions({
         } else {
             approveMoneyRequest({
                 expenseReport: report,
-                policy,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: currentUserEmail ?? '',
                 hasViolations,
@@ -408,6 +397,7 @@ function useSelectionModeReportActions({
                 betas,
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                chatReportActions: getChatReportActions(payAsBusiness),
             });
             clearSelectedTransactions(true);
             turnOffMobileSelectionMode();
@@ -429,6 +419,7 @@ function useSelectionModeReportActions({
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                chatReportActions: getChatReportActions(false),
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
@@ -590,7 +581,6 @@ function useSelectionModeReportActions({
         hasPayAction,
         hasPayInSelectionMode,
         hasSubmitAction,
-        hasSelectedTransactionsOnSubmitPolicy,
         hasApproveAction,
         totalAmount,
         canAllowSettlement,

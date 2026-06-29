@@ -35,7 +35,6 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     isFirstItem,
     transactionViolations,
     handleActionButtonPress,
-    shouldDisableActionPointerEvents,
     transactionPreviewData,
     exportedReportActions,
     nonPersonalAndWorkspaceCards,
@@ -51,7 +50,11 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     const {isSelected} = useRowSelection(item.keyForList);
 
     const handleOnPress: React.ComponentProps<typeof PressableWithFeedback>['onPress'] = (event) => {
-        if (isDeletedTransaction && !canSelectMultiple) {
+        // A deleted transaction has no report to open, so a row press toggles its selection instead of dead-ending in navigation.
+        if (isDeletedTransaction) {
+            if (canSelectMultiple) {
+                onCheckboxPress?.(item);
+            }
             return;
         }
         onSelectRow(item, transactionPreviewData, event);
@@ -119,7 +122,6 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                             isActionLoading={isLoading ?? isActionLoading}
                             isSelected={isSelected}
                             isDisabled={!!isDisabled}
-                            shouldDisableActionPointerEvents={shouldDisableActionPointerEvents}
                             dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                             amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                             taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
