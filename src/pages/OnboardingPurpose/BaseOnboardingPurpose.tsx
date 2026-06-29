@@ -130,7 +130,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                         autoCreateTrackWorkspace(personalDetailsForm.firstName, personalDetailsForm.lastName ?? '', choice);
                         return;
                     }
-                    // This path handles LOOKING_AROUND/EMPLOYER/MANAGE_TEAM — selfDMReport is not needed (only used for personal/track choices).
                     completeOnboarding({
                         engagementChoice: choice,
                         onboardingMessage: onboardingMessages[choice],
