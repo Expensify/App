@@ -172,7 +172,7 @@ describe('useAdvancedSearchFilters', () => {
             });
         });
 
-        it('shows tag filter when tags are enabled even if no tags exist (singlePolicyCondition is always truthy)', async () => {
+        it('hides tag filter when tags are enabled but no tags exist', async () => {
             const policy = buildPolicy(1, {areTagsEnabled: true});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
@@ -188,7 +188,42 @@ describe('useAdvancedSearchFilters', () => {
 
             const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
 
-            // Tag filter is visible because singlePolicyCondition (!!selectedPolicyTagLists) is always true
+            // Tag filter is hidden because the tag list contains no actual tags
+            await waitFor(() => {
+                const allKeys = result.current.flat();
+                expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
+            });
+        });
+
+        it('hides tag filter when a selected policy has tags enabled but no tags exist', async () => {
+            const policy = buildPolicy(1, {areTagsEnabled: true});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+
+            const emptyTagList: PolicyTagLists = {
+                Department: {
+                    name: 'Department',
+                    orderWeight: 0,
+                    required: false,
+                    tags: {},
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`, emptyTagList);
+
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, ['1']), {wrapper});
+
+            await waitFor(() => {
+                const allKeys = result.current.flat();
+                expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
+            });
+        });
+
+        it('shows tag filter when a selected policy has actual tags', async () => {
+            const policy = buildPolicy(1, {areTagsEnabled: true});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`, buildTagList('Engineering'));
+
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, ['1']), {wrapper});
+
             await waitFor(() => {
                 const allKeys = result.current.flat();
                 expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
@@ -364,6 +399,127 @@ describe('useAdvancedSearchFilters', () => {
             await waitFor(() => {
                 const allKeys = result.current.flat();
                 expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD);
+            });
+        });
+    });
+
+    describe('bank account filter visibility', () => {
+        it('hides bank account filter when no bank accounts exist', async () => {
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+
+            await waitFor(() => {
+                const allKeys = result.current.flat();
+                expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT);
+            });
+        });
+
+        it('shows bank account filter for expense type when at least one settlement-eligible bank account exists', async () => {
+            const bankAccountID = 42;
+            await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                [bankAccountID]: {
+                    accountData: {
+                        bankAccountID,
+                        accountNumber: '123456789012',
+                        type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        additionalData: {bankName: CONST.BANK_NAMES.CHASE},
+                    },
+                },
+            });
+
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+
+            await waitFor(() => {
+                const allKeys = result.current.flat();
+                expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT);
+            });
+        });
+
+        it('hides bank account filter when only personal deposit accounts are present', async () => {
+            const bankAccountID = 42;
+            await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                [bankAccountID]: {
+                    accountData: {
+                        bankAccountID,
+                        accountNumber: '123456789012',
+                        type: CONST.BANK_ACCOUNT.TYPE.PERSONAL,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        additionalData: {bankName: CONST.BANK_NAMES.CHASE},
+                    },
+                },
+            });
+
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+
+            await waitFor(() => {
+                const allKeys = result.current.flat();
+                expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT);
+            });
+        });
+
+        it('shows bank account filter when business accounts are LOCKED so historical expenses paid from a closed account stay searchable', async () => {
+            const bankAccountID = 42;
+            await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                [bankAccountID]: {
+                    accountData: {
+                        bankAccountID,
+                        accountNumber: '123456789012',
+                        type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                        state: CONST.BANK_ACCOUNT.STATE.LOCKED,
+                        additionalData: {bankName: CONST.BANK_NAMES.CHASE},
+                    },
+                },
+            });
+
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+
+            await waitFor(() => {
+                const allKeys = result.current.flat();
+                expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT);
+            });
+        });
+
+        it('hides bank account filter when the only business account is in a partial-setup state (SETUP / VERIFYING / PENDING) since it has paid no expenses', async () => {
+            const bankAccountID = 42;
+            await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                [bankAccountID]: {
+                    accountData: {
+                        bankAccountID,
+                        accountNumber: '123456789012',
+                        type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                        state: CONST.BANK_ACCOUNT.STATE.PENDING,
+                        additionalData: {bankName: CONST.BANK_NAMES.CHASE},
+                    },
+                },
+            });
+
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+
+            await waitFor(() => {
+                const allKeys = result.current.flat();
+                expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT);
+            });
+        });
+
+        it('does not include bank account filter for non-expense types even when settlement-eligible accounts exist', async () => {
+            const bankAccountID = 42;
+            await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                [bankAccountID]: {
+                    accountData: {
+                        bankAccountID,
+                        accountNumber: '123456789012',
+                        type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        additionalData: {bankName: CONST.BANK_NAMES.CHASE},
+                    },
+                },
+            });
+
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.CHAT, undefined), {wrapper});
+
+            await waitFor(() => {
+                const allKeys = result.current.flat();
+                expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT);
             });
         });
     });

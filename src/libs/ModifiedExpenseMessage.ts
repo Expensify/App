@@ -4,7 +4,7 @@ import type {Entries, ValueOf} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Policy, PolicyTagLists, Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
@@ -15,7 +15,7 @@ import {formatList} from './Localize';
 import Log from './Log';
 import Parser from './Parser';
 import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
-import {getCleanedTagName, getCommaSeparatedTagNameWithSanitizedColons, getQBOVendorByID, getSortedTagKeys, isPolicyAdmin} from './PolicyUtils';
+import {arePolicyRulesEnabled, findVendorByID, getCleanedTagName, getCommaSeparatedTagNameWithSanitizedColons, getSortedTagKeys, isPolicyAdmin} from './PolicyUtils';
 import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils';
 // This cycle import is safe because ReportNameUtils was extracted from ReportUtils to separate report name computation logic.
 // The functions imported here are pure utility functions that don't create initialization-time dependencies.
@@ -65,6 +65,24 @@ function buildMessageFragmentForValue(
         const fragment = translate('iou.updatedTheRequest', displayValueName, newValueToDisplay, oldValueToDisplay);
         changeFragments.push(fragment);
     }
+}
+
+/**
+ * Builds the message fragment for a modified expense date, when both the old and new created dates are present.
+ */
+function buildDateChangeFragment(
+    translate: LocalizedTranslate,
+    oldCreated: string | undefined,
+    created: string | undefined,
+    setFragments: string[],
+    removalFragments: string[],
+    changeFragments: string[],
+) {
+    if (!oldCreated || !created) {
+        return;
+    }
+    const formattedOldCreated = DateUtils.formatWithUTCTimeZone(oldCreated, CONST.DATE.FNS_FORMAT_STRING);
+    buildMessageFragmentForValue(translate, created, formattedOldCreated, translate('common.date'), false, setFragments, removalFragments, changeFragments);
 }
 
 /**
@@ -244,6 +262,7 @@ function getForReportAction({
     movedFromReport,
     movedToReport,
     policyTags,
+    policyCategories,
     currentUserLogin,
     reportAttributes,
 }: {
@@ -256,6 +275,7 @@ function getForReportAction({
     // getReportName itself will be migrated away from Onyx.connect in a follow-up PR.
     // See https://github.com/Expensify/App/pull/75562
     policyTags?: OnyxEntry<PolicyTagLists>;
+    policyCategories?: OnyxEntry<PolicyCategories>;
     currentUserLogin: string;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
 }): string {
@@ -291,7 +311,18 @@ function getForReportAction({
         // Only Distance edits should modify amount and merchant (which stores distance) in a single transaction.
         // We check the merchant is in distance format (includes @) as a sanity check
         if (hasModifiedMerchant && (reportActionOriginalMessage?.merchant ?? '').includes('@')) {
-            return getForDistanceRequest(translate, reportActionOriginalMessage?.merchant ?? '', reportActionOriginalMessage?.oldMerchant ?? '', amount, oldAmount);
+            const distanceMessage = getForDistanceRequest(translate, reportActionOriginalMessage?.merchant ?? '', reportActionOriginalMessage?.oldMerchant ?? '', amount, oldAmount);
+
+            // A date edit that moves the expense into a different mileage-rate window bundles the rate and the date
+            // change into a single MODIFIED_EXPENSE action. getForDistanceRequest only describes the rate/distance
+            // change, so append the date change here instead of letting it be dropped by the early return.
+            const dateChangeFragments: string[] = [];
+            buildDateChangeFragment(translate, reportActionOriginalMessage?.oldCreated, reportActionOriginalMessage?.created, [], [], dateChangeFragments);
+            if (dateChangeFragments.length > 0) {
+                return `${distanceMessage}${getMessageLine(translate, `\n${translate('iou.changed')}`, dateChangeFragments)}`;
+            }
+
+            return distanceMessage;
         }
         buildMessageFragmentForValue(
             translate,
@@ -326,10 +357,7 @@ function getForReportAction({
         );
     }
 
-    if (reportActionOriginalMessage?.oldCreated && reportActionOriginalMessage?.created) {
-        const formattedOldCreated = DateUtils.formatWithUTCTimeZone(reportActionOriginalMessage.oldCreated, CONST.DATE.FNS_FORMAT_STRING);
-        buildMessageFragmentForValue(translate, reportActionOriginalMessage.created, formattedOldCreated, translate('common.date'), false, setFragments, removalFragments, changeFragments);
-    }
+    buildDateChangeFragment(translate, reportActionOriginalMessage?.oldCreated, reportActionOriginalMessage?.created, setFragments, removalFragments, changeFragments);
 
     if (hasModifiedMerchant) {
         buildMessageFragmentForValue(
@@ -457,14 +485,17 @@ function getForReportAction({
     const hasModifiedVendor = isReportActionOriginalMessageAnObject && ('oldVendor' in reportActionOriginalMessage || 'vendor' in reportActionOriginalMessage);
     if (hasModifiedVendor) {
         // Vendor is stored on the action as `{externalID, isManuallySet}` (or absent/null). Resolve
-        // the display name from the policy's QBO vendor list; if the vendor has since been removed
-        // from QBO the name is unrecoverable, so fall back to the externalID so the fragment still
-        // identifies which vendor was set rather than rendering `set vendor ""`.
+        // the display name from any connection that has the vendor data (QBO or Intacct), without
+        // gating on the workspace's current export mode — a past "set vendor" action should still
+        // render the vendor name after an admin switches the non-reimbursable export type. If the
+        // vendor has been removed from the integration entirely the name is unrecoverable, so fall
+        // back to the externalID so the fragment still identifies which vendor was set rather than
+        // rendering `set vendor ""`.
         const resolveVendorName = (entry: typeof reportActionOriginalMessage.vendor): string => {
             if (!entry?.externalID) {
                 return '';
             }
-            return getQBOVendorByID(policy, entry.externalID)?.name ?? entry.externalID;
+            return findVendorByID(policy, entry.externalID)?.name ?? entry.externalID;
         };
         buildMessageFragmentForValue(
             translate,
@@ -497,7 +528,7 @@ function getForReportAction({
         const policyRulesModifiedFields = reportActionOriginalMessage.policyRulesModifiedFields;
 
         if (policyRulesModifiedFields && policy?.id) {
-            const hasPolicyRuleAccess = !!policy?.areRulesEnabled && isPolicyAdmin(policy, currentUserLogin);
+            const hasPolicyRuleAccess = arePolicyRulesEnabled(policy, policyCategories) && isPolicyAdmin(policy, currentUserLogin);
             return getRulesModifiedMessage(translate, policyRulesModifiedFields, false, policy?.id, hasPolicyRuleAccess);
         }
     }
