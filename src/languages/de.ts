@@ -843,6 +843,7 @@ const translations: TranslationDeepObject<typeof en> = {
         joinThread: 'Thread beitreten',
         leaveThread: 'Thread verlassen',
         copyOnyxData: 'Onyx-Daten kopieren',
+        copyAgentZeroRequestID: 'AgentZero-Anfrage-ID kopieren',
         flagAsOffensive: 'Als anstößig melden',
         menu: 'Menü',
     },
