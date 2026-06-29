@@ -884,6 +884,9 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
         return Promise.resolve(getImportFailedFinalModal());
     }
 
+    // Independent multi-level tags set Required per level, so the policy-wide requiresTag toggle is hidden for them.
+    // Clear any stale requiresTag inherited from a prior single-level/dependent config so it can't stay stuck on with no UI to turn it off.
+    const isIndependent = spreadsheet.isImportingIndependentMultiLevelTags;
     const importFinalModalID = getImportFinalModalID();
     const importFinalModalResult = waitForImportFinalModal(importFinalModalID);
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.IMPORTED_SPREADSHEET> = {
@@ -893,6 +896,7 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     hasMultipleTagLists: true,
+                    ...(isIndependent ? {requiresTag: false} : {}),
                 },
             },
             getImportFinalModalOnyxData(importFinalModalID, getImportMultiLevelTagsFinalModal()),
