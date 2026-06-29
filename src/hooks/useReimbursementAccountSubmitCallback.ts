@@ -15,7 +15,13 @@ export default function useReimbursementAccountSubmitCallback(onSubmit?: () => v
     const isSubmittingRef = useRef(false);
 
     useEffect(() => {
-        if (!isSubmittingRef.current || reimbursementAccount?.isLoading || reimbursementAccount?.errors) {
+        if (!isSubmittingRef.current || reimbursementAccount?.isLoading) {
+            return;
+        }
+        // The API call finished. If it failed, disarm the pending submit so we don't navigate forward
+        // on a later state change once the error is cleared - the user must press the submit button again.
+        if (reimbursementAccount?.errors) {
+            isSubmittingRef.current = false;
             return;
         }
         isSubmittingRef.current = false;
