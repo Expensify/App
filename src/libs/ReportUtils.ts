@@ -5954,9 +5954,9 @@ function getChatRoomSubtitle(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     conciergeReportID: string | undefined,
+    translate: LocalizedTranslate,
     isPolicyNamePreferred = false,
     isReportArchived = false,
-    translate: LocalizedTranslate,
 ): string | undefined {
     if (isChatThread(report)) {
         return '';
