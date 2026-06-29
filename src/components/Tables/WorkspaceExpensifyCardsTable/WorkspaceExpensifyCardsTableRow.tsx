@@ -41,13 +41,14 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
     const limitTypeLabel = translate(getTranslationKeyForLimitType(item.limitType));
     const formattedLimit = convertToShortDisplayString(item.limit, item.currency);
     const formattedFrozenDate = item.frozenDate ? DateUtils.formatWithUTCTimeZone(item.frozenDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
-    const frozenByAdminPrefix = translate('cardPage.frozenByAdminPrefix', {date: formattedFrozenDate});
     let frozenByText: string | undefined;
     if (formattedFrozenDate) {
-        frozenByText =
-            item.frozenByAccountID === session?.accountID
-                ? translate('cardPage.youFroze', {date: formattedFrozenDate})
-                : `${frozenByAdminPrefix}${item.frozenByDisplayName ?? translate('common.someone')}`;
+        if (item.frozenByAccountID === session?.accountID) {
+            frozenByText = translate('cardPage.youFroze', {date: formattedFrozenDate});
+        } else {
+            const frozenByAdminPrefix = translate('cardPage.frozenByAdminPrefix', {date: formattedFrozenDate});
+            frozenByText = `${frozenByAdminPrefix}${item.frozenByDisplayName ?? translate('common.someone')}`;
+        }
     }
 
     const accessibilityLabel = [cardholderName, item.name, cardType, limitTypeLabel, item.lastFourPAN, formattedLimit, frozenByText].filter(Boolean).join(', ');
