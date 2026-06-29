@@ -716,7 +716,7 @@ describe('PolicyUtils', () => {
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
-                expect(getSubmitToAccountID(policy, expenseReport)).toBe(ownerAccountID);
+                expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(ownerAccountID);
             });
             it('should return the policy approver/owner if the policy use the optional workflow', () => {
                 const policy: Policy = {
@@ -731,7 +731,7 @@ describe('PolicyUtils', () => {
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
-                expect(getSubmitToAccountID(policy, expenseReport)).toBe(ownerAccountID);
+                expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(ownerAccountID);
             });
             it('should return the employee submitsTo if the policy use the advance workflow', () => {
                 const policy: Policy = {
@@ -747,7 +747,7 @@ describe('PolicyUtils', () => {
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
-                expect(getSubmitToAccountID(policy, expenseReport)).toBe(adminAccountID);
+                expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(adminAccountID);
             });
         });
         describe('Has category/tag approver', () => {
@@ -780,7 +780,7 @@ describe('PolicyUtils', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
                 } as unknown as OnyxMultiSetInput);
-                expect(getSubmitToAccountID(policy, expenseReport)).toBe(categoryApprover1AccountID);
+                expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(categoryApprover1AccountID);
             });
             it('should return default approver if rule approver is submitter and prevent self approval is enabled', async () => {
                 const policy: Policy = {
@@ -806,7 +806,7 @@ describe('PolicyUtils', () => {
                 };
 
                 await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-                expect(getSubmitToAccountID(policy, expenseReport)).toBe(adminAccountID);
+                expect(getSubmitToAccountID(policy, expenseReport, categoryApprover1Email)).toBe(adminAccountID);
             });
             it('should return the category approver of the first transaction sorted by created if we have many transaction categories match with the category approver rule', async () => {
                 const policy: Policy = {
@@ -839,7 +839,7 @@ describe('PolicyUtils', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
                 } as unknown as OnyxMultiSetInput);
-                expect(getSubmitToAccountID(policy, expenseReport)).toBe(categoryApprover2AccountID);
+                expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(categoryApprover2AccountID);
             });
             it('should return the first rule approver who is not the current submitter', async () => {
                 const policy: Policy = {
@@ -886,7 +886,7 @@ describe('PolicyUtils', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction3.transactionID}`]: transaction3,
                 } as unknown as OnyxMultiSetInput);
 
-                expect(getSubmitToAccountID(policy, expenseReport)).toBe(tagApprover1AccountID);
+                expect(getSubmitToAccountID(policy, expenseReport, categoryApprover1Email)).toBe(tagApprover1AccountID);
             });
             describe('Has no transaction match with the category approver rule', () => {
                 it('should return the first tag approver if has any transaction tag match with with the tag approver rule ', async () => {
@@ -922,7 +922,7 @@ describe('PolicyUtils', () => {
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
                     } as unknown as OnyxMultiSetInput);
-                    expect(getSubmitToAccountID(policy, expenseReport)).toBe(tagApprover1AccountID);
+                    expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(tagApprover1AccountID);
                 });
                 it('should return the tag approver of the first transaction sorted by created if we have many transaction tags match with the tag approver rule', async () => {
                     const policy: Policy = {
@@ -957,7 +957,7 @@ describe('PolicyUtils', () => {
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
                     } as unknown as OnyxMultiSetInput);
-                    expect(getSubmitToAccountID(policy, expenseReport)).toBe(tagApprover2AccountID);
+                    expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(tagApprover2AccountID);
                 });
             });
         });
@@ -1012,10 +1012,7 @@ describe('PolicyUtils', () => {
                 type: CONST.POLICY.TYPE.PERSONAL,
                 approver: categoryApprover1Email,
             };
-            const report: Report = {
-                ...createRandomReport(0, undefined),
-            };
-            const result = getManagerAccountID(policy, report);
+            const result = getManagerAccountID(policy, '');
 
             expect(result).toBe(categoryApprover1AccountID);
         });
@@ -1028,11 +1025,8 @@ describe('PolicyUtils', () => {
                 approver: undefined,
                 owner: '',
             };
-            const report: Report = {
-                ...createRandomReport(0, undefined),
-            };
 
-            const result = getManagerAccountID(policy, report);
+            const result = getManagerAccountID(policy, '');
 
             expect(result).toBe(-1);
         });
@@ -1049,12 +1043,8 @@ describe('PolicyUtils', () => {
                     },
                 },
             };
-            const report: Report = {
-                ...createRandomReport(0, undefined),
-                ownerAccountID: employeeAccountID,
-            };
 
-            const result = getManagerAccountID(policy, report);
+            const result = getManagerAccountID(policy, employeeEmail);
 
             expect(result).toBe(adminAccountID);
         });
@@ -1066,12 +1056,8 @@ describe('PolicyUtils', () => {
                 approvalMode: undefined,
                 approver: categoryApprover1Email,
             };
-            const report: Report = {
-                ...createRandomReport(0, undefined),
-                ownerAccountID: employeeAccountID,
-            };
 
-            const result = getManagerAccountID(policy, report);
+            const result = getManagerAccountID(policy, '');
 
             expect(result).toBe(categoryApprover1AccountID);
         });
