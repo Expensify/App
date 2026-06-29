@@ -167,6 +167,7 @@ function AccessOrNotFoundWrapper({
     const {login = ''} = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const isPolicyIDInRoute = !!policyID?.length;
     const isMoneyRequest = !!iouType && isValidMoneyRequestType(iouType);
     const isFromGlobalCreate = !!reportID && isEmptyObject(report?.reportID);
@@ -187,7 +188,8 @@ function AccessOrNotFoundWrapper({
     const isPolicyEmpty = !Object.entries(policy ?? {}).length || !policy?.id;
     const shouldShowFullScreenLoadingIndicator = !isMoneyRequest && (isLoadingReportData !== false || !!policy?.isLoading) && isPolicyEmpty;
 
-    const isFeatureEnabled = featureName ? isPolicyFeatureEnabledUtil(policy, featureName) : true;
+    // Pass categories so that migrated corporate policies with only Classic category rules (areRulesEnabled === undefined) are correctly treated as enabled
+    const isFeatureEnabled = featureName ? isPolicyFeatureEnabledUtil(policy, featureName, policyCategories) : true;
 
     const {isOffline} = useNetwork();
 
