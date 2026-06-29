@@ -8,15 +8,34 @@ import {hasOnlyHeldExpenses, hasOnlyNonReimbursableTransactions} from './ReportU
 import type {SearchKey} from './SearchUIUtils';
 
 type CreateTodosReportsAndTransactionsParams = {
+    /** Every report, keyed by report Onyx key - iterated to find the expense reports that belong in a to-do bucket */
     allReports: OnyxCollection<Report>;
+
+    /** Every transaction, keyed by transaction Onyx key - bucketed per report so each report's expenses are known */
     allTransactions: OnyxCollection<Transaction>;
+
+    /** Every policy, keyed by policy Onyx key - a report's policy drives its submit/approve/pay/export eligibility */
     allPolicies: OnyxCollection<Policy>;
+
+    /** Every report name-value pair, keyed by report Onyx key - looked up by `chatReportID` for the workflow checks */
     allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+
+    /** Every report's actions, keyed by report Onyx key - used by the export predicate to detect exported reports */
     allReportActions: OnyxCollection<ReportActions>;
+
+    /** Every report's metadata, keyed by report Onyx key - feeds the submit/approve predicates */
     allReportMetadata: OnyxCollection<ReportMetadata>;
+
+    /** All personal details - used to resolve a report owner's login from their account ID for the submit predicate */
     personalDetailsList: OnyxEntry<PersonalDetailsList>;
+
+    /** The current user's bank accounts - the pay predicate needs them to know whether the user can pay */
     bankAccountList: OnyxEntry<BankAccountList>;
+
+    /** The current user's account ID - identifies which reports the user owns/manages */
     currentUserAccountID: number;
+
+    /** The current user's primary login - matched against policy roles (e.g. exporter, reimburser) */
     login: string;
 };
 
@@ -38,15 +57,34 @@ function buildTransactionsByReportID(allTransactions: OnyxCollection<Transaction
 }
 
 type TodoBucketContext = {
+    /** The report's policy - drives every bucket's eligibility checks */
     policy: OnyxEntry<Policy>;
+
+    /** The report's name-value pair (looked up by `chatReportID`) - feeds the submit/pay workflow checks */
     reportNameValuePair: OnyxEntry<ReportNameValuePairs>;
+
+    /** The report's transactions - inspected for amount, reimbursability, and hold status */
     reportTransactions: Transaction[];
+
+    /** The report's metadata - feeds the submit/approve predicates */
     reportMetadata: OnyxEntry<ReportMetadata>;
+
+    /** Every report's actions - the export predicate reads the actions for this report from it */
     allReportActions: OnyxCollection<ReportActions>;
+
+    /** Whether every transaction on the report is on hold - precomputed once so held reports are excluded from submit/approve/pay */
     allExpensesHeld: boolean;
+
+    /** The report owner's login, resolved from `ownerAccountID` - the submit predicate matches it against the submitter */
     ownerLogin: string | undefined;
+
+    /** The current user's bank accounts - the pay predicate needs them to know whether the user can pay */
     bankAccountList: OnyxEntry<BankAccountList>;
+
+    /** The current user's account ID - identifies whether the user owns/manages this report */
     currentUserAccountID: number;
+
+    /** The current user's primary login - matched against policy roles (e.g. exporter, reimburser) */
     login: string;
 };
 
