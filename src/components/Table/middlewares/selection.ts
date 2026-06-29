@@ -87,7 +87,7 @@ export default function useSelection<DataType extends TableData>({
     useEffect(() => {
         const isMobileMissingSelectionMode = shouldUseNarrowLayout && !isSelectionModeEnabled && selectedKeys.length;
         const isDesktopWithoutSelectableKeys = isSelectionModeEnabled && !selectableKeys.length && !shouldUseNarrowLayout;
-        const isSelectionModeEnabledWithoutSelectableKeys = isSelectionModeEnabled && !selectableKeys.length && originalSelectableCount > 0;
+        const isSelectionModeEnabledWithoutSelectableKeys = isSelectionModeEnabled && !selectableKeys.length && !originalSelectableCount;
 
         if (isMobileMissingSelectionMode) {
             turnOnMobileSelectionMode();
