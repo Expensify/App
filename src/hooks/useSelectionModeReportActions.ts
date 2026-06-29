@@ -173,7 +173,8 @@ function useSelectionModeReportActions({
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
     const isInvoiceReport = isInvoiceReportUtil(report);
 
-    const hasOnlyPendingTransactions = hasOnlyPendingCardTransactions(transactions);
+    // Hides approve button and blocks submission for any pending transaction (including BYOC).
+    const hasOnlyPendingTransactions = !!transactions && hasOnlyPendingCardTransactions(transactions);
     const nonPendingDeleteTransactions = transactions.filter((t): t is OnyxTypes.Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE));
 
     const getCanIOUBePaid = (onlyShowPayElsewhere = false) =>

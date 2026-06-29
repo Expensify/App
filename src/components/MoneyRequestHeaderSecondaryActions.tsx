@@ -60,6 +60,7 @@ import {
     getOriginalTransactionWithSplitInfo,
     hasCustomUnitOutOfPolicyViolation as hasCustomUnitOutOfPolicyViolationTransactionUtils,
     isDistanceRequest,
+    isPending,
     isPerDiemRequest,
 } from '@libs/TransactionUtils';
 import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
@@ -432,7 +433,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
 
                 showConfirmModal({
                     title: translate('iou.deleteExpense', {count: 1}),
-                    prompt: translate('iou.deleteConfirmation', {count: 1}),
+                    prompt: isPending(transaction) ? translate('iou.deleteConfirmationPendingBYOC') : translate('iou.deleteConfirmation', {count: 1}),
                     confirmText: translate('common.delete'),
                     cancelText: translate('common.cancel'),
                     danger: true,

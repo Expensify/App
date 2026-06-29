@@ -22,7 +22,6 @@ import {isSelfDM, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import {
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate as isDuplicateTransactionUtils,
-    isExpensifyCardTransaction,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
     isScanning,
@@ -116,7 +115,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
             return {icon: getStatusIcon(expensifyIcons.Flag), description: translate('iou.expenseDuplicate')};
         }
 
-        if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
+        if (isPending(transaction) && (parentReport?.transactionCount ?? 0) <= 1) {
             return {icon: getStatusIcon(icons.CreditCardHourglass), description: translate('iou.allTransactionsPendingNextStep')};
         }
         if (!!transaction?.transactionID && !!transactionViolations.length && shouldShowBrokenConnectionViolation) {

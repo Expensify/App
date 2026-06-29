@@ -35,6 +35,8 @@ import {
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     getChildTransactions,
+    getDeleteConfirmationPrompt,
+    getDeleteExpenseTitle,
     getOriginalTransactionWithSplitInfo,
     hasCustomUnitOutOfPolicyViolation as hasCustomUnitOutOfPolicyViolationTransactionUtils,
     isDistanceRequest,
@@ -485,8 +487,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     }
 
                     const result = await showConfirmModal({
-                        title: translate('iou.deleteExpense', {count: 1}),
-                        prompt: translate('iou.deleteConfirmation', {count: 1}),
+                        title: getDeleteExpenseTitle(translate, transaction),
+                        prompt: getDeleteConfirmationPrompt(translate, transaction),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
                         danger: true,

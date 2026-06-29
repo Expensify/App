@@ -2,6 +2,7 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useSelectionModeReportActions from '@hooks/useSelectionModeReportActions';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
@@ -781,6 +782,42 @@ describe('useSelectionModeReportActions', () => {
                 report: buildReport({type: CONST.REPORT.TYPE.INVOICE}),
             });
             expect(result.current.isInvoiceReport).toBe(true);
+        });
+    });
+
+    describe('shouldShowApproveButton with BYOC pending transactions', () => {
+        it('passes shouldShowApproveButton=false to usePaymentOptions when all transactions are pending (BYOC)', () => {
+            // canApproveIOU returns true so approve button would normally show
+            IOUActions.canApproveIOU.mockReturnValue(true);
+            // All transactions are pending (includes BYOC) — spy on hasOnlyPendingCardTransactions
+            // since it calls isPending internally and can't be affected by mocking the export
+            jest.spyOn(TransactionUtils, 'hasOnlyPendingCardTransactions').mockReturnValue(true);
+
+            const transactions = [buildTransaction(1), buildTransaction(2)];
+            renderSelectionModeHook({transactions, selectedTransactionIDs: ['1', '2']});
+
+            expect(usePaymentOptionsMock.default).toHaveBeenCalledWith(expect.objectContaining({shouldShowApproveButton: false}));
+        });
+
+        it('passes shouldShowApproveButton=true to usePaymentOptions when transactions are not pending', () => {
+            IOUActions.canApproveIOU.mockReturnValue(true);
+            jest.spyOn(TransactionUtils, 'hasOnlyPendingCardTransactions').mockReturnValue(false);
+
+            const transactions = [buildTransaction(1), buildTransaction(2)];
+            renderSelectionModeHook({transactions, selectedTransactionIDs: ['1', '2']});
+
+            expect(usePaymentOptionsMock.default).toHaveBeenCalledWith(expect.objectContaining({shouldShowApproveButton: true}));
+        });
+
+        it('passes shouldShowApproveButton=true when only some transactions are pending (mixed)', () => {
+            IOUActions.canApproveIOU.mockReturnValue(true);
+            // Not all pending → hasOnlyPendingCardTransactions returns false → approve button still shows
+            jest.spyOn(TransactionUtils, 'hasOnlyPendingCardTransactions').mockReturnValue(false);
+
+            const transactions = [buildTransaction(1), buildTransaction(2)];
+            renderSelectionModeHook({transactions, selectedTransactionIDs: ['1', '2']});
+
+            expect(usePaymentOptionsMock.default).toHaveBeenCalledWith(expect.objectContaining({shouldShowApproveButton: true}));
         });
     });
 });
