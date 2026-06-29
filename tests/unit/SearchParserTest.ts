@@ -575,6 +575,36 @@ const tests = [
         },
     },
     {
+        query: 'type:expense-report paid-status:markedAsPaid',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS,
+                right: CONST.SEARCH.PAID_STATUS.MARKED_AS_PAID,
+            },
+        },
+    },
+    {
+        query: 'type:expense-report paid-status:markedAsPaid,withdrawing,confirmed',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS,
+                right: [CONST.SEARCH.PAID_STATUS.MARKED_AS_PAID, CONST.SEARCH.PAID_STATUS.WITHDRAWING, CONST.SEARCH.PAID_STATUS.CONFIRMED],
+            },
+        },
+    },
+    {
         query: 'type:expense withdrawn:last-month',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
