@@ -40,7 +40,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -99,7 +99,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
     const card = feedScopedCard ?? (isCardBeingUnassigned ? globalCard : undefined);
 
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
-    const displayName = getDisplayNameOrDefault(cardholder);
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: cardholder, translate});
     const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card);
 
     const companyFeeds = getCompanyFeeds(cardFeeds);
