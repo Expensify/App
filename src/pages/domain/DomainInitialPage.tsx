@@ -10,7 +10,6 @@ import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -108,8 +107,6 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
     }, [fetchDomainData]);
 
     useNetwork({onReconnect: fetchDomainData});
-
-    useConfirmReadyToOpenApp();
 
     const shouldShowFullScreenLoadingIndicator = isLoadingOnyxValue(domainMetadata);
 

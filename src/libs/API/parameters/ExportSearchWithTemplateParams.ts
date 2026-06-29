@@ -7,6 +7,7 @@ type ExportSearchWithTemplateParams = {
     reportIDList: string[];
     transactionIDList: string[];
     policyID: string | undefined;
+    exportName: string;
 };
 
 export default ExportSearchWithTemplateParams;
