@@ -119,4 +119,41 @@ describe('useTransactionViolations distance rate date sync', () => {
             );
         });
     });
+
+    it('syncs customUnitRateOutOfDateRange for workspace distance expenses using the report policy', async () => {
+        const reportID = 'workspace-report';
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            reportID,
+            policyID,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+            ...baseTransaction,
+            transactionID,
+            reportID,
+            created: '2026-06-15',
+            comment: {
+                ...baseTransaction.comment,
+                customUnit: {
+                    ...baseTransaction.comment?.customUnit,
+                    customUnitRateID,
+                },
+            },
+        });
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTransactionViolations(transactionID));
+
+        await waitFor(() => {
+            expect(result.current).toContainEqual(
+                expect.objectContaining({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                    data: {
+                        startDate: '2025-01-01',
+                        endDate: '2025-12-31',
+                    },
+                }),
+            );
+        });
+    });
 });
