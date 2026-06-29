@@ -371,7 +371,7 @@ export default createOnyxDerivedValueConfig({
                               allPolicyTags: policyTags,
                               conciergeReportID: conciergeReportID ?? undefined,
                               reportAttributes: currentValue?.reports,
-                              reportTransactions: reportsTransactions,
+                              reportTransactions: reportsTransactions ?? {},
                           })
                         : '',
                     isEmpty: generateIsEmptyReport(report, isReportArchived),

@@ -23,6 +23,17 @@ import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+function groupTransactionsByReportID(transactions?: OnyxCollection<Transaction>): Record<string, Transaction[]> {
+    return Object.values(transactions ?? {}).reduce<Record<string, Transaction[]>>((all, transaction) => {
+        if (!transaction?.reportID) {
+            return all;
+        }
+        all[transaction.reportID] ??= [];
+        all[transaction.reportID].push(transaction);
+        return all;
+    }, {});
+}
+
 const currentUserLogin = 'lagertha2@vikings.net';
 describe('ReportNameUtils', () => {
     const currentUserAccountID = 5;
@@ -46,6 +57,7 @@ describe('ReportNameUtils', () => {
             reportActions,
             currentUserAccountID: currentUserID,
             currentUserLogin,
+            reportTransactions: groupTransactionsByReportID(transactions),
         });
     const participantsPersonalDetails: PersonalDetailsList = [
         {
@@ -556,6 +568,7 @@ describe('ReportNameUtils', () => {
                 currentUserAccountID,
                 currentUserLogin: '',
                 allPolicyTags: policyTagsCollection,
+                reportTransactions: {},
             });
 
             expect(name).toContain('Cost Center');
@@ -1242,7 +1255,7 @@ describe('ReportNameUtils', () => {
             };
 
             // When we get the money request report name
-            const reportName = getMoneyRequestReportName({report: expenseReport, policy: policyWithEmptyFieldList});
+            const reportName = getMoneyRequestReportName({report: expenseReport, policy: policyWithEmptyFieldList, linkedTransactions: []});
 
             // Then it should return "New Report"
             expect(reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
@@ -1284,10 +1297,66 @@ describe('ReportNameUtils', () => {
             };
 
             // When we get the money request report name
-            const reportName = getMoneyRequestReportName({report: expenseReport, policy: policyWithFieldList});
+            const reportName = getMoneyRequestReportName({report: expenseReport, policy: policyWithFieldList, linkedTransactions: []});
 
             // Then it should NOT return empty string — it should fall through to dynamic name computation
             expect(reportName).not.toBe('');
+        });
+
+        it('returns the "spent" message when the report has non-reimbursable transactions and is not settled', async () => {
+            // Earlier tests in this file overwrite ONYXKEYS.PERSONAL_DETAILS_LIST, so restore it here to keep this test order-independent
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
+            await waitForBatchedUpdates();
+
+            // Given an unsettled expense report owned by Ragnar (accountID 1) with a non-empty fieldList
+            const expenseReport: Report = {
+                ...createExpenseReport(202),
+                reportID: '202',
+                reportName: '',
+                policyID: '202',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: -2500,
+                currency: 'USD',
+                ownerAccountID: 1,
+                isWaitingOnBankAccount: false,
+                stateNum: undefined,
+                statusNum: undefined,
+            };
+
+            const policyWithFieldList: Policy = {
+                ...createRandomPolicy(202, CONST.POLICY.TYPE.TEAM),
+                id: '202',
+                fieldList: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    text_title: {
+                        defaultValue: '{report:type} {report:startdate}',
+                        deletable: false,
+                        externalIDs: [],
+                        fieldID: 'text_title',
+                        isTax: false,
+                        name: 'title',
+                        orderWeight: 0,
+                        type: 'formula',
+                        target: 'expense',
+                        values: [],
+                        disabledOptions: [],
+                        keys: [],
+                    },
+                },
+            };
+
+            // And a linked transaction that is marked non-reimbursable
+            const nonReimbursableTransaction: Transaction = {
+                ...createRandomTransaction(2),
+                reportID: '202',
+                reimbursable: false,
+            };
+
+            // When we get the money request report name
+            const reportName = getMoneyRequestReportName({report: expenseReport, policy: policyWithFieldList, linkedTransactions: [nonReimbursableTransaction]});
+
+            // Then it should use the "spent" wording with the owner's display name
+            expect(reportName).toBe('Ragnar Lothbrok spent $25.00');
         });
     });
 

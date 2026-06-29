@@ -31,6 +31,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {hasNonReimbursableTransactions as hasNonReimbursableTransactionsMoneyRequestReportUtils} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getInvoicePayerName, getReportName} from '@libs/ReportNameUtils';
@@ -67,7 +68,6 @@ import type {ReportAttributesDerivedValue, Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import AccessMoneyRequestReportPreviewPlaceHolder from './AccessMoneyRequestReportPreviewPlaceHolder';
 import EmptyMoneyRequestReportPreview from './EmptyMoneyRequestReportPreview';
-import {hasNonReimbursableTransactions as hasNonReimbursableTransactionsMoneyRequestReportUtils} from './MoneyRequestReportUtils';
 import ReportPreviewActionButton from './ReportPreviewActionButton';
 import type {MoneyRequestReportPreviewContentProps} from './types';
 

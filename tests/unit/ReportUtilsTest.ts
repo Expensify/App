@@ -283,6 +283,17 @@ jest.mock('@libs/PolicyUtils', () => {
 
 const mockedPolicyUtils = PolicyUtils as jest.Mocked<typeof PolicyUtils>;
 
+function groupTransactionsByReportID(transactions?: OnyxCollection<Transaction>): Record<string, Transaction[]> {
+    return Object.values(transactions ?? {}).reduce<Record<string, Transaction[]>>((all, transaction) => {
+        if (!transaction?.reportID) {
+            return all;
+        }
+        all[transaction.reportID] ??= [];
+        all[transaction.reportID].push(transaction);
+        return all;
+    }, {});
+}
+
 const testDate = DateUtils.getDBTime();
 const currentUserEmail = 'bjorn@vikings.net';
 const currentUserAccountID = 5;
@@ -308,6 +319,7 @@ const computeReportName = (
         currentUserAccountID: currentUserID,
         currentUserLogin: currentUserEmail,
         conciergeReportID,
+        reportTransactions: groupTransactionsByReportID(transactions),
     });
 const participantsPersonalDetails: PersonalDetailsList = {
     '1': {
@@ -18074,7 +18086,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(1)};
-            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID);
+            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID, []);
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -18088,7 +18100,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(2)};
-            const result = getChatListItemReportName(action, regularReport, conciergeReportID);
+            const result = getChatListItemReportName(action, regularReport, conciergeReportID, []);
             expect(result).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -18098,7 +18110,7 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
             const action = {...createRandomReportAction(3), reportName: 'Custom Action Name'};
-            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID);
+            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID, []);
             expect(result).toBe('Custom Action Name');
         });
 
@@ -18112,7 +18124,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(4)};
-            const result = getChatListItemReportName(action, conciergeReport, undefined);
+            const result = getChatListItemReportName(action, conciergeReport, undefined, []);
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
     });
