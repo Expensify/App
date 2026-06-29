@@ -16,6 +16,7 @@ import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import {accountIDSelector} from '@src/selectors/Session';
 import todosReportCountsSelector, {EMPTY_TODOS_SINGLE_REPORT_IDS, todosSingleReportIDsSelector} from '@src/selectors/Todos';
 import EmptyState from './EmptyState';
@@ -36,6 +37,7 @@ function ForYouSection() {
     // when IS_LOADING_REPORT_DATA is optimistically set to true by ReconnectApp.
     const [hasLoadedApp = false] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
+    const [isOnboardingCompleted] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
     const [hasSeenForYouTodo = false] = useOnyx(ONYXKEYS.HAS_SEEN_FOR_YOU_TODO);
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
     const [singleReportIDs = EMPTY_TODOS_SINGLE_REPORT_IDS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosSingleReportIDsSelector});
@@ -192,7 +194,16 @@ function ForYouSection() {
         return hasAnyTodos ? renderTodoItems() : <EmptyState />;
     };
 
-    if (shouldHideForYouSection({isInitialLoad, hasAnyTodos, hasSeenTodo: hasSeenForYouTodo, firstDayFreeTrial, cutoffDate: CONST.HOME.FOR_YOU_NEW_USER_CUTOFF_DATE})) {
+    if (
+        shouldHideForYouSection({
+            isInitialLoad,
+            hasAnyTodos,
+            hasSeenTodo: hasSeenForYouTodo,
+            firstDayFreeTrial,
+            cutoffDate: CONST.HOME.FOR_YOU_NEW_USER_CUTOFF_DATE,
+            isOnboardingCompleted,
+        })
+    ) {
         return null;
     }
 

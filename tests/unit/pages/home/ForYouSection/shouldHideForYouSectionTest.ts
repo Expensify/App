@@ -8,6 +8,7 @@ const baseParams = {
     hasSeenTodo: false,
     firstDayFreeTrial: undefined as string | undefined,
     cutoffDate: CUTOFF,
+    isOnboardingCompleted: true as boolean | undefined,
 };
 
 describe('shouldHideForYouSection', () => {
@@ -45,5 +46,17 @@ describe('shouldHideForYouSection', () => {
 
     it('still hides the section for a new user with no to-dos when none has ever been seen', () => {
         expect(shouldHideForYouSection({...baseParams, hasSeenTodo: false, firstDayFreeTrial: '2026-07-01'})).toBe(true);
+    });
+
+    it('hides the section for a user still going through onboarding even before the trial start date arrives', () => {
+        expect(shouldHideForYouSection({...baseParams, isOnboardingCompleted: false, firstDayFreeTrial: undefined})).toBe(true);
+    });
+
+    it('keeps the section while onboarding completion is not yet known and there is no trial start date', () => {
+        expect(shouldHideForYouSection({...baseParams, isOnboardingCompleted: undefined, firstDayFreeTrial: undefined})).toBe(false);
+    });
+
+    it('keeps the section visible during onboarding when the user already has actionable to-dos', () => {
+        expect(shouldHideForYouSection({...baseParams, isOnboardingCompleted: false, hasAnyTodos: true})).toBe(false);
     });
 });

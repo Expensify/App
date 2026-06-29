@@ -13,6 +13,12 @@ type ShouldHideForYouSectionParams = {
 
     /** The cutoff date that splits new from old users. */
     cutoffDate: string;
+
+    /**
+     * Whether the user has completed the NewDot guided-setup (onboarding) flow. `false` means the user is still
+     * onboarding (a brand-new user), `true`/`undefined` means onboarded or not yet known.
+     */
+    isOnboardingCompleted: boolean | undefined;
 };
 
 /**
@@ -23,9 +29,16 @@ type ShouldHideForYouSectionParams = {
  * never hide during the initial load so the skeleton can render regardless of segment. Once an actionable to-do has
  * ever appeared (`hasSeenTodo`), the section stays visible permanently even when it later goes empty.
  */
-function shouldHideForYouSection({isInitialLoad, hasAnyTodos, hasSeenTodo, firstDayFreeTrial, cutoffDate}: ShouldHideForYouSectionParams): boolean {
+function shouldHideForYouSection({isInitialLoad, hasAnyTodos, hasSeenTodo, firstDayFreeTrial, cutoffDate, isOnboardingCompleted}: ShouldHideForYouSectionParams): boolean {
     if (isInitialLoad || hasAnyTodos || hasSeenTodo) {
         return false;
+    }
+
+    // A user still going through onboarding is, by definition, a new user: keep the empty section hidden until there is
+    // an actionable to-do. This also covers the window right after login where the free-trial NVP hasn't arrived yet,
+    // which would otherwise briefly flash the empty section before the segment can be determined.
+    if (isOnboardingCompleted === false) {
+        return true;
     }
 
     if (!firstDayFreeTrial) {
