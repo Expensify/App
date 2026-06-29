@@ -3001,6 +3001,12 @@ const CONST = {
             AUTO: 'auto',
             WEBHOOK: 'webhook',
         },
+
+        /** Maximum number of manual syncs ("Sync now") allowed within the rolling window before the App blocks further manual syncs */
+        MANUAL_SYNC_LIMIT: 2,
+
+        /** Rolling window (in milliseconds) over which manual syncs are counted against MANUAL_SYNC_LIMIT (24 hours) */
+        MANUAL_SYNC_WINDOW_MS: 24 * 60 * 60 * 1000,
     },
 
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {

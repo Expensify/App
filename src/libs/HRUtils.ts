@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import type {Policy} from '@src/types/onyx';
+import DateUtils from './DateUtils';
 
 type HRConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES>;
 
@@ -45,6 +46,21 @@ function isMergeHRCompleteSetupNeeded(policy?: OnyxEntry<Policy>): boolean {
     const hasGroups = (mergeHR.data?.groups?.length ?? 0) > 0;
     const setupComplete = !!mergeHR.config?.groups;
     return syncDone && hasGroups && !setupComplete;
+}
+
+/**
+ * Returns true when the user has already manually synced ("Sync now") the Merge HR connection the maximum number of
+ * times within the rolling window (e.g. 2 times in the last 24 hours).
+ */
+function isMergeHRManualSyncLimitReached(policy?: OnyxEntry<Policy>): boolean {
+    const manualSyncTimestamps = policy?.connections?.merge_hris?.lastSync?.manualSyncTimestamps;
+    if (!manualSyncTimestamps?.length) {
+        return false;
+    }
+
+    const windowStart = DateUtils.subtractMillisecondsFromDateTime(DateUtils.getDBTime(), CONST.MERGE_HR.MANUAL_SYNC_WINDOW_MS);
+    const syncsWithinWindow = manualSyncTimestamps.filter((timestamp) => timestamp > windowStart).length;
+    return syncsWithinWindow >= CONST.MERGE_HR.MANUAL_SYNC_LIMIT;
 }
 
 /** Returns display info for the HR provider currently connected to the policy (Gusto, Zenefits, or Merge HR), or null if none are connected. */
@@ -178,6 +194,7 @@ export {
     isHRAdvancedMode,
     isMergeHRCompleteSetupNeeded,
     isMergeHRConnected,
+    isMergeHRManualSyncLimitReached,
     isZenefitsConnected,
 };
 
