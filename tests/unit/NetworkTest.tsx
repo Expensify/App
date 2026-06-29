@@ -1,6 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import MockedOnyx from 'react-native-onyx';
-import {confirmReadyToOpenApp, reconnectApp} from '@libs/actions/App';
+import {reconnectApp} from '@libs/actions/App';
 import * as Reconnect from '@libs/actions/Reconnect';
 import {resetReauthentication} from '@libs/Middleware/Reauthentication';
 import CONST from '@src/CONST';
@@ -165,7 +165,6 @@ describe('NetworkTests', () => {
         await waitForBatchedUpdates();
 
         // Trigger reconnect which will fail due to expired token
-        confirmReadyToOpenApp();
         reconnectApp();
         await waitForBatchedUpdates();
 
@@ -185,7 +184,6 @@ describe('NetworkTests', () => {
         await waitForBatchedUpdates();
 
         // 7. Trigger another reconnect due to network change
-        confirmReadyToOpenApp();
         reconnectApp();
 
         // 8. Now fail the pending authentication request

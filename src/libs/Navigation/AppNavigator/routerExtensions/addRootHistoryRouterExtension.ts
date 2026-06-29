@@ -5,36 +5,21 @@ import type {PlatformStackNavigationState, PlatformStackRouterFactory, PlatformS
 import CONST from '@src/CONST';
 import {
     applyRevealPaddingOffset,
+    asCustomHistory,
     getFrozenHistoryStateForRemoveFullscreenUnderRHP,
     getFrozenHistoryStateForReplaceFullscreenUnderRHP,
     getRevealDismissState,
+    getTrailingStringSentinels,
     isDismissModalAction,
+    isModalHistorySentinel,
     isRemoveFullscreenUnderRHPAction,
     isReplaceFullscreenUnderRHPAction,
+    stripTrailingModalSentinels,
 } from './addRootHistoryRouterExtensionUtils';
 import type {PendingReveal, RootHistoryState} from './addRootHistoryRouterExtensionUtils';
 import {enhanceStateWithHistory} from './utils';
 
-const CUSTOM_HISTORY_MARKERS: ReadonlySet<string> = new Set([CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL, CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MFA_MODAL_NAVIGATOR]);
-
-/**
- * Walks a history array from the end and collects the contiguous run of known
- * custom-history markers (e.g. `[...routes, SIDE_PANEL, MFA_MODAL_NAVIGATOR]` →
- * `[SIDE_PANEL, MFA_MODAL_NAVIGATOR]`).
- *
- * `enhanceStateWithHistory` regenerates `history` purely from `routes` and drops
- * any non-route entries; this helper lets the rehydration step re-append the
- * markers that were on top before rebuild.
- */
-function extractTrailingCustomMarkers(history: readonly unknown[] | undefined): string[] {
-    if (!history?.length) {
-        return [];
-    }
-    const cutoff = history.findLastIndex((entry) => typeof entry !== 'string' || !CUSTOM_HISTORY_MARKERS.has(entry));
-    return history.slice(cutoff + 1).filter((entry): entry is string => typeof entry === 'string');
-}
-
-/** Manages root `state.history` for side-panel, MFA modal navigator, and reveal flows; per-branch rationale inline. */
+/** Manages root `state.history` for side-panel, per-modal back-guards, and reveal flows; per-branch rationale inline. */
 function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(
     originalRouter: PlatformStackRouterFactory<ParamListBase, RouterOptions>,
 ) {
@@ -54,10 +39,13 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
             const state = router.getRehydratedState(partialState, configOptions);
             const stateWithInitialHistory = enhanceStateWithHistory(state);
 
-            // Preserve trailing custom markers (side-panel, MFA modal navigator) through state rebuilds.
-            const trailingMarkers = extractTrailingCustomMarkers(state.history);
-            if (trailingMarkers.length > 0) {
-                stateWithInitialHistory.history = [...stateWithInitialHistory.history, ...trailingMarkers];
+            // Preserve the trailing run of string sentinels (side-panel + per-modal back-guards) through
+            // state rebuilds, so those overlays stay open and their browser entries aren't stranded by a
+            // benign history rebuild (e.g. RESET / resize). The forward-navigation consume in
+            // getStateForAction is what intentionally drops a modal sentinel.
+            const trailingSentinels = getTrailingStringSentinels(state.history);
+            if (trailingSentinels.length > 0) {
+                stateWithInitialHistory.history = [...(asCustomHistory(stateWithInitialHistory.history) ?? []), ...trailingSentinels];
             }
 
             return stateWithInitialHistory;
@@ -108,10 +96,26 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
                 }
             }
 
+            const rehydrated = rehydrate(newState, configOptions);
+
+            // forward navigation out of a `shouldHandleNavigationBack` Modal. The previous state
+            // had a trailing modal back-guard sentinel; rehydrate() re-appends it on top of the freshly
+            // pushed route, which would strand a phantom browser entry (Back needing two presses). Drop only
+            // the top modal sentinel so the new history length matches the previous one and useLinking
+            // sees historyDelta === 0 → history.replace, letting the new screen consume the guard entry.
+            // Removing only the top sentinel preserves any outer modal guards when modals are nested.
+            // The RN routes array still records a real push (done by the inner router), so in-app back is
+            // unaffected. Either ordering works: if the Modal's own toggle(false) ran first, the trailing
+            // entry is already a route and this is a no-op.
+            const isForwardNavigation = action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH || action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE;
+            if (isForwardNavigation && isModalHistorySentinel(asCustomHistory(state.history)?.at(-1))) {
+                const consumedHistory = stripTrailingModalSentinels(asCustomHistory(rehydrated.history) ?? []);
+                return applyRevealPaddingOffset(state, {...rehydrated, history: consumedHistory});
+            }
+
             // Default: re-apply the offset (single source of truth = leading sentinels in
             // state.history). addPushParamsRouterExtension keeps all string entries, so
             // reveal-padding sentinels survive PUSH_PARAMS / GO_BACK / POP / RESET dispatches.
-            const rehydrated = rehydrate(newState, configOptions);
             return applyRevealPaddingOffset(state, rehydrated);
         };
 
