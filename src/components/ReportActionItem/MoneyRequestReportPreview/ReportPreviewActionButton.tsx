@@ -33,6 +33,9 @@ type ReportPreviewActionButtonProps = {
     iouReportID: string | undefined;
     chatReportID: string | undefined;
     chatReport: OnyxEntry<Report>;
+
+    /** The stabilized IOU report, provided by the parent so the dispatcher does not re-subscribe to the churning report */
+    iouReport: OnyxEntry<Report>;
     isPaidAnimationRunning: boolean;
     isApprovedAnimationRunning: boolean;
     isSubmittingAnimationRunning: boolean;
@@ -51,6 +54,7 @@ function ReportPreviewActionButton({
     iouReportID,
     chatReportID,
     chatReport,
+    iouReport,
     isPaidAnimationRunning,
     isApprovedAnimationRunning,
     isSubmittingAnimationRunning,
@@ -70,7 +74,6 @@ function ReportPreviewActionButton({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'ReceiptPlus', 'Plus']);
 
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
