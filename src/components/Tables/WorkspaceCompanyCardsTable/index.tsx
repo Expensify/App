@@ -388,28 +388,28 @@ function WorkspaceCompanyCardsTable({
         >
             {!shouldUseNarrowTableLayout && ListHeader}
 
-            {(isLoading || isFeedPending || isNoFeed) && !feedErrorKey && (
-                <ScrollView
-                    addBottomSafeAreaPadding
-                    style={styles.flex1}
-                    contentContainerStyle={styles.flex1}
-                >
-                    {isLoading && LoadingComponent}
+            {isLoading && !feedErrorKey && <View style={[styles.flex1, bottomSafeAreaPaddingStyle]}>{LoadingComponent}</View>}
 
-                    {!isLoading && isFeedPending && (
-                        <>
+            {!isLoading && isFeedPending && !feedErrorKey && (
+                <ScrollView addBottomSafeAreaPadding>
+                    {isFeedPending && (
+                        <View style={styles.flex1}>
                             {shouldUseNarrowTableLayout && headerButtonsComponent}
                             <WorkspaceCompanyCardsFeedPendingPage />
-                        </>
+                        </View>
                     )}
+                </ScrollView>
+            )}
 
-                    {!isLoading && isNoFeed && (
+            {!isLoading && isNoFeed && !feedErrorKey && (
+                <ScrollView addBottomSafeAreaPadding>
+                    <View style={styles.flex1}>
                         <WorkspaceCompanyCardPageEmptyState
                             policyID={policyID}
                             shouldShowGBDisclaimer={shouldShowGBDisclaimer}
                             canWriteCompanyCards={canWriteCompanyCards}
                         />
-                    )}
+                    </View>
                 </ScrollView>
             )}
 
