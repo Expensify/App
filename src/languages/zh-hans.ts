@@ -1294,7 +1294,7 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         settledExpensify: '已支付',
         paidStatusMarkedAsPaid: '已标记为已支付',
-        paidStatusWithdrawing: '扣款中',
+        paidStatusWithdrawing: '提现中',
         paidStatusConfirmed: '已确认',
         done: '完成',
         settledElsewhere: '在其他地方支付',

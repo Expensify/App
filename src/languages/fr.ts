@@ -1347,7 +1347,7 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         settledExpensify: 'Payé',
         paidStatusMarkedAsPaid: 'Marqué comme payé',
-        paidStatusWithdrawing: 'Prélèvement en cours',
+        paidStatusWithdrawing: 'Retrait',
         paidStatusConfirmed: 'Confirmé',
         done: 'Terminé',
         settledElsewhere: 'Payé ailleurs',

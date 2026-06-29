@@ -1340,7 +1340,7 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         settledExpensify: 'Pago',
         paidStatusMarkedAsPaid: 'Marcado como pago',
-        paidStatusWithdrawing: 'Retirando',
+        paidStatusWithdrawing: 'Sacando',
         paidStatusConfirmed: 'Confirmado',
         done: 'Concluído',
         settledElsewhere: 'Pago em outro lugar',
