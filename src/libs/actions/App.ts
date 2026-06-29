@@ -529,7 +529,9 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
  */
 function loadPostDataForOpenOrReconnect() {
     // We need to wait for OpenApp/ReconnectApp to merge its response data so we can compute what we need to load based on what we loaded.
-    // If `hasLoadedApp` is true, we know that the app Onyx data has been merged as well.
+    // If `hasLoadedApp` is true, we know that the OpenApp queued onyx updates are flushed. However if the app is already loaded (in case of `ReconnectApp`)
+    // then `hasLoadedApp` would be true already and the onyx callback would execute immediately before we load the new data (from `ReconnectApp`)
+    // here comes the role of the second onyx connector `isLoadingReportData`, waiting till isLoadingReportData=false means that ReconnectApp is done.
     const connection = Onyx.connectWithoutView({
         key: ONYXKEYS.HAS_LOADED_APP,
         callback: (isLoaded) => {
@@ -537,24 +539,33 @@ function loadPostDataForOpenOrReconnect() {
                 return;
             }
             Onyx.disconnect(connection);
-            const isOffline = getIsOffline();
-            const visibleTodoSearches = getVisibleTodoSearches(currentSessionData.accountID, currentSessionData.email, allPolicies);
-            for (const visibleTodoSearch of Object.values(visibleTodoSearches)) {
-                const searchKey = visibleTodoSearch.key;
-                const queryJSON = visibleTodoSearch.searchQueryJSON;
-                if (!queryJSON) {
-                    continue;
-                }
-                search({
-                    queryJSON,
-                    searchKey,
-                    offset: 0,
-                    isOffline,
-                    isLoading: false,
-                    shouldCalculateTotals: false,
-                    shouldUpdateLastSearchParams: false,
-                });
-            }
+            const connection2 = Onyx.connectWithoutView({
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                callback: (isLoadingReportData) => {
+                    if (isLoadingReportData) {
+                        return;
+                    }
+                    Onyx.disconnect(connection2);
+                    const isOffline = getIsOffline();
+                    const visibleTodoSearches = getVisibleTodoSearches(currentSessionData.accountID, currentSessionData.email, allPolicies);
+                    for (const visibleTodoSearch of Object.values(visibleTodoSearches)) {
+                        const searchKey = visibleTodoSearch.key;
+                        const queryJSON = visibleTodoSearch.searchQueryJSON;
+                        if (!queryJSON) {
+                            continue;
+                        }
+                        search({
+                            queryJSON,
+                            searchKey,
+                            offset: 0,
+                            isOffline,
+                            isLoading: false,
+                            shouldCalculateTotals: false,
+                            shouldUpdateLastSearchParams: false,
+                        });
+                    }
+                },
+            });
         },
     });
 }
