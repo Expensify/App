@@ -6,7 +6,6 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import {updateDraftFlagForReviewRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {hasExplicitFlagAmount} from '@libs/FlagForReviewRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -33,17 +32,7 @@ function FlagForReviewRuleCategoryPage({route}: FlagForReviewRuleCategoryPagePro
     const selectedCategoryItem = selectedCategoryName ? {name: getDecodedCategoryName(selectedCategoryName), value: selectedCategoryName} : undefined;
 
     const categoryItems = Object.values(policyCategories ?? {})
-        .filter((category) => {
-            if (!category.enabled || category.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                return false;
-            }
-
-            if (isEditing) {
-                return true;
-            }
-
-            return !hasExplicitFlagAmount(category.maxExpenseAmount);
-        })
+        .filter((category) => category.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
         .map((category) => {
             const decodedCategoryName = getDecodedCategoryName(category.name);
             return {name: decodedCategoryName, value: category.name};
