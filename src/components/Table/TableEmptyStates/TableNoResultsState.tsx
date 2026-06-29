@@ -4,15 +4,19 @@ import type {GenericEmptyStateComponentProps} from '@components/EmptyStateCompon
 import ScrollView from '@components/ScrollView';
 import {useTableContext} from '@components/Table/TableContext';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-type TableNoResultsStateProps = Omit<GenericEmptyStateComponentProps, 'headerMedia'> & {
+type TableNoResultsStateProps = Omit<GenericEmptyStateComponentProps, 'headerMedia' | 'title' | 'subtitle'> & {
     headerMedia?: IconAsset;
+    title?: string;
+    subtitle?: string;
 };
 
 export default function TableNoResultsState(emptyStateProps: TableNoResultsStateProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const {processedData, originalDataLength} = useTableContext();
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
 
@@ -26,6 +30,8 @@ export default function TableNoResultsState(emptyStateProps: TableNoResultsState
                 headerMedia={illustrations.EmptyShelves}
                 headerContentStyles={styles.emptyShelvesIllustration}
                 headerStyles={styles.emptyStateCardIllustrationContainer}
+                title={translate('common.noResultsFound')}
+                subtitle={translate('common.noResultsFoundSubtitle')}
                 {...emptyStateProps}
             />
         </ScrollView>

@@ -89,10 +89,7 @@ export default function DomainListTable({domains}: DomainListTableProps) {
                 title="No domains yet"
                 subtitle="Try creating one"
             />
-            <Table.NoResultsState
-                title="No domains found"
-                subtitle="Try adjusting your filters or a new search"
-            />
+            <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
         </Table>

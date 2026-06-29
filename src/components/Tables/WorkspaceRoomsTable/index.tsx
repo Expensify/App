@@ -88,10 +88,7 @@ function WorkspaceRoomsTable({rooms, highlightedReportID}: WorkspaceRoomsTablePr
                 title="No rooms yet"
                 subtitle="Try creating one"
             />
-            <Table.NoResultsState
-                title="No rooms found"
-                subtitle="Try adjusting your filters or a new search"
-            />
+            <Table.NoResultsState />
             <Table.Header />
             <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />
         </Table>

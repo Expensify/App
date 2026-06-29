@@ -153,10 +153,7 @@ export default function WorkspaceCategoriesTable({
                 title="No categories yet"
                 subtitle="Try creating one"
             />
-            <Table.NoResultsState
-                title="No categories found"
-                subtitle="Try adjusting your filters or a new search"
-            />
+            <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
         </Table>

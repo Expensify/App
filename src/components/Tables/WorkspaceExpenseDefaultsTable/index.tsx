@@ -96,10 +96,7 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
                 title="No expense defaults yet"
                 subtitle="Try creating one"
             />
-            <Table.NoResultsState
-                title="No expense defaults found"
-                subtitle="Try adjusting your filters or a new search"
-            />
+            <Table.NoResultsState subtitle="Try adjusting your filters or a new search" />
             <Table.Header />
             <Table.Body />
         </Table>

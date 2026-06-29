@@ -138,10 +138,7 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
                 title="No distance rates yet"
                 subtitle="Try creating one"
             />
-            <Table.NoResultsState
-                title="No distance rates found"
-                subtitle="Try adjusting your filters or a new search"
-            />
+            <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
         </Table>

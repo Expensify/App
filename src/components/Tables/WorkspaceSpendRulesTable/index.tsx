@@ -97,10 +97,7 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
                 title="No personal rules yet"
                 subtitle="Try creating one"
             />
-            <Table.NoResultsState
-                title="No personal rules found"
-                subtitle="Try adjusting your filters or a new search"
-            />
+            <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
         </Table>

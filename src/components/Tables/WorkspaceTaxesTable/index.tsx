@@ -93,10 +93,7 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
                 title="No taxes yet"
                 subtitle="Try creating one"
             />
-            <Table.NoResultsState
-                title="No taxes found"
-                subtitle="Try adjusting your filters or a new search"
-            />
+            <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
         </Table>

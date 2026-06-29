@@ -258,10 +258,7 @@ export default function WorkspaceMembersTable({
             onRowSelectionChange={onRowSelectionChange}
         >
             <Table.FilterBar label={translate('workspace.people.findMember')} />
-            <Table.NoResultsState
-                title="No members found"
-                subtitle="Try adjusting your filters or a new search"
-            />
+            <Table.NoResultsState />
 
             <Table.Header />
             <Table.Body />
