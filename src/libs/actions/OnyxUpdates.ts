@@ -168,7 +168,7 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
     const logApplyFailureIfNeeded = <T>(promise: Promise<T>): Promise<T> =>
         promise.catch((error) => {
             if (didAdvanceLastUpdateID) {
-                Log.alert('[OnyxUpdateManager] lastUpdateID was advanced but applying the updates failed, the updates may be lost', {
+                Log.alert('[OnyxUpdateManagerError] lastUpdateID was advanced but applying the updates failed, the updates may be lost', {
                     type,
                     command: request?.command,
                     lastUpdateID,
