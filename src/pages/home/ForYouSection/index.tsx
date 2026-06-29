@@ -46,7 +46,12 @@ function ForYouSection() {
     const isFocused = useIsFocused();
     const {counts: reportCounts, singleReportIDs} = useTodoCounts(isFocused);
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
-    const [isOnboardingCompleted] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
+    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding);
+    // The onboarding NVP defaults to "completed" before its real value arrives from the server (Onyx reports the key
+    // as "loaded" with an `undefined` value straight away). Only treat the onboarding status as known once the actual
+    // value is present, so we don't flash the skeleton at onboarding users during the load window.
+    const isOnboardingStatusKnown = onboarding !== undefined;
     const [hasSeenForYouTodo = false] = useOnyx(ONYXKEYS.HAS_SEEN_FOR_YOU_TODO);
     const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
 
@@ -208,6 +213,7 @@ function ForYouSection() {
             firstDayFreeTrial,
             cutoffDate: CONST.HOME.FOR_YOU_NEW_USER_CUTOFF_DATE,
             isOnboardingCompleted,
+            isOnboardingStatusKnown,
         })
     ) {
         return null;

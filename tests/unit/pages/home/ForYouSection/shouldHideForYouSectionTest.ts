@@ -9,6 +9,7 @@ const baseParams = {
     firstDayFreeTrial: undefined as string | undefined,
     cutoffDate: CUTOFF,
     isOnboardingCompleted: true as boolean | undefined,
+    isOnboardingStatusKnown: true,
 };
 
 describe('shouldHideForYouSection', () => {
@@ -58,5 +59,18 @@ describe('shouldHideForYouSection', () => {
 
     it('keeps the section visible during onboarding when the user already has actionable to-dos', () => {
         expect(shouldHideForYouSection({...baseParams, isOnboardingCompleted: false, hasAnyTodos: true})).toBe(false);
+    });
+
+    it('hides the section (no skeleton) for a user still onboarding during the initial load', () => {
+        expect(shouldHideForYouSection({...baseParams, isOnboardingCompleted: false, isInitialLoad: true})).toBe(true);
+    });
+
+    it('hides the section (no skeleton) during the initial load while the onboarding status is still unknown', () => {
+        // Before NVP_ONBOARDING loads the selector reports "completed" (true); we must not flash the skeleton yet.
+        expect(shouldHideForYouSection({...baseParams, isInitialLoad: true, isOnboardingCompleted: true, isOnboardingStatusKnown: false})).toBe(true);
+    });
+
+    it('shows the skeleton during the initial load for a completed user once the onboarding status is known', () => {
+        expect(shouldHideForYouSection({...baseParams, isInitialLoad: true, isOnboardingCompleted: true, isOnboardingStatusKnown: true})).toBe(false);
     });
 });
