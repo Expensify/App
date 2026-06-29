@@ -77,6 +77,7 @@ type GetReportPrimaryActionParams = {
     reportMetadata?: OnyxEntry<ReportMetadata>;
     isChatReportArchived: boolean;
     invoiceReceiverPolicy?: Policy;
+    ownerLogin: string | undefined;
 };
 
 type IsPrimaryPayActionParams = {
@@ -109,6 +110,7 @@ function isSubmitAction(
     report: Report,
     reportTransactions: Transaction[],
     reportMetadata: OnyxEntry<ReportMetadata>,
+    ownerLogin: string | undefined,
     policy?: Policy,
     reportNameValuePairs?: ReportNameValuePairs,
     violations?: OnyxCollection<TransactionViolation[]>,
@@ -145,7 +147,7 @@ function isSubmitAction(
         }
     }
 
-    const submitToAccountID = getSubmitToAccountID(policy, report);
+    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin);
 
     if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval && !isReportSubmitter) {
         return false;
@@ -471,6 +473,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         isChatReportArchived,
         chatReport,
         invoiceReceiverPolicy,
+        ownerLogin,
     } = params;
 
     // The expense report of personal policy shouldn't have any action
@@ -518,7 +521,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED;
     }
 
-    if (isSubmitAction(report, reportTransactions, reportMetadata, policy, reportNameValuePairs, violations, currentUserLogin, currentUserAccountID) && !allExpensesHeld) {
+    if (isSubmitAction(report, reportTransactions, reportMetadata, ownerLogin, policy, reportNameValuePairs, violations, currentUserLogin, currentUserAccountID) && !allExpensesHeld) {
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 

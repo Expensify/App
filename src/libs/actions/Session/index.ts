@@ -48,7 +48,7 @@ import {checkIfShouldUseNewPartnerName, resetDidUserLogInDuringSession} from '@l
 import {clearSoundAssetsCache} from '@libs/Sound';
 import Timers from '@libs/Timers';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
-import {confirmReadyToOpenApp, KEYS_TO_PRESERVE, openApp} from '@userActions/App';
+import {KEYS_TO_PRESERVE, openApp} from '@userActions/App';
 import {clearCachedAttachments} from '@userActions/Attachment';
 import clearOnyxAndSeedFullReconnect from '@userActions/clearOnyxAndSeedFullReconnect';
 import {clearOnyxForDelegateTransition} from '@userActions/Delegate';
@@ -466,7 +466,6 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                         Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
                         Onyx.set(ONYXKEYS.STASHED_SESSION, {});
 
-                        confirmReadyToOpenApp();
                         openApp();
 
                         if (CONFIG.IS_HYBRID_APP && hasSwitchedAccountInHybridMode) {
@@ -728,10 +727,7 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
                     },
                 })
                     .then(() => Onyx.merge(ONYXKEYS.ACCOUNT, {primaryLogin: hybridApp?.delegateAccessData?.oldDotCurrentUserEmail}))
-                    .then(() => {
-                        confirmReadyToOpenApp();
-                        return openApp();
-                    });
+                    .then(() => openApp());
             }
 
             Log.info('[HybridApp] User switched account on OldDot side. Clearing onyx and applying delegate data');
@@ -758,7 +754,6 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
                 .then(() => Onyx.merge(ONYXKEYS.ACCOUNT, {primaryLogin: hybridApp?.delegateAccessData?.oldDotCurrentUserEmail}))
                 .then(() => {
                     Log.info('[HybridApp] Calling openApp to get delegate account details');
-                    confirmReadyToOpenApp();
                     return openApp();
                 });
         })
