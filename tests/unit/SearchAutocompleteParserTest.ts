@@ -297,6 +297,35 @@ const tests = [
             ranges: [{key: 'expenseType', value: 'per-diem', negated: false, start: 13, length: 8}],
         },
     },
+    {
+        query: 'receipt-type:ereceipt',
+        expected: {
+            autocomplete: {
+                key: 'receiptType',
+                value: 'ereceipt',
+                start: 13,
+                length: 8,
+                negated: false,
+            },
+            ranges: [{key: 'receiptType', value: 'ereceipt', negated: false, start: 13, length: 8}],
+        },
+    },
+    {
+        query: 'receipt-type:hotel,itemized',
+        expected: {
+            autocomplete: {
+                key: 'receiptType',
+                value: 'itemized',
+                start: 19,
+                length: 8,
+                negated: false,
+            },
+            ranges: [
+                {key: 'receiptType', value: 'hotel', negated: false, start: 13, length: 5},
+                {key: 'receiptType', value: 'itemized', negated: false, start: 19, length: 8},
+            ],
+        },
+    },
 ];
 
 const limitAutocompleteTests = [
