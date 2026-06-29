@@ -602,12 +602,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     return;
                 }
 
-                // Sync the modal to the server's cache key, but only while the on-screen selection is still
-                // the one we requested. If the user changed the selection or dismissed the modal in the
-                // meantime, this response is stale and must not overwrite the current params.
-                setExpensifyCardStatementPDFParams((currentParams) =>
-                    currentParams && currentParams.entryIDs.join(',') === entryIDs.join(',') ? {...currentParams, statementKey} : currentParams,
-                );
+                // Sync the modal to the server's cache key, but only while this is still the latest export. The
+                // entryIDs alone are not enough: a cancel + re-scope + re-export of the same settlement can produce
+                // a stale earlier response with matching entryIDs but a different scope, so gate on the request id.
+                if (requestID !== expensifyCardStatementRequestIDRef.current) {
+                    return;
+                }
+                setExpensifyCardStatementPDFParams((currentParams) => (currentParams ? {...currentParams, statementKey} : currentParams));
             })
             .catch(showStatementError);
     }, [isOffline]);
