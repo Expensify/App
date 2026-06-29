@@ -72,6 +72,7 @@ function ParticipantPicker({
             isTimeRequest={isTimeRequest}
             isWorkspacesOnly={isWorkspacesOnly}
             onRestrictedParticipantSelected={onClose}
+            onCloseParticipantPicker={onClose}
             initiallySelectedReportID={selectedParticipant?.reportID}
             shouldMoveSelectedToTop
         />
