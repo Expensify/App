@@ -8,10 +8,18 @@ import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
+type ProfileAvatarProps = Parameters<typeof Avatar>[0] & {
+    /** Whether clicking the avatar navigates to the profile/workspace page */
+    useProfileNavigationWrapper?: boolean;
+
+    /** Report ID used for avatar navigation */
+    reportID?: string;
+};
+
 /** `ProfileAvatar` wraps an `Avatar` in a pressable that navigates to the correct "view avatar" route.
  * The branch it picks depends on `type` (workspace vs user) and whether a `reportID` is provided.
  */
-function ProfileAvatar(props: Parameters<typeof Avatar>[0] & {useProfileNavigationWrapper?: boolean; reportID?: string}) {
+function ProfileAvatar(props: ProfileAvatarProps) {
     const {translate} = useLocalize();
     const {avatarID, useProfileNavigationWrapper, type, name, reportID} = props;
 
