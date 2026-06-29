@@ -8593,6 +8593,10 @@ const translations = {
                     `All ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `All CSV Imported Cards${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
             },
+            bankAccount: {
+                banks: 'Bank accounts',
+                closedBankAccounts: 'Closed bank accounts',
+            },
             reportField: (name: string, value: string) => `${name} is ${value}`,
             current: 'Current',
             past: 'Past',
