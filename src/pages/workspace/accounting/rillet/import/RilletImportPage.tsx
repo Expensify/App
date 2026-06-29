@@ -7,12 +7,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearRilletErrorField, updateRilletEnableNewCategories, updateRilletFieldMapping, updateRilletSyncTaxRates} from '@libs/actions/connections/Rillet';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
-import withPolicy from '@pages/workspace/withPolicy';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 
-function RilletImportPage({policy}: WithPolicyProps) {
+function RilletImportPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
@@ -98,4 +98,4 @@ function RilletImportPage({policy}: WithPolicyProps) {
     );
 }
 
-export default withPolicy(RilletImportPage);
+export default withPolicyConnections(RilletImportPage);
