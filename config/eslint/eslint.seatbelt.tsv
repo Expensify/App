@@ -505,7 +505,6 @@
 "../../src/hooks/useDebouncedState.ts"	"react-hooks/refs"	2
 "../../src/hooks/useDebouncedValue.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useDialogContainerFocus/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/hooks/useDiscardChangesConfirmation/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useDragAndDrop/types.ts"	"@typescript-eslint/no-deprecated/React.MutableRefObject"	1
 "../../src/hooks/useDynamicBackPath.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useExpenseActions.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
@@ -550,7 +549,7 @@
 "../../src/hooks/useRestoreWorkspacesTabOnNavigate.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useReviewDuplicatesNavigation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useReviewDuplicatesNavigation.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/hooks/useSearchBulkActions.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	5
+"../../src/hooks/useSearchBulkActions.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	4
 "../../src/hooks/useSearchBulkActions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../src/hooks/useSearchBulkActions.ts"	"react-hooks/exhaustive-deps"	1
 "../../src/hooks/useSearchBulkActions.ts"	"react-hooks/preserve-manual-memoization"	2
@@ -580,6 +579,7 @@
 "../../src/libs/AttendeeUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/Avatars/InitialAvatars.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Avatars/PresetAvatarCatalog.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/libs/BankAccountUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/CardFeedUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/CardUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	16
 "../../src/libs/CategoryOptionListUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -744,7 +744,7 @@
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	33
 "../../src/libs/ReportUtils.ts"	"rulesdir/no-onyx-connect"	16
 "../../src/libs/SearchAutocompleteUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
-"../../src/libs/SearchQueryUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	71
+"../../src/libs/SearchQueryUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	72
 "../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	69
 "../../src/libs/SearchUIUtils.ts"	"no-restricted-imports"	1
 "../../src/libs/SelectionScraper/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
@@ -1603,7 +1603,6 @@
 "../../tests/navigation/isDynamicRouteScreenTests.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/navigation/linkToHelpersTests.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/navigation/useDynamicBackPathTests.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../tests/perf-test/ReportActionsList.perf-test.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/perf-test/ReportActionsUtils.perf-test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/perf-test/ReportUtils.perf-test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/perf-test/SelectionList.perf-test.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1819,7 +1818,7 @@
 "../../tests/unit/RequireA11yDisableJustificationRuleTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/RequireLiveRegionForStatusUpdatesRuleTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/Search/SearchListRenderCountTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../tests/unit/Search/SearchQueryUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
+"../../tests/unit/Search/SearchQueryUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../tests/unit/Search/SearchSingleSelectionPickerTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/Search/SearchUIUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	136
 "../../tests/unit/Search/buildCardFilterDataTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	22

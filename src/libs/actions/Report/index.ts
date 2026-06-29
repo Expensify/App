@@ -746,7 +746,7 @@ function clearAgentZeroProcessingIndicator(reportID: string, agentAccountID: num
 let newActionSubscribers: ActionSubscriber[] = [];
 
 /**
- * Enables the Report actions file to let the ReportActionsView know that a new comment has arrived in realtime for the current report
+ * Enables the Report actions file to let the ReportActionsList know that a new comment has arrived in realtime for the current report
  * Add subscriber for report id
  * @returns Remove subscriber for report id
  */
@@ -757,7 +757,7 @@ function subscribeToNewActionEvent(reportID: string, callback: SubscriberCallbac
     };
 }
 
-/** Notify the ReportActionsView that a new comment has arrived */
+/** Notify the ReportActionsList that a new comment has arrived */
 function notifyNewAction(reportID: string | string[] | undefined, reportAction: ReportAction | undefined, isFromCurrentUser: boolean) {
     if (!reportID) {
         return;
@@ -3984,7 +3984,7 @@ function buildNewReportOptimisticData(
     const {accountID, login, email} = ownerPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
     const parentReport = getPolicyExpenseChat(accountID, policy?.id);
-    const optimisticReportData = buildOptimisticEmptyReport(reportID, accountID, parentReport, reportPreviewReportActionID, policy, timeOfCreation, betas);
+    const optimisticReportData = buildOptimisticEmptyReport(reportID, accountID, login, parentReport, reportPreviewReportActionID, policy, timeOfCreation, betas);
 
     if (reportName) {
         optimisticReportData.reportName = reportName;
@@ -7072,6 +7072,7 @@ function buildOptimisticChangePolicyData({
     policy,
     currentUserAccountID,
     currentUserEmail,
+    ownerLogin,
     managerLogin,
     hasViolationsParam,
     isASAPSubmitBetaEnabled,
@@ -7085,6 +7086,7 @@ function buildOptimisticChangePolicyData({
     policy: Policy;
     currentUserAccountID: number;
     currentUserEmail: string;
+    ownerLogin: string | undefined;
     managerLogin: string | undefined;
     hasViolationsParam: boolean;
     isASAPSubmitBetaEnabled: boolean;
@@ -7121,7 +7123,7 @@ function buildOptimisticChangePolicyData({
     const reportIDToThreadsReportIDsMap = buildReportIDToThreadsReportIDsMap();
     updatePolicyIdForReportAndThreads(reportID, policy.id, reportIDToThreadsReportIDsMap, optimisticData, failureData);
 
-    const newManagerAccountID = getSubmitToAccountID(policy, report);
+    const newManagerAccountID = getSubmitToAccountID(policy, report, ownerLogin);
     const shouldResetApprovalChain = isProcessingReport(report) && newManagerAccountID !== report.managerID && managerLogin && isPolicyMember(policy, managerLogin);
     if (shouldResetApprovalChain) {
         optimisticData.push({
@@ -7571,6 +7573,7 @@ function changeReportPolicy({
     policy,
     currentUserAccountID,
     email,
+    ownerLogin,
     managerLogin,
     hasViolationsParam,
     isChangePolicyTrainingModalDismissed,
@@ -7584,6 +7587,7 @@ function changeReportPolicy({
     policy: Policy;
     currentUserAccountID: number;
     email: string;
+    ownerLogin: string | undefined;
     managerLogin: string | undefined;
     hasViolationsParam: boolean;
     isChangePolicyTrainingModalDismissed: boolean;
@@ -7602,6 +7606,7 @@ function changeReportPolicy({
         policy,
         currentUserAccountID,
         currentUserEmail: email,
+        ownerLogin,
         managerLogin,
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
@@ -7703,6 +7708,7 @@ function changeReportPolicyAndInviteSubmitter({
         policy,
         currentUserAccountID,
         currentUserEmail,
+        ownerLogin: submitterLogin,
         managerLogin,
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
