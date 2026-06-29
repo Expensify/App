@@ -1,8 +1,8 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import {useMemo} from 'react';
 import {isCreatedAction, isCurrentUserPendingAddAction} from '@libs/ReportActionsUtils';
 import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActions} from '@src/types/onyx/ReportAction';
+import useCurrentSessionUserActionIDs from './useCurrentSessionUserActionIDs';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsInSidePanel from './useIsInSidePanel';
 import useOnyx from './useOnyx';
@@ -27,15 +27,25 @@ function useShouldSuppressConciergeIndicators(reportID: string | undefined): boo
     const isConciergeChat = reportID === conciergeReportID;
     const sessionStartTime = isInSidePanel ? sidePanelSessionStartTime : mainDMSessionStartTime;
 
-    const hasSessionActivitySelector = (actions: OnyxEntry<ReportActions>) => {
-        if (!actions || !sessionStartTime) {
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+    const actionsList = useMemo(() => Object.values(reportActions ?? {}), [reportActions]);
+
+    // IDs of the current user's own messages captured while optimistic in this session. Retained after
+    // their pendingAction clears so a clock-skewed just-sent message keeps the indicators visible until
+    // Concierge replies.
+    const currentSessionUserActionIDs = useCurrentSessionUserActionIDs(actionsList, currentUserAccountID, sessionStartTime);
+
+    const hasSessionActivity = useMemo(() => {
+        if (!sessionStartTime) {
             return false;
         }
-        return Object.values(actions).some((action) => isCurrentUserPendingAddAction(action, currentUserAccountID) || (!isCreatedAction(action) && action.created >= sessionStartTime));
-    };
-    const [hasSessionActivity] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        selector: hasSessionActivitySelector,
-    });
+        return actionsList.some(
+            (action) =>
+                isCurrentUserPendingAddAction(action, currentUserAccountID) ||
+                currentSessionUserActionIDs.has(action.reportActionID) ||
+                (!isCreatedAction(action) && action.created >= sessionStartTime),
+        );
+    }, [actionsList, currentUserAccountID, sessionStartTime, currentSessionUserActionIDs]);
 
     if (pendingFollowupList) {
         return true;
