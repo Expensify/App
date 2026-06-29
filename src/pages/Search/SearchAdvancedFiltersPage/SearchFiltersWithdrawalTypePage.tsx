@@ -33,6 +33,8 @@ function SearchFiltersWithdrawalTypePage() {
 
     const updateSelectedItem = useCallback((type: ListItem<SearchWithdrawalType>) => {
         setSelectedItem(type?.keyForList ?? undefined);
+        // Update the keyword filter here
+        updateAdvancedFilters({keyword: type?.text});
     }, []);
 
     const resetChanges = useCallback(() => {
