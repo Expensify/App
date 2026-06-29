@@ -14,7 +14,8 @@ import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import {validateAvatarImage} from '@libs/AvatarUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import {getDefaultAvatarName, isCatalogAvatar, isGeneratedLetterAvatarURL, isLetterAvatar} from '@libs/UserAvatarUtils';
+import {isCatalogAvatar, isGeneratedLetterAvatarURL, isLetterAvatar} from '@libs/UserAvatarUtils';
+import {deleteAvatar} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -107,12 +108,8 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
     };
 
     const onImageRemoved = () => {
-        setSelected(
-            getDefaultAvatarName({
-                accountID: currentUserPersonalDetails?.accountID,
-                accountEmail: currentUserPersonalDetails?.email,
-            }),
-        );
+        deleteAvatar(currentUserPersonalDetails);
+        setSelected(undefined);
         setImageData({...EMPTY_FILE});
     };
 
