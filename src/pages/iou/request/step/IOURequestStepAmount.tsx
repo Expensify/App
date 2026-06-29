@@ -6,16 +6,19 @@ import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputF
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, shouldEnableNegative} from '@libs/ReportUtils';
 import {getRequestType, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
+import type {MoneyRequestAmountFormHandle} from '@pages/iou/MoneyRequestAmountForm';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -53,6 +56,7 @@ function IOURequestStepAmount({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
     const textInput = useRef<BaseTextInputRef | null>(null);
+    const amountFormRef = useRef<MoneyRequestAmountFormHandle | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const iouRequestType = getRequestType(transaction);
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
@@ -102,6 +106,17 @@ function IOURequestStepAmount({
     const [selectedCurrency, setSelectedCurrency] = useState(originalCurrency);
     const decimals = getCurrencyDecimals(selectedCurrency || CONST.CURRENCY.USD);
 
+    const {notifySaving} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => {
+            const typedAmount = amountFormRef.current?.getNumber() ?? '';
+            const typedAmountInBackendUnits = typedAmount ? convertToBackendAmount(Number.parseFloat(typedAmount)) : 0;
+            return typedAmountInBackendUnits !== transactionAmount || selectedCurrency !== originalCurrency;
+        },
+        onCancel: () => {
+            focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
+        },
+    });
+
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
     const isUnreportedDistanceExpense = isEditing && isDistanceRequest(transaction) && isExpenseUnreported(transaction);
 
@@ -140,6 +155,7 @@ function IOURequestStepAmount({
     };
 
     const handleSubmit = ({amount, paymentMethod}: {amount: string; paymentMethod?: PaymentMethodType}) => {
+        notifySaving();
         const submitData = submitDataRef.current;
         if (!submitData) {
             return;
@@ -213,6 +229,7 @@ function IOURequestStepAmount({
                 isEditing={!!backTo || isEditing}
                 currency={selectedCurrency}
                 amount={transactionAmount}
+                amountFormRef={amountFormRef}
                 skipConfirmation={shouldSkipConfirmation ?? false}
                 iouType={iouType}
                 policyID={policy?.id}

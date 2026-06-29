@@ -93,20 +93,19 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const {scrollToIndex, debouncedScrollToIndex} = useSelectionListScroll(listRef, flattenedData);
     const {containerRef, trackScrollOffset, scrollInputIntoView} = useScrollToFocusedInput(listRef, isKeyboardShown);
 
-    const {focusedIndex, setFocusedIndex, setFocusedIndexFromRowFocus, setFocusedIndexWithoutScrollOnChange, suppressNextFocusScroll, isKeyboardNavigating, setHasKeyBeenPressed} =
-        useSelectionListKeyboardFocus({
-            initialFocusedIndex,
-            maxIndex: flattenedData.length - 1,
-            disabledIndexes,
-            isActive: isScreenFocused && itemsCount > 0,
-            isFocused: isScreenFocused,
-            shouldScrollToFocusedIndex,
-            shouldDebounceScrolling,
-            scrollToIndex,
-            debouncedScrollToIndex,
-            announceProgrammaticScroll: () => listRef.current?.announceProgrammaticScroll(),
-            setShouldDisableHoverStyle,
-        });
+    const {focusedIndex, setFocusedIndex, isKeyboardNavigating, setHasKeyBeenPressed} = useSelectionListKeyboardFocus({
+        initialFocusedIndex,
+        maxIndex: flattenedData.length - 1,
+        disabledIndexes,
+        isActive: isScreenFocused && itemsCount > 0,
+        isFocused: isScreenFocused,
+        shouldScrollToFocusedIndex,
+        shouldDebounceScrolling,
+        scrollToIndex,
+        debouncedScrollToIndex,
+        announceProgrammaticScroll: () => listRef.current?.announceProgrammaticScroll(),
+        setShouldDisableHoverStyle,
+    });
 
     const {innerTextInputRef, isTextInputFocusedRef, focusTextInput, textInputKeyPress} = useSelectionListTextInput(setHasKeyBeenPressed);
 
@@ -135,7 +134,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             }
         }
         if (shouldUpdateFocusedIndex && typeof indexToFocus === 'number') {
-            setFocusedIndexWithoutScrollOnChange(indexToFocus);
+            setFocusedIndex(indexToFocus);
         }
         onSelectRow(item);
 
@@ -157,9 +156,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     };
 
     const updateAndScrollToFocusedIndex = (index: number, shouldScroll = true) => {
-        if (!shouldScroll) {
-            suppressNextFocusScroll();
-        }
         setFocusedIndex(index);
         if (shouldScroll) {
             scrollToIndex(index);
@@ -218,9 +214,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         shouldUpdateFocusedIndex,
         scrollToIndex,
         setFocusedIndex,
-        focusedIndex,
         firstFocusableIndex,
-        suppressNextFocusScroll,
     });
 
     const textInputComponent = () => {
@@ -282,7 +276,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                         onDismissError={onDismissError}
                         rightHandSideComponent={rightHandSideComponent}
-                        setFocusedIndex={setFocusedIndexFromRowFocus}
+                        setFocusedIndex={setFocusedIndex}
                         singleExecution={singleExecution}
                         shouldSyncFocus={!isTextInputFocusedRef.current && isKeyboardNavigating}
                         shouldIgnoreFocus={shouldIgnoreFocus}
