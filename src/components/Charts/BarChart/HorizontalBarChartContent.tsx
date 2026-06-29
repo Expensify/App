@@ -271,4 +271,3 @@ function HorizontalBarChartContent(props: HorizontalBarChartProps) {
 }
 
 export default HorizontalBarChartContent;
-export type {HorizontalBarChartProps};

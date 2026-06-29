@@ -7,5 +7,5 @@ const MIN_BAR_ROW_HEIGHT = 36;
 /** Maximum visible height before horizontal bar charts scroll */
 const MAX_HORIZONTAL_CHART_HEIGHT = 400;
 
-export {BAR_INNER_PADDING, MIN_BAR_ROW_HEIGHT, MAX_HORIZONTAL_CHART_HEIGHT};
+export {MIN_BAR_ROW_HEIGHT, MAX_HORIZONTAL_CHART_HEIGHT};
 export default BAR_INNER_PADDING;
