@@ -67,7 +67,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isSystemChat);
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true, true, reportMetadata);
     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, betas, isReportArchived, isRestrictedToPreferredPolicy);
-    const policyName = getPolicyName({report});
+    const policyName = getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const filteredOptions = moneyRequestOptions.filter(

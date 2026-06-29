@@ -42,7 +42,7 @@ jest.mock('@libs/actions/Search', () => ({
     exportToIntegrationOnSearch: jest.fn(),
     queueExportSearchItemsToCSV: jest.fn(),
     queueExportSearchWithTemplate: jest.fn(),
-    approveMoneyRequestOnSearch: jest.fn(),
+    getSearchApproveOnyxData: jest.fn(() => ({})),
     getLastPolicyBankAccountID: jest.fn(),
     getLastPolicyPaymentMethod: jest.fn(),
     getPayMoneyOnSearchInvoiceParams: jest.fn(),
@@ -156,11 +156,6 @@ jest.mock('@hooks/useCurrencyList', () => ({
         getCurrencyDecimals: jest.fn(() => 2),
         convertToDisplayString: jest.fn((amount: number) => `$${amount}`),
     }),
-}));
-
-jest.mock('@hooks/useAllPolicyExpenseChatReportActions', () => ({
-    __esModule: true,
-    default: () => undefined,
 }));
 
 jest.mock('@hooks/useUndeleteTransactions', () => ({

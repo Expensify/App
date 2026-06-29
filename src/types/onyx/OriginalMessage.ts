@@ -36,6 +36,13 @@ type OriginalMessageIOU = {
     /** The ID of the `IOU` transaction */
     IOUTransactionID?: string;
 
+    /**
+     * ID of the IOU/expense report the action belongs to. Temporary fallback for resolving the report when the
+     * backend omits `reportID` on hydrated IOU actions. Remove once the backend reliably sends `reportID`.
+     * See https://github.com/Expensify/App/issues/93882.
+     */
+    IOUReportID?: string;
+
     /** ID of the expense report */
     expenseReportID?: string;
 
@@ -72,6 +79,12 @@ type OriginalMessageIOU = {
     /** The bank account id */
     bankAccountID?: number;
 
+    /** Masked number (e.g., 'XXXXXX1234') of the bank account used to fund the payment */
+    accountNumber?: string;
+
+    /** True when the submitter marked the report as payment received outside Expensify */
+    isSubmitterMarkedPaymentReceived?: boolean;
+
     /** How much was transaction */
     amount?: number;
 
@@ -103,6 +116,9 @@ type Decision = {
 type OriginalMessageSmartScanFailed = {
     /** Fields that are missing */
     missingFields: string[];
+
+    /** LLM-friendly explanation of the scan failure that activates the Explain button */
+    reasoning?: string;
 };
 
 /** Model of `add comment` report action */
@@ -570,7 +586,10 @@ type OriginalMessagePolicyChangeLog = {
     /** Rate amount in cents for the custom unit rate */
     rate?: number;
 
-    /** Unit of the custom unit (e.g. "mi", "km") */
+    /**
+     * Distance unit ('mi' or 'km'). Used by custom-unit rate change logs and
+     * commuter-exclusion change logs.
+     */
     unit?: string;
 
     /** Start date of the custom unit rate (yyyy-MM-dd), used in ADD actions */
@@ -1233,8 +1252,11 @@ type OriginalMessageReimbursed = {
     /** Raw payment method field as stored by Auth (e.g., 'Fast_ACH', 'Check', 'StripeConnect', or standard ACH) - set on real-time Pusher updates */
     method?: string;
 
-    /** Last 4 digits of the debit bank account used to fund the payment */
+    /** Last 4 digits of the debit bank account used to fund the payment - set by the openReport path */
     debitBankAccountLast4?: string;
+
+    /** Masked number (e.g., 'XXXXXX1234') of the debit bank account used to fund the payment - set on real-time Pusher updates */
+    accountNumber?: string;
 
     /** Last 4 digits of the credit bank account receiving the payment */
     creditBankAccountLast4?: string;

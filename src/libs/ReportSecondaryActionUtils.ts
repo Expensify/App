@@ -31,6 +31,7 @@ import {
     isPreferredExporter,
     isSubmitAndClose,
     isSubmitPolicy,
+    isSubmitterApproveBlockedOnSubmitWorkspace,
 } from './PolicyUtils';
 import {
     getAllReportActions,
@@ -293,6 +294,10 @@ function isApproveAction(
     reportMetadata: OnyxEntry<ReportMetadata>,
     policy?: Policy,
 ): boolean {
+    if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, report.ownerAccountID, currentUserAccountID)) {
+        return false;
+    }
+
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isReceiptBeingScanned(transaction));
 
     if (isAnyReceiptBeingScanned) {
@@ -1052,7 +1057,9 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
 
-    options.push(CONST.REPORT.SECONDARY_ACTIONS.PRINT);
+    if (!isOpenReportUtils(report)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.PRINT);
+    }
 
     if (isChangeWorkspaceAction(report, policies, currentUserLogin, submitterLogin, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
