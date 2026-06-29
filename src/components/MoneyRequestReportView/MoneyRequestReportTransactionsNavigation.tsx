@@ -15,6 +15,7 @@ import {clearActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigati
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
+import {getReportIDToOpenForExpense} from '@libs/TransactionThreadNavigationUtils';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
 import CONST from '@src/CONST';
@@ -51,6 +52,9 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     // so prev/next navigation resolves the correct report instead of breaking.
     const [snapshotHash] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH);
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`);
+    // Snapshot-backed flows (e.g. Home "Recently added") seed a descriptor per sibling so the carousel can
+    // resolve (and lazily create) each sibling's thread on demand even when the sibling isn't in the live collection.
+    const [siblingDescriptorsByTransactionID] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS);
     const {markReportIDAsExpense} = useWideRHPActions();
     // Values required to create a transaction thread on the fly when paging onto a multi-transaction
     // (batched) parent report that has no existing thread yet (see onNext/onPrevious fallbacks).
@@ -188,6 +192,18 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             return;
         }
 
+        // Snapshot-backed flows (e.g. Home "Recently added") seed a descriptor per sibling because the sibling
+        // transactions may be absent from the main Onyx collections. Resolve the target sibling lazily here so
+        // we only ever create a thread for the expense the user actually navigates to, then let OpenReport
+        // hydrate it on arrival.
+        const nextDescriptor = nextTransactionID ? siblingDescriptorsByTransactionID?.[nextTransactionID] : undefined;
+        if (nextDescriptor) {
+            const nextReportID = getReportIDToOpenForExpense(nextDescriptor, {introSelected, betas, currentUserEmail: email, currentUserAccountID: accountID});
+            markReportIDAsExpense(nextReportID);
+            requestAnimationFrame(() => Navigation.setParams({reportID: nextReportID, reportActionID: undefined, backTo}));
+            return;
+        }
+
         const nextThreadReportID = nextParentReportAction?.childReportID;
         const navigationParams = {reportID: nextThreadReportID, reportActionID: undefined, backTo};
 
@@ -241,6 +257,15 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             const targetReportID = prevTransaction.reportID;
             markReportIDAsExpense(targetReportID);
             requestAnimationFrame(() => Navigation.setParams({reportID: targetReportID, reportActionID: undefined, backTo}));
+            return;
+        }
+
+        // See onNext: resolve the target sibling lazily from its descriptor when present.
+        const prevDescriptor = prevTransactionID ? siblingDescriptorsByTransactionID?.[prevTransactionID] : undefined;
+        if (prevDescriptor) {
+            const prevReportID = getReportIDToOpenForExpense(prevDescriptor, {introSelected, betas, currentUserEmail: email, currentUserAccountID: accountID});
+            markReportIDAsExpense(prevReportID);
+            requestAnimationFrame(() => Navigation.setParams({reportID: prevReportID, reportActionID: undefined, backTo}));
             return;
         }
 

@@ -22,9 +22,8 @@ import {
     useChartLabelMeasurements,
     useDynamicYDomain,
     useLabelHitTesting,
-    useYAxisLabelWidth,
 } from '@components/Charts/hooks';
-import {labelOverhang} from '@components/Charts/utils';
+import {getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -86,14 +85,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
         unitPosition: yAxisUnitPosition,
     });
 
-    const yAxisLabelWidth = useYAxisLabelWidth(
-        Math.max(...data.map((p) => p.total), 0),
-        Math.min(...data.map((p) => p.total), 0),
-        VictoryTheme.axis.tickCount,
-        formatValue,
-        fontMgr,
-        variables.iconSizeExtraSmall,
-    );
+    const yAxisLabelWidth = getYAxisLabelWidth(data, formatValue, fontMgr, variables.iconSizeExtraSmall, BASE_DOMAIN_PADDING);
 
     const tickSpacing = plotAreaWidth > 0 && data.length > 0 ? plotAreaWidth / data.length : 0;
     const chartPaddingLeft = yAxisLabelWidth + GLYPH_PADDING;

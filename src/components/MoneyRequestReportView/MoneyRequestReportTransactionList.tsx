@@ -39,7 +39,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {getReportLayoutGroupBy, getReportLayoutSelection, setReportLayout} from '@libs/actions/ReportLayout';
-import {clearActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {resolveTransactionCardFields} from '@libs/CardUtils';
 import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
@@ -506,6 +506,13 @@ function MoneyRequestReportTransactionList({
         // this also covers reports whose transactions are only partially present in the search results.
         const anchorTransactionID = (focusedRoute?.params as {anchorTransactionID?: string} | undefined)?.anchorTransactionID;
         if (anchorTransactionID && latestActiveTransactionIDs?.includes(anchorTransactionID)) {
+            return;
+        }
+        // Don't take over a snapshot-backed carousel (identified by its sibling descriptors, e.g. the Home
+        // "Recently added" flow) that belongs to the transaction thread sitting underneath this report.
+        // Overwriting and then clearing it would drop that carousel when the user navigates back. Row presses
+        // still seed the correct siblings lazily via useNavigateToTransactionThread.
+        if (getActiveTransactionIDs().descriptors) {
             return;
         }
         // Don't overwrite active transaction IDs for one-transaction parent reports. When such a report is opened
