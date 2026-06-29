@@ -930,7 +930,7 @@ function hasCustomCategories(policyCategories: OnyxEntry<PolicyCategories>): boo
 /**
  * Checks if a policy has any rules configured (structured rules, individual expense limits, or prohibited expenses).
  */
-function hasConfiguredRules(policy: OnyxEntry<Policy>): boolean {
+function hasConfiguredRules(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null): boolean {
     if (!policy) {
         return false;
     }
@@ -985,13 +985,17 @@ function hasConfiguredRules(policy: OnyxEntry<Policy>): boolean {
     }
 
     const {prohibitedExpenses} = policy;
-    return (
+    if (
         !!prohibitedExpenses &&
         Object.entries(CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES).some(([key, defaultValue]) => {
             const value = prohibitedExpenses[key as keyof typeof CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES];
             return value !== undefined && value !== defaultValue;
         })
-    );
+    ) {
+        return true;
+    }
+
+    return hasAnyCategoryRules(policyCategories ?? undefined);
 }
 
 /**

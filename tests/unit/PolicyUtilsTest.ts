@@ -2896,6 +2896,16 @@ describe('PolicyUtils', () => {
                 expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {}}))).toBe(false);
             });
         });
+
+        it('returns true when only Classic category rules exist', () => {
+            const categories = {Travel: {name: 'Travel', enabled: true, maxAmountNoReceipt: 0}};
+            expect(hasConfiguredRules(createMock<Policy>({}), categories)).toBe(true);
+        });
+
+        it('returns false when categories have no active rule fields', () => {
+            const categories = {Advertising: {name: 'Advertising', enabled: true, 'GL Code': '1234'}};
+            expect(hasConfiguredRules(createMock<Policy>({}), categories)).toBe(false);
+        });
     });
 
     describe('getExpensifyTeamExclusions', () => {

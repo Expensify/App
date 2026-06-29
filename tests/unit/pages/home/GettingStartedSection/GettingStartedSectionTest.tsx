@@ -1,10 +1,13 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
+import React from 'react';
 import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import GettingStartedSection from '@src/pages/home/GettingStartedSection';
+import useGettingStartedItems from '@src/pages/home/GettingStartedSection/hooks/useGettingStartedItems';
 import ROUTES from '@src/ROUTES';
 import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
 
@@ -43,6 +46,8 @@ const renderGettingStartedSection = () =>
         </OnyxListItemProvider>,
     );
 
+const gettingStartedItemsWrapper = ({children}: {children: React.ReactNode}) => <OnyxListItemProvider>{children}</OnyxListItemProvider>;
+
 /**
  * Sets up Onyx state for a manage-team user with an active trial
  * so the section is visible by default.
@@ -58,6 +63,8 @@ async function setManageTeamUserState(overrides?: {
     hasCompanyCardConnection?: boolean;
     hasConfiguredRules?: boolean;
     trialStartDate?: string;
+    policyType?: ValueOf<typeof CONST.POLICY.TYPE>;
+    policyCategories?: Record<string, unknown>;
 }) {
     const trialStart = overrides?.trialStartDate ?? RECENT_TRIAL_START;
 
@@ -71,13 +78,18 @@ async function setManageTeamUserState(overrides?: {
     const policyData: Record<string, unknown> = {
         id: TEST_POLICY_ID,
         name: 'Test Workspace',
-        type: CONST.POLICY.TYPE.TEAM,
+        type: overrides?.policyType ?? CONST.POLICY.TYPE.TEAM,
         role: CONST.POLICY.ROLE.ADMIN,
         areCompanyCardsEnabled: overrides?.areCompanyCardsEnabled ?? true,
-        areRulesEnabled: overrides?.areRulesEnabled ?? true,
         areConnectionsEnabled: overrides?.areAccountingEnabled,
         areCategoriesEnabled: overrides?.areCategoriesEnabled,
     };
+
+    if (overrides && 'areRulesEnabled' in overrides) {
+        policyData.areRulesEnabled = overrides.areRulesEnabled;
+    } else {
+        policyData.areRulesEnabled = true;
+    }
 
     if (overrides?.hasAccountingConnection) {
         policyData.connections = {
@@ -89,6 +101,11 @@ async function setManageTeamUserState(overrides?: {
     }
 
     await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}` as never, policyData as never);
+
+    if (overrides?.policyCategories) {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${TEST_POLICY_ID}` as never, overrides.policyCategories as never);
+    }
+
     await waitForBatchedUpdates();
 }
 
@@ -353,6 +370,28 @@ describe('GettingStartedSection', () => {
             await waitForBatchedUpdates();
 
             expect(screen.getByText(/homePage\.gettingStartedSection\.connectAccounting/)).toBeTruthy();
+        });
+
+        it('shows and completes setup rules when Classic category rules exist on a migrated corporate policy', async () => {
+            await setManageTeamUserState({
+                integration: 'other',
+                policyType: CONST.POLICY.TYPE.CORPORATE,
+                areRulesEnabled: undefined,
+                policyCategories: {
+                    Travel: {
+                        name: 'Travel',
+                        enabled: true,
+                        maxAmountNoReceipt: 0,
+                    },
+                },
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems(), {wrapper: gettingStartedItemsWrapper});
+            await waitForBatchedUpdates();
+
+            const setupRulesItem = result.current.items.find((item) => item.key === 'setupRules');
+            expect(setupRulesItem).toBeDefined();
+            expect(setupRulesItem?.isComplete).toBe(true);
         });
     });
 

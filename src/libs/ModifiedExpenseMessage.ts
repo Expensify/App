@@ -4,7 +4,7 @@ import type {Entries, ValueOf} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Policy, PolicyTagLists, Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
@@ -262,6 +262,7 @@ function getForReportAction({
     movedFromReport,
     movedToReport,
     policyTags,
+    policyCategories,
     currentUserLogin,
     reportAttributes,
 }: {
@@ -274,6 +275,7 @@ function getForReportAction({
     // getReportName itself will be migrated away from Onyx.connect in a follow-up PR.
     // See https://github.com/Expensify/App/pull/75562
     policyTags?: OnyxEntry<PolicyTagLists>;
+    policyCategories?: OnyxEntry<PolicyCategories>;
     currentUserLogin: string;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
 }): string {
@@ -526,7 +528,7 @@ function getForReportAction({
         const policyRulesModifiedFields = reportActionOriginalMessage.policyRulesModifiedFields;
 
         if (policyRulesModifiedFields && policy?.id) {
-            const hasPolicyRuleAccess = arePolicyRulesEnabled(policy) && isPolicyAdmin(policy, currentUserLogin);
+            const hasPolicyRuleAccess = arePolicyRulesEnabled(policy, policyCategories) && isPolicyAdmin(policy, currentUserLogin);
             return getRulesModifiedMessage(translate, policyRulesModifiedFields, false, policy?.id, hasPolicyRuleAccess);
         }
     }

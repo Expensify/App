@@ -145,11 +145,11 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         enableFeature: () => enableCompanyCards(activePolicyID, true, false),
     });
 
-    if (arePolicyRulesEnabled(policy)) {
+    if (arePolicyRulesEnabled(policy, policyCategories)) {
         items.push({
             key: 'setupRules',
             label: translate('homePage.gettingStartedSection.setupRules'),
-            isComplete: hasConfiguredRules(policy),
+            isComplete: hasConfiguredRules(policy, policyCategories),
             route: ROUTES.WORKSPACE_RULES.getRoute(activePolicyID),
         });
     }
