@@ -913,6 +913,7 @@ function IOURequestStepConfirmation({
                             isPerDiemRequest={isPerDiemRequest}
                             isTimeRequest={isTimeRequest}
                             isWorkspacesOnly={getIsWorkspacesOnlyForTransaction(transaction, requestType)}
+                            shouldExcludeP2P={(transaction?.amount ?? 0) < 0}
                             onParticipantsAdded={handleParticipantsAdded}
                             onFinish={closeParticipantPicker}
                             isVisible={isParticipantPickerVisible}
