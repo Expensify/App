@@ -718,24 +718,14 @@ function mergeWorkflowMembersWithAvailableMembers(workflowMembers: Member[], all
     return [...workflowMembers, ...additionalMembers];
 }
 
-// ---------------------------------------------------------------------------
-// Approval-workflow rules (rules.approvalWorkflows on the policy)
-// ---------------------------------------------------------------------------
-//
 // These helpers translate the in-app `ApprovalWorkflow` model into the rule
 // format the backend stores under `Policy.rules.approvalWorkflows`, and
-// reconcile a workflow change against the existing rules so we can hand a
-// minimal diff to `Auth/SetApprovalWorkflow`.
-//
-// Diff convention: a value of `ApprovalWorkflowRule` upserts the rule; a value
-// of `null` removes it. JSON-stringified, that matches what Auth expects.
-
+// handle any changes
 const APPROVAL_WORKFLOW_FORWARD_ACTION = 'forward' as const;
 
-/** Diff shape passed to the backend: ruleID -> rule (upsert) or null (remove). */
 type ApprovalWorkflowRulesDiff = Record<string, ApprovalWorkflowRule | null>;
 
-/** Build a leaf comparison: `<left> <operator> <right>`. */
+/** Build a filter: `<left> <operator> <right>`. */
 function buildComparison(
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>,
     left: ApprovalWorkflowFilterComparison['left'],
@@ -744,20 +734,19 @@ function buildComparison(
     return {operator, left, right};
 }
 
-/** Build the `from in [emails]` leaf used by every approval-workflow rule. */
-function buildFromComparison(memberEmails: string[]): ApprovalWorkflowFilterComparison {
+/** Build the `from in [emails]` filter used by every approval-workflow rule. */
+function buildSubmitterFilter(memberEmails: string[]): ApprovalWorkflowFilterComparison {
     return buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, [...memberEmails]);
 }
 
-/** Build the `previousApprover = email` leaf used by all non-initial-hop rules. */
+/** Build the `previousApprover = email` filter used by all non-initial rules. */
 function buildPreviousApproverComparison(email: string): ApprovalWorkflowFilterComparison {
     return buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.PREVIOUS_APPROVER, email);
 }
 
 /**
  * Assemble the filter tree for a single rule from its parts. The `from` comparison is always
- * present; the `previousApprover` gate and `amount` comparison are optional. When neither is
- * present we return the bare `from` comparison rather than wrapping it in an `AND` with no `right`.
+ * present; the `previousApprover` gate and `amount` comparison are optional.
  */
 function buildLevelFilters(
     fromComparison: ApprovalWorkflowFilterComparison,
@@ -780,27 +769,6 @@ function buildLevelFilters(
 
 /**
  * Build the `rules.approvalWorkflows` rule chain for a single `ApprovalWorkflow`.
- *
- * For a workflow whose approver chain is `[A0, A1, ..., A_{N-1}]` and whose members are `M`, we emit
- * the rule(s) that route the report INTO each level. The split happens at the level being routed
- * into: at level `i`, the approver `A_i` and their over-limit approver `A_i.overLimitForwardsTo`
- * share the same `previousApprover` gate — `A_{i-1}.email` — or NO `previousApprover` at all for the
- * first level (a freshly-submitted report). The level's `A_i.approvalLimit` drives the mirrored
- * amount pair:
- *
- * - i == 0, no limit:  `from ∈ M`                                             → A0
- * - i == 0, limit:     `from ∈ M AND amount < limit`                          → A0
- *                      `from ∈ M AND amount >= limit`                         → A0.overLimitForwardsTo
- * - i > 0, no limit:   `from ∈ M AND previousApprover == P`                   → A_i
- * - i > 0, limit:      `from ∈ M AND (previousApprover == P AND amount < limit)`  → A_i
- *                      `from ∈ M AND (previousApprover == P AND amount >= limit)` → A_i.overLimitForwardsTo
- *
- * Because the previous level's over-limit approver also approves and forwards onward, the report
- * can reach level `i` from EITHER the previous level's base approver or its over-limit approver. So
- * `P` ranges over every "exit" of the previous level, and we emit the level's rule(s) once per `P`.
- *
- * The last approver still gets an "into" rule (routed from the previous level); there's just no rule
- * forwarding back OUT of them, since nothing forwards past the terminal approver.
  */
 function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): ApprovalWorkflowRule[] {
     const memberEmails = approvalWorkflow.members.map((member) => member.email).filter((email): email is string => !!email);
@@ -810,11 +778,11 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
         return [];
     }
 
-    const fromComparison = buildFromComparison(memberEmails);
+    const fromComparison = buildSubmitterFilter(memberEmails);
     const rules: ApprovalWorkflowRule[] = [];
 
     // The approvers that could have approved at the PREVIOUS level and forwarded here. An empty list
-    // means "no previous approver" — the first level / a freshly-submitted report.
+    // means "no previous approver"
     let previousApproverEmails: string[] = [];
 
     for (let i = 0; i < approvers.length; i++) {
@@ -828,13 +796,11 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
         const underAmount = limit !== undefined ? buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, limit) : undefined;
         const overAmount = limit !== undefined ? buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, limit) : undefined;
 
-        // One gate per possible previous approver (or a single "no previousApprover" gate at level 0).
+        // One per possible previous approver
         const gates = previousApproverEmails.length === 0 ? [undefined] : previousApproverEmails.map((email) => buildPreviousApproverComparison(email));
 
         for (const gate of gates) {
             if (hasLimitSplit) {
-                // The approver and their over-limit approver share this previousApprover gate (or its
-                // absence at level 0) and differ only by the mirrored amount comparison.
                 rules.push({
                     filters: buildLevelFilters(fromComparison, gate, underAmount),
                     action: APPROVAL_WORKFLOW_FORWARD_ACTION,
@@ -854,48 +820,42 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
             }
         }
 
-        // Exits from this level feed the next level's previousApprover gates: when this level splits,
-        // both the base approver and the over-limit approver can have approved and forwarded onward.
         previousApproverEmails = hasLimitSplit ? [approver.email, approver.overLimitForwardsTo as string] : [approver.email];
     }
 
     return rules;
 }
 
-// ---------------------------------------------------------------------------
-// Rule introspection helpers (used by reconciliation)
-// ---------------------------------------------------------------------------
-
 /** True when a comparison node targets the `from` field with an equality operator. */
-function isFromComparison(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison): boolean {
+function isSubmitterFilter(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison): boolean {
     return node.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && (node as ApprovalWorkflowFilterComparison).left === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM;
 }
 
-/** Walk a filter tree and call `visitor` on every `from` comparison leaf. */
-function forEachFromComparison(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined, visitor: (leaf: ApprovalWorkflowFilterComparison) => void): void {
+/** Walk a filter tree and call `visitor` on every submitter filter (the `from` leaf) in it. */
+function forEachSubmitterFilter(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined, visitor: (filter: ApprovalWorkflowFilterComparison) => void): void {
     if (!node) {
         return;
     }
-    if (isFromComparison(node)) {
+    if (isSubmitterFilter(node)) {
         visitor(node as ApprovalWorkflowFilterComparison);
         return;
     }
     // Only filter nodes (which always carry a left filter) and AND/OR nodes have children to recurse into.
     const leftIsNode = typeof (node as ApprovalWorkflowFilter).left === 'object' && (node as ApprovalWorkflowFilter).left !== null;
     if (leftIsNode) {
-        forEachFromComparison((node as ApprovalWorkflowFilter).left, visitor);
+        forEachSubmitterFilter((node as ApprovalWorkflowFilter).left, visitor);
     }
     const right = (node as ApprovalWorkflowFilter).right as ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined;
     if (right && typeof right === 'object') {
-        forEachFromComparison(right, visitor);
+        forEachSubmitterFilter(right, visitor);
     }
 }
 
 /** Extract the union of email values across every `from` leaf in a rule. */
 function extractFromEmails(rule: ApprovalWorkflowRule): string[] {
     const emails = new Set<string>();
-    forEachFromComparison(rule.filters, (leaf) => {
-        const right = leaf.right;
+    forEachSubmitterFilter(rule.filters, (filter) => {
+        const right = filter.right;
         if (Array.isArray(right)) {
             right.forEach((email) => {
                 if (typeof email === 'string') {
@@ -919,7 +879,7 @@ function structuralFingerprint(rule: ApprovalWorkflowRule): string {
         if (!node) {
             return node;
         }
-        if (isFromComparison(node)) {
+        if (isSubmitterFilter(node)) {
             return {operator: node.operator, left: (node as ApprovalWorkflowFilterComparison).left};
         }
         const out: Record<string, unknown> = {operator: node.operator};
@@ -944,7 +904,7 @@ function structuralFingerprint(rule: ApprovalWorkflowRule): string {
 /** Replace the `right` value on every `from` leaf with `newEmails`. */
 function withFromEmails(rule: ApprovalWorkflowRule, newEmails: string[]): ApprovalWorkflowRule {
     const rewrite = (node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison): ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison => {
-        if (isFromComparison(node)) {
+        if (isSubmitterFilter(node)) {
             return {...node, right: [...newEmails]} as ApprovalWorkflowFilterComparison;
         }
         const left = (node as ApprovalWorkflowFilter).left;
