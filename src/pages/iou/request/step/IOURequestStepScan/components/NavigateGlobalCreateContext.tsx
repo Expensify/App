@@ -110,4 +110,3 @@ function NavigateGlobalCreateProviderInner({iouType, reportID, transactionID, tr
 NavigateGlobalCreateProvider.displayName = 'NavigateGlobalCreateProvider';
 
 export {NavigateGlobalCreateProvider, useNavigateGlobalCreate};
-export type {NavigateGlobalCreateFn};
