@@ -11,7 +11,6 @@ import KYCWallContextProvider from '@components/KYCWall/KYCWallContext';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
 import {MultifactorAuthenticationContextProviders} from '@components/MultifactorAuthentication/Context';
 import OpenAppFailureModal from '@components/OpenAppFailureModal';
-import OptionsListContextProvider from '@components/OptionListContextProvider';
 import PriorityModeController from '@components/PriorityModeController';
 import {ProductTrainingContextProvider} from '@components/ProductTrainingContext';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
@@ -173,7 +172,6 @@ function AuthScreens() {
                         WideRHPContextProvider,
                         KeyboardDismissibleFlatListContextProvider,
                         CurrencyListContextProvider,
-                        OptionsListContextProvider,
                         SidebarOrderedReportsContextProvider,
                         SearchContextProvider,
                         LockedAccountModalProvider,

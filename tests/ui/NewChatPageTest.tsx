@@ -7,7 +7,6 @@ import Onyx from 'react-native-onyx';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import OptionsListContextProvider from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import NewChatPage from '@pages/NewChatPage';
 import CONST from '@src/CONST';
@@ -46,9 +45,7 @@ const wrapper = ({children}: {children: React.ReactNode}) => (
     <OnyxListItemProvider>
         <HTMLEngineProvider>
             <LocaleContextProvider>
-                <OptionsListContextProvider>
-                    <ScreenWrapper testID="test">{children}</ScreenWrapper>
-                </OptionsListContextProvider>
+                <ScreenWrapper testID="test">{children}</ScreenWrapper>
             </LocaleContextProvider>
         </HTMLEngineProvider>
     </OnyxListItemProvider>

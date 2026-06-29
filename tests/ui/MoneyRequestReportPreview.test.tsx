@@ -8,7 +8,6 @@ import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import OptionsListContextProvider from '@components/OptionListContextProvider';
 import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequestReportPreview';
 import type ReportPreviewActionButton from '@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewActionButton';
 import type {MoneyRequestReportPreviewProps} from '@components/ReportActionItem/MoneyRequestReportPreview/types';
@@ -144,28 +143,26 @@ const mockContextMenuActionsValue = {
 const renderPage = ({isWhisper = false, isHovered = false}: Partial<MoneyRequestReportPreviewProps>) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
-            <OptionsListContextProvider>
-                <ScreenWrapper testID="test">
-                    <PortalProvider>
-                        <ShowContextMenuStateContext.Provider value={mockContextMenuStateValue}>
-                            <ShowContextMenuActionsContext.Provider value={mockContextMenuActionsValue}>
-                                <MoneyRequestReportPreview
-                                    policyID={mockChatReport.policyID}
-                                    action={mockAction}
-                                    iouReportID={mockIOUReport.reportID}
-                                    iouReport={mockIOUReportProp}
-                                    chatReportID={mockChatReport.reportID}
-                                    chatReport={mockChatReport}
-                                    onPaymentOptionsShow={() => {}}
-                                    onPaymentOptionsHide={() => {}}
-                                    isHovered={isHovered}
-                                    isWhisper={isWhisper}
-                                />
-                            </ShowContextMenuActionsContext.Provider>
-                        </ShowContextMenuStateContext.Provider>
-                    </PortalProvider>
-                </ScreenWrapper>
-            </OptionsListContextProvider>
+            <ScreenWrapper testID="test">
+                <PortalProvider>
+                    <ShowContextMenuStateContext.Provider value={mockContextMenuStateValue}>
+                        <ShowContextMenuActionsContext.Provider value={mockContextMenuActionsValue}>
+                            <MoneyRequestReportPreview
+                                policyID={mockChatReport.policyID}
+                                action={mockAction}
+                                iouReportID={mockIOUReport.reportID}
+                                iouReport={mockIOUReportProp}
+                                chatReportID={mockChatReport.reportID}
+                                chatReport={mockChatReport}
+                                onPaymentOptionsShow={() => {}}
+                                onPaymentOptionsHide={() => {}}
+                                isHovered={isHovered}
+                                isWhisper={isWhisper}
+                            />
+                        </ShowContextMenuActionsContext.Provider>
+                    </ShowContextMenuStateContext.Provider>
+                </PortalProvider>
+            </ScreenWrapper>
         </ComposeProviders>,
     );
 };
