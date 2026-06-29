@@ -124,4 +124,3 @@ function WorkspaceCardLabel({title, description, displayValue, valueStyle, value
 WorkspaceCardLabel.displayName = 'WorkspaceCardLabel';
 
 export default WorkspaceCardLabel;
-export type {WorkspaceCardLabelProps};
