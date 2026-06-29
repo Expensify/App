@@ -1934,7 +1934,7 @@
 "../../tests/unit/hooks/useSearchSections.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/hooks/useSearchShouldCalculateTotals.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/hooks/useSelectedTransactionsActions.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../tests/unit/hooks/useSelectionModeReportActions.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
+"../../tests/unit/hooks/useSelectionModeReportActions.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/hooks/useSplitContextHooks.test.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/hooks/useSplitEffectivePolicy.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/hooks/useSplitParticipants.test.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
