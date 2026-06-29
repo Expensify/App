@@ -285,13 +285,13 @@ const mockedPolicyUtils = PolicyUtils as jest.Mocked<typeof PolicyUtils>;
 
 function groupTransactionsByReportID(transactions?: OnyxCollection<Transaction>): Record<string, Transaction[]> {
     const grouped: Record<string, Transaction[]> = {};
-    Object.values(transactions ?? {}).forEach((transaction) => {
+    for (const transaction of Object.values(transactions ?? {})) {
         if (!transaction?.reportID) {
-            return;
+            continue;
         }
         grouped[transaction.reportID] ??= [];
         grouped[transaction.reportID].push(transaction);
-    });
+    }
     return grouped;
 }
 

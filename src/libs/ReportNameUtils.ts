@@ -125,6 +125,7 @@ import {
     isUnapprovedAction,
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
+// eslint-disable-next-line import/no-cycle
 import {
     formatReportLastMessageText,
     getDisplayNameForParticipant,
