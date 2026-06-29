@@ -1,5 +1,6 @@
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
+import useStyleUtils from '@hooks/useStyleUtils';
 import type {LetterAvatarColorStyle} from '@libs/Avatars/letterAvatarPalette';
 import Text from './Text';
 
@@ -29,8 +30,9 @@ type UserInitialsAvatarProps = {
 };
 
 function UserInitialsAvatar({text, colors, size}: UserInitialsAvatarProps) {
+    const StyleUtils = useStyleUtils();
     return (
-        <View style={[styles.circle, {width: size, height: size, borderRadius: size / 2, backgroundColor: colors.backgroundColor}]}>
+        <View style={[styles.circle, StyleUtils.getWidthAndHeightStyle(size, size), StyleUtils.getBorderRadiusStyle(size / 2), StyleUtils.getBackgroundColorStyle(colors.backgroundColor)]}>
             <Text
                 family="EXP_NEUE_BOLD"
                 color={colors.fillColor}
