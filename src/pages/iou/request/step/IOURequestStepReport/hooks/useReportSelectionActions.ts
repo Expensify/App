@@ -3,6 +3,7 @@ import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
+import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU/MoneyRequest';
@@ -105,6 +106,10 @@ function useReportSelectionActions({
     const {removeTransaction} = useSearchSelectionActions();
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
+    const transactionsCollection: OnyxCollection<Transaction> = Object.fromEntries(
+        transactions.map((transactionItem) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`, transactionItem]),
+    );
+    const reports = useChangeTransactionsReportReports(transaction?.transactionID ? [transaction.transactionID] : [], transactionsCollection, undefined);
 
     const targetTransactionIDs = transaction?.transactionID ? [transaction.transactionID] : [];
     const targetTransactions = transaction ? [transaction] : [];
@@ -192,6 +197,7 @@ function useReportSelectionActions({
 
                 if (isEditing) {
                     const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
+                    const reportsForCall = report?.reportID ? {[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report, ...reports} : reports;
                     changeTransactionsReport({
                         transactionIDs: targetTransactionIDs,
                         isASAPSubmitBetaEnabled,
@@ -204,7 +210,7 @@ function useReportSelectionActions({
                         policyTagList,
                         transactions: targetTransactions,
                         allTransactionViolation: transactionViolations,
-                        allReports,
+                        reports: reportsForCall,
                     });
                     removeTransaction(transaction.transactionID);
                 }
@@ -228,7 +234,7 @@ function useReportSelectionActions({
                 policyTagList,
                 transactions: targetTransactions,
                 allTransactionViolation: transactionViolations,
-                allReports,
+                reports,
             });
             removeTransaction(transaction.transactionID);
         });

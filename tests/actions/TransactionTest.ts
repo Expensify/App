@@ -282,6 +282,15 @@ describe('actions/Transaction', () => {
 
             const policyTagList = (await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${mockPolicy.id}`)) ?? {};
 
+            let reports: OnyxCollection<Report>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    reports = value;
+                },
+            });
+
             changeTransactionsReport({
                 transactionIDs: [transaction?.transactionID],
                 isASAPSubmitBetaEnabled: false,
@@ -291,8 +300,8 @@ describe('actions/Transaction', () => {
                 policy: mockPolicy,
                 allTransactions,
                 policyTagList,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
             });
 
             let updatedTransaction: OnyxEntry<Transaction>;
