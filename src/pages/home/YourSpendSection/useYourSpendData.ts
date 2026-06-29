@@ -10,7 +10,7 @@ import {search} from '@libs/actions/Search';
 import {getDisplayableExpensifyCards, getDisplayableThirdPartyCards, isPersonalCard, lastFourNumbersFromCardName} from '@libs/CardUtils';
 import {arePaymentsEnabled, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {getSuggestedSearches, getSuggestedSearchesVisibility, TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
+import {getVisibleTodoSearches} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, Policy, Report} from '@src/types/onyx';
@@ -361,11 +361,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const paymentRowState = shouldUseCachedPayment ? YOUR_SPEND_ROW_STATE.READY : paymentRowStateRaw;
     const approvalTotals: YourSpendRowTotals = shouldUseCachedApproval && cachedApprovalReady ? cachedApprovalReady : approvalTotalsRaw;
     const paymentTotals: YourSpendRowTotals = shouldUseCachedPayment && cachedPaymentReady ? cachedPaymentReady : paymentTotalsRaw;
-
-    // The `cardFeedsByPolicy` and `defaultExpensifyCard` params are not passed
-    // because they have no effect on the `TODO_SEARCH_KEYS` (and we are only interested in `TODO_SEARCH_KEYS`)
-    const suggestedSearchesVisibility = getSuggestedSearchesVisibility(email, {}, policies, undefined).visibility;
-    const suggestedSearches = getSuggestedSearches(accountID);
+    const visibleTodoSearches = getVisibleTodoSearches(accountID, email, policies);
 
     // Re-fires the search effect when applicability flips, the user joins/leaves a workspace
     // (which changes the policyID filter), or the set of OUTSTANDING reports changes.
@@ -374,7 +370,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
         isPaymentApplicable ? 1 : 0,
         paidGroupPolicyIDs.join(','),
         outstandingReportsSignature ?? '',
-        [...TODO_SEARCH_KEYS].map((k) => (suggestedSearchesVisibility[k] ? 1 : 0)).join(''),
+        Object.keys(visibleTodoSearches).join(','),
     ].join('|');
 
     const fireSearches = useEffectEvent(() => {
@@ -418,12 +414,9 @@ function useYourSpendData(): UseYourSpendDataReturn {
                 shouldUpdateLastSearchParams: false,
             });
         }
-        for (const searchKey of TODO_SEARCH_KEYS) {
-            const isVisible = suggestedSearchesVisibility[searchKey];
-            if (!isVisible) {
-                continue;
-            }
-            const queryJSON = suggestedSearches[searchKey].searchQueryJSON;
+        for (const visibleTodoSearch of Object.values(visibleTodoSearches)) {
+            const searchKey = visibleTodoSearch.key;
+            const queryJSON = visibleTodoSearch.searchQueryJSON;
             if (!queryJSON) {
                 continue;
             }
