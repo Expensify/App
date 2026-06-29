@@ -20,6 +20,7 @@ import type {Session as OnyxSession} from '@src/types/onyx';
 import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 type OnResolved = (params: {jsonCode?: string | number}) => void;
 
@@ -48,9 +49,14 @@ beforeEach(() => {
     Network.clearProcessQueueInterval();
     SequentialQueue.resetQueue();
 
-    return Promise.all([SequentialQueue.waitForIdle(), waitForBatchedUpdates(), PersistedRequests.clear(), Onyx.clear()]).then(() => {
-        return waitForBatchedUpdates();
-    });
+    return Promise.all([SequentialQueue.waitForIdle(), waitForBatchedUpdates(), PersistedRequests.clear(), Onyx.clear()])
+        .then(() => waitForBatchedUpdates())
+        .then(() => {
+            // ActiveClientManager.isReady() can resolve after the first clear above and arm a module-level
+            // setInterval(processMainQueue). Clear again once setup is idle so later tests do not get an
+            // extra queue tick that re-processes requests and inflates xhr call counts.
+            Network.clearProcessQueueInterval();
+        });
 });
 
 afterEach(() => {
@@ -284,34 +290,32 @@ describe('NetworkTests', () => {
         });
     });
 
-    test('Non-retryable request will not be retried if connection is lost in flight', () => {
+    test('Non-retryable request will not be retried if connection is lost in flight', async () => {
+        Network.clearProcessQueueInterval();
+
         // Given a xhr mock that will fail as if network connection dropped
-        const xhr = jest.spyOn(HttpUtils, 'xhr').mockImplementationOnce(() => {
+        const xhr = jest.spyOn(HttpUtils, 'xhr').mockImplementation(() => {
             setHasRadio(false);
             return Promise.reject(new Error(CONST.ERROR.FAILED_TO_FETCH));
         });
 
         // Given a non-retryable request (that is bound to fail)
         const promise = Network.post('Get');
+        await waitForNetworkPromises();
 
-        return waitForBatchedUpdates()
-            .then(() => {
-                // When network connection is recovered
-                setHasRadio(true);
-                return waitForBatchedUpdates();
-            })
-            .then(() => {
-                // Advance the network request queue by 1 second so that it can realize it's back online
-                jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
-                return waitForBatchedUpdates();
-            })
-            .then(() => {
-                // Then the request should only have been attempted once and we should get an unable to retry
-                expect(xhr).toHaveBeenCalledTimes(1);
+        // Then the request should only have been attempted once and should not remain queued for retry
+        expect(xhr).toHaveBeenCalledTimes(1);
+        expect(MainQueue.getAll()).toHaveLength(0);
 
-                // And the promise should be resolved with the special offline jsonCode
-                return expect(promise).resolves.toEqual({jsonCode: CONST.JSON_CODE.UNABLE_TO_RETRY});
-            });
+        // When network connection is recovered, simulate the periodic main-queue processor firing
+        setHasRadio(true);
+        Network.clearProcessQueueInterval();
+        MainQueue.process();
+        await waitForNetworkPromises();
+
+        // Then the request should still only have been attempted once and we should get an unable to retry
+        expect(xhr).toHaveBeenCalledTimes(1);
+        await expect(promise).resolves.toEqual({jsonCode: CONST.JSON_CODE.UNABLE_TO_RETRY});
     });
 
     test('test Bad Gateway status will log hmmm', () => {
