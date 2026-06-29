@@ -1,4 +1,4 @@
-import {addDays, addHours, addMinutes, addMonths, differenceInCalendarDays, format, parseISO} from 'date-fns';
+import {differenceInCalendarDays} from 'date-fns';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
@@ -20,7 +20,7 @@ import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {buildOOOCommand} from '@libs/ChronosUtils';
+import {buildOOOCommand, computeDurationDays, computeEndDate, parseDate} from '@libs/ChronosUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {replaceCommasWithPeriod} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -33,73 +33,6 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/ChronosScheduleOOOForm';
 
 type ChronosScheduleOOOPageProps = PlatformStackScreenProps<ChronosScheduleOOONavigatorParamList, typeof SCREENS.CHRONOS_SCHEDULE_OOO_ROOT>;
-
-/**
- * Parse a YYYY-MM-DD string into a Date, returning null when invalid.
- */
-function parseDate(value: string): Date | null {
-    if (!value) {
-        return null;
-    }
-    const parsed = parseISO(value);
-    return Number.isNaN(parsed.getTime()) ? null : parsed;
-}
-
-/**
- * Computes the calendar end date to display for a start date and duration, matching how the chronos
- * backend turns "ooo {start} for N {unit}" into an end date: whole day, week, and month durations end
- * on the last covered calendar day, while fractional day and hour durations carry the remaining time
- * into the end day. Returns an empty string for an invalid start date and the start date itself
- * for a non-positive duration.
- */
-function computeEndDate(startDate: string, durationAmount: string, durationUnit: string): string {
-    const start = parseDate(startDate);
-    if (!start) {
-        return '';
-    }
-    const sanitized = replaceCommasWithPeriod(durationAmount.trim());
-    const amount = Number.parseFloat(sanitized);
-    if (!Number.isFinite(amount) || amount <= 0) {
-        return startDate;
-    }
-    const whole = Math.floor(amount);
-    const fraction = amount - whole;
-    switch (durationUnit) {
-        case CONST.CHRONOS.OOO_DURATION_UNITS.DAY:
-            // Whole-day durations end on the last covered calendar day; a fractional day carries the remaining hours into the end day.
-            if (fraction === 0) {
-                return format(addDays(start, Math.max(0, whole - 1)), CONST.DATE.FNS_FORMAT_STRING);
-            }
-            return format(addHours(addDays(start, whole), Math.ceil(fraction * 24)), CONST.DATE.FNS_FORMAT_STRING);
-        case CONST.CHRONOS.OOO_DURATION_UNITS.WEEK:
-            // The backend uses whole weeks only.
-            return format(addDays(start, Math.max(0, whole * 7 - 1)), CONST.DATE.FNS_FORMAT_STRING);
-        case CONST.CHRONOS.OOO_DURATION_UNITS.MONTH:
-            // The backend uses whole months only.
-            return format(addDays(addMonths(start, whole), -1), CONST.DATE.FNS_FORMAT_STRING);
-        case CONST.CHRONOS.OOO_DURATION_UNITS.HOUR:
-        default:
-            // Hours add to the start time; the end day only advances once the added time crosses midnight.
-            return format(addMinutes(addHours(start, whole), Math.ceil(fraction * 60)), CONST.DATE.FNS_FORMAT_STRING);
-    }
-}
-
-/**
- * Inverse of `computeEndDate` for the day unit: end - start + 1 (inclusive of both days).
- * Returns null when the dates are missing or the end precedes the start.
- */
-function computeDurationDays(startDate: string, endDate: string): number | null {
-    const start = parseDate(startDate);
-    const end = parseDate(endDate);
-    if (!start || !end) {
-        return null;
-    }
-    const diff = differenceInCalendarDays(end, start);
-    if (diff < 0) {
-        return null;
-    }
-    return diff + 1;
-}
 
 function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
     const {reportID} = route.params;
