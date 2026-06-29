@@ -85,14 +85,10 @@ type OnHoldMenuOpen = (requestType: string, paymentType?: PaymentMethodType, can
 // Capture the onHoldMenuOpen callback the preview passes to the pay button so a held-expense payment can be triggered
 // directly with a selected bank account, mirroring a user picking an account in the dropdown for a held report.
 // The wrapper still renders the real component so these tests keep exercising it.
-const mockOnHoldMenuOpenHolder: {current?: OnHoldMenuOpen} = {
-    current: undefined,
-};
+const mockOnHoldMenuOpenHolder: {current?: OnHoldMenuOpen} = {current: undefined};
 jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewActionButton', () => {
     const actualReact = jest.requireActual<typeof React>('react');
-    const actualModule = jest.requireActual<{
-        default: typeof ReportPreviewActionButton;
-    }>('@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewActionButton');
+    const actualModule = jest.requireActual<{default: typeof ReportPreviewActionButton}>('@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewActionButton');
     return {
         __esModule: true,
         default: (props: Parameters<typeof actualModule.default>[0]) => {
@@ -103,13 +99,7 @@ jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewA
 });
 
 // Capture the props the preview forwards to the hold menu so the selected bank account that reaches it can be asserted.
-const mockHoldMenuPropsHolder: {
-    current?: {
-        isVisible?: boolean;
-        paymentType?: PaymentMethodType;
-        methodID?: number;
-    };
-} = {current: undefined};
+const mockHoldMenuPropsHolder: {current?: {isVisible?: boolean; paymentType?: PaymentMethodType; methodID?: number}} = {current: undefined};
 jest.mock('@components/ProcessMoneyReportHoldMenu', () => ({
     __esModule: true,
     default: (props: {isVisible?: boolean; paymentType?: PaymentMethodType; methodID?: number}) => {
@@ -124,10 +114,7 @@ const getIOUActionForReportID = (reportID: string | undefined, transactionID: st
     if (!reportID || !transactionID) {
         return undefined;
     }
-    return {
-        ...mockAction,
-        originalMessage: {...mockAction, IOUTransactionID: transactionID},
-    };
+    return {...mockAction, originalMessage: {...mockAction, IOUTransactionID: transactionID}};
 };
 
 const hasViolations = (
