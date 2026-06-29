@@ -131,13 +131,11 @@ function isSubmitAction(
         return false;
     }
 
-    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
+    const reportTransactionsList = reportTransactions ?? [];
+    const hasNoSubmittableTransaction =
+        reportTransactionsList.length > 0 && reportTransactionsList.every((transaction) => isScanning(transaction) || hasSmartScanFailedWithMissingFields([transaction], report));
 
-    if (isAnyReceiptBeingScanned) {
-        return false;
-    }
-
-    if (hasSmartScanFailedWithMissingFields(reportTransactions ?? [], report)) {
+    if (hasNoSubmittableTransaction) {
         return false;
     }
 
