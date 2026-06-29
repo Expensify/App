@@ -44,7 +44,7 @@ describe('ReimbursementAccount', () => {
         });
 
         it('should reset the USDBankAccount', async () => {
-            (fetch as MockFetch)?.pause?.();
+            mockFetch.pause?.();
             const achAccount: ACHAccount = {
                 bankAccountID,
                 addressName: 'Test Address',
@@ -72,7 +72,7 @@ describe('ReimbursementAccount', () => {
         });
 
         it('should optimistically mark bank account as pending deletion', async () => {
-            (fetch as MockFetch)?.pause?.();
+            mockFetch.pause?.();
             const achAccount: ACHAccount = {
                 bankAccountID,
                 addressName: 'Test Address',
@@ -135,7 +135,7 @@ describe('ReimbursementAccount', () => {
         });
 
         it('should optimistically mark bank account as pending deletion', async () => {
-            (fetch as MockFetch)?.pause?.();
+            mockFetch.pause?.();
             const achAccount: ACHAccount = {
                 bankAccountID,
                 addressName: 'Test Address',
@@ -190,7 +190,7 @@ describe('ReimbursementAccount', () => {
         });
 
         it('should preserve designated payer and clear bank fields optimistically', async () => {
-            (fetch as MockFetch)?.pause?.();
+            mockFetch.pause?.();
             const achAccount: ACHAccount = {
                 bankAccountID,
                 addressName: 'Test Address',
@@ -276,15 +276,8 @@ describe('ReimbursementAccount', () => {
 
         it('should fall back to owner when achAccount has no reimburser', async () => {
             const policyOwner = 'owner@test.com';
-            const achAccount = {
-                bankAccountID,
-                addressName: 'Test Address',
-                bankName: 'Test Bank',
-                accountNumber: '1234567890',
-                routingNumber: '123456789',
-            } as ACHAccount;
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {achAccount});
-            resetNonUSDBankAccount(policyID, achAccount, bankAccountID, undefined, policyOwner);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {});
+            resetNonUSDBankAccount(policyID, undefined, bankAccountID, undefined, policyOwner);
 
             await waitForBatchedUpdates();
             return new Promise<void>((resolve) => {
