@@ -19,26 +19,52 @@ type ShouldHideForYouSectionParams = {
      * onboarding (a brand-new user), `true`/`undefined` means onboarded or not yet known.
      */
     isOnboardingCompleted: boolean | undefined;
+
+    /**
+     * Whether the onboarding NVP has finished loading, i.e. whether `isOnboardingCompleted` reflects real data. While
+     * this is `false`, the onboarding status is still unknown (the NVP defaults to "completed" before it loads), so we
+     * must not assume the user is a completed user yet.
+     */
+    isOnboardingStatusKnown: boolean;
 };
 
 /**
  * Decides whether the empty "For You" section should be hidden.
  *
- * New users (free-trial start on/after the cutoff date) have the empty section hidden until they have an actionable
- * to-do, while old users (onboarded before the cutoff, or without a trial start date) always keep the section. We
- * never hide during the initial load so the skeleton can render regardless of segment. Once an actionable to-do has
- * ever appeared (`hasSeenTodo`), the section stays visible permanently even when it later goes empty.
+ * New users (still onboarding, or free-trial start on/after the cutoff date) have the section hidden until they have
+ * an actionable to-do, while old users (onboarded before the cutoff, or without a trial start date) always keep the
+ * section. For old users we never hide during the initial load so the skeleton can render, but onboarding users never
+ * see the skeleton. Once an actionable to-do has ever appeared (`hasSeenTodo`), the section stays visible permanently
+ * even when it later goes empty.
  */
-function shouldHideForYouSection({isInitialLoad, hasAnyTodos, hasSeenTodo, firstDayFreeTrial, cutoffDate, isOnboardingCompleted}: ShouldHideForYouSectionParams): boolean {
-    if (isInitialLoad || hasAnyTodos || hasSeenTodo) {
+function shouldHideForYouSection({
+    isInitialLoad,
+    hasAnyTodos,
+    hasSeenTodo,
+    firstDayFreeTrial,
+    cutoffDate,
+    isOnboardingCompleted,
+    isOnboardingStatusKnown,
+}: ShouldHideForYouSectionParams): boolean {
+    // Once there's an actionable to-do (or there ever has been), always keep the section visible, even during the
+    // initial load, so the to-dos render as soon as they're available.
+    if (hasAnyTodos || hasSeenTodo) {
         return false;
     }
 
-    // A user still going through onboarding is, by definition, a new user: keep the empty section hidden until there is
-    // an actionable to-do. This also covers the window right after login where the free-trial NVP hasn't arrived yet,
-    // which would otherwise briefly flash the empty section before the segment can be determined.
+    // A user still going through onboarding is, by definition, a new user: keep the section hidden (including the
+    // skeleton during the initial load) until there is an actionable to-do. This also covers the window right after
+    // login where the free-trial NVP hasn't arrived yet, which would otherwise briefly flash the section before the
+    // segment can be determined.
     if (isOnboardingCompleted === false) {
         return true;
+    }
+
+    if (isInitialLoad) {
+        // Only render the skeleton once we actually know the user isn't onboarding. The onboarding NVP defaults to
+        // "completed" before it loads, so showing the skeleton while the status is still unknown would flash it for
+        // onboarding users. Hide until the status is known; the skeleton then renders for everyone else.
+        return !isOnboardingStatusKnown;
     }
 
     if (!firstDayFreeTrial) {
