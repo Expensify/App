@@ -672,12 +672,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                                       }
                                                   }
 
-                                                  navigateToBankAccountRoute({
-                                                      policyID: route.params.policyID,
-                                                      policyCurrency: policy?.outputCurrency,
-                                                      achDataState: achData?.state,
-                                                      backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
-                                                  });
+                                                  navigateToBankAccountRoute({policyID: route.params.policyID, backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID)});
                                               }
                                             : undefined
                                     }
@@ -735,12 +730,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                             );
                                             return;
                                         }
-                                        navigateToBankAccountRoute({
-                                            policyID: route.params.policyID,
-                                            policyCurrency: policy?.outputCurrency,
-                                            achDataState: achData?.state,
-                                            backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
-                                        });
+                                        navigateToBankAccountRoute({policyID: route.params.policyID, backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID)});
                                     }}
                                     icon={expensifyIcons.Plus}
                                     iconHeight={20}
@@ -849,7 +839,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         withPaymentsReadOnlyFallback,
         withWorkflowsReadOnlyFallback,
         showReadOnlyModal,
-        achData?.state,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
