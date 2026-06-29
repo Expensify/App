@@ -161,4 +161,3 @@ function useTodoSearchResults(searchKey: SearchKey | undefined): {data: TodoSear
 }
 
 export default useTodoSearchResults;
-export type {TodoMetadata, TodoSearchResultsData};

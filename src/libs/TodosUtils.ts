@@ -174,4 +174,3 @@ function getTodoReportsForSearchKey(
 
 export default createTodosReportsAndTransactions;
 export {buildTransactionsByReportID, getTodoReportsForSearchKey};
-export type {CreateTodosReportsAndTransactionsParams};
