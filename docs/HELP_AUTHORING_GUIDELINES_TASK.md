@@ -11,7 +11,7 @@ Task articles answer questions such as:
 * How do I connect NetSuite?
 * Why can't I complete a specific action?
 
-The goal of a task article is task completion.
+The goal of a task article is successful task completion.
 
 ---
 
@@ -20,11 +20,11 @@ The goal of a task article is task completion.
 Every task article must:
 
 * Solve one primary workflow only
-* Match a specific user goal
+* Match a specific customer goal
 * Use exact UI terminology
 * Follow the official naming conventions
 * Be optimized for semantic retrieval
-* Be concise and actionable
+* Be concise, actionable, and easy to scan
 
 If multiple workflows are required, create multiple articles.
 
@@ -38,11 +38,12 @@ Task articles must:
 * Explain how to complete that workflow
 * Include prerequisites when necessary
 * Explain the expected outcome
+* Explain only the concepts needed to understand or complete the workflow
 
 Task articles may:
 
 * Include lightweight troubleshooting
-* Include related workflow links when required
+* Include related workflow links when appropriate
 
 Task articles must not:
 
@@ -50,13 +51,37 @@ Task articles must not:
 * Serve as feature overviews
 * Cover multiple unrelated workflows
 * Act as navigation hubs
-* Contain extensive conceptual background
 
 If the primary purpose is understanding rather than action, create a Concept article instead.
 
 ---
 
-# 3. Metadata Requirements
+# 3. Editorial Principles
+
+Good task articles help customers complete a task—not document every detail of the interface.
+
+When writing:
+
+* Start by answering the customer's question.
+* Explain concepts before describing the UI.
+* Focus on the decisions the customer needs to make.
+* Prioritize the common workflow before edge cases.
+* Combine obvious UI interactions into logical steps.
+* Include only the details that help the customer succeed.
+
+Avoid:
+
+* describing every click
+* documenting temporary interface states
+* explaining obvious confirmation messages
+* narrating page layout or visual design
+* giving uncommon scenarios the same prominence as the primary workflow
+
+If a sentence doesn't help the customer understand or complete the task, remove it.
+
+---
+
+# 4. Metadata Requirements
 
 Every task article must include:
 
@@ -75,7 +100,7 @@ Metadata should reflect realistic customer search behavior.
 
 ---
 
-# 4. Heading Requirements
+# 5. Heading Requirements
 
 Task article headings must:
 
@@ -111,7 +136,7 @@ Do not use:
 
 ---
 
-# 5. Workflow Requirements
+# 6. Workflow Requirements
 
 Procedural sections must:
 
@@ -120,34 +145,16 @@ Procedural sections must:
 * Use exact UI labels
 * Present actions in sequence
 
-Instructions should be:
+Instructions should:
 
-* Specific
-* Action-oriented
-* Easy to follow
-
----
-
-# 6. Editorial Judgment
-
-Good task articles explain what matters and omit what doesn't.
-
-When writing:
-
-* Explain decisions before listing options.
-* Combine obvious UI interactions into one logical step.
-* Include brief context when it helps prevent mistakes.
-* Prefer meaningful actions over exhaustive UI narration.
+* Focus on the decisions the customer needs to make.
+* Combine obvious UI interactions into a single logical step.
+* Include only the interface details required to complete the workflow.
+* Briefly explain why a decision matters when it helps prevent mistakes.
 
 Assume readers can follow straightforward navigation.
 
-Don't describe temporary interface states, visual layout, or confirmation messages unless they're necessary to complete the task.
-
-After writing the article, read only the numbered steps.
-
-If they sound like instructions from an experienced support agent, they're probably the right level of detail.
-
-If they sound like someone describing every click they made, simplify them.
+The goal is successful task completion, not exhaustive documentation.
 
 ---
 
@@ -155,7 +162,7 @@ If they sound like someone describing every click they made, simplify them.
 
 Task articles should:
 
-* Target a specific user question
+* Target a specific customer question
 * Include realistic customer search phrases
 * Use exact feature names
 * Include common troubleshooting language when relevant
@@ -164,11 +171,13 @@ Task articles should not:
 
 * Cover multiple features
 * Mix unrelated workflows
-* Include excessive conceptual explanation
+* Expand into broad conceptual documentation
 
 The article should clearly answer:
 
-"What action is the user trying to complete?"
+> What action is the customer trying to complete?
+
+The answer should be clear within the first two paragraphs.
 
 ---
 
@@ -179,10 +188,13 @@ Cross-links should be used only for:
 * Required prerequisites
 * Related troubleshooting
 * Explicitly excluded workflows
+* Natural next steps
 
 Avoid excessive linking.
 
 If many links are required, the scope is likely too broad.
+
+Prefer a short **Related articles** section over embedding numerous inline links.
 
 ---
 
@@ -190,7 +202,7 @@ If many links are required, the scope is likely too broad.
 
 Before publishing, confirm:
 
-* contentType is task
+* `contentType` is `task`
 * One primary workflow is covered
 * Headings are task-based
 * UI terminology matches the product
@@ -198,4 +210,12 @@ Before publishing, confirm:
 * Steps follow the actual workflow
 * Metadata reflects search intent
 * Cross-links are minimal and purposeful
+* The introduction answers the customer's likely question
+* The article explains concepts, not just interface elements
+* The common workflow receives the most attention
+* Every section adds value
+* Unnecessary details have been removed
 * The article helps the reader complete a specific task
+* The finished article reads like it was written by an experienced Expensify support agent
+
+
