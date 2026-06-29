@@ -61,16 +61,16 @@ function RulesNewPage({route}: RulesNewPageProps) {
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_RESTRICT_CARD_SPEND}
                         />
                         <MenuItem
-                            icon={illustrations.Flag}
-                            title={translate('workspace.rules.newRule.flagForReview')}
-                            description={translate('workspace.rules.newRule.flagForReviewDescription')}
+                            icon={illustrations.ReportReceipt}
+                            title={translate('workspace.rules.newRule.applyExpenseDefaults')}
+                            description={translate('workspace.rules.newRule.applyExpenseDefaultsDescription')}
                             shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID))}
+                            onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID))}
                             displayInDefaultIconColor
                             iconWidth={variables.iconSizeExtraLarge}
                             iconHeight={variables.iconSizeExtraLarge}
                             wrapperStyle={styles.rulesNewMenuItem}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_FLAG_FOR_REVIEW}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_APPLY_EXPENSE_DEFAULTS}
                         />
                         <MenuItem
                             icon={illustrations.CheckboxText}
@@ -85,16 +85,16 @@ function RulesNewPage({route}: RulesNewPageProps) {
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_REQUIRE_FIELDS}
                         />
                         <MenuItem
-                            icon={illustrations.ReportReceipt}
-                            title={translate('workspace.rules.newRule.applyExpenseDefaults')}
-                            description={translate('workspace.rules.newRule.applyExpenseDefaultsDescription')}
+                            icon={illustrations.Flag}
+                            title={translate('workspace.rules.newRule.flagForReview')}
+                            description={translate('workspace.rules.newRule.flagForReviewDescription')}
                             shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID))}
+                            onPress={() => Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID))}
                             displayInDefaultIconColor
                             iconWidth={variables.iconSizeExtraLarge}
                             iconHeight={variables.iconSizeExtraLarge}
                             wrapperStyle={styles.rulesNewMenuItem}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_APPLY_EXPENSE_DEFAULTS}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_FLAG_FOR_REVIEW}
                         />
                     </View>
                 </ScrollView>
