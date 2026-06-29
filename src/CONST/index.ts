@@ -3955,10 +3955,8 @@ const CONST = {
             FIXED_DISTANCE: 'fixedDistance',
             // R2 will add HOME_AND_OFFICE: 'homeAndOffice'
         },
-        // Upper bound for the commuter exclusion fixed distance. Matches the App's general distance cap
-        // (see ODOMETER_MAX_VALUE) so unreasonably large values are rejected client-side with a clear
-        // message instead of being sent to the backend and surfacing a generic error.
-        COMMUTER_EXCLUSION_MAX_DISTANCE: 9999999.9,
+        // Upper bound for the commuter exclusion fixed distance. Matches the length of the longest road in the world
+        COMMUTER_EXCLUSION_MAX_DISTANCE: 19000,
         COMMUTER_EXCLUSION_TYPE: {
             METHOD: 'method',
             FIXED_DISTANCE: 'fixedDistance',
