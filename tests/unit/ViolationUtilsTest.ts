@@ -470,7 +470,7 @@ describe('getViolationsOnyxData', () => {
         it('should resolve the distance rate from its owning policy on self DM reports and not add customUnitOutOfPolicy', () => {
             transaction.created = '2026-06-15';
             transactionViolations = [customUnitOutOfPolicyViolation];
-            const wrongPolicy = {requiresTag: false, requiresCategory: false} as Policy;
+            const wrongPolicy = {...policy, customUnits: {}};
 
             const getPolicyForDistanceRateIDSpy = jest.spyOn(DistanceRequestUtils, 'getPolicyForDistanceRateID').mockReturnValue(policy);
 
@@ -500,7 +500,7 @@ describe('getViolationsOnyxData', () => {
         it('should not add customUnitOutOfPolicy for self DM distance requests when the rate cannot be resolved', () => {
             transaction.created = '2026-06-15';
             transactionViolations = [customUnitOutOfPolicyViolation];
-            const wrongPolicy = {requiresTag: false, requiresCategory: false} as Policy;
+            const wrongPolicy = {...policy, customUnits: {}};
 
             const getPolicyForDistanceRateIDSpy = jest.spyOn(DistanceRequestUtils, 'getPolicyForDistanceRateID').mockReturnValue(undefined);
 
