@@ -2,7 +2,7 @@ import {useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getCombinedReportActions, getFilteredReportActionsForReportView, isCreatedAction} from '@libs/ReportActionsUtils';
+import {getCombinedReportActions, getFilteredReportActionsForReportView, isCreatedAction, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport, isReportTransactionThread as isReportTransactionThreadUtil} from '@libs/ReportUtils';
 import getReportActionsToDisplay from '@pages/inbox/report/getReportActionsToDisplay';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -10,6 +10,7 @@ import type {Report, ReportAction} from '@src/types/onyx';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
+import useParentReportAction from './useParentReportAction';
 import useTransactionThread from './useTransactionThread';
 
 type UseReportActionsPaginationResult = {
@@ -31,11 +32,17 @@ type UseReportActionsPaginationResult = {
 function useReportActionsPagination(reportID: string | undefined, reportActionIDFromRoute: string | undefined): UseReportActionsPaginationResult {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const {isOffline} = useNetwork();
+    const parentReportAction = useParentReportAction(report);
 
     const [treatAsNoPaginationAnchor, setTreatAsNoPaginationAnchor] = useState(false);
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
+
+    // Reports that align to the top (transaction threads, money request / invoice reports)
+    // should not anchor the pagination window to the oldest unread action.
+    const isTransactionThreadReport = isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction);
+    const shouldBeAlignedToTop = isTransactionThreadReport || isMoneyRequestReport(report) || isInvoiceReport(report);
 
     const {
         reportActions: unfilteredReportActions,
@@ -44,7 +51,7 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         sortedAllReportActions,
         oldestUnreadReportAction,
     } = usePaginatedReportActions(reportID, reportActionIDFromRoute, {
-        shouldLinkToOldestUnreadReportAction: true,
+        shouldLinkToOldestUnreadReportAction: !shouldBeAlignedToTop,
         treatAsNoPaginationAnchor,
         // Scope the first-defined lastReadTime snapshot to Concierge so the cold-open unread anchor resolves
         // (https://github.com/Expensify/App/issues/93196) without changing regular inbox chat pagination.
