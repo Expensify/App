@@ -285,6 +285,33 @@ describe('ForYouSection', () => {
             expect(screen.getByText('Begin')).toBeOnTheScreen();
         });
 
+        it('keeps the section visible for a new user after to-dos clear once a to-do has been seen', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, NEW_USER_TRIAL_START);
+                await Onyx.set(ONYXKEYS.DERIVED.TODOS, {
+                    ...BASE_TODOS,
+                    reportsToSubmit: [{reportID: '1'} as TodosDerivedValue['reportsToSubmit'][number]],
+                });
+                await Onyx.set(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, EMPTY_FLAGGED_EXPENSES);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            // The section renders to-dos and persists the "has seen a to-do" flag.
+            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+
+            // Clearing the to-dos must not unmount the section; it should stay visible (now empty).
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+            expect(screen.queryByText('Begin')).not.toBeOnTheScreen();
+        });
+
         it('still shows the skeleton during the initial load for a new user', async () => {
             await act(async () => {
                 await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, NEW_USER_TRIAL_START);

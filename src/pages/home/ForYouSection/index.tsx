@@ -9,6 +9,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTodoCounts from '@hooks/useTodoCounts';
 
+import {setHasSeenForYouTodo} from '@libs/actions/Todos';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -21,7 +22,7 @@ import ROUTES from '@src/ROUTES';
 import {accountIDSelector} from '@src/selectors/Session';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 
 import EmptyState from './EmptyState';
@@ -44,6 +45,7 @@ function ForYouSection() {
     const isFocused = useIsFocused();
     const {counts: reportCounts, singleReportIDs} = useTodoCounts(isFocused);
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
+    const [hasSeenForYouTodo = false] = useOnyx(ONYXKEYS.HAS_SEEN_FOR_YOU_TODO);
     const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
 
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptSearch', 'MoneyBag', 'Send', 'ThumbsUp', 'Export']);
@@ -173,6 +175,15 @@ function ForYouSection() {
 
     const isInitialLoad = !hasLoadedApp && (isLoadingApp || isLoadingReportData || reportCounts === undefined);
 
+    // Persist a one-time flag the first time an actionable to-do appears so the section stays visible
+    // permanently afterwards, even when it later goes empty (R2/D5). Harmless no-op for existing users.
+    useEffect(() => {
+        if (isInitialLoad || !hasAnyTodos || hasSeenForYouTodo) {
+            return;
+        }
+        setHasSeenForYouTodo();
+    }, [isInitialLoad, hasAnyTodos, hasSeenForYouTodo]);
+
     const renderContent = () => {
         if (isInitialLoad) {
             const reasonAttributes: SkeletonSpanReasonAttributes = {
@@ -187,7 +198,7 @@ function ForYouSection() {
         return hasAnyTodos ? renderTodoItems() : <EmptyState />;
     };
 
-    if (shouldHideForYouSection({isInitialLoad, hasAnyTodos, firstDayFreeTrial, cutoffDate: CONST.HOME.FOR_YOU_NEW_USER_CUTOFF_DATE})) {
+    if (shouldHideForYouSection({isInitialLoad, hasAnyTodos, hasSeenTodo: hasSeenForYouTodo, firstDayFreeTrial, cutoffDate: CONST.HOME.FOR_YOU_NEW_USER_CUTOFF_DATE})) {
         return null;
     }
 

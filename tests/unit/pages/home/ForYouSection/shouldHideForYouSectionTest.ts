@@ -5,6 +5,7 @@ const CUTOFF = '2026-06-24';
 const baseParams = {
     isInitialLoad: false,
     hasAnyTodos: false,
+    hasSeenTodo: false,
     firstDayFreeTrial: undefined as string | undefined,
     cutoffDate: CUTOFF,
 };
@@ -36,5 +37,13 @@ describe('shouldHideForYouSection', () => {
 
     it('keeps the section when the user has actionable to-dos even for a new user', () => {
         expect(shouldHideForYouSection({...baseParams, hasAnyTodos: true, firstDayFreeTrial: '2026-07-01'})).toBe(false);
+    });
+
+    it('keeps the section for a new user with no current to-dos once a to-do has been seen', () => {
+        expect(shouldHideForYouSection({...baseParams, hasSeenTodo: true, firstDayFreeTrial: '2026-07-01'})).toBe(false);
+    });
+
+    it('still hides the section for a new user with no to-dos when none has ever been seen', () => {
+        expect(shouldHideForYouSection({...baseParams, hasSeenTodo: false, firstDayFreeTrial: '2026-07-01'})).toBe(true);
     });
 });

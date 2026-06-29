@@ -436,6 +436,9 @@ const ONYXKEYS = {
     /** Is the app loaded? */
     HAS_LOADED_APP: 'hasLoadedApp',
 
+    /** Whether the "For You" section has ever shown an actionable to-do (keeps the section visible once seen) */
+    HAS_SEEN_FOR_YOU_TODO: 'hasSeenForYouTodo',
+
     /** Is the test tools modal open? */
     IS_TEST_TOOLS_MODAL_OPEN: 'isTestToolsModalOpen',
 
@@ -1561,6 +1564,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN]: boolean;
     [ONYXKEYS.IS_LOADING_APP]: boolean;
     [ONYXKEYS.HAS_LOADED_APP]: boolean;
+    [ONYXKEYS.HAS_SEEN_FOR_YOU_TODO]: boolean;
     [ONYXKEYS.WALLET_TRANSFER]: OnyxTypes.WalletTransfer;
     [ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID]: string;
     [ONYXKEYS.IS_BETA]: boolean;
