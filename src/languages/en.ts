@@ -6934,7 +6934,7 @@ const translations = {
                 optionFixedDistanceHelp: 'Remove the same commute distance from each claim. Best for members who submit one claim per workday.',
                 distanceLabel: 'Distance',
                 errors: {
-                    distanceMustBePositive: 'Distance must be greater than 0.',
+                    distanceMustBePositive: 'Distance must be a positive whole number.',
                 },
             },
             distance: 'Distance',
