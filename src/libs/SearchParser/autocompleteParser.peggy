@@ -90,6 +90,7 @@ autocompleteKey "key"
       / createdBy
       / assignee
       / expenseType
+      / receiptType
       / withdrawalType
       / withdrawalStatus
       / type

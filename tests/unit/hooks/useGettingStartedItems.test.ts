@@ -1125,4 +1125,83 @@ describe('useGettingStartedItems', () => {
             });
         });
     });
+
+    describe('hides the section once all to-dos are complete', () => {
+        const customCategory: PolicyCategories = {
+            'Custom Category': {
+                name: 'Custom Category',
+                enabled: true,
+                unencodedName: 'Custom Category',
+                areCommentsRequired: false,
+                'GL Code': '',
+                externalID: '',
+                origin: '',
+                previousCategoryName: undefined,
+            },
+        };
+
+        it('should stay visible for MANAGE_TEAM intent while at least one to-do is incomplete', async () => {
+            await setupManageTeamScenario({accounting: 'none', policy: {areCategoriesEnabled: true}});
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            expect(result.current.shouldShowSection).toBe(true);
+            expect(result.current.items.some((item) => !item.isComplete)).toBe(true);
+        });
+
+        it('should hide the section for MANAGE_TEAM intent when every to-do is complete (within the 60-day window)', async () => {
+            const policyAccountID = 7777777;
+            // A commercial (custom) feed always counts as a linked company card feed, so the linkCompanyCards to-do is complete.
+            const commercialFeed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+
+            // createWorkspace is always complete; complete categories (custom category) and company cards (a feed) so nothing is left.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, customCategory);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${policyAccountID}`, {
+                settings: {
+                    companyCards: {
+                        [commercialFeed]: {preferredPolicy: POLICY_ID, liabilityType: 'corporate'},
+                    },
+                },
+            });
+            await setupManageTeamScenario({
+                accounting: 'none',
+                policy: {
+                    policyAccountID,
+                    areCategoriesEnabled: true,
+                    areCompanyCardsEnabled: true,
+                    areRulesEnabled: false,
+                },
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitFor(() => expect(result.current.shouldShowSection).toBe(false));
+            expect(result.current.items).toEqual([]);
+        });
+
+        it('should hide the section for TRACK_WORKSPACE intent when every to-do is complete', async () => {
+            const employeeList: PolicyEmployeeList = {
+                'owner@test.com': {email: 'owner@test.com', role: CONST.POLICY.ROLE.ADMIN},
+                'accountant@test.com': {email: 'accountant@test.com', role: CONST.POLICY.ROLE.USER},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, customCategory);
+            await setupTrackWorkspaceScenario({policy: {areCategoriesEnabled: true, employeeList}});
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            expect(result.current.shouldShowSection).toBe(false);
+            expect(result.current.items).toEqual([]);
+        });
+
+        it('should stay visible for TRACK_WORKSPACE intent while at least one to-do is incomplete', async () => {
+            await setupTrackWorkspaceScenario();
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            expect(result.current.shouldShowSection).toBe(true);
+            expect(result.current.items.some((item) => !item.isComplete)).toBe(true);
+        });
+    });
 });
