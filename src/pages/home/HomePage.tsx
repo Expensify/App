@@ -7,7 +7,6 @@ import TopBar from '@components/Navigation/TopBar';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -20,6 +19,7 @@ import DiscoverSection from './DiscoverSection';
 import ForYouSection from './ForYouSection';
 import FreeTrialSection from './FreeTrialSection';
 import GettingStartedSection from './GettingStartedSection';
+import RecentlyAddedSection from './RecentlyAddedSection';
 import SpendOverTimeSection from './SpendOverTimeSection';
 import TimeSensitiveSection from './TimeSensitiveSection';
 import UpcomingTravelSection from './UpcomingTravelSection';
@@ -34,10 +34,6 @@ function HomePage() {
     const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const isForYouLoading = !!(isLoadingApp || isLoadingReportData);
     const receiptDropTargetRef = useRef<View>(null);
-
-    // This hook signals that the app is ready to be opened after HomePage mounts
-    // to make sure everything loads properly
-    useConfirmReadyToOpenApp();
 
     return (
         <View style={styles.flex1}>
@@ -72,6 +68,7 @@ function HomePage() {
                                     <GettingStartedSection />
                                     <ForYouSection />
                                     <UpcomingTravelSection />
+                                    <RecentlyAddedSection />
                                     <YourSpendSection />
                                     <SpendOverTimeSection />
                                     <DiscoverSection />
@@ -79,17 +76,24 @@ function HomePage() {
                                 </>
                             ) : (
                                 <>
-                                    <View style={styles.homePageLeftColumn}>
+                                    <View
+                                        testID="homePageLeftColumn"
+                                        style={styles.homePageLeftColumn}
+                                    >
                                         <TimeSensitiveSection />
                                         <ForYouSection />
+                                        <RecentlyAddedSection />
                                         <SpendOverTimeSection />
-                                        <DiscoverSection />
                                     </View>
-                                    <View style={styles.homePageRightColumn}>
+                                    <View
+                                        testID="homePageRightColumn"
+                                        style={styles.homePageRightColumn}
+                                    >
                                         <FreeTrialSection />
                                         <GettingStartedSection />
                                         <UpcomingTravelSection />
                                         <YourSpendSection />
+                                        <DiscoverSection />
                                         <AnnouncementSection />
                                     </View>
                                 </>
