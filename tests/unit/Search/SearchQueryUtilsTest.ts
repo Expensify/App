@@ -382,6 +382,30 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense policyID:12345 amount<100');
         });
 
+        test('receipt type filter value', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                receiptType: ['ereceipt', 'hotel'],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense receiptType:ereceipt,hotel');
+        });
+
+        test('negated receipt type filter value', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                receiptTypeNot: ['hotel'],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense -receiptType:hotel');
+        });
+
         test('with Policy ID', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 policyID: ['12345'],
@@ -1593,6 +1617,51 @@ describe('SearchQueryUtils', () => {
             expect(result.expenseType).toEqual(['cash', 'card']);
         });
 
+        test('receipt type filter validates against valid types', () => {
+            const queryString = 'sortBy:date sortOrder:desc type:expense receipt-type:ereceipt,hotel,invalid';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            const policyCategories = {};
+            const policyTags = {};
+            const currencyList = {};
+            const personalDetails = {};
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            // invalid should be filtered out, ereceipt and hotel are valid CONST.SEARCH.RECEIPT_TYPE values
+            expect(result.receiptType).toEqual(['ereceipt', 'hotel']);
+        });
+
+        test('negated receipt type filter populates receiptTypeNot', () => {
+            // Negation in the query syntax uses the "-" prefix, which round-trips to the receiptTypeNot form value.
+            const queryString = 'sortBy:date sortOrder:desc type:expense -receipt-type:hotel';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            const policyCategories = {};
+            const policyTags = {};
+            const currencyList = {};
+            const personalDetails = {};
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            expect(result.receiptTypeNot).toEqual(['hotel']);
+            expect(result.receiptType).toBeUndefined();
+        });
+
         test('from:me resolves to current user account ID when currentUserAccountID is provided', () => {
             const currentUserAccountID = 12345;
             const queryString = 'type:expense from:me';
@@ -2718,6 +2787,50 @@ describe('SearchQueryUtils', () => {
             });
 
             expect(result).toBe('GL:travel');
+        });
+
+        it('should format bankAccount filter as "<bank> xx<last4>" using bankAccountList', () => {
+            const bankAccountList: OnyxTypes.BankAccountList = {
+                42: {
+                    accountData: {
+                        bankAccountID: 42,
+                        accountNumber: '123456789012',
+                        additionalData: {bankName: CONST.BANK_NAMES.CHASE},
+                    },
+                } as OnyxTypes.BankAccountList[string],
+            };
+
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT,
+                filterValue: '42',
+                personalDetails: {},
+                reports: {},
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
+                currentUserAccountID,
+                translate: translateLocal,
+                bankAccountList,
+            });
+
+            expect(result).toBe('Chase xx9012');
+        });
+
+        it('should return the bankAccountID when no matching bank account is found', () => {
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT,
+                filterValue: '99',
+                personalDetails: {},
+                reports: {},
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
+                currentUserAccountID,
+                translate: translateLocal,
+                bankAccountList: {},
+            });
+
+            expect(result).toBe('99');
         });
     });
 
