@@ -10,11 +10,22 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Connections} from '@src/types/onyx/Policy';
 
 function connectToRillet(policyID: string, apiKey: string) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`,
+            value: {
+                stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.RILLET_SYNC_CONNECTION,
+                connectionName: CONST.POLICY.CONNECTIONS.NAME.RILLET,
+                timestamp: new Date().toISOString(),
+            },
+        },
+    ];
     const parameters: ConnectPolicyToRilletParams = {
         policyID,
         apiKey,
     };
-    write(WRITE_COMMANDS.CONNECT_POLICY_TO_RILLET, parameters, {});
+    write(WRITE_COMMANDS.CONNECT_POLICY_TO_RILLET, parameters, {optimisticData});
 }
 
 function clearRilletErrorField(policyID: string, fieldName: string) {
