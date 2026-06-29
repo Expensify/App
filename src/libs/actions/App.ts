@@ -15,6 +15,7 @@ import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {getIsOffline} from '@libs/NetworkState';
 import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
@@ -455,10 +456,12 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
         params,
         getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments),
     ).finally(() => {
-        if (!bootsplashSpan) {
-            return;
+        if (bootsplashSpan) {
+            endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
         }
-        endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
+        // IMPORTANT: Do NOT chain requests. This is a case where we have to wait for OpenApp response
+        // because `loadPostDataForOpenOrReconnect` relies on what data is load to figure out what else needs to be loaded.
+        loadPostDataForOpenOrReconnect();
     });
 }
 
@@ -503,10 +506,12 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
 
         const isFullReconnect = !updateIDFrom;
         return API.writeWithNoDuplicatesReconnectConflictAction(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded)).finally(() => {
-            if (!bootsplashSpan) {
-                return;
+            if (bootsplashSpan) {
+                endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
             }
-            endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
+            // IMPORTANT: Do NOT chain requests. This is a case where we have to wait for ReconnectApp response
+            // because `loadPostDataForOpenOrReconnect` relies on what data is load to figure out what else needs to be loaded.
+            loadPostDataForOpenOrReconnect();
         });
     });
 }
@@ -515,6 +520,7 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
  * Fires asynchronous requests to load more data that is required by the App but not returned in OpenApp/ReconnectApp
  */
 function loadPostDataForOpenOrReconnect() {
+    const isOffline = getIsOffline();
     const visibleTodoSearches = getVisibleTodoSearches(currentSessionData.accountID, currentSessionData.email, allPolicies);
     for (const visibleTodoSearch of Object.values(visibleTodoSearches)) {
         const searchKey = visibleTodoSearch.key;
