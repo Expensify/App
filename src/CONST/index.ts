@@ -8379,6 +8379,7 @@ const CONST = {
                 CHOOSE_SPEND_RULE: 'WorkspaceExpensifyCard-ChooseSpendRule',
             },
             PER_DIEM: {
+                ROW: 'WorkspacePerDiem-Row',
                 MORE_DROPDOWN: 'WorkspacePerDiem-MoreDropdown',
                 BULK_ACTIONS_DROPDOWN: 'WorkspacePerDiem-BulkActionsDropdown',
             },
