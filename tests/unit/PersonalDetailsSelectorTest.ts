@@ -106,10 +106,10 @@ describe('PersonalDetailsSelector', () => {
             displayName: 'Second User',
             login: 'second@user.com',
         };
-        const multiPersonalDetailsList = {
+        const multiPersonalDetailsList: PersonalDetailsList = {
             [accountID]: personalDetails,
             [secondAccountID]: secondPersonalDetails,
-        } as unknown as PersonalDetailsList;
+        };
 
         it('should return the logins for the given accountIDs', () => {
             const result = personalDetailsLoginsSelector([accountID, secondAccountID])(multiPersonalDetailsList);
