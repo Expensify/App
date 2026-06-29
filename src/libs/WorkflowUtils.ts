@@ -791,16 +791,20 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
             continue;
         }
 
-        const hasLimitSplit = !!approver.approvalLimit && approver.approvalLimit > 0 && !!approver.overLimitForwardsTo;
-        const limit = hasLimitSplit ? approver.approvalLimit! : undefined;
-        const underAmount = limit !== undefined ? buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, limit) : undefined;
-        const overAmount = limit !== undefined ? buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, limit) : undefined;
+        // Narrow once: when the approver has a positive limit and an over-limit target, capture both
+        // (already non-null inside this branch) so the level can route under/over amounts separately.
+        const limitSplit =
+            approver.approvalLimit && approver.approvalLimit > 0 && approver.overLimitForwardsTo
+                ? {limit: approver.approvalLimit, overLimitForwardsTo: approver.overLimitForwardsTo}
+                : undefined;
+        const underAmount = limitSplit ? buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, limitSplit.limit) : undefined;
+        const overAmount = limitSplit ? buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, limitSplit.limit) : undefined;
 
         // One per possible previous approver
         const gates = previousApproverEmails.length === 0 ? [undefined] : previousApproverEmails.map((email) => buildPreviousApproverComparison(email));
 
         for (const gate of gates) {
-            if (hasLimitSplit) {
+            if (limitSplit) {
                 rules.push({
                     filters: buildLevelFilters(fromComparison, gate, underAmount),
                     action: APPROVAL_WORKFLOW_FORWARD_ACTION,
@@ -809,7 +813,7 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
                 rules.push({
                     filters: buildLevelFilters(fromComparison, gate, overAmount),
                     action: APPROVAL_WORKFLOW_FORWARD_ACTION,
-                    nextReceiver: approver.overLimitForwardsTo!,
+                    nextReceiver: limitSplit.overLimitForwardsTo,
                 });
             } else {
                 rules.push({
@@ -820,7 +824,7 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
             }
         }
 
-        previousApproverEmails = hasLimitSplit ? [approver.email, approver.overLimitForwardsTo!] : [approver.email];
+        previousApproverEmails = limitSplit ? [approver.email, limitSplit.overLimitForwardsTo] : [approver.email];
     }
 
     return rules;
