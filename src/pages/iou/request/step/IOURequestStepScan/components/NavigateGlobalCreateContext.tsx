@@ -1,11 +1,14 @@
 /**
  * Owns the post-capture-only Onyx reads (default policy, self-DM report,
  * billing grace periods) used by navigateGlobalCreate. Render-gated by a
- * one-tick useEffect so the subscriptions don't block ManualEntryToScanReady
- * - the Camera mounts immediately and the real navigate fn swaps in via
- * context on the next commit.
+ * one-tick useEffect so the subscriptions don't block ManualEntryToScanReady.
+ *
+ * The Provider always returns the same Context element type so the camera
+ * subtree never reparents on the isReady transition. Consumers receive a
+ * stable callable via useNavigateGlobalCreate()
  */
-import React, {createContext, useContext, useEffect, useState} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react';
+import type {RefObject} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
@@ -37,6 +40,10 @@ type ProviderProps = WithCurrentUserPersonalDetailsProps & {
     children: React.ReactNode;
 };
 
+type SubscriberProps = Omit<ProviderProps, 'children'> & {
+    fnRef: RefObject<NavigateGlobalCreateFn>;
+};
+
 const NO_OP: NavigateGlobalCreateFn = () => {};
 const NavigateGlobalCreateContext = createContext<NavigateGlobalCreateFn>(NO_OP);
 
@@ -44,21 +51,35 @@ function useNavigateGlobalCreate(): NavigateGlobalCreateFn {
     return useContext(NavigateGlobalCreateContext);
 }
 
-function NavigateGlobalCreateProvider(props: ProviderProps) {
+function NavigateGlobalCreateProvider({children, ...rest}: ProviderProps) {
+    const fnRef = useRef<NavigateGlobalCreateFn>(NO_OP);
     const [isReady, setIsReady] = useState(false);
+
+    // Stable dispatch — context value identity never changes, so consumers
+    // don't re-render on Onyx ticks. Late-binds to fnRef.current at call time.
+    const dispatch = useCallback((transactionIDs: string[], isMultiScanEnabled: boolean) => {
+        fnRef.current(transactionIDs, isMultiScanEnabled);
+    }, []);
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional one-tick defer to keep heavy Onyx subscriptions off the camera-mount critical path
         setIsReady(true);
     }, []);
 
-    if (!isReady) {
-        return <NavigateGlobalCreateContext.Provider value={NO_OP}>{props.children}</NavigateGlobalCreateContext.Provider>;
-    }
-    return <NavigateGlobalCreateProviderInner {...props} />;
+    return (
+        <NavigateGlobalCreateContext.Provider value={dispatch}>
+            {isReady && (
+                <NavigateGlobalCreateSubscriber
+                    fnRef={fnRef}
+                    {...rest}
+                />
+            )}
+            {children}
+        </NavigateGlobalCreateContext.Provider>
+    );
 }
 
-function NavigateGlobalCreateProviderInner({iouType, reportID, transactionID, transaction, backToReport, currentUserPersonalDetails, children}: ProviderProps) {
+function NavigateGlobalCreateSubscriber({fnRef, iouType, reportID, transactionID, transaction, backToReport, currentUserPersonalDetails}: SubscriberProps) {
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
     const selfDMReport = useSelfDMReport();
@@ -104,7 +125,12 @@ function NavigateGlobalCreateProviderInner({iouType, reportID, transactionID, tr
         }
     };
 
-    return <NavigateGlobalCreateContext.Provider value={navigateGlobalCreate}>{children}</NavigateGlobalCreateContext.Provider>;
+    useEffect(() => {
+        // eslint-disable-next-line no-param-reassign -- publish navigate fn through ref so the context value identity stays stable across Onyx ticks
+        fnRef.current = navigateGlobalCreate;
+    });
+
+    return null;
 }
 
 NavigateGlobalCreateProvider.displayName = 'NavigateGlobalCreateProvider';
