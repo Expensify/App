@@ -29,6 +29,7 @@ function resetUSDBankAccount(
 
     const isLastUsedPaymentMethodBBA = lastUsedPaymentMethod?.expense?.name === CONST.IOU.PAYMENT_TYPE.VBBA;
     const isPreviousLastUsedPaymentMethodBBA = lastUsedPaymentMethod?.lastUsed?.name === CONST.IOU.PAYMENT_TYPE.VBBA;
+    const reimburserEmail = achAccount?.reimburser ?? policyOwner;
 
     const onyxData: OnyxData<
         | typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT
@@ -56,9 +57,9 @@ function resetUSDBankAccount(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    achAccount: policyOwner
+                    achAccount: reimburserEmail
                         ? {
-                              reimburser: policyOwner,
+                              reimburser: reimburserEmail,
                               bankAccountID: null,
                               accountNumber: null,
                               addressName: null,

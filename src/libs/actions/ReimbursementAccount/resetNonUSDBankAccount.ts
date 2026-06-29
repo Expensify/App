@@ -15,6 +15,8 @@ function resetNonUSDBankAccount(
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
     policyOwner?: string,
 ) {
+    const reimburserEmail = achAccount?.reimburser ?? policyOwner;
+
     // If there's no bankAccountID, we reset locally without making an API call
     if (!bankAccountID) {
         const updateData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT>> = [
@@ -27,9 +29,9 @@ function resetNonUSDBankAccount(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    achAccount: policyOwner
+                    achAccount: reimburserEmail
                         ? {
-                              reimburser: policyOwner,
+                              reimburser: reimburserEmail,
                               bankAccountID: null,
                               accountNumber: null,
                               addressName: null,
@@ -112,9 +114,9 @@ function resetNonUSDBankAccount(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                achAccount: policyOwner
+                achAccount: reimburserEmail
                     ? {
-                          reimburser: policyOwner,
+                          reimburser: reimburserEmail,
                           bankAccountID: null,
                           accountNumber: null,
                           addressName: null,
