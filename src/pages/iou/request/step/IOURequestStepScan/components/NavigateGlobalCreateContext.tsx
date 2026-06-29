@@ -3,9 +3,9 @@
  * billing grace periods) used by navigateGlobalCreate. Render-gated by a
  * one-tick useEffect so the subscriptions don't block ManualEntryToScanReady.
  *
- * The Provider always returns the same Context element type so the camera
- * subtree never reparents on the isReady transition. Consumers receive a
- * stable callable via useNavigateGlobalCreate()
+ * The Provider's root element type stays the same across renders, so the
+ * camera isn't torn down when subscriptions become ready. useNavigateGlobalCreate()
+ * returns a stable callable.
  */
 import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
