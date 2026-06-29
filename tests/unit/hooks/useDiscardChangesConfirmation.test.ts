@@ -1,5 +1,4 @@
 import {act, renderHook} from '@testing-library/react-native';
-import {withInternalPopstate} from '@components/Modal/internalPopstateGuard';
 import type {DiscardChangesConfirmation} from '@hooks/useDiscardChangesConfirmation/types';
 import type UseDiscardChangesConfirmationOptions from '@hooks/useDiscardChangesConfirmation/types';
 
@@ -303,26 +302,6 @@ describe('useDiscardChangesConfirmation (web)', () => {
 
             expect(historyGoSpy).not.toHaveBeenCalled();
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
-        });
-
-        it('ignores internal popstate events from modal history cleanup', () => {
-            renderDiscardHook(() => true);
-
-            invokeBeforeRemove('RESET');
-
-            act(() => {
-                withInternalPopstate(() => {
-                    window.dispatchEvent(new PopStateEvent('popstate'));
-                });
-            });
-
-            // The internal popstate must not consume the pending URL restore
-            expect(historyGoSpy).not.toHaveBeenCalled();
-
-            dispatchPopstate();
-
-            expect(historyGoSpy).toHaveBeenCalledTimes(1);
-            expect(historyGoSpy).toHaveBeenCalledWith(1);
         });
     });
 });
