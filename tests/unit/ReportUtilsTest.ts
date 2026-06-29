@@ -7045,6 +7045,29 @@ describe('ReportUtils', () => {
             ).toBeTruthy();
         });
 
+        it('should return true for empty admin room even when excludeEmptyChats is true', () => {
+            const report: Report = {
+                ...createAdminRoom(1),
+                participants: buildParticipantsFromAccountIDs([1, 2]),
+                lastMessageText: '',
+                lastVisibleActionCreated: DateUtils.getDBTime(),
+            };
+
+            expect(
+                shouldReportBeInOptionList({
+                    report,
+                    chatReport: mockedChatReport,
+                    currentReportId: '',
+                    isInFocusMode: false,
+                    betas: [CONST.BETAS.DEFAULT_ROOMS],
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: true,
+                    draftComment: '',
+                    isReportArchived: undefined,
+                }),
+            ).toBeTruthy();
+        });
+
         it('should return false when the report has an unsupported type', () => {
             const report: Report = {
                 ...LHNTestUtils.getFakeReport(),

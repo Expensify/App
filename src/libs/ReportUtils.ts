@@ -9565,6 +9565,7 @@ function reasonForReportToBeInOptionList({
         isEmptyChat &&
         isChatReport(report) &&
         !isPolicyExpenseChat(report) &&
+        !isAdminRoom(report) &&
         !isTripRoom(report) &&
         !isConciergeChatReport(report) &&
         !isSystemChatReport &&
