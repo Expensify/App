@@ -6,7 +6,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
-import {getModifierKeysFromEvent} from '@libs/shiftRangeSelection';
+import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import CONST from '@src/CONST';
 import type {ExpenseReportListItemRowNarrowProps} from './types';
 
@@ -38,7 +38,7 @@ function ExpenseReportListItemRowNarrow({item, onCheckboxPress = () => {}, canSe
         >
             {!!canSelectMultiple && (
                 <Checkbox
-                    onPress={(event) => onCheckboxPress(getModifierKeysFromEvent(event))}
+                    onPress={(event) => onCheckboxPress(getShiftKeyFromEvent(event))}
                     isChecked={isSelectAllChecked}
                     isIndeterminate={isIndeterminate}
                     containerStyle={styles.m0}

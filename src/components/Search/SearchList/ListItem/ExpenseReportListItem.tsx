@@ -33,7 +33,6 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {getNonHeldAndFullAmount, isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {hasVisibleViolations} from '@libs/SearchUIUtils';
-import type {Modifiers} from '@libs/shiftRangeSelection';
 import {isOnHold, isViolationDismissed, shouldShowViolation, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -301,8 +300,8 @@ function ExpenseReportListItem<TItem extends ListItem>({
     ]);
 
     const handleSelectionButtonPress = useCallback(
-        (options?: Partial<Modifiers>) => {
-            onSelectionButtonPress?.(item, undefined, options);
+        (shiftKey?: boolean) => {
+            onSelectionButtonPress?.(item, undefined, shiftKey);
         },
         [onSelectionButtonPress, item],
     );

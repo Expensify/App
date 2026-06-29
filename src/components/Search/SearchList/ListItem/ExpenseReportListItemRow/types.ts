@@ -2,13 +2,12 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ExpenseReportListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType} from '@components/Search/types';
-import type {Modifiers} from '@libs/shiftRangeSelection';
 import type {Report, ReportAction} from '@src/types/onyx';
 
 type ExpenseReportListItemRowNarrowProps = {
     item: ExpenseReportListItemType;
     canSelectMultiple?: boolean;
-    onCheckboxPress?: (options?: Partial<Modifiers>) => void;
+    onCheckboxPress?: (shiftKey?: boolean) => void;
     isSelectAllChecked?: boolean;
     isIndeterminate?: boolean;
     isDisabledCheckbox?: boolean;

@@ -63,7 +63,6 @@ import {
 import type {SortableColumnName} from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, getTableMinWidth, hasFlexColumn, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
-import type {Modifiers} from '@libs/shiftRangeSelection';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {transactionHasRBR} from '@libs/TransactionPreviewUtils';
 import {getTransactionPendingAction, getVisibleTransactionViolations, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
@@ -490,9 +489,9 @@ function MoneyRequestReportTransactionList({
     });
 
     const toggleTransaction = useCallback(
-        (transactionID: string, options?: Partial<Modifiers>) => {
+        (transactionID: string, shiftKey?: boolean) => {
             const item = visualOrderTransactions.find((t) => t.transactionID === transactionID);
-            if (item && rangeApi.applyShiftClick(item, options)) {
+            if (item && rangeApi.applyShiftClick(item, shiftKey)) {
                 return;
             }
             setSelectedTransactions(selectedTransactionIDs.includes(transactionID) ? selectedTransactionIDs.filter((t) => t !== transactionID) : [...selectedTransactionIDs, transactionID]);

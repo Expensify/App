@@ -18,7 +18,6 @@ import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
 import ControlSelection from '@libs/ControlSelection';
 import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
 import {hasFlexColumn} from '@libs/SearchUIUtils';
-import type {Modifiers} from '@libs/shiftRangeSelection';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -45,7 +44,7 @@ type MoneyRequestReportTransactionItemProps = {
     isSelectionModeEnabled: boolean;
 
     /** Callback function triggered upon pressing a transaction checkbox. */
-    toggleTransaction: (transactionID: string, options?: Partial<Modifiers>) => void;
+    toggleTransaction: (transactionID: string, shiftKey?: boolean) => void;
 
     /** Callback function triggered upon pressing a transaction. */
     handleOnPress: (transactionID: string) => void;

@@ -23,8 +23,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
-import {getModifierKeysFromEvent} from '@libs/shiftRangeSelection';
-import type {Modifiers} from '@libs/shiftRangeSelection';
+import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import {showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import {handleActionButtonPress} from '@userActions/Search';
 import CONST from '@src/CONST';
@@ -45,7 +44,7 @@ type ReportListItemHeaderProps = SearchListActionProps & {
     onSelectRow: (event?: ModifiedMouseEvent) => void;
 
     /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (options?: Partial<Modifiers>) => void;
+    onCheckboxPress?: (shiftKey?: boolean) => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
@@ -77,7 +76,7 @@ type FirstRowReportHeaderProps = {
     report: TransactionReportGroupListItemType;
 
     /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (options?: Partial<Modifiers>) => void;
+    onCheckboxPress?: (shiftKey?: boolean) => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
@@ -143,7 +142,7 @@ function HeaderFirstRow({
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                 {!!canSelectMultiple && (
                     <Checkbox
-                        onPress={(event) => onCheckboxPress?.(getModifierKeysFromEvent(event))}
+                        onPress={(event) => onCheckboxPress?.(getShiftKeyFromEvent(event))}
                         isChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
                         containerStyle={styles.m0}

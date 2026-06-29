@@ -459,13 +459,13 @@ function SearchWriteActionsProvider({
         return result;
     };
 
-    const toggle: SearchRowSelectionActionsValue['toggle'] = (item, itemTransactions, options) => {
+    const toggle: SearchRowSelectionActionsValue['toggle'] = (item, itemTransactions, shiftKey) => {
         if (isReportActionListItemType(item) || isTaskListItemType(item)) {
             return;
         }
 
         // The hook rejects headers as range targets, so a shift+click on one falls through to the normal group toggle below.
-        if (rangeApi.applyShiftClick(item, options)) {
+        if (rangeApi.applyShiftClick(item, shiftKey)) {
             return;
         }
 

@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
@@ -145,7 +146,7 @@ export default function TableRow({
     };
 
     const handleCheckboxPress = (event?: GestureResponderEvent | KeyboardEvent | undefined) => {
-        if (event && 'shiftKey' in event && event.shiftKey) {
+        if (getShiftKeyFromEvent(event)) {
             tableMethods.handleMultipleRowSelection(item.keyForList);
             return;
         }

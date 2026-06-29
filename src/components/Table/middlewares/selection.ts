@@ -172,7 +172,7 @@ export default function useSelection<DataType extends TableData>({
             return;
         }
 
-        if (rangeApi.applyShiftClick(item, {shiftKey: true})) {
+        if (rangeApi.applyShiftClick(item, true)) {
             return;
         }
 

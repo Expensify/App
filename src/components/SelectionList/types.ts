@@ -3,7 +3,7 @@ import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, View
 import type {ValueOf} from 'type-fest';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import type {Modifiers, ShiftRangeBatch} from '@libs/shiftRangeSelection';
+import type {ShiftRangeBatch} from '@libs/shiftRangeSelection';
 import type CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {ListItem, ValidListItem} from './ListItem/types';
@@ -45,7 +45,7 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     customListHeaderContent?: React.JSX.Element | null;
 
     /** Called when a selection button is pressed */
-    onSelectionButtonPress?: (item: TItem, itemTransactions?: unknown, options?: Partial<Modifiers>) => void;
+    onSelectionButtonPress?: (item: TItem, itemTransactions?: unknown, shiftKey?: boolean) => void;
 
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;

@@ -6,7 +6,6 @@ import type useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import type useSingleExecution from '@hooks/useSingleExecution';
 import {isMobileChrome} from '@libs/Browser';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
-import type {Modifiers} from '@libs/shiftRangeSelection';
 import type {ExtendedTargetedEvent, ListItem, SelectableListItemProps} from './types';
 
 type ListItemRendererProps<TItem extends ListItem> = Omit<SelectableListItemProps<TItem>, 'onSelectRow' | 'keyForList'> &
@@ -63,7 +62,7 @@ function ListItemRenderer<TItem extends ListItem>({
             return onSelectionButtonPress;
         }
         return onSelectionButtonPress
-            ? (_passedItem: TItem, itemTransactions?: TransactionListItemType[], options?: Partial<Modifiers>) => onSelectionButtonPress(item, itemTransactions, options)
+            ? (_passedItem: TItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => onSelectionButtonPress(item, itemTransactions, shiftKey)
             : undefined;
     };
 

@@ -10,7 +10,6 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {Modifiers} from '@libs/shiftRangeSelection';
 import CONST from '@src/CONST';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import Footer from './components/Footer';
@@ -137,12 +136,12 @@ function BaseSelectionList<TItem extends ListItem>({
     });
 
     const handleSelectionButtonPress = useCallback(
-        (item: TItem, itemTransactions?: unknown, options?: Partial<Modifiers>) => {
-            if (onShiftRangeApply && rangeApi.applyShiftClick(item, options)) {
+        (item: TItem, itemTransactions?: unknown, shiftKey?: boolean) => {
+            if (onShiftRangeApply && rangeApi.applyShiftClick(item, shiftKey)) {
                 return;
             }
             if (onSelectionButtonPress) {
-                onSelectionButtonPress(item, itemTransactions, options);
+                onSelectionButtonPress(item, itemTransactions, shiftKey);
             } else {
                 onSelectRow(item);
             }

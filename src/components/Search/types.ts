@@ -4,7 +4,6 @@ import type {UnitPosition, UnitWithFallback} from '@components/Charts';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SelectionListStyle} from '@components/SelectionList/types';
 import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
-import type {Modifiers} from '@libs/shiftRangeSelection';
 import type CONST from '@src/CONST';
 import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -254,8 +253,8 @@ type SearchData = TransactionListItemType[] | TransactionGroupListItemType[] | R
  * never re-renders consumers that only need to dispatch.
  */
 type SearchRowSelectionActionsValue = {
-    /** Toggle selection of a single transaction row or a group (report / grouped rows). `options.shiftKey` extends a range. */
-    toggle: (item: SearchListItem, itemTransactions?: TransactionListItemType[], options?: Partial<Modifiers>) => void;
+    /** Toggle selection of a single transaction row or a group (report / grouped rows). `shiftKey` extends a range. */
+    toggle: (item: SearchListItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
     /** Toggle selection of all currently selectable items. */
     toggleAll: () => void;
 };

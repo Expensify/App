@@ -1,3 +1,3 @@
-export {default as getModifierKeysFromEvent} from './getModifierKeysFromEvent';
+export {default as getShiftKeyFromEvent} from './getShiftKeyFromEvent';
 export {default as applyShiftRangeBatchToKeySet} from './applyShiftRangeBatchToKeySet';
-export type {Modifiers, ShiftRangeBatch} from './types';
+export type {ShiftRangeBatch} from './types';

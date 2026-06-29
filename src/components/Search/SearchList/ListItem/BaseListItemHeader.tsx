@@ -7,8 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getModifierKeysFromEvent} from '@libs/shiftRangeSelection';
-import type {Modifiers} from '@libs/shiftRangeSelection';
+import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import CONST from '@src/CONST';
 import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
 import TextCell from './TextCell';
@@ -61,7 +60,7 @@ type BaseListItemHeaderProps = {
     columnStyleKey: ColumnStyleKey;
 
     /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (options?: Partial<Modifiers>) => void;
+    onCheckboxPress?: (shiftKey?: boolean) => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
@@ -145,7 +144,7 @@ function BaseListItemHeader({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={(event) => onCheckboxPress?.(getModifierKeysFromEvent(event))}
+                            onPress={(event) => onCheckboxPress?.(getShiftKeyFromEvent(event))}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || item.isDisabledCheckbox}

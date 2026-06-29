@@ -25,7 +25,7 @@ import {getCategoryGLCode} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
-import {getModifierKeysFromEvent} from '@libs/shiftRangeSelection';
+import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import {
     getAmount,
     getConvertedAmount,
@@ -615,7 +615,7 @@ function TransactionItemRowWide({
                         <Checkbox
                             disabled={isDisabled}
                             onPress={(event) => {
-                                onCheckboxPress(transactionItem.transactionID, getModifierKeysFromEvent(event));
+                                onCheckboxPress(transactionItem.transactionID, getShiftKeyFromEvent(event));
                             }}
                             accessibilityLabel={CONST.ROLE.CHECKBOX}
                             isChecked={isSelected}

@@ -16,8 +16,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import {getSettlementStatus, getSettlementStatusBadgeProps} from '@libs/SearchUIUtils';
-import {getModifierKeysFromEvent} from '@libs/shiftRangeSelection';
-import type {Modifiers} from '@libs/shiftRangeSelection';
+import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -31,7 +30,7 @@ type WithdrawalIDListItemHeaderProps = {
     withdrawalID: TransactionWithdrawalIDGroupListItemType;
 
     /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (options?: Partial<Modifiers>) => void;
+    onCheckboxPress?: (shiftKey?: boolean) => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
@@ -186,7 +185,7 @@ function WithdrawalIDListItemHeader({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={(event) => onCheckboxPress?.(getModifierKeysFromEvent(event))}
+                            onPress={(event) => onCheckboxPress?.(getShiftKeyFromEvent(event))}
                             isChecked={isSelectAllChecked}
                             disabled={!!isDisabled || withdrawalIDItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}

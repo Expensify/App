@@ -8,7 +8,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getModifierKeysFromEvent} from '@libs/shiftRangeSelection';
+import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import DeferredChatBubbleCell from './DataCells/DeferredChatBubbleCell';
@@ -92,7 +92,7 @@ function TransactionItemRowNarrow({
                         <Checkbox
                             disabled={isDisabled}
                             onPress={(event) => {
-                                onCheckboxPress(transactionItem.transactionID, getModifierKeysFromEvent(event));
+                                onCheckboxPress(transactionItem.transactionID, getShiftKeyFromEvent(event));
                             }}
                             accessibilityLabel={CONST.ROLE.CHECKBOX}
                             isChecked={isSelected}

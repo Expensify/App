@@ -8,7 +8,6 @@ import type {TransactionListItemType} from '@components/Search/SearchList/ListIt
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
-import type {Modifiers} from '@libs/shiftRangeSelection';
 import type {SpendRuleSummaryPart} from '@libs/SpendRulesUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
@@ -239,7 +238,7 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
 
     /** Callback to fire when the selection button is pressed */
-    onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[], options?: Partial<Modifiers>) => void;
+    onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
 
     /** Which side of the row to render the selection button on */
     selectionButtonPosition?: ValueOf<typeof CONST.SELECTION_BUTTON_POSITION>;
@@ -369,7 +368,7 @@ type SpendRuleListItemType = ListItem & {
  */
 type SelectableListItemProps<TItem extends ListItem> = BaseListItemProps<TItem> & {
     /** Callback to fire when the selection button is pressed */
-    onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[], options?: Partial<Modifiers>) => void;
+    onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
 
     /** Which side of the row to render the selection button on */
     selectionButtonPosition?: ValueOf<typeof CONST.SELECTION_BUTTON_POSITION>;

@@ -1,5 +1,5 @@
 import {useEffect, useRef, useState} from 'react';
-import type {Modifiers, ShiftRangeBatch} from '@libs/shiftRangeSelection';
+import type {ShiftRangeBatch} from '@libs/shiftRangeSelection';
 
 type ItemWithKey = {keyForList?: string | null};
 
@@ -13,12 +13,10 @@ type Params<TItem> = {
 };
 
 type Api<TItem> = {
-    applyShiftClick: (item: TItem, options?: Partial<Modifiers>) => boolean;
+    applyShiftClick: (item: TItem, shiftKey?: boolean) => boolean;
     notifyAnchor: (item: TItem) => void;
-    notifyRange: (anchor: TItem, end: TItem) => void;
     seedFullRange: () => void;
     clearAnchor: () => void;
-    getAnchorKey: () => string | null;
 };
 
 type SessionState = {kind: 'idle'} | {kind: 'anchored'; anchor: string} | {kind: 'ranging'; anchor: string; prevEnd: string};
@@ -56,8 +54,8 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
     // useState's lazy initializer builds the API exactly once (the setter is never called), giving a stable reference consumers can list
     // in dependency arrays — without reading a ref during render.
     const [api] = useState<Api<TItem>>(() => ({
-        applyShiftClick: (target, options) => {
-            if (!options?.shiftKey) {
+        applyShiftClick: (target, shiftKey) => {
+            if (!shiftKey) {
                 return false;
             }
             const currentParams = paramsRef.current;
@@ -75,14 +73,6 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
             const key = keyOf(paramsRef.current, item);
             if (key) {
                 sessionRef.current = sessionReducer(sessionRef.current, {type: 'notify', key});
-            }
-        },
-        notifyRange: (anchor, end) => {
-            const currentParams = paramsRef.current;
-            const anchorKey = keyOf(currentParams, anchor);
-            const endKey = keyOf(currentParams, end);
-            if (anchorKey && endKey) {
-                sessionRef.current = sessionReducer(sessionRef.current, {type: 'range', anchor: anchorKey, prevEnd: endKey});
             }
         },
         seedFullRange: () => {
@@ -110,7 +100,6 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
         clearAnchor: () => {
             sessionRef.current = sessionReducer(sessionRef.current, {type: 'clear'});
         },
-        getAnchorKey: () => (sessionRef.current.kind === 'idle' ? resolveAnchor(paramsRef.current, null) : sessionRef.current.anchor),
     }));
 
     return api;
@@ -122,40 +111,43 @@ type ShiftRangeResult<TItem> = {
     prevEnd: string;
 };
 
+/** Built once per shift+click so the anchor/target/prevEnd lookups are O(1) instead of repeated linear scans. */
+function buildKeyIndex<TItem>(params: Params<TItem>): Map<string, number> {
+    const keyToIndex = new Map<string, number>();
+    for (const [index, row] of params.items.entries()) {
+        const key = keyOf(params, row);
+        if (key !== null && !keyToIndex.has(key)) {
+            keyToIndex.set(key, index);
+        }
+    }
+    return keyToIndex;
+}
+
 function computeShiftRange<TItem>(params: Params<TItem>, state: SessionState, target: TItem): ShiftRangeResult<TItem> | null {
     const targetKey = keyOf(params, target);
     if (!targetKey || isExcluded(params, target)) {
         return null;
     }
 
-    let anchor: string;
-    let prevEnd: string | null;
-    if (state.kind === 'ranging') {
-        const resolved = resolveAnchor(params, state.anchor);
-        if (!resolved) {
-            return null;
-        }
-        anchor = resolved;
-        prevEnd = resolved === state.anchor ? state.prevEnd : null;
-    } else {
-        const seed = state.kind === 'anchored' ? state.anchor : null;
-        const resolved = resolveAnchor(params, seed);
-        if (!resolved) {
-            return null;
-        }
-        anchor = resolved;
-        prevEnd = null;
-    }
+    const keyToIndex = buildKeyIndex(params);
 
-    const anchorIdx = indexOfKey(params, anchor);
-    const targetIdx = indexOfKey(params, targetKey);
-    if (anchorIdx < 0 || targetIdx < 0) {
+    const seed = state.kind === 'idle' ? null : state.anchor;
+    const anchor = resolveAnchor(params, keyToIndex, seed);
+    if (!anchor) {
+        return null;
+    }
+    // On a continuing range keep prevEnd only if the same anchor survived; a re-resolved anchor (its row was removed) invalidates the prior range.
+    const prevEnd = state.kind === 'ranging' && anchor === state.anchor ? state.prevEnd : null;
+
+    const anchorIdx = keyToIndex.get(anchor);
+    const targetIdx = keyToIndex.get(targetKey);
+    if (anchorIdx === undefined || targetIdx === undefined) {
         return null;
     }
 
     const newRange = orderedRange(anchorIdx, targetIdx);
-    const prevEndIdx = prevEnd != null ? indexOfKey(params, prevEnd) : -1;
-    const prevRange = prevEndIdx >= 0 ? orderedRange(anchorIdx, prevEndIdx) : null;
+    const prevEndIdx = prevEnd != null ? keyToIndex.get(prevEnd) : undefined;
+    const prevRange = prevEndIdx !== undefined ? orderedRange(anchorIdx, prevEndIdx) : null;
 
     const toSelect: TItem[] = [];
     for (let i = newRange[0]; i <= newRange[1]; i++) {
@@ -207,18 +199,14 @@ function isExcluded<TItem>(params: Params<TItem>, item: TItem | null | undefined
     return false;
 }
 
-function indexOfKey<TItem>(params: Params<TItem>, key: string): number {
-    return params.items.findIndex((row) => keyOf(params, row) === key);
-}
-
 function orderedRange(a: number, b: number): readonly [number, number] {
     return a <= b ? [a, b] : [b, a];
 }
 
-function resolveAnchor<TItem>(params: Params<TItem>, source: string | null): string | null {
-    if (source) {
-        const idx = indexOfKey(params, source);
-        if (idx >= 0 && !isExcluded(params, params.items.at(idx))) {
+function resolveAnchor<TItem>(params: Params<TItem>, keyToIndex: Map<string, number>, source: string | null): string | null {
+    if (source !== null) {
+        const idx = keyToIndex.get(source);
+        if (idx !== undefined && !isExcluded(params, params.items.at(idx))) {
             return source;
         }
     }
