@@ -938,10 +938,6 @@ function removeEmails(existingEmails: string[], emailsToRemove: string[]): strin
     return existingEmails.filter((email) => !removalSet.has(email));
 }
 
-// ---------------------------------------------------------------------------
-// Reconciliation against the existing `rules.approvalWorkflows` map
-// ---------------------------------------------------------------------------
-
 type ReconcileContext = {
     /** The existing `Policy.rules.approvalWorkflows` snapshot, defaulting to `{}`. */
     existingRules: Record<string, ApprovalWorkflowRule>;
@@ -1113,8 +1109,6 @@ function reconcileApprovalWorkflowRulesForMembersChange(previousMemberEmails: st
 
 /**
  * Apply an `ApprovalWorkflowRulesDiff` to a rule map, returning a new map. A `null` value removes
- * the rule; any other value upserts it. Lets us chain reconcilers — e.g. apply a membership change,
- * then reconcile the approver chain against the result.
  */
 function applyApprovalWorkflowRulesDiff(existingRules: Record<string, ApprovalWorkflowRule>, diff: ApprovalWorkflowRulesDiff): Record<string, ApprovalWorkflowRule> {
     const result: Record<string, ApprovalWorkflowRule> = {...existingRules};
@@ -1128,20 +1122,10 @@ function applyApprovalWorkflowRulesDiff(existingRules: Record<string, ApprovalWo
     return result;
 }
 
-// ---------------------------------------------------------------------------
-// Reconstruct ApprovalWorkflow[] from `policy.rules.approvalWorkflows`
-// ---------------------------------------------------------------------------
-//
 // Inverse of `buildApprovalWorkflowRules`. Given the policy's rule set we walk
 // each submitter's hop chain and rebuild the same `PolicyConversionResult` the
 // legacy employeeList-based converter produces, so the rest of the workflows UI
 // keeps working unchanged.
-//
-// Per-hop employeeList fallback: when a hop has no matching rule we fall back
-// to that approver's employeeList entry. This keeps pre-beta workflows visible
-// during the migration window. We deliberately don't fuse legacy chains with
-// rule-based chains even when they share a shape — the legacy chains will go
-// away on their own as workflows are re-saved.
 
 /** A leaf comparison node — its `left` is a primitive (field name), unlike a boolean filter whose `left` is another node. */
 function isComparisonLeaf(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined): node is ApprovalWorkflowFilterComparison {
@@ -1170,7 +1154,7 @@ function findComparisonByLeft(node: ApprovalWorkflowFilter | ApprovalWorkflowFil
 
 /** The approver a level routes the report INTO, plus that approver's own limit split (if any). */
 type ApprovalWorkflowLevelInfo = {
-    /** The approver the level routes to (under-limit / only path). */
+    /** The approver the level routes to. */
     email: string;
     /** This approver's own approval limit, from the level's amount split. */
     approvalLimit?: number;
@@ -1179,17 +1163,7 @@ type ApprovalWorkflowLevelInfo = {
 };
 
 /**
- * Resolve the level routed into by the rules that gate on `previousApproverEmail` (or the rules with
- * NO `previousApprover` filter when it's `undefined` — the initial-submission level). Mirrors a single
- * "into a level" step of `buildApprovalWorkflowRules`:
- *   - both halves of a split present  → {email: under target, approvalLimit, overLimitForwardsTo: over target}
- *   - a single non-amount rule        → {email: target}
- *   - only one half of a split        → {email: that target} (best-effort recovery from a broken pair)
- *   - no matching rule                → undefined, so the caller can fall back to employeeList
- *
- * The level's amount split describes the *target* approver's own limit/over (the approver being routed
- * into), not the approver who forwarded here — that's the inverse of how `buildApprovalWorkflowRules`
- * emits them.
+ * Resolve the level routed into by the rules by `previousApproverEmail`
  */
 function resolveLevelFromRules(submitter: string, previousApproverEmail: string | undefined, rules: Record<string, ApprovalWorkflowRule>): ApprovalWorkflowLevelInfo | undefined {
     let underLimitRule: ApprovalWorkflowRule | undefined;
@@ -1253,12 +1227,9 @@ type BuildApproverChainFromRulesParams = {
 };
 
 /**
- * Walk a submitter's approval chain forward from their initial-submission level. At each step we
+ * Loop through a submitter's approval chain forward from their initial-submission level. At each step we
  * resolve the level the report is routed into to learn the next approver's email AND that
- * approver's own `approvalLimit` / `overLimitForwardsTo`; the current approver's `forwardsTo` is the
- * next approver's email. Each piece falls back to the current/next approver's `employeeList` entry
- * when no rule covers that hop, so pre-beta (legacy) workflows still resolve. Stops at circular
- * references (matching `calculateApprovers`).
+ * approver's own `approvalLimit` / `overLimitForwardsTo`;
  */
 function buildApproverChainFromRules({submitter, rules, employees, personalDetailsByEmail}: BuildApproverChainFromRulesParams): Approver[] {
     // The first approver, and its own limit/over, come from the initial (no-previousApprover) level.
@@ -1278,9 +1249,6 @@ function buildApproverChainFromRules({submitter, rules, employees, personalDetai
         const isCircularReference = seenEmails.has(currentEmail);
         const employee: PolicyEmployee | undefined = employees[currentEmail];
 
-        // The rules gated on `previousApprover == currentEmail` describe the NEXT approver: their
-        // email is where the current approver forwards, and the level also carries the NEXT
-        // approver's own limit/over.
         const nextLevel = resolveLevelFromRules(submitter, currentEmail, rules);
         const forwardsTo: string | undefined = nextLevel?.email ?? employee?.forwardsTo;
 
@@ -1301,9 +1269,6 @@ function buildApproverChainFromRules({submitter, rules, employees, personalDetai
             break;
         }
         seenEmails.add(currentEmail);
-
-        // Advance: the next approver's own limit/over come from the level that routed into them
-        // (the `nextLevel` we just resolved), falling back to their employeeList entry.
         currentEmail = forwardsTo;
         currentApprovalLimit = nextLevel?.approvalLimit ?? employees[currentEmail]?.approvalLimit ?? null;
         currentOverLimitForwardsTo = nextLevel?.overLimitForwardsTo ?? employees[currentEmail]?.overLimitForwardsTo;
@@ -1332,15 +1297,8 @@ function getSubmitterRuleIDs(submitter: string, rules: Record<string, ApprovalWo
         .sort();
 }
 
-/** True when at least one rule mentions this submitter in any `from` filter. */
-function isSubmitterCoveredByRules(submitter: string, rules: Record<string, ApprovalWorkflowRule>): boolean {
-    return getSubmitterRuleIDs(submitter, rules).length > 0;
-}
-
 /**
- * Map every submitter found in the rules to their workflow's first approver (the `nextReceiver` of
- * their initial, no-`previousApprover` rule). Used to warn when a member is about to be moved out of
- * an existing workflow into another one.
+ * Map every submitter found in the rules to their workflow's first approver
  */
 function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflowRule>): Record<string, string> {
     const submitters = new Set<string>();
@@ -1446,8 +1404,7 @@ function convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, first
 
         // Group submitters that share the same rules into one workflow. A submitter's "rules" is the
         // exact set of ruleIDs whose `from` includes them, so two submitters that belong to the same
-        // rules land in the same workflow (and submitters whose chains diverge — different rule sets —
-        // stay separate). Legacy submitters (no rules) still group by their reconstructed chain.
+        // rules land in the same workflow
         const submitterRuleIDs = getSubmitterRuleIDs(email, rules);
         const fingerprint = submitterRuleIDs.length > 0 ? `r|${submitterRuleIDs.join(',')}` : `l|${approverChainFingerprint(chain)}`;
         const existingGroup = groupedByFingerprint.get(fingerprint);
