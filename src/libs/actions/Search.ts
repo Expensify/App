@@ -1554,7 +1554,7 @@ function handleBulkPayItemSelected(params: {
         return;
     }
 
-    if (!isUserValidated) {
+    if (!isUserValidated && item.key !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
         return;
     }

@@ -104,14 +104,20 @@ Onyx.connectWithoutView({
     },
 });
 
-// allReports is used in the "ForOpenOrReconnect" functions and is not directly associated with the View,
-// so retrieving it using Onyx.connectWithoutView is correct.
-// If this variable is ever needed for use in React components, it should be retrieved using useOnyx.
+// allReports and allPolicies are used in the "ForOpenOrReconnect" functions and are not directly associated with the View,
+// so retrieving them using Onyx.connectWithoutView is correct.
 let allReports: OnyxCollection<OnyxTypes.Report>;
+let allPolicies: OnyxCollection<OnyxTypes.Policy>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: (value) => {
         allReports = value;
+    },
+});
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    callback: (value) => {
+        allPolicies = value;
     },
 });
 
@@ -182,15 +188,6 @@ Onyx.connectWithoutView({
         });
     },
 });
-
-let resolveIsReadyPromise: () => void;
-const isReadyToOpenApp = new Promise<void>((resolve) => {
-    resolveIsReadyPromise = resolve;
-});
-
-function confirmReadyToOpenApp() {
-    resolveIsReadyPromise();
-}
 
 function getNonOptimisticPolicyIDs(policies: OnyxCollection<OnyxTypes.Policy>): string[] {
     const result: string[] = [];
@@ -300,21 +297,8 @@ AppState.addEventListener('change', (nextAppState) => {
 /**
  * Gets the policy params that are passed to the server in the OpenApp and ReconnectApp API commands. This includes a full list of policy IDs the client knows about as well as when they were last modified.
  */
-function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrReconnect> {
-    return new Promise((resolve) => {
-        isReadyToOpenApp.then(() => {
-            // Using Onyx.connectWithoutView is appropriate here because the data retrieved is not directly bound to the View
-            // and each time the getPolicyParamsForOpenOrReconnect function is called,
-            // connectWithoutView will fetch the latest data from Onyx.
-            const connection = Onyx.connectWithoutView({
-                key: ONYXKEYS.COLLECTION.POLICY,
-                callback: (policies) => {
-                    Onyx.disconnect(connection);
-                    resolve({policyIDList: getNonOptimisticPolicyIDs(policies)});
-                },
-            });
-        });
-    });
+function getPolicyParamsForOpenOrReconnect(): PolicyParamsForOpenOrReconnect {
+    return {policyIDList: getNonOptimisticPolicyIDs(allPolicies)};
 }
 
 type OnyxDataForOpenOrReconnectKeys =
@@ -461,21 +445,17 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
         });
     }
 
-    return getPolicyParamsForOpenOrReconnect()
-        .then((policyParams: PolicyParamsForOpenOrReconnect) => {
-            const params: OpenAppParams = {enablePriorityModeFilter: true, ...policyParams};
-            return API.writeWithNoDuplicatesConflictAction(
-                WRITE_COMMANDS.OPEN_APP,
-                params,
-                getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments),
-            );
-        })
-        .finally(() => {
-            if (!bootsplashSpan) {
-                return;
-            }
-            endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
-        });
+    const params: OpenAppParams = {...getPolicyParamsForOpenOrReconnect(), enablePriorityModeFilter: true};
+    return API.writeWithNoDuplicatesConflictAction(
+        WRITE_COMMANDS.OPEN_APP,
+        params,
+        getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments),
+    ).finally(() => {
+        if (!bootsplashSpan) {
+            return;
+        }
+        endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
+    });
 }
 
 /**
@@ -509,25 +489,21 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
         }
 
         console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom}`);
-        getPolicyParamsForOpenOrReconnect()
-            .then((policyParams) => {
-                const params: ReconnectAppParams = policyParams;
+        const params: ReconnectAppParams = getPolicyParamsForOpenOrReconnect();
 
-                // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
-                // Otherwise, a full set of app data will be returned.
-                if (updateIDFrom) {
-                    params.updateIDFrom = updateIDFrom;
-                }
+        // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
+        // Otherwise, a full set of app data will be returned.
+        if (updateIDFrom) {
+            params.updateIDFrom = updateIDFrom;
+        }
 
-                const isFullReconnect = !updateIDFrom;
-                return API.writeWithNoDuplicatesReconnectConflictAction(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded));
-            })
-            .finally(() => {
-                if (!bootsplashSpan) {
-                    return;
-                }
-                endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
-            });
+        const isFullReconnect = !updateIDFrom;
+        return API.writeWithNoDuplicatesReconnectConflictAction(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded)).finally(() => {
+            if (!bootsplashSpan) {
+                return;
+            }
+            endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
+        });
     });
 }
 
@@ -537,8 +513,7 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
  * cutoff by the time the response lands, so subscribeToFullReconnect does not fire a second reconnect.
  */
 function triggerFullReconnect(cutoff: string) {
-    Onyx.merge(ONYXKEYS.LAST_FULL_RECONNECT_TIME, getLastFullReconnectTimeToRecord(cutoff));
-    reconnectApp();
+    Onyx.merge(ONYXKEYS.LAST_FULL_RECONNECT_TIME, getLastFullReconnectTimeToRecord(cutoff)).then(() => reconnectApp());
 }
 
 /**
@@ -548,16 +523,14 @@ function triggerFullReconnect(cutoff: string) {
  */
 function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxTypes.Response<OnyxDataForOpenOrReconnectKeys>> {
     console.debug(`[OnyxUpdates] Executing last reconnect app with promise`);
-    return getPolicyParamsForOpenOrReconnect().then((policyParams) => {
-        const params: ReconnectAppParams = {...policyParams};
+    const params: ReconnectAppParams = getPolicyParamsForOpenOrReconnect();
 
-        // It is SUPER BAD FORM to return promises from action methods.
-        // DO NOT FOLLOW THIS PATTERN!!!!!
-        // It was absolutely necessary in order to not break the app while migrating to the new reliable updates pattern. This method will be removed
-        // as soon as we have everyone migrated to the reliableUpdate beta.
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, true));
-    });
+    // It is SUPER BAD FORM to return promises from action methods.
+    // DO NOT FOLLOW THIS PATTERN!!!!!
+    // It was absolutely necessary in order to not break the app while migrating to the new reliable updates pattern. This method will be removed
+    // as soon as we have everyone migrated to the reliableUpdate beta.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, true));
 }
 
 /**
@@ -981,7 +954,6 @@ export {
     setAppLoading,
     reconnectApp,
     triggerFullReconnect,
-    confirmReadyToOpenApp,
     handleRestrictedEvent,
     getMissingOnyxUpdates,
     finalReconnectAppAfterActivatingReliableUpdates,

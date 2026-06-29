@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 import type * as ReactNavigation from '@react-navigation/native';
 import {render, screen} from '@testing-library/react-native';
 import React from 'react';
@@ -15,7 +16,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import DateUtils from '@libs/DateUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
-import ReportActionsView from '@pages/inbox/report/ReportActionsView';
+import ReportActionsList from '@pages/inbox/report/ReportActionsList';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -96,25 +97,54 @@ jest.mock('@hooks/usePrevious', () => jest.fn());
 
 const mockUseCurrentUserPersonalDetails = useCurrentUserPersonalDetails as jest.MockedFunction<typeof useCurrentUserPersonalDetails>;
 
-jest.mock('@pages/inbox/report/ReportActionsList', () =>
-    jest.fn(({sortedReportActions}: {sortedReportActions: OnyxTypes.ReportAction[]}) => {
-        if (sortedReportActions && sortedReportActions.length > 0) {
-            return null; // Simulate normal content
-        }
-        return null;
-    }),
+// We mount the public ReportActionsList (the skeleton guard + its content) and observe what the content
+// feeds the list via InvertedFlashList's `data`. The heavy scroll/marker hooks have their own unit tests,
+// so they are stubbed here to isolate the skeleton logic. Because the guard only mounts the content when
+// the skeleton is not showing, these stubs double as a probe for dormancy: while a skeleton renders the
+// content is never mounted, so useMarkAsRead/useReportActionsScroll are never called.
+jest.mock('@components/FlashList/InvertedFlashList', () => jest.fn(() => null));
+jest.mock('@hooks/useUnreadMarker', () => jest.fn(() => ({unreadMarkerReportActionID: null, unreadMarkerReportActionIndex: -1})));
+jest.mock('@hooks/useMarkAsRead', () => jest.fn(() => ({markNewestActionAsRead: jest.fn(), completeSkippedMarkAsRead: jest.fn()})));
+jest.mock('@hooks/useReportActionsScroll', () =>
+    jest.fn(() => ({
+        listRef: {current: null},
+        trackVerticalScrolling: jest.fn(),
+        onViewableItemsChanged: jest.fn(),
+        isFloatingMessageCounterVisible: false,
+        isActionBadgeAboveViewport: false,
+        scrollToBottomAndMarkReportAsRead: jest.fn(),
+        scrollToActionBadgeTarget: jest.fn(),
+        flushPendingScrollToBottom: jest.fn(),
+        shouldBeAlignedToTop: false,
+        shouldFocusToTopOnMount: false,
+        initialScrollKey: undefined,
+        shouldAutoscrollToBottom: false,
+        onLoad: jest.fn(),
+    })),
 );
+jest.mock('@pages/inbox/report/FloatingMessageCounter', () => jest.fn(() => null));
+jest.mock('@pages/inbox/report/ReportActionsListPaddingView', () => {
+    const reactModule = jest.requireActual<typeof React>('react');
+    return jest.fn(({children}: {children: React.ReactNode}) => reactModule.createElement(reactModule.Fragment, null, children));
+});
 jest.mock('@pages/inbox/report/UserTypingEventListener', () => jest.fn(() => null));
 jest.mock('@pages/inbox/report/ReportActionItemCreated', () => jest.fn(() => null));
 
-const mockReportActionsList: jest.Mock = jest.requireMock('@pages/inbox/report/ReportActionsList');
+const mockInvertedFlashList: jest.MockedFunction<(props: {data?: OnyxTypes.ReportAction[]}) => null> = jest.requireMock('@components/FlashList/InvertedFlashList');
 const mockReportActionItemCreated: jest.Mock = jest.requireMock('@pages/inbox/report/ReportActionItemCreated');
+
+/** Returns the report actions the body fed into the (mocked) inverted list on its latest render. */
+const getCapturedVisibleActions = (): OnyxTypes.ReportAction[] | undefined => mockInvertedFlashList.mock.calls.at(-1)?.at(0)?.data;
+
+const mockUseMarkAsRead: jest.Mock = jest.requireMock('@hooks/useMarkAsRead');
+const mockUseReportActionsScroll: jest.Mock = jest.requireMock('@hooks/useReportActionsScroll');
+const mockMarkOpenReportEnd: jest.Mock = jest.requireMock('@libs/telemetry/markOpenReportEnd');
 
 jest.mock('@libs/actions/Report', () => ({
     updateLoadingInitialReportAction: jest.fn(),
 }));
+jest.mock('@libs/telemetry/markOpenReportEnd', () => jest.fn());
 
-// Mock report data
 const mockReport: OnyxTypes.Report = {
     reportID: '123',
     reportName: 'Test Report',
@@ -151,12 +181,12 @@ const mockReportActions: OnyxTypes.ReportAction[] = [
     },
 ];
 
-const renderReportActionsView = (props: {reportID?: string} = {}) => {
+const renderReportActionsList = (props: {reportID?: string} = {}) => {
     const reportID = props.reportID ?? mockReport.reportID;
-    return render(<ReportActionsView reportID={reportID} />);
+    return render(<ReportActionsList reportID={reportID} />);
 };
 
-describe('ReportActionsView', () => {
+describe('ReportActionsList (body)', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -265,9 +295,13 @@ describe('ReportActionsView', () => {
                 ...defaultPaginatedReportActionsResult,
             });
 
-            renderReportActionsView();
+            renderReportActionsList();
 
             expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
+            // The guard does not mount the content while the skeleton shows, so the UI-close hooks never
+            // run and cannot consume unread state or open a new-action subscription.
+            expect(mockUseMarkAsRead).not.toHaveBeenCalled();
+            expect(mockUseReportActionsScroll).not.toHaveBeenCalled();
         });
 
         it('should not show skeleton when shouldShowSkeletonForAppLoad is false (isLoadingApp is false and isOffline is false)', () => {
@@ -297,9 +331,12 @@ describe('ReportActionsView', () => {
                 return [undefined, {status: 'loaded'}];
             });
 
-            renderReportActionsView();
+            renderReportActionsList();
 
             expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+            // The list is visible, so the guard mounts the content and the UI-close hooks run.
+            expect(mockUseMarkAsRead).toHaveBeenCalled();
+            expect(mockUseReportActionsScroll).toHaveBeenCalled();
         });
 
         it('should not show skeleton when shouldShowSkeletonForAppLoad is false (isLoadingApp is true and isOffline is true)', () => {
@@ -329,7 +366,7 @@ describe('ReportActionsView', () => {
                 return [undefined, {status: 'loaded'}];
             });
 
-            renderReportActionsView();
+            renderReportActionsList();
 
             expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
         });
@@ -361,9 +398,60 @@ describe('ReportActionsView', () => {
                 return [undefined, {status: 'loaded'}];
             });
 
-            renderReportActionsView();
+            renderReportActionsList();
 
             expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+        });
+    });
+
+    describe('Open-report telemetry', () => {
+        it('fires markOpenReportEnd with warm:false while the initial skeleton shows', () => {
+            mockUseNetwork.mockReturnValue({isOffline: false});
+
+            mockUseOnyx.mockImplementation((key: string) => {
+                if (key === ONYXKEYS.IS_LOADING_APP) {
+                    return [true, {status: 'loaded'}];
+                }
+                if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
+                    return [false, {status: 'loaded'}];
+                }
+                if (key.includes('reportLoadingState')) {
+                    return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
+                }
+                if (key.includes('reportActions')) {
+                    return [[], {status: 'loaded'}];
+                }
+                if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`) {
+                    return [mockReport, {status: 'loaded'}];
+                }
+                if (key.includes('report')) {
+                    return [undefined, {status: 'loaded'}];
+                }
+                return [undefined, {status: 'loaded'}];
+            });
+
+            // Empty report actions so the app-load skeleton renders.
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+            });
+
+            renderReportActionsList();
+
+            // The guard owns this mark now (it used to live in the body); it must still fire while the
+            // initial skeleton shows, otherwise the open-report span regresses.
+            expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
+            expect(mockMarkOpenReportEnd).toHaveBeenCalledWith(mockReport, {warm: false});
+        });
+
+        it('does not fire the warm:false mark once content is visible', () => {
+            // Default mocks render the list (no skeleton). warm:false is gated on the initial skeleton, so
+            // it must not fire here; warm:true comes from the list layout, not this path.
+            mockUseNetwork.mockReturnValue({isOffline: false});
+
+            renderReportActionsList();
+
+            expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+            expect(mockMarkOpenReportEnd).not.toHaveBeenCalledWith(mockReport, {warm: false});
         });
     });
 
@@ -438,10 +526,10 @@ describe('ReportActionsView', () => {
             mockUseIsInSidePanel.mockReturnValue(true);
             mockUseSidePanelState.mockReturnValue({...defaultSidePanelState, sessionStartTime: DateUtils.getDBTime()});
 
-            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
-            expect(mockReportActionsList).toHaveBeenCalled();
-            const passedActions = (mockReportActionsList.mock.calls.at(0) as [{sortedVisibleReportActions: OnyxTypes.ReportAction[]}]).at(0)?.sortedVisibleReportActions;
+            expect(mockInvertedFlashList).toHaveBeenCalled();
+            const passedActions = getCapturedVisibleActions();
             expect(passedActions?.length).toBeGreaterThanOrEqual(1);
             expect(passedActions?.at(0)?.reportActionID).toBe(CONST.CONCIERGE_GREETING_ACTION_ID);
         });
@@ -455,7 +543,7 @@ describe('ReportActionsView', () => {
             });
             mockUseIsInSidePanel.mockReturnValue(false);
 
-            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
             expect(mockReportActionItemCreated).not.toHaveBeenCalled();
         });
@@ -469,7 +557,7 @@ describe('ReportActionsView', () => {
             });
             mockUseIsInSidePanel.mockReturnValue(false);
 
-            renderReportActionsView({reportID: 'non-concierge-999'});
+            renderReportActionsList({reportID: 'non-concierge-999'});
 
             expect(mockReportActionItemCreated).not.toHaveBeenCalled();
         });
@@ -502,12 +590,12 @@ describe('ReportActionsView', () => {
             mockUseIsInSidePanel.mockReturnValue(true);
             mockUseSidePanelState.mockReturnValue({...defaultSidePanelState, sessionStartTime: sessionStart});
 
-            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
             // Welcome should not be shown since user has sent a message
             expect(mockReportActionItemCreated).not.toHaveBeenCalled();
             // ReportActionsList should be rendered with filtered actions
-            expect(mockReportActionsList).toHaveBeenCalled();
+            expect(mockInvertedFlashList).toHaveBeenCalled();
         });
     });
 
@@ -598,10 +686,10 @@ describe('ReportActionsView', () => {
                 hasOlderActions: false,
             });
 
-            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
-            expect(mockReportActionsList).toHaveBeenCalled();
-            const passedActions = (mockReportActionsList.mock.calls.at(0) as [{sortedVisibleReportActions: OnyxTypes.ReportAction[]}]).at(0)?.sortedVisibleReportActions;
+            expect(mockInvertedFlashList).toHaveBeenCalled();
+            const passedActions = getCapturedVisibleActions();
             expect(passedActions?.some((a) => a.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID)).toBe(true);
             expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
             expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(false);
@@ -616,10 +704,10 @@ describe('ReportActionsView', () => {
                 hasOlderActions: false,
             });
 
-            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
-            expect(mockReportActionsList).toHaveBeenCalled();
-            const passedActions = (mockReportActionsList.mock.calls.at(0) as [{sortedVisibleReportActions: OnyxTypes.ReportAction[]}]).at(0)?.sortedVisibleReportActions;
+            expect(mockInvertedFlashList).toHaveBeenCalled();
+            const passedActions = getCapturedVisibleActions();
             expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(true);
             expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(true);
         });
@@ -649,10 +737,10 @@ describe('ReportActionsView', () => {
                 hasOlderActions: false,
             });
 
-            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
-            expect(mockReportActionsList).toHaveBeenCalled();
-            const passedActions = (mockReportActionsList.mock.calls.at(0) as [{sortedVisibleReportActions: OnyxTypes.ReportAction[]}]).at(0)?.sortedVisibleReportActions;
+            expect(mockInvertedFlashList).toHaveBeenCalled();
+            const passedActions = getCapturedVisibleActions();
             // After user sends a message, the greeting stays visible alongside session actions
             expect(passedActions?.some((a) => a.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID)).toBe(true);
             expect(passedActions?.some((a) => a.reportActionID === 'new-user-msg')).toBe(true);
@@ -667,10 +755,10 @@ describe('ReportActionsView', () => {
                 hasOlderActions: false,
             });
 
-            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
-            expect(mockReportActionsList).toHaveBeenCalled();
-            const passedActions = (mockReportActionsList.mock.calls.at(0) as [{sortedVisibleReportActions: OnyxTypes.ReportAction[]}]).at(0)?.sortedVisibleReportActions;
+            expect(mockInvertedFlashList).toHaveBeenCalled();
+            const passedActions = getCapturedVisibleActions();
             // With no session, old messages should not be shown
             expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
             expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(false);
@@ -713,10 +801,10 @@ describe('ReportActionsView', () => {
                 hasOlderActions: false,
             });
 
-            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
-            expect(mockReportActionsList).toHaveBeenCalled();
-            const passedActions = (mockReportActionsList.mock.calls.at(0) as [{sortedVisibleReportActions: OnyxTypes.ReportAction[]}]).at(0)?.sortedVisibleReportActions;
+            expect(mockInvertedFlashList).toHaveBeenCalled();
+            const passedActions = getCapturedVisibleActions();
             // New user with no prior messages — onboarding messages pass through (no filtering)
             expect(passedActions?.some((a) => a.reportActionID === 'onboarding-msg')).toBe(true);
         });
@@ -733,7 +821,7 @@ describe('ReportActionsView', () => {
                 hasOlderActions: false,
             });
 
-            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
             expect(mockStartSession).toHaveBeenCalled();
         });
@@ -749,10 +837,10 @@ describe('ReportActionsView', () => {
                 hasOlderActions: false,
             });
 
-            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
             expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
-            expect(mockReportActionsList).toHaveBeenCalled();
+            expect(mockInvertedFlashList).toHaveBeenCalled();
         });
 
         it('should show a skeleton on a cold load when hasOnceLoadedReportActions is false and there are no cached actions', () => {
@@ -764,9 +852,13 @@ describe('ReportActionsView', () => {
                 hasOlderActions: false,
             });
 
-            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
             expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
+            // The concierge-hidden-history skeleton shows while the report is otherwise "ready"; the content
+            // is still not mounted, so the UI-close hooks never run here either.
+            expect(mockUseMarkAsRead).not.toHaveBeenCalled();
+            expect(mockUseReportActionsScroll).not.toHaveBeenCalled();
         });
     });
 });
