@@ -96,7 +96,6 @@ function useAutoCreateTrackWorkspace() {
             // with the CompleteGuidedSetup response and side panel isn't supported on native.
             let rhpVariant: OnboardingRHPVariant | undefined = isSidePanelReportSupported ? undefined : CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE;
             try {
-                // Track/personal choices post tasks to concierge and self-DM — adminsChatReport is not needed (only used for MANAGE_TEAM).
                 const response = await completeOnboarding({
                     engagementChoice,
                     onboardingMessage: onboardingMessages[engagementChoice],
