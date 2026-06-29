@@ -1951,6 +1951,10 @@ const CONST = {
         MAX_LINES_LANDSCAPE_MODE: 2,
         // The minimum height needed to enable the full screen composer
         FULL_COMPOSER_MIN_HEIGHT: 60,
+        // Max number of animation frames to wait for the composer's clearWorklet ref to re-attach before giving up.
+        // The composer lives on an RNSScreen that react-native-screens freezes while another screen (e.g. the
+        // attachment preview) is on top, so its imperative handle can be briefly missing right after navigating back.
+        CLEAR_WORKLET_MAX_RETRIES: 60,
         /**
          * TestIDs for the main report composer vs inline message editor (E2E / integration tests only).
          * See tests/ui/ReportActionMessageEditLayoutTest.tsx
