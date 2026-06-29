@@ -25,6 +25,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import {getExportFileName} from '@libs/fileDownload/FileUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -48,7 +49,7 @@ import {
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
-import {serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import {buildSearchQueryString, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -102,6 +103,10 @@ type TransactionPreviewData = {
     hasTransaction: boolean;
     hasTransactionThreadReport: boolean;
 };
+
+function shouldUseBackendDateSortFallback(sortBy: SearchQueryJSON['sortBy']): boolean {
+    return sortBy === CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID || sortBy === CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID || sortBy === CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS;
+}
 
 function getChatReportForSearchPay(chatReport: OnyxEntry<Report>, snapshotReport: Report, searchData?: SearchResultDataType): OnyxEntry<Report> {
     const chatReportID = snapshotReport.chatReportID ?? snapshotReport.parentReportID;
@@ -870,11 +875,21 @@ function search({
 
     const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
     const {flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
+    const backendQueryJSON = shouldUseBackendDateSortFallback(queryJSON.sortBy)
+        ? {
+              ...queryJSONWithoutFlatFilters,
+              sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+              inputQuery: buildSearchQueryString({...queryJSON, sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE}),
+              rawFilterList: queryJSONWithoutFlatFilters.rawFilterList?.map((filter) =>
+                  filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY ? {...filter, value: CONST.SEARCH.TABLE_COLUMNS.DATE} : filter,
+              ),
+          }
+        : queryJSONWithoutFlatFilters;
     const query = {
-        ...queryJSONWithoutFlatFilters,
+        ...backendQueryJSON,
         searchKey,
         offset,
-        filters: queryJSONWithoutFlatFilters.filters ?? null,
+        filters: backendQueryJSON.filters ?? null,
         shouldCalculateTotals,
         // Backend expects 'maximumResults' instead of 'limit'
         ...(limit !== undefined && {maximumResults: limit}),
@@ -1231,7 +1246,7 @@ function rejectMoneyRequestsOnSearch(
 type Params = Record<string, ExportSearchItemsToCSVParams>;
 
 function exportSearchItemsToCSV(
-    {query, jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels}: ExportSearchItemsToCSVParams,
+    {query, jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels, exportName}: ExportSearchItemsToCSVParams,
     onDownloadFailed: () => void,
     translate: LocalizedTranslate,
 ) {
@@ -1278,10 +1293,21 @@ function exportSearchItemsToCSV(
         }
     }
 
-    return fileDownload(translate, getCommandURL({command: WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+    return fileDownload(
+        translate,
+        getCommandURL({command: WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV}),
+        getExportFileName(exportName, rand64()),
+        '',
+        false,
+        formData,
+        CONST.NETWORK.METHOD.POST,
+        onDownloadFailed,
+        undefined,
+        false,
+    );
 }
 
-function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels}: ExportSearchItemsToCSVParams): string {
+function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels, exportName}: ExportSearchItemsToCSVParams): string {
     const exportID = rand64();
     const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
 
@@ -1307,6 +1333,7 @@ function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactio
         transactionIDList,
         isBasicExport,
         exportColumnLabels,
+        exportName,
         exportID,
     }) as QueueExportSearchItemsToCSVParams;
 
@@ -1316,7 +1343,7 @@ function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactio
 }
 
 function queueExportSearchWithTemplate(
-    {templateName, templateType, jsonQuery, reportIDList, transactionIDList, policyID}: ExportSearchWithTemplateParams,
+    {templateName, templateType, jsonQuery, reportIDList, transactionIDList, policyID, exportName}: ExportSearchWithTemplateParams,
     shouldTrackExportProgress = false,
 ): string {
     const exportID = rand64();
@@ -1348,6 +1375,7 @@ function queueExportSearchWithTemplate(
         reportIDList,
         transactionIDList,
         policyID,
+        exportName,
         ...(shouldTrackExportProgress ? {exportID} : {}),
     }) as QueueExportSearchWithTemplateParams;
 
