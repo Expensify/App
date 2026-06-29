@@ -14,6 +14,8 @@ import {
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyApprover,
     isPreferredExporter,
+    isSubmitPolicy,
+    isSubmitterApproveBlockedOnSubmitWorkspace,
 } from './PolicyUtils';
 import {
     getAllReportActions,
@@ -128,13 +130,11 @@ function isSubmitAction(
         return false;
     }
 
-    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
+    const reportTransactionsList = reportTransactions ?? [];
+    const hasNoSubmittableTransaction =
+        reportTransactionsList.length > 0 && reportTransactionsList.every((transaction) => isScanning(transaction) || hasSmartScanFailedWithMissingFields([transaction], report));
 
-    if (isAnyReceiptBeingScanned) {
-        return false;
-    }
-
-    if (hasSmartScanFailedWithMissingFields(reportTransactions ?? [], report)) {
+    if (hasNoSubmittableTransaction) {
         return false;
     }
 
@@ -154,6 +154,10 @@ function isSubmitAction(
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy) {
+    if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, report.ownerAccountID, currentUserAccountID)) {
+        return false;
+    }
+
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
 
     if (isAnyReceiptBeingScanned) {
@@ -171,9 +175,14 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], curr
         return false;
     }
     const isExpenseReport = isExpenseReportUtils(report);
+    const isSubmitWorkspace = isSubmitPolicy(policy);
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 
-    if (!isExpenseReport || !isApprovalEnabled || reportTransactions.length === 0) {
+    if (!isExpenseReport || reportTransactions.length === 0) {
+        return false;
+    }
+
+    if (!isApprovalEnabled && !isSubmitWorkspace) {
         return false;
     }
 

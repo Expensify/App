@@ -60,6 +60,15 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
 
     const emptyResult: UseGettingStartedItemsResult = {shouldShowSection: false, items: []};
 
+    // Hide the whole section as soon as every onboarding to-do is complete, instead of keeping it
+    // around for the full Getting Started window.
+    const buildResult = (builtItems: GettingStartedItem[]): UseGettingStartedItemsResult => {
+        if (builtItems.every((item) => item.isComplete)) {
+            return emptyResult;
+        }
+        return {shouldShowSection: true, items: builtItems};
+    };
+
     if (intent !== CONST.ONBOARDING_CHOICES.MANAGE_TEAM && intent !== CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
         return emptyResult;
     }
@@ -103,12 +112,16 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             route: ROUTES.WORKSPACE_MEMBERS.getRoute(activePolicyID),
         });
 
-        return {shouldShowSection: true, items};
+        return buildResult(items);
     }
 
     const isDirectConnect = !!reportedIntegration && DIRECT_CONNECT_INTEGRATIONS.has(reportedIntegration);
+    // Only route to the Connections page when the user picked a directly supported integration or the workspace already has a
+    // real accounting connection. Otherwise (e.g. the "Other" onboarding choice merely enables the connections feature) we send
+    // the user to customize categories instead of back to the integration list they already opted out of.
+    const shouldShowConnectAccounting = isAccountingEnabled && (isDirectConnect || hasAccountingFeatureConnection(policy));
 
-    if (isAccountingEnabled) {
+    if (shouldShowConnectAccounting) {
         const integrationName = isDirectConnect
             ? (CONST.ONBOARDING_ACCOUNTING_MAPPING[reportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING] ?? String(reportedIntegration))
             : undefined;
@@ -149,7 +162,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         });
     }
 
-    return {shouldShowSection: true, items};
+    return buildResult(items);
 }
 
 export default useGettingStartedItems;

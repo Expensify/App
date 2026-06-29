@@ -4,6 +4,7 @@ import {X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRe
 import type {CartesianChartData, PartialProcessNodeResult, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
 import parseRawChartData from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseRawChartData';
+import resolveCategoryIndex from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveCategoryIndex';
 
 /**
  * Parse data points from a `<victorybar>` or `<victoryline>` node.
@@ -21,7 +22,7 @@ function parseVictorySeriesNode(tnode: TNode, typeface: SkTypeface | null, rootP
             // thus we cannot use `point.y` as the key since two points can have the same y value.
             data[`${point.y}-${point.x}`] = {
                 [X_KEY]: point.y,
-                [yKey]: typeof point.x === 'number' ? point.x : categories?.indexOf(point.x),
+                [yKey]: typeof point.x === 'number' ? point.x : resolveCategoryIndex(categories, String(point.x)),
             } as CartesianChartData;
         } else {
             data[point.x] = {

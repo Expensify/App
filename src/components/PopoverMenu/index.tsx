@@ -15,6 +15,7 @@ import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -190,15 +191,38 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
 
     /** Badge style to be shown near the right end. */
     badgeStyle?: StyleProp<ViewStyle>;
+
+    /**
+     * Temporary flag to disable safe area bottom spacing in modals and to allow edge-to-edge content.
+     * Modals should not always apply bottom safe area padding, instead it should be applied to the scrollable/bottom-docked content directly.
+     * This flag can be removed, once all components/screens have switched to edge-to-edge safe area handling.
+     */
+    enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
 };
 
-const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentContainerStyle: StyleProp<ViewStyle>, children: ReactNode): React.JSX.Element => {
+type PopoverMenuContentProps = {
+    shouldUseScrollView: boolean;
+    contentContainerStyle: StyleProp<ViewStyle>;
+    children: ReactNode;
+    addBottomSafeAreaPadding?: boolean;
+};
+
+function PopoverMenuContent({shouldUseScrollView, contentContainerStyle, children, addBottomSafeAreaPadding}: PopoverMenuContentProps): React.JSX.Element {
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, style: contentContainerStyle});
+
     if (shouldUseScrollView) {
-        return <ScrollView contentContainerStyle={contentContainerStyle}>{children}</ScrollView>;
+        return (
+            <ScrollView
+                contentContainerStyle={contentContainerStyle}
+                addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+            >
+                {children}
+            </ScrollView>
+        );
     }
 
-    return <View style={contentContainerStyle}>{children}</View>;
-};
+    return <View style={bottomSafeAreaPaddingStyle}>{children}</View>;
+}
 
 function getSelectedItemIndex(menuItems: PopoverMenuItem[]) {
     return menuItems.findIndex((option) => option.isSelected);
@@ -308,6 +332,7 @@ function BasePopoverMenu({
     shouldUseModalPaddingStyle,
     shouldAvoidSafariException = false,
     shouldMaintainFocusAfterSubItemSelect: shouldPreserveFocusOnSubItems = true,
+    enableEdgeToEdgeBottomSafeAreaPadding,
     testID,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
@@ -673,6 +698,7 @@ function BasePopoverMenu({
             shouldHandleNavigationBack={shouldHandleNavigationBack}
             testID={testID}
             shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={!shouldUseScrollView}
+            enableEdgeToEdgeBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
         >
             <FocusTrapForModal
                 active={isVisible}
@@ -683,19 +709,21 @@ function BasePopoverMenu({
                         onLayout={onLayout}
                         style={[restMenuContainerStyle, restContainerStyles, isWeb ? styles.flex1 : styles.flexGrow1]}
                     >
-                        {renderWithConditionalWrapper(
-                            shouldUseScrollView,
-                            [scrollViewPaddingStyles, restScrollContainerStyle],
-                            [renderHeaderText(), enteredSubMenuIndexes.length > 0 && renderBackButtonItem(), renderedMenuItems],
-                        )}
+                        <PopoverMenuContent
+                            shouldUseScrollView={shouldUseScrollView}
+                            contentContainerStyle={[scrollViewPaddingStyles, restScrollContainerStyle]}
+                            addBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
+                        >
+                            {renderHeaderText()}
+                            {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
+                            {renderedMenuItems}
+                        </PopoverMenuContent>
                     </View>
                 </CompactMenuContext.Provider>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
     );
 }
-
-PopoverMenu.displayName = 'PopoverMenu';
 
 export default React.memo(
     PopoverMenu,
