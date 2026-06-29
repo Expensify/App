@@ -35,7 +35,6 @@ function TransactionListItemWide<TItem extends ListItem>({
     isLastItem,
     transactionViolations,
     handleActionButtonPress,
-    shouldDisableActionPointerEvents,
     transactionPreviewData,
     exportedReportActions,
     policyCategories,
@@ -183,7 +182,6 @@ function TransactionListItemWide<TItem extends ListItem>({
                         isActionLoading={isLoading ?? isActionLoading}
                         isSelected={isSelected}
                         isDisabled={!!isDisabled}
-                        shouldDisableActionPointerEvents={shouldDisableActionPointerEvents}
                         dateColumnSize={dateColumnSize}
                         submittedColumnSize={submittedColumnSize}
                         approvedColumnSize={approvedColumnSize}
