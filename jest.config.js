@@ -51,7 +51,5 @@ module.exports = {
         '^@lottiefiles/dotlottie-react$': '<rootDir>/__mocks__/@lottiefiles/dotlottie-react.tsx',
         '^group-ib-fp$': '<rootDir>/__mocks__/group-ib-fp.ts',
         '^parse-imports-exports$': '<rootDir>/node_modules/parse-imports-exports/index.cjs',
-        // live-markdown still imports expensify-common/dist/utils; map to the canonical subpath file.
-        '^expensify-common/dist/utils$': '<rootDir>/node_modules/expensify-common/dist/utils.js',
     },
 };

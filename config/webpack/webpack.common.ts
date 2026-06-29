@@ -394,8 +394,6 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 '@src': path.resolve(dirname, '../../src/'),
                 '@userActions': path.resolve(dirname, '../../src/libs/actions/'),
                 '@selectors': path.resolve(dirname, '../../src/selectors/'),
-                // live-markdown still imports expensify-common/dist/utils; map to the canonical subpath file.
-                'expensify-common/dist/utils': path.resolve(dirname, '../../node_modules/expensify-common/dist/utils.js'),
             },
 
             // Resolve web-specific implementations (`.web.*`) before bare files so React Native
