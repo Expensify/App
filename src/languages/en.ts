@@ -7580,7 +7580,7 @@ const translations = {
                 findRule: 'Find rule',
                 typeLabel: 'Flag',
                 conditionCategoryAndAmount: (category: string, amount: string) => `Category is "${category}" and amount above ${amount}`,
-                conditionCategoryAndDailyAmount: (category: string, amount: string) => `Category is "${category}" and daily total above ${amount}`,
+                conditionCategoryAndDailyAmount: (category: string, amount: string) => `Category is "${category}" and daily category total above ${amount}`,
                 flagForReview: 'Flag for review',
             },
             flagForReviewEmptyState: {
