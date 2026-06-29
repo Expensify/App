@@ -132,7 +132,10 @@ describe('useOtherFeedsForFeedSelector', () => {
     });
 
     it('should exclude feeds already present in the active policy available list', () => {
-        (useCompanyCards as jest.Mock).mockReturnValue({feedName: undefined, companyCardFeeds: {'oauth.chase.com#999': {feed: 'oauth.chase.com'}}});
+        // Build the key the same way production does (`${feed}${separator}${fundID}`) via a computed property name,
+        // which keeps the dotted feed key out of a string literal and avoids a naming-convention violation.
+        const activePolicyFeedKey = `oauth.chase.com${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}999`;
+        (useCompanyCards as jest.Mock).mockReturnValue({feedName: undefined, companyCardFeeds: {[activePolicyFeedKey]: {feed: 'oauth.chase.com'}}});
         mockVisibleFeeds([
             {
                 id: '999_oauth.chase.com',

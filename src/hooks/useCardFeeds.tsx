@@ -54,7 +54,10 @@ const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefi
         const shouldIncludeFeedPredicate = (combinedCardFeed: CombinedCardFeed) => {
             const validLinkedPolicyIDs = combinedCardFeed?.linkedPolicyIDs?.filter(Boolean);
             if (validLinkedPolicyIDs?.length) {
-                return validLinkedPolicyIDs.includes(policyID);
+                // Linked policy IDs can differ in casing, so compare case-insensitively. This keeps the "available"
+                // list aligned with the case-insensitive "From other workspaces" check in useOtherFeedsForFeedSelector,
+                // so a case-mismatched linked feed isn't dropped from both lists and lost.
+                return validLinkedPolicyIDs.some((linkedPolicyID) => linkedPolicyID.toUpperCase() === policyID.toUpperCase());
             }
             return combinedCardFeed.preferredPolicy ? combinedCardFeed.preferredPolicy === policyID : combinedCardFeed.domainID === effectiveWorkspaceAccountID;
         };

@@ -16,6 +16,7 @@ import {
     getCardFeedIcon,
     getCardFeedWithDomainID,
     getCustomOrFormattedFeedName,
+    getDomainByFundID,
     getOriginalCompanyFeeds,
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
@@ -674,7 +675,7 @@ function getVisibleCompanyCardFeedsForSelector(
         const numericFundID = Number(fundID);
 
         // Visibility: the user must be an admin of the feed's domain or of a policy backed by this fund.
-        const domain = domains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${numericFundID}`] ?? Object.values(domains ?? {}).find((entry) => entry?.accountID === numericFundID);
+        const domain = getDomainByFundID(domains, numericFundID);
         const isDomainAdmin = isAdminSelector(currentUserAccountID)(domain);
         const isWorkspaceAdmin = adminPolicyFundIDs.has(numericFundID);
         if (!isDomainAdmin && !isWorkspaceAdmin) {

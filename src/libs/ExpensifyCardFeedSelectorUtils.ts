@@ -5,6 +5,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {isAdminSelector} from '@src/selectors/Domain';
 import type {CardList, Domain, ExpensifyCardSettings, Policy} from '@src/types/onyx';
 import {
+    getDomainByFundID,
     getDomainNameFromExpensifyCardSettings,
     getFundIdFromSettingsKey,
     getLinkedPolicyIDsFromExpensifyCardSettings,
@@ -47,7 +48,7 @@ function isExpensifyCardFeedVisibleToAdmin(
     }
 
     // Source 1: the user is an admin of the domain whose ID matches the fundID.
-    const domain = domains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${fundID}`] ?? Object.values(domains ?? {}).find((entry) => entry?.accountID === fundID);
+    const domain = getDomainByFundID(domains, fundID);
     if (isAdminSelector(currentUserAccountID)(domain)) {
         return true;
     }
@@ -114,7 +115,7 @@ function getExpensifyCardFeedDescription(
         return '';
     }
 
-    const domainEntry = domains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${fundID}`] ?? Object.values(domains ?? {}).find((entry) => entry?.accountID === fundID);
+    const domainEntry = getDomainByFundID(domains, fundID);
     if (domainEntry?.email) {
         return getDescriptionForPolicyDomainCard(Str.extractEmailDomain(domainEntry.email), policies);
     }
