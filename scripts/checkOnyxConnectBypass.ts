@@ -9,9 +9,11 @@
  * suppressed violations off the results, and exits non-zero on any that are not grandfathered.
  * Because it works from ESLint's suppressed-message data, no disable directive can reach it.
  *
- * A real bypass requires a file to contain both an `Onyx.connect(` call and an `eslint-disable`
+ * A real bypass requires a file to contain both an `Onyx.connect` reference and an `eslint-disable`
  * directive, so we first narrow the targets to files matching both (via git grep) and only run
- * ESLint on those — keeping the check fast even on a whole-repo lint.
+ * ESLint on those — keeping the check fast even on a whole-repo lint. The `Onyx.connect` match
+ * deliberately omits the `(` so it stays a superset of the AST rule (e.g. whitespace or a comment
+ * before the paren); extra matches like `Onyx.connectWithoutView` are harmless, as the rule ignores them.
  */
 import tsParser from '@typescript-eslint/parser';
 import {ESLint} from 'eslint';
@@ -49,14 +51,10 @@ async function loadNoOnyxConnectRule(): Promise<Rule.RuleModule> {
 function findCandidateFiles(targets: string[]): string[] {
     const pathSpecs = targets.length > 0 ? targets : ['.'];
     try {
-        const output = execFileSync(
-            'git',
-            ['grep', '-lI', '-F', '--all-match', '--untracked', '--no-recurse-submodules', '-e', 'Onyx.connect(', '-e', 'eslint-disable', '--', ...pathSpecs],
-            {
-                cwd: projectRoot,
-                encoding: 'utf8',
-            },
-        );
+        const output = execFileSync('git', ['grep', '-lI', '-F', '--all-match', '--untracked', '--no-recurse-submodules', '-e', 'Onyx.connect', '-e', 'eslint-disable', '--', ...pathSpecs], {
+            cwd: projectRoot,
+            encoding: 'utf8',
+        });
         return output.split('\n').filter(Boolean);
     } catch (error: unknown) {
         // git grep exits 1 when nothing matches; anything else is a real failure.
