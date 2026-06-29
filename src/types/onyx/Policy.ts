@@ -5,7 +5,7 @@ import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import type * as OnyxTypes from '.';
-import type {ApprovalWorkflowRule} from './ApprovalWorkflowRules';
+import type {ApprovalWorkflowRules} from './ApprovalWorkflowRules';
 import type * as OnyxCommon from './OnyxCommon';
 import type {WorkspaceTravelSettings} from './TravelSettings';
 
@@ -2299,7 +2299,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
              * Approval-workflow rules keyed by ruleID. Each rule routes a report to a `nextReceiver`
              * when its `filters` match.
              */
-            approvalWorkflows?: Record<string, ApprovalWorkflowRule>;
+            approvalWorkflows?: ApprovalWorkflowRules;
         };
 
         /** The "RuleBot" agent account ID */

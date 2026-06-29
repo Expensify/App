@@ -601,7 +601,6 @@ export {
     setApprovalWorkflowMembers,
     setApprovalWorkflowApprover,
     setApprovalWorkflow,
-    setApprovalWorkflowRules,
     selectApprovalWorkflowForEdit,
     clearApprovalWorkflowApprover,
     clearApprovalWorkflowApprovers,

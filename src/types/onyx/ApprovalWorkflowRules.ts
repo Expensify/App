@@ -66,4 +66,4 @@ type ApprovalWorkflowRule = {
  */
 type ApprovalWorkflowRules = Record<string, ApprovalWorkflowRule>;
 
-export type {ApprovalWorkflowFilter, ApprovalWorkflowFilterComparison, ApprovalWorkflowFilterOperand, ApprovalWorkflowRule, ApprovalWorkflowRules};
+export type {ApprovalWorkflowFilter, ApprovalWorkflowFilterComparison, ApprovalWorkflowRule, ApprovalWorkflowRules};
