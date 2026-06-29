@@ -166,6 +166,7 @@ type ProcessNodeResult = {
     categories: string[] | undefined;
     labelItems: LabelItem[];
     legendItems: LegendItem[];
+    labelsByYKey: Partial<Record<YKey, string[]>>;
 };
 
 /** Partial slice produced by a single per-tag parser before merging. */
