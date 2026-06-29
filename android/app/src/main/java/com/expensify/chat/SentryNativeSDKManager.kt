@@ -38,6 +38,10 @@ object SentryNativeSDKManager {
             "https://7b463fb4d4402d342d1166d929a62f4e@o4510228013121536.ingest.us.sentry.io/4510228107427840",
         )
 
+        // RNSentrySDK.init() applies RNSentryStart.updateWithReactDefaults(), which ignores
+        // JavascriptException on the native side so JS errors are not reported twice. Unlike iOS New
+        // Architecture (C++ JSErrorE / ExceptionsManager.reportException), Android does not need a
+        // beforeSend filter here - see getsentry/sentry-react-native#5529.
         try {
             RNSentrySDK.init(context) { options ->
                 options.dsn = dsn
