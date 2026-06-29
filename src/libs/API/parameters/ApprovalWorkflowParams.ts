@@ -8,4 +8,4 @@ type SetApprovalWorkflowParams = {
     rules: string;
 };
 
-export type {SetApprovalWorkflowParams};
+export default SetApprovalWorkflowParams;

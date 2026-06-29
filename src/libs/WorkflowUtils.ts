@@ -792,7 +792,7 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
         }
 
         const hasLimitSplit = !!approver.approvalLimit && approver.approvalLimit > 0 && !!approver.overLimitForwardsTo;
-        const limit = hasLimitSplit ? (approver.approvalLimit as number) : undefined;
+        const limit = hasLimitSplit ? approver.approvalLimit! : undefined;
         const underAmount = limit !== undefined ? buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, limit) : undefined;
         const overAmount = limit !== undefined ? buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, limit) : undefined;
 
@@ -809,7 +809,7 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
                 rules.push({
                     filters: buildLevelFilters(fromComparison, gate, overAmount),
                     action: APPROVAL_WORKFLOW_FORWARD_ACTION,
-                    nextReceiver: approver.overLimitForwardsTo as string,
+                    nextReceiver: approver.overLimitForwardsTo!,
                 });
             } else {
                 rules.push({
@@ -820,15 +820,27 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
             }
         }
 
-        previousApproverEmails = hasLimitSplit ? [approver.email, approver.overLimitForwardsTo as string] : [approver.email];
+        previousApproverEmails = hasLimitSplit ? [approver.email, approver.overLimitForwardsTo!] : [approver.email];
     }
 
     return rules;
 }
 
+/**
+ * A leaf comparison node — its `left` is a primitive field name (or an array of values), unlike a
+ * boolean filter whose `left` is another node.
+ */
+function isComparisonLeaf(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined): node is ApprovalWorkflowFilterComparison {
+    if (!node) {
+        return false;
+    }
+    const nodeLeft = node.left;
+    return typeof nodeLeft !== 'object' || nodeLeft === null || Array.isArray(nodeLeft);
+}
+
 /** True when a comparison node targets the `from` field with an equality operator. */
 function isSubmitterFilter(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison): boolean {
-    return node.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && (node as ApprovalWorkflowFilterComparison).left === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM;
+    return isComparisonLeaf(node) && node.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && node.left === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM;
 }
 
 /** Walk a filter tree and call `callback` on every submitter filter (the `from` leaf) in it. */
@@ -836,19 +848,15 @@ function forEachSubmitterFilter(node: ApprovalWorkflowFilter | ApprovalWorkflowF
     if (!node) {
         return;
     }
-    if (isSubmitterFilter(node)) {
-        callback(node as ApprovalWorkflowFilterComparison);
+    if (isComparisonLeaf(node)) {
+        // A leaf has no children to recurse into; only `from` leaves are reported.
+        if (isSubmitterFilter(node)) {
+            callback(node);
+        }
         return;
     }
-    // Only filter nodes (which always carry a left filter) and AND/OR nodes have children to recurse into.
-    const leftIsNode = typeof (node as ApprovalWorkflowFilter).left === 'object' && (node as ApprovalWorkflowFilter).left !== null;
-    if (leftIsNode) {
-        forEachSubmitterFilter((node as ApprovalWorkflowFilter).left, callback);
-    }
-    const right = (node as ApprovalWorkflowFilter).right as ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined;
-    if (right && typeof right === 'object') {
-        forEachSubmitterFilter(right, callback);
-    }
+    forEachSubmitterFilter(node.left, callback);
+    forEachSubmitterFilter(node.right, callback);
 }
 
 /** Extract the union of email values across every `from` leaf in a rule. */
@@ -857,11 +865,11 @@ function extractSubmitterEmails(rule: ApprovalWorkflowRule): string[] {
     forEachSubmitterFilter(rule.filters, (filter) => {
         const right = filter.right;
         if (Array.isArray(right)) {
-            right.forEach((email) => {
+            for (const email of right) {
                 if (typeof email === 'string') {
                     emails.add(email);
                 }
-            });
+            }
         } else if (typeof right === 'string') {
             emails.add(right);
         }
@@ -879,19 +887,14 @@ function structuralFingerprint(rule: ApprovalWorkflowRule): string {
         if (!node) {
             return node;
         }
-        if (isSubmitterFilter(node)) {
-            return {operator: node.operator, left: (node as ApprovalWorkflowFilterComparison).left};
+        if (isComparisonLeaf(node)) {
+            // Drop the `right` (submitter list) from `from` leaves so only the structure remains.
+            if (isSubmitterFilter(node)) {
+                return {operator: node.operator, left: node.left};
+            }
+            return {operator: node.operator, left: node.left, right: node.right};
         }
-        const out: Record<string, unknown> = {operator: node.operator};
-        const left = (node as ApprovalWorkflowFilter).left;
-        if (left !== undefined) {
-            out.left = typeof left === 'object' && left !== null ? stripFromValues(left) : left;
-        }
-        const right = (node as ApprovalWorkflowFilter).right as unknown;
-        if (right !== undefined) {
-            out.right = typeof right === 'object' && right !== null ? stripFromValues(right as ApprovalWorkflowFilter) : right;
-        }
-        return out;
+        return {operator: node.operator, left: stripFromValues(node.left), right: stripFromValues(node.right)};
     };
 
     return JSON.stringify({
@@ -904,31 +907,29 @@ function structuralFingerprint(rule: ApprovalWorkflowRule): string {
 /** Replace the `right` value on every `from` leaf with `newEmails`. */
 function replaceSubmitterEmails(rule: ApprovalWorkflowRule, newEmails: string[]): ApprovalWorkflowRule {
     const rewrite = (node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison): ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison => {
-        if (isSubmitterFilter(node)) {
-            return {...node, right: [...newEmails]} as ApprovalWorkflowFilterComparison;
+        if (isComparisonLeaf(node)) {
+            return isSubmitterFilter(node) ? {...node, right: [...newEmails]} : node;
         }
-        const left = (node as ApprovalWorkflowFilter).left;
-        const right = (node as ApprovalWorkflowFilter).right as ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined;
         return {
             ...node,
-            ...(typeof left === 'object' && left !== null ? {left: rewrite(left)} : {}),
-            ...(right && typeof right === 'object' ? {right: rewrite(right)} : {}),
-        } as ApprovalWorkflowFilter;
+            left: rewrite(node.left),
+            ...(node.right ? {right: rewrite(node.right)} : {}),
+        };
     };
-    return {...rule, filters: rewrite(rule.filters) as ApprovalWorkflowFilter};
+    return {...rule, filters: rewrite(rule.filters)};
 }
 
 /** Merge `emailsToAdd` into `existingEmails`, preserving the order of `existingEmails` and dropping duplicates. */
 function mergeEmails(existingEmails: string[], emailsToAdd: string[]): string[] {
     const seen = new Set(existingEmails);
     const result = [...existingEmails];
-    emailsToAdd.forEach((email) => {
+    for (const email of emailsToAdd) {
         if (seen.has(email)) {
-            return;
+            continue;
         }
         seen.add(email);
         result.push(email);
-    });
+    }
     return result;
 }
 
@@ -1097,7 +1098,7 @@ function reconcileApprovalWorkflowRulesForMembersChange(previousMemberEmails: st
         const updatedEmails = mergeEmails(afterRemoval, newMemberEmails);
 
         // No effective change to this rule's `from` — skip the round-trip.
-        if (updatedEmails.length === ruleEmails.length && updatedEmails.every((email, idx) => email === ruleEmails[idx])) {
+        if (updatedEmails.length === ruleEmails.length && updatedEmails.every((email, idx) => email === ruleEmails.at(idx))) {
             continue;
         }
 
@@ -1127,15 +1128,6 @@ function applyApprovalWorkflowRulesDiff(existingRules: Record<string, ApprovalWo
 // legacy employeeList-based converter produces, so the rest of the workflows UI
 // keeps working unchanged.
 
-/** A leaf comparison node — its `left` is a primitive (field name), unlike a boolean filter whose `left` is another node. */
-function isComparisonLeaf(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined): node is ApprovalWorkflowFilterComparison {
-    if (!node) {
-        return false;
-    }
-    const nodeLeft = (node as ApprovalWorkflowFilter).left;
-    return typeof nodeLeft !== 'object' || nodeLeft === null || Array.isArray(nodeLeft);
-}
-
 /** Return the first comparison leaf in the filter tree whose `left` field matches. */
 function findComparisonByLeft(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined, leftKey: string): ApprovalWorkflowFilterComparison | undefined {
     if (!node) {
@@ -1144,12 +1136,11 @@ function findComparisonByLeft(node: ApprovalWorkflowFilter | ApprovalWorkflowFil
     if (isComparisonLeaf(node)) {
         return node.left === leftKey ? node : undefined;
     }
-    const fromLeft = findComparisonByLeft((node as ApprovalWorkflowFilter).left, leftKey);
+    const fromLeft = findComparisonByLeft(node.left, leftKey);
     if (fromLeft) {
         return fromLeft;
     }
-    const right = (node as ApprovalWorkflowFilter).right as ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined;
-    return findComparisonByLeft(right, leftKey);
+    return findComparisonByLeft(node.right, leftKey);
 }
 
 /** The approver a level routes the report INTO, plus that approver's own limit split (if any). */
@@ -1395,7 +1386,7 @@ function convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, first
             continue;
         }
 
-        const firstApproverEmail = chain[0].email;
+        const firstApproverEmail = chain.at(0)?.email;
         if (firstApproverEmail !== firstApprover) {
             for (const approver of chain) {
                 usedApproverEmails.add(approver.email);
