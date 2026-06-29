@@ -129,6 +129,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                 role={CONST.ROLE.PRESENTATION}
                 autoFocus={existingMethod !== CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE}
                 onSubmitEditing={onSave}
+                submitBehavior="submit"
             />
         </View>
     );

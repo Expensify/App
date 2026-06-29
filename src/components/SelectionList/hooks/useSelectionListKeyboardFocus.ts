@@ -1,7 +1,6 @@
 import {useEffect, useRef, useState} from 'react';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
-import {isFocusRestoreInProgress} from '@libs/NavigationFocusReturn';
 import CONST from '@src/CONST';
 
 type ScrollToIndex = (index: number, animated?: boolean) => void;
@@ -22,15 +21,12 @@ type UseSelectionListKeyboardFocusParams = {
 
 type UseSelectionListKeyboardFocusResult = {
     focusedIndex: number;
-    setFocusedIndex: (index: number) => void;
-    setFocusedIndexFromRowFocus: (index: number) => void;
-    setFocusedIndexWithoutScrollOnChange: (index: number) => void;
-    suppressNextFocusScroll: () => void;
+    setFocusedIndex: (index: number, shouldScrollHint?: boolean) => void;
     isKeyboardNavigating: boolean;
     setHasKeyBeenPressed: () => void;
 };
 
-/** Owns a SelectionList's keyboard-navigable focused index: wraps useArrowKeyFocusManager, tracks keyboard-nav modality (incl. Tab), and provides the focus-restore-aware cursor setters + scroll suppression. */
+/** Owns a SelectionList's keyboard-navigable focused index: wraps useArrowKeyFocusManager, tracks keyboard-nav modality (incl. Tab) */
 function useSelectionListKeyboardFocus({
     initialFocusedIndex,
     maxIndex,
@@ -46,7 +42,6 @@ function useSelectionListKeyboardFocus({
 }: UseSelectionListKeyboardFocusParams): UseSelectionListKeyboardFocusResult {
     const hasKeyBeenPressed = useRef(false);
     const [isKeyboardNavigating, setIsKeyboardNavigating] = useState(false);
-    const suppressNextFocusScrollRef = useRef(false);
 
     const setHasKeyBeenPressed = () => {
         if (hasKeyBeenPressed.current) {
@@ -73,12 +68,8 @@ function useSelectionListKeyboardFocus({
         maxIndex,
         disabledIndexes,
         isActive,
-        onFocusedIndexChange: (index: number) => {
-            if (suppressNextFocusScrollRef.current) {
-                suppressNextFocusScrollRef.current = false;
-                return;
-            }
-            if (!shouldScrollToFocusedIndex) {
+        onFocusedIndexChange: (index, shouldScrollHint) => {
+            if (!shouldScrollHint || !shouldScrollToFocusedIndex) {
                 return;
             }
 
@@ -92,33 +83,9 @@ function useSelectionListKeyboardFocus({
         },
     });
 
-    // Move the cursor but skip the scroll the change would trigger.
-    const setFocusedIndexWithoutScrollOnChange = (index: number) => {
-        if (index !== focusedIndex) {
-            suppressNextFocusScrollRef.current = true;
-        }
-        setFocusedIndex(index);
-    };
-
-    // On a focus restore, keep the cursor on the restored row without scrolling to it.
-    const setFocusedIndexFromRowFocus = (index: number) => {
-        if (isFocusRestoreInProgress()) {
-            setFocusedIndexWithoutScrollOnChange(index);
-        } else {
-            setFocusedIndex(index);
-        }
-    };
-
-    const suppressNextFocusScroll = () => {
-        suppressNextFocusScrollRef.current = true;
-    };
-
     return {
         focusedIndex,
         setFocusedIndex,
-        setFocusedIndexFromRowFocus,
-        setFocusedIndexWithoutScrollOnChange,
-        suppressNextFocusScroll,
         isKeyboardNavigating,
         setHasKeyBeenPressed,
     };
