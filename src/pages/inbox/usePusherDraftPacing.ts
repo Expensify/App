@@ -589,7 +589,7 @@ function handlePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: Concie
 
     if (event.status === CONCIERGE_DRAFT_STATUS.FAILED || event.status === CONCIERGE_DRAFT_STATUS.CLEARED) {
         resetPusherDraftPace(runtime);
-        publishVisibleEvent(runtime, event, undefined, event.status, undefined);
+        publishVisibleEvent(runtime, event, undefined, event.status);
         return;
     }
 
@@ -617,7 +617,7 @@ function handlePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: Concie
                 tickPacing(runtime);
             }
         } else {
-            publishVisibleEvent(runtime, event, undefined, CONCIERGE_DRAFT_STATUS.COMPLETED, undefined);
+            publishVisibleEvent(runtime, event, undefined, CONCIERGE_DRAFT_STATUS.COMPLETED);
         }
         return;
     }
@@ -641,7 +641,7 @@ function handlePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: Concie
 
     const nextVisibleMarkdown = getNextVisibleConciergeDraftMarkdown(visibleBodyMarkdownRef.current, targetBodyMarkdown, visibleSourceOffsetRef.current, visibleSourceMarkdownRef.current);
     if (nextVisibleMarkdown.bodyMarkdown !== visibleBodyMarkdownRef.current || nextVisibleMarkdown.sourceOffset !== visibleSourceOffsetRef.current) {
-        publishVisibleEvent(runtime, event, nextVisibleMarkdown, event.status, undefined);
+        publishVisibleEvent(runtime, event, nextVisibleMarkdown, event.status);
     }
 
     if (nextVisibleMarkdown.sourceOffset < targetBodyMarkdown.length) {
@@ -665,7 +665,7 @@ function handlePusherDraftEvents(runtime: PusherDraftPacingRuntime, eventData: C
 
         if (event.status === CONCIERGE_DRAFT_STATUS.FAILED || event.status === CONCIERGE_DRAFT_STATUS.CLEARED) {
             resetPusherDraftPace(runtime);
-            publishVisibleEvent(runtime, event, undefined, event.status, undefined);
+            publishVisibleEvent(runtime, event, undefined, event.status);
             return;
         }
 
@@ -743,7 +743,7 @@ function handlePusherDraftEvents(runtime: PusherDraftPacingRuntime, eventData: C
             startFinalRenderedHTMLReveal(runtime, finalRenderedHTMLCompletionEvent);
             return;
         }
-        publishVisibleEvent(runtime, completedPusherDraftEventRef.current, undefined, CONCIERGE_DRAFT_STATUS.COMPLETED, undefined);
+        publishVisibleEvent(runtime, completedPusherDraftEventRef.current, undefined, CONCIERGE_DRAFT_STATUS.COMPLETED);
         completedPusherDraftEventRef.current = null;
     }
 }
