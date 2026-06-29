@@ -69,4 +69,3 @@ function UserAvatar({
 }
 
 export default UserAvatar;
-export type {UserAvatarProps};
