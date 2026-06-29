@@ -385,6 +385,7 @@ function submitAmount({
                             isSelfTourViewed,
                             optimisticChatReportID,
                             optimisticTransactionID,
+                            shouldHandleNavigation: overrides.shouldHandleNavigation,
                         });
                     } else {
                         const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
@@ -419,9 +420,10 @@ function submitAmount({
                             personalDetails: allPersonalDetails,
                             optimisticChatReportID,
                             optimisticTransactionID,
+                            shouldHandleNavigation: overrides.shouldHandleNavigation,
                         });
                     }
-                    cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
+                    cleanupAfterSkipConfirmSubmit({
                         report,
                         action,
                         draftTransactionIDs: draftTransactionIDsList,

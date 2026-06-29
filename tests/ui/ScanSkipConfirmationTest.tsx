@@ -83,8 +83,8 @@ jest.mock('@libs/Navigation/helpers/submitWithDismissFirst', () => ({
 
 jest.mock('@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit', () => ({
     __esModule: true,
-    default: (shouldHandleNavigation: boolean, params: Record<string, unknown>) => {
-        mockCleanupAfterSkipConfirmSubmit(shouldHandleNavigation, params);
+    default: (params: Record<string, unknown>) => {
+        mockCleanupAfterSkipConfirmSubmit(params);
     },
 }));
 
@@ -179,7 +179,7 @@ describe('ScanSkipConfirmation submit orchestration', () => {
         });
         await waitForBatchedUpdates();
 
-        // The action layer must not navigate; the view layer drives dismiss-first + cleanup itself.
+        // The view layer threads the UI-resolved optimistic ids into the action and runs cleanup-only after dismiss-first; the action owns post-create navigation.
         expect(mockSubmitWithDismissFirst).toHaveBeenCalledTimes(1);
         expect(mockCreateTransaction).toHaveBeenCalledTimes(1);
 
@@ -188,6 +188,6 @@ describe('ScanSkipConfirmation submit orchestration', () => {
         expect(capturedCreateTransactionArg?.optimisticChatReportID).toBe('optimistic-resolved');
 
         expect(mockCleanupAfterSkipConfirmSubmit).toHaveBeenCalledTimes(1);
-        expect(mockCleanupAfterSkipConfirmSubmit).toHaveBeenCalledWith(true, expect.objectContaining({optimisticChatReportID: 'chat-resolved'}));
+        expect(mockCleanupAfterSkipConfirmSubmit).toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: 'chat-resolved'}));
     });
 });

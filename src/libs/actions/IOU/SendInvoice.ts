@@ -9,6 +9,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
+import {surfaceExpenseCreatedFeedback} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
@@ -36,7 +37,7 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getAllPersonalDetails} from '.';
 import {getReceiptError, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from './MoneyRequestBuilder';
-import {handleNavigateAfterExpenseCreate, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
+import {handleNavigateAfterExpenseCreate} from './NavigationHelpers';
 import {getSearchOnyxUpdate} from './SearchUpdate';
 import type BasePolicyParams from './types/BasePolicyParams';
 
@@ -812,17 +813,25 @@ function sendInvoice({
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
     });
 
-    highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transactionID, CONST.SEARCH.DATA_TYPES.INVOICE);
-
     if (shouldHandleNavigation) {
         TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
         handleNavigateAfterExpenseCreate({
             activeReportID: invoiceRoom.reportID,
+            iouReportID: invoiceReportID,
             transactionID,
+            transactionThreadReportID,
             isFromGlobalCreate,
             isInvoice: true,
         });
     } else {
+        // Dismiss-first paths (orchestrator owns navigation); still surface feedback wherever the user
+        // lands. Invoices go to an invoice room (no expense-report table), so this resolves to the growl.
+        surfaceExpenseCreatedFeedback({
+            iouReportID: invoiceReportID,
+            transactionID,
+            transactionThreadReportID,
+            isInvoice: true,
+        });
         removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     }
 
