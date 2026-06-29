@@ -52,6 +52,23 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
 
     const accessibilityLabel = [cardholderName, item.name, cardType, limitTypeLabel, item.lastFourPAN, formattedLimit, frozenByText].filter(Boolean).join(', ');
 
+    const frozenByRowFooter = !!frozenByText && (
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt1]}>
+            <Icon
+                src={icons.FreezeCard}
+                fill={theme.icon}
+                small
+            />
+            <Text
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                style={[styles.textLabelSupporting, styles.colorMuted, styles.ml2, styles.flexShrink1, shouldUseNarrowTableLayout ? styles.lh16 : styles.textMicro]}
+            >
+                {frozenByText}
+            </Text>
+        </View>
+    );
+
     return (
         <Table.Row
             interactive
@@ -65,6 +82,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                 shouldHideOnDelete: false,
                 onClose: item.onClose,
             }}
+            rowFooter={frozenByRowFooter}
             onPress={item.action}
         >
             {({hovered}) => (
@@ -97,16 +115,6 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                                     text={item.name}
                                     style={styles.textLabelSupporting}
                                 />
-                            )}
-                            {!!frozenByText && (
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt1]}>
-                                    <Icon
-                                        src={icons.FreezeCard}
-                                        fill={theme.icon}
-                                        small
-                                    />
-                                    <Text style={[styles.textLabelSupporting, styles.colorMuted, styles.ml2]}>{frozenByText}</Text>
-                                </View>
                             )}
                         </View>
                     </View>
