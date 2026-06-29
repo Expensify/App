@@ -56,7 +56,16 @@ function resetUSDBankAccount(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    achAccount: policyOwner ? {reimburser: policyOwner} : null,
+                    achAccount: policyOwner
+                        ? {
+                              reimburser: policyOwner,
+                              bankAccountID: null,
+                              accountNumber: null,
+                              addressName: null,
+                              bankName: null,
+                              state: null,
+                          }
+                        : null,
                 },
             },
             {
