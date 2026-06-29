@@ -10,8 +10,10 @@ type Options = {
  * Shared callback for ending submit-expense navigation spans on Search pages.
  *
  * - `requireLayout: true` (narrow): dual-gate requiring both focus + layout signals
- *   before ending, except for DISMISS_MODAL_ONLY where focus alone suffices (the page
- *   is already mounted and laid out so onLayout won't re-fire).
+ *   before ending. Focus alone is sufficient for any follow-up action except
+ *   DISMISS_MODAL_AND_OPEN_REPORT (where layout matters because a fresh report screen
+ *   must render). Cached/frozen screens never re-fire onLayout on re-focus, so
+ *   requiring layout for them would leave the span open indefinitely.
  * - `requireLayout: false` (wide): ends immediately on any signal (pre-insert is
  *   narrow-only so the dual-gate isn't needed).
  */
@@ -29,9 +31,9 @@ function useEndSubmitNavigationSpans({requireLayout = true}: Options = {}): (was
                 }
 
                 const pendingForGate = getPendingSubmitFollowUpAction();
-                const isDismissOnly = pendingForGate?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY;
+                const canEndOnFocusAlone = pendingForGate?.followUpAction !== CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT;
                 const hasBothSignals = hadFocusRef.current && hadLayoutRef.current;
-                const hasFocusOnly = hadFocusRef.current && isDismissOnly;
+                const hasFocusOnly = hadFocusRef.current && canEndOnFocusAlone;
 
                 if (!hasBothSignals && !hasFocusOnly) {
                     return;
