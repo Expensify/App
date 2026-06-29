@@ -19,20 +19,22 @@ type Api<TItem> = {
     clearAnchor: () => void;
 };
 
-type SessionState = {kind: 'idle'} | {kind: 'anchored'; anchor: string} | {kind: 'ranging'; anchor: string; prevEnd: string};
+// `deselect` makes the range direction-aware: an anchor seeded by a click that *removed* a row extends the deselection on the next
+// shift+click instead of re-selecting it (the Excel/Sheets "range follows the anchor's state" model).
+type SessionState = {kind: 'idle'} | {kind: 'anchored'; anchor: string; deselect: boolean} | {kind: 'ranging'; anchor: string; prevEnd: string; deselect: boolean};
 
-type SessionEvent = {type: 'notify'; key: string} | {type: 'clear'} | {type: 'range'; anchor: string; prevEnd: string};
+type SessionEvent = {type: 'notify'; key: string; deselect: boolean} | {type: 'clear'} | {type: 'range'; anchor: string; prevEnd: string; deselect: boolean};
 
 const IDLE: SessionState = {kind: 'idle'};
 
 function sessionReducer(state: SessionState, event: SessionEvent): SessionState {
     switch (event.type) {
         case 'notify':
-            return {kind: 'anchored', anchor: event.key};
+            return {kind: 'anchored', anchor: event.key, deselect: event.deselect};
         case 'clear':
             return IDLE;
         case 'range':
-            return {kind: 'ranging', anchor: event.anchor, prevEnd: event.prevEnd};
+            return {kind: 'ranging', anchor: event.anchor, prevEnd: event.prevEnd, deselect: event.deselect};
         default: {
             const exhaustive: never = event;
             return exhaustive;
@@ -42,7 +44,7 @@ function sessionReducer(state: SessionState, event: SessionEvent): SessionState 
 
 /** Shift+click range selection. Consumers notify on plain clicks / select-all so the hook can resolve an anchor for the next shift+click. */
 function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
-    // The session lives entirely in event handlers, never in render output, so a ref avoids the re-renders that updating state would trigger.
+    // The session is touched only in event handlers, never in render, so a ref avoids the re-renders state would trigger.
     const sessionRef = useRef<SessionState>(IDLE);
 
     // The API methods are built once but read the latest params through this ref, refreshed after every commit.
@@ -51,8 +53,7 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
         paramsRef.current = params;
     });
 
-    // useState's lazy initializer builds the API exactly once (the setter is never called), giving a stable reference consumers can list
-    // in dependency arrays — without reading a ref during render.
+    // useState's lazy init builds the API once (setter never called) — a stable reference for deps, without reading a ref in render.
     const [api] = useState<Api<TItem>>(() => ({
         applyShiftClick: (target, shiftKey) => {
             if (!shiftKey) {
@@ -66,17 +67,21 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
             if (result.batch.toSelect.length || result.batch.toDeselect.length) {
                 currentParams.onApplyRange?.(result.batch);
             }
-            sessionRef.current = sessionReducer(sessionRef.current, {type: 'range', anchor: result.anchor, prevEnd: result.prevEnd});
+            sessionRef.current = sessionReducer(sessionRef.current, {type: 'range', anchor: result.anchor, prevEnd: result.prevEnd, deselect: result.deselect});
             return true;
         },
         notifyAnchor: (item) => {
-            const key = keyOf(paramsRef.current, item);
-            if (key) {
-                sessionRef.current = sessionReducer(sessionRef.current, {type: 'notify', key});
+            const currentParams = paramsRef.current;
+            const key = keyOf(currentParams, item);
+            if (!key) {
+                return;
             }
+            // A click on an already-selected row removes it → seed a deselecting anchor so the next shift+click extends the deselection. Selecting clicks seed a normal anchor.
+            const deselect = isSelected(currentParams, key);
+            sessionRef.current = sessionReducer(sessionRef.current, {type: 'notify', key, deselect});
         },
         seedFullRange: () => {
-            // Seed a virtual range spanning every selectable row so the next shift+click collapses the selection to it (used after Select All).
+            // After Select All: seed a full-list range so the next shift+click collapses the selection to the clicked sub-range.
             const currentParams = paramsRef.current;
             let first: TItem | null = null;
             let last: TItem | null = null;
@@ -92,7 +97,7 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
             const anchorKey = keyOf(currentParams, first);
             const endKey = keyOf(currentParams, last);
             if (anchorKey && endKey) {
-                sessionRef.current = sessionReducer(sessionRef.current, {type: 'range', anchor: anchorKey, prevEnd: endKey});
+                sessionRef.current = sessionReducer(sessionRef.current, {type: 'range', anchor: anchorKey, prevEnd: endKey, deselect: false});
             } else {
                 sessionRef.current = sessionReducer(sessionRef.current, {type: 'clear'});
             }
@@ -109,6 +114,7 @@ type ShiftRangeResult<TItem> = {
     batch: ShiftRangeBatch<TItem>;
     anchor: string;
     prevEnd: string;
+    deselect: boolean;
 };
 
 /** Built once per shift+click so the anchor/target/prevEnd lookups are O(1) instead of repeated linear scans. */
@@ -136,8 +142,10 @@ function computeShiftRange<TItem>(params: Params<TItem>, state: SessionState, ta
     if (!anchor) {
         return null;
     }
-    // On a continuing range keep prevEnd only if the same anchor survived; a re-resolved anchor (its row was removed) invalidates the prior range.
-    const prevEnd = state.kind === 'ranging' && anchor === state.anchor ? state.prevEnd : null;
+    // Keep the direction and prior range only while the same anchor survives; a re-resolved or cold anchor starts a fresh selecting range.
+    const sameAnchor = state.kind !== 'idle' && anchor === state.anchor;
+    const deselect = sameAnchor ? state.deselect : false;
+    const prevEnd = state.kind === 'ranging' && sameAnchor ? state.prevEnd : null;
 
     const anchorIdx = keyToIndex.get(anchor);
     const targetIdx = keyToIndex.get(targetKey);
@@ -149,14 +157,15 @@ function computeShiftRange<TItem>(params: Params<TItem>, state: SessionState, ta
     const prevEndIdx = prevEnd != null ? keyToIndex.get(prevEnd) : undefined;
     const prevRange = prevEndIdx !== undefined ? orderedRange(anchorIdx, prevEndIdx) : null;
 
-    const toSelect: TItem[] = [];
+    // Rows in the new range take the anchor's direction; rows the prior range covered but the new one drops collapse to the opposite.
+    const rangeRows: TItem[] = [];
     for (let i = newRange[0]; i <= newRange[1]; i++) {
         const row = params.items.at(i);
         if (row && !isExcluded(params, row)) {
-            toSelect.push(row);
+            rangeRows.push(row);
         }
     }
-    const toDeselect: TItem[] = [];
+    const collapseRows: TItem[] = [];
     if (prevRange) {
         for (let i = prevRange[0]; i <= prevRange[1]; i++) {
             if (i >= newRange[0] && i <= newRange[1]) {
@@ -164,12 +173,13 @@ function computeShiftRange<TItem>(params: Params<TItem>, state: SessionState, ta
             }
             const row = params.items.at(i);
             if (row && !isExcluded(params, row)) {
-                toDeselect.push(row);
+                collapseRows.push(row);
             }
         }
     }
 
-    return {batch: {toSelect, toDeselect}, anchor, prevEnd: targetKey};
+    const batch: ShiftRangeBatch<TItem> = deselect ? {toSelect: collapseRows, toDeselect: rangeRows} : {toSelect: rangeRows, toDeselect: collapseRows};
+    return {batch, anchor, prevEnd: targetKey, deselect};
 }
 
 function hasKeyForList(item: unknown): item is ItemWithKey {
@@ -184,6 +194,14 @@ function keyOf<TItem>(params: Params<TItem>, item: TItem | null | undefined): st
         return params.getItemKey(item) ?? null;
     }
     return hasKeyForList(item) ? (item.keyForList ?? null) : null;
+}
+
+function isSelected<TItem>(params: Params<TItem>, key: string): boolean {
+    const selected = params.getSelectedKeys?.();
+    if (!selected) {
+        return false;
+    }
+    return (selected instanceof Set ? selected : new Set(selected)).has(key);
 }
 
 function isExcluded<TItem>(params: Params<TItem>, item: TItem | null | undefined): boolean {

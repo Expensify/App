@@ -65,7 +65,7 @@ export default function useSelection<DataType extends TableData>({
     const selectableKeys = data.filter((item) => !item.disabled && !item.isSelectionDisabled).map((item) => item.keyForList);
     const tableRowData: Array<TableRow<DataType>> = data.map((item) => ({...item, selected: selectedKeys.includes(item.keyForList)}));
 
-    // Shift+click range selection shares the app-wide hook so every Table matches the SelectionList surfaces.
+    // Shares the app-wide shift-range hook so Tables match the SelectionList surfaces.
     const rangeApi = useShiftRangeSelection<DataType>({
         items: data,
         getItemKey: (item) => item.keyForList,
@@ -162,9 +162,7 @@ export default function useSelection<DataType extends TableData>({
         onRowSelectionChange?.([...selectedKeys, keyForList]);
     };
 
-    /**
-     * When a row is selected while holding shift, select the range between the anchor and this row.
-     */
+    // Shift+click: select the range between the anchor and this row.
     const handleMultipleRowSelection = (keyForList: string) => {
         const item = data.find((row) => row.keyForList === keyForList);
 

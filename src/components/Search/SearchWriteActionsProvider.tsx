@@ -358,8 +358,7 @@ function SearchWriteActionsProvider({
     const currentUserEmail = email ?? '';
     const currentUserLogin = login ?? '';
 
-    // Centralizes the row-invariant selection-entry context so the toggle / select-all / range call sites below can't drift apart
-    // if mapTransactionItemToSelectedEntry's inputs change.
+    // Shared selection-entry builder so the toggle / select-all / range call sites can't drift apart.
     const buildSelectedEntry = (item: TransactionListItemType, itemTransaction: OnyxEntry<Transaction>, originalItemTransaction: OnyxEntry<Transaction>, parentReport: OnyxEntry<Report>) =>
         mapTransactionItemToSelectedEntry({
             item,
@@ -375,7 +374,7 @@ function SearchWriteActionsProvider({
             parentReport,
         });
 
-    // Shift+click range selection. The flattened list spans groups + children in visual order; group headers are excluded.
+    // Flattened groups + children in visual order (headers excluded) for shift-range selection.
     const hasValidGroupBy = areItemsGrouped && !isExpenseReportType;
     const flattenedShiftRangeItems: Array<SearchData[number]> =
         areItemsGrouped && isGroupedItemArray(filteredData) ? filteredData.flatMap((group) => [group, ...(group.transactions ?? [])]) : filteredData;
@@ -465,7 +464,7 @@ function SearchWriteActionsProvider({
         isHeaderItem: isShiftRangeHeaderItem,
     });
 
-    // Wraps seedFullRange so it can run inside the `applySelection` updater: it only writes the hook's ref, so StrictMode double-invocation stays idempotent.
+    // Runs seedFullRange inside the `applySelection` updater; it only writes the hook ref, so StrictMode double-invoke stays idempotent.
     const seedSelectAllRange = (result: SelectedTransactions) => {
         rangeApi.seedFullRange();
         return result;
@@ -476,7 +475,7 @@ function SearchWriteActionsProvider({
             return;
         }
 
-        // The hook rejects headers as range targets, so a shift+click on one falls through to the normal group toggle below.
+        // The hook rejects headers as range targets, so shift+click on one falls through to the group toggle.
         if (rangeApi.applyShiftClick(item, shiftKey)) {
             return;
         }

@@ -553,7 +553,7 @@ function MoneyRequestReportTransactionList({
     }, [groupedTransactions, selectedTransactionIDs]);
 
     const toggleGroupSelection = useCallback(
-        // Shift is intentionally ignored on group headers — they always toggle the whole group.
+        // Group headers ignore Shift — they always toggle the whole group.
         (groupKey: string) => {
             const group = groupedTransactions.find((g) => g.groupKey === groupKey);
             if (!group) {

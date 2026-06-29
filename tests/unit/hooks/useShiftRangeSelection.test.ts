@@ -382,6 +382,67 @@ describe('useShiftRangeSelection', () => {
         });
     });
 
+    describe('direction-aware (deselect) ranges', () => {
+        const ALL_SELECTED = () => new Set(['a', 'b', 'c', 'd', 'e']);
+
+        it('extends the deselection when the anchor row was just removed by a plain click', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({getSelectedKeys: ALL_SELECTED, onApplyRange})));
+            // 'a' is selected, so clicking it seeds a deselecting anchor.
+            act(() => result.current.notifyAnchor(ROWS[0]));
+            act(() => {
+                result.current.applyShiftClick(ROWS[3], true);
+            });
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: [], toDeselect: ['a', 'b', 'c', 'd']});
+        });
+
+        it('still selects the range when the anchor row was just added, even if other rows are selected', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({getSelectedKeys: () => new Set(['c']), onApplyRange})));
+            // 'a' isn't selected, so it seeds a selecting anchor; the unrelated 'c' must not flip direction.
+            act(() => result.current.notifyAnchor(ROWS[0]));
+            act(() => {
+                result.current.applyShiftClick(ROWS[2], true);
+            });
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: []});
+        });
+
+        it('re-selects the collapsed tail when a deselecting range shrinks on the second shift+click', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({getSelectedKeys: ALL_SELECTED, onApplyRange})));
+            act(() => result.current.notifyAnchor(ROWS[0]));
+            act(() => {
+                result.current.applyShiftClick(ROWS[4], true);
+            });
+            act(() => {
+                result.current.applyShiftClick(ROWS[2], true);
+            });
+            // New range a..c stays deselected; d,e fall outside and are re-selected (mirror of the select-mode collapse).
+            expect(nthBatchKeys(onApplyRange, 1)).toEqual({toSelect: ['d', 'e'], toDeselect: ['a', 'b', 'c']});
+        });
+
+        it('extends the deselection after select-all when a row is removed then shift+clicked (the reported flow)', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({getSelectedKeys: ALL_SELECTED, onApplyRange})));
+            act(() => result.current.seedFullRange());
+            act(() => result.current.notifyAnchor(ROWS[1]));
+            act(() => {
+                result.current.applyShiftClick(ROWS[3], true);
+            });
+            // Select-all seeds a selecting span; removing 'b' re-seeds a deselecting anchor, so shift extends the deselection.
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: [], toDeselect: ['b', 'c', 'd']});
+        });
+
+        it('a cold shift+click selects even when every row is already selected (no deselecting anchor without a click)', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({getSelectedKeys: ALL_SELECTED, onApplyRange})));
+            act(() => {
+                result.current.applyShiftClick(ROWS[2], true);
+            });
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: []});
+        });
+    });
+
     describe('items change mid-session', () => {
         it('extends from the anchor when the previous endpoint disappears mid-session', () => {
             const onApplyRange = makeApplyMock();
@@ -423,7 +484,6 @@ describe('useShiftRangeSelection', () => {
             act(() => {
                 result.current.applyShiftClick(ROWS[2], true);
             });
-            // Anchor 'a' is removed from the items list while the session is ranging.
             rerender({items: ROWS.slice(1)});
             onApplyRange.mockClear();
             act(() => {
@@ -441,7 +501,6 @@ describe('useShiftRangeSelection', () => {
             act(() => {
                 result.current.applyShiftClick(ROWS[2], true);
             });
-            // Anchor 'a' is removed mid-session; with no selection, the next shift+click anchors on the new first row 'b'.
             rerender({items: ROWS.slice(1)});
             onApplyRange.mockClear();
             act(() => {
