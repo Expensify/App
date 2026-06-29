@@ -192,6 +192,9 @@ function initSplitExpenseItemData(
         reportID: reportID ?? transaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
         reimbursable: transactionDetails?.reimbursable,
         billable: transactionDetails?.billable,
+        taxCode: transactionDetails?.taxCode,
+        taxAmount: transactionDetails?.taxAmount,
+        taxValue: transactionDetails?.taxValue,
         customUnit: customUnit ?? transaction?.comment?.customUnit ?? undefined,
         waypoints: transaction?.comment?.waypoints ?? undefined,
         odometerStart: transaction?.comment?.odometerStart ?? undefined,
@@ -230,6 +233,11 @@ function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.
             reportID,
             created: splitTransactionData?.created ?? '',
             category: splitTransactionData?.category ?? '',
+            reimbursable: splitTransactionData?.reimbursable,
+            billable: splitTransactionData?.billable,
+            taxCode: splitTransactionData?.taxCode,
+            taxAmount: splitTransactionData?.taxAmount,
+            taxValue: splitTransactionData?.taxValue,
             customUnit: splitTransactionData?.customUnit,
             waypoints: splitTransactionData?.waypoints ?? undefined,
             odometerStart: splitTransactionData?.odometerStart ?? undefined,
@@ -581,6 +589,11 @@ function updateSplitExpenseField(
                 odometerStart: splitExpenseDraftTransaction?.comment?.odometerStart ?? undefined,
                 odometerEnd: splitExpenseDraftTransaction?.comment?.odometerEnd ?? undefined,
                 amount: splitExpenseDraftTransaction?.amount ?? 0,
+                reimbursable: transactionDetails?.reimbursable,
+                billable: transactionDetails?.billable,
+                taxCode: transactionDetails?.taxCode,
+                taxAmount: transactionDetails?.taxAmount,
+                taxValue: transactionDetails?.taxValue,
                 routes: splitExpenseDraftTransaction?.routes ?? undefined,
                 merchant: splitExpenseDraftTransaction?.modifiedMerchant ? splitExpenseDraftTransaction.modifiedMerchant : (splitExpenseDraftTransaction?.merchant ?? ''),
             };
@@ -718,6 +731,10 @@ function clearSplitTransactionDraftErrors(transactionID: string | undefined) {
     });
 }
 
+function updateSplitExpenseDraftField(fields: Partial<OnyxTypes.Transaction>) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, fields);
+}
+
 export {
     updateSplitExpenseDistanceFromAmount,
     initSplitExpenseItemData,
@@ -731,4 +748,5 @@ export {
     updateSplitExpenseField,
     updateSplitExpenseAmountField,
     clearSplitTransactionDraftErrors,
+    updateSplitExpenseDraftField,
 };
