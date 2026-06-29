@@ -11,7 +11,6 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -44,12 +43,6 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
 
     const tableRowItem = processedData.at(rowIndex) ?? item;
     const isDeleting = tableRowItem.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'WorkspaceSpendRulesTableItem',
-        isDeleting,
-    };
-
     const accessibilityLabel = `${tableRowItem.actionLabel}. ${tableRowItem.cardSummary}. ${tableRowItem.ruleSummary}`;
 
     const prevItem = rowIndex > 0 ? processedData.at(rowIndex - 1) : undefined;
@@ -80,7 +73,6 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
                 rowIndex={rowIndex}
                 disabled={isDeleting}
                 accessibilityLabel={accessibilityLabel}
-                skeletonReasonAttributes={reasonAttributes}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
                 offlineWithFeedback={{pendingAction: tableRowItem.pendingAction, shouldHideOnDelete: false}}
                 onPress={tableRowItem.action}
