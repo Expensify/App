@@ -155,10 +155,10 @@ function IOURequestStepAmount({
     // but skip-confirmation PAY never mounts it.
     const hasPreInsertedReport = useRef(false);
     useEffect(() => {
-        if (hasPreInsertedReport.current || !shouldSkipConfirmation || !getIsNarrowLayout() || !report?.reportID) {
-            return;
-        }
-        if (iouType !== CONST.IOU.TYPE.PAY || isSearchTopmostFullScreenRoute()) {
+        const isPayFlow = iouType === CONST.IOU.TYPE.PAY && !isSearchTopmostFullScreenRoute();
+        const shouldPreInsert = shouldSkipConfirmation && getIsNarrowLayout() && !!report?.reportID;
+
+        if (hasPreInsertedReport.current || !shouldPreInsert || !isPayFlow) {
             return;
         }
         hasPreInsertedReport.current = true;
