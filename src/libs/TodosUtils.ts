@@ -1,7 +1,8 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Policy, Report, ReportActions, ReportMetadata, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {BankAccountList, PersonalDetailsList, Policy, Report, ReportActions, ReportMetadata, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from './ReportPrimaryActionUtils';
 import {hasOnlyHeldExpenses, hasOnlyNonReimbursableTransactions} from './ReportUtils';
 import type {SearchKey} from './SearchUIUtils';
@@ -13,6 +14,7 @@ type CreateTodosReportsAndTransactionsParams = {
     allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
     allReportActions: OnyxCollection<ReportActions>;
     allReportMetadata: OnyxCollection<ReportMetadata>;
+    personalDetailsList: OnyxEntry<PersonalDetailsList>;
     bankAccountList: OnyxEntry<BankAccountList>;
     currentUserAccountID: number;
     login: string;
@@ -42,6 +44,7 @@ type TodoBucketContext = {
     reportMetadata: OnyxEntry<ReportMetadata>;
     allReportActions: OnyxCollection<ReportActions>;
     allExpensesHeld: boolean;
+    ownerLogin: string | undefined;
     bankAccountList: OnyxEntry<BankAccountList>;
     currentUserAccountID: number;
     login: string;
@@ -55,11 +58,11 @@ type TodoBucketContext = {
 function reportMatchesTodoBucket(
     searchKey: SearchKey,
     report: Report,
-    {policy, reportNameValuePair, reportTransactions, reportMetadata, allReportActions, allExpensesHeld, bankAccountList, currentUserAccountID, login}: TodoBucketContext,
+    {policy, reportNameValuePair, reportTransactions, reportMetadata, allReportActions, allExpensesHeld, ownerLogin, bankAccountList, currentUserAccountID, login}: TodoBucketContext,
 ): boolean {
     switch (searchKey) {
         case CONST.SEARCH.SEARCH_KEYS.SUBMIT:
-            return isSubmitAction(report, reportTransactions, reportMetadata, policy, reportNameValuePair, undefined, login, currentUserAccountID) && !allExpensesHeld;
+            return isSubmitAction(report, reportTransactions, reportMetadata, ownerLogin, policy, reportNameValuePair, undefined, login, currentUserAccountID) && !allExpensesHeld;
         case CONST.SEARCH.SEARCH_KEYS.APPROVE:
             return isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy) && !allExpensesHeld;
         case CONST.SEARCH.SEARCH_KEYS.PAY:
@@ -96,6 +99,7 @@ function createTodosReportsAndTransactions({
     allReportNameValuePairs,
     allReportActions,
     allReportMetadata,
+    personalDetailsList,
     bankAccountList,
     currentUserAccountID,
     login,
@@ -125,6 +129,7 @@ function createTodosReportsAndTransactions({
             reportMetadata: allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`],
             allReportActions,
             allExpensesHeld: hasOnlyHeldExpenses(reportTransactions),
+            ownerLogin: getLoginByAccountID(report.ownerAccountID, personalDetailsList),
             bankAccountList,
             currentUserAccountID,
             login,
@@ -159,6 +164,7 @@ function getTodoReportsForSearchKey(
         allReportNameValuePairs,
         allReportActions,
         allReportMetadata,
+        personalDetailsList,
         bankAccountList,
         currentUserAccountID,
         login,
@@ -179,6 +185,7 @@ function getTodoReportsForSearchKey(
             reportMetadata: allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`],
             allReportActions,
             allExpensesHeld: hasOnlyHeldExpenses(reportTransactions),
+            ownerLogin: getLoginByAccountID(report.ownerAccountID, personalDetailsList),
             bankAccountList,
             currentUserAccountID,
             login,

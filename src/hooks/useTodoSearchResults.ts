@@ -152,6 +152,7 @@ function useTodoSearchResults(searchKey: SearchKey | undefined): {data: TodoSear
         allReportNameValuePairs,
         allReportActions,
         allReportMetadata,
+        personalDetailsList,
         bankAccountList,
         currentUserAccountID: userAccountID,
         login,

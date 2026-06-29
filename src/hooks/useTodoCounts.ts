@@ -59,6 +59,7 @@ function useTodoCounts(enabled = true): {counts: TodoCounts; singleReportIDs: To
         allReportNameValuePairs,
         allReportActions,
         allReportMetadata,
+        personalDetailsList,
         bankAccountList,
         currentUserAccountID: userAccountID,
         login,
