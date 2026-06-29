@@ -15,10 +15,10 @@ import type {BulkPaySelectionData, PaymentData, SearchColumnType, SearchFilterKe
 import {exportReportsToPDF} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
+import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {deleteAppReport, exportReportToPDF, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
 import {
-    approveMoneyRequestOnSearch,
     exportSearchItemsToCSV,
     exportToIntegrationOnSearch,
     getExportTemplates,
@@ -29,6 +29,7 @@ import {
     getPolicyFromSearchSnapshot,
     getReportFromSearchSnapshot,
     getReportType,
+    getSearchApproveOnyxData,
     getSearchPayOnyxData,
     getTotalFormattedAmount,
     isCurrencySupportWalletBulkPay,
@@ -41,6 +42,7 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
@@ -50,6 +52,7 @@ import {
     getIntegrationIcon,
     getPolicyExpenseChat,
     getReportOrDraftReport,
+    hasViolations as hasViolationsReportUtils,
     isArchivedReport,
     isBusinessInvoiceRoom,
     isCurrentUserSubmitter,
@@ -349,7 +352,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {clearSelectedTransactions, selectAllMatchingItems} = useSearchSelectionActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountID, email, login: currentUserLogin, localCurrencyCode} = currentUserPersonalDetails;
-    const {introSelected, betas, isSelfTourViewed, activePolicyID, activePolicy, defaultWorkspaceName, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd} =
+    const {introSelected, betas, isSelfTourViewed, activePolicyID, activePolicy, defaultWorkspaceName, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd, delegateEmail} =
         usePaymentContext();
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -521,7 +524,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currentUserPersonalDetails.accountID,
     ]);
 
-    const {bulkPayButtonOptions, businessBankAccountOptions, shouldShowBusinessBankAccountOptions} = useBulkPayOptions({
+    const {bulkPayButtonOptions, businessBankAccountOptions} = useBulkPayOptions({
         selectedPolicyID: selectedPolicyIDs.at(0),
         selectedReportID: selectedTransactionReportIDs.at(0) ?? selectedReportIDs.at(0),
         isCurrencySupportedWallet: isCurrencySupportedBulkWallet,
@@ -787,13 +790,56 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         const reportIDList = !selectedReports.length
             ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
             : (selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? []);
-        approveMoneyRequestOnSearch(
-            hash,
-            reportIDList.filter((reportID) => reportID !== undefined),
-        );
-        InteractionManager.runAfterInteractions(() => {
-            clearSelectedTransactions();
-        });
+        const uniqueReportIDs = [...new Set(reportIDList.filter((reportID): reportID is string => reportID !== undefined))];
+        const searchData = searchResults?.data;
+        const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+
+        let approvedReportCount = 0;
+        for (const reportID of uniqueReportIDs) {
+            const expenseReport = getReportFromSearchSnapshot(reportID, searchData, allReports);
+            if (!expenseReport) {
+                continue;
+            }
+
+            const reportPolicy = getPolicyFromSearchSnapshot(expenseReport.policyID, searchData, policies);
+            const nextStep = allNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`];
+            const hasViolations = hasViolationsReportUtils(reportID, allTransactionViolations, accountID, email ?? '');
+            const policyToUpgrade = reportPolicy;
+            const wouldNavigateToUpgrade = isSubmitPolicy(policyToUpgrade) && !!policyToUpgrade?.id;
+            const wouldNavigateToRestricted =
+                !!expenseReport.policyID && shouldRestrictUserBillableActions(reportPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID);
+
+            approveMoneyRequest({
+                expenseReport,
+                expenseReportPolicy: reportPolicy,
+                currentUserAccountIDParam: accountID,
+                currentUserEmailParam: email ?? '',
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                expenseReportCurrentNextStepDeprecated: nextStep,
+                betas,
+                userBillingGracePeriodEnds,
+                amountOwed,
+                ownerBillingGracePeriodEnd,
+                delegateEmail,
+                full: true,
+                additionalOnyxData: getSearchApproveOnyxData(hash, reportID, currentSearchKey),
+                shouldPlaySuccessSound: false,
+            });
+
+            if (!wouldNavigateToUpgrade && !wouldNavigateToRestricted) {
+                approvedReportCount += 1;
+            }
+        }
+
+        if (approvedReportCount > 0) {
+            playSound(SOUNDS.SUCCESS);
+            TransitionTracker.runAfterTransitions({
+                callback: () => {
+                    clearSelectedTransactions();
+                },
+            });
+        }
     }, [
         isOffline,
         isDelegateAccessRestricted,
@@ -807,6 +853,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         amountOwed,
         policies,
         accountID,
+        email,
+        searchResults?.data,
+        allReports,
+        allNextSteps,
+        allTransactionViolations,
+        isBetaEnabled,
+        betas,
+        delegateEmail,
+        currentSearchKey,
     ]);
 
     const {expenseCount, uniqueReportCount} = useMemo(() => {
@@ -857,9 +912,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                         deleteAppReport({
                             report,
+                            reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`],
+                            parentReportAction: report?.parentReportActionID
+                                ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report?.parentReportActionID]
+                                : undefined,
                             selfDMReport,
-                            currentUserEmailParam: currentUserPersonalDetails?.email ?? '',
-                            currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
+                            currentUserEmailParam: email ?? '',
+                            currentUserAccountIDParam: accountID,
                             reportTransactions: validTransactions,
                             allTransactionViolations,
                             bankAccountList,
@@ -902,8 +961,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                         deleteAppReport({
                             report,
+                            reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`],
+                            parentReportAction: report?.parentReportActionID
+                                ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report?.parentReportActionID]
+                                : undefined,
                             selfDMReport,
-                            currentUserEmailParam: currentUserPersonalDetails?.email ?? '',
+                            currentUserEmailParam: email ?? '',
                             currentUserAccountIDParam: accountID,
                             reportTransactions: validTransactions,
                             allTransactionViolations: transactionsViolations,
@@ -922,14 +985,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         translate,
         allTransactions,
         allTransactionViolations,
+        allReportActions,
         accountID,
         selectedTransactions,
         bankAccountList,
         clearSelectedTransactions,
         allReports,
         selfDMReport,
-        currentUserPersonalDetails?.email,
-        currentUserPersonalDetails?.accountID,
+        email,
         isExpenseReportType,
         selectedReportIDs,
         deleteTransactionsFromHook,
@@ -1395,13 +1458,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     return false;
                 }
 
-                const reportExportOptions = getSecondaryExportReportActions(
-                    currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    currentUserPersonalDetails?.login ?? '',
-                    snapshotReport,
-                    bankAccountList,
-                    reportPolicy,
-                );
+                const reportExportOptions = getSecondaryExportReportActions(accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserLogin ?? '', snapshotReport, bankAccountList, reportPolicy);
 
                 return reportExportOptions.includes(exportOption);
             };
@@ -1748,7 +1805,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     for (const item of itemList) {
                         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
                         if (policy) {
-                            submitMoneyRequestOnSearch(hash, [item as Report], [policy]);
+                            submitMoneyRequestOnSearch(hash, [item as Report], [policy], getLoginByAccountID(item.ownerAccountID, personalDetails));
                         }
                     }
                     clearSelectedTransactions();
@@ -1865,8 +1922,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             selectedTransactions[transactionID].reportAction?.childReportID,
                             policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactions[transactionID].policyID}`],
                             isOffline,
-                            currentUserPersonalDetails?.login ?? '',
-                            currentUserPersonalDetails?.accountID,
+                            currentUserLogin ?? '',
+                            accountID,
                             transactionViolations,
                         );
                     }
@@ -1880,7 +1937,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         if (selectedTransactionsKeys.length < 3 && searchResults?.search.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && searchResults?.data) {
             const {transactions: searchedTransactions, reports, policies: transactionPolicies} = getTransactionsAndReportsFromSearch(searchResults, selectedTransactionsKeys);
 
-            if (isMergeActionForSelectedTransactions(searchedTransactions, reports, transactionPolicies, currentUserPersonalDetails.accountID)) {
+            if (isMergeActionForSelectedTransactions(searchedTransactions, reports, transactionPolicies, accountID)) {
                 const transactionID = searchedTransactions.at(0)?.transactionID;
                 if (transactionID) {
                     options.push({
@@ -2047,8 +2104,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         integrationsExportTemplates,
         csvExportLayouts,
         allReports,
-        currentUserPersonalDetails.accountID,
-        currentUserPersonalDetails?.login,
+        accountID,
+        currentUserLogin,
         bankAccountList,
         styles.integrationIcon,
         showConfirmModal,
@@ -2062,13 +2119,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         dismissedRejectUseExplanation,
         showDelegateNoAccessModal,
         bulkPayButtonOptions,
-        shouldShowBusinessBankAccountOptions,
         onBulkPaySelected,
         areAllTransactionsFromSubmitter,
         dismissedHoldUseExplanation,
         localeCompare,
         firstTransaction,
-        firstTransactionPolicy,
         isDuplicateOptionVisible,
         invokeDuplicateHandler,
         isDuplicateReportOptionVisible,
@@ -2089,11 +2144,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         transactions,
         isBetaEnabled,
         defaultExpensePolicy,
+        personalDetails,
         selfDMReportID,
         splitEffectivePolicy,
         restrictedActionPolicyID,
-        searchResults?.data,
-        accountID,
         deleteTransactionsFromHook,
         duplicateTransactionViolations,
         duplicateTransactions,

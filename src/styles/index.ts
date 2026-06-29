@@ -5103,8 +5103,10 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchActionsBarContainer: {
+            marginTop: 12,
             marginBottom: 16,
             paddingHorizontal: 20,
+            gap: 8,
             flexDirection: 'row',
             alignItems: 'flex-start',
             justifyContent: 'space-between',
@@ -5124,13 +5126,9 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: 28,
         },
 
-        searchPageInputWideTouchableWrapper: {height: 32, width: 200},
-        searchPageInputWidePlaceholder: {
-            // Extra 2 to account for the borders
-            height: 34,
-            width: 202,
-        },
-        searchPageInputNarrowTouchableWrapper: {height: 44},
+        // Extra 2 to account for the borders
+        searchPageInputWideTouchableWrapper: {height: 34, width: 202},
+        searchPageInputNarrowTouchableWrapper: {height: 46},
 
         walletStaticIllustration: {
             width: 262,
@@ -5911,13 +5909,6 @@ const staticStyles = (theme: ThemeColors) =>
             border: 'none',
         },
 
-        featureTrainingModalImage: {
-            width: '100%',
-            height: '100%',
-            borderTopLeftRadius: variables.componentBorderRadiusLarge,
-            borderTopRightRadius: variables.componentBorderRadiusLarge,
-        },
-
         twoColumnLayoutCol: {
             flexGrow: 1,
             flexShrink: 1,
@@ -6150,6 +6141,18 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.buttonBorderRadius,
             justifyContent: 'center',
             alignItems: 'center',
+        },
+        // Single-line code blocks keep the copy button tight to the corner.
+        codeBlockCopyButtonWrapper: {
+            position: 'absolute',
+            top: 4,
+            right: 4,
+        },
+        // Multi-line code blocks get extra breathing room around the copy button.
+        codeBlockCopyButtonWrapperMultiline: {
+            position: 'absolute',
+            top: 8,
+            right: 8,
         },
         moneyRequestView: {
             position: 'relative',

@@ -39,7 +39,7 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
                 style={[styles.searchActionsBar(true)]}
                 hoverStyle={styles.buttonHoveredBG}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_BUTTON}
-                onPress={() => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute())}
+                onPress={() => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS)}
             >
                 <Icon
                     src={expensifyIcons.Filter}

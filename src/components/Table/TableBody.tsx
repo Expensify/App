@@ -1,6 +1,6 @@
 import {FlashList} from '@shopify/flash-list';
 import React from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
@@ -65,6 +65,8 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         addOfflineIndicatorBottomSafeAreaPadding: true,
         style: shouldUseNarrowTableLayout ? styles.pb20 : styles.pb4,
     });
+    const {minHeight: contentMinHeight} = StyleSheet.flatten(contentContainerStyle) ?? {};
+    const {paddingBottom: tableBodyBottomPadding} = StyleSheet.flatten(tableBodyContentContainerStyle) ?? {};
 
     // Determine the message based on what caused the empty result
     const getEmptyMessage = () => {
@@ -92,7 +94,15 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
                 style={[styles.flex1, styles.mnh0]}
                 showsVerticalScrollIndicator={false}
                 maintainVisibleContentPosition={{disabled: true}}
-                contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flexGrow1, listContentContainerStyle, tableBodyContentContainerStyle, contentContainerStyle]}
+                contentContainerStyle={[
+                    filteredAndSortedData.length === 0 && styles.flexGrow1,
+                    listContentContainerStyle,
+                    tableBodyContentContainerStyle,
+                    contentContainerStyle,
+                    shouldUseNarrowTableLayout &&
+                        typeof contentMinHeight === 'number' &&
+                        typeof tableBodyBottomPadding === 'number' && {minHeight: contentMinHeight + tableBodyBottomPadding},
+                ]}
                 keyboardShouldPersistTaps="handled"
                 {...restListProps}
             />
