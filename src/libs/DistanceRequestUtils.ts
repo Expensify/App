@@ -379,9 +379,7 @@ function getCommuterExclusionData(
         const exclusionConfig = policy.commuterExclusions;
         if (exclusionConfig.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE && quantityInUnit > 0) {
             const fixedDistanceUnit: Unit =
-                exclusionConfig.fixedDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS
-                    ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS
-                    : CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+                exclusionConfig.fixedDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS : CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
             const fixedDistance = convertDistanceUnit(convertToDistanceInMeters(exclusionConfig.fixedDistance ?? 0, fixedDistanceUnit), distanceUnit);
             if (fixedDistance > 0) {
                 commuterExclusion = Math.min(fixedDistance, quantityInUnit);
