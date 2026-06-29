@@ -40,7 +40,6 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
         expect(cleanupAfterExpenseCreate).toHaveBeenCalledWith({
             draftTransactionIDs: ['txn-1'],
             linkedTrackedExpenseReportAction,
-            waitForUpcomingTransition: true,
         });
         expect(navigateAfterExpenseCreate).toHaveBeenCalledTimes(1);
     });
