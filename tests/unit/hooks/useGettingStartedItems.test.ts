@@ -625,7 +625,7 @@ describe('useGettingStartedItems', () => {
         it('should be shown when areRulesEnabled is true', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
-                policy: {areRulesEnabled: true},
+                policy: {areRulesEnabled: true, type: CONST.POLICY.TYPE.CORPORATE},
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
@@ -664,7 +664,7 @@ describe('useGettingStartedItems', () => {
         it('should navigate to workspace rules route', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
-                policy: {areRulesEnabled: true},
+                policy: {areRulesEnabled: true, type: CONST.POLICY.TYPE.CORPORATE},
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
@@ -677,7 +677,7 @@ describe('useGettingStartedItems', () => {
         it('should be not completed when workspace has default rules only', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
-                policy: {areRulesEnabled: true, rules: undefined, customRules: undefined},
+                policy: {areRulesEnabled: true, rules: undefined, customRules: undefined, type: CONST.POLICY.TYPE.CORPORATE},
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
@@ -692,6 +692,7 @@ describe('useGettingStartedItems', () => {
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {
                     areRulesEnabled: true,
+                    type: CONST.POLICY.TYPE.CORPORATE,
                     rules: {
                         approvalRules: [
                             {
@@ -716,6 +717,7 @@ describe('useGettingStartedItems', () => {
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {
                     areRulesEnabled: true,
+                    type: CONST.POLICY.TYPE.CORPORATE,
                     customRules: 'All expenses over $500 need manager approval',
                 },
             });
@@ -732,7 +734,7 @@ describe('useGettingStartedItems', () => {
         it('should return items in the correct order: createWorkspace, accounting/categories, companyCards, rules', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
-                policy: {areConnectionsEnabled: true, areCompanyCardsEnabled: true, areRulesEnabled: true},
+                policy: {areConnectionsEnabled: true, areCompanyCardsEnabled: true, areRulesEnabled: true, type: CONST.POLICY.TYPE.CORPORATE},
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
@@ -745,7 +747,7 @@ describe('useGettingStartedItems', () => {
         it('should return items in the correct order with categories instead of connect', async () => {
             await setupManageTeamScenario({
                 accounting: 'none',
-                policy: {areCategoriesEnabled: true, areCompanyCardsEnabled: true, areRulesEnabled: true},
+                policy: {areCategoriesEnabled: true, areCompanyCardsEnabled: true, areRulesEnabled: true, type: CONST.POLICY.TYPE.CORPORATE},
             });
 
             const {result} = renderHook(() => useGettingStartedItems());

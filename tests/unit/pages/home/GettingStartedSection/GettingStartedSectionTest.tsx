@@ -306,7 +306,7 @@ describe('GettingStartedSection', () => {
         });
 
         it('shows "Set up spend rules" row when rules feature is enabled', async () => {
-            await setManageTeamUserState({areRulesEnabled: true});
+            await setManageTeamUserState({areRulesEnabled: true, policyType: CONST.POLICY.TYPE.CORPORATE});
 
             renderGettingStartedSection();
             await waitForBatchedUpdates();
@@ -329,6 +329,7 @@ describe('GettingStartedSection', () => {
                 areAccountingEnabled: true,
                 areCompanyCardsEnabled: true,
                 areRulesEnabled: true,
+                policyType: CONST.POLICY.TYPE.CORPORATE,
             });
 
             renderGettingStartedSection();
@@ -445,7 +446,7 @@ describe('GettingStartedSection', () => {
         });
 
         it('navigates to workspace rules when "Set up spend rules" row is pressed', async () => {
-            await setManageTeamUserState({areRulesEnabled: true});
+            await setManageTeamUserState({areRulesEnabled: true, policyType: CONST.POLICY.TYPE.CORPORATE});
 
             renderGettingStartedSection();
             await waitForBatchedUpdates();
