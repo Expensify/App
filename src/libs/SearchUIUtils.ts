@@ -1165,6 +1165,15 @@ function getSuggestedSearchesVisibility(
     };
 }
 
+function getTodoSearches(currentUserAccountID: number | undefined): Partial<Record<SearchKey, SearchTypeMenuItem>> {
+    const suggestedSearches = getSuggestedSearches(currentUserAccountID);
+    const todoSearches: Partial<Record<SearchKey, SearchTypeMenuItem>> = {};
+    for (const searchKey of TODO_SEARCH_KEYS) {
+        todoSearches[searchKey] = suggestedSearches[searchKey];
+    }
+    return todoSearches;
+}
+
 function getVisibleTodoSearches(
     currentUserAccountID: number | undefined,
     currentUserEmail: string | undefined,
@@ -6364,6 +6373,7 @@ export {
     getListItem,
     getSections,
     getSuggestedSearchesVisibility,
+    getTodoSearches,
     getVisibleTodoSearches,
     getSortedSections,
     getViolationsFromSearchData,
