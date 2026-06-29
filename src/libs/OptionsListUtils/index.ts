@@ -3395,7 +3395,6 @@ export {
     orderOptions,
     orderPersonalDetailsOptions,
     orderWorkspaceOptions,
-    processReport,
     recentReportComparator,
     shouldOptionShowTooltip,
     shouldShowLastActorDisplayName,
