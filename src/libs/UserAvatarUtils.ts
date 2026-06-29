@@ -224,7 +224,7 @@ function isLetterAvatar(originalFileName?: string): boolean {
  * @returns True if the source is a string pointing to a generated letter avatar
  */
 function isGeneratedLetterAvatarURL(avatarSource?: AvatarSource): boolean {
-    return typeof avatarSource === 'string' && avatarSource.includes('/images/avatars/generated/letter/');
+    return typeof avatarSource === 'string' && avatarSource.includes(CONST.GENERATED_LETTER_AVATAR_PATH);
 }
 
 /**
@@ -281,7 +281,7 @@ function getLetterAvatarURL(accountID: number, firstName: string, lastName: stri
 
     const colorIndex = normalizedLogin !== '' ? parseInt(md5(normalizedLogin).substring(0, 4), 16) % LETTER_AVATAR_COLOR_KEYS.length : accountID % LETTER_AVATAR_COLOR_KEYS.length;
     const colorKey = LETTER_AVATAR_COLOR_KEYS.at(colorIndex) ?? LETTER_AVATAR_COLOR_KEYS.at(0);
-    return `${CONST.CLOUDFRONT_URL}/images/avatars/generated/letter/v1/${colorKey}/${initials}.png`;
+    return `${CONST.CLOUDFRONT_URL}${CONST.GENERATED_LETTER_AVATAR_PATH}v1/${colorKey}/${initials}.png`;
 }
 
 /**

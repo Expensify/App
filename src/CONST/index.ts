@@ -427,6 +427,8 @@ const CONST = {
     DEFAULT_GROUP_AVATAR_COUNT: 18,
     DEFAULT_AVATAR_COUNT: 24,
 
+    GENERATED_LETTER_AVATAR_PATH: '/images/avatars/generated/letter/',
+
     DISPLAY_NAME: {
         // This value is consistent with the BE display name max length limit.
         MAX_LENGTH: 100,
