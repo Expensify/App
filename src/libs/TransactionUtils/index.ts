@@ -1208,6 +1208,10 @@ function getReimbursable(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return transaction?.reimbursable ?? true;
 }
 
+function hasNonReimbursableTransactions(transactions: Transaction[]): boolean {
+    return transactions.some((transaction) => !getReimbursable(transaction));
+}
+
 /**
  * Return the mccGroup field from the transaction, return the modifiedMCCGroup if present.
  */
@@ -3063,6 +3067,7 @@ export {
     buildNewTransactionAfterReviewingDuplicates,
     buildMergeDuplicatesParams,
     getReimbursable,
+    hasNonReimbursableTransactions,
     isPayAtEndExpense,
     removeSettledAndApprovedTransactions,
     removeTransactionFromDuplicateTransactionViolation,

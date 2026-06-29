@@ -28,7 +28,6 @@ import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNum
 import {translateLocal} from './Localize';
 // eslint-disable-next-line import/no-cycle
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
-import {hasNonReimbursableTransactions} from './MoneyRequestReportUtils';
 import isTrackOnboardingChoice from './OnboardingUtils';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
@@ -126,7 +125,6 @@ import {
     isUnapprovedAction,
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
-// eslint-disable-next-line import/no-cycle
 import {
     formatReportLastMessageText,
     getDisplayNameForParticipant,
@@ -170,6 +168,7 @@ import {
     shouldShowMarkAsDone,
 } from './ReportUtils';
 import {getAddExpensifyCardRuleMessage, getRemoveExpensifyCardRuleMessage, getUpdateExpensifyCardRuleMessage} from './SpendRuleChangeLogUtils';
+import {hasNonReimbursableTransactions} from './TransactionUtils';
 
 type ComputeReportName = {
     report?: Report;

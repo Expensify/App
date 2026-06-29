@@ -31,7 +31,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {hasNonReimbursableTransactions as hasNonReimbursableTransactionsMoneyRequestReportUtils} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getInvoicePayerName, getReportName} from '@libs/ReportNameUtils';
@@ -57,7 +56,7 @@ import {startSpan} from '@libs/telemetry/activeSpans';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {compareByRBR} from '@libs/TransactionPreviewUtils';
-import {getCreated, hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
+import {getCreated, hasNonReimbursableTransactions as hasNonReimbursableTransactionsTransactionUtils, hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -171,7 +170,7 @@ function MoneyRequestReportPreviewContent({
         () => ({
             areAllRequestsBeingSmartScanned: areAllRequestsBeingSmartScannedReportUtils(iouReportID, action),
             hasOnlyTransactionsWithPendingRoutes: hasOnlyTransactionsWithPendingRoutesReportUtils(iouReportID),
-            hasNonReimbursableTransactions: hasNonReimbursableTransactionsMoneyRequestReportUtils(transactions),
+            hasNonReimbursableTransactions: hasNonReimbursableTransactionsTransactionUtils(transactions),
         }),
         [transactions, iouReportID, action],
     );

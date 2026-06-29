@@ -1,12 +1,12 @@
 import {render, screen} from '@testing-library/react-native';
 import React from 'react';
-import {Text} from 'react-native';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SearchResultsContext} from '@components/Search/SearchContextDefinitions';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
+import Text from '@components/Text';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 import SearchActionHeader from '@pages/inbox/report/SearchActionHeader';

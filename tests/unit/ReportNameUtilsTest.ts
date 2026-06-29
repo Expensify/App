@@ -24,14 +24,15 @@ import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 function groupTransactionsByReportID(transactions?: OnyxCollection<Transaction>): Record<string, Transaction[]> {
-    return Object.values(transactions ?? {}).reduce<Record<string, Transaction[]>>((all, transaction) => {
+    const grouped: Record<string, Transaction[]> = {};
+    Object.values(transactions ?? {}).forEach((transaction) => {
         if (!transaction?.reportID) {
-            return all;
+            return;
         }
-        all[transaction.reportID] ??= [];
-        all[transaction.reportID].push(transaction);
-        return all;
-    }, {});
+        grouped[transaction.reportID] ??= [];
+        grouped[transaction.reportID].push(transaction);
+    });
+    return grouped;
 }
 
 const currentUserLogin = 'lagertha2@vikings.net';

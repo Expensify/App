@@ -1898,6 +1898,20 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('hasNonReimbursableTransactions', () => {
+        it('returns false when all transactions are reimbursable by default', () => {
+            const t1 = generateTransaction({reimbursable: undefined});
+            const t2 = generateTransaction({reimbursable: true});
+            expect(TransactionUtils.hasNonReimbursableTransactions([t1, t2])).toBe(false);
+        });
+
+        it('returns true when any transaction is non-reimbursable', () => {
+            const reimbursable = generateTransaction({reimbursable: true});
+            const nonReimbursable = generateTransaction({reimbursable: false});
+            expect(TransactionUtils.hasNonReimbursableTransactions([reimbursable, nonReimbursable])).toBe(true);
+        });
+    });
+
     describe('getChildTransactions', () => {
         const originalTransactionID = 'original-123';
 
