@@ -3,6 +3,7 @@ import createTodosReportsAndTransactions, {buildTransactionsByReportID, getTodoR
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
+import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
@@ -44,10 +45,10 @@ const createMockPolicy = (policyID: string, overrides: Partial<Policy> = {}): Po
 });
 
 // Admin policy with a QBO connection whose auto-sync is disabled, so a report on it is manually exportable.
-// The `Connections` type requires an entry for every supported integration, so a single-integration literal can
-// only be supplied through an assertion - isolated here so it is the one such cast in this file.
+// `Policy['connections']` is typed as the full integration map, so the single-integration literal goes through
+// `createMock`, which type-checks the partial and isolates the one unavoidable assertion in that helper.
 const createPolicyWithQBOConnection = (policyID: string, {policyExporter, connectionExporter}: {policyExporter: string; connectionExporter: string}): Policy =>
-    ({
+    createMock<Policy>({
         ...createMockPolicy(policyID, {role: CONST.POLICY.ROLE.ADMIN, exporter: policyExporter}),
         connections: {
             [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
@@ -68,7 +69,7 @@ const createPolicyWithQBOConnection = (policyID: string, {policyExporter, connec
                 },
             },
         },
-    }) as unknown as Policy;
+    });
 
 const createMockTransaction = (transactionID: string, reportID: string, overrides: Partial<Transaction> = {}): Transaction =>
     ({
