@@ -89,7 +89,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
             setIsLoading(true);
             try {
-                // This path handles LOOKING_AROUND/EMPLOYER which only post tasks to concierge — adminsChatReport and selfDMReport are not needed.
                 await completeOnboardingReport({
                     engagementChoice: onboardingPurposeSelected,
                     onboardingMessage: onboardingMessages[onboardingPurposeSelected],
