@@ -10,7 +10,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import useSearchSelector from '@hooks/useSearchSelector';
+import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearInviteDraft, setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
 import {searchInServer} from '@libs/actions/Report';
@@ -77,12 +77,11 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         debouncedSearchTerm,
         availableOptions,
         areOptionsInitialized,
-    } = useSearchSelector({
+    } = usePersonalDetailSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
         includeUserToInvite: true,
         excludeLogins: excludedUsers,
-        includeRecentReports: true,
+        includeRecentReports: false,
         shouldInitialize: true,
     });
 
@@ -253,12 +252,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 }
             }
 
-            // Add search results that are not already workspace members
-            const searchResults = [...availableOptions.recentReports, ...availableOptions.personalDetails].filter((option) => {
-                const isMember = policy?.employeeList?.[normalizeLogin(option.login)];
-                const isAlreadyInList = members.some((m) => normalizeLogin(m.login) === normalizeLogin(option.login));
-                return !isMember && !isAlreadyInList;
-            });
+            // Add search results that aren't already in the list (selected approvers or userToInvite)
+            const searchResults = availableOptions.personalDetails.filter((option) => !members.some((m) => normalizeLogin(m.login) === normalizeLogin(option.login)));
 
             for (const option of searchResults) {
                 members.push({
@@ -283,7 +278,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         debouncedSearchTerm,
         areOptionsInitialized,
         availableOptions.userToInvite,
-        availableOptions.recentReports,
         availableOptions.personalDetails,
         icons.FallbackAvatar,
         policyMemberEmailsToAccountIDs,
