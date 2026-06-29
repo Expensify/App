@@ -20,6 +20,9 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
     // Only the focused screen should prompt — a flow-leave reset fires `beforeRemove` for hidden siblings too.
     const isFocused = useIsFocused();
     const isSavingRef = useRef(false);
+    useFocusEffect(() => {
+        isSavingRef.current = false;
+    });
     const hasUnsavedChanges = () => isFocused && !isSavingRef.current && getHasUnsavedChanges();
 
     const showDiscardModal = (blockedAction?: NavigationAction) => {
@@ -75,7 +78,6 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
     // A tab-switch hardware back is an index-only TabRouter change that never fires `beforeRemove`, so intercept it here,
     // ahead of react-navigation's container handler (BackHandler runs listeners newest-first).
     useFocusEffect(() => {
-        isSavingRef.current = false;
         const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
             if (isDiscardModalOpen.current) {
                 return true;
