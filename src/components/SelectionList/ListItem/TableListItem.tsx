@@ -1,9 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
-import ReportActionAvatars from '@components/ReportActionAvatars';
+import UserAvatar from '@components/Avatars/UserAvatar';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -38,7 +37,6 @@ function TableListItem<TItem extends ListItem>({
 }: TableListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const StyleUtils = useStyleUtils();
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: styles.selectionListPressableItemWrapper.borderRadius,
@@ -47,21 +45,13 @@ function TableListItem<TItem extends ListItem>({
         backgroundColor: theme.highlightBG,
     });
 
-    const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-    const hoveredBackgroundColor = styles.sidebarLinkHover?.backgroundColor ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
-
-    const rowContent = (hovered: boolean) => (
+    const rowContent = () => (
         <>
             {!!item.accountID && (
-                <ReportActionAvatars
-                    accountIDs={[item.accountID]}
+                <UserAvatar
+                    accountID={item.accountID}
                     fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
                     shouldShowTooltip={showTooltip}
-                    secondaryAvatarContainerStyle={[
-                        StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                        isFocusVisible ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                        hovered && !isFocusVisible ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                    ]}
                 />
             )}
             <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, titleContainerStyles]}>
