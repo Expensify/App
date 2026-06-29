@@ -3459,6 +3459,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         transactions: [transaction],
                         bankAccountList: {},
                         reportMetadata: undefined,
+                        ownerLogin: employeeEmail,
                     });
                     expect(previewAction).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
                 });

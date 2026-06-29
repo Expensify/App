@@ -1,5 +1,5 @@
 import lodashPick from 'lodash/pick';
-import React, {useEffect} from 'react';
+import React, {useContext, useEffect} from 'react';
 import type {Ref} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
@@ -7,6 +7,7 @@ import ContactPermissionModal from '@components/ContactPermissionModal';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
@@ -139,13 +140,21 @@ function ParticipantSearchResults({
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {
+        selector: expensifyLoginsSelector,
+    });
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserLogin = currentUserPersonalDetails.login;
     const reportAttributesDerived = useReportAttributes();
     const privateIsArchivedMap = usePrivateIsArchivedMap();
+
+    // When the surrounding ScreenWrapper runs in edge-to-edge mode (e.g. the new manual expense flow's ParticipantPicker),
+    // it does not apply bottom safe area padding itself, so the fixed footer must consume it. Otherwise the footer
+    // (referral banner / Next button) renders behind the system navigation bar.
+    const screenWrapperStatusContext = useContext(ScreenWrapperStatusContext);
+    const addBottomSafeAreaPadding = !(screenWrapperStatusContext?.isSafeAreaBottomPaddingApplied ?? false);
 
     // Policy and billing data — owned here, used for getValidOptionsConfig and billing gate in onSelectRow
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -156,7 +165,9 @@ function ParticipantSearchResults({
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
 
-    const {isDismissed: isDismissedReferralBanner} = useDismissedReferralBanners({referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE});
+    const {isDismissed: isDismissedReferralBanner} = useDismissedReferralBanners({
+        referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE,
+    });
 
     const isGroupPolicy = isGroupPolicyUtil(policy);
     const activeAdminWorkspaces = getActiveAdminWorkspaces(allPolicies, currentUserLogin);
@@ -271,7 +282,10 @@ function ParticipantSearchResults({
         const selectedParticipantKeys = new Set(participants.map((participant) => getParticipantOptionKey(participant)).filter(Boolean));
         const formatResults = formatSectionsFromSearchTerm(
             searchTerm,
-            participants.map((participant) => ({...participant, reportID: participant.reportID})) as OptionData[],
+            participants.map((participant) => ({
+                ...participant,
+                reportID: participant.reportID,
+            })) as OptionData[],
             [],
             [],
             privateIsArchivedMap,
@@ -514,7 +528,7 @@ function ParticipantSearchResults({
                     />
                 }
                 footerContent={footerContent}
-                addBottomSafeAreaPadding
+                addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                 listEmptyContent={EmptySelectionListContentWithPermission}
                 shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                 shouldShowTextInput
