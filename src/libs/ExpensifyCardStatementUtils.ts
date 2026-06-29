@@ -196,11 +196,11 @@ function downloadExpensifyCardStatementPDF(
     currentUserEmail: string,
     encryptedAuthToken: string,
     environment: EnvironmentType,
-): Promise<void> {
+): void {
     const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
     const downloadFileName = `Expensify_Card_Statement_${statementKey}.pdf`;
     const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(downloadFileName)}&email=${encodeURIComponent(currentUserEmail)}`;
-    return fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, encryptedAuthToken, true), downloadFileName, '');
+    fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, encryptedAuthToken, true), downloadFileName, '');
 }
 
 export type {ExpensifyCardStatementParams};
