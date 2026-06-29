@@ -9,7 +9,7 @@ import type CONST from '@src/CONST';
  * - The right operand is the literal value the field is compared against. For email-typed
  *   fields like `from`, the value may be a list of emails to match against.
  */
-type ApprovalWorkflowFilterOperand = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | string | number | string[];
+type ApprovalWorkflowFilterOperand = string | number | string[];
 
 /**
  * A single comparison node: `<left> <operator> <right>`.
