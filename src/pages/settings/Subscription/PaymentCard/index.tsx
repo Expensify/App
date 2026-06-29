@@ -43,7 +43,6 @@ function AddPaymentCard() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const privateSubscription = usePrivateSubscription();
-    useNavigateToCardAuthenticationOnLink();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
@@ -77,6 +76,8 @@ function AddPaymentCard() {
                   convertToShortDisplayString(subscriptionPrice, preferredCurrency),
                   convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
               );
+
+    useNavigateToCardAuthenticationOnLink();
 
     useEffect(() => {
         clearPaymentCardFormErrorAndSubmit();

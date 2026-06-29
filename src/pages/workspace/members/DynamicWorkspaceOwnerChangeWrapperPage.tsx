@@ -38,7 +38,6 @@ function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.path);
-    useNavigateToCardAuthenticationOnLink();
     const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const policyID = route.params.policyID;
@@ -47,6 +46,8 @@ function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isAuthRequired = privateStripeCustomerID?.status === CONST.STRIPE_SCA_AUTH_STATUSES.CARD_AUTHENTICATION_REQUIRED;
     const shouldShowPaymentCardForm = error === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD || isAuthRequired;
+
+    useNavigateToCardAuthenticationOnLink();
 
     useEffect(() => {
         if (isLoadingPolicy || policy?.isChangeOwnerFailed || policy?.isChangeOwnerSuccessful) {

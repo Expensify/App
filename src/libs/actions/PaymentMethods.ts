@@ -302,7 +302,7 @@ function setVerify3dsSubscriptionSource(source?: string) {
  * Updates verify3dsSubscription Onyx key with a new authentication link for 3DS.
  */
 function addPaymentCardSCA(params: AddPaymentCardParams, onyxData: OnyxData<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM> = {}, source?: string) {
-    setVerify3dsSubscriptionSource(source);
+    prepareCardAuthentication(source);
     API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD_SCA, params, onyxData);
 }
 
@@ -334,11 +334,24 @@ function clearPaymentCard3dsVerification() {
 }
 
 /**
+ * Begin a NEW 3DS attempt: drop any stale link so the backend's next link (even an identical one)
+ * registers as a change and reopens the challenge, and record which screen initiated it. No-ops without
+ * a source — the in-place finalize/re-verify case, which must leave the active link untouched.
+ */
+function prepareCardAuthentication(source?: string) {
+    if (!source) {
+        return;
+    }
+    clearPaymentCard3dsVerification();
+    setVerify3dsSubscriptionSource(source);
+}
+
+/**
  * Properly updates the nvp_privateStripeCustomerID onyx data for 3DS payment
  *
  */
 function verifySetupIntent(accountID: number, isVerifying = true, source?: string) {
-    setVerify3dsSubscriptionSource(source);
+    prepareCardAuthentication(source);
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.SUBSCRIPTION_VERIFY_SETUP_INTENT_PENDING>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -663,10 +676,9 @@ export {
     clearAddPaymentMethodError,
     clearWalletError,
     setPaymentMethodCurrency,
-    clearPaymentCard3dsVerification,
     clearWalletTermsError,
     verifySetupIntent,
     addPaymentCardSCA,
-    setVerify3dsSubscriptionSource,
+    prepareCardAuthentication,
     setInvoicingTransferBankAccount,
 };
