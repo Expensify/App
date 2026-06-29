@@ -378,4 +378,4 @@ function navigateAfterExpenseCreate({
 }
 
 export default navigateAfterExpenseCreate;
-export {showExpenseAddedGrowl, surfaceExpenseCreatedFeedback};
+export {surfaceExpenseCreatedFeedback};

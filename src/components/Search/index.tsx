@@ -1037,7 +1037,6 @@ function Search({
                             ListFooterComponent={listFooterComponent}
                             onLayout={onLayout}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                            newTransactions={newTransactions}
                             hasLoadedAllTransactions={hasLoadedAllTransactions}
                             isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
@@ -1063,7 +1062,6 @@ function Search({
                             onLayout={onLayout}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
-                            newTransactions={newTransactions}
                             hasLoadedAllTransactions={hasLoadedAllTransactions}
                             isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}

@@ -7505,6 +7505,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             agentRules: {
                 title: 'Regole agente',
                 subtitle: 'Imposta le regole su come gli agenti IA gestiscono le spese in questo spazio di lavoro.',
+                enforcedBy: 'Le regole degli agenti sono applicate da',
+                ruleBotName: 'RuleBot',
                 addRule: 'Aggiungi regola agente',
                 findRule: 'Trova regola agente',
                 addRuleTitle: 'Aggiungi regola',
