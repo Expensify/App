@@ -1,5 +1,5 @@
 import lodashPick from 'lodash/pick';
-import React, {useEffect} from 'react';
+import React, {useContext, useEffect} from 'react';
 import type {Ref} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
@@ -7,6 +7,7 @@ import ContactPermissionModal from '@components/ContactPermissionModal';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
@@ -146,6 +147,12 @@ function ParticipantSearchResults({
     const currentUserLogin = currentUserPersonalDetails.login;
     const reportAttributesDerived = useReportAttributes();
     const privateIsArchivedMap = usePrivateIsArchivedMap();
+
+    // When the surrounding ScreenWrapper runs in edge-to-edge mode (e.g. the new manual expense flow's ParticipantPicker),
+    // it does not apply bottom safe area padding itself, so the fixed footer must consume it. Otherwise the footer
+    // (referral banner / Next button) renders behind the system navigation bar.
+    const screenWrapperStatusContext = useContext(ScreenWrapperStatusContext);
+    const addBottomSafeAreaPadding = !(screenWrapperStatusContext?.isSafeAreaBottomPaddingApplied ?? false);
 
     // Policy and billing data — owned here, used for getValidOptionsConfig and billing gate in onSelectRow
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -514,6 +521,7 @@ function ParticipantSearchResults({
                     />
                 }
                 footerContent={footerContent}
+                addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                 listEmptyContent={EmptySelectionListContentWithPermission}
                 shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                 shouldShowTextInput
