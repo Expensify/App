@@ -12,7 +12,7 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import WorkspacePerDiemTable from '@components/Tables/WorkspacePerDiemTable';
-import type {PerDiemTableRowData} from '@components/Tables/WorkspacePerDiemTable/WorkspacePerDiemTableRow';
+import type {PerDiemTableRowData} from '@components/Tables/WorkspacePerDiemTable';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';

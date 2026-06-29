@@ -1,16 +1,29 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
+import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 import Table from '@components/Table';
-import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import WorkspacePerDiemTableRow from './WorkspacePerDiemTableRow';
-import type {PerDiemTableRowData} from './WorkspacePerDiemTableRow';
 
 type PerDiemTableColumnKey = 'destination' | 'subrate' | 'amount' | 'actions';
+
+type PerDiemTableRowData = TableData & {
+    subRateID: string;
+    rateID: string;
+    destination: string;
+    subRateName: string;
+    rate: number;
+    formattedAmount: string;
+    disabled?: boolean;
+    pendingAction?: OnyxCommon.PendingAction;
+    action: () => void;
+};
 
 type WorkspacePerDiemTableProps = {
     perDiemData: PerDiemTableRowData[];
@@ -20,7 +33,8 @@ type WorkspacePerDiemTableProps = {
     EmptyStateComponent: React.ReactElement;
 };
 
-function WorkspacePerDiemTable({perDiemData, selectionEnabled, selectedKeys, onRowSelectionChange, EmptyStateComponent}: WorkspacePerDiemTableProps) {
+export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, selectedKeys, onRowSelectionChange, EmptyStateComponent}: WorkspacePerDiemTableProps) {
+    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
@@ -28,7 +42,14 @@ function WorkspacePerDiemTable({perDiemData, selectionEnabled, selectedKeys, onR
     const columns: Array<TableColumn<PerDiemTableColumnKey>> = [
         {key: 'destination', label: translate('common.destination'), sortable: true},
         {key: 'subrate', label: translate('common.subrate'), sortable: true},
-        {key: 'amount', label: translate('workspace.perDiem.amount'), sortable: true},
+        {
+            key: 'amount',
+            label: translate('workspace.perDiem.amount'),
+            sortable: true,
+            styling: {
+                containerStyles: [styles.justifyContentEnd],
+            },
+        },
         {key: 'actions', label: '', sortable: false, width: variables.tableCaretColumnWidth},
     ];
 
@@ -78,7 +99,6 @@ function WorkspacePerDiemTable({perDiemData, selectionEnabled, selectedKeys, onR
 
     const renderItem = ({item, index}: ListRenderItemInfo<PerDiemTableRowData>) => (
         <WorkspacePerDiemTableRow
-            key={item.subRateID}
             item={item}
             rowIndex={index}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
@@ -115,4 +135,4 @@ function WorkspacePerDiemTable({perDiemData, selectionEnabled, selectedKeys, onR
     );
 }
 
-export default WorkspacePerDiemTable;
+export type {PerDiemTableRowData, PerDiemTableColumnKey};

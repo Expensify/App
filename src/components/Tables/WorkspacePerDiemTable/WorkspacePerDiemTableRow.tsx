@@ -2,30 +2,22 @@ import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
-import type {TableData} from '@components/Table';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-
-type PerDiemTableRowData = TableData & {
-    subRateID: string;
-    rateID: string;
-    destination: string;
-    subRateName: string;
-    rate: number;
-    formattedAmount: string;
-    disabled?: boolean;
-    pendingAction?: OnyxCommon.PendingAction;
-    action: () => void;
-};
+import type {PerDiemTableRowData} from '.';
 
 type WorkspacePerDiemTableRowProps = {
+    /** Data about the per diem subrate */
     item: PerDiemTableRowData;
+
+    /** The index of the row relative to all other rows */
     rowIndex: number;
+
+    /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
 };
 
@@ -45,6 +37,7 @@ function WorkspacePerDiemTableRow({item, rowIndex, shouldUseNarrowTableLayout}: 
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.ROW}
             offlineWithFeedback={{
                 pendingAction: item.pendingAction,
+                shouldHideOnDelete: false,
             }}
             onPress={item.action}
         >
@@ -53,10 +46,12 @@ function WorkspacePerDiemTableRow({item, rowIndex, shouldUseNarrowTableLayout}: 
                     {shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1, styles.justifyContentCenter]}>
                             <TextWithTooltip
+                                shouldShowTooltip
                                 text={item.destination}
                                 style={[styles.optionDisplayName, styles.pre]}
                             />
                             <TextWithTooltip
+                                shouldShowTooltip
                                 text={[item.subRateName, item.formattedAmount].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `)}
                                 numberOfLines={1}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mt1]}
@@ -67,6 +62,7 @@ function WorkspacePerDiemTableRow({item, rowIndex, shouldUseNarrowTableLayout}: 
                     {!shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1]}>
                             <TextWithTooltip
+                                shouldShowTooltip
                                 numberOfLines={1}
                                 text={item.destination}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
@@ -77,6 +73,7 @@ function WorkspacePerDiemTableRow({item, rowIndex, shouldUseNarrowTableLayout}: 
                     {!shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1]}>
                             <TextWithTooltip
+                                shouldShowTooltip
                                 numberOfLines={1}
                                 text={item.subRateName}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
@@ -87,6 +84,7 @@ function WorkspacePerDiemTableRow({item, rowIndex, shouldUseNarrowTableLayout}: 
                     {!shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1, styles.alignItemsEnd]}>
                             <TextWithTooltip
+                                shouldShowTooltip
                                 numberOfLines={1}
                                 text={item.formattedAmount}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
@@ -108,4 +106,3 @@ function WorkspacePerDiemTableRow({item, rowIndex, shouldUseNarrowTableLayout}: 
 }
 
 export default WorkspacePerDiemTableRow;
-export type {PerDiemTableRowData};
