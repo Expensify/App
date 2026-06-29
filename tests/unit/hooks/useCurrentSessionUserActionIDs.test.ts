@@ -38,7 +38,7 @@ describe('useCurrentSessionUserActionIDs', () => {
         const settled = buildAction({reportActionID: '100', created: skewedCreated, pendingAction: undefined});
         rerender({actions: [settled]});
 
-        // Then the message is still recognised as a current-session message.
+        // Then the message is still recognized as a current-session message.
         expect(result.current.has('100')).toBe(true);
     });
 
