@@ -7,8 +7,8 @@
  * go beyond the disables already present on `main`, so a new bypass can be re-elevated to an error
  * at the runner level — where no disable directive can reach it.
  */
-import path from 'node:path';
 import type {ESLint} from 'eslint';
+import path from 'node:path';
 
 /** Rule id of the Onyx.connect() ban, as exposed through eslint-plugin-rulesdir. */
 const BANNED_RULE_ID = 'rulesdir/no-onyx-connect';

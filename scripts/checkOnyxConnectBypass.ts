@@ -47,12 +47,16 @@ async function loadNoOnyxConnectRule(): Promise<Rule.RuleModule> {
 
 /** Files among the lint targets that contain both an Onyx.connect() call and an eslint-disable. */
 function findCandidateFiles(targets: string[]): string[] {
-    const pathspecs = targets.length > 0 ? targets : ['.'];
+    const pathSpecs = targets.length > 0 ? targets : ['.'];
     try {
-        const output = execFileSync('git', ['grep', '-lI', '-F', '--all-match', '--untracked', '--no-recurse-submodules', '-e', 'Onyx.connect(', '-e', 'eslint-disable', '--', ...pathspecs], {
-            cwd: projectRoot,
-            encoding: 'utf8',
-        });
+        const output = execFileSync(
+            'git',
+            ['grep', '-lI', '-F', '--all-match', '--untracked', '--no-recurse-submodules', '-e', 'Onyx.connect(', '-e', 'eslint-disable', '--', ...pathSpecs],
+            {
+                cwd: projectRoot,
+                encoding: 'utf8',
+            },
+        );
         return output.split('\n').filter(Boolean);
     } catch (error: unknown) {
         // git grep exits 1 when nothing matches; anything else is a real failure.
