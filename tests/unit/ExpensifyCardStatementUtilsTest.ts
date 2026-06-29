@@ -53,6 +53,40 @@ describe('ExpensifyCardStatementUtils', () => {
         expect(isExpensifyCardStatementSearch({...expensifyCardStatementQueryJSON, groupBy: undefined})).toBe(false);
     });
 
+    it('requires a positive, exclusive expensify-card withdrawal-type filter', () => {
+        // Negated (NOT expensify-card) can show non-card withdrawal groups.
+        const negated: SearchQueryJSON = {
+            ...expensifyCardStatementQueryJSON,
+            flatFilters: [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD}]}],
+        };
+        expect(isExpensifyCardStatementSearch(negated)).toBe(false);
+
+        // Mixed with another withdrawal type can show reimbursement groups too.
+        const mixed: SearchQueryJSON = {
+            ...expensifyCardStatementQueryJSON,
+            flatFilters: [
+                {
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
+                    filters: [
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT},
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD},
+                    ],
+                },
+            ],
+        };
+        expect(isExpensifyCardStatementSearch(mixed)).toBe(false);
+    });
+
+    it('hides the export when the search is filtered to multiple workspaces', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions = makeSettlementSelection(groupKey, 2);
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
+        // policyID:A,B scopes the search to a subset of workspaces, which can't be honored as a statement scope.
+        const multiPolicyQueryJSON: SearchQueryJSON = {...scopedQueryJSON, policyID: ['policy1', 'policy2']};
+
+        expect(getExpensifyCardStatementSelection(multiPolicyQueryJSON, selectedTransactions, searchData)).toBeUndefined();
+    });
+
     it('returns undefined when no selected transaction maps to a settlement group', () => {
         // A plain transaction key (not group_-prefixed) can't resolve to a settlement.
         const selectedTransactions: SelectedTransactions = {

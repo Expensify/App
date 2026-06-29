@@ -79,6 +79,13 @@ function getScopedPolicyID(queryJSON: SearchQueryJSON | undefined): string | und
     return policyID?.length === 1 ? policyID.at(0) : undefined;
 }
 
+// True when the search is filtered to more than one workspace. The statement can scope to one workspace or the whole
+// settlement, but not to an arbitrary subset, so a multi-workspace filter (e.g. policyID:A,B) cannot be honored - the
+// on-screen rows would be A/B while an unscoped export would include every workspace in the settlement.
+function hasMultipleScopedPolicies(queryJSON: SearchQueryJSON | undefined): boolean {
+    return Array.isArray(queryJSON?.policyID) && queryJSON.policyID.length > 1;
+}
+
 function hasOnlyStatementScopeFilters(queryJSON: SearchQueryJSON | undefined): boolean {
     if (!queryJSON) {
         return true;
@@ -145,6 +152,12 @@ function getExpensifyCardStatementSelection(
     // A transaction-narrowing filter (merchant, category, amount, etc.) would make the PDF disagree with the
     // on-screen rows, so the export is only offered for the unfiltered settlement view (workspace scope aside).
     if (!hasOnlyStatementScopeFilters(queryJSON)) {
+        return undefined;
+    }
+
+    // A multi-workspace filter cannot be scoped to a statement and must not silently fall back to an unscoped export
+    // (which would include workspaces outside the filter), so hide the action entirely.
+    if (hasMultipleScopedPolicies(queryJSON)) {
         return undefined;
     }
 
