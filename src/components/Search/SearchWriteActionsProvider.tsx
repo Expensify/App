@@ -18,7 +18,6 @@ import {
     isTransactionListItemType,
     isTransactionReportGroupListItemType,
 } from '@libs/SearchUIUtils';
-import {farthestEndFromAnchor} from '@libs/shiftRangeSelection';
 import type {ShiftRangeBatch} from '@libs/shiftRangeSelection';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -465,31 +464,15 @@ function SearchWriteActionsProvider({
             return;
         }
 
-        // Shift+click routes through the range hook. Group headers redirect to the group child farthest from the anchor.
-        if (options?.shiftKey && isTransactionGroupListItemType(item) && item.transactions && item.transactions.length > 0) {
-            const firstChild = item.transactions.at(0);
-            const lastChild = item.transactions.at(-1);
-            if (firstChild && lastChild) {
-                const anchorKey = rangeApi.getAnchorKey();
-                const anchorIdx = anchorKey ? flattenedShiftRangeItems.findIndex((row) => row.keyForList === anchorKey) : -1;
-                const firstIdx = flattenedShiftRangeItems.findIndex((row) => row.keyForList === firstChild.keyForList);
-                const lastIdx = flattenedShiftRangeItems.findIndex((row) => row.keyForList === lastChild.keyForList);
-                const target = farthestEndFromAnchor(firstIdx, lastIdx, anchorIdx) === 'first' ? firstChild : lastChild;
-                if (rangeApi.applyShiftClick(target, options)) {
-                    return;
-                }
-            }
-        }
+        // The hook rejects headers as range targets, so a shift+click on one falls through to the normal group toggle below.
         if (rangeApi.applyShiftClick(item, options)) {
             return;
         }
 
-        // The hook rejects group headers; anchor the next shift+click on a selectable child instead.
-        const anchorSource: SearchData[number] =
-            hasValidGroupBy && isTransactionGroupListItemType(item) && item.transactions && item.transactions.length > 0
-                ? (item.transactions.find((transaction) => !isTransactionPendingDelete(transaction)) ?? item)
-                : item;
-        rangeApi.notifyAnchor(anchorSource);
+        // Headers don't move the anchor, so a later shift+click continues from the last row clicked.
+        if (!isShiftRangeHeaderItem(item)) {
+            rangeApi.notifyAnchor(item);
+        }
 
         if (isTransactionListItemType(item)) {
             if (!item.keyForList || isTransactionPendingDelete(item)) {

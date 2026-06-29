@@ -62,7 +62,7 @@ import {
 } from '@libs/ReportUtils';
 import type {SortableColumnName} from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, getTableMinWidth, hasFlexColumn, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
-import {applyShiftRangeBatchToKeySet, farthestEndFromAnchor} from '@libs/shiftRangeSelection';
+import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
 import type {Modifiers} from '@libs/shiftRangeSelection';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {transactionHasRBR} from '@libs/TransactionPreviewUtils';
@@ -554,37 +554,18 @@ function MoneyRequestReportTransactionList({
     }, [groupedTransactions, selectedTransactionIDs]);
 
     const toggleGroupSelection = useCallback(
-        (groupKey: string, options?: Partial<Modifiers>) => {
+        // Shift is intentionally ignored on group headers — they always toggle the whole group.
+        (groupKey: string) => {
             const group = groupedTransactions.find((g) => g.groupKey === groupKey);
             if (!group) {
                 return;
             }
             const selectableChildren = group.transactions.filter((t) => !isTransactionPendingDelete(t));
-
-            if (options?.shiftKey && selectableChildren.length > 0) {
-                const firstChild = selectableChildren.at(0);
-                const lastChild = selectableChildren.at(-1);
-                if (firstChild && lastChild) {
-                    const anchorKey = rangeApi.getAnchorKey();
-                    const anchorIdx = anchorKey ? visualOrderTransactions.findIndex((t) => t.transactionID === anchorKey) : -1;
-                    const firstIdx = visualOrderTransactions.findIndex((t) => t.transactionID === firstChild.transactionID);
-                    const lastIdx = visualOrderTransactions.findIndex((t) => t.transactionID === lastChild.transactionID);
-                    const target = farthestEndFromAnchor(firstIdx, lastIdx, anchorIdx) === 'first' ? firstChild : lastChild;
-                    if (rangeApi.applyShiftClick(target, options)) {
-                        return;
-                    }
-                }
-            }
-
             const groupTransactionIDs = selectableChildren.map((t) => t.transactionID);
             const anySelected = groupTransactionIDs.some((id) => selectedTransactionIDs.includes(id));
             setSelectedTransactions(anySelected ? selectedTransactionIDs.filter((id) => !groupTransactionIDs.includes(id)) : [...selectedTransactionIDs, ...groupTransactionIDs]);
-            const firstChild = selectableChildren.at(0);
-            if (firstChild) {
-                rangeApi.notifyAnchor(firstChild);
-            }
         },
-        [groupedTransactions, selectedTransactionIDs, setSelectedTransactions, rangeApi, visualOrderTransactions],
+        [groupedTransactions, selectedTransactionIDs, setSelectedTransactions],
     );
 
     /**

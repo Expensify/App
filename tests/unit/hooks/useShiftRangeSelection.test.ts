@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
-import {applyShiftRangeBatchToKeySet, farthestEndFromAnchor, getModifierKeysFromEvent} from '@libs/shiftRangeSelection';
+import {applyShiftRangeBatchToKeySet, getModifierKeysFromEvent} from '@libs/shiftRangeSelection';
 import type {ShiftRangeBatch} from '@libs/shiftRangeSelection';
 
 type Row = {keyForList: string; isHeader?: boolean; isDisabled?: boolean};
@@ -634,19 +634,5 @@ describe('applyShiftRangeBatchToKeySet', () => {
         type WithNullKey = {keyForList: string | null};
         const out = applyShiftRangeBatchToKeySet<WithNullKey, string>({toSelect: [{keyForList: null}, {keyForList: 'c'}], toDeselect: []}, ['a'], (i) => i.keyForList);
         expect(out).toEqual(['a', 'c']);
-    });
-});
-
-describe('farthestEndFromAnchor', () => {
-    it('returns last when the anchor is above the group', () => {
-        expect(farthestEndFromAnchor(3, 6, 0)).toBe('last');
-    });
-
-    it('returns first when the anchor is below the group', () => {
-        expect(farthestEndFromAnchor(3, 6, 10)).toBe('first');
-    });
-
-    it('returns last when there is no anchor', () => {
-        expect(farthestEndFromAnchor(3, 6, -1)).toBe('last');
     });
 });
