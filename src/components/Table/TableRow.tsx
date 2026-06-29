@@ -47,6 +47,9 @@ type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible'> & {
 
     /** Custom element to render in place of the selection checkbox (e.g. a lock icon for non-selectable rows) */
     checkboxReplacementElement?: React.ReactNode;
+
+    /** Optional content rendered below the row grid */
+    rowFooter?: React.ReactNode;
 };
 
 export default function TableRow({
@@ -62,6 +65,7 @@ export default function TableRow({
     onPress,
     offlineWithFeedback,
     checkboxReplacementElement,
+    rowFooter,
     ...props
 }: TableRowProps) {
     useSkeletonSpan('TableRowSkeleton', skeletonReasonAttributes);
@@ -69,7 +73,8 @@ export default function TableRow({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
+    const shouldEnableMobileSelectionLongPress = shouldUseNarrowLayout && !isInNarrowPaneModal;
     const {processedData, columns, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, isMobileSelectionEnabled} = useTableContext();
 
     const item = processedData.at(rowIndex);
@@ -172,7 +177,7 @@ export default function TableRow({
     };
 
     const handleRowLongPress = () => {
-        if (isDisabled || item.disabled || !selectionEnabled || isMobileSelectionEnabled || !shouldUseNarrowLayout || !interactive || item.isSelectionDisabled) {
+        if (isDisabled || item.disabled || !selectionEnabled || isMobileSelectionEnabled || !shouldEnableMobileSelectionLongPress || !interactive || item.isSelectionDisabled) {
             return;
         }
 
@@ -247,6 +252,8 @@ export default function TableRow({
                                 {renderChildren(state)}
                             </View>
                         )}
+
+                        {rowFooter}
 
                         {!!offlineWithFeedback?.errors && (
                             <ErrorMessageRow
