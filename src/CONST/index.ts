@@ -1750,7 +1750,6 @@ const CONST = {
             THREAD_DISABLED: ['CREATED'],
             LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD: 2000,
             ACTION_VISIBLE_THRESHOLD: 250,
-            LINKED_MESSAGE_OFFSET: 40,
             MAX_GROUPING_TIME: 300000,
         },
         CANCEL_PAYMENT_REASONS: {
@@ -6804,6 +6803,7 @@ const CONST = {
             TAX_RATE: 'taxRate',
             CARD_ID: 'cardID',
             FEED: 'feed',
+            BANK_ACCOUNT: 'bankAccount',
             REPORT_ID: 'reportID',
             KEYWORD: 'keyword',
             IN: 'in',
@@ -6880,6 +6880,7 @@ const CONST = {
             TAX_RATE: 'tax-rate',
             CARD_ID: 'card',
             FEED: 'feed',
+            BANK_ACCOUNT: 'bank-account',
             REPORT_ID: 'report-id',
             KEYWORD: 'keyword',
             IN: 'in',
@@ -8362,7 +8363,6 @@ const CONST = {
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceRules-BulkActionsDropdown',
             },
             EXPENSIFY_CARD: {
-                ROW: 'WorkspaceExpensifyCard-Row',
                 ISSUE_CARD_BUTTON: 'WorkspaceExpensifyCard-IssueCardButton',
                 MORE_DROPDOWN: 'WorkspaceExpensifyCard-MoreDropdown',
                 CHOOSE_SPEND_RULE: 'WorkspaceExpensifyCard-ChooseSpendRule',

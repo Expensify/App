@@ -871,6 +871,46 @@ describe('TransactionUtils', () => {
             expect(merchant).toBe('10.00 mi @ USD 1.00 / mi');
         });
     });
+
+    describe('getMerchantName', () => {
+        const translate = ((key: string) => key) as Parameters<typeof TransactionUtils.getMerchantName>[1];
+
+        it('should return the merchant for a valid merchant', () => {
+            const transaction = generateTransaction({merchant: 'Starbucks'});
+            expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('Starbucks');
+        });
+
+        it('should normalize the DEFAULT_MERCHANT ("Expense") sentinel to an empty string', () => {
+            const transaction = generateTransaction({merchant: CONST.TRANSACTION.DEFAULT_MERCHANT});
+            expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('');
+        });
+
+        it('should normalize the PARTIAL_TRANSACTION_MERCHANT ("(none)") sentinel to an empty string', () => {
+            const transaction = generateTransaction({merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT});
+            expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('');
+        });
+
+        it('should prefer modifiedMerchant over merchant', () => {
+            const transaction = generateTransaction({merchant: 'Original', modifiedMerchant: 'Modified'});
+            expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('Modified');
+        });
+
+        it('should return the localized scanning label while a receipt is scanning', () => {
+            const transaction = generateTransaction({
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING, source: 'receipt.jpg'},
+            });
+            expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('iou.receiptStatusTitle');
+        });
+
+        it('should return an empty string for a receipt whose scan failed', () => {
+            const transaction = generateTransaction({
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED, source: 'receipt.jpg'},
+            });
+            expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('');
+        });
+    });
     describe('getTransactionPendingAction', () => {
         it.each([
             ['when pendingAction is null', null, null],
