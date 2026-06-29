@@ -8240,6 +8240,8 @@ const CONST = {
             COMPANY_CARDS: {
                 TABLE_ITEM: 'Workspace-CompanyCards-TableItem',
                 MORE_DROPDOWN: 'WorkspaceCompanyCards-MoreDropdown',
+                SETTINGS_BUTTON: 'WorkspaceCompanyCards-SettingsButton',
+                BULK_ACTIONS_DROPDOWN: 'WorkspaceCompanyCards-BulkActionsDropdown',
                 CARD_NAME: 'WorkspaceCompanyCards-CardName',
                 CARD_EXPORT: 'WorkspaceCompanyCards-CardExport',
                 UNASSIGN_CARD: 'WorkspaceCompanyCards-UnassignCard',
