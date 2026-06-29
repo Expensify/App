@@ -89,10 +89,10 @@ describe('useDomainGroupFilter', () => {
             expect(result.current.shouldShowGroupColumn).toBe(true);
         });
 
-        it('should include all security groups as multi-select options when multiple groups exist', async () => {
+        it('should sort security groups alphabetically by name in the filter options', async () => {
             const domain = buildDomain({
-                '1': {members: {'100': 'read', '200': 'read'}, name: 'Engineering'},
                 '2': {members: {'300': 'read'}, name: 'Marketing'},
+                '1': {members: {'100': 'read', '200': 'read'}, name: 'Engineering'},
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, domain);
 
@@ -105,6 +105,23 @@ describe('useDomainGroupFilter', () => {
             expect(result.current.filterConfig?.group.filterType).toBe('multi-select');
             expect(result.current.filterConfig?.group.options.at(0)).toEqual({label: 'Engineering', value: '1'});
             expect(result.current.filterConfig?.group.options.at(1)).toEqual({label: 'Marketing', value: '2'});
+        });
+
+        it('should sort numbered group names using numeric-aware localeCompare', async () => {
+            const domain = buildDomain({
+                '3': {members: {'100': 'read'}, name: 'Test group 10'},
+                '1': {members: {'200': 'read'}, name: 'Test group 1'},
+                '2': {members: {'300': 'read'}, name: 'Test group 2'},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, domain);
+
+            const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
+
+            await waitFor(() => {
+                expect(result.current.filterConfig?.group.options).toHaveLength(3);
+            });
+
+            expect(result.current.filterConfig?.group.options.map((option) => option.label)).toEqual(['Test group 1', 'Test group 2', 'Test group 10']);
         });
     });
 
