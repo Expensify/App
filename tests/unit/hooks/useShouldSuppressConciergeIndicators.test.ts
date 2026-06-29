@@ -6,13 +6,14 @@ import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
+import createRandomReportAction from '../../utils/collections/reportActions';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@pages/inbox/ConciergeSessionContext');
 jest.mock('@hooks/useCurrentUserPersonalDetails');
 
-const mockUseConciergeSessionState = useConciergeSessionState as jest.Mock;
-const mockUseCurrentUserPersonalDetails = useCurrentUserPersonalDetails as jest.Mock;
+const mockUseConciergeSessionState = jest.mocked(useConciergeSessionState);
+const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
 
 const REPORT_ID = '1';
 const REPORT_ACTION_ID = '100';
@@ -21,7 +22,7 @@ const OTHER_ACCOUNT_ID = 2;
 const SESSION_START_TIME = '2026-06-29 10:00:00.000';
 
 function buildAction(overrides: Partial<ReportAction>): ReportAction {
-    return {reportActionID: REPORT_ACTION_ID, actorAccountID: CURRENT_USER_ACCOUNT_ID, created: SESSION_START_TIME, ...overrides} as ReportAction;
+    return {...createRandomReportAction(1), reportActionID: REPORT_ACTION_ID, actorAccountID: CURRENT_USER_ACCOUNT_ID, created: SESSION_START_TIME, pendingAction: undefined, ...overrides};
 }
 
 describe('useShouldSuppressConciergeIndicators', () => {

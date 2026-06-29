@@ -2,18 +2,14 @@ import {renderHook} from '@testing-library/react-native';
 import useCurrentSessionUserActionIDs from '@hooks/useCurrentSessionUserActionIDs';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
+import createRandomReportAction from '../../utils/collections/reportActions';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
 const OTHER_ACCOUNT_ID = 2;
 const SESSION_START_TIME = '2026-06-29 10:00:00.000';
 
 function buildAction(overrides: Partial<ReportAction>): ReportAction {
-    return {
-        reportActionID: '100',
-        actorAccountID: CURRENT_USER_ACCOUNT_ID,
-        created: SESSION_START_TIME,
-        ...overrides,
-    } as ReportAction;
+    return {...createRandomReportAction(1), reportActionID: '100', actorAccountID: CURRENT_USER_ACCOUNT_ID, created: SESSION_START_TIME, pendingAction: undefined, ...overrides};
 }
 
 describe('useCurrentSessionUserActionIDs', () => {
