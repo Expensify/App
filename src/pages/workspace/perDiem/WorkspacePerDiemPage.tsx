@@ -58,6 +58,10 @@ type SubRateData = {
     subRateID: string;
 };
 
+function getPerDiemRowKey(rateID: string, subRateID: string) {
+    return `${rateID}:${subRateID}`;
+}
+
 function getSubRatesData(customUnitRates: Rate[]) {
     const subRatesData: SubRateData[] = [];
     for (const rate of customUnitRates) {
@@ -121,11 +125,11 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         }, [fetchPerDiem]),
     );
 
-    const selectableSubRatesByID = useMemo(() => {
+    const selectableSubRatesByKey = useMemo(() => {
         const map: Record<string, SubRateData> = {};
         for (const subRate of allSubRates) {
             if (subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                map[subRate.subRateID] = subRate;
+                map[getPerDiemRowKey(subRate.rateID, subRate.subRateID)] = subRate;
             }
         }
         return map;
@@ -133,11 +137,11 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const filterSelectableSubRate = useCallback((subRate?: SubRateData) => !!subRate, []);
 
-    const [selectedSubRateIDs, setSelectedSubRateIDs] = useFilteredSelection(selectableSubRatesByID, filterSelectableSubRate);
+    const [selectedSubRateKeys, setSelectedSubRateKeys] = useFilteredSelection(selectableSubRatesByKey, filterSelectableSubRate);
 
     const clearTableSelection = useCallback(() => {
-        setSelectedSubRateIDs((prev) => (prev.length > 0 ? [] : prev));
-    }, [setSelectedSubRateIDs]);
+        setSelectedSubRateKeys((prev) => (prev.length > 0 ? [] : prev));
+    }, [setSelectedSubRateKeys]);
 
     useCleanupSelectedOptions(clearTableSelection);
 
@@ -164,11 +168,11 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     }, [showConfirmModal, translate]);
 
     const handleDeletePerDiemRates = useCallback(() => {
-        const subRatesToDelete = selectedSubRateIDs.map((subRateID) => selectableSubRatesByID[subRateID]).filter((subRate): subRate is SubRateData => !!subRate);
+        const subRatesToDelete = selectedSubRateKeys.map((rowKey) => selectableSubRatesByKey[rowKey]).filter((subRate): subRate is SubRateData => !!subRate);
         deleteWorkspacePerDiemRates(policyID, customUnit, subRatesToDelete);
-        setSelectedSubRateIDs([]);
+        setSelectedSubRateKeys([]);
         turnOffMobileSelectionMode();
-    }, [selectedSubRateIDs, selectableSubRatesByID, policyID, customUnit, setSelectedSubRateIDs]);
+    }, [selectedSubRateKeys, selectableSubRatesByKey, policyID, customUnit, setSelectedSubRateKeys]);
 
     const hasVisibleSubRates = allSubRates.some((subRate) => subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
@@ -180,7 +184,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     const isDeleting = subRate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
                     return {
-                        keyForList: subRate.subRateID,
+                        keyForList: getPerDiemRowKey(subRate.rateID, subRate.subRateID),
                         subRateID: subRate.subRateID,
                         rateID: subRate.rateID,
                         destination: subRate.destination,
@@ -263,15 +267,15 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
 
-        if (canWritePerDiem && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : selectedSubRateIDs.length > 0)) {
+        if (canWritePerDiem && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : selectedSubRateKeys.length > 0)) {
             options.push({
                 icon: expensifyIcons.Trashcan,
-                text: translate('workspace.perDiem.deleteRates', {count: selectedSubRateIDs.length}),
+                text: translate('workspace.perDiem.deleteRates', {count: selectedSubRateKeys.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 onSelected: async () => {
                     const {action} = await showConfirmModal({
                         title: translate('workspace.perDiem.deletePerDiemRate'),
-                        prompt: translate('workspace.perDiem.areYouSureDelete', {count: selectedSubRateIDs.length}),
+                        prompt: translate('workspace.perDiem.areYouSureDelete', {count: selectedSubRateKeys.length}),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
                         danger: true,
@@ -287,11 +291,11 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     onPress={() => null}
                     shouldAlwaysShowDropdownMenu
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {count: selectedSubRateIDs.length})}
+                    customText={translate('workspace.common.selected', {count: selectedSubRateKeys.length})}
                     options={options}
                     isSplitButton={false}
                     style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
-                    isDisabled={!selectedSubRateIDs.length}
+                    isDisabled={!selectedSubRateKeys.length}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.BULK_ACTIONS_DROPDOWN}
                 />
             );
@@ -325,8 +329,8 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
             return;
         }
 
-        setSelectedSubRateIDs([]);
-    }, [setSelectedSubRateIDs, isMobileSelectionModeEnabled]);
+        setSelectedSubRateKeys([]);
+    }, [setSelectedSubRateKeys, isMobileSelectionModeEnabled]);
 
     useSearchBackPress({
         onClearSelection: clearTableSelection,
@@ -423,8 +427,8 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         <WorkspacePerDiemTable
                             perDiemData={perDiemRows}
                             selectionEnabled={canWritePerDiem}
-                            selectedKeys={selectedSubRateIDs}
-                            onRowSelectionChange={setSelectedSubRateIDs}
+                            selectedKeys={selectedSubRateKeys}
+                            onRowSelectionChange={setSelectedSubRateKeys}
                             EmptyStateComponent={emptyStateContent}
                         />
                     </>
