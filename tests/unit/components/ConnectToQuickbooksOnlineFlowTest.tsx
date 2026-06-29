@@ -1,6 +1,6 @@
 import {render} from '@testing-library/react-native';
 import React from 'react';
-import ConnectToQuickbooksOnlineFlow from '@components/ConnectToQuickbooksOnlineFlow/index.native';
+import ConnectToQuickbooksOnlineFlow from '@components/ConnectToQuickbooksOnlineFlow';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
@@ -10,7 +10,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 
 const mockedNavigate = jest.mocked(Navigation.navigate);
 
-describe('ConnectToQuickbooksOnlineFlow (native)', () => {
+describe('ConnectToQuickbooksOnlineFlow', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });

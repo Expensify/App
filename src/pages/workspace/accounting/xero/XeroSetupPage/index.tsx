@@ -1,51 +1,31 @@
-import React, {useEffect, useState} from 'react';
-import RequireTwoFactorAuthenticationModal from '@components/RequireTwoFactorAuthenticationModal';
+import {useEffect} from 'react';
 import useEnvironment from '@hooks/useEnvironment';
-import useLocalize from '@hooks/useLocalize';
-import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
-import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {openLink} from '@userActions/Link';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type XeroSetupPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.XERO_SETUP>;
 
 function XeroSetupPage({route}: XeroSetupPageProps) {
-    const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const policyID = route.params.policyID;
 
-    const {is2FAEnabled, getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
-    const [isRequire2FAModalOpen, setIsRequire2FAModalOpen] = useState(!is2FAEnabled);
-
     useEffect(() => {
-        if (!is2FAEnabled) {
-            return;
-        }
         openLink(getXeroSetupLink(policyID), environmentURL);
-    }, [is2FAEnabled, policyID, environmentURL]);
 
-    if (!is2FAEnabled) {
-        return (
-            <RequireTwoFactorAuthenticationModal
-                onSubmit={() => {
-                    setIsRequire2FAModalOpen(false);
-                    close(() => {
-                        Navigation.navigate(getTwoFactorAuthRoute());
-                    });
-                }}
-                onCancel={() => {
-                    setIsRequire2FAModalOpen(false);
-                    Navigation.goBack();
-                }}
-                isVisible={isRequire2FAModalOpen}
-                description={translate('twoFactorAuth.twoFactorAuthIsRequiredDescription')}
-            />
-        );
-    }
+        // On web the link opens in a new tab and this page renders nothing, so close the RHP and return to the
+        // accounting page instead of leaving an empty backdrop behind (falls back to it on a deep link with no history).
+        // We wait for the RHP open transition to finish first, otherwise goBack fires mid-transition and is dropped,
+        // leaving the user stuck on the empty backdrop.
+        const transitionHandle = Navigation.runAfterUpcomingTransition(() => {
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+        });
+        return () => transitionHandle.cancel();
+    }, [policyID, environmentURL]);
 
     return null;
 }
