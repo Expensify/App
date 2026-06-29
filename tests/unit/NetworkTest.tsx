@@ -2,6 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import MockedOnyx from 'react-native-onyx';
 import {reconnectApp} from '@libs/actions/App';
 import * as Reconnect from '@libs/actions/Reconnect';
+import {reset as resetFailureTracker} from '@libs/FailureTracker';
 import {resetReauthentication} from '@libs/Middleware/Reauthentication';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -45,6 +46,7 @@ beforeEach(() => {
     NetworkStore.checkRequiredData();
     NetworkStore.setIsAuthenticating(false);
     resetReauthentication();
+    resetFailureTracker();
     Network.clearProcessQueueInterval();
     SequentialQueue.resetQueue();
 
@@ -283,9 +285,15 @@ describe('NetworkTests', () => {
     });
 
     test('Non-retryable request will not be retried if connection is lost in flight', () => {
-        // Given a xhr mock that will fail as if network connection dropped
-        const xhr = jest.spyOn(HttpUtils, 'xhr').mockImplementationOnce(() => {
-            setHasRadio(false);
+        // Given a xhr mock that will fail as if network connection dropped.
+        // Always reject (rather than mockImplementationOnce) so that if any code path
+        // ever triggers a second xhr call the test still observes a mock.
+        let xhrCallCount = 0;
+        const xhr = jest.spyOn(HttpUtils, 'xhr').mockImplementation(() => {
+            xhrCallCount += 1;
+            if (xhrCallCount === 1) {
+                setHasRadio(false);
+            }
             return Promise.reject(new Error(CONST.ERROR.FAILED_TO_FETCH));
         });
 
@@ -299,9 +307,8 @@ describe('NetworkTests', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                // Advance the network request queue by 1 second so that it can realize it's back online
-                jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
-                return waitForBatchedUpdates();
+                // Drain the queue deterministically instead of advancing fake timers
+                return SequentialQueue.waitForIdle().then(waitForBatchedUpdates);
             })
             .then(() => {
                 // Then the request should only have been attempted once and we should get an unable to retry
