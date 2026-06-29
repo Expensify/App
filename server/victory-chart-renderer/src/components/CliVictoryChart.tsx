@@ -8,6 +8,7 @@ import VictoryChartContent from '@components/HTMLEngineProvider/HTMLRenderers/Vi
 import {VictoryChartProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import type {ChartType, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import VICTORY_HTML_ELEMENT_MODELS from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/victoryHtmlElementModels';
+// eslint-disable-next-line no-restricted-imports -- headless CLI cannot use useTheme; email charts always render with the light theme
 import themes from '@styles/theme';
 import ThemeContext from '@styles/theme/context/ThemeContext';
 
@@ -40,7 +41,6 @@ function CliVictoryChart({tnode, fonts, processedResult, type, width, height}: C
                         type={type}
                     >
                         <VictoryChartContainerFixed
-                            headless
                             layout={{
                                 kind: 'fixed',
                                 width: explicitSize.width,

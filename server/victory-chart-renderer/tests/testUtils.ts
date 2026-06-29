@@ -51,9 +51,9 @@ function assertOpaqueCardBackground(img: PNG) {
     for (const [x, y] of corners) {
         const pixel = getPixel(img, x, y);
         expect(pixel.a).toBe(255);
-        expect(pixel.r).toBeGreaterThan(230);
-        expect(pixel.g).toBeGreaterThan(230);
-        expect(pixel.b).toBeGreaterThan(220);
+        expect(pixel.r > 230).toBe(true);
+        expect(pixel.g > 230).toBe(true);
+        expect(pixel.b > 220).toBe(true);
     }
 }
 

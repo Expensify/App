@@ -1,6 +1,7 @@
 import type {TNode} from 'react-native-render-html';
 import parseStyles from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseStyles';
 import {resolveChartContainerBgColor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
+// eslint-disable-next-line no-restricted-imports -- headless CLI cannot use useTheme; email charts always render with the light theme
 import themes from '@styles/theme';
 
 function resolveHeadlessChartBackgroundColor(tnode: TNode): string {
