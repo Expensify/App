@@ -35,6 +35,56 @@ function buildTransactionsByReportID(allTransactions: OnyxCollection<Transaction
     return transactionsByReportID;
 }
 
+type TodoBucketContext = {
+    policy: OnyxEntry<Policy>;
+    reportNameValuePair: OnyxEntry<ReportNameValuePairs>;
+    reportTransactions: Transaction[];
+    reportMetadata: OnyxEntry<ReportMetadata>;
+    allReportActions: OnyxCollection<ReportActions>;
+    allExpensesHeld: boolean;
+    bankAccountList: OnyxEntry<BankAccountList>;
+    currentUserAccountID: number;
+    login: string;
+};
+
+/**
+ * Single source of truth for whether a report belongs in a given to-do bucket. Both the all-buckets path
+ * (`createTodosReportsAndTransactions`) and the single-bucket path (`getTodoReportsForSearchKey`) call this so
+ * the classification rules can't drift between them.
+ */
+function reportMatchesTodoBucket(
+    searchKey: SearchKey,
+    report: Report,
+    {policy, reportNameValuePair, reportTransactions, reportMetadata, allReportActions, allExpensesHeld, bankAccountList, currentUserAccountID, login}: TodoBucketContext,
+): boolean {
+    switch (searchKey) {
+        case CONST.SEARCH.SEARCH_KEYS.SUBMIT:
+            return isSubmitAction(report, reportTransactions, reportMetadata, policy, reportNameValuePair, undefined, login, currentUserAccountID) && !allExpensesHeld;
+        case CONST.SEARCH.SEARCH_KEYS.APPROVE:
+            return isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy) && !allExpensesHeld;
+        case CONST.SEARCH.SEARCH_KEYS.PAY:
+            return (
+                isPrimaryPayAction({
+                    report,
+                    reportTransactions,
+                    currentUserAccountID,
+                    currentUserLogin: login,
+                    bankAccountList,
+                    policy,
+                    reportNameValuePairs: reportNameValuePair,
+                }) &&
+                !hasOnlyNonReimbursableTransactions(report.reportID, reportTransactions) &&
+                !allExpensesHeld
+            );
+        case CONST.SEARCH.SEARCH_KEYS.EXPORT: {
+            const reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? []);
+            return isExportAction(report, login, policy, reportActions) && policy?.exporter === login;
+        }
+        default:
+            return false;
+    }
+}
+
 /**
  * Classifies every expense report into the four to-do buckets (submit/approve/pay/export) and indexes
  * transactions by report ID. Used by the TODOS derived value and the on-demand to-do count hook.
@@ -67,34 +117,28 @@ function createTodosReportsAndTransactions({
         if (!report?.reportID || report.type !== CONST.REPORT.TYPE.EXPENSE) {
             continue;
         }
-        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-        const reportNameValuePair = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`];
-        const reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? []);
         const reportTransactions = transactionsByReportID[report.reportID] ?? [];
-        const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`];
-        const allExpensesHeld = hasOnlyHeldExpenses(reportTransactions);
-        if (isSubmitAction(report, reportTransactions, reportMetadata, policy, reportNameValuePair, undefined, login, currentUserAccountID) && !allExpensesHeld) {
+        const context: TodoBucketContext = {
+            policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
+            reportNameValuePair: allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`],
+            reportTransactions,
+            reportMetadata: allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`],
+            allReportActions,
+            allExpensesHeld: hasOnlyHeldExpenses(reportTransactions),
+            bankAccountList,
+            currentUserAccountID,
+            login,
+        };
+        if (reportMatchesTodoBucket(CONST.SEARCH.SEARCH_KEYS.SUBMIT, report, context)) {
             reportsToSubmit.push(report);
         }
-        if (isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy) && !allExpensesHeld) {
+        if (reportMatchesTodoBucket(CONST.SEARCH.SEARCH_KEYS.APPROVE, report, context)) {
             reportsToApprove.push(report);
         }
-        if (
-            isPrimaryPayAction({
-                report,
-                reportTransactions,
-                currentUserAccountID,
-                currentUserLogin: login,
-                bankAccountList,
-                policy,
-                reportNameValuePairs: reportNameValuePair,
-            }) &&
-            !hasOnlyNonReimbursableTransactions(report.reportID, reportTransactions) &&
-            !allExpensesHeld
-        ) {
+        if (reportMatchesTodoBucket(CONST.SEARCH.SEARCH_KEYS.PAY, report, context)) {
             reportsToPay.push(report);
         }
-        if (isExportAction(report, login, policy, reportActions) && policy?.exporter === login) {
+        if (reportMatchesTodoBucket(CONST.SEARCH.SEARCH_KEYS.EXPORT, report, context)) {
             reportsToExport.push(report);
         }
     }
@@ -127,44 +171,20 @@ function getTodoReportsForSearchKey(
         if (!report?.reportID || report.type !== CONST.REPORT.TYPE.EXPENSE) {
             continue;
         }
-        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-        const reportNameValuePair = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`];
         const reportTransactions = transactionsByReportID[report.reportID] ?? [];
-        const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`];
-        const allExpensesHeld = hasOnlyHeldExpenses(reportTransactions);
+        const context: TodoBucketContext = {
+            policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
+            reportNameValuePair: allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`],
+            reportTransactions,
+            reportMetadata: allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`],
+            allReportActions,
+            allExpensesHeld: hasOnlyHeldExpenses(reportTransactions),
+            bankAccountList,
+            currentUserAccountID,
+            login,
+        };
 
-        let matches = false;
-        switch (searchKey) {
-            case CONST.SEARCH.SEARCH_KEYS.SUBMIT:
-                matches = isSubmitAction(report, reportTransactions, reportMetadata, policy, reportNameValuePair, undefined, login, currentUserAccountID) && !allExpensesHeld;
-                break;
-            case CONST.SEARCH.SEARCH_KEYS.APPROVE:
-                matches = isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy) && !allExpensesHeld;
-                break;
-            case CONST.SEARCH.SEARCH_KEYS.PAY:
-                matches =
-                    isPrimaryPayAction({
-                        report,
-                        reportTransactions,
-                        currentUserAccountID,
-                        currentUserLogin: login,
-                        bankAccountList,
-                        policy,
-                        reportNameValuePairs: reportNameValuePair,
-                    }) &&
-                    !hasOnlyNonReimbursableTransactions(report.reportID, reportTransactions) &&
-                    !allExpensesHeld;
-                break;
-            case CONST.SEARCH.SEARCH_KEYS.EXPORT: {
-                const reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? []);
-                matches = isExportAction(report, login, policy, reportActions) && policy?.exporter === login;
-                break;
-            }
-            default:
-                matches = false;
-        }
-
-        if (matches) {
+        if (reportMatchesTodoBucket(searchKey, report, context)) {
             reports.push(report);
         }
     }
