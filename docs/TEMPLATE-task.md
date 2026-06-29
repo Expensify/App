@@ -42,7 +42,7 @@ Avoid marketing language, implementation details, and unnecessary UI narration.
 
 ---
 
-## Who Can Use [Feature Name]
+## Who can use [Feature Name]
 
 State only the information the reader needs:
 
@@ -59,7 +59,7 @@ This feature is not available on mobile.
 
 ---
 
-## How To [Complete Primary Task]
+## How to [Complete Primary Task]
 
 Keep the steps focused.
 
@@ -85,7 +85,7 @@ Include this section only when the workflow changes behavior or has important co
 
 -->
 
-## What Happens After You [Complete Task]
+## What happens after you [Complete Task]
 
 Explain what changes after completing the workflow.
 
