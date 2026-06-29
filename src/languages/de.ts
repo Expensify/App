@@ -8495,6 +8495,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Alle importierten CSV-Karten${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 travelInvoicing: 'Konsolidierte Reiseabrechnung',
             },
+            bankAccount: {banks: 'Bankkonten', closedBankAccounts: 'Geschlossene Bankkonten'},
             reportField: (name: string, value: string) => `${name} ist ${value}`,
             current: 'Aktuell',
             past: 'Vergangenes',

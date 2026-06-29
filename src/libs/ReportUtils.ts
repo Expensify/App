@@ -133,7 +133,7 @@ import Parser from './Parser';
 import {getParsedMessageWithShortMentions} from './ParsingUtils';
 import {getBankAccountLastFourDigits} from './PaymentUtils';
 import Permissions from './Permissions';
-import {getAccountIDsByLogins, getDisplayNameOrDefault, getLoginsByAccountIDs, getPersonalDetailByEmail, getShortMentionIfFound} from './PersonalDetailsUtils';
+import {getAccountIDsByLogins, getDisplayNameOrDefault, getLoginByAccountID, getLoginsByAccountIDs, getPersonalDetailByEmail, getShortMentionIfFound} from './PersonalDetailsUtils';
 import {
     canSendInvoiceFromWorkspace,
     getActivePolicies,
@@ -2032,7 +2032,7 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
     }
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    const submitsToAccountID = getSubmitToAccountID(getPolicy(report.policyID), report);
+    const submitsToAccountID = getSubmitToAccountID(getPolicy(report.policyID), report, getLoginByAccountID(report.ownerAccountID, allPersonalDetails));
 
     return isProcessingReport(report) && submitsToAccountID === report.managerID && !hasReportBeenForwardedSinceLastSubmit(report);
 }
@@ -4919,7 +4919,9 @@ function canEditMoneyRequest(
     }
 
     if (reportPolicy?.type === CONST.POLICY.TYPE.CORPORATE && moneyRequestReport && isSubmitted && isCurrentUserSubmitter(moneyRequestReport)) {
-        const isForwarded = getSubmitToAccountID(reportPolicy, moneyRequestReport) !== moneyRequestReport.managerID || hasReportBeenForwardedSinceLastSubmit(moneyRequestReport);
+        const isForwarded =
+            getSubmitToAccountID(reportPolicy, moneyRequestReport, getLoginByAccountID(moneyRequestReport.ownerAccountID, allPersonalDetails)) !== moneyRequestReport.managerID ||
+            hasReportBeenForwardedSinceLastSubmit(moneyRequestReport);
         return !isForwarded;
     }
 
@@ -4938,7 +4940,7 @@ function getNextApproverAccountID(report: OnyxEntry<Report>, isUnapproved = fals
     }
 
     const approvalChain = getApprovalChain(policy, report);
-    const submitToAccountID = getSubmitToAccountID(policy, report);
+    const submitToAccountID = getSubmitToAccountID(policy, report, getLoginByAccountID(report?.ownerAccountID, allPersonalDetails));
 
     if (isUnapproved) {
         if (approvalChain.includes(deprecatedCurrentUserEmail ?? '')) {
@@ -5977,7 +5979,7 @@ function getChatRoomSubtitle(
         return report?.reportName?.substring(1) ?? '';
     }
     if ((isPolicyExpenseChat(report) && !!report?.isOwnPolicyExpenseChat) || isExpenseReport(report)) {
-        const submitToAccountID = getSubmitToAccountID(policy, report);
+        const submitToAccountID = getSubmitToAccountID(policy, report, getLoginByAccountID(report?.ownerAccountID, allPersonalDetails));
         const submitsToAccountDetails = allPersonalDetails?.[submitToAccountID];
         const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
 
@@ -6756,7 +6758,7 @@ function buildOptimisticExpenseReport({
     };
 
     // Get the approver/manager for this report to properly display the optimistic data
-    const submitToAccountID = getSubmitToAccountID(policy, expenseReport);
+    const submitToAccountID = getSubmitToAccountID(policy, expenseReport, getLoginByAccountID(expenseReport.ownerAccountID, allPersonalDetails));
     if (submitToAccountID) {
         expenseReport.managerID = submitToAccountID;
     }
@@ -6776,6 +6778,7 @@ function buildOptimisticExpenseReport({
 function buildOptimisticEmptyReport(
     reportID: string,
     accountID: number,
+    login: string | undefined,
     parentReport: OnyxEntry<Report>,
     parentReportActionID: string,
     policy: OnyxEntry<Policy>,
@@ -6802,7 +6805,7 @@ function buildOptimisticEmptyReport(
         parentReportID: parentReport?.reportID,
         parentReportActionID,
         chatReportID: parentReport?.reportID,
-        managerID: getManagerAccountID(policy, {ownerAccountID: accountID}),
+        managerID: getManagerAccountID(policy, login),
     };
 
     // Compute optimistic report name if applicable
@@ -12530,7 +12533,7 @@ function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
         fullApprovalChain.push(ruleApprover);
     }
 
-    let nextApproverEmail = getManagerAccountEmail(policy, expenseReport);
+    let nextApproverEmail = getManagerAccountEmail(policy, submitterEmail);
 
     while (nextApproverEmail && !approvalChain.includes(nextApproverEmail)) {
         approvalChain.push(nextApproverEmail);
