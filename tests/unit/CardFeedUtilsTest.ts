@@ -552,13 +552,16 @@ describe('getVisibleCompanyCardFeedsForSelector', () => {
     }
 
     function createAdminDomain(accountID: number, adminAccountID: number): Domain {
-        return {
+        const domain: Domain = {
             validated: true,
             accountID,
             email: '+@company.com',
             domain_defaultSecurityGroupID: '0',
-            [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}0`]: adminAccountID,
-        } as unknown as Domain;
+        };
+        // Set the prefixed admin-access key separately so the object literal isn't widened to a string index
+        // signature (which would force an unsafe `as unknown as Domain` assertion).
+        domain[`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}0`] = adminAccountID;
+        return domain;
     }
 
     it('enumerates a feed once when the user is an admin of a policy backed by the fund (no linkedPolicyIDs)', () => {

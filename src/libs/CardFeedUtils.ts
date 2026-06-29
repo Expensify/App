@@ -645,6 +645,14 @@ function getCardFeedsForDisplayPerPolicy(
  *
  * Note: "Expensify Card" feeds are not included (handled by the Expensify card selector).
  */
+/**
+ * Type guard narrowing a raw company-feed object key (typed `string` by `Object.entries`) back to the
+ * `CardFeedWithNumber` union it is keyed by at runtime, avoiding an unsafe `as` assertion. Empty keys are rejected.
+ */
+function isCardFeedWithNumber(feedKey: string): feedKey is CardFeedWithNumber {
+    return !!feedKey;
+}
+
 function getVisibleCompanyCardFeedsForSelector(
     allCardFeeds: OnyxCollection<CardFeeds>,
     translate: LocalizedTranslate,
@@ -683,9 +691,14 @@ function getVisibleCompanyCardFeedsForSelector(
         }
 
         for (const [key, feedData] of Object.entries(getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, numericFundID))) {
+            // `getOriginalCompanyFeeds` is keyed by `CardFeedWithNumber`, but `Object.entries` widens the key to
+            // `string`. Narrow it back with a type guard instead of an unsafe `as` assertion.
+            if (!isCardFeedWithNumber(key)) {
+                continue;
+            }
             const country = feedData && 'country' in feedData ? (feedData.country ?? '') : '';
             const linkedPolicyIDs = feedData && 'linkedPolicyIDs' in feedData ? feedData.linkedPolicyIDs : undefined;
-            const feed = key as CardFeedWithNumber;
+            const feed = key;
             const id = `${fundID}_${feed}`;
             if (seenFeedIDs.has(id)) {
                 continue;
