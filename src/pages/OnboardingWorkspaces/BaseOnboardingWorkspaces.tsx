@@ -86,7 +86,6 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             askToJoinPolicy(policy.policyID);
         }
 
-        // LOOKING_AROUND only posts tasks to concierge — adminsChatReport and selfDMReport are not needed.
         completeOnboarding({
             engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
             onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
