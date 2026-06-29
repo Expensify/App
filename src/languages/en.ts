@@ -1148,6 +1148,7 @@ const translations = {
             setupRulesSubText: 'Require receipts, flag high spend, and more',
             needHelp: 'Need help?',
             talkToConcierge: 'Talk to Concierge',
+            talkToAccountExecutive: 'Talk to your account executive',
             forGuidedSetup: 'for guided setup.',
         },
         upcomingTravel: 'Upcoming travel',

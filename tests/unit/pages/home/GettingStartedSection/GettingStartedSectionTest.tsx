@@ -450,6 +450,28 @@ describe('GettingStartedSection', () => {
             expect(screen.getByText('homePage.gettingStartedSection.talkToConcierge')).toBeTruthy();
         });
 
+        it('renders "Talk to Concierge" footer copy when the user has no assigned Guide', async () => {
+            await setManageTeamUserState();
+
+            renderGettingStartedSection();
+            await waitForBatchedUpdates();
+
+            expect(screen.getByText('homePage.gettingStartedSection.talkToConcierge')).toBeTruthy();
+            expect(screen.queryByText('homePage.gettingStartedSection.talkToAccountExecutive')).toBeNull();
+        });
+
+        it('renders "Talk to your account executive" footer copy when the user has an assigned Guide', async () => {
+            await setManageTeamUserState();
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {guideDetails: {email: 'guide@expensify.com'}});
+            await waitForBatchedUpdates();
+
+            renderGettingStartedSection();
+            await waitForBatchedUpdates();
+
+            expect(screen.getByText('homePage.gettingStartedSection.talkToAccountExecutive')).toBeTruthy();
+            expect(screen.queryByText('homePage.gettingStartedSection.talkToConcierge')).toBeNull();
+        });
+
         it('opens the #admins room in the RHP when the footer link is pressed on wide layout', async () => {
             await setManageTeamUserState();
             await setAdminsRoom();

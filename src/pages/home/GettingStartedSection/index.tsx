@@ -14,6 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import {accountGuideDetailsSelector} from '@selectors/Account';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -25,6 +26,8 @@ function GettingStartedSection() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [guideDetails] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountGuideDetailsSelector});
+    const hasGuide = !!guideDetails?.email;
     const {shouldShowSection, items} = useGettingStartedItems();
 
     const openAdminsRoom = () => {
@@ -58,7 +61,9 @@ function GettingStartedSection() {
             <View style={shouldUseNarrowLayout ? [styles.ph5, styles.pb5] : [styles.ph8, styles.pb8]}>
                 <Text style={styles.textLabelSupporting}>
                     {`${translate('homePage.gettingStartedSection.needHelp')} `}
-                    <TextLink onPress={openAdminsRoom}>{translate('homePage.gettingStartedSection.talkToConcierge')}</TextLink>
+                    <TextLink onPress={openAdminsRoom}>
+                        {translate(hasGuide ? 'homePage.gettingStartedSection.talkToAccountExecutive' : 'homePage.gettingStartedSection.talkToConcierge')}
+                    </TextLink>
                     {` ${translate('homePage.gettingStartedSection.forGuidedSetup')}`}
                 </Text>
             </View>
