@@ -509,6 +509,7 @@ const translations: TranslationDeepObject<typeof en> = {
         editor: '编辑',
         restrictions: '限制',
         off: '关',
+        commuter: '通勤者',
     },
     socials: {
         podcast: '在播客上关注我们',

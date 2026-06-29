@@ -512,6 +512,7 @@ const translations: TranslationDeepObject<typeof en> = {
         editor: 'Editor',
         restrictions: 'Restrições',
         off: 'Desligado',
+        commuter: 'usuário de transporte coletivo',
     },
     socials: {
         podcast: 'Siga-nos no Podcast',

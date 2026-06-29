@@ -513,6 +513,7 @@ const translations: TranslationDeepObject<typeof en> = {
         editor: '編集者',
         restrictions: '制限',
         off: 'オフ',
+        commuter: '通勤者',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
