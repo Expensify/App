@@ -294,10 +294,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const isHRAdvancedModeEnabled = isHRAdvancedMode(policy);
     const hrFinalApproverEmail = getHRFinalApprover(policy) ?? undefined;
 
-    // With the multipleApprovers beta on, `approvalWorkflows` is reconstructed from
-    // `rules.approvalWorkflows` and already contains exactly the workflows that exist, so we don't
-    // collapse to the default workflow based on `approvalMode` (which the rules-create path doesn't
-    // bump to ADVANCED).
     const filteredApprovalWorkflows =
         isMultipleApproversBetaEnabled ||
         policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED ||
@@ -532,7 +528,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         {displayedWorkflows.map((workflow) => {
                             const firstApproverEmail = workflow.approvers.at(0)?.email ?? '';
                             // A workflow's first approver isn't unique once rule-based chains diverge, but a member
-                            // belongs to exactly one workflow — use it to disambiguate both the React key and the edit route.
+                            // belongs to exactly one workflow
                             const firstMemberEmail = workflow.members.at(0)?.email ?? '';
 
                             return (

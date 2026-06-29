@@ -2297,8 +2297,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
             /**
              * Approval-workflow rules keyed by ruleID. Each rule routes a report to a `nextReceiver`
-             * when its `filters` match. Multiple workflows can share the same rule by listing more
-             * than one submitter in the `from` filter.
+             * when its `filters` match.
              */
             approvalWorkflows?: Record<string, ApprovalWorkflowRule>;
         };

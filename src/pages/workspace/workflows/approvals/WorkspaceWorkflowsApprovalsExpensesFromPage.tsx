@@ -475,8 +475,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
             // Warn when adding a member who already belongs to another workflow. With the beta on this
             // applies to both create and edit (a submitter can only be in one workflow, so confirming
-            // moves them); legacy keeps the create-only behavior. The `!== firstApprover` check skips
-            // members who are already in the workflow being edited.
+            // moves them); legacy keeps the create-only behavior.
             const shouldCheckCrossWorkflow = isCreateAction || isMultipleApproversBetaEnabled;
             if (shouldCheckCrossWorkflow && members.length > selectedMembers.length) {
                 const newMember = members.find((m) => !selectedMembers.some((s) => s.login === m.login));

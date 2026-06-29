@@ -30,21 +30,16 @@ type ApprovalWorkflowFilterComparison = {
 
 /**
  * Top-level filter for an approval-workflow rule. Combines two child nodes with a boolean
- * operator. `left` / `right` may be either leaf comparisons or nested filters, so the tree
- * can express arbitrarily deep `from AND (previousApprover AND amount < limit)` shapes.
- *
- * For this project the operator is constrained to `AND` at runtime, but the type uses
- * `ValueOf<SYNTAX_OPERATORS>` so future operators (e.g. `OR`) can slot in without changing
- * the contract.
+ * operator. `left` / `right` may be either leaf comparisons or nested filters
  */
 type ApprovalWorkflowFilter = {
-    /** Boolean combinator — currently always `AND` in production. */
+    /** Boolean combinator */
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
 
     /** Left-hand child: leaf comparison or nested boolean filter. */
     left: ApprovalWorkflowFilterComparison | ApprovalWorkflowFilter;
 
-    /** Right-hand child. Optional so a degenerate single-comparison filter can be represented. */
+    /** Right-hand child */
     right?: ApprovalWorkflowFilterComparison | ApprovalWorkflowFilter;
 };
 
@@ -54,9 +49,7 @@ type ApprovalWorkflowFilter = {
  */
 type ApprovalWorkflowRule = {
     /**
-     * Conditions that must match the report for the rule to fire. Usually an `AND` filter, but a
-     * rule with a single condition (e.g. the initial-submission rule that only checks `from`) is
-     * stored as a bare comparison rather than a degenerate `AND` with no `right`.
+     * Conditions that must match the report for the rule to fire.
      */
     filters: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison;
 
