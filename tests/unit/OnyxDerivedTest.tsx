@@ -218,6 +218,37 @@ describe('OnyxDerived', () => {
             expect(derivedReportAttributesAfterDisplayNameChange).not.toBe(initialDerivedReportAttributes);
         });
 
+        describe('selector gating on policy changes', () => {
+            beforeEach(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
+                // Seed the policy this report references so a later merge is a member UPDATE the selector can gate.
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${mockReport.policyID}`, {
+                    id: mockReport.policyID,
+                    name: 'Initial name',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    role: CONST.POLICY.ROLE.USER,
+                });
+                await waitForBatchedUpdates();
+            });
+
+            it('does not recompute when an irrelevant policy field changes', async () => {
+                const before = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                // `name` is not in the policy selector (nor in hasPolicyRelevantFieldChanged) → gated.
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${mockReport.policyID}`, {name: 'Changed name'});
+                await waitForBatchedUpdates();
+                expect(await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES)).toBe(before);
+            });
+
+            it('recomputes when a relevant policy field changes', async () => {
+                const before = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                // approvalMode is in the selector → must recompute.
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${mockReport.policyID}`, {approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED});
+                await waitForBatchedUpdates();
+                expect(await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES)).not.toBe(before);
+            });
+        });
+
         describe('reportErrors', () => {
             it('returns empty errors when no errors exist', async () => {
                 const report = createRandomReport(1, undefined);

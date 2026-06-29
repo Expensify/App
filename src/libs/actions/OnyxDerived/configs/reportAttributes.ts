@@ -44,6 +44,20 @@ const hasPolicyRelevantFieldChanged = (prev: Policy | null | undefined, next: Po
     );
 };
 
+/**
+ * Projects a policy to the fields that affect report attributes, so a policy write touching none of them
+ * (e.g. a `pendingAction`/`employeeList` change) produces no delta and the dispatcher gates the recompute.
+ * MUST stay in sync with `hasPolicyRelevantFieldChanged` above — same fields, compared with shallow equality.
+ */
+const policyReportAttributesSelector = (policy: OnyxEntry<Policy>) => ({
+    type: policy?.type,
+    approvalMode: policy?.approvalMode,
+    reimbursementChoice: policy?.reimbursementChoice,
+    autoReimbursementLimit: policy?.autoReimbursementLimit,
+    role: policy?.role,
+    autoReimbursementNestedLimit: policy?.autoReimbursement?.limit,
+});
+
 const checkDisplayNamesChanged = (personalDetails: OnyxEntry<PersonalDetailsList>) => {
     if (!personalDetails) {
         return false;
@@ -87,7 +101,7 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.TRANSACTION,
         ONYXKEYS.PERSONAL_DETAILS_LIST,
         ONYXKEYS.SESSION,
-        ONYXKEYS.COLLECTION.POLICY,
+        {key: ONYXKEYS.COLLECTION.POLICY, selector: policyReportAttributesSelector},
         ONYXKEYS.COLLECTION.POLICY_TAGS,
         ONYXKEYS.CONCIERGE_REPORT_ID,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
