@@ -352,11 +352,28 @@ function SearchWriteActionsProvider({
     const selfDMReport = useSelfDMReport();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
-    const {applySelection} = useSearchSelectionActions();
+    const {applySelection, getSelectedTransactions} = useSearchSelectionActions();
 
     const searchResultsData = searchResults?.data;
     const currentUserEmail = email ?? '';
     const currentUserLogin = login ?? '';
+
+    // Centralizes the row-invariant selection-entry context so the toggle / select-all / range call sites below can't drift apart
+    // if mapTransactionItemToSelectedEntry's inputs change.
+    const buildSelectedEntry = (item: TransactionListItemType, itemTransaction: OnyxEntry<Transaction>, originalItemTransaction: OnyxEntry<Transaction>, parentReport: OnyxEntry<Report>) =>
+        mapTransactionItemToSelectedEntry({
+            item,
+            itemTransaction,
+            originalItemTransaction,
+            currentUserLogin: currentUserEmail,
+            currentUserAccountID: accountID,
+            reportNameValuePairs,
+            outstandingReportsByPolicyID,
+            selfDMReport,
+            isProduction,
+            allowNegativeAmount: true,
+            parentReport,
+        });
 
     // Shift+click range selection. The flattened list spans groups + children in visual order; group headers are excluded.
     const hasValidGroupBy = areItemsGrouped && !isExpenseReportType;
@@ -392,19 +409,7 @@ function SearchWriteActionsProvider({
                         searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${txRef?.comment?.originalTransactionID}`] ??
                         transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${txRef?.comment?.originalTransactionID}`];
                     const parentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${tx.report?.parentReportID}`] as OnyxEntry<Report>;
-                    const [key, info] = mapTransactionItemToSelectedEntry({
-                        item: tx,
-                        itemTransaction: txRef as OnyxEntry<Transaction>,
-                        originalItemTransaction: originalRef,
-                        currentUserLogin: currentUserEmail,
-                        currentUserAccountID: accountID,
-                        reportNameValuePairs,
-                        outstandingReportsByPolicyID,
-                        selfDMReport,
-                        isProduction,
-                        allowNegativeAmount: true,
-                        parentReport,
-                    });
+                    const [key, info] = buildSelectedEntry(tx, txRef as OnyxEntry<Transaction>, originalRef, parentReport);
                     const parentGroupKey = parentGroupKeyByTransactionKey.get(tx.keyForList);
                     updated[key] = parentGroupKey ? {...info, groupKey: parentGroupKey} : info;
                 };
@@ -449,6 +454,13 @@ function SearchWriteActionsProvider({
 
     const rangeApi = useShiftRangeSelection<SearchData[number]>({
         items: flattenedShiftRangeItems,
+        getItemKey: (item) => item.keyForList,
+        // So a cold shift+click resolves its anchor from the existing selection instead of the first row.
+        getSelectedKeys: () => {
+            const selected = getSelectedTransactions?.() ?? {};
+            return Object.keys(selected).filter((key) => selected[key]?.isSelected);
+        },
+        isDisabledItem: (item) => isTransactionListItemType(item) && isTransactionPendingDelete(item),
         onApplyRange: applyShiftRangeBatch,
         isHeaderItem: isShiftRangeHeaderItem,
     });
@@ -553,19 +565,7 @@ function SearchWriteActionsProvider({
                                     searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
                                     transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                                 const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
-                                const [key, entry] = mapTransactionItemToSelectedEntry({
-                                    item: transactionItem,
-                                    itemTransaction,
-                                    originalItemTransaction,
-                                    currentUserLogin: currentUserEmail,
-                                    currentUserAccountID: accountID,
-                                    reportNameValuePairs,
-                                    outstandingReportsByPolicyID,
-                                    selfDMReport,
-                                    isProduction,
-                                    allowNegativeAmount: true,
-                                    parentReport: itemParentReport,
-                                });
+                                const [key, entry] = buildSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, itemParentReport);
                                 return [key, {...entry, groupKey: item.keyForList}];
                             }),
                     ),
@@ -599,19 +599,7 @@ function SearchWriteActionsProvider({
                             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                             const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                             const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
-                            const [key, entry] = mapTransactionItemToSelectedEntry({
-                                item: transactionItem,
-                                itemTransaction,
-                                originalItemTransaction,
-                                currentUserLogin: currentUserEmail,
-                                currentUserAccountID: accountID,
-                                reportNameValuePairs,
-                                outstandingReportsByPolicyID,
-                                selfDMReport,
-                                isProduction,
-                                allowNegativeAmount: true,
-                                parentReport: itemParentReport,
-                            });
+                            const [key, entry] = buildSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, itemParentReport);
                             entries.push([key, {...entry, groupKey: item.keyForList}]);
                         }
                         return entries;
@@ -631,21 +619,7 @@ function SearchWriteActionsProvider({
                     const itemTransaction = searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                     const originalItemTransaction = searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                     const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
-                    entries.push(
-                        mapTransactionItemToSelectedEntry({
-                            item: transactionItem,
-                            itemTransaction,
-                            originalItemTransaction,
-                            currentUserLogin: currentUserEmail,
-                            currentUserAccountID: accountID,
-                            reportNameValuePairs,
-                            outstandingReportsByPolicyID,
-                            selfDMReport,
-                            isProduction,
-                            allowNegativeAmount: true,
-                            parentReport: itemParentReport,
-                        }),
-                    );
+                    entries.push(buildSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, itemParentReport));
                 }
                 return seedSelectAllRange(Object.fromEntries(entries));
             },

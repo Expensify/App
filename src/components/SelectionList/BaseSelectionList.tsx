@@ -145,7 +145,9 @@ function BaseSelectionList<TItem extends ListItem>({
             } else {
                 onSelectRow(item);
             }
-            rangeApi.notifyAnchor(item);
+            if (onShiftRangeApply) {
+                rangeApi.notifyAnchor(item);
+            }
         },
         [onShiftRangeApply, rangeApi, onSelectionButtonPress, onSelectRow],
     );
@@ -234,7 +236,9 @@ function BaseSelectionList<TItem extends ListItem>({
                 setFocusedIndex(indexToFocus);
             }
             onSelectRow(item);
-            rangeApi.notifyAnchor(item);
+            if (onShiftRangeApply) {
+                rangeApi.notifyAnchor(item);
+            }
 
             if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow) {
                 focusTextInput();
@@ -251,6 +255,7 @@ function BaseSelectionList<TItem extends ListItem>({
             isSmallScreenWidth,
             textInputOptions,
             handleSelectionButtonPress,
+            onShiftRangeApply,
             rangeApi,
             setFocusedIndex,
             focusTextInput,
@@ -487,15 +492,18 @@ function BaseSelectionList<TItem extends ListItem>({
     const handleSelectAll = useCallback(() => {
         const willSelectAll = !dataDetails.allSelected;
         onSelectAll?.();
-        if (willSelectAll) {
-            rangeApi.seedFullRange();
-        } else {
-            rangeApi.clearAnchor();
+        // Skip the O(n) seed scan (and anchor bookkeeping) for lists that didn't opt into shift-range.
+        if (onShiftRangeApply) {
+            if (willSelectAll) {
+                rangeApi.seedFullRange();
+            } else {
+                rangeApi.clearAnchor();
+            }
         }
         if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow) {
             focusTextInput();
         }
-    }, [onSelectAll, rangeApi, dataDetails.allSelected, shouldShowTextInput, shouldPreventDefaultFocusOnSelectRow, focusTextInput]);
+    }, [onSelectAll, onShiftRangeApply, rangeApi, dataDetails.allSelected, shouldShowTextInput, shouldPreventDefaultFocusOnSelectRow, focusTextInput]);
 
     useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex, updateFocusedIndex, scrollToFocusedInput, focusTextInput}), [
         focusTextInput,

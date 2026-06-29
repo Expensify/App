@@ -212,7 +212,7 @@ describe('MerchantListItemHeader', () => {
             const checkbox = screen.getByRole('checkbox');
             fireEvent.press(checkbox);
 
-            expect(onCheckboxPress).toHaveBeenCalledWith({shiftKey: false});
+            expect(onCheckboxPress).toHaveBeenCalledWith(false);
         });
 
         it('should show checkbox as checked when isSelectAllChecked is true', async () => {

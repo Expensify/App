@@ -232,6 +232,8 @@ type SearchSelectionActionsValue = {
      * `totalSelectableItemsCount` unchecks "select all matching" when the new selection no longer covers every item.
      */
     applySelection: (updater: (previousSelectedTransactions: SelectedTransactions) => SelectedTransactions, options?: {data?: SearchData; totalSelectableItemsCount?: number}) => void;
+    /** Reads the current selection on demand without subscribing — lets the shift-range hook resolve an anchor from the live selection. Optional: contexts that don't expose it just lose anchor-from-selection recovery. */
+    getSelectedTransactions?: () => SelectedTransactions;
     setSelectedReports: (reports: SelectedReports[]) => void;
     setCurrentSelectedTransactionReportID: (reportID: string | undefined) => void;
     /** If you want to clear `selectedTransactionIDs`, pass `true` as the first argument */

@@ -39,6 +39,12 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
         currentSearchHashRef.current = currentSearchHash;
     }, [currentSearchHash]);
 
+    // Mirror of the live selection in a ref so getSelectedTransactions can read it on demand without subscribing.
+    const selectedTransactionsRef = useRef(selectionState.selectedTransactions);
+    useEffect(() => {
+        selectedTransactionsRef.current = selectionState.selectedTransactions;
+    }, [selectionState.selectedTransactions]);
+
     const setSelectedTransactions: SearchSelectionActionsValue['setSelectedTransactions'] = (transactionIDs, data) => {
         if (transactionIDs instanceof Array) {
             if (!transactionIDs.length && areTransactionsEmpty.current) {
@@ -198,6 +204,7 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
     const selectionActionsValue: SearchSelectionActionsValue = {
         setSelectedTransactions,
         applySelection,
+        getSelectedTransactions: () => selectedTransactionsRef.current,
         setSelectedReports,
         setCurrentSelectedTransactionReportID,
         clearSelectedTransactions,
