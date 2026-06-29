@@ -104,6 +104,9 @@ type LabelItem = {
 
     /** Text vertical anchor  */
     verticalAnchor?: TextAnchor;
+
+    /** Label rotation in degrees (e.g. 45 for diagonal x-axis labels). */
+    angle?: number;
 };
 
 type LegendItemEntry = {

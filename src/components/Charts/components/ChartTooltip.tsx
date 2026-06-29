@@ -22,9 +22,12 @@ type ChartTooltipProps = {
 
     /** The initial tooltip position */
     initialTooltipPosition: SharedValue<{x: number; y: number}>;
+
+    /** Where the tooltip sits relative to the anchor point */
+    placement?: 'above' | 'right';
 };
 
-function ChartTooltip({label, amount, percentage, chartWidth, initialTooltipPosition}: ChartTooltipProps) {
+function ChartTooltip({label, amount, percentage, chartWidth, initialTooltipPosition, placement = 'above'}: ChartTooltipProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -63,7 +66,20 @@ function ChartTooltip({label, amount, percentage, chartWidth, initialTooltipPosi
      * Calculates the clamped center to keep the box within chart boundaries.
      */
     const tooltipStyle = useAnimatedStyle(() => {
-        const {y} = initialTooltipPosition.get();
+        const {x, y} = initialTooltipPosition.get();
+
+        if (placement === 'right') {
+            const width = tooltipMeasuredWidth.get();
+            const clampedLeft = Math.max(0, Math.min(chartWidth - width, x));
+
+            return {
+                position: 'absolute',
+                left: clampedLeft,
+                top: y,
+                transform: [{translateY: '-50%'}],
+                opacity: width > 0 ? 1 : 0,
+            };
+        }
 
         return {
             position: 'absolute',
@@ -73,7 +89,7 @@ function ChartTooltip({label, amount, percentage, chartWidth, initialTooltipPosi
             transform: [{translateX: '-50%'}, {translateY: '-100%'}],
             opacity: tooltipMeasuredWidth.get() > 0 ? 1 : 0,
         };
-    }, [initialTooltipPosition]);
+    }, [initialTooltipPosition, placement]);
 
     /**
      * Animated style for the pointer (triangle).
@@ -81,6 +97,12 @@ function ChartTooltip({label, amount, percentage, chartWidth, initialTooltipPosi
      * even when the main container is clamped to the edges.
      */
     const pointerStyle = useAnimatedStyle(() => {
+        if (placement === 'right') {
+            return {
+                transform: [{translateX: -VictoryTheme.tooltip.pointerWidth}],
+            };
+        }
+
         const {x} = initialTooltipPosition.get();
 
         const relativeOffset = x - clampedCenter.get();
@@ -88,7 +110,7 @@ function ChartTooltip({label, amount, percentage, chartWidth, initialTooltipPosi
         return {
             transform: [{translateX: relativeOffset}],
         };
-    }, [initialTooltipPosition]);
+    }, [initialTooltipPosition, placement]);
 
     return (
         <Animated.View
@@ -108,14 +130,23 @@ function ChartTooltip({label, amount, percentage, chartWidth, initialTooltipPosi
                 <Animated.View
                     style={[
                         styles.chartTooltipPointer,
-                        {
-                            borderLeftWidth: VictoryTheme.tooltip.pointerWidth / 2,
-                            borderRightWidth: VictoryTheme.tooltip.pointerWidth / 2,
-                            borderTopWidth: VictoryTheme.tooltip.pointerHeight,
-                            borderLeftColor: theme.transparent,
-                            borderRightColor: theme.transparent,
-                            borderTopColor: theme.heading,
-                        },
+                        placement === 'right'
+                            ? {
+                                  borderTopWidth: VictoryTheme.tooltip.pointerWidth / 2,
+                                  borderBottomWidth: VictoryTheme.tooltip.pointerWidth / 2,
+                                  borderRightWidth: VictoryTheme.tooltip.pointerHeight,
+                                  borderTopColor: theme.transparent,
+                                  borderBottomColor: theme.transparent,
+                                  borderRightColor: theme.heading,
+                              }
+                            : {
+                                  borderLeftWidth: VictoryTheme.tooltip.pointerWidth / 2,
+                                  borderRightWidth: VictoryTheme.tooltip.pointerWidth / 2,
+                                  borderTopWidth: VictoryTheme.tooltip.pointerHeight,
+                                  borderLeftColor: theme.transparent,
+                                  borderRightColor: theme.transparent,
+                                  borderTopColor: theme.heading,
+                              },
                         pointerStyle,
                     ]}
                 />

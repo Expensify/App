@@ -1,4 +1,4 @@
-import {Skia, Text as SkText} from '@shopify/react-native-skia';
+import {Group, Skia, Text as SkText, vec} from '@shopify/react-native-skia';
 import type {Color, SkFont} from '@shopify/react-native-skia';
 import React from 'react';
 import {useChartTypefaces} from '@components/Charts/context/ChartFontsContext';
@@ -27,7 +27,21 @@ type ProcessedLine = {
  * Renders floating Skia text labels (from `<victorylabel>` nodes) over the chart canvas.
  * Intended for use inside CartesianChart's `renderOutside` callback.
  */
-function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily, fontStyle, lineHeight, textAnchor = 'start', verticalAnchor = 'middle', timezone}: VictoryChartLabelsProps) {
+function VictoryChartLabel({
+    x,
+    y,
+    text,
+    color,
+    fontSize,
+    fontWeight,
+    fontFamily,
+    fontStyle,
+    lineHeight,
+    textAnchor = 'start',
+    verticalAnchor = 'middle',
+    angle = 0,
+    timezone,
+}: VictoryChartLabelsProps) {
     const typefaces = useChartTypefaces();
     const theme = useTheme();
     const displayText = getLocalizedVictoryChartLabelText(text, timezone);
@@ -66,15 +80,33 @@ function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily,
         {lines: [] as ProcessedLine[], y},
     );
     return processedLines.lines.map(({lineX, lineY, line, lineFont, lineColor, lineWidth}) => {
-        return (
+        const anchoredX = computeTextAnchorPosition(lineX, lineWidth, textAnchor);
+        const anchoredY = computeTextAnchorPosition(lineY, processedLines.y - y, verticalAnchor);
+        const angleRad = (angle * Math.PI) / 180;
+
+        const textNode = (
             <SkText
                 key={`text-${lineX}-${lineY}`}
-                x={computeTextAnchorPosition(lineX, lineWidth, textAnchor)}
-                y={computeTextAnchorPosition(lineY, processedLines.y - y, verticalAnchor)}
+                x={anchoredX}
+                y={anchoredY}
                 text={line}
                 font={lineFont}
                 color={lineColor}
             />
+        );
+
+        if (angleRad === 0) {
+            return textNode;
+        }
+
+        return (
+            <Group
+                key={`text-${lineX}-${lineY}`}
+                origin={vec(lineX, lineY)}
+                transform={[{rotate: -angleRad}]}
+            >
+                {textNode}
+            </Group>
         );
     });
 }

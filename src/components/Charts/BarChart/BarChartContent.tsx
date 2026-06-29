@@ -28,6 +28,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import type {CartesianChartProps, ChartDataPoint} from '..';
+import HorizontalBarChartContent from './HorizontalBarChartContent';
 
 /** Extra pixel spacing between the chart boundary and the data range, applied per side (Victory's `domainPadding` prop)
  * We need bottom: 1 for proper display of the bottom label
@@ -78,7 +79,11 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
             return BASE_DOMAIN_PADDING;
         }
         const horizontalPadding = calculateMinDomainPadding(chartWidth, data.length, BAR_INNER_PADDING);
-        return {...BASE_DOMAIN_PADDING, left: horizontalPadding, right: horizontalPadding};
+        return {
+            ...BASE_DOMAIN_PADDING,
+            left: horizontalPadding,
+            right: horizontalPadding,
+        };
     })();
 
     const totalDomainPadding = domainPadding.left + domainPadding.right;
@@ -88,16 +93,18 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
 
     const measurements = useChartLabelMeasurements(data, fontMgr, variables.iconSizeExtraSmall);
 
-    const {labelRotation, labelSkipInterval, truncatedLabelWidths, xAxisLabelHeight, regularLabelMaxWidth, firstLabelMaxWidth, lastLabelMaxWidth, ellipsisWidth} = useChartLabelLayout({
-        data,
-        fontMgr,
-        fontSize: variables.iconSizeExtraSmall,
-        tickSpacing: barAreaWidth > 0 ? barAreaWidth / data.length : 0,
-        labelAreaWidth: barAreaWidth,
-        firstTickLeftSpace: boundsLeft + domainPadding.left * paddingScale,
-        lastTickRightSpace: chartWidth > 0 ? chartWidth - boundsRight + domainPadding.right * paddingScale : 0,
-        measurements,
-    });
+    const {labelRotation, labelSkipInterval, truncatedLabelWidths, xAxisLabelHeight, regularLabelMaxWidth, firstLabelMaxWidth, lastLabelMaxWidth, ellipsisWidth, shouldUseHorizontalBars} =
+        useChartLabelLayout({
+            data,
+            fontMgr,
+            fontSize: variables.iconSizeExtraSmall,
+            tickSpacing: barAreaWidth > 0 ? barAreaWidth / data.length : 0,
+            labelAreaWidth: barAreaWidth,
+            firstTickLeftSpace: boundsLeft + domainPadding.left * paddingScale,
+            lastTickRightSpace: chartWidth > 0 ? chartWidth - boundsRight + domainPadding.right * paddingScale : 0,
+            measurements,
+            preferHorizontalBars: true,
+        });
 
     const {formatValue} = useChartLabelFormats({
         data,
@@ -180,7 +187,12 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
                 color={barColor}
                 barCount={barCount}
                 innerPadding={BAR_INNER_PADDING}
-                roundedCorners={{topLeft: 8, topRight: 8, bottomLeft: 8, bottomRight: 8}}
+                roundedCorners={{
+                    topLeft: 8,
+                    topRight: 8,
+                    bottomLeft: 8,
+                    bottomRight: 8,
+                }}
             />
         );
     };
@@ -227,10 +239,18 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
     const labelSpace = VictoryTheme.axis.labelGap + (xAxisLabelHeight ?? 0);
     const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
     const yAxisLabelWidth = getYAxisLabelWidth(data, formatValue, fontMgr, variables.iconSizeExtraSmall, BASE_DOMAIN_PADDING);
-    const chartPadding = {...VictoryTheme.axis.padding, bottom: labelSpace + VictoryTheme.axis.padding.bottom, left: yAxisLabelWidth + GLYPH_PADDING};
+    const chartPadding = {
+        ...VictoryTheme.axis.padding,
+        bottom: labelSpace + VictoryTheme.axis.padding.bottom,
+        left: yAxisLabelWidth + GLYPH_PADDING,
+    };
 
     if (isLoading || !fontMgr) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'BarChartContent', isLoading, isFontLoading: !fontMgr};
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'BarChartContent',
+            isLoading,
+            isFontLoading: !fontMgr,
+        };
         return (
             <View style={styles.chartActivityIndicator}>
                 <ActivityIndicator
@@ -243,6 +263,19 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
 
     if (data.length === 0) {
         return null;
+    }
+
+    if (shouldUseHorizontalBars) {
+        return (
+            <HorizontalBarChartContent
+                data={data}
+                isLoading={isLoading}
+                yAxisUnit={yAxisUnit}
+                yAxisUnitPosition={yAxisUnitPosition}
+                useSingleColor={useSingleColor}
+                onBarPress={onBarPress}
+            />
+        );
     }
 
     return (

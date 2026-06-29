@@ -2,7 +2,16 @@ import {FontStyle, FontWeight, Skia} from '@shopify/react-native-skia';
 import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import {scaleLinear} from 'd3-scale';
 import type {ChartDataPoint, LabelRotation, PieSlice} from '@components/Charts/types';
-import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, SIN_45} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {
+    CHART_Y_SCALE_HEIGHT,
+    DIAGONAL_ANGLE_RADIAN_THRESHOLD,
+    ELLIPSIS,
+    LABEL_PADDING,
+    LABEL_ROTATIONS,
+    MAX_X_AXIS_LABEL_WIDTH,
+    MAX_Y_AXIS_LABEL_WIDTH,
+    SIN_45,
+} from '@components/Charts/VictoryTheme';
 import variables from '@styles/variables';
 
 /** One reusable ParagraphBuilder per fontMgr instance. Auto-GC'd when fontMgr is released. */
@@ -215,7 +224,12 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
  */
 function processDataIntoSlices(
     data: ChartDataPoint[],
-    pieGeometry: {centerX: number; centerY: number; radius: number; innerRadius: number},
+    pieGeometry: {
+        centerX: number;
+        centerY: number;
+        radius: number;
+        innerRadius: number;
+    },
     startAngle: number = VictoryTheme.pie.startAngle,
 ): PieSlice[] {
     const total = data.reduce((sum, point) => sum + Math.abs(point.total), 0);
@@ -227,7 +241,11 @@ function processDataIntoSlices(
     const tooltipRadius = (pieGeometry.innerRadius + pieGeometry.radius) / 2;
 
     return data
-        .map((point, index) => ({label: point.label, absTotal: Math.abs(point.total), originalIndex: index}))
+        .map((point, index) => ({
+            label: point.label,
+            absTotal: Math.abs(point.total),
+            originalIndex: index,
+        }))
         .sort((a, b) => b.absTotal - a.absTotal)
         .reduce<{slices: PieSlice[]; angle: number}>(
             (acc, slice, index) => {
@@ -422,6 +440,15 @@ function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: nu
     return scaleLinear().domain([paddedMin, paddedMax]).nice().ticks(tickCount);
 }
 
+/** Returns the pixel width needed for truncated category labels on the Y axis in horizontal bar charts. */
+function getCategoryLabelWidth(labels: string[], labelWidths: number[], ellipsisWidth: number, fontMgr: SkTypefaceFontProvider | null, fontSize: number): number {
+    if (!fontMgr || labels.length === 0) {
+        return 0;
+    }
+
+    return Math.max(0, ...labels.map((label, index) => measureTextWidth(truncateLabel(label, labelWidths.at(index) ?? 0, MAX_Y_AXIS_LABEL_WIDTH, ellipsisWidth), fontMgr, fontSize)));
+}
+
 /** Returns the pixel width needed for Y-axis labels given the chart data. */
 function getYAxisLabelWidth(
     data: ChartDataPoint[],
@@ -467,6 +494,7 @@ export {
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
     getNiceYAxisTicks,
+    getCategoryLabelWidth,
     getYAxisLabelWidth,
 };
 
