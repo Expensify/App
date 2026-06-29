@@ -451,18 +451,20 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
     }
 
     const params: OpenAppParams = {...getPolicyParamsForOpenOrReconnect(), enablePriorityModeFilter: true};
-    return API.writeWithNoDuplicatesConflictAction(
+    const openAppPromise = API.writeWithNoDuplicatesConflictAction(
         WRITE_COMMANDS.OPEN_APP,
         params,
         getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments),
     ).finally(() => {
-        if (bootsplashSpan) {
-            endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
+        if (!bootsplashSpan) {
+            return;
         }
-        // IMPORTANT: Do NOT chain requests. This is a case where we have to wait for OpenApp response
-        // because `loadPostDataForOpenOrReconnect` relies on what data is load to figure out what else needs to be loaded.
-        loadPostDataForOpenOrReconnect();
+        endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
     });
+
+    loadPostDataForOpenOrReconnect();
+
+    return openAppPromise;
 }
 
 /**
@@ -505,14 +507,20 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
         }
 
         const isFullReconnect = !updateIDFrom;
-        return API.writeWithNoDuplicatesReconnectConflictAction(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded)).finally(() => {
-            if (bootsplashSpan) {
-                endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
+        const reconnectAppPromise = API.writeWithNoDuplicatesReconnectConflictAction(
+            WRITE_COMMANDS.RECONNECT_APP,
+            params,
+            getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded),
+        ).finally(() => {
+            if (!bootsplashSpan) {
+                return;
             }
-            // IMPORTANT: Do NOT chain requests. This is a case where we have to wait for ReconnectApp response
-            // because `loadPostDataForOpenOrReconnect` relies on what data is load to figure out what else needs to be loaded.
-            loadPostDataForOpenOrReconnect();
+            endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
         });
+
+        loadPostDataForOpenOrReconnect();
+
+        return reconnectAppPromise;
     });
 }
 
@@ -520,24 +528,35 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
  * Fires asynchronous requests to load more data that is required by the App but not returned in OpenApp/ReconnectApp
  */
 function loadPostDataForOpenOrReconnect() {
-    const isOffline = getIsOffline();
-    const visibleTodoSearches = getVisibleTodoSearches(currentSessionData.accountID, currentSessionData.email, allPolicies);
-    for (const visibleTodoSearch of Object.values(visibleTodoSearches)) {
-        const searchKey = visibleTodoSearch.key;
-        const queryJSON = visibleTodoSearch.searchQueryJSON;
-        if (!queryJSON) {
-            continue;
-        }
-        search({
-            queryJSON,
-            searchKey,
-            offset: 0,
-            isOffline,
-            isLoading: false,
-            shouldCalculateTotals: false,
-            shouldUpdateLastSearchParams: false,
-        });
-    }
+    // We need to wait for OpenApp/ReconnectApp to merge its response data so we can compute what we need to load based on what we loaded.
+    // If `hasLoadedApp` is true, we know that the app Onyx data has been merged as well.
+    const connection = Onyx.connectWithoutView({
+        key: ONYXKEYS.HAS_LOADED_APP,
+        callback: (isLoaded) => {
+            if (!isLoaded) {
+                return;
+            }
+            Onyx.disconnect(connection);
+            const isOffline = getIsOffline();
+            const visibleTodoSearches = getVisibleTodoSearches(currentSessionData.accountID, currentSessionData.email, allPolicies);
+            for (const visibleTodoSearch of Object.values(visibleTodoSearches)) {
+                const searchKey = visibleTodoSearch.key;
+                const queryJSON = visibleTodoSearch.searchQueryJSON;
+                if (!queryJSON) {
+                    continue;
+                }
+                search({
+                    queryJSON,
+                    searchKey,
+                    offset: 0,
+                    isOffline,
+                    isLoading: false,
+                    shouldCalculateTotals: false,
+                    shouldUpdateLastSearchParams: false,
+                });
+            }
+        },
+    });
 }
 
 /**
