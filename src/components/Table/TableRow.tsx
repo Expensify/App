@@ -35,9 +35,24 @@ type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible'> & {
 
     /** Custom element to render in place of the selection checkbox (e.g. a lock icon for non-selectable rows) */
     checkboxReplacementElement?: React.ReactNode;
+
+    /** Optional content rendered below the row grid */
+    rowFooter?: React.ReactNode;
 };
 
-export default function TableRow({children, accessible, rowIndex, disabled, sentryLabel, interactive, onPress, offlineWithFeedback, checkboxReplacementElement, ...props}: TableRowProps) {
+export default function TableRow({
+    children,
+    accessible,
+    rowIndex,
+    disabled,
+    sentryLabel,
+    interactive,
+    onPress,
+    offlineWithFeedback,
+    checkboxReplacementElement,
+    rowFooter,
+    ...props
+}: TableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -207,6 +222,8 @@ export default function TableRow({children, accessible, rowIndex, disabled, sent
                                 ))}
                             {renderChildren(state)}
                         </View>
+
+                        {rowFooter}
 
                         {!!offlineWithFeedback?.errors && (
                             <ErrorMessageRow
