@@ -980,6 +980,38 @@ describe('formatCurrentUserToAttendee', () => {
         expect(IOUUtils.formatCurrentUserToAttendee(currentUser)).toBeUndefined();
     });
 
+    test('returns undefined when current user has only a display name', () => {
+        const currentUser = {
+            accountID: 2840332,
+            displayName: 'John Smith',
+        };
+
+        expect(IOUUtils.formatCurrentUserToAttendee(currentUser)).toBeUndefined();
+    });
+
+    test('uses login and display name when current user login exists', () => {
+        const currentUser = {
+            accountID: 2840332,
+            login: 'john.smith@example.com',
+            displayName: 'John Smith',
+        };
+
+        const attendees = IOUUtils.formatCurrentUserToAttendee(currentUser, '123');
+
+        expect(attendees).toEqual([
+            {
+                email: 'john.smith@example.com',
+                login: 'john.smith@example.com',
+                displayName: 'John Smith',
+                avatarUrl: '',
+                accountID: 2840332,
+                text: 'John Smith',
+                selected: true,
+                reportID: '123',
+            },
+        ]);
+    });
+
     test('uses session email when current user login is missing', () => {
         const currentUser = {
             accountID: 2840332,
