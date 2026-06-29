@@ -11,6 +11,7 @@ import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getDistanceUnitLabel, getFormattedDistanceInUnits} from './DistanceDisplayUtils';
 import getStoredDefaultP2PMileageRate from './getStoredDefaultP2PMileageRate';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getUnitRateValue} from './PolicyUtils';
 import replaceAllDigits from './replaceAllDigits';
@@ -144,25 +145,6 @@ function convertDistanceUnit(distanceInMeters: number, unit: Unit): number {
 function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string {
     const convertedDistance = convertDistanceUnit(distanceInMeters, unit);
     return convertedDistance.toFixed(CONST.DISTANCE_DECIMAL_PLACES);
-}
-
-/**
- * Formats a distance that is already expressed in display units (mi/km) into a localized string (e.g. "12.34 miles").
- *
- * @param distanceInUnits Distance already converted to the display unit
- * @param unit Unit that should be used to display the distance
- * @param translate Translate function
- * @param useShortFormUnit If true, the unit will be returned in short form (e.g., "mi", "km").
- * @param isCommuterDistance If true, the commuter label is inserted before the unit (e.g. "12.34 commuter miles").
- */
-function getFormattedDistanceInUnits(distanceInUnits: number, unit: Unit, translate: LocaleContextProps['translate'], useShortFormUnit?: boolean, isCommuterDistance?: boolean): string {
-    const roundedDistance = distanceInUnits.toFixed(CONST.DISTANCE_DECIMAL_PLACES);
-    const unitLabel = useShortFormUnit ? unit : getDistanceUnitLabel(distanceInUnits, unit, translate);
-    if (isCommuterDistance) {
-        return `${roundedDistance} ${translate('common.commuter')} ${unitLabel}`;
-    }
-
-    return `${roundedDistance} ${unitLabel}`;
 }
 
 /**
@@ -589,17 +571,6 @@ function getTaxableAmount(policy: OnyxEntry<Policy>, customUnitRateID: string, d
 
 function getDistanceUnit(transaction: OnyxEntry<Transaction>, mileageRate: OnyxEntry<MileageRate>): Unit {
     return transaction?.comment?.customUnit?.distanceUnit ?? mileageRate?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-}
-
-/**
- * Returns the translated distance unit label based on the distance value (for singular/plural).
- */
-function getDistanceUnitLabel(distance: number, unit: string, translate: LocaleContextProps['translate']): string {
-    const isSingular = distance === 1;
-    if (unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES) {
-        return translate(isSingular ? 'common.mile' : 'common.miles');
-    }
-    return translate(isSingular ? 'common.kilometer' : 'common.kilometers');
 }
 
 /** @private This is only for internal use for getRate function */

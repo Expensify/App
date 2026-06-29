@@ -48,7 +48,7 @@ import {getBankName, isCardPendingActivate} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertAmountToDisplayString, convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithExplicitCurrency, convertToShortDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import DistanceRequestUtils from './DistanceRequestUtils';
+import {getFormattedDistanceInUnits} from './DistanceDisplayUtils';
 import {getEnvironmentURL, getOldDotEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
@@ -4229,13 +4229,13 @@ function getUpdatedCommuterExclusionsMessage(translate: LocalizedTranslate, repo
 
     if (updatedField === CONST.POLICY.COMMUTER_EXCLUSION_TYPE.FIXED_DISTANCE) {
         const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS : CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-        const formattedDistance = DistanceRequestUtils.getFormattedDistanceInUnits(Number(newValue ?? 0), distanceUnit, translate);
+        const formattedDistance = getFormattedDistanceInUnits(Number(newValue ?? 0), distanceUnit, translate);
 
         if (!oldValue) {
             return translate('workspaceActions.commuterExclusions.setFixedDistance', {formattedDistance});
         }
 
-        const formattedOldDistance = DistanceRequestUtils.getFormattedDistanceInUnits(Number(oldValue ?? 0), distanceUnit, translate);
+        const formattedOldDistance = getFormattedDistanceInUnits(Number(oldValue ?? 0), distanceUnit, translate);
         return translate('workspaceActions.commuterExclusions.changedFixedDistance', {formattedOldDistance, formattedNewDistance: formattedDistance});
     }
 
@@ -4691,7 +4691,7 @@ function getCommuterExclusionMessage(translate: LocalizedTranslate, action: Onyx
     const {distance, unit} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION>) ?? {distance: '0', unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES};
     const distanceValue = Number(distance ?? 0);
     const unitValue = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS : CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-    const formattedDistance = DistanceRequestUtils.getFormattedDistanceInUnits(distanceValue, unitValue, translate, false, true);
+    const formattedDistance = getFormattedDistanceInUnits(distanceValue, unitValue, translate, false, true);
 
     const workspaceDistanceSettingsLink = policyID ? `${environmentURL}/${ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID)}` : '';
 
