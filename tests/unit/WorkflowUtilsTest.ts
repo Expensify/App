@@ -1717,8 +1717,16 @@ describe('WorkflowUtils', () => {
                 const overAmountFilter = {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right: 50000};
 
                 expect(buildApprovalWorkflowRules(workflow)).toEqual([
-                    {filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: buildFromFilter(['2@example.com']), right: underAmountFilter}, action: FORWARD_ACTION, nextReceiver: '1@example.com'},
-                    {filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: buildFromFilter(['2@example.com']), right: overAmountFilter}, action: FORWARD_ACTION, nextReceiver: '3@example.com'},
+                    {
+                        filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: buildFromFilter(['2@example.com']), right: underAmountFilter},
+                        action: FORWARD_ACTION,
+                        nextReceiver: '1@example.com',
+                    },
+                    {
+                        filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: buildFromFilter(['2@example.com']), right: overAmountFilter},
+                        action: FORWARD_ACTION,
+                        nextReceiver: '3@example.com',
+                    },
                 ]);
             });
 
