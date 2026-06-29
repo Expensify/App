@@ -6813,7 +6813,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 optionFixedDistanceTitle: 'Exclure une distance fixe par demande',
                 optionFixedDistanceHelp: 'Soustraire la même distance de trajet domicile-travail de chaque demande. Idéal pour les membres qui soumettent une demande par jour de travail.',
                 distanceLabel: 'Distance',
-                errors: {distanceMustBePositive: 'La distance doit être supérieure à 0.'},
+                errors: {distanceMustBePositive: 'La distance doit être supérieure à 0.', distanceTooLarge: 'La distance est trop grande.'},
             },
             distance: 'Distance',
             centrallyManage: 'Gérez les taux de manière centralisée, suivez en miles ou en kilomètres et définissez une catégorie par défaut.',

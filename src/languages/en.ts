@@ -6935,6 +6935,7 @@ const translations = {
                 distanceLabel: 'Distance',
                 errors: {
                     distanceMustBePositive: 'Distance must be greater than 0.',
+                    distanceTooLarge: 'Distance is too large.',
                 },
             },
             distance: 'Distance',
