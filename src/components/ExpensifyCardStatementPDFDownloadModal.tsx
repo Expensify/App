@@ -63,7 +63,7 @@ function ExpensifyCardStatementPDFDownloadModal({statementParams, isVisible, onC
 
         downloadExpensifyCardStatementPDF(translate, statementFileName, statementKey, currentUserLogin, encryptedAuthToken, environment);
         shouldAutoDownloadPDF.current = false;
-    }, [currentUserLogin, encryptedAuthToken, environment, hasFinishedPDFDownload, isGeneratingPDF, isVisible, statementFileName, statementKey, translate]);
+    }, [currentUserLogin, encryptedAuthToken, environment, hasFinishedPDFDownload, isVisible, statementFileName, statementKey, translate]);
 
     const pdfLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'SearchBulkActions.ExpensifyCardStatementPDFModal',
