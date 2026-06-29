@@ -5,8 +5,6 @@ keywords: Expense Assistant, Concierge, create expense, edit expense, manage exp
 order: 4
 ---
 
-<div id="new-expensify" markdown="1">
-
 Need to create or update an expense? Just ask Concierge. Whether you're uploading a receipt, tracking mileage, or fixing a merchant name, the Expense Assistant can handle it — no forms required.
 
 # What is Concierge Expense Assistant?
@@ -90,19 +88,6 @@ Concierge will update the expense and confirm the change.
 
 # FAQ
 
-## What features are not yet supported by the Expense Assistant?
-
-Some expense actions are not currently supported in chat, but may be added in the future:
-
-- Deleting an expense
-- Categorizing all expenses from a specific merchant (e.g., “Categorize all Starbucks expenses as Coffee Meetings”)  
-- Attaching a receipt to an existing transaction via chat
-- Tagging expenses based on past behavior 
-
-If you request these actions, Concierge will notify you that the feature is not yet available.
-
----
-
 ## Can I use the Expense Assistant on mobile?
 
 Yes! The Expense Assistant works the same way on both web and mobile.
@@ -120,5 +105,3 @@ Yes — just include the number of miles and reason in your request:
 ## Can I create an expense without a receipt?
 
 Yes — you can log expenses with just a message. Receipts are optional unless required by your Workspace rules.
-
-</div>
