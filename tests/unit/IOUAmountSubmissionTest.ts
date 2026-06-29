@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import {getIsP2PForAmount, getReportOrReportDraftForAmount, submitAmount} from '@pages/iou/request/step/AmountSubmission';
+import {getIsP2PForAmount, submitAmount} from '@libs/IOUAmountSubmission';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
@@ -96,49 +96,6 @@ describe('AmountSubmission', () => {
     beforeEach(async () => {
         await Onyx.clear();
         await waitForBatchedUpdates();
-    });
-
-    describe('getReportOrReportDraftForAmount', () => {
-        it('returns undefined when reportID is undefined', () => {
-            expect(getReportOrReportDraftForAmount(undefined, {}, {})).toBeUndefined();
-        });
-
-        it('returns undefined when reportID is an empty string', () => {
-            expect(getReportOrReportDraftForAmount('', {}, {})).toBeUndefined();
-        });
-
-        it('returns the report from the supplied COLLECTION.REPORT when it exists', () => {
-            const reportID = 'report-1';
-            const testReport: Report = {...createRandomReport(1, undefined), reportID};
-            const allReports = {[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: testReport};
-
-            const result = getReportOrReportDraftForAmount(reportID, allReports, {});
-            expect(result?.reportID).toBe(reportID);
-        });
-
-        it('falls back to the supplied COLLECTION.REPORT_DRAFT when not in REPORT', () => {
-            const reportID = 'draft-1';
-            const draftReport: Report = {...createRandomReport(2, undefined), reportID};
-            const allReportDrafts = {[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`]: draftReport};
-
-            const result = getReportOrReportDraftForAmount(reportID, {}, allReportDrafts);
-            expect(result?.reportID).toBe(reportID);
-        });
-
-        it('prefers COLLECTION.REPORT over COLLECTION.REPORT_DRAFT when both have the reportID', () => {
-            const reportID = 'both-1';
-            const realReport: Report = {...createRandomReport(3, undefined), reportID, reportName: 'real'};
-            const draftReport: Report = {...createRandomReport(4, undefined), reportID, reportName: 'draft'};
-            const allReports = {[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: realReport};
-            const allReportDrafts = {[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`]: draftReport};
-
-            const result = getReportOrReportDraftForAmount(reportID, allReports, allReportDrafts);
-            expect(result?.reportName).toBe('real');
-        });
-
-        it('returns undefined when neither collection has the reportID', () => {
-            expect(getReportOrReportDraftForAmount('nonexistent', {}, {})).toBeUndefined();
-        });
     });
 
     describe('getIsP2PForAmount', () => {

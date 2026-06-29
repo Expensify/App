@@ -9,10 +9,10 @@ import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import type {SubmitAmountArgs} from '@libs/IOUAmountSubmission';
 import {getExistingTransactionID} from '@libs/IOUUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {SubmitAmountArgs} from './AmountSubmission';
 
 type AmountSubmitData = Pick<
     SubmitAmountArgs,
