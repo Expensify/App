@@ -224,7 +224,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 setOnboardingPolicyID(policyID);
             }
 
-            // MANAGE_TEAM posts tasks to #admins room — selfDMReport is not needed (only used for personal/track choices).
             const response = await completeOnboarding({
                 engagementChoice: onboardingPurposeSelected,
                 onboardingMessage: onboardingMessages[onboardingPurposeSelected],
