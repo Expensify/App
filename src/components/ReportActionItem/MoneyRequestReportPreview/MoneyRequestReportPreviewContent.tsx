@@ -43,7 +43,6 @@ import {
     getReportStatusColorStyle,
     getReportStatusTranslation,
     getTransactionsWithReceipts,
-    hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasOnlyTransactionsWithPendingRoutes as hasOnlyTransactionsWithPendingRoutesReportUtils,
     isInvoiceRoom as isInvoiceRoomReportUtils,
@@ -57,7 +56,7 @@ import {startSpan} from '@libs/telemetry/activeSpans';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {compareByRBR} from '@libs/TransactionPreviewUtils';
-import {getCreated, hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
+import {getCreated, hasNonReimbursableTransactions as hasNonReimbursableTransactionsTransactionUtils, hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -171,10 +170,8 @@ function MoneyRequestReportPreviewContent({
         () => ({
             areAllRequestsBeingSmartScanned: areAllRequestsBeingSmartScannedReportUtils(iouReportID, action),
             hasOnlyTransactionsWithPendingRoutes: hasOnlyTransactionsWithPendingRoutesReportUtils(iouReportID),
-            hasNonReimbursableTransactions: hasNonReimbursableTransactionsReportUtils(iouReportID),
+            hasNonReimbursableTransactions: hasNonReimbursableTransactionsTransactionUtils(transactions),
         }),
-        // When transactions get updated these values may have changed, so that is a case where we also want to recompute them
-        // eslint-disable-next-line react-hooks/exhaustive-deps
         [transactions, iouReportID, action],
     );
 

@@ -19,14 +19,10 @@ import {
     isOneTransactionReport,
     isReportTransactionThread,
 } from './ReportUtils';
-import {getReimbursable, isTransactionPendingDelete} from './TransactionUtils';
+import {isTransactionPendingDelete} from './TransactionUtils';
 
 function isBillableEnabledOnPolicy(policy: Policy | OnyxEntry<Policy> | undefined): boolean {
     return !!policy && isPaidGroupPolicy(policy) && policy.disabledFields?.defaultBillable !== true;
-}
-
-function hasNonReimbursableTransactions(transactions: Transaction[]): boolean {
-    return transactions.some((transaction) => !getReimbursable(transaction));
 }
 
 /**
@@ -209,5 +205,4 @@ export {
     shouldDisplayReportTableView,
     shouldWaitForTransactions,
     isBillableEnabledOnPolicy,
-    hasNonReimbursableTransactions,
 };
