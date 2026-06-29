@@ -240,6 +240,7 @@ function useSelectionModeReportActions({
         reportMetadata,
         isChatReportArchived,
         invoiceReceiverPolicy,
+        ownerLogin: submitterLogin,
     });
 
     const secondaryActions = (() => {
@@ -343,7 +344,6 @@ function useSelectionModeReportActions({
         } else {
             approveMoneyRequest({
                 expenseReport: report,
-                policy,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: currentUserEmail ?? '',
                 hasViolations,

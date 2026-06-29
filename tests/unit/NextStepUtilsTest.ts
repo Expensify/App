@@ -95,6 +95,7 @@ describe('libs/NextStepUtils', () => {
                 const emptyReport = buildOptimisticEmptyReport(
                     'fake-empty-report-id-2',
                     currentUserAccountID,
+                    currentUserEmail,
                     {reportID: 'fake-parent-report-id-3'},
                     'fake-parent-report-action-id-4',
                     policy,
