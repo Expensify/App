@@ -203,6 +203,14 @@ const restrictedPaidGroupPolicyImportPatterns = [
     },
 ];
 
+// Headless email chart CLI cannot use useTheme; charts always render with the light theme.
+const victoryChartRendererRestrictedImportPaths = restrictedImportPaths.filter((restriction) => restriction.name !== '@styles/theme');
+const victoryChartRendererRestrictedImportPatterns = [
+    ...restrictedImportPatterns.filter((restriction) => restriction.group[0] !== '@styles/theme/themes/**'),
+    ...restrictedReportNameImportPatterns,
+    ...restrictedPaidGroupPolicyImportPatterns,
+];
+
 const config = defineConfig([
     expensifyConfig,
     typescriptEslint.configs.recommendedTypeChecked,
@@ -763,6 +771,16 @@ const config = defineConfig([
             parserOptions: {
                 project: path.resolve(projectRoot, 'server/victory-chart-renderer/tsconfig.json'),
             },
+        },
+        rules: {
+            // Headless CLI cannot use useTheme; email charts always render with the light theme.
+            'no-restricted-imports': [
+                'error',
+                {
+                    paths: victoryChartRendererRestrictedImportPaths,
+                    patterns: victoryChartRendererRestrictedImportPatterns,
+                },
+            ],
         },
     },
 

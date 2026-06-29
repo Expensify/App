@@ -1,9 +1,11 @@
+import {Skia} from '@shopify/react-native-skia';
 import {drawOffscreen, makeOffscreenSurface} from '@shopify/react-native-skia/lib/module/headless';
 import type {TNode} from 'react-native-render-html';
 import type ChartFontsValue from '@components/Charts/types/chartFontsTypes';
 import processVictoryChartTree from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/processVictoryChartTree';
 import resolveVictoryChartType from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveVictoryChartType';
 import CliVictoryChart from './components/CliVictoryChart';
+import resolveHeadlessChartBackgroundColor from './resolveHeadlessChartBackgroundColor';
 import type CanvasSize from './types/CanvasSize';
 
 async function renderChartToPng(tnode: TNode, fonts: ChartFontsValue, {width, height}: CanvasSize, outPath: string): Promise<void> {
@@ -26,6 +28,7 @@ async function renderChartToPng(tnode: TNode, fonts: ChartFontsValue, {width, he
     );
 
     using surface = makeOffscreenSurface(width, height);
+    surface.getCanvas().clear(Skia.Color(resolveHeadlessChartBackgroundColor(tnode)));
     using image = await drawOffscreen(surface, chartElement);
     const pngBytes = image.encodeToBytes();
 
