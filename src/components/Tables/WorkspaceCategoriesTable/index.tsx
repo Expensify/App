@@ -1,5 +1,6 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
+import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
@@ -36,6 +37,8 @@ type WorkspaceCategoriesTableProps = {
     shouldShowGLCodeColumn: boolean;
     shouldShowApproverColumn: boolean;
     selectedKeys: string[];
+    emptyStateSubtitleText: React.ReactNode;
+    emptyStateButtons: EmptyStateButton[] | undefined;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
@@ -46,6 +49,8 @@ export default function WorkspaceCategoriesTable({
     selectionEnabled,
     shouldShowGLCodeColumn,
     shouldShowApproverColumn,
+    emptyStateSubtitleText,
+    emptyStateButtons,
     onRowSelectionChange,
 }: WorkspaceCategoriesTableProps) {
     const styles = useThemeStyles();
@@ -150,8 +155,10 @@ export default function WorkspaceCategoriesTable({
         >
             <Table.FilterBar label={translate('workspace.categories.findCategory')} />
             <Table.EmptyState
-                title="No categories yet"
-                subtitle="Try creating one"
+                title={translate('workspace.categories.emptyCategories.title')}
+                subtitleText={emptyStateSubtitleText}
+                headerStyles={styles.emptyStateCardIllustrationContainer}
+                buttons={emptyStateButtons}
             />
             <Table.NoResultsState />
             <Table.Header />
