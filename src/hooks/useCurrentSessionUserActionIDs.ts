@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import {isCurrentUserPendingAddAction} from '@libs/ReportActionsUtils';
 import type {ReportAction} from '@src/types/onyx';
 
@@ -15,38 +15,41 @@ import type {ReportAction} from '@src/types/onyx';
  *
  * The set is reset whenever the session boundary (`sessionStartTime`) changes, so IDs from a previous
  * session never leak into a new one.
+ *
+ * Capture happens during render (via the "adjust state during render" pattern) rather than in an
+ * effect: the returned set is therefore correct within the same render, and we avoid the cascading
+ * renders that calling setState inside an effect would cause.
  */
 function useCurrentSessionUserActionIDs(actions: ReportAction[] | undefined, currentUserAccountID: number | undefined, sessionStartTime: string | null): Set<string> {
     const [sentIDs, setSentIDs] = useState<Set<string>>(() => new Set());
-
-    // Reset the captured IDs when the session boundary changes, using the "adjust state during render"
-    // pattern so the returned set never carries IDs from a previous session.
     const [prevSessionStartTime, setPrevSessionStartTime] = useState(sessionStartTime);
+
+    // Reset the captured IDs when the session boundary changes.
+    let currentSet = sentIDs;
     if (prevSessionStartTime !== sessionStartTime) {
         setPrevSessionStartTime(sessionStartTime);
-        setSentIDs(new Set());
+        currentSet = new Set();
     }
 
-    useEffect(() => {
-        if (!sessionStartTime || !actions) {
-            return;
-        }
-        setSentIDs((prev) => {
-            let next = prev;
-            for (const action of actions) {
-                if (!isCurrentUserPendingAddAction(action, currentUserAccountID) || !action.reportActionID || prev.has(action.reportActionID)) {
-                    continue;
-                }
-                if (next === prev) {
-                    next = new Set(prev);
-                }
-                next.add(action.reportActionID);
+    // Add any of the current user's optimistic (pendingAction === ADD) messages not yet captured.
+    let nextSet = currentSet;
+    if (sessionStartTime && actions) {
+        for (const action of actions) {
+            if (!isCurrentUserPendingAddAction(action, currentUserAccountID) || !action.reportActionID || nextSet.has(action.reportActionID)) {
+                continue;
             }
-            return next;
-        });
-    }, [actions, currentUserAccountID, sessionStartTime]);
+            if (nextSet === currentSet) {
+                nextSet = new Set(currentSet);
+            }
+            nextSet.add(action.reportActionID);
+        }
+    }
 
-    return sentIDs;
+    if (nextSet !== sentIDs) {
+        setSentIDs(nextSet);
+    }
+
+    return nextSet;
 }
 
 export default useCurrentSessionUserActionIDs;
