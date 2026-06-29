@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import WidgetContainer from '@components/WidgetContainer';
@@ -8,6 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setHasSeenForYouTodo} from '@libs/actions/Todos';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -35,6 +36,7 @@ function ForYouSection() {
     // when IS_LOADING_REPORT_DATA is optimistically set to true by ReconnectApp.
     const [hasLoadedApp = false] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
+    const [hasSeenForYouTodo = false] = useOnyx(ONYXKEYS.HAS_SEEN_FOR_YOU_TODO);
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
     const [singleReportIDs = EMPTY_TODOS_SINGLE_REPORT_IDS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosSingleReportIDsSelector});
     const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
@@ -166,6 +168,15 @@ function ForYouSection() {
 
     const isInitialLoad = !hasLoadedApp && (isLoadingApp || isLoadingReportData || reportCounts === undefined);
 
+    // Persist a one-time flag the first time an actionable to-do appears so the section stays visible
+    // permanently afterwards, even when it later goes empty (R2/D5). Harmless no-op for existing users.
+    useEffect(() => {
+        if (isInitialLoad || !hasAnyTodos || hasSeenForYouTodo) {
+            return;
+        }
+        setHasSeenForYouTodo();
+    }, [isInitialLoad, hasAnyTodos, hasSeenForYouTodo]);
+
     const renderContent = () => {
         if (isInitialLoad) {
             const reasonAttributes: SkeletonSpanReasonAttributes = {
@@ -181,7 +192,7 @@ function ForYouSection() {
         return hasAnyTodos ? renderTodoItems() : <EmptyState />;
     };
 
-    if (shouldHideForYouSection({isInitialLoad, hasAnyTodos, firstDayFreeTrial, cutoffDate: CONST.HOME.FOR_YOU_NEW_USER_CUTOFF_DATE})) {
+    if (shouldHideForYouSection({isInitialLoad, hasAnyTodos, hasSeenTodo: hasSeenForYouTodo, firstDayFreeTrial, cutoffDate: CONST.HOME.FOR_YOU_NEW_USER_CUTOFF_DATE})) {
         return null;
     }
 
