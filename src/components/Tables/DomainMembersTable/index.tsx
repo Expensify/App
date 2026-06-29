@@ -156,15 +156,12 @@ export default function DomainMembersTable({
                         shouldShowGroupFilter={shouldShowGroupFilter}
                         groupOptionValuesKey={groupOptionValuesKey}
                     />
-                    <View style={[styles.gap3, styles.alignItemsCenter, styles.mb5, styles.mh5, styles.flexRow, !shouldUseNarrowLayout && styles.justifyContentBetween]}>
-                        {shouldShowGroupFilter && <Table.FilterButtons style={[styles.mw50, styles.flexShrink1]} />}
-                        {shouldShowSearchBar && (
-                            <Table.SearchBar
-                                label={translate('domain.members.findMember')}
-                                style={[styles.mb0, styles.mh0, shouldUseNarrowTableLayout && styles.flex1]}
-                            />
-                        )}
-                    </View>
+                    {shouldShowGroupFilter && (
+                        <Table.FilterButtons
+                            style={[styles.mh5, styles.mb3, styles.flexShrink1, styles.mnw0, styles.overflowHidden, shouldUseNarrowTableLayout ? styles.mw100 : styles.mw50]}
+                        />
+                    )}
+                    {shouldShowSearchBar && <Table.SearchBar label={translate('domain.members.findMember')} />}
                     <Table.Header />
                     <Table.Body />
                 </>
