@@ -9,8 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOtherFeedsForFeedSelector from '@hooks/useOtherFeedsForFeedSelector';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getVisibleCompanyCardFeedsForSelector} from '@libs/CardFeedUtils';
-import type {CardFeedForDisplay} from '@libs/CardFeedUtils';
+import * as CardFeedUtilsModule from '@libs/CardFeedUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -35,7 +34,7 @@ jest.mock('@hooks/useOnyx', () => ({
 
 jest.mock('@libs/CardFeedUtils', () => ({
     __esModule: true,
-    ...jest.requireActual('@libs/CardFeedUtils'),
+    ...jest.requireActual<typeof CardFeedUtilsModule>('@libs/CardFeedUtils'),
     getVisibleCompanyCardFeedsForSelector: jest.fn(),
 }));
 
@@ -79,8 +78,8 @@ jest.mock('@hooks/useCompanyCardIcons', () => ({
     useCompanyCardFeedIcons: jest.fn(),
 }));
 
-const mockVisibleFeeds = (feeds: CardFeedForDisplay[]): void => {
-    (getVisibleCompanyCardFeedsForSelector as jest.Mock).mockReturnValue(feeds);
+const mockVisibleFeeds = (feeds: CardFeedUtilsModule.CardFeedForDisplay[]): void => {
+    (CardFeedUtilsModule.getVisibleCompanyCardFeedsForSelector as jest.Mock).mockReturnValue(feeds);
 };
 
 describe('useOtherFeedsForFeedSelector', () => {
