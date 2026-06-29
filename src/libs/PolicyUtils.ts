@@ -316,6 +316,13 @@ function getDistanceRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRate
     return distanceUnit?.rates[customUnitRateID];
 }
 
+function getPolicyIDOrDefault(policyID?: string) {
+    if (!policyID || policyID === CONST.POLICY.OWNER_EMAIL_FAKE) {
+        return '-1';
+    }
+    return policyID;
+}
+
 /**
  * Finds the policy that owns the given distance customUnitRateID.
  */
@@ -2689,6 +2696,7 @@ export {
     getPolicyByCustomUnitID,
     getDistanceRateCustomUnitRate,
     getPolicyForDistanceRateID,
+    getPolicyIDOrDefault,
     getPerDiemRateCustomUnitRate,
     sortWorkspacesBySelected,
     removePendingFieldsFromCustomUnit,

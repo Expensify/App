@@ -1,7 +1,6 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getPolicyForDistanceRateID} from '@libs/PolicyUtils';
-import CONST from '@src/CONST';
+import {getPolicyForDistanceRateID, getPolicyIDOrDefault} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import useOnyx from './useOnyx';
@@ -28,7 +27,7 @@ function useDistanceRateOriginalPolicy(customUnitRateID: string | undefined, sho
     );
 
     const resolvedPolicyID = getNonEmptyStringOnyxID(policyID);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${resolvedPolicyID ?? CONST.POLICY.ID_FAKE}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDOrDefault(resolvedPolicyID)}`);
 
     return shouldLookup && customUnitRateID && resolvedPolicyID ? policy : undefined;
 }
