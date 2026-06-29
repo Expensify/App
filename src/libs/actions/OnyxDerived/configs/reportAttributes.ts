@@ -8,7 +8,7 @@ import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDer
 import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, ReportAttributesDerivedValue, Transaction} from '@src/types/onyx';
 
 let previousDisplayNames: Record<string, string | undefined> = {};
 let previousPersonalDetails: OnyxEntry<PersonalDetailsList> | undefined;
@@ -256,6 +256,21 @@ export default createOnyxDerivedValueConfig({
                 return currentValue ?? {reports: {}, locale: null};
             }
         }
+        const reportsTransactions =
+            transactions &&
+            Object.values(transactions).reduce<Record<string, Transaction[]>>((all, transaction) => {
+                const reportsMap = all;
+                if (!transaction?.reportID) {
+                    return reportsMap;
+                }
+
+                if (!reportsMap[transaction.reportID]) {
+                    reportsMap[transaction.reportID] = [];
+                }
+                reportsMap[transaction.reportID].push(transaction);
+
+                return all;
+            }, {});
 
         const reportAttributes = dataToIterate.reduce<ReportAttributesDerivedValue['reports']>(
             (acc, key) => {
@@ -356,6 +371,7 @@ export default createOnyxDerivedValueConfig({
                               allPolicyTags: policyTags,
                               conciergeReportID: conciergeReportID ?? undefined,
                               reportAttributes: currentValue?.reports,
+                              reportTransactions: reportsTransactions,
                           })
                         : '',
                     isEmpty: generateIsEmptyReport(report, isReportArchived),

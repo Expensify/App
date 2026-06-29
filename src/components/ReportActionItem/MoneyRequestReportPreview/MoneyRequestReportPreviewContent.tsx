@@ -43,7 +43,6 @@ import {
     getReportStatusColorStyle,
     getReportStatusTranslation,
     getTransactionsWithReceipts,
-    hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasOnlyTransactionsWithPendingRoutes as hasOnlyTransactionsWithPendingRoutesReportUtils,
     isInvoiceRoom as isInvoiceRoomReportUtils,
@@ -68,6 +67,7 @@ import type {ReportAttributesDerivedValue, Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import AccessMoneyRequestReportPreviewPlaceHolder from './AccessMoneyRequestReportPreviewPlaceHolder';
 import EmptyMoneyRequestReportPreview from './EmptyMoneyRequestReportPreview';
+import {hasNonReimbursableTransactions as hasNonReimbursableTransactionsMoneyRequestReportUtils} from './MoneyRequestReportUtils';
 import ReportPreviewActionButton from './ReportPreviewActionButton';
 import type {MoneyRequestReportPreviewContentProps} from './types';
 
@@ -171,10 +171,8 @@ function MoneyRequestReportPreviewContent({
         () => ({
             areAllRequestsBeingSmartScanned: areAllRequestsBeingSmartScannedReportUtils(iouReportID, action),
             hasOnlyTransactionsWithPendingRoutes: hasOnlyTransactionsWithPendingRoutesReportUtils(iouReportID),
-            hasNonReimbursableTransactions: hasNonReimbursableTransactionsReportUtils(iouReportID),
+            hasNonReimbursableTransactions: hasNonReimbursableTransactionsMoneyRequestReportUtils(transactions),
         }),
-        // When transactions get updated these values may have changed, so that is a case where we also want to recompute them
-        // eslint-disable-next-line react-hooks/exhaustive-deps
         [transactions, iouReportID, action],
     );
 
