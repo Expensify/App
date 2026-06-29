@@ -1,6 +1,7 @@
 import {beforeEach} from '@jest/globals';
 import Onyx from 'react-native-onyx';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Permissions from '@libs/Permissions';
 import {getTransactionViolations, hasWarningTypeViolation, isViolationDismissed} from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations, getIsViolationFixed, isHardViolationOrRateDateWarning, syncCustomUnitRateOutOfDateRangeViolation} from '@libs/Violations/ViolationsUtils';
@@ -464,6 +465,60 @@ describe('getViolationsOnyxData', () => {
                     type: CONST.VIOLATION_TYPES.WARNING,
                 }),
             );
+        });
+
+        it('should resolve the distance rate from its owning policy on self DM reports and not add customUnitOutOfPolicy', () => {
+            transaction.created = '2026-06-15';
+            transactionViolations = [customUnitOutOfPolicyViolation];
+            const wrongPolicy = {requiresTag: false, requiresCategory: false} as Policy;
+
+            const getPolicyForDistanceRateIDSpy = jest.spyOn(DistanceRequestUtils, 'getPolicyForDistanceRateID').mockReturnValue(policy);
+
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy: wrongPolicy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                isSelfDM: true,
+            });
+
+            expect(getPolicyForDistanceRateIDSpy).toHaveBeenCalledWith(customUnitRateID);
+            expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+            expect(result.value).toContainEqual(
+                expect.objectContaining({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                }),
+            );
+
+            getPolicyForDistanceRateIDSpy.mockRestore();
+        });
+
+        it('should not add customUnitOutOfPolicy for self DM distance requests when the rate cannot be resolved', () => {
+            transaction.created = '2026-06-15';
+            transactionViolations = [customUnitOutOfPolicyViolation];
+            const wrongPolicy = {requiresTag: false, requiresCategory: false} as Policy;
+
+            const getPolicyForDistanceRateIDSpy = jest.spyOn(DistanceRequestUtils, 'getPolicyForDistanceRateID').mockReturnValue(undefined);
+
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy: wrongPolicy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                isSelfDM: true,
+            });
+
+            expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+            expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE}));
+
+            getPolicyForDistanceRateIDSpy.mockRestore();
         });
 
         it('should remove the customUnitRateOutOfDateRange violation for non-distance requests', () => {
