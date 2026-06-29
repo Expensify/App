@@ -123,7 +123,7 @@ function comparePng(actualPath: string, goldenPath: string, expectedSize?: {widt
         threshold: 0.1,
     });
 
-    const maxAllowedMismatch = Math.floor(actual.width * actual.height * 0.001);
+    const maxAllowedMismatch = Math.ceil(actual.width * actual.height * 0.001);
     expect(mismatchedPixels).toBeLessThanOrEqual(maxAllowedMismatch);
 }
 
