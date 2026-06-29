@@ -1,5 +1,6 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
+import {View} from 'react-native';
 import Table from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
@@ -107,7 +108,7 @@ function WorkspaceCategoryRulesTable<TItem extends CategoryRulesTableItem>({
             narrowLayoutSortColumn="condition"
             title={tableTitle}
         >
-            {isEmpty && emptyStateContent}
+            {isEmpty && !!emptyStateContent && <View style={[styles.flex1, styles.mnh0, styles.w100]}>{emptyStateContent}</View>}
             {(!isEmpty || !emptyStateContent) && (
                 <>
                     {shouldShowSearchBar && !isEmpty && <Table.SearchBar label={findRuleLabel} />}

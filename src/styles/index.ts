@@ -5510,30 +5510,14 @@ const staticStyles = (theme: ThemeColors) =>
             ...flex.justifyContentCenter,
         },
 
-        cardRulesEmptyStateContainer: {
-            width: '100%',
-            maxWidth: variables.cardRulesEmptyStateMaxWidth,
-            alignItems: 'center',
-        },
-
-        cardRulesEmptyStateWrapper: {
-            ...flex.flex1,
-            ...flex.alignItemsCenter,
-            ...flex.justifyContentCenter,
-            ...sizing.w100,
-            ...sizing.mw100,
-        },
-
         cardRulesEmptyStateIllustration: {
-            width: '100%',
-            maxWidth: variables.cardRulesEmptyStateIllustrationWidth,
-            aspectRatio: variables.cardRulesEmptyStateIllustrationWidth / variables.cardRulesEmptyStateIllustrationHeight,
+            width: variables.cardRulesEmptyStateIllustrationWidth,
+            height: variables.cardRulesEmptyStateIllustrationHeight,
         },
 
         sortingMachineRulesEmptyStateIllustration: {
-            width: '100%',
-            maxWidth: variables.sortingMachineRulesEmptyStateIllustrationWidth,
-            aspectRatio: variables.sortingMachineRulesEmptyStateIllustrationWidth / variables.sortingMachineRulesEmptyStateIllustrationHeight,
+            width: variables.sortingMachineRulesEmptyStateIllustrationWidth,
+            height: variables.sortingMachineRulesEmptyStateIllustrationHeight,
         },
 
         emptyStateSamlIllustration: {
@@ -5547,9 +5531,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         expensifyCardEmptyIllustration: {
-            width: '100%',
-            maxWidth: variables.expensifyCardEmptyIllustrationWidth,
-            aspectRatio: variables.expensifyCardEmptyIllustrationWidth / variables.expensifyCardEmptyIllustrationHeight,
+            width: variables.expensifyCardEmptyIllustrationWidth,
+            height: variables.expensifyCardEmptyIllustrationHeight,
         },
 
         errorStateCardIllustration: {

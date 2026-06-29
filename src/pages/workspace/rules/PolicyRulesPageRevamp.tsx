@@ -494,8 +494,8 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         enableExpensifyCard(policyID, true, true);
     };
 
-    const rulesEmptyStateScrollContentContainerStyle = [styles.flexGrow1, styles.flexShrink0, styles.justifyContentCenter, styles.mb5];
-    const rulesEmptyStateContainerStyles = [styles.cardRulesEmptyStateWrapper];
+    const rulesEmptyStateScrollContentContainerStyle = [styles.flexGrow1, styles.flexShrink0, styles.justifyContentCenter, styles.w100];
+    const rulesEmptyStateContainerStyles = [styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)];
 
     const cardRulesEmptyState = (
         <ScrollView
@@ -511,7 +511,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 subtitle={translate('workspace.rules.spendRules.cardRulesUpsell.subtitle')}
                 subtitleStyles={[styles.textLabel, styles.textSupporting]}
                 minModalHeight={0}
-                cardStyles={styles.cardRulesEmptyStateContainer}
+                cardContentStyles={styles.ph0}
                 containerStyles={rulesEmptyStateContainerStyles}
                 buttons={[
                     {
@@ -539,7 +539,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 subtitle={translate('workspace.rules.requireFieldsEmptyState.subtitle')}
                 subtitleStyles={[styles.textLabel, styles.textSupporting]}
                 minModalHeight={0}
-                cardStyles={styles.cardRulesEmptyStateContainer}
+                cardContentStyles={styles.ph0}
                 containerStyles={rulesEmptyStateContainerStyles}
                 buttons={[
                     {
@@ -567,7 +567,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 subtitle={translate('workspace.rules.flagForReviewEmptyState.subtitle')}
                 subtitleStyles={[styles.textLabel, styles.textSupporting]}
                 minModalHeight={0}
-                cardStyles={styles.cardRulesEmptyStateContainer}
+                cardContentStyles={styles.ph0}
                 containerStyles={rulesEmptyStateContainerStyles}
                 buttons={[
                     {
