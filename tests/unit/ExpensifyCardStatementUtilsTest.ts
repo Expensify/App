@@ -57,7 +57,9 @@ describe('ExpensifyCardStatementUtils', () => {
         // Negated (NOT expensify-card) can show non-card withdrawal groups.
         const negated: SearchQueryJSON = {
             ...expensifyCardStatementQueryJSON,
-            flatFilters: [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD}]}],
+            flatFilters: [
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD}]},
+            ],
         };
         expect(isExpensifyCardStatementSearch(negated)).toBe(false);
 
