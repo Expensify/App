@@ -1,4 +1,5 @@
 import {createContext, useContext} from 'react';
+import type {MeasurableInput} from '@components/SelectionList/SelectionListWithSections/types';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type CONST from '@src/CONST';
 
@@ -31,6 +32,9 @@ type ConfirmationFieldsContextValue = {
     isManualDistanceRequest: boolean;
     isOdometerDistanceRequest: boolean;
     isGPSDistanceRequest: boolean;
+
+    /** Scrolls the surface so an inline field's input is not hidden behind the keyboard when focused (new manual expense flow). */
+    scrollFocusedInputIntoView?: (input: MeasurableInput) => void;
 };
 
 const ConfirmationFieldsContext = createContext<ConfirmationFieldsContextValue | null>(null);
