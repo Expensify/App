@@ -22,6 +22,7 @@ import {
     hasVendorFeature,
     isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy,
     isDefaultTagName,
+    isMatchingVendorListLoaded,
     isTaxTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {isCurrentUserSubmitter} from '@libs/ReportUtils';
@@ -476,14 +477,19 @@ const ViolationsUtils = {
                 if (hasInactiveVendorViolation) {
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
                 }
-            } else if (transactionVendorID) {
+            } else if (transactionVendorID && isMatchingVendorListLoaded(policy)) {
+                // Only mutate INACTIVE_VENDOR once the active integration's vendor list has actually
+                // hydrated. While `policy.connections.*.data.vendors` is still `undefined`,
+                // `getMatchingVendorByID` returns `undefined` for every ID — pushing the violation
+                // would persist a false positive in Onyx, and rejecting it would strip a legitimate
+                // one. Leave the existing violation state untouched until the list arrives.
                 const matchedVendor = getMatchingVendorByID(policy, transactionVendorID);
                 if (!matchedVendor && !hasInactiveVendorViolation) {
                     newTransactionViolations.push({name: CONST.VIOLATIONS.INACTIVE_VENDOR, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
                 } else if (matchedVendor && hasInactiveVendorViolation) {
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
                 }
-            } else if (hasInactiveVendorViolation) {
+            } else if (!transactionVendorID && hasInactiveVendorViolation) {
                 // Vendor was cleared while the feature is still active — drop the now-stale violation.
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
             }
