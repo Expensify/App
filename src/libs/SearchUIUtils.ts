@@ -6348,8 +6348,6 @@ export {
     getWithdrawalTypeOptions,
     getWithdrawalStatusOptions,
     getWithdrawalStatusDisplayText,
-    getPaidStatusOptions,
-    getPaidStatusDisplayText,
     getColumnsToShow,
     getHasOptions,
     getSettlementStatus,
