@@ -831,28 +831,28 @@ function isSubmitterFilter(node: ApprovalWorkflowFilter | ApprovalWorkflowFilter
     return node.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && (node as ApprovalWorkflowFilterComparison).left === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM;
 }
 
-/** Walk a filter tree and call `visitor` on every submitter filter (the `from` leaf) in it. */
-function forEachSubmitterFilter(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined, visitor: (filter: ApprovalWorkflowFilterComparison) => void): void {
+/** Walk a filter tree and call `callback` on every submitter filter (the `from` leaf) in it. */
+function forEachSubmitterFilter(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined, callback: (filter: ApprovalWorkflowFilterComparison) => void): void {
     if (!node) {
         return;
     }
     if (isSubmitterFilter(node)) {
-        visitor(node as ApprovalWorkflowFilterComparison);
+        callback(node as ApprovalWorkflowFilterComparison);
         return;
     }
     // Only filter nodes (which always carry a left filter) and AND/OR nodes have children to recurse into.
     const leftIsNode = typeof (node as ApprovalWorkflowFilter).left === 'object' && (node as ApprovalWorkflowFilter).left !== null;
     if (leftIsNode) {
-        forEachSubmitterFilter((node as ApprovalWorkflowFilter).left, visitor);
+        forEachSubmitterFilter((node as ApprovalWorkflowFilter).left, callback);
     }
     const right = (node as ApprovalWorkflowFilter).right as ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined;
     if (right && typeof right === 'object') {
-        forEachSubmitterFilter(right, visitor);
+        forEachSubmitterFilter(right, callback);
     }
 }
 
 /** Extract the union of email values across every `from` leaf in a rule. */
-function extractFromEmails(rule: ApprovalWorkflowRule): string[] {
+function extractSubmitterEmails(rule: ApprovalWorkflowRule): string[] {
     const emails = new Set<string>();
     forEachSubmitterFilter(rule.filters, (filter) => {
         const right = filter.right;
@@ -902,7 +902,7 @@ function structuralFingerprint(rule: ApprovalWorkflowRule): string {
 }
 
 /** Replace the `right` value on every `from` leaf with `newEmails`. */
-function withFromEmails(rule: ApprovalWorkflowRule, newEmails: string[]): ApprovalWorkflowRule {
+function replaceSubmitterEmails(rule: ApprovalWorkflowRule, newEmails: string[]): ApprovalWorkflowRule {
     const rewrite = (node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison): ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison => {
         if (isSubmitterFilter(node)) {
             return {...node, right: [...newEmails]} as ApprovalWorkflowFilterComparison;
@@ -918,11 +918,11 @@ function withFromEmails(rule: ApprovalWorkflowRule, newEmails: string[]): Approv
     return {...rule, filters: rewrite(rule.filters) as ApprovalWorkflowFilter};
 }
 
-/** Union of `existingEmails` and `additions`, preserving the order of `existingEmails`. */
-function unionEmails(existingEmails: string[], additions: string[]): string[] {
+/** Merge `emailsToAdd` into `existingEmails`, preserving the order of `existingEmails` and dropping duplicates. */
+function mergeEmails(existingEmails: string[], emailsToAdd: string[]): string[] {
     const seen = new Set(existingEmails);
     const result = [...existingEmails];
-    additions.forEach((email) => {
+    emailsToAdd.forEach((email) => {
         if (seen.has(email)) {
             return;
         }
@@ -932,9 +932,9 @@ function unionEmails(existingEmails: string[], additions: string[]): string[] {
     return result;
 }
 
-/** `existingEmails` with everything in `removals` filtered out. */
-function differenceEmails(existingEmails: string[], removals: string[]): string[] {
-    const removalSet = new Set(removals);
+/** Remove everything in `emailsToRemove` from `existingEmails`, preserving the order of `existingEmails`. */
+function removeEmails(existingEmails: string[], emailsToRemove: string[]): string[] {
+    const removalSet = new Set(emailsToRemove);
     return existingEmails.filter((email) => !removalSet.has(email));
 }
 
@@ -963,8 +963,8 @@ function reconcileApprovalWorkflowRulesForCreate(newRules: ApprovalWorkflowRule[
 
         if (match) {
             const [existingID, existingRule] = match;
-            const mergedEmails = unionEmails(extractFromEmails(existingRule), memberEmails);
-            diff[existingID] = withFromEmails(existingRule, mergedEmails);
+            const mergedEmails = mergeEmails(extractSubmitterEmails(existingRule), memberEmails);
+            diff[existingID] = replaceSubmitterEmails(existingRule, mergedEmails);
             continue;
         }
 
@@ -997,7 +997,7 @@ function reconcileApprovalWorkflowRulesForEdit(newRules: ApprovalWorkflowRule[],
 
     // Pass 1: walk existing rules that belong (at least partially) to this workflow.
     for (const [ruleID, existingRule] of Object.entries(context.existingRules)) {
-        const ruleEmails = extractFromEmails(existingRule);
+        const ruleEmails = extractSubmitterEmails(existingRule);
         const sharedWithThisWorkflow = ruleEmails.some((email) => memberSet.has(email));
         if (!sharedWithThisWorkflow) {
             continue;
@@ -1010,13 +1010,13 @@ function reconcileApprovalWorkflowRulesForEdit(newRules: ApprovalWorkflowRule[],
             continue;
         }
 
-        const remaining = differenceEmails(ruleEmails, memberEmails);
+        const remaining = removeEmails(ruleEmails, memberEmails);
         if (remaining.length === 0) {
             // No other workflow shares this rule — drop it entirely.
             diff[ruleID] = null;
         } else {
             // Keep the rule for the other workflows that still need it, minus our members.
-            diff[ruleID] = withFromEmails(existingRule, remaining);
+            diff[ruleID] = replaceSubmitterEmails(existingRule, remaining);
         }
     }
 
@@ -1039,15 +1039,15 @@ function reconcileApprovalWorkflowRulesForEdit(newRules: ApprovalWorkflowRule[],
             if (structuralFingerprint(existing) !== fingerprint) {
                 return false;
             }
-            const existingEmails = extractFromEmails(existing);
+            const existingEmails = extractSubmitterEmails(existing);
             // "Different workflow" => no overlap with our members.
             return !existingEmails.some((email) => memberSet.has(email));
         });
 
         if (foreignMatch) {
             const [existingID, existingRule] = foreignMatch;
-            const mergedEmails = unionEmails(extractFromEmails(existingRule), memberEmails);
-            diff[existingID] = withFromEmails(existingRule, mergedEmails);
+            const mergedEmails = mergeEmails(extractSubmitterEmails(existingRule), memberEmails);
+            diff[existingID] = replaceSubmitterEmails(existingRule, mergedEmails);
             continue;
         }
 
@@ -1067,14 +1067,14 @@ function reconcileApprovalWorkflowRulesForRemove(memberEmails: string[], context
     const memberSet = new Set(memberEmails);
 
     for (const [ruleID, existingRule] of Object.entries(context.existingRules)) {
-        const ruleEmails = extractFromEmails(existingRule);
+        const ruleEmails = extractSubmitterEmails(existingRule);
         const sharedWithThisWorkflow = ruleEmails.some((email) => memberSet.has(email));
         if (!sharedWithThisWorkflow) {
             continue;
         }
 
-        const remaining = differenceEmails(ruleEmails, memberEmails);
-        diff[ruleID] = remaining.length === 0 ? null : withFromEmails(existingRule, remaining);
+        const remaining = removeEmails(ruleEmails, memberEmails);
+        diff[ruleID] = remaining.length === 0 ? null : replaceSubmitterEmails(existingRule, remaining);
     }
 
     return diff;
@@ -1092,20 +1092,20 @@ function reconcileApprovalWorkflowRulesForMembersChange(previousMemberEmails: st
     const removed = previousMemberEmails.filter((email) => !newSet.has(email));
 
     for (const [ruleID, existingRule] of Object.entries(context.existingRules)) {
-        const ruleEmails = extractFromEmails(existingRule);
+        const ruleEmails = extractSubmitterEmails(existingRule);
         if (!ruleEmails.some((email) => previousSet.has(email))) {
             continue;
         }
 
-        const afterRemoval = differenceEmails(ruleEmails, removed);
-        const updatedEmails = unionEmails(afterRemoval, newMemberEmails);
+        const afterRemoval = removeEmails(ruleEmails, removed);
+        const updatedEmails = mergeEmails(afterRemoval, newMemberEmails);
 
         // No effective change to this rule's `from` — skip the round-trip.
         if (updatedEmails.length === ruleEmails.length && updatedEmails.every((email, idx) => email === ruleEmails[idx])) {
             continue;
         }
 
-        diff[ruleID] = updatedEmails.length === 0 ? null : withFromEmails(existingRule, updatedEmails);
+        diff[ruleID] = updatedEmails.length === 0 ? null : replaceSubmitterEmails(existingRule, updatedEmails);
     }
 
     return diff;
@@ -1198,7 +1198,7 @@ function resolveLevelFromRules(submitter: string, previousApproverEmail: string 
     let approvalLimit: number | undefined;
 
     for (const rule of Object.values(rules)) {
-        if (!extractFromEmails(rule).includes(submitter)) {
+        if (!extractSubmitterEmails(rule).includes(submitter)) {
             continue;
         }
         const previousApproverLeaf = findComparisonByLeft(rule.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.PREVIOUS_APPROVER);
@@ -1327,7 +1327,7 @@ function approverChainFingerprint(chain: Approver[]): string {
 /** The sorted set of ruleIDs whose `from` filter includes this submitter — their exact rule membership. */
 function getSubmitterRuleIDs(submitter: string, rules: Record<string, ApprovalWorkflowRule>): string[] {
     return Object.entries(rules)
-        .filter(([, rule]) => extractFromEmails(rule).includes(submitter))
+        .filter(([, rule]) => extractSubmitterEmails(rule).includes(submitter))
         .map(([ruleID]) => ruleID)
         .sort();
 }
@@ -1345,7 +1345,7 @@ function isSubmitterCoveredByRules(submitter: string, rules: Record<string, Appr
 function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflowRule>): Record<string, string> {
     const submitters = new Set<string>();
     for (const rule of Object.values(rules)) {
-        for (const email of extractFromEmails(rule)) {
+        for (const email of extractSubmitterEmails(rule)) {
             submitters.add(email);
         }
     }
