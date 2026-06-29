@@ -1230,6 +1230,14 @@ function hasDisplayableMCC(mcc: number | string | null | undefined): boolean {
 /**
  * Return the waypoints field from the transaction, return the modifiedWaypoints if present.
  */
+/**
+ * Whether a draft holds tab-entered input that is lost when the flow is abandoned (drafts are not restored on the next open).
+ * Forward-navigation fields (amount, receipt, ...) are deliberately excluded; extend per-field as new tabs persist input to the draft.
+ */
+function doesMoneyRequestDraftHaveUserInput(transaction: OnyxEntry<Transaction>): boolean {
+    return Object.keys(getValidWaypoints(getWaypoints(transaction))).length > 0;
+}
+
 function getWaypoints(transaction: OnyxEntry<Transaction>): WaypointCollection | undefined {
     return transaction?.modifiedWaypoints ?? transaction?.comment?.waypoints;
 }
@@ -3012,6 +3020,7 @@ export {
     isReceiptBeingScanned,
     didReceiptScanSucceed,
     getValidWaypoints,
+    doesMoneyRequestDraftHaveUserInput,
     haveWaypointAddressesChanged,
     isDistanceRequest,
     isMapDistanceRequest,
