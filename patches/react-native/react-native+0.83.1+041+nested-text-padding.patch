@@ -689,3 +689,38 @@ index 80f8d389475..5c188dc9330 100644
        drawFill(canvas, rectF, isFirstLine, isLastLine)
        drawBorder(canvas, rectF, isFirstLine, isLastLine)
      }
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp
+@@ -246,6 +246,8 @@ TextAttributes BaseTextInputProps::getEffectiveTextAttributes(
+    */
+   result.backgroundColor = clearColor();
+   result.opacity = 1;
++  result.paddingLeft = {};
++  result.paddingRight = {};
+ 
+   return result;
+ }
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
+@@ -158,6 +158,10 @@
+   // string. Android tries to render shadow of the background alongside the
+   // shadow of the text which results in weird artifacts.
+   childTextAttributes.backgroundColor = HostPlatformColor::UndefinedColor;
++  // Don't propagate the TextInput's view-level padding as text attributes --
++  // they would cause spacer characters to be inserted for every fragment.
++  childTextAttributes.paddingLeft = {};
++  childTextAttributes.paddingRight = {};
+ 
+   auto attributedString = AttributedString{};
+   auto attachments = BaseTextShadowNode::Attachments{};
+@@ -171,6 +175,8 @@
+     auto textAttributes = TextAttributes::defaultTextAttributes();
+     textAttributes.apply(getConcreteProps().textAttributes);
+     textAttributes.fontSizeMultiplier = layoutContext.fontSizeMultiplier;
++    textAttributes.paddingLeft = {};
++    textAttributes.paddingRight = {};
+     auto fragment = AttributedString::Fragment{};
+     fragment.string = getConcreteProps().text;
+     fragment.textAttributes = textAttributes;
