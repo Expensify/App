@@ -5,8 +5,8 @@ import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-on
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {arePolicyRulesEnabled} from '@libs/PolicyUtils';
 import {
+    arePolicyRulesEnabled,
     canAccessSubmitWorkspaceFeatures,
     canMemberRead,
     canMemberWrite,
@@ -26,6 +26,7 @@ import {
     getManagerAccountID,
     getMatchingVendorByID,
     getMatchingVendors,
+    getPolicyBrickRoadIndicatorStatus,
     getPolicyEmployeeAccountIDs,
     getRateDisplayValue,
     getSubmitToAccountID,
@@ -54,7 +55,6 @@ import {
 } from '@libs/PolicyUtils';
 import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import {getPolicyBrickRoadIndicatorStatus} from '@src/libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
@@ -3444,8 +3444,8 @@ describe('PolicyUtils', () => {
 });
 
 describe('arePolicyRulesEnabled', () => {
-    const corporateBase = {id: 'policy1', type: CONST.POLICY.TYPE.CORPORATE} as unknown as Policy;
-    const teamBase = {id: 'policy2', type: CONST.POLICY.TYPE.TEAM} as unknown as Policy;
+    const corporateBase = createMock<Policy>({id: 'policy1', type: CONST.POLICY.TYPE.CORPORATE});
+    const teamBase = createMock<Policy>({id: 'policy2', type: CONST.POLICY.TYPE.TEAM});
 
     it('returns true for a corporate policy with areRulesEnabled explicitly true', () => {
         expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: true})).toBe(true);

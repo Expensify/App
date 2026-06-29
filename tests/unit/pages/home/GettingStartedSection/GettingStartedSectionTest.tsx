@@ -9,6 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import GettingStartedSection from '@src/pages/home/GettingStartedSection';
 import useGettingStartedItems from '@src/pages/home/GettingStartedSection/hooks/useGettingStartedItems';
 import ROUTES from '@src/ROUTES';
+import type {PolicyCategories} from '@src/types/onyx';
 import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
 
 const TEST_POLICY_ID = 'ABC123';
@@ -64,7 +65,7 @@ async function setManageTeamUserState(overrides?: {
     hasConfiguredRules?: boolean;
     trialStartDate?: string;
     policyType?: ValueOf<typeof CONST.POLICY.TYPE>;
-    policyCategories?: Record<string, unknown>;
+    policyCategories?: PolicyCategories;
 }) {
     const trialStart = overrides?.trialStartDate ?? RECENT_TRIAL_START;
 
@@ -103,7 +104,7 @@ async function setManageTeamUserState(overrides?: {
     await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}` as never, policyData as never);
 
     if (overrides?.policyCategories) {
-        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${TEST_POLICY_ID}` as never, overrides.policyCategories as never);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${TEST_POLICY_ID}`, overrides.policyCategories);
     }
 
     await waitForBatchedUpdates();
