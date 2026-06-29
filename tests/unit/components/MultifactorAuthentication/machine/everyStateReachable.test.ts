@@ -1,7 +1,7 @@
+import getSettleableLeafStates from 'tests/utils/mfa/reachableStates';
 import {matchesState} from 'xstate';
 import {getShortestPaths} from 'xstate/graph';
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
-import getSettleableLeafStates from '../../../utils/mfa/reachableStates';
 
 // With no `events` list passed, getShortestPaths synthesizes a bare event for every transition the
 // machine declares, so new events reach new states automatically. Pass `events` only to supply a payload a guard needs.

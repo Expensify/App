@@ -1,21 +1,21 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return -- jest.mock factories delegate to require()'d helpers, which resolve as `any`. */
+import createMfaTestModel from 'tests/utils/mfa/flowPaths';
+import {resetMfaUiMocks} from 'tests/utils/mfa/realUi/mocks';
+import {flushMfaUi, isModalOverlayMounted, isOutcomeScreenVisible, renderMfaUi} from 'tests/utils/mfa/realUi/renderModal';
+import mfaEventExecutors from 'tests/utils/mfa/realUi/userGestures';
 import {resetMfaNavigation} from '@components/MultifactorAuthentication/mfaNavigation';
 import CONST from '@src/CONST';
-import createMfaTestModel from '../../../utils/mfa/flowPaths';
-import {resetMfaUiMocks} from '../../../utils/mfa/realUi/mocks';
-import {flushMfaUi, isModalOverlayMounted, isOutcomeScreenVisible, renderMfaUi} from '../../../utils/mfa/realUi/renderModal';
-import mfaEventExecutors from '../../../utils/mfa/realUi/userGestures';
 
 // Forces a wide layout so the navigator renders the backdrop overlay the assertions use as the mounted marker.
 jest.mock('@hooks/useResponsiveLayout');
 // Replaces the dev-only Stately inspector wiring with the plain @xstate/react adapter the provider needs.
-jest.mock('@hooks/useInspectedMachine', () => require('../../../utils/mfa/realUi/jestMocks').inspectedMachineMock());
+jest.mock('@hooks/useInspectedMachine', () => require('tests/utils/mfa/realUi/jestMocks').inspectedMachineMock());
 // Native / WebAuthn biometrics are out of scope for the modal-lifecycle contract.
-jest.mock('@components/MultifactorAuthentication/biometrics/useBiometrics', () => require('../../../utils/mfa/realUi/jestMocks').biometricsHookMock());
+jest.mock('@components/MultifactorAuthentication/biometrics/useBiometrics', () => require('tests/utils/mfa/realUi/jestMocks').biometricsHookMock());
 // Browser/Android back-history wiring is a separate concern from the machine <-> UI contract.
-jest.mock('@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHistory', () => require('../../../utils/mfa/realUi/jestMocks').syncHistoryMock());
+jest.mock('@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHistory', () => require('tests/utils/mfa/realUi/jestMocks').syncHistoryMock());
 // Navigation automock leaves methods undefined, so this supplies the methods the flow needs and no-ops the rest.
-jest.mock('@libs/Navigation/Navigation', () => require('../../../utils/mfa/realUi/jestMocks').navigationMock());
+jest.mock('@libs/Navigation/Navigation', () => require('tests/utils/mfa/realUi/jestMocks').navigationMock());
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
