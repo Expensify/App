@@ -15,7 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import {defaultScreenOptions} from './OnyxTabNavigatorConfig';
+import {backBehavior, defaultScreenOptions} from './OnyxTabNavigatorConfig';
 
 type OnyxTabNavigatorProps<TTabName extends string = SelectedTabRequest> = ChildrenProps & {
     /** ID of the tab component to be saved in onyx */
@@ -166,7 +166,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
                 {...rest}
                 id={id}
                 initialRouteName={validInitialTab}
-                backBehavior="initialRoute"
+                backBehavior={backBehavior}
                 keyboardDismissMode="none"
                 tabBar={TabBarWithFocusTrapInclusion}
                 onTabSelect={onTabSelect}
