@@ -36,19 +36,19 @@ function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect}: Certini
                 <View>
                     <Text style={[styles.textStrong, styles.mb2]}>{translate('workspace.certinia.prerequisites.installBundlePSAHeader')}</Text>
                     <RenderHTML
-                        html={translate('workspace.certinia.prerequisites.installBundlePSADescription', {
+                        html={`<p>${translate('workspace.certinia.prerequisites.installBundlePSADescription', {
                             href: CONST.CERTINIA_PSA_BUNDLE_INSTALL_URL.PRODUCTION,
                             version: CONST.CERTINIA_PSA_BUNDLE_VERSION,
-                        })}
+                        })}</p>`}
                     />
                 </View>
                 <View style={styles.mt5}>
                     <Text style={[styles.textStrong, styles.mb2]}>{translate('workspace.certinia.prerequisites.installBundleFFAHeader')}</Text>
                     <RenderHTML
-                        html={translate('workspace.certinia.prerequisites.installBundleFFADescription', {
+                        html={`<p>${translate('workspace.certinia.prerequisites.installBundleFFADescription', {
                             href: CONST.CERTINIA_FFA_BUNDLE_INSTALL_URL.PRODUCTION,
                             version: CONST.CERTINIA_FFA_BUNDLE_VERSION,
-                        })}
+                        })}</p>`}
                     />
                 </View>
             </View>
