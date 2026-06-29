@@ -22,6 +22,7 @@ import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields
 import type en from './en';
 import type {
     ChangeFieldParams,
+    CompanyCardBalanceParams,
     ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     DelegateRoleParams,
@@ -5427,6 +5428,15 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             submit: '提出',
         },
         companyCards: {
+            balance: {
+                currentBalance: 'Current balance',
+                remainingLimit: 'Remaining limit',
+                notAvailable: 'Not available',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `Current balance is reported by your bank and last updated ${lastUpdated}.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `Remaining limit is reported by your bank and last updated ${lastUpdated}.`,
+                currentBalanceDescriptionNoTimestamp: 'Current balance is reported by your bank.',
+                remainingLimitDescriptionNoTimestamp: 'Remaining limit is reported by your bank.',
+            },
             addCards: 'カードを追加',
             selectCards: 'カードを選択',
             fromOtherWorkspaces: '他のワークスペースから',

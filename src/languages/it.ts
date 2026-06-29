@@ -22,6 +22,7 @@ import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields
 import type en from './en';
 import type {
     ChangeFieldParams,
+    CompanyCardBalanceParams,
     ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     DelegateRoleParams,
@@ -5478,6 +5479,15 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             submit: 'Invia',
         },
         companyCards: {
+            balance: {
+                currentBalance: 'Current balance',
+                remainingLimit: 'Remaining limit',
+                notAvailable: 'Not available',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `Current balance is reported by your bank and last updated ${lastUpdated}.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `Remaining limit is reported by your bank and last updated ${lastUpdated}.`,
+                currentBalanceDescriptionNoTimestamp: 'Current balance is reported by your bank.',
+                remainingLimitDescriptionNoTimestamp: 'Remaining limit is reported by your bank.',
+            },
             addCards: 'Aggiungi carte',
             selectCards: 'Seleziona carte',
             fromOtherWorkspaces: 'Da altri spazi di lavoro',

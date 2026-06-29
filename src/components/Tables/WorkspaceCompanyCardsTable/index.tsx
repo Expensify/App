@@ -15,6 +15,7 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
@@ -22,6 +23,7 @@ import {getDefaultCardName} from '@libs/CardUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
+import WorkspaceCompanyCardsBalanceLabels from '@pages/workspace/companyCards/WorkspaceCompanyCardsBalanceLabels';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedAddedEmptyPage';
 import WorkspaceCompanyCardsFeedPendingPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedPendingPage';
 import variables from '@styles/variables';
@@ -79,6 +81,7 @@ function WorkspaceCompanyCardsTable({
     const {isOffline} = useNetwork();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const policy = usePolicy(policyID);
 
     const {
         feedName,
@@ -366,6 +369,13 @@ function WorkspaceCompanyCardsTable({
     const ListHeader = (
         <>
             {headerButtonsComponent}
+            {!isLoadingFeed && !isFeedPending && showCards && (
+                <WorkspaceCompanyCardsBalanceLabels
+                    selectedFeed={selectedFeed}
+                    feedName={feedName}
+                    currency={policy?.outputCurrency ?? CONST.CURRENCY.USD}
+                />
+            )}
             {!isLoadingFeed && !isFeedPending && showCards && <Table.Header />}
         </>
     );

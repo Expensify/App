@@ -14,7 +14,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
-import type {ConciergeBrokenCardConnectionParams, PaidElsewhereParams, RemoveCopilotAccessConfirmationParams, UnsupportedFormulaValueErrorParams} from './params';
+import type {CompanyCardBalanceParams, ConciergeBrokenCardConnectionParams, PaidElsewhereParams, RemoveCopilotAccessConfirmationParams, UnsupportedFormulaValueErrorParams} from './params';
 import type {TranslationDeepObject} from './types';
 
 const translations: TranslationDeepObject<typeof en> = {
@@ -5334,6 +5334,15 @@ ${amount} para ${merchant} - ${date}`,
             submit: 'Enviar',
         },
         companyCards: {
+            balance: {
+                currentBalance: 'Saldo actual',
+                remainingLimit: 'Límite restante',
+                notAvailable: 'No disponible',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `El saldo actual lo informa tu banco y se actualizó por última vez el ${lastUpdated}.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `El límite restante lo informa tu banco y se actualizó por última vez el ${lastUpdated}.`,
+                currentBalanceDescriptionNoTimestamp: 'El saldo actual lo informa tu banco.',
+                remainingLimitDescriptionNoTimestamp: 'El límite restante lo informa tu banco.',
+            },
             addCards: 'Añadir tarjetas',
             selectCards: 'Seleccionar tarjetas',
             fromOtherWorkspaces: 'De otros espacios de trabajo',
