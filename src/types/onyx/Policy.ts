@@ -1847,16 +1847,16 @@ type RilletConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         enableNewCategories: boolean;
 
         /** Coding settings */
-        coding: RilletCoding;
+        coding?: RilletCoding;
 
         /** Export settings */
-        export: RilletExport;
+        export?: RilletExport;
 
         /** Auto-sync settings */
         autoSync?: RilletAutoSync;
 
         /** Sync settings */
-        sync: RilletSync;
+        sync?: RilletSync;
 
         /** Collection of errors coming from BE */
         errors?: OnyxCommon.Errors;

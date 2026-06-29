@@ -63,14 +63,14 @@ function RilletImportPage({policy}: WithPolicyConnectionsProps) {
                     switchAccessibilityLabel={field.name}
                     shouldPlaceSubtitleBelowSwitch
                     wrapperStyle={[styles.mv3, styles.mh5]}
-                    isActive={rilletConfig?.coding.fieldMappings[field.id] === CONST.RILLET_MAPPING_VALUE.TAG}
+                    isActive={rilletConfig?.coding?.fieldMappings[field.id] === CONST.RILLET_MAPPING_VALUE.TAG}
                     onToggle={() =>
                         policyID &&
                         updateRilletFieldMapping(
                             policyID,
                             field.id,
-                            rilletConfig?.coding.fieldMappings[field.id] === CONST.RILLET_MAPPING_VALUE.TAG ? CONST.RILLET_MAPPING_VALUE.NONE : CONST.RILLET_MAPPING_VALUE.TAG,
-                            rilletConfig?.coding.fieldMappings[field.id],
+                            rilletConfig?.coding?.fieldMappings[field.id] === CONST.RILLET_MAPPING_VALUE.TAG ? CONST.RILLET_MAPPING_VALUE.NONE : CONST.RILLET_MAPPING_VALUE.TAG,
+                            rilletConfig?.coding?.fieldMappings[field.id],
                         )
                     }
                     pendingAction={settingsPendingAction([`${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`], rilletConfig?.pendingFields)}
@@ -86,8 +86,8 @@ function RilletImportPage({policy}: WithPolicyConnectionsProps) {
                         switchAccessibilityLabel={translate('workspace.taxes.taxRates')}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mv3, styles.mh5]}
-                        isActive={rilletConfig?.coding.syncTaxRates ?? false}
-                        onToggle={() => policyID && updateRilletSyncTaxRates(policyID, !rilletConfig?.coding.syncTaxRates, rilletConfig?.coding.syncTaxRates)}
+                        isActive={rilletConfig?.coding?.syncTaxRates ?? false}
+                        onToggle={() => policyID && updateRilletSyncTaxRates(policyID, !rilletConfig?.coding?.syncTaxRates, rilletConfig?.coding?.syncTaxRates)}
                         pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.SYNC_TAX_RATES], rilletConfig?.pendingFields)}
                         errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.SYNC_TAX_RATES)}
                         onCloseError={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.SYNC_TAX_RATES)}
