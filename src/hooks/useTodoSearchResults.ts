@@ -109,7 +109,10 @@ function buildSearchResultsData(
         }
     }
 
-    if (personalDetails) {
+    // Only attach personal details once we have at least one matching report. Otherwise an empty bucket would still
+    // produce a non-empty `data` object, which SearchResultsProvider reads as "has results" and shows the wrong
+    // empty state.
+    if (personalDetails && reports.length > 0) {
         // PersonalDetailsList allows null values whereas the snapshot type does not; merge via Object.assign to keep
         // the live data faithful (including any null entries) without an unsafe narrowing assertion.
         Object.assign(data, {[ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails});
