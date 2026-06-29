@@ -211,6 +211,8 @@ function useReportPreviewCarousel({
                     style={[styles.p5, styles.justifyContentCenter]}
                     onLayout={(e) => setFooterWidth(e.nativeEvent.layout.width)}
                 >
+                    {/* Uses the theme link color (textBlue) instead of a hardcoded blue600 so the label respects dark mode and matches other links.
+                    Dark-mode appearance (blue300) still to be verified in a follow-up. */}
                     <Text style={styles.textBlue}>
                         +{transactions.length - MAX_PREVIEWS_NUMBER} {translate('common.more').toLowerCase()}
                     </Text>
