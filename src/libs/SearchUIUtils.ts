@@ -1165,7 +1165,7 @@ function getSuggestedSearchesVisibility(
 }
 
 function getVisibleTodoSearches(
-    currentUserAccountID: number,
+    currentUserAccountID: number | undefined,
     currentUserEmail: string | undefined,
     policies: OnyxCollection<OnyxTypes.Policy>,
 ): Partial<Record<SearchKey, SearchTypeMenuItem>> {

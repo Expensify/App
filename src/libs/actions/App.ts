@@ -18,6 +18,7 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
+import {getVisibleTodoSearches} from '@libs/SearchUIUtils';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import {cancelAllSpans, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -34,6 +35,7 @@ import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
 import {setShouldForceOffline} from './Network';
 import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
 import {createDraftInitialWorkspace, createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from './Policy/Policy';
+import {search} from './Search';
 
 type PolicyParamsForOpenOrReconnect = {
     policyIDList: string[];
@@ -507,6 +509,29 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
         });
     });
+}
+
+/**
+ * Fires asynchronous requests to load more data that is required by the App but not returned in OpenApp/ReconnectApp
+ */
+function loadPostDataForOpenOrReconnect() {
+    const visibleTodoSearches = getVisibleTodoSearches(currentSessionData.accountID, currentSessionData.email, allPolicies);
+    for (const visibleTodoSearch of Object.values(visibleTodoSearches)) {
+        const searchKey = visibleTodoSearch.key;
+        const queryJSON = visibleTodoSearch.searchQueryJSON;
+        if (!queryJSON) {
+            continue;
+        }
+        search({
+            queryJSON,
+            searchKey,
+            offset: 0,
+            isOffline,
+            isLoading: false,
+            shouldCalculateTotals: false,
+            shouldUpdateLastSearchParams: false,
+        });
+    }
 }
 
 /**
