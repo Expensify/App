@@ -34,7 +34,8 @@ Concierge can help with most common support requests:
 - ✅ Walk you through setup or configuration  
 - ✅ Troubleshoot issues or errors  
 - ✅ Schedule calls with onboarding or account specialists  
-- ❌ Reconfigure your Workspace *on your behalf* (coming soon)
+- ✅ Reconfigure a Workspace on your behalf
+- ✅ Add or remove Workspace members
 
 If you’re wondering “how do I…?”, Concierge is the fastest way to get answers.
 
