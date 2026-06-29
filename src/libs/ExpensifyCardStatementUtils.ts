@@ -44,8 +44,15 @@ function isExpensifyCardStatementSearch(queryJSON: SearchQueryJSON | undefined):
         return false;
     }
 
+    // The statement only covers Expensify Card settlements, so require the withdrawal-type filter to be exactly
+    // `withdrawal-type:expensify-card`. A negated filter (neq) or one that also includes other types (e.g.
+    // reimbursement) can show non-card withdrawal groups, which must not be exportable as a card statement.
     const withdrawalTypeFilter = queryJSON.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE);
-    return withdrawalTypeFilter?.filters?.some((filter) => filter.value === CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD) ?? false;
+    return (
+        withdrawalTypeFilter?.filters?.length === 1 &&
+        withdrawalTypeFilter.filters.at(0)?.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO &&
+        withdrawalTypeFilter.filters.at(0)?.value === CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD
+    );
 }
 
 // Filters that define WHICH statement to generate (the settlements and the workspace), not what is shown inside a
