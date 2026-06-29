@@ -285,6 +285,7 @@ function getLoginByAccountID(accountID: number | undefined, personalDetails: Ony
  * Given a list of accountIDs, find the associated personal detail and return related logins.
  *
  * @param accountIDs Array of user accountIDs
+ * @param personalDetailsList Record of user personal details, indexed by user id
  * @returns Array of logins according to passed accountIDs
  */
 function getLoginsByAccountIDs(accountIDs: number[] | undefined, personalDetailsList: OnyxEntry<PersonalDetailsList> = allPersonalDetails): string[] {
