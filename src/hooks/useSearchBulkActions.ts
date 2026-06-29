@@ -893,7 +893,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
 
         TransitionTracker.runAfterTransitions({
-            waitForUpcomingTransition: true,
             callback: async () => {
                 const result = await showConfirmModal({
                     title: deleteModalTitle,
