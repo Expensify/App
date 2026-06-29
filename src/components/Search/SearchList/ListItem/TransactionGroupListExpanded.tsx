@@ -153,7 +153,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
     const isActionColumnWide = transactions.some((transaction) => !!transaction.isActionColumnWide || isDeletedTransaction(transaction));
 
-    const {markReportRHPWidth} = useWideRHPActions();
+    const {markReportIDAsExpense} = useWideRHPActions();
     const selectRow = onSelectRow as (item: TItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
     const getTransactionPreviewData = (transactionItem: TransactionListItemType): TransactionPreviewData => {
         const parentReportAction = getReportAction(transactionItem?.reportID, transactionItem?.reportAction?.reportActionID);
@@ -212,7 +212,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                 });
                 return;
             }
-            markReportRHPWidth(reportID, 'wide');
+            markReportIDAsExpense(reportID);
             const route = ROUTES.SEARCH_REPORT.getRoute({reportID, backTo});
             if (openInternalRouteInNewTab(route, event)) {
                 return;
