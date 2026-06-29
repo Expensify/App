@@ -1,202 +1,140 @@
-# Expensify HelpDot Task Article Guidelines
-
-## Purpose
-
-Task articles explain how to complete a specific workflow in Expensify.
-
-Task articles answer questions such as:
-
-* How do I submit an expense?
-* How do I change my Workspace plan?
-* How do I connect NetSuite?
-* Why can't I complete a specific action?
-
-The goal of a task article is task completion.
-
 ---
 
-# 1. Core Principles
-
-Every task article must:
-
-* Solve one primary workflow only
-* Match a specific user goal
-* Use exact UI terminology
-* Follow the official naming conventions
-* Be optimized for semantic retrieval
-* Be concise and actionable
-
-If multiple workflows are required, create multiple articles.
-
----
-
-# 2. Scope Rules
-
-Task articles must:
-
-* Focus on a single workflow
-* Explain how to complete that workflow
-* Include prerequisites when necessary
-* Explain the expected outcome
-
-Task articles may:
-
-* Include lightweight troubleshooting
-* Include related workflow links when required
-
-Task articles must not:
-
-* Explain broad product areas
-* Serve as feature overviews
-* Cover multiple unrelated workflows
-* Act as navigation hubs
-* Contain extensive conceptual background
-
-If the primary purpose is understanding rather than action, create a Concept article instead.
-
----
-
-# 3. Metadata Requirements
-
-Every task article must include:
-
-```yaml
----
 title: Clear task-based title using the feature name
-description: Short summary of the workflow and outcome
-keywords: [primary task phrase, feature name, related search terms]
-internalScope: Audience is [target role]. Covers [workflow]. Does not cover [excluded workflows].
-contentType: task
-platform: [platform value]
+description: A concise summary of the article for search results.
+keywords: [primary search phrases]
+internalScope: Audience is [who this article is for]. Covers [single workflow]. Does not cover [closely related workflows].
+---------------------------------------------------------------------------------------------------------------------------
+
+<!--
+
+This template follows the HelpDot authoring standards.
+
+Before writing:
+
+1. Why would someone search for this article?
+2. What are they confused about?
+3. What are the two or three questions they expect this article to answer?
+
+Answer those questions before describing the interface.
+
+Write from the customer's perspective, not the product's.
+
+Remember:
+
+- One workflow per article.
+- Explain concepts before details.
+- Prioritize clarity over completeness.
+- Remove anything that doesn't help the customer succeed.
+
+-->
+
+# [Article title]
+
+Briefly answer the customer's question.
+
+Explain:
+
+* what this workflow or feature is
+* when someone would use it
+* what they'll accomplish
+
+Avoid marketing language, implementation details, and unnecessary UI narration.
+
 ---
-```
 
-Metadata should reflect realistic customer search behavior.
+## Who Can Use [Feature Name]
+
+State only the information the reader needs:
+
+* required role
+* required plan (if applicable)
+* required permissions
+* important prerequisites
+
+If another workflow must be completed first, link to it using a relative link.
+
+If unavailable on mobile, state:
+
+This feature is not available on mobile.
 
 ---
 
-# 4. Heading Requirements
+## How To [Complete Primary Task]
 
-Task article headings must:
+Keep the steps focused.
 
-* Be task-based
-* Be searchable
-* Be explicit
-* Describe what the reader will do or learn
+Describe only the actions necessary to complete the task.
 
-Use headings that begin with:
+Do not document every click if it doesn't help the reader.
 
-* How
-* What
-* Where
-* Who
-* Why
-* When
+If web and mobile differ, separate the instructions.
+
+If they're identical, combine them.
+
+<!-- SCREENSHOT:
+Suggestion:
+Location:
+Purpose:
+-->
+
+---
+
+<!--
+
+Include this section only when the workflow changes behavior or has important consequences.
+
+-->
+
+## What Happens After You [Complete Task]
+
+Explain what changes after completing the workflow.
+
+Focus on consequences the customer may not expect.
 
 Examples:
 
-* How to change your Workspace plan
-* Where to find billing receipts
-* Why you can't submit an expense report
-* What happens after you approve an expense
+* billing changes
+* notifications
+* approvals
+* ownership changes
+* synchronization
+* downstream effects
 
-Do not use:
-
-* Overview
-* Introduction
-* Notes
-* Setup
-* Options
-* Noun-only headings
+Don't restate what the task already accomplished.
 
 ---
 
-# 5. Workflow Requirements
+<!--
 
-Procedural sections must:
+Include this section only when another workflow naturally follows from this one.
 
-* Use numbered steps
-* Follow the actual UI flow
-* Use exact UI labels
-* Present actions in sequence
+Limit to essential articles.
 
-Instructions should be:
+-->
 
-* Specific
-* Action-oriented
-* Easy to follow
+## Related Articles
+
+* [Related workflow](/relative-link)
+* [Related workflow](/relative-link)
 
 ---
 
-# 6. Editorial Judgment
+<!--
 
-Good task articles explain what matters and omit what doesn't.
+Include an FAQ only if there are genuine follow-up questions that are not already answered naturally in the article.
 
-When writing:
+Do not invent FAQs to fill out the template.
 
-* Explain decisions before listing options.
-* Combine obvious UI interactions into one logical step.
-* Include brief context when it helps prevent mistakes.
-* Prefer meaningful actions over exhaustive UI narration.
+-->
 
-Assume readers can follow straightforward navigation.
+# FAQ
 
-Don't describe temporary interface states, visual layout, or confirmation messages unless they're necessary to complete the task.
+## [Natural customer question]
 
-After writing the article, read only the numbered steps.
+Clear answer.
 
-If they sound like instructions from an experienced support agent, they're probably the right level of detail.
+## [Another natural follow-up question]
 
-If they sound like someone describing every click they made, simplify them.
-
----
-
-# 7. Retrieval Optimization
-
-Task articles should:
-
-* Target a specific user question
-* Include realistic customer search phrases
-* Use exact feature names
-* Include common troubleshooting language when relevant
-
-Task articles should not:
-
-* Cover multiple features
-* Mix unrelated workflows
-* Include excessive conceptual explanation
-
-The article should clearly answer:
-
-"What action is the user trying to complete?"
-
----
-
-# 8. Cross-Linking
-
-Cross-links should be used only for:
-
-* Required prerequisites
-* Related troubleshooting
-* Explicitly excluded workflows
-
-Avoid excessive linking.
-
-If many links are required, the scope is likely too broad.
-
----
-
-# 9. Validation Checklist
-
-Before publishing, confirm:
-
-* contentType is task
-* One primary workflow is covered
-* Headings are task-based
-* UI terminology matches the product
-* Navigation instructions are accurate
-* Steps follow the actual workflow
-* Metadata reflects search intent
-* Cross-links are minimal and purposeful
-* The article helps the reader complete a specific task
+Clear answer.
 
