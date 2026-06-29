@@ -513,6 +513,7 @@ const translations: TranslationDeepObject<typeof en> = {
         editor: 'Editor',
         restrictions: 'Restrições',
         off: 'Desligado',
+        noResultsFoundSubtitle: 'Nenhum resultado. Tente ajustar seus filtros ou termo de pesquisa',
     },
     socials: {
         podcast: 'Siga-nos no Podcast',
