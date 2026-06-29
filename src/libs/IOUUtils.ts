@@ -529,6 +529,22 @@ function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?
     return !!(participant?.accountID && !participant.isPolicyExpenseChat && !participant.isSelfDM);
 }
 
+/**
+ * Resolves the reportID that should be set on the transaction draft for
+ * global-create flows with default participants. Returns undefined when
+ * no early set is needed (non-global-create or empty participants).
+ */
+function resolveEarlyReportID(isFromGlobalCreate: boolean, participants: Participant[] | undefined): string | undefined {
+    if (!isFromGlobalCreate || !participants || participants.length === 0) {
+        return undefined;
+    }
+    const firstParticipant = participants.at(0);
+    if (firstParticipant?.isSelfDM) {
+        return CONST.REPORT.UNREPORTED_REPORT_ID;
+    }
+    return firstParticipant?.reportID;
+}
+
 export {
     calculateAmount,
     calculateSplitAmountFromPercentage,
@@ -550,4 +566,5 @@ export {
     isParticipantP2P,
     resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
+    resolveEarlyReportID,
 };
