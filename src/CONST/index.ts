@@ -496,6 +496,7 @@ const CONST = {
         INTACCT: 'Intacct',
         SAGE_INTACCT: 'Sage Intacct',
         CERTINIA: 'FinancialForce',
+        RILLET: 'Rillet',
         BILLCOM: 'Bill.com',
         ZENEFITS: 'Zenefits',
     },
