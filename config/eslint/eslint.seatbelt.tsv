@@ -1603,7 +1603,6 @@
 "../../tests/navigation/isDynamicRouteScreenTests.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/navigation/linkToHelpersTests.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/navigation/useDynamicBackPathTests.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../tests/perf-test/ReportActionsList.perf-test.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/perf-test/ReportActionsUtils.perf-test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/perf-test/ReportUtils.perf-test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/perf-test/SelectionList.perf-test.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
