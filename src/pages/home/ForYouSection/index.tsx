@@ -19,6 +19,7 @@ import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import {accountIDSelector} from '@src/selectors/Session';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -45,6 +46,7 @@ function ForYouSection() {
     const isFocused = useIsFocused();
     const {counts: reportCounts, singleReportIDs} = useTodoCounts(isFocused);
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
+    const [isOnboardingCompleted] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
     const [hasSeenForYouTodo = false] = useOnyx(ONYXKEYS.HAS_SEEN_FOR_YOU_TODO);
     const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
 
@@ -198,7 +200,16 @@ function ForYouSection() {
         return hasAnyTodos ? renderTodoItems() : <EmptyState />;
     };
 
-    if (shouldHideForYouSection({isInitialLoad, hasAnyTodos, hasSeenTodo: hasSeenForYouTodo, firstDayFreeTrial, cutoffDate: CONST.HOME.FOR_YOU_NEW_USER_CUTOFF_DATE})) {
+    if (
+        shouldHideForYouSection({
+            isInitialLoad,
+            hasAnyTodos,
+            hasSeenTodo: hasSeenForYouTodo,
+            firstDayFreeTrial,
+            cutoffDate: CONST.HOME.FOR_YOU_NEW_USER_CUTOFF_DATE,
+            isOnboardingCompleted,
+        })
+    ) {
         return null;
     }
 

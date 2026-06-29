@@ -312,6 +312,22 @@ describe('ForYouSection', () => {
             expect(screen.queryByText('Begin')).not.toBeOnTheScreen();
         });
 
+        it('renders nothing for a user still going through onboarding before the trial date arrives', async () => {
+            await act(async () => {
+                // No NVP_FIRST_DAY_FREE_TRIAL yet (the NVP arrives later during onboarding).
+                await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+                await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
+                await Onyx.set(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, EMPTY_FLAGGED_EXPENSES);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText('homePage.forYou')).not.toBeOnTheScreen();
+            expect(screen.queryByText('Begin')).not.toBeOnTheScreen();
+        });
+
         it('still shows the skeleton during the initial load for a new user', async () => {
             await act(async () => {
                 await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, NEW_USER_TRIAL_START);
