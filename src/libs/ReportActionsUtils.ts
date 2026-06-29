@@ -4221,7 +4221,7 @@ function getUpdatedCommuterExclusionsMessage(translate: LocalizedTranslate, repo
     if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_COMMUTER_EXCLUSIONS)) {
         return getReportActionText(reportAction);
     }
-    const {newValue, unit, oldValue, updatedField} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_COMMUTER_EXCLUSIONS>) ?? {};
+    const {newValue, unit, oldValue, updatedField} = getOriginalMessage(reportAction) ?? {};
 
     if (updatedField === CONST.POLICY.COMMUTER_EXCLUSION_TYPE.METHOD && newValue === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE) {
         return translate('workspaceActions.commuterExclusions.changedToFixedDistance');
@@ -4688,7 +4688,11 @@ function getPlaidBalanceFailureMessage(translate: LocalizedTranslate, action: On
 }
 
 function getCommuterExclusionMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>, policyID?: string): string {
-    const {distance, unit} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION>) ?? {distance: '0', unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES};
+    if (!isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION)) {
+        return getReportActionText(action);
+    }
+
+    const {distance, unit} = getOriginalMessage(action) ?? {distance: '0', unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES};
     const distanceValue = Number(distance ?? 0);
     const unitValue = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS : CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
     const formattedDistance = getFormattedDistanceInUnits(distanceValue, unitValue, translate, false, true);
