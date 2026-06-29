@@ -4476,7 +4476,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             budgetFrequency: {monthly: '毎月', yearly: '年次'},
             budgetFrequencyUnit: {monthly: '月', yearly: '年'},
             budgetTypeForNotificationMessage: {tag: 'タグ', category: 'カテゴリ'},
-            travelInvoicing: '出張請求費用を次の形式でエクスポート',
+            travelInvoicing: '統合トラベル請求の経費を次の形式でエクスポートします',
             travelInvoicingVendor: '出張ベンダー',
             travelInvoicingPayableAccount: '旅費未払金勘定',
             hr: '人事',
@@ -5755,8 +5755,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             travel: {
                 title: '出張',
                 subtitle: '出張の予約、管理、精算をすべて一元管理。',
-                disableTravelTitle: '先に Travel Invoicing をオフにしてください',
-                disableTravelPrompt: 'このワークスペースでは旅行請求書作成が有効になっています。Travel を無効にする前にオフにしてください。',
+                disableTravelTitle: '先に一括旅行請求をオフにしてください',
+                disableTravelPrompt: 'このワークスペースでは一括出張請求が有効になっています。Travel を無効にする前に、一括出張請求をオフにしてください。',
                 disableTravelButton: '出張設定に移動します',
                 getStarted: {
                     title: 'Expensify Travel を使い始める',
@@ -5777,8 +5777,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                         manageTravelLabel: '出張を管理',
                     },
                     travelInvoicingSection: {
-                        title: '出張請求書作成',
-                        subtitle: '購入時に支払うのではなく、すべての出張費を月次請求書に集約しましょう。',
+                        title: '出張費の一括請求',
+                        subtitle: '購入時に都度支払うのではなく、すべての出張費用を月次請求書に集約して管理します。',
                         learnHow: '詳しく見る',
                         subsections: {
                             currentTravelSpendLabel: '現在の出張費支出',
@@ -5793,15 +5793,15 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                             reduceLimitTitle: '出張支出上限を引き下げますか？',
                             reduceLimitWarning: 'この上限を引き下げると、すでにこの金額を超えて支出しているメンバーは、翌月まで新しい出張予約ができなくなります。',
                             provisioningError:
-                                'ワークスペース内の一部メンバーを旅行請求用にプロビジョニングできませんでした。時間をおいてもう一度お試しいただくか、サポートが必要な場合は Concierge までご連絡ください。',
+                                'ワークスペース内の一部メンバーに対して、Consolidated Travel Billing を有効化できませんでした。時間をおいてもう一度お試しいただくか、サポートが必要な場合は Concierge までお問い合わせください。',
                         },
                     },
                     disableModal: {
-                        title: '旅費請求書発行をオフにしますか？',
+                        title: '一括旅行請求をオフにしますか？',
                         body: '今後のホテルおよびレンタカーの予約は、キャンセルを避けるために別のお支払い方法で再予約する必要がある場合があります。',
                         confirm: 'オフにする',
                     },
-                    outstandingBalanceModal: {title: 'トラベル請求書作成をオフにできません', body: '未清算の出張残高があります。先に残高を精算してください。', confirm: '了解しました'},
+                    outstandingBalanceModal: {title: '統合トラベル請求をオフにできません', body: '未清算の出張残高があります。先に残高を精算してください。', confirm: '了解しました'},
                     payBalanceModal: {
                         title: (amount: string) => `残高 ${amount} を支払いますか？`,
                         body: '支払いはキューに追加され、その後まもなく処理されます。この操作は一度開始すると元に戻すことはできません。',
@@ -5810,8 +5810,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     exportToCSV: 'CSV にエクスポート',
                     selectDateRangeError: 'エクスポートする日付範囲を選択してください',
                     invalidDateRangeError: '開始日は終了日より前でなければなりません',
-                    enabled: '出張請求書機能が有効になりました！',
-                    enabledDescription: 'このワークスペースのすべての出張費は、今後、月次請求書で一元管理されます。',
+                    enabled: '一括出張請求が有効になりました！',
+                    enabledDescription: 'このワークスペースでの出張費用は、今後すべて月次の請求書に集約されます。',
                 },
                 personalDetailsDescription: '旅行を予約するために、政府発行の身分証明書に記載されているとおりの正式な氏名を入力してください。',
             },
@@ -6638,11 +6638,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 chooseBankAccount: 'Expensify カードの支払いを照合する銀行口座を選択してください。',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `継続消込が正しく機能するように、この口座が、末尾が ${lastFourPAN} の<a href="${settlementAccountUrl}">Expensify カード精算口座</a>と一致していることを確認してください。`,
-                chooseTravelInvoicingBankAccount: '出張請求の支払いの消込に使用する銀行口座を選択してください。',
+                chooseTravelInvoicingBankAccount: '一括旅行請求の支払いを消し込む銀行口座を選択してください。',
                 travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
-                    `Continuous Reconciliation が正しく機能するように、この口座が、旅行の請求書決済用口座（末尾が ${lastFourPAN} の口座）と一致していることを確認してください。`,
+                    `Continuous Reconciliation が正しく動作するように、この口座が、Consolidated Travel Billing の決済口座（末尾が ${lastFourPAN}）と一致していることをご確認ください。`,
             },
-            syncTravelInvoicingSettlements: '出張請求の精算を同期',
+            syncTravelInvoicingSettlements: '統合トラベル請求の精算を同期する',
         },
         export: {
             notReadyHeading: 'エクスポートの準備ができていません',
@@ -7416,6 +7416,8 @@ ${reportName}`,
             agentRules: {
                 title: 'エージェントルール',
                 subtitle: 'このワークスペースで AI エージェントが経費を処理する方法のルールを設定します。',
+                enforcedBy: 'エージェントルールは次によって適用されます',
+                ruleBotName: 'RuleBot',
                 addRule: 'エージェントルールを追加',
                 findRule: 'エージェントルールを検索',
                 addRuleTitle: 'ルールを追加',
@@ -7847,31 +7849,31 @@ ${reportName}`,
         updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
             switch (featureName) {
                 case 'categories':
-                    return `${enabled ? '有効' : '無効'} 個のカテゴリー`;
+                    return `${enabled ? '有効' : '無効'} 件のカテゴリ`;
                 case 'tags':
                     return `${enabled ? '有効' : '無効'} 個のタグ`;
                 case 'workflows':
                     return `${enabled ? '有効' : '無効'} 個のワークフロー`;
                 case 'distance rates':
-                    return `${enabled ? '有効' : '無効'} の距離単価`;
+                    return `${enabled ? '有効' : '無効'} 件の距離レート`;
                 case 'accounting':
                     return `${enabled ? '有効' : '無効'} 会計`;
                 case 'Expensify Cards':
                     return `${enabled ? '有効' : '無効'} Expensify カード`;
                 case 'travel invoicing':
-                    return `${enabled ? '有効' : '無効'} トラベルインボイス`;
+                    return `${enabled ? '有効' : '無効'} 統合旅行請求`;
                 case 'company cards':
                     return `${enabled ? '有効' : '無効'} 件の会社カード`;
                 case 'invoicing':
-                    return `${enabled ? '有効' : '無効'} の請求書作成`;
+                    return `${enabled ? '有効' : '無効'} 請求書作成`;
                 case 'per diem':
                     return `${enabled ? '有効' : '無効'} 日当`;
                 case 'receipt partners':
                     return `${enabled ? '有効' : '無効'} 件のレシートパートナー`;
                 case 'rules':
-                    return `${enabled ? '有効' : '無効'} 個のルール`;
+                    return `${enabled ? '有効' : '無効'} 件のルール`;
                 case 'tax tracking':
-                    return `${enabled ? '有効' : '無効'} の税金の追跡`;
+                    return `${enabled ? '有効' : '無効'} 税金の追跡`;
                 default:
                     return `${enabled ? '有効' : '無効'} ${featureName}`;
             }
@@ -8387,7 +8389,7 @@ ${reportName}`,
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `すべての${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `すべてのCSVインポート済みカード${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
-                travelInvoicing: '出張請求書作成',
+                travelInvoicing: '出張費の一括請求',
             },
             reportField: (name: string, value: string) => `${name} は ${value} です`,
             current: '現在',
@@ -8420,8 +8422,8 @@ ${reportName}`,
             feed: 'フィード',
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify カード',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '精算',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: '出張請求書作成',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '払い戻し',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: '出張費の一括請求',
             },
             is: 'は',
             action: {
@@ -8457,6 +8459,12 @@ ${reportName}`,
         noMerchant: '店舗なし',
         noTag: 'タグなし',
         expenseType: '経費の種類',
+        receiptType: '領収書の種類',
+        receiptTypeValues: {
+            ereceipt: '電子領収書',
+            itemized: '明細',
+            hotel: 'ホテル',
+        },
         withdrawalType: '出金の種類',
         recentSearches: '最近の検索',
         recentChats: '最近のチャット',
@@ -8836,7 +8844,7 @@ ${reportName}`,
         personalCard: '個人のカード',
         companyCard: '会社カード',
         expensifyCard: 'Expensify カード',
-        travelInvoicing: '出張請求書作成',
+        travelInvoicing: '出張費の一括請求',
         travelCard: 'トラベルカード',
     },
     distance: {

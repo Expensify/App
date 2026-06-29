@@ -781,7 +781,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         );
     };
 
-    const headerContent = <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>{getHeaderSubtitle()}</View>;
+    const headerContent = <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>{getHeaderSubtitle()}</View>;
 
     const subtitleText = useMemo(() => {
         const emptyTagsSubtitle = hasAccountingConnections
