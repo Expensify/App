@@ -12,7 +12,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
-import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import useIsWorkspacesTabFocused from '@hooks/useIsWorkspacesTabFocused';
@@ -136,6 +135,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         'Workflows',
         'LuggageWithLines',
         'Clock',
+        'Bolt',
     ]);
 
     const policyName = policy?.name ?? '';
@@ -225,7 +225,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             fetchPolicyData();
         }, [fetchPolicyData]),
     );
-    useConfirmReadyToOpenApp();
 
     // Navigate away when workspace is deleted
     useEffect(() => {
@@ -361,7 +360,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         if (policyFeatureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED] && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.RULES)) {
             workspaceMenuItems.push({
                 translationKey: 'workspace.common.rules',
-                icon: expensifyIcons.Feed,
+                icon: isBetaEnabled(CONST.BETAS.RULES_REVAMP) ? expensifyIcons.Bolt : expensifyIcons.Feed,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_RULES.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.RULES,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.RULES,
