@@ -128,7 +128,30 @@ Instructions should be:
 
 ---
 
-# 6. Retrieval Optimization
+# 6. Editorial Judgment
+
+Good task articles explain what matters and omit what doesn't.
+
+When writing:
+
+* Explain decisions before listing options.
+* Combine obvious UI interactions into one logical step.
+* Include brief context when it helps prevent mistakes.
+* Prefer meaningful actions over exhaustive UI narration.
+
+Assume readers can follow straightforward navigation.
+
+Don't describe temporary interface states, visual layout, or confirmation messages unless they're necessary to complete the task.
+
+After writing the article, read only the numbered steps.
+
+If they sound like instructions from an experienced support agent, they're probably the right level of detail.
+
+If they sound like someone describing every click they made, simplify them.
+
+---
+
+# 7. Retrieval Optimization
 
 Task articles should:
 
@@ -149,7 +172,7 @@ The article should clearly answer:
 
 ---
 
-# 7. Cross-Linking
+# 8. Cross-Linking
 
 Cross-links should be used only for:
 
@@ -163,7 +186,7 @@ If many links are required, the scope is likely too broad.
 
 ---
 
-# 8. Validation Checklist
+# 9. Validation Checklist
 
 Before publishing, confirm:
 
