@@ -307,31 +307,31 @@ function MoneyRequestReportPreviewContent({
         [translate, numberOfRequests],
     );
 
+    const reportStateNum = iouReport?.stateNum ?? action?.childStateNum;
+    const reportStatusNum = iouReport?.statusNum ?? action?.childStatusNum;
+
     const reportStatus = useMemo(
         () =>
             getReportStatusTranslation({
-                stateNum: iouReport?.stateNum ?? action?.childStateNum,
-                statusNum: iouReport?.statusNum ?? action?.childStatusNum,
+                stateNum: reportStateNum,
+                statusNum: reportStatusNum,
                 translate,
             }),
-        [action?.childStateNum, action?.childStatusNum, iouReport?.stateNum, iouReport?.statusNum, translate],
+        [reportStateNum, reportStatusNum, translate],
     );
 
     const shouldShowReportStatus = !!reportStatus && !!expenseCount;
 
-    const reportStatusColorStyle = useMemo(
-        () => getReportStatusColorStyle(theme, iouReport?.stateNum ?? action?.childStateNum, iouReport?.statusNum ?? action?.childStatusNum),
-        [action?.childStateNum, action?.childStatusNum, iouReport?.stateNum, iouReport?.statusNum, theme],
-    );
+    const reportStatusColorStyle = useMemo(() => getReportStatusColorStyle(theme, reportStateNum, reportStatusNum), [reportStateNum, reportStatusNum, theme]);
 
     const reportStatusTooltip = useMemo(
         () =>
             getReportStatusTooltipTranslation({
-                stateNum: iouReport?.stateNum ?? action?.childStateNum,
-                statusNum: iouReport?.statusNum ?? action?.childStatusNum,
+                stateNum: reportStateNum,
+                statusNum: reportStatusNum,
                 translate,
             }),
-        [action?.childStateNum, action?.childStatusNum, iouReport?.stateNum, iouReport?.statusNum, translate],
+        [reportStateNum, reportStatusNum, translate],
     );
 
     const totalAmountStyle = shouldUseNarrowLayout ? [styles.flexColumnReverse, styles.alignItemsStretch] : [styles.flexRow, styles.alignItemsCenter];
