@@ -34,6 +34,7 @@ type UseCompanyCardsResult = Partial<{
     allCardFeeds: CombinedCardFeeds;
     companyCardFeeds: CompanyFeeds;
     selectedFeed: CombinedCardFeed;
+    effectiveWorkspaceAccountID: number;
 }> & {
     isInitiallyLoadingFeeds: boolean;
     isNoFeed: boolean;
@@ -160,7 +161,7 @@ function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProp
     const policyIDKey = policyID || CONST.DEFAULT_MISSING_ID;
 
     const [lastSelectedFeed, lastSelectedFeedMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyIDKey}`);
-    const [allCardFeeds, allCardFeedsMetadata, , workspaceCardFeedsStatus] = useCardFeeds(policyID);
+    const [allCardFeeds, allCardFeedsMetadata, , workspaceCardFeedsStatus, , effectiveWorkspaceAccountID] = useCardFeeds(policyID);
 
     const feedName = feedNameProp ?? getSelectedFeed(lastSelectedFeed, allCardFeeds);
     const bankName = feedName ? getCompanyCardFeed(feedName) : undefined;
@@ -197,6 +198,7 @@ function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProp
         companyCardEntries,
         workspaceCardFeedsStatus,
         selectedFeed,
+        effectiveWorkspaceAccountID,
         bankName,
         onyxMetadata,
         isInitiallyLoadingFeeds,

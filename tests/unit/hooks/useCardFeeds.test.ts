@@ -49,10 +49,11 @@ describe('useCardFeeds', () => {
             await waitForBatchedUpdates();
 
             await waitFor(() => {
-                const [workspaceFeeds] = result.current;
+                const [workspaceFeeds, , , , , effectiveWorkspaceAccountID] = result.current;
                 const feedKeys = Object.keys(workspaceFeeds ?? {});
                 expect(feedKeys.some((key) => key.includes(oauthFeed))).toBe(true);
                 expect(Object.values(workspaceFeeds ?? {}).every((feed) => feed.domainID === domainID)).toBe(true);
+                expect(effectiveWorkspaceAccountID).toBe(domainID);
             });
         });
 
@@ -77,8 +78,9 @@ describe('useCardFeeds', () => {
             await waitForBatchedUpdates();
 
             await waitFor(() => {
-                const [workspaceFeeds] = result.current;
+                const [workspaceFeeds, , , , , effectiveWorkspaceAccountID] = result.current;
                 expect(Object.keys(workspaceFeeds ?? {}).length).toBe(0);
+                expect(effectiveWorkspaceAccountID).toBe(CONST.DEFAULT_NUMBER_ID);
             });
         });
 
@@ -104,9 +106,10 @@ describe('useCardFeeds', () => {
             await waitForBatchedUpdates();
 
             await waitFor(() => {
-                const [workspaceFeeds] = result.current;
+                const [workspaceFeeds, , , , , effectiveWorkspaceAccountID] = result.current;
                 const feedKeys = Object.keys(workspaceFeeds ?? {});
                 expect(feedKeys.some((key) => key.includes(oauthFeed))).toBe(false);
+                expect(effectiveWorkspaceAccountID).toBe(policyAccountID);
             });
         });
     });
