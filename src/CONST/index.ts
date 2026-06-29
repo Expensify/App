@@ -6990,12 +6990,6 @@ const CONST = {
         get CUSTOM_DATE_MODIFIERS() {
             return [this.DATE_MODIFIERS.ON, this.DATE_MODIFIERS.BEFORE, this.DATE_MODIFIERS.AFTER] as const;
         },
-        DATE_FILTER_SUB_PAGE: {
-            ON: 'on',
-            AFTER: 'after',
-            BEFORE: 'before',
-            RANGE: 'range',
-        },
         AMOUNT_MODIFIERS: {
             LESS_THAN: 'LessThan',
             GREATER_THAN: 'GreaterThan',
