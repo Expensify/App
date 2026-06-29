@@ -1,8 +1,9 @@
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import type {MapState} from '@rnmapbox/maps';
-import Mapbox, {MarkerView, setAccessToken} from '@rnmapbox/maps';
+import Mapbox, {MarkerView} from '@rnmapbox/maps';
 import {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import {useSharedValue} from 'react-native-reanimated';
 import Button from '@components/Button';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
@@ -19,11 +20,13 @@ import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
 import ONYXKEYS from '@src/ONYXKEYS';
+import Compass from './Compass';
 import Direction from './Direction';
 import type {MapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
 import ToggleDistanceUnitButton from './ToggleDistanceUnitButton';
+import useAccessToken from './useAccessToken';
 import useDistanceUnit from './useDistanceUnit';
 import utils from './utils';
 
@@ -42,6 +45,7 @@ function MapView({
     unit,
     ref,
     shouldDisplayCurrentLocation = true,
+    shouldDisplayCompass = true,
 }: MapViewProps) {
     const directionCoordinates = !directionCoordinatesProp || utils.isSingleSegmentRoute(directionCoordinatesProp) ? directionCoordinatesProp : directionCoordinatesProp.flat();
 
@@ -58,7 +62,7 @@ function MapView({
     const currentPosition = userLocation ?? initialLocation;
     const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
     const shouldInitializeCurrentPosition = useRef(true);
-    const [isAccessTokenSet, setIsAccessTokenSet] = useState(false);
+    const isAccessTokenSet = useAccessToken({accessToken});
 
     const {distanceUnit, toggleDistanceUnit} = useDistanceUnit(unit);
 
@@ -176,15 +180,6 @@ function MapView({
         setIsIdle(false);
     }, [isOffline]);
 
-    useEffect(() => {
-        setAccessToken(accessToken).then((token) => {
-            if (!token) {
-                return;
-            }
-            setIsAccessTokenSet(true);
-        });
-    }, [accessToken]);
-
     const setMapIdle = (e: MapState) => {
         if (e.gestures.isGestureActive) {
             return;
@@ -194,6 +189,13 @@ function MapView({
             onMapReady();
         }
     };
+
+    const mapHeading = useSharedValue(0);
+
+    const onCameraChanged = (e: MapState) => {
+        mapHeading.set(e.properties.heading ?? 0);
+    };
+
     const centerMap = useCallback(() => {
         const waypointCoordinates = waypoints?.map((waypoint) => waypoint.coordinate) ?? [];
         if (waypointCoordinates.length > 1 || (directionCoordinates ?? []).length > 1) {
@@ -262,14 +264,14 @@ function MapView({
                 style={{flex: 1}}
                 styleURL={styleURL}
                 onMapIdle={setMapIdle}
+                onCameraChanged={onCameraChanged}
                 onTouchStart={() => setUserInteractedWithMap(true)}
                 pitchEnabled={pitchEnabled}
                 attributionPosition={{...styles.r2, ...styles.b2}}
                 scaleBarEnabled={false}
                 // We use scaleBarPosition with top: -32 to hide the scale bar on iOS because scaleBarEnabled={false} not work on iOS
                 scaleBarPosition={{...styles.tn8, left: 0}}
-                compassEnabled
-                compassPosition={{...styles.l2, ...styles.t5}}
+                compassEnabled={false}
                 logoPosition={{...styles.l2, ...styles.b2}}
                 {...responder.panHandlers}
             >
@@ -324,7 +326,7 @@ function MapView({
                         key="distance-label"
                         allowOverlap
                     >
-                        <View style={{zIndex: 1}}>
+                        <View style={styles.zIndex1}>
                             <ToggleDistanceUnitButton
                                 accessibilityRole={CONST.ROLE.BUTTON}
                                 accessibilityLabel="distance-label"
@@ -338,8 +340,14 @@ function MapView({
                     </MarkerView>
                 )}
             </Mapbox.MapView>
+            <Compass
+                interactive={interactive}
+                shouldDisplayCompass={shouldDisplayCompass}
+                cameraRef={cameraRef}
+                mapHeading={mapHeading}
+            />
             {interactive && (
-                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
+                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, styles.zIndex1]}>
                     <Button
                         onPress={centerMap}
                         iconFill={theme.icon}
