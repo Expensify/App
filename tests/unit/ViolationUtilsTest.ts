@@ -807,6 +807,20 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(categoryOutOfPolicyViolation);
         });
 
+        it('should add missingCategory violation when category is the Uncategorized sentinel and categories are required', () => {
+            transaction.category = CONST.SEARCH.CATEGORY_DEFAULT_VALUE;
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+            expect(result.value).toEqual(expect.arrayContaining([missingCategoryViolation, ...transactionViolations]));
+        });
+
         it('should not add categoryOutOfPolicy violation when category is none', () => {
             transaction.category = 'none';
             const result = ViolationsUtils.getViolationsOnyxData({

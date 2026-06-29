@@ -104,7 +104,7 @@ import {removeDraftTransactionsByIDs} from './actions/TransactionEdit';
 import type {OnboardingCompanySize, OnboardingMessage, OnboardingPurpose, OnboardingTaskLinks} from './actions/Welcome/OnboardingFlow';
 import {getOnboardingMessages} from './actions/Welcome/OnboardingFlow';
 import type {AddCommentOrAttachmentParams} from './API/parameters';
-import {getCategoryGLCode, isCategoryMissing} from './CategoryUtils';
+import {getCategoryGLCode} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
@@ -2294,20 +2294,13 @@ function pushTransactionViolationsOnyxData(
     // which a category/tag/rules toggle changes. Only let the recompute touch it when the update concerns
     // tax tracking, otherwise an unrelated toggle would flash a spurious "tax no longer valid" violation.
     const isTaxTrackingUpdate = policyUpdate.tax !== undefined;
-    // Only treat the 'Uncategorized' sentinel as missing when the update concerns the category requirement (enabling
-    // categories sets `requiresCategory`), so unrelated tag/tax/rules toggles leave a sentinel expense's violation alone.
-    const isCategoryRequirementUpdate = policyUpdate.requiresCategory !== undefined;
 
     for (const {
         transactionsAndViolations: {transactions, violations},
     } of nonInvoiceReportItems) {
         for (const transaction of Object.values(transactions)) {
             const pendingUpdate = transactionAutoSelections.get(transaction.transactionID);
-            const baseTransaction = pendingUpdate ? {...transaction, ...pendingUpdate} : transaction;
-            // The 'Uncategorized' sentinel suppresses the optimistic missingCategory only at creation time; for an
-            // existing expense re-evaluated when categories are (re-)enabled it's genuinely missing, so normalize it.
-            const modifiedTransaction =
-                isCategoryRequirementUpdate && baseTransaction.category && isCategoryMissing(baseTransaction.category) ? {...baseTransaction, category: ''} : baseTransaction;
+            const modifiedTransaction = pendingUpdate ? {...transaction, ...pendingUpdate} : transaction;
 
             const existingViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
             const optimisticViolations = ViolationsUtils.getViolationsOnyxData({
