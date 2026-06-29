@@ -199,8 +199,9 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const rawPolicyRate = !isP2PRate && currentRateID && effectivePolicy ? getDistanceRateCustomUnitRate(effectivePolicy, currentRateID) : undefined;
     const isRateBroken =
         isDistance && !isP2PRate && (!rates[currentRateID] || !rate || rawPolicyRate?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || rawPolicyRate?.enabled === false);
-    const hasAvailableEnabledRates = Object.keys(DistanceRequestUtils.getMileageRates(effectivePolicy)).length > 0;
-    const isCustomUnitOutOfPolicy = isSelfDMSplit ? isRateBroken : !rates[currentRateID] || (isDistance && !rate);
+    const policyWithAvailableRates = effectivePolicy ?? policyForMovingExpenses;
+    const hasAvailableEnabledRates = Object.keys(DistanceRequestUtils.getMileageRates(policyWithAvailableRates)).length > 0;
+    const isCustomUnitOutOfPolicy = isSelfDMSplit ? isRateBroken || (isDistance && isP2PRate && hasAvailableEnabledRates) : !rates[currentRateID] || (isDistance && !rate);
     const rateToDisplay = DistanceRequestUtils.getRateForExpenseDisplay(rateName, isCustomUnitOutOfPolicy, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
 
     const getErrorForField = (field: ViolationField) => {
