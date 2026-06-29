@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useMemo, useState} from 'react';
-import {useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchSelectionContext, useSearchShiftRangeChildren} from '@components/Search/SearchContext';
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -35,6 +35,7 @@ function GroupChildrenContent({
 }: GroupChildrenContentProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {selectedTransactions} = useSearchSelectionContext();
+    const {registerGroupChildren, unregisterGroupChildren} = useSearchShiftRangeChildren();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isScreenFocused = useIsFocused();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -92,6 +93,16 @@ function GroupChildrenContent({
 
     const isEmpty = transactions.length === 0;
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
+
+    // Publish these lazily-loaded children to the shift-range source so shift+click can span them (group-by only; expense-report groups carry their own `group.transactions`).
+    useEffect(() => {
+        if (isExpenseReportType || !isExpanded || transactions.length === 0) {
+            unregisterGroupChildren(groupItem.keyForList);
+            return;
+        }
+        registerGroupChildren(groupItem.keyForList, transactions);
+        return () => unregisterGroupChildren(groupItem.keyForList);
+    }, [isExpenseReportType, isExpanded, transactions, groupItem.keyForList, registerGroupChildren, unregisterGroupChildren]);
 
     const refreshTransactions = () => {
         if (!groupItem.transactionsQueryJSON) {

@@ -261,6 +261,14 @@ type SearchRowSelectionActionsValue = {
     toggleAll: () => void;
 };
 
+/** Lets lazily-loaded group-by children publish themselves to the shift-range source (rationale in `SearchWriteActionsProvider`). */
+type SearchShiftRangeChildrenActions = {
+    /** Publish a group's currently rendered children (in visual order) to the shift-range source. */
+    registerGroupChildren: (groupKey: string, children: TransactionListItemType[]) => void;
+    /** Remove a group's children from the shift-range source when it collapses or unmounts. */
+    unregisterGroupChildren: (groupKey: string) => void;
+};
+
 /** Composed value of all three Search state contexts. Kept as a union for callers that need the full bag shape (e.g. test fixtures, action `searchContext` payloads). */
 type SearchStateContextValue = SearchQueryContextValue & SearchResultsContextValue & SearchSelectionContextValue;
 
@@ -457,6 +465,7 @@ export type {
     SearchSelectionActionsValue,
     SearchData,
     SearchRowSelectionActionsValue,
+    SearchShiftRangeChildrenActions,
     ASTNode,
     QueryFilter,
     QueryFilters,

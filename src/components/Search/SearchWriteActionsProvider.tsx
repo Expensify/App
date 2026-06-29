@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
@@ -26,11 +26,11 @@ import type {OutstandingReportsByPolicyIDDerivedValue, Report, ReportNameValuePa
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
-import {SearchRowSelectionActionsContext} from './SearchContextDefinitions';
+import {SearchRowSelectionActionsContext, SearchShiftRangeChildrenContext} from './SearchContextDefinitions';
 import type {TransactionListItemType} from './SearchList/ListItem/types';
 import {useSyncSelectedReports} from './SearchSelectionProvider';
-import {mapEmptyReportToSelectedEntry, mapTransactionItemToSelectedEntry, prepareTransactionsList} from './selectionBuilders';
-import type {SearchData, SearchRowSelectionActionsValue, SelectedTransactionInfo, SelectedTransactions} from './types';
+import {buildShiftRangeItems, mapEmptyReportToSelectedEntry, mapTransactionItemToSelectedEntry, prepareTransactionsList} from './selectionBuilders';
+import type {SearchData, SearchRowSelectionActionsValue, SearchShiftRangeChildrenActions, SelectedTransactionInfo, SelectedTransactions} from './types';
 
 type SearchWriteActionsProviderProps = {
     /** The currently displayed (filtered, grouped) rows. Screen-derived; the provider cannot recompute it. */
@@ -354,6 +354,24 @@ function SearchWriteActionsProvider({
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const {applySelection, getSelectedTransactions} = useSearchSelectionActions();
 
+    // Group-by children load lazily inside `GroupChildrenContent` (their `group.transactions` is empty), so it publishes them here for the shift-range source.
+    const [groupChildrenByKey, setGroupChildrenByKey] = useState<Record<string, TransactionListItemType[]>>({});
+
+    const registerGroupChildren = (groupKey: string, groupChildren: TransactionListItemType[]) => {
+        setGroupChildrenByKey((prev) => (prev[groupKey] === groupChildren ? prev : {...prev, [groupKey]: groupChildren}));
+    };
+    const unregisterGroupChildren = (groupKey: string) => {
+        setGroupChildrenByKey((prev) => {
+            if (!(groupKey in prev)) {
+                return prev;
+            }
+            const next = {...prev};
+            delete next[groupKey];
+            return next;
+        });
+    };
+    const shiftRangeChildrenActions: SearchShiftRangeChildrenActions = {registerGroupChildren, unregisterGroupChildren};
+
     const searchResultsData = searchResults?.data;
     const currentUserEmail = email ?? '';
     const currentUserLogin = login ?? '';
@@ -374,10 +392,9 @@ function SearchWriteActionsProvider({
             parentReport,
         });
 
-    // Flattened groups + children in visual order (headers excluded) for shift-range selection.
+    // Flattened groups + children in visual order for shift-range selection.
     const hasValidGroupBy = areItemsGrouped && !isExpenseReportType;
-    const flattenedShiftRangeItems: Array<SearchData[number]> =
-        areItemsGrouped && isGroupedItemArray(filteredData) ? filteredData.flatMap((group) => [group, ...(group.transactions ?? [])]) : filteredData;
+    const flattenedShiftRangeItems = buildShiftRangeItems(filteredData, groupChildrenByKey, areItemsGrouped);
     const isShiftRangeHeaderItem = (item: SearchData[number]) =>
         isTransactionGroupListItemType(item) && (hasValidGroupBy || (Array.isArray(item.transactions) && item.transactions.length > 0));
 
@@ -392,7 +409,7 @@ function SearchWriteActionsProvider({
                         if (!groupKey) {
                             continue;
                         }
-                        for (const child of group.transactions ?? []) {
+                        for (const child of groupChildrenByKey[groupKey] ?? group.transactions ?? []) {
                             if (child.keyForList) {
                                 parentGroupKeyByTransactionKey.set(child.keyForList, groupKey);
                             }
@@ -647,7 +664,11 @@ function SearchWriteActionsProvider({
 
     const rowSelectionActionsValue: SearchRowSelectionActionsValue = {toggle, toggleAll};
 
-    return <SearchRowSelectionActionsContext value={rowSelectionActionsValue}>{children}</SearchRowSelectionActionsContext>;
+    return (
+        <SearchRowSelectionActionsContext value={rowSelectionActionsValue}>
+            <SearchShiftRangeChildrenContext value={shiftRangeChildrenActions}>{children}</SearchShiftRangeChildrenContext>
+        </SearchRowSelectionActionsContext>
+    );
 }
 
 export default SearchWriteActionsProvider;

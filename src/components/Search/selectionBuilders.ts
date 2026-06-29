@@ -1,7 +1,7 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
-import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import {isGroupedItemArray, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isExpenseUnreported, isOnHold} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {OutstandingReportsByPolicyIDDerivedValue, Report, ReportNameValuePairs, Transaction} from '@src/types/onyx';
@@ -302,4 +302,20 @@ function deriveSelectedReports(transactionIDs: SelectedTransactions, data: Searc
     return [];
 }
 
-export {mapTransactionItemToSelectedEntry, mapEmptyReportToSelectedEntry, prepareTransactionsList, deriveSelectedReports};
+/**
+ * Builds the flattened source list (each group header followed by its children, in visual order) that shift-range
+ * selection ranges over.
+ *
+ * In group-by views a group's own `transactions` array is empty because children load lazily, so they are published
+ * into `groupChildrenByKey` by `GroupChildrenContent`. For each group we prefer that registry and fall back to the
+ * group's `transactions` when the registry has no entry yet. Non-grouped data (or a non-grouped guard) passes through
+ * unchanged.
+ */
+function buildShiftRangeItems(filteredData: SearchData, groupChildrenByKey: Record<string, TransactionListItemType[]>, areItemsGrouped: boolean): Array<SearchData[number]> {
+    if (!areItemsGrouped || !isGroupedItemArray(filteredData)) {
+        return filteredData;
+    }
+    return filteredData.flatMap((group) => [group, ...(groupChildrenByKey[group.keyForList] ?? group.transactions ?? [])]);
+}
+
+export {mapTransactionItemToSelectedEntry, mapEmptyReportToSelectedEntry, prepareTransactionsList, deriveSelectedReports, buildShiftRangeItems};
