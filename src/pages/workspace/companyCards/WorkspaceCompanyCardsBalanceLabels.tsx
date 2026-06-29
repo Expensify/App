@@ -37,7 +37,7 @@ function WorkspaceCompanyCardsBalanceLabels({selectedFeed, feedName, currency}: 
     }
 
     return (
-        <View style={[shouldUseNarrowLayout ? styles.flexColumn : styles.flexRow, styles.mb3, styles.gap4]}>
+        <View style={[shouldUseNarrowLayout ? styles.flexColumn : styles.flexRow, styles.ph5, styles.mt2, styles.mb3, styles.gap24]}>
             <WorkspaceCompanyCardsBalanceLabel
                 type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE}
                 value={currentBalance}

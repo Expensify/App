@@ -39,13 +39,16 @@ type WorkspaceCardLabelProps = {
 
     /** Additional style props applied to the header row */
     style?: StyleProp<ViewStyle>;
+
+    /** When true the label stretches to fill its share of the row (used to evenly distribute multiple labels). When false it shrinks to its content width. */
+    shouldFillContainer?: boolean;
 };
 
 /**
  * Header + value + info tooltip used to surface a single card statistic (e.g. current balance, remaining limit).
  * Shared between the Expensify Card and company card balance sections so the tooltip/anchor logic lives in one place.
  */
-function WorkspaceCardLabel({title, description, displayValue, valueStyle, valueAccessory, footer, renderPopoverContent, style}: WorkspaceCardLabelProps) {
+function WorkspaceCardLabel({title, description, displayValue, valueStyle, valueAccessory, footer, renderPopoverContent, style, shouldFillContainer = true}: WorkspaceCardLabelProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {windowWidth} = useWindowDimensions();
@@ -71,7 +74,7 @@ function WorkspaceCardLabel({title, description, displayValue, valueStyle, value
     }, [isVisible, windowWidth]);
 
     return (
-        <View style={styles.flex1}>
+        <View style={shouldFillContainer ? styles.flex1 : undefined}>
             <View style={styles.flex1}>
                 <View
                     ref={anchorRef}
