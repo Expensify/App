@@ -583,7 +583,6 @@ export {
     getInitialPerDiemTargetReport,
     getIsWorkspacesOnlyForTransaction,
     isParticipantP2P,
-    isSelfDMParticipant,
     isSelfDMSoleDestination,
     resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
