@@ -345,7 +345,6 @@ function getRequireFieldsTableData({
 }
 
 export {
-    categoryHasAnyRequireFieldsRule,
     deleteRequireFieldsRule,
     getEffectiveRequireFieldsRuleForm,
     getRequireFieldsFormFromCategory,
