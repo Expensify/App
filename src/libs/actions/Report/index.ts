@@ -5438,6 +5438,12 @@ type CompleteOnboardingProps = {
     shouldWaitForRHPVariantInitialization?: boolean;
     introSelected: OnyxEntry<IntroSelected>;
     isSelfTourViewed: boolean | undefined;
+    /** The concierge chat report, looked up by ONYXKEYS.CONCIERGE_REPORT_ID. */
+    conciergeChat?: OnyxEntry<Report>;
+    /** The admins chat report, looked up by ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID. */
+    adminsChatReport?: OnyxEntry<Report>;
+    /** The self-DM report, looked up by ONYXKEYS.SELF_DM_REPORT_ID. */
+    selfDMReport?: OnyxEntry<Report>;
 };
 
 async function completeOnboarding({
@@ -5458,6 +5464,9 @@ async function completeOnboarding({
     shouldWaitForRHPVariantInitialization = false,
     introSelected,
     isSelfTourViewed,
+    conciergeChat,
+    adminsChatReport,
+    selfDMReport,
 }: CompleteOnboardingProps) {
     const onboardingData = prepareOnboardingOnyxData({
         introSelected,
@@ -5471,6 +5480,9 @@ async function completeOnboarding({
         isInvitedAccountant,
         onboardingPurposeSelected,
         isSelfTourViewed,
+        conciergeChat,
+        adminsChatReport,
+        selfDMReport,
     });
     if (!onboardingData) {
         return;
@@ -6152,6 +6164,8 @@ function clearDeleteTransactionNavigateBackUrl() {
 
 type DeleteAppReportProps = {
     report: OnyxEntry<Report>;
+    reportActions: OnyxEntry<ReportActions>;
+    parentReportAction: OnyxEntry<ReportAction>;
     selfDMReport: OnyxEntry<Report>;
     currentUserEmailParam: string;
     currentUserAccountIDParam: number;
@@ -6164,6 +6178,8 @@ type DeleteAppReportProps = {
 /** Deletes a report and un-reports all transactions on the report along with its reportActions, any linked reports and any linked IOU report actions. */
 function deleteAppReport({
     report,
+    reportActions,
+    parentReportAction,
     selfDMReport,
     currentUserEmailParam,
     currentUserAccountIDParam,
@@ -6281,10 +6297,9 @@ function deleteAppReport({
     }
 
     // 1. Get all report transactions
-    const reportActionsForReport = allReportActions?.[reportID];
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
 
-    for (const reportAction of Object.values(reportActionsForReport ?? {})) {
+    for (const reportAction of Object.values(reportActions ?? {})) {
         if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
             continue;
         }
@@ -6462,7 +6477,7 @@ function deleteAppReport({
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        value: reportActionsForReport ?? null,
+        value: reportActions ?? null,
     });
 
     // 7. Mark the iouReport as being deleted and then delete it
@@ -6491,7 +6506,6 @@ function deleteAppReport({
     // 8. Mark chat report preview action as deleted
     const reportActionID = report?.parentReportActionID;
     const parentReportID = report?.parentReportID;
-    const parentReportAction = parentReportID && reportActionID ? allReportActions?.[parentReportID]?.[reportActionID] : undefined;
 
     if (reportActionID) {
         // Mirror the per-transaction delete path: mark the preview's message as deleted so `isDeletedAction` treats it as
