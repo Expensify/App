@@ -747,6 +747,7 @@ describe('getReportPreviewAction', () => {
                 transactions: [transaction],
                 bankAccountList: {},
                 reportMetadata: undefined,
+                ownerLogin: CURRENT_USER_EMAIL,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });

@@ -276,13 +276,13 @@ describe('ReimbursementAccount', () => {
 
         it('should fall back to owner when achAccount has no reimburser', async () => {
             const policyOwner = 'owner@test.com';
-            const achAccount: ACHAccount = {
+            const achAccount = {
                 bankAccountID,
                 addressName: 'Test Address',
                 bankName: 'Test Bank',
                 accountNumber: '1234567890',
                 routingNumber: '123456789',
-            };
+            } as ACHAccount;
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {achAccount});
             resetNonUSDBankAccount(policyID, achAccount, bankAccountID, undefined, policyOwner);
 
