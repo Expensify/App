@@ -19,7 +19,7 @@ import {getIsOffline} from '@libs/NetworkState';
 import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
-import {getVisibleTodoSearches} from '@libs/SearchUIUtils';
+import {getTodoSearches} from '@libs/SearchUIUtils';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import {cancelAllSpans, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -528,35 +528,24 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
  * Fires asynchronous requests to load more data that is required by the App but not returned in OpenApp/ReconnectApp
  */
 function loadPostDataForOpenOrReconnect() {
-    // We need to wait for OpenApp/ReconnectApp to merge its response data so we can compute what we need to load based on what we loaded.
-    // If `hasLoadedApp` is true, we know that the app Onyx data has been merged as well.
-    const connection = Onyx.connectWithoutView({
-        key: ONYXKEYS.HAS_LOADED_APP,
-        callback: (isLoaded) => {
-            if (!isLoaded) {
-                return;
-            }
-            Onyx.disconnect(connection);
-            const isOffline = getIsOffline();
-            const visibleTodoSearches = getVisibleTodoSearches(currentSessionData.accountID, currentSessionData.email, allPolicies);
-            for (const visibleTodoSearch of Object.values(visibleTodoSearches)) {
-                const searchKey = visibleTodoSearch.key;
-                const queryJSON = visibleTodoSearch.searchQueryJSON;
-                if (!queryJSON) {
-                    continue;
-                }
-                search({
-                    queryJSON,
-                    searchKey,
-                    offset: 0,
-                    isOffline,
-                    isLoading: false,
-                    shouldCalculateTotals: false,
-                    shouldUpdateLastSearchParams: false,
-                });
-            }
-        },
-    });
+    const isOffline = getIsOffline();
+    const todoSearches = getTodoSearches(currentSessionData.accountID);
+    for (const todoSearche of Object.values(todoSearches)) {
+        const searchKey = todoSearche.key;
+        const queryJSON = todoSearche.searchQueryJSON;
+        if (!queryJSON) {
+            continue;
+        }
+        search({
+            queryJSON,
+            searchKey,
+            offset: 0,
+            isOffline,
+            isLoading: false,
+            shouldCalculateTotals: false,
+            shouldUpdateLastSearchParams: false,
+        });
+    }
 }
 
 /**
