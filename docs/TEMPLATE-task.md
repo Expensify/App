@@ -1,129 +1,138 @@
 ---
 title: Clear task-based title using the feature name
-description: A short description of the page's content. This is used for SEO purposes.
-keywords: [how to primary task, feature name, related task phrases]
-internalScope: Audience is [who this doc is for]. Covers [single clearly defined workflow], does not cover [closely related workflows intentionally excluded].
+description: A concise summary of the article for search results.
+keywords: [primary search phrases]
+internalScope: Audience is [who this article is for]. Covers [single workflow]. Does not cover [closely related workflows].
 ---
+
 <!--
-This template follows the HelpDot governance standards.
-Full guidelines: docs/HELP_AUTHORING_GUIDELINES.md
 
-CORE AUTHORING RULES
+This template follows the HelpDot authoring standards.
 
-- One primary workflow per article
-- Use only # and ## headings (never ###)
-- Headings must be full, searchable task-based phrases
-- Do not use generic headings (e.g., Overview, Details, Setup, Options, Notes)
-- Include the exact Feature Name in instructional headings
-- Include web and mobile navigation instructions when applicable
-- Use exact UI terminology and correct button casing
-- Do not use Liquid includes or collapsible FAQ sections
-- If multiple distinct workflows are required, split into separate articles
+Before writing:
 
-ADDITIONAL HEADING GUIDANCE
+1. Why would someone search for this article?
+2. What are they confused about?
+3. What are the two or three questions they expect this article to answer?
 
-Section headings beyond the primary workflow may vary depending on the feature.
+Answer those questions before describing the interface.
 
-Examples of acceptable headings:
-- What the [Exact Feature Name] shows
-- How [Exact Feature Name nuance] works
-- How to manage [specific task] in [Exact Feature Name]
-- How [Exact Feature Name] affects reimbursements
-- How [Exact Feature Name] works with [integration] 
-- How to troubleshoot [Exact Feature Name] errors
+Write from the customer's perspective, not the product's.
 
-All headings must remain specific, searchable, and include the Feature Name when relevant.
+Remember:
+
+- One workflow per article.
+- Explain concepts before details.
+- Prioritize clarity over completeness.
+- Remove anything that doesn't help the customer succeed.
+
 -->
 
-# [This must match the article title exactly]
+# [Article title]
 
-Briefly explain:
-- What this feature does
-- Why someone would use it
-- The outcome they can expect
-- Any important limitations
+Briefly answer the customer's question.
 
-Keep this concise and benefit-focused.
+Explain:
+
+* what this workflow or feature is
+* when someone would use it
+* what they'll accomplish
+
+Avoid marketing language, implementation details, and unnecessary UI narration.
 
 ---
 
-## Who can use [exact feature name]
+## Who Can Use [Feature Name]
 
-Clearly state:
+State only the information the reader needs:
 
-- Required role (Workspace Admin, Member, Domain Admin, etc.)
-- Plan limitations (Free, Collect, Control, Track, Submit, Annual Subscription, pay-per-use)
-- Any permission or Workspace setting prerequisites
+* required role
+* required plan (if applicable)
+* required permissions
+* important prerequisites
 
-If this feature depends on another setting:
-If [the required setting] is not enabled, [learn how to enable <Dependency Feature>](/relative-link).
-If [the required setting] is not enabled, [learn how to enable [Dependency Feature]](/relative-link).
-State explicitly if:
+If another workflow must be completed first, link to it using a relative link.
+
+If unavailable on mobile, state:
+
 This feature is not available on mobile.
 
 ---
 
-## How to [complete primary task using exact feature name]
+## How To [Complete Primary Task]
 
-<!--
-NAVIGATION STRUCTURE GUIDANCE
+Keep the steps focused.
 
-If web and mobile navigation differ:
-- Provide separate labeled sections:
-  Web:
-  Mobile:
-- Do not merge instructions into one sentence.
+Describe only the actions necessary to complete the task.
 
-If web and mobile navigation are structurally the same:
-- Use a unified instruction.
-- Example:
-  Click the navigation tabs (on the left on web, on the bottom on mobile).
-- Do not duplicate identical steps unnecessarily.
+Do not document every click if it doesn't help the reader.
 
-Follow the Navigation Conventions in docs/HELP_AUTHORING_GUIDELINES.md.
+If web and mobile differ, separate the instructions.
+
+If they're identical, combine them.
+
+<!-- SCREENSHOT:
+Suggestion:
+Location:
+Purpose:
 -->
-
-1. Go to Settings > Workspaces > Workspace Name > [Section Name].
-2. Click **[Exact button name in Sentence case]**.
-3. Configure the required settings.
-4. Click **Save** or final action button (for example, **Submit**, **Confirm**).
-
-**ADD A SCREENSHOT HERE.**  
-Suggestion: Show the full page with the relevant section highlighted.
-
-
-## What happens after you [complete primary task using exact feature name]
-
-Explain:
-- System behavior
-- Notifications triggered
-- Approval or reimbursement impact
-- Sync behavior (if applicable)
-- Billing impact (if applicable)
-
-Be explicit. Avoid vague phrasing.
 
 ---
 
+<!--
+
+Include this section only when the workflow changes behavior or has important consequences.
+
+-->
+
+## What Happens After You [Complete Task]
+
+Explain what changes after completing the workflow.
+
+Focus on consequences the customer may not expect.
+
+Examples:
+
+* billing changes
+* notifications
+* approvals
+* ownership changes
+* synchronization
+* downstream effects
+
+Don't restate what the task already accomplished.
+
+---
+
+<!--
+
+Include this section only when another workflow naturally follows from this one.
+
+Limit to essential articles.
+
+-->
+
+## Related Articles
+
+* [Related workflow](/relative-link)
+* [Related workflow](/relative-link)
+
+---
+
+<!--
+
+Include an FAQ only if there are genuine follow-up questions that are not already answered naturally in the article.
+
+Do not invent FAQs to fill out the template.
+
+-->
+
 # FAQ
 
-## Can members [Common Task Variation Using Feature Name]?
+## [Natural customer question]
 
-Clear direct answer.
+Clear answer.
 
-## Why can’t I see [Feature Name]?
+## [Another natural follow-up question]
 
-Explain possible causes:
-- You’re not a Workspace Admin or Workspace Owner
-- The feature is not included in your plan
-- The Workspace setting is disabled
-- Domain-level restrictions apply
-
-## Does [Feature Name] work with [Integration or Related Feature]?
-
-Provide a precise compatibility explanation.
-
-## How do I troubleshoot issues with [Feature Name]?
-
-Include only lightweight troubleshooting.
-If complex troubleshooting is required, link to a separate dedicated article.
+Clear answer.
