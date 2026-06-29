@@ -47,7 +47,6 @@ jest.mock('@userActions/Wallet', () => ({
 }));
 
 jest.mock('@userActions/App', () => ({
-    confirmReadyToOpenApp: jest.fn(),
     setLocale: jest.fn(),
 }));
 
