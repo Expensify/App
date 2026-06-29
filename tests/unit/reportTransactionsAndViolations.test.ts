@@ -24,7 +24,7 @@ describe('reportTransactionsAndViolations derived value', () => {
         } as TransactionViolation;
 
         const currentValue = reportTransactionsAndViolationsConfig.compute([{[transactionKey]: transaction}, {}], {currentValue: undefined, sourceValues: undefined});
-        const result = reportTransactionsAndViolationsConfig.compute([{}, {[violationKey]: [violation]}], {
+        const result = reportTransactionsAndViolationsConfig.compute([{[transactionKey]: transaction}, {[violationKey]: [violation]}], {
             currentValue,
             sourceValues: {
                 [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: {[violationKey]: [violation]},
@@ -170,6 +170,76 @@ describe('reportTransactionsAndViolations derived value', () => {
         const result = reportTransactionsAndViolationsConfig.compute([{}, {[violationKey]: [violation]}], context);
 
         expect(result).toEqual({});
+        expect(context.shouldSkipUpdate).toBe(true);
+    });
+
+    it('skips violation-only updates when the affected transaction only exists in currentValue', () => {
+        const reportID = '91016-current-value-only';
+        const transactionID = '91016-current-value-only-transaction';
+        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
+        const violationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as const;
+        const transaction: Transaction = {
+            transactionID,
+            reportID,
+            amount: 8700,
+            currency: CONST.CURRENCY.EUR,
+            merchant: 'Merchant',
+            created: '2026-06-10',
+        };
+        const violation = {
+            name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            showInReview: true,
+        } as TransactionViolation;
+        const currentValue = reportTransactionsAndViolationsConfig.compute([{[transactionKey]: transaction}, {}], {currentValue: undefined, sourceValues: undefined});
+        const context = {
+            currentValue,
+            sourceValues: {
+                [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: {[violationKey]: [violation]},
+            },
+            shouldSkipUpdate: false,
+        };
+
+        const result = reportTransactionsAndViolationsConfig.compute([{}, {[violationKey]: [violation]}], context);
+
+        expect(result).toEqual(currentValue);
+        expect(context.shouldSkipUpdate).toBe(true);
+    });
+
+    it('skips initial dependency loads when a current derived value already exists', () => {
+        const staleReportID = '91016-stale-initial-load';
+        const currentReportID = '91016-current-initial-load';
+        const staleTransactionID = '91016-stale-initial-load-transaction';
+        const currentTransactionID = '91016-current-initial-load-transaction';
+        const staleTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${staleTransactionID}` as const;
+        const currentTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${currentTransactionID}` as const;
+        const staleTransaction: Transaction = {
+            transactionID: staleTransactionID,
+            reportID: staleReportID,
+            amount: 8700,
+            currency: CONST.CURRENCY.EUR,
+            merchant: 'Stale merchant',
+            created: '2026-06-10',
+        };
+        const currentTransaction: Transaction = {
+            transactionID: currentTransactionID,
+            reportID: currentReportID,
+            amount: 4200,
+            currency: CONST.CURRENCY.EUR,
+            merchant: 'Current merchant',
+            created: '2026-06-10',
+        };
+        const currentValue = reportTransactionsAndViolationsConfig.compute([{[currentTransactionKey]: currentTransaction}, {}], {currentValue: undefined, sourceValues: undefined});
+        const context = {
+            currentValue,
+            sourceValues: undefined,
+            isInitialDependencyLoad: true,
+            shouldSkipUpdate: false,
+        };
+
+        const result = reportTransactionsAndViolationsConfig.compute([{[staleTransactionKey]: staleTransaction}, {}], context);
+
+        expect(result).toEqual(currentValue);
         expect(context.shouldSkipUpdate).toBe(true);
     });
 

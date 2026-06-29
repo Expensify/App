@@ -6,8 +6,6 @@ import type {TransactionViolation} from '@src/types/onyx';
 let previousViolations: OnyxCollection<TransactionViolation[]> = {};
 const transactionReportIDMapping: Record<string, string> = {};
 
-const transactionToReportIDMap: Record<string, string> = {};
-
 const getTransactionKeyFromViolationKey = (violationKey: string) => violationKey.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, ONYXKEYS.COLLECTION.TRANSACTION);
 
 export default createOnyxDerivedValueConfig({
@@ -24,6 +22,11 @@ export default createOnyxDerivedValueConfig({
         // Full recomputes should rebuild from the transaction source so stale derived buckets or deleted transactions are not carried forward.
         // Partial updates still start from currentValue so violation-only refreshes can preserve report membership when this tab has an incomplete transaction snapshot.
         const reportTransactionsAndViolations = isPartialUpdate && currentValue ? {...currentValue} : {};
+
+        if (context.isInitialDependencyLoad && currentValue) {
+            context.shouldSkipUpdate = true;
+            return currentValue;
+        }
 
         if (!transactions) {
             if (transactionViolationsUpdates) {
@@ -77,20 +80,15 @@ export default createOnyxDerivedValueConfig({
             for (const transactionKey of Object.keys(transactionReportIDMapping)) {
                 delete transactionReportIDMapping[transactionKey];
             }
-
-            for (const transactionKey of Object.keys(transactionToReportIDMap)) {
-                delete transactionToReportIDMap[transactionKey];
-            }
         } else {
-            for (const transactionKey of Object.keys(reportTransactionsAndViolations)) {
-                deleteReportIfEmpty(transactionKey);
+            for (const reportID of Object.keys(reportTransactionsAndViolations)) {
+                deleteReportIfEmpty(reportID);
             }
         }
 
         if (!transactionsUpdates && transactionViolationsUpdates) {
             transactionsToProcess = transactionsToProcess.filter((transactionKey) => {
-                const previousReportID = getPreviousReportID(transactionKey);
-                return !!transactions[transactionKey] || !!previousReportID;
+                return !!transactions[transactionKey];
             });
 
             if (transactionsToProcess.length === 0) {
@@ -103,9 +101,7 @@ export default createOnyxDerivedValueConfig({
             // If the reportID of the transaction has changed (e.g. the transaction was split into multiple reports), we need to delete the transaction from the previous reportID and the violations from the previous reportID
             const previousReportID = getPreviousReportID(transactionKey);
             const transactionWasUpdated = !!transactionsUpdates;
-            // A violation-only update must not remove report membership when this tab has an incomplete transaction collection.
-            const previousTransaction = !transactionWasUpdated && previousReportID ? reportTransactionsAndViolations[previousReportID]?.transactions[transactionKey] : undefined;
-            const transaction = transactions[transactionKey] ?? previousTransaction;
+            const transaction = transactions[transactionKey];
             const reportID = transaction?.reportID;
 
             if (transactionWasUpdated && previousReportID && previousReportID !== reportID && reportTransactionsAndViolations[previousReportID]) {
@@ -123,9 +119,6 @@ export default createOnyxDerivedValueConfig({
             }
 
             if (!reportID) {
-                if (transactionWasUpdated) {
-                    delete transactionToReportIDMap[transactionKey];
-                }
                 continue;
             }
 
