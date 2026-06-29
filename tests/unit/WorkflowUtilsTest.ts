@@ -1641,6 +1641,7 @@ describe('WorkflowUtils', () => {
     describe('getEligibleExistingBusinessBankAccounts', () => {
         const openBusinessBankAccount = {
             bankCurrency: 'USD',
+            bankCountry: 'US',
             accountData: {
                 state: CONST.BANK_ACCOUNT.STATE.OPEN,
                 type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
