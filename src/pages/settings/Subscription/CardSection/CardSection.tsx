@@ -141,6 +141,8 @@ function CardSection() {
         nextPaymentDate,
     });
 
+    useNavigateToCardAuthenticationOnLink();
+
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setBillingStatus(
@@ -180,8 +182,6 @@ function CardSection() {
     const handleRetryPayment = () => {
         clearOutstandingBalance();
     };
-
-    useNavigateToCardAuthenticationOnLink();
 
     const handleAuthenticatePayment = () => {
         verifySetupIntent(session?.accountID ?? CONST.DEFAULT_NUMBER_ID, false, route.name);

@@ -1523,7 +1523,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
  *
  */
 function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string, currentUserAccountID: number, currentUserEmail: string, source?: string) {
-    PaymentMethods.setVerify3dsSubscriptionSource(source);
+    PaymentMethods.prepareCardAuthentication(source);
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
