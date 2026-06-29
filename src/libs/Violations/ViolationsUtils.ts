@@ -207,8 +207,6 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
                 continue;
             }
             const tags = policyTagList[policyTagKeys[i]].tags;
-            // Flag a selected tag that isn't an enabled policy tag - including when its whole level was disabled (Tags
-            // feature off). Not gated on enabled tags remaining, mirroring single-level tags and categoryOutOfPolicy.
             const isTagInPolicy = !!tags[selectedTag]?.enabled;
             if (!isTagInPolicy) {
                 newTransactionViolations.push({
@@ -530,7 +528,7 @@ const ViolationsUtils = {
         // A disabled tax rate keeps its key (just `isDisabled: true`) but isn't valid, so it stays out of policy. A
         // key-only check would treat it as in-policy and drop the violation on any unrelated recompute (e.g. tag delete).
         const taxRate = updatedTransaction.taxCode ? policy.taxRates?.taxes?.[updatedTransaction.taxCode] : undefined;
-        const isTaxInPolicy = !!taxRate && !taxRate.isDisabled;
+        const isTaxRateValid = !!taxRate && !taxRate.isDisabled;
 
         const amount = hasValidModifiedAmount(updatedTransaction) ? Number(updatedTransaction.modifiedAmount) : updatedTransaction.amount;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -750,7 +748,7 @@ const ViolationsUtils = {
 
         // When tax tracking is enabled, only a non-empty tax code that isn't a current policy rate is out of policy.
         // A transaction with no tax code (e.g. its tax was deleted) must not be flagged.
-        const shouldAddTaxOutOfPolicy = !isTimeRequest && !isPerDiemRequest && (isPolicyTrackTaxEnabled ? !!updatedTransaction.taxCode && !isTaxInPolicy : hasTransactionTaxData);
+        const shouldAddTaxOutOfPolicy = !isTimeRequest && !isPerDiemRequest && (isPolicyTrackTaxEnabled ? !!updatedTransaction.taxCode && !isTaxRateValid : hasTransactionTaxData);
 
         if (!hasTaxOutOfPolicyViolation && shouldAddTaxOutOfPolicy) {
             newTransactionViolations.push({name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
