@@ -2,7 +2,6 @@ import type {NavigationAction} from '@react-navigation/native';
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import {isInternalPopstateInProgress} from '@components/Modal/internalPopstateGuard';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
@@ -120,11 +119,8 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
      * already moved — this listener restores it with `history.go(1)`, and dismisses the prompt as Cancel when the back happened over it.
      */
     useEffect(() => {
-        // Register exactly once: re-registering on render would move this listener behind `withInternalPopstate`'s one-shot flag reset, breaking the internal-popstate detection
+        // Register exactly once so the listener keeps its original browser event ordering.
         const handlePopState = () => {
-            if (isInternalPopstateInProgress()) {
-                return;
-            }
             if (isRestoringHistory.current) {
                 isRestoringHistory.current = false;
                 return;
