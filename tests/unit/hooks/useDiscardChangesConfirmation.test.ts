@@ -17,8 +17,9 @@ jest.mock('@hooks/useBeforeRemove', () => ({
     },
 }));
 
+let mockIsFocused = true;
 jest.mock('@react-navigation/native', () => ({
-    useIsFocused: () => true,
+    useIsFocused: () => mockIsFocused,
     useFocusEffect: (callback: () => undefined | (() => void)) => {
         jest.requireActual<{useEffect: (effect: () => undefined | (() => void), deps: unknown[]) => void}>('react').useEffect(callback, []);
     },
@@ -109,6 +110,7 @@ describe('useDiscardChangesConfirmation (web)', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockBeforeRemoveCallback = undefined;
+        mockIsFocused = true;
         resolveModal = undefined;
         historyGoSpy = jest.spyOn(window.history, 'go').mockImplementation(() => {});
         mockShowConfirmModal.mockImplementation(
@@ -259,6 +261,16 @@ describe('useDiscardChangesConfirmation (web)', () => {
 
         it('allows navigation when there are no unsaved changes', () => {
             renderDiscardHook(() => false);
+
+            const event = invokeBeforeRemove('RESET');
+
+            expect(event.defaultPrevented).toBe(false);
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        });
+
+        it('allows navigation when the screen is not focused, even with a dirty predicate', () => {
+            mockIsFocused = false;
+            renderDiscardHook(() => true);
 
             const event = invokeBeforeRemove('RESET');
 

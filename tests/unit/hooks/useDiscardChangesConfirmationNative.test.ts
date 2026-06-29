@@ -1,17 +1,19 @@
 import {act, renderHook} from '@testing-library/react-native';
 import {BackHandler} from 'react-native';
+import type {DiscardChangesConfirmation} from '@hooks/useDiscardChangesConfirmation/types';
 import type UseDiscardChangesConfirmationOptions from '@hooks/useDiscardChangesConfirmation/types';
 
 type MockBeforeRemoveEvent = {data: {action: {type: string}}};
 
 let mockPreventRemoveFlag: boolean | undefined;
 let mockPreventRemoveCallback: ((e: MockBeforeRemoveEvent) => void) | undefined;
+let mockIsFocused = true;
 jest.mock('@react-navigation/native', () => ({
     usePreventRemove: (flag: boolean, callback: (e: MockBeforeRemoveEvent) => void) => {
         mockPreventRemoveFlag = flag;
         mockPreventRemoveCallback = callback;
     },
-    useIsFocused: () => true,
+    useIsFocused: () => mockIsFocused,
     // Focus effects behave like plain effects in these tests — the screen is always focused
     useFocusEffect: (callback: () => undefined | (() => void)) => {
         jest.requireActual<{useEffect: (effect: () => undefined | (() => void), deps: unknown[]) => void}>('react').useEffect(callback, [callback]);
@@ -49,7 +51,7 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
     },
 }));
 
-type DiscardHookModule = {default: (options: UseDiscardChangesConfirmationOptions) => void};
+type DiscardHookModule = {default: (options: UseDiscardChangesConfirmationOptions) => DiscardChangesConfirmation};
 
 const useDiscardChangesConfirmation = jest.requireActual<DiscardHookModule>('@hooks/useDiscardChangesConfirmation/index.native.ts').default;
 
@@ -82,6 +84,7 @@ describe('useDiscardChangesConfirmation (native)', () => {
         jest.clearAllMocks();
         mockPreventRemoveFlag = undefined;
         mockPreventRemoveCallback = undefined;
+        mockIsFocused = true;
         hardwareBackCallback = undefined;
         resolveModal = undefined;
         backHandlerSpy = jest.spyOn(BackHandler, 'addEventListener').mockImplementation((event, handler) => {
@@ -111,6 +114,26 @@ describe('useDiscardChangesConfirmation (native)', () => {
 
         it('lets the back press through when the form is clean', () => {
             renderDiscardHook(() => false);
+
+            expect(pressHardwareBack()).toBe(false);
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        });
+
+        it('lets the back press through after notifySaving, and prompts again once the save ends', () => {
+            const {result} = renderDiscardHook(() => true);
+
+            act(() => result.current.notifySaving());
+            expect(pressHardwareBack()).toBe(false);
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+
+            act(() => result.current.notifySaving(false));
+            expect(pressHardwareBack()).toBe(true);
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        });
+
+        it('lets the back press through when the screen is not focused, even with a dirty form', () => {
+            mockIsFocused = false;
+            renderDiscardHook(() => true);
 
             expect(pressHardwareBack()).toBe(false);
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
