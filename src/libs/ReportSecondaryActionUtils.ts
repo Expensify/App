@@ -386,6 +386,11 @@ function isUnapproveAction(currentUserLogin: string, currentUserAccountID: numbe
     return isReportApprover;
 }
 
+// Pay actions are at the report level, not per transaction.
+function getReportPayActions(reportID: string): ReportAction[] {
+    return Object.values(getAllReportActions(reportID)).filter((action): action is ReportAction => !!action && isPayAction(action));
+}
+
 function isCancelPaymentAction(
     currentAccountID: number,
     currentUserEmail: string,
@@ -402,6 +407,26 @@ function isCancelPaymentAction(
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isPayer = isPayerUtils(currentAccountID, currentUserEmail, report, bankAccountList, policy, false);
+
+    // A P2P "send money" payment made with the Expensify wallet that is waiting for the receiver to set up their
+    // wallet is held until they onboard. The sender (payer) can cancel it while it is waiting, which returns the
+    // held funds.
+    if (isIOUReport) {
+        if (!isPayer || !report.isWaitingOnBankAccount) {
+            return false;
+        }
+
+        const payActions = getReportPayActions(report.reportID);
+        return (
+            payActions.length > 0 &&
+            payActions.every((action) => {
+                const originalMessage = getOriginalMessage(action);
+                return !!originalMessage && 'paymentType' in originalMessage && originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
+            })
+        );
+    }
+
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     if (!isAdmin || !isPayer) {
         return false;
