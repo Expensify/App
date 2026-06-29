@@ -8,7 +8,7 @@ order: 3
 
 This article covers common issues with the Certinia (formerly FinancialForce) integration in New Expensify. It's intended for Workspace Admins and Domain Admins using FFA or PSA/SRP.
 
-For specific Certinia error codes (the `CER###` errors that appear in a report's comments), see the [Certinia error code articles](https://help.expensify.com/expensify-classic/hubs/connections/certinia/Troubleshooting), which apply to both Expensify Classic and New Expensify since the backend export behavior is unchanged.
+For specific Certinia error codes (the `CER###` errors that appear in a report's comments), see the [Certinia error code articles](https://help.expensify.com/expensify-classic/hubs/connections/certinia/Troubleshooting).
 
 ---
 
