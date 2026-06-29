@@ -2,12 +2,15 @@ import Onyx from 'react-native-onyx';
 import type {OnyxInput} from 'react-native-onyx';
 import type {NonEmptyTuple} from 'type-fest';
 import type {OnyxDerivedKey, OnyxKey} from '@src/ONYXKEYS';
-import type {DerivedValueContext} from './types';
+import type {DerivedValueContext, OnyxDerivedDependency} from './types';
 
 /**
  * Check if a specific key exists in sourceValue from OnyxDerived
  */
-const hasKeyTriggeredCompute = <TKey extends OnyxKey, Deps extends NonEmptyTuple<Exclude<OnyxKey, TKey>>>(key: TKey, sourceValues: DerivedValueContext<TKey, Deps>['sourceValues']) => {
+const hasKeyTriggeredCompute = <TKey extends OnyxKey, Deps extends NonEmptyTuple<OnyxDerivedDependency<Exclude<OnyxKey, TKey>>>>(
+    key: TKey,
+    sourceValues: DerivedValueContext<TKey, Deps>['sourceValues'],
+) => {
     if (!sourceValues) {
         return false;
     }
