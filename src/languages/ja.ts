@@ -513,6 +513,8 @@ const translations: TranslationDeepObject<typeof en> = {
         editor: '編集者',
         restrictions: '制限',
         off: 'オフ',
+        unableToDisplayChart: 'グラフを表示できません',
+        webGLNotSupported: 'お使いのブラウザは WebGL に対応していません。WebGL を有効にするか、別のブラウザに切り替えてください。',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',

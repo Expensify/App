@@ -514,6 +514,8 @@ const translations: TranslationDeepObject<typeof en> = {
         editor: 'Editor',
         restrictions: 'Beschränkungen',
         off: 'Aus',
+        unableToDisplayChart: 'Diagram kann nicht angezeigt werden',
+        webGLNotSupported: 'Ihr Browser unterstützt WebGL nicht. Bitte aktivieren Sie es oder wechseln Sie den Browser.',
     },
     socials: {
         podcast: 'Folgen Sie uns auf Podcast',

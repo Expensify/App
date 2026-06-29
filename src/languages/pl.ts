@@ -513,6 +513,8 @@ const translations: TranslationDeepObject<typeof en> = {
         editor: 'Edytor',
         restrictions: 'Ograniczenia',
         off: 'Wyłączone',
+        unableToDisplayChart: 'Nie można wyświetlić wykresu',
+        webGLNotSupported: 'Twoja przeglądarka nie obsługuje WebGL. Włącz je lub zmień przeglądarkę.',
     },
     socials: {
         podcast: 'Śledź nas na Podcast',
