@@ -1950,6 +1950,10 @@ const CONST = {
         MAX_LINES_LANDSCAPE_MODE: 2,
         // The minimum height needed to enable the full screen composer
         FULL_COMPOSER_MIN_HEIGHT: 60,
+        // Max number of animation frames to wait for the composer's clearWorklet ref to re-attach before giving up.
+        // The composer lives on an RNSScreen that react-native-screens freezes while another screen (e.g. the
+        // attachment preview) is on top, so its imperative handle can be briefly missing right after navigating back.
+        CLEAR_WORKLET_MAX_RETRIES: 60,
         /**
          * TestIDs for the main report composer vs inline message editor (E2E / integration tests only).
          * See tests/ui/ReportActionMessageEditLayoutTest.tsx
@@ -5858,6 +5862,10 @@ const CONST = {
         // Fake history entry used to keep browser Back behavior correct after revealing a route under an RHP.
         // addRootHistoryRouterExtension owns when this is added, carried forward, and removed.
         CUSTOM_HISTORY_ENTRY_REVEAL_PADDING: 'CUSTOM_HISTORY-REVEAL_PADDING',
+        // Prefix for the back-guard history entry pushed by a `shouldHandleNavigationBack` Modal. Each
+        // modal instance appends `${CUSTOM_HISTORY_ENTRY_MODAL}:${modalId}` to the root state.history so
+        // browser Back closes the modal; the per-instance tag lets nested modals close one at a time.
+        CUSTOM_HISTORY_ENTRY_MODAL: 'CUSTOM_HISTORY-MODAL',
         ACTION_TYPE: {
             REPLACE: 'REPLACE',
             PUSH: 'PUSH',
@@ -5873,12 +5881,11 @@ const CONST = {
             DISMISS_MODAL: 'DISMISS_MODAL',
             REPLACE_FULLSCREEN_UNDER_RHP: 'REPLACE_FULLSCREEN_UNDER_RHP',
             REMOVE_FULLSCREEN_UNDER_RHP: 'REMOVE_FULLSCREEN_UNDER_RHP',
-            OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
-            OPEN_DOMAIN_SPLIT: 'OPEN_DOMAIN_SPLIT',
             PUSH_PARAMS: 'PUSH_PARAMS',
             REPLACE_PARAMS: 'REPLACE_PARAMS',
             TOGGLE_SIDE_PANEL_WITH_HISTORY: 'TOGGLE_SIDE_PANEL_WITH_HISTORY',
             TOGGLE_MFA_MODAL_NAVIGATOR_WITH_HISTORY: 'TOGGLE_MFA_MODAL_NAVIGATOR_WITH_HISTORY',
+            TOGGLE_MODAL_WITH_HISTORY: 'TOGGLE_MODAL_WITH_HISTORY',
         },
     },
     TIME_PERIOD: {

@@ -3032,15 +3032,17 @@ describe('actions/Report', () => {
                     type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 },
             };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+            const reportActions = {
                 [firstIOUAction.reportActionID]: firstIOUAction,
                 [secondIOUAction.reportActionID]: secondIOUAction,
                 [payAction.reportActionID]: payAction,
-            });
+            };
 
             // When deleting the expense report
             Report.deleteAppReport({
                 report: expenseReport,
+                reportActions,
+                parentReportAction: undefined,
                 selfDMReport: undefined,
                 currentUserEmailParam: '',
                 currentUserAccountIDParam: currentUserAccountID,
@@ -3149,6 +3151,8 @@ describe('actions/Report', () => {
             // When deleting the first expense report
             Report.deleteAppReport({
                 report: expenseReport1,
+                reportActions: undefined,
+                parentReportAction: undefined,
                 selfDMReport: undefined,
                 currentUserEmailParam: '',
                 currentUserAccountIDParam: currentUserAccountID,
@@ -3221,6 +3225,8 @@ describe('actions/Report', () => {
             // When deleting the whole expense report (the path taken when it has multiple transactions, e.g. after duplicating)
             Report.deleteAppReport({
                 report: expenseReport,
+                reportActions: undefined,
+                parentReportAction: reportPreview,
                 selfDMReport: undefined,
                 currentUserEmailParam: '',
                 currentUserAccountIDParam: currentUserAccountID,
