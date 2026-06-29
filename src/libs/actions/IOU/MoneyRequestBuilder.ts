@@ -1532,9 +1532,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     // the contact's name is lost and the optimistic record falls back to the phone number.
     const optimisticPersonalDetailFirstName = participant.firstName ?? '';
     const optimisticPersonalDetailLastName = participant.lastName ?? '';
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- these fields can be empty strings, fall through to the next candidate
+    // These fields can each be an empty string, so pick the first non-empty candidate rather than using `??`.
     const optimisticPersonalDetailDisplayName =
-        participant.displayName || participant.text || `${optimisticPersonalDetailFirstName} ${optimisticPersonalDetailLastName}`.trim() || payerEmail;
+        [participant.displayName, participant.text, `${optimisticPersonalDetailFirstName} ${optimisticPersonalDetailLastName}`.trim()].find((name) => !!name) ?? payerEmail;
     // Add optimistic personal details for participant
     const optimisticPersonalDetailListAction = shouldCreateOptimisticPersonalDetails
         ? {
