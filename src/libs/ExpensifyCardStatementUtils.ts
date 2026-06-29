@@ -6,7 +6,7 @@ import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getOldDotURLFromEnvironment} from './Environment/Environment';
 import type EnvironmentType from './Environment/getEnvironment/types';
 import fileDownload from './fileDownload';
-import addTrailingForwardSlash from './UrlUtils';
+import {buildSecureDownloadURL} from './UrlUtils';
 
 type ExpensifyCardStatementFeed = {
     /** Set only when the search is filtered to one workspace, which scopes the statement to it. */
@@ -197,9 +197,14 @@ function downloadExpensifyCardStatementPDF(
     encryptedAuthToken: string,
     environment: EnvironmentType,
 ): void {
-    const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
     const downloadFileName = `Expensify_Card_Statement_${statementKey}.pdf`;
-    const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(downloadFileName)}&email=${encodeURIComponent(currentUserEmail)}`;
+    const pdfURL = buildSecureDownloadURL({
+        baseURL: getOldDotURLFromEnvironment(environment),
+        secureType: CONST.SECURE_DOWNLOAD_TYPE.PDF_REPORT,
+        fileName,
+        downloadName: downloadFileName,
+        email: currentUserEmail,
+    });
     fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, encryptedAuthToken, true), downloadFileName, '');
 }
 
