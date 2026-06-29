@@ -4,7 +4,7 @@ import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useCallback, useDeferredValue, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ViewToken} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import {getButtonRole} from '@components/Button/utils';
@@ -65,7 +65,8 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {reportNameSelector} from '@src/selectors/Attributes';
-import type {ReportAttributesDerivedValue, Transaction} from '@src/types/onyx';
+import {transactionViolationsByIDsSelector} from '@src/selectors/TransactionViolations';
+import type {ReportAttributesDerivedValue, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import AccessMoneyRequestReportPreviewPlaceHolder from './AccessMoneyRequestReportPreviewPlaceHolder';
 import EmptyMoneyRequestReportPreview from './EmptyMoneyRequestReportPreview';
@@ -130,8 +131,15 @@ function MoneyRequestReportPreviewContent({
 
     const shouldShowLoading =
         chatReportLoadingState != null && chatReportLoadingState.hasOnceLoadedReportActions !== true && transactions.length === 0 && !chatReportMetadata?.isOptimisticReport;
+    const transactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
+    const selectTransactionViolations = useCallback(
+        (allViolations: OnyxCollection<TransactionViolations>) => transactionViolationsByIDsSelector(transactionIDs)(allViolations),
+        [transactionIDs],
+    );
+    // Pass `transactionIDs` as a dependency so the selector re-runs once the transactions hydrate (otherwise
+    // it stays closed over the initial empty list and violations would never be selected on first load).
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: selectTransactionViolations}, [transactionIDs]);
     // `hasOnceLoadedReportActions` becomes true before transactions populate fully,
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     // so we defer the loading state update to ensure transactions are loaded
     const shouldShowLoadingDeferred = useDeferredValue(shouldShowLoading);
     const lastTransaction = transactions?.at(0);
@@ -746,6 +754,7 @@ function MoneyRequestReportPreviewContent({
                                                 iouReportID={iouReportID}
                                                 chatReportID={chatReportID}
                                                 chatReport={chatReport}
+                                                iouReport={iouReport}
                                                 isPaidAnimationRunning={isPaidAnimationRunning}
                                                 isApprovedAnimationRunning={isApprovedAnimationRunning}
                                                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
