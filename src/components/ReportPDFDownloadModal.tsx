@@ -46,6 +46,9 @@ function ReportPDFDownloadModal({reportID, isVisible, onClose, onModalHide}: Rep
             message={message}
             loadingReasonContext="MoneyReportHeader.PDFModal"
             onDownloadPDF={() => {
+                if (!reportPDFFilename || reportPDFFilename === CONST.REPORT_DETAILS_MENU_ITEM.ERROR) {
+                    return;
+                }
                 downloadReportPDF(reportPDFFilename, reportName, translate, currentUserLogin, encryptedAuthToken);
             }}
         />

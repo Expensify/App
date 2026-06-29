@@ -41,7 +41,7 @@ function ExpensifyCardStatementPDFDownloadModal({statementParams, isVisible, onC
             shouldCloseOnDownload
             shouldUseSuccessButton
             onDownloadPDF={() => {
-                if (!statementKey || !statementFileName) {
+                if (!statementKey || typeof statementFileName !== 'string') {
                     return;
                 }
                 downloadExpensifyCardStatementPDF(translate, statementFileName, statementKey, currentUserLogin, encryptedAuthToken, environment);
