@@ -17,6 +17,7 @@ function BaseSelectListItem<TItem extends ListItem>({
     showTooltip,
     isDisabled,
     onSelectRow,
+    onSelectionButtonPress,
     onDismissError,
     shouldPreventEnterKeySubmit,
     rightHandSideComponent,
@@ -49,6 +50,7 @@ function BaseSelectListItem<TItem extends ListItem>({
             isDisabled={isDisabled}
             showTooltip={showTooltip}
             onSelectRow={onSelectRow}
+            onSelectionButtonPress={onSelectionButtonPress}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
             rightHandSideComponent={rightHandSideComponent}
