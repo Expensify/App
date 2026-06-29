@@ -17,8 +17,7 @@
             "@src/*": ["../src/*"],
             "@styles/*": ["../src/styles/*"],
             "@userActions/*": ["../src/libs/actions/*"],
-            "tests/*": ["../tests/*"],
-            "expensify-common/dist/*": ["../node_modules/expensify-common/dist/*"]
+            "tests/*": ["../tests/*"]
         }
     },
     "include": ["libs", "plugins", "stubs"],
