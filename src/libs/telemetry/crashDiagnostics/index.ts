@@ -93,6 +93,13 @@ type SessionRecord = {
     /** Highest DOM-node count seen this session; survives ring-buffer eviction. */
     peakDomNodes: number;
 
+    /**
+     * Most recent known page visibility, updated immediately on `visibilitychange` (not only on the 15s
+     * heartbeat). Used to tell a foreground crash from a backgrounded tab without lagging a full heartbeat
+     * behind the real state. Optional for back-compat with records written before this field existed.
+     */
+    lastVisibility?: DocumentVisibilityState;
+
     /** Ring buffer of recent samples, capped at `MAX_SAMPLES` (oldest dropped first). */
     samples: HeapSample[];
 };
@@ -127,9 +134,12 @@ function markCleanExit() {
  * a crash. A renderer crash the user actually experiences happens while the tab is `visible`.
  */
 function syncExitStateWithVisibility() {
-    if (typeof document === 'undefined') {
+    if (typeof document === 'undefined' || !sessionRecord) {
         return;
     }
+    // Record visibility the instant it changes so a tab foregrounded just before a crash is not mistaken for a
+    // background tab by the next reap (the last heartbeat sample can be up to SAMPLE_INTERVAL_MS stale).
+    sessionRecord.lastVisibility = document.visibilityState;
     markExitState(document.visibilityState === 'hidden');
 }
 
@@ -271,6 +281,7 @@ function heartbeat() {
             // While hidden, missing/throttled heartbeats are expected, so keep the session marked clean; only a
             // tab that goes silent while visible is a crash candidate.
             sessionRecord.cleanExit = sample.visibility === 'hidden';
+            sessionRecord.lastVisibility = sample.visibility;
             persistSessionRecord();
             announceLiveness();
             reapDeadSessions();
@@ -329,7 +340,7 @@ function reportAbnormalExit(record: SessionRecord) {
         tags: {
             crashDiagnostics: 'abnormal_exit',
             lastRoute: lastSample?.route ?? 'unknown',
-            lastVisibility: lastSample?.visibility ?? 'unknown',
+            lastVisibility: record.lastVisibility ?? lastSample?.visibility ?? 'unknown',
             wasForeground: String(wasForeground),
             heapPressure: getHeapPressureBucket(record),
             sessionDurationBucket: getSessionDurationBucket(durationMinutes),
@@ -417,10 +428,13 @@ function confirmDeadThenReport(storageKey: string, sessionID: string) {
         if (isSessionRecentlyAlive(sessionID) || Date.now() - record.lastHeartbeat <= STALE_HEARTBEAT_MS) {
             return;
         }
-        // Defense in depth: a session that was hidden at its last heartbeat is a backgrounded/suspended tab,
-        // not a foreground crash. heartbeat() already keeps such sessions marked clean, but guard here too in
-        // case an older record (written before visibility-aware exit state) slipped through.
-        if (record.samples.at(-1)?.visibility === 'hidden') {
+        // Defense in depth: a session that was hidden when last seen is a backgrounded/suspended tab, not a
+        // foreground crash. heartbeat() already keeps such sessions marked clean, but guard here too in case an
+        // older record (written before visibility-aware exit state) slipped through. Prefer the immediately
+        // updated `lastVisibility` over the last sample, which can lag the real state by up to one heartbeat: a
+        // tab foregrounded and then crashed within that window has a stale `hidden` sample but was visible.
+        const lastKnownVisibility = record.lastVisibility ?? record.samples.at(-1)?.visibility;
+        if (lastKnownVisibility === 'hidden') {
             window.localStorage.removeItem(storageKey);
             return;
         }
@@ -456,6 +470,7 @@ function initializeCrashDiagnostics() {
         cleanExit: false,
         peakUsedJSHeapSizeMB: null,
         peakDomNodes: 0,
+        lastVisibility: typeof document !== 'undefined' ? document.visibilityState : undefined,
         samples: [],
     };
 
