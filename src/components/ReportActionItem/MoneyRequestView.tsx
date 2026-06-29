@@ -15,6 +15,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails, usePolicyCategories, usePolicyTags} from '@components/OnyxListItemProvider';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 import Switch from '@components/Switch';
@@ -43,6 +44,8 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactions from '@hooks/useReportTransactions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRestrictedActionPolicyID from '@hooks/useRestrictedActionPolicyID';
+import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -50,6 +53,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import useViolations from '@hooks/useViolations';
 import {updateMoneyRequestBillable, updateMoneyRequestCategory, updateMoneyRequestReimbursable, updateMoneyRequestTag, updateMoneyRequestTaxRate} from '@libs/actions/IOU/UpdateMoneyRequest';
+import {openExternalLink} from '@libs/actions/Link';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {enrichAndSortAttendees, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {getBrokenConnectionUrlToFixPersonalCard, getCompanyCardDescription} from '@libs/CardUtils';
@@ -131,6 +135,7 @@ import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
 import AnimatedEmptyStateBackground from '@pages/inbox/report/AnimatedEmptyStateBackground';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -186,7 +191,7 @@ function MoneyRequestView({
     isFromReviewDuplicates = false,
     mergeTransactionID,
 }: MoneyRequestViewProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark', 'Suitcase']);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark', 'Suitcase', 'NewWindow']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -211,10 +216,8 @@ function MoneyRequestView({
 
     const isFromMergeTransaction = !!mergeTransactionID;
     const linkedTransactionID = parentReportAction && isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
-    let [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`);
-    if (updatedTransaction) {
-        transaction = updatedTransaction;
-    }
+    const [onyxTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`);
+    const transaction = updatedTransaction ?? onyxTransaction;
     const isExpenseUnreported = isExpenseUnreportedTransactionUtils(transaction);
     const personalPolicy = usePersonalPolicy();
     const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
@@ -223,6 +226,7 @@ function MoneyRequestView({
     const [policiesWithPerDiem] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: perDiemPoliciesSelector,
     });
+    const splitEffectivePolicy = useSplitEffectivePolicy(transactionThreadReport, undefined, transaction);
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
     const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, policiesWithPerDiem);
 
@@ -245,6 +249,8 @@ function MoneyRequestView({
         policyID = parentReport?.policyID;
     }
 
+    const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
+
     const allPolicyCategories = usePolicyCategories();
     const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
     const targetPolicyID = updatedTransaction?.reportID ? parentReport?.policyID : policyID;
@@ -252,6 +258,7 @@ function MoneyRequestView({
     const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyID}`];
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${getNonEmptyStringOnyxID(linkedTransactionID)}`);
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
@@ -575,6 +582,30 @@ function MoneyRequestView({
     const shouldHideEmptyDescription = (isFromReviewDuplicates || isFromMergeTransaction) && !(updatedTransactionDescription ?? transactionDescription);
     const isEmptyUpdatedMerchant = isInvalidMerchantValue(updatedTransaction?.modifiedMerchant);
     const updatedMerchantTitle = isEmptyUpdatedMerchant ? '' : (updatedTransaction?.modifiedMerchant ?? merchantTitle);
+    const originalMerchantForGoogleSearch = isInvalidMerchantValue(onyxTransaction?.merchant) ? '' : Str.recapitalize(onyxTransaction?.merchant ?? '');
+    const shouldShowGoogleMerchantSearchLink = !!originalMerchantForGoogleSearch && !isTransactionScanning && isFromCardImport;
+
+    const renderGoogleMerchantSearchLink = () => (
+        <PressableWithoutFeedback
+            accessibilityLabel={translate('common.searchOnGoogle', {merchant: originalMerchantForGoogleSearch})}
+            role={CONST.ROLE.BUTTON}
+            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.GOOGLE_MERCHANT_SEARCH_BUTTON}
+            onPress={(event) => {
+                event?.stopPropagation();
+                openExternalLink(`${CONST.GOOGLE_SEARCH_URL}${encodeURIComponent(originalMerchantForGoogleSearch)}`);
+            }}
+            style={[styles.flexRow, styles.alignItemsCenter, styles.mt1, styles.alignSelfStart]}
+        >
+            <Text style={styles.textLabelSupporting}>{translate('common.googleThisMerchant', {merchant: originalMerchantForGoogleSearch})}</Text>
+            <Icon
+                src={icons.NewWindow}
+                height={variables.iconSizeExtraSmall}
+                width={variables.iconSizeExtraSmall}
+                fill={theme.textSupporting}
+                additionalStyles={styles.ml1}
+            />
+        </PressableWithoutFeedback>
+    );
 
     const shouldShowConvertedAmount =
         transactionConvertedAmount &&
@@ -1111,7 +1142,7 @@ function MoneyRequestView({
                             }
 
                             if (shouldShowSplitIndicator && isSplitAvailable) {
-                                initSplitExpense(transaction, policy, transactionThreadReport, currentUserAccountIDParam, {isProduction});
+                                initSplitExpense(transaction, transactionThreadReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, {isProduction});
                                 return;
                             }
 
@@ -1184,6 +1215,7 @@ function MoneyRequestView({
                                 );
                             }}
                             wrapperStyle={[styles.taskDescriptionMenuItem]}
+                            furtherDetailsComponent={shouldShowGoogleMerchantSearchLink ? renderGoogleMerchantSearchLink() : undefined}
                             brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('merchant')}
                             numberOfLinesTitle={0}

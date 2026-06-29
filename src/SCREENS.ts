@@ -276,7 +276,7 @@ const SCREENS = {
             CHANGE_BILLING_CURRENCY: 'Settings_Subscription_Change_Billing_Currency',
             DYNAMIC_PAYMENT_CARD_CURRENCY_SELECTOR: 'Dynamic_Settings_Subscription_Payment_Card_Currency_Selector',
             CANCEL_SUBSCRIPTION: 'Settings_Subscription_CancelSubscription',
-            SUBSCRIPTION_DOWNGRADE_BLOCKED: 'Settings_Subscription_DowngradeBlocked',
+            DYNAMIC_SUBSCRIPTION_DOWNGRADE_BLOCKED: 'Dynamic_Settings_Subscription_DowngradeBlocked',
         },
     },
     TWO_FACTOR_AUTH: {
@@ -445,7 +445,7 @@ const SCREENS = {
     },
 
     SETTINGS_CATEGORIES: {
-        SETTINGS_CATEGORY_SETTINGS: 'Settings_Category_Settings',
+        DYNAMIC_SETTINGS_CATEGORY_SETTINGS: 'Dynamic_Settings_Category_Settings',
         DYNAMIC_SETTINGS_CATEGORIES_SETTINGS: 'Dynamic_Settings_Categories_Settings',
         DYNAMIC_SETTINGS_CATEGORY_CREATE: 'Dynamic_Settings_Category_Create',
         DYNAMIC_SETTINGS_CATEGORY_EDIT: 'Dynamic_Settings_Category_Edit',
@@ -531,7 +531,7 @@ const SCREENS = {
         DYNAMIC_ROOT: 'Dynamic_Report_Change_Workspace_Root',
     },
 
-    WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root', OWNER_SELECTOR: 'Workspace_Confirmation_Owner_Selector', SUCCESS: 'Workspace_Confirmation_Success'},
+    WORKSPACE_CONFIRMATION: {DYNAMIC_ROOT: 'Dynamic_Workspace_Confirmation_Root', OWNER_SELECTOR: 'Workspace_Confirmation_Owner_Selector', SUCCESS: 'Workspace_Confirmation_Success'},
     WORKSPACE_DUPLICATE: {ROOT: 'Workspace_Duplicate_Root', SELECT_FEATURES: 'Workspace_Duplicate_Select_Features'},
     POLICY_COPY_SETTINGS: {
         ROOT: 'Policy_Copy_Settings_Root',
@@ -777,7 +777,7 @@ const SCREENS = {
         INVITE_MESSAGE_APPROVER: 'Workspace_Invite_Message_Approver',
         CATEGORIES: 'Workspace_Categories',
         TAGS: 'Workspace_Tags',
-        TAGS_SETTINGS: 'Tags_Settings',
+        DYNAMIC_TAGS_SETTINGS: 'Dynamic_Tags_Settings',
         TAGS_EDIT: 'Tags_Edit',
         TAGS_IMPORT: 'Tags_Import',
         TAGS_IMPORT_MULTI_LEVEL_SETTINGS: 'Tags_Import_Multi_Level_Settings',
@@ -806,7 +806,7 @@ const SCREENS = {
         TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT: 'Workspace_Taxes_Settings_ForeignCurrency',
         TAX_CREATE: 'Workspace_Tax_Create',
         TAX_CREATE_VALUE: 'Workspace_Tax_Create_Value',
-        TAG_CREATE: 'Tag_Create',
+        DYNAMIC_TAG_CREATE: 'Dynamic_Tag_Create',
         TAG_SETTINGS: 'Tag_Settings',
         TAG_APPROVER: 'Tag_Approver',
         TAG_LIST_VIEW: 'Tag_List_View',
@@ -891,12 +891,15 @@ const SCREENS = {
         RULES_AUTO_PAY_REPORTS_UNDER: 'Rules_AutoPay_Reports_Under',
         RULES_RECEIPT_REQUIRED_AMOUNT: 'Rules_Receipt_Required_Amount',
         RULES_ITEMIZED_RECEIPT_REQUIRED_AMOUNT: 'Rules_Itemized_Receipt_Required_Amount',
+        RULES_REQUIRE_RECEIPTS: 'Rules_Require_Receipts',
+        RULES_REQUIRE_FIELDS: 'Rules_Require_Fields',
         RULES_MAX_EXPENSE_AMOUNT: 'Rules_Max_Expense_Amount',
         RULES_MAX_EXPENSE_AGE: 'Rules_Max_Expense_Age',
         RULES_BILLABLE_DEFAULT: 'Rules_Billable_Default',
         RULES_REIMBURSABLE_DEFAULT: 'Rules_Reimbursable_Default',
         RULES_CUSTOM: 'Rules_Custom',
         RULES_PROHIBITED_DEFAULT: 'Rules_Prohibited_Default',
+        RULES_NEW: 'Rules_New',
         RULES_MERCHANT_NEW: 'Rules_Merchant_New',
         RULES_SPEND_NEW: 'Rules_Spend_New',
         RULES_SPEND_EDIT: 'Rules_Spend_Edit',
@@ -965,16 +968,13 @@ const SCREENS = {
     },
 
     CURRENCY: {
-        SELECTION: 'Currency_Selection',
+        DYNAMIC_SELECTION: 'Dynamic_Currency_Selection',
     },
 
     MIGRATED_USER_WELCOME_MODAL: {
-        ROOT: 'MigratedUserWelcomeModal_Root',
+        DYNAMIC_ROOT: 'Dynamic_MigratedUserWelcomeModal_Root',
     },
 
-    TEST_DRIVE_MODAL: {
-        ROOT: 'TestDrive_Modal_Root',
-    },
     TEST_DRIVE_DEMO: {
         ROOT: 'TestDrive_Demo_Root',
     },

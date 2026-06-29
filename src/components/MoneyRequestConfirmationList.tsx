@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import useAttendees from '@hooks/useAttendees';
@@ -59,6 +59,7 @@ import TaxController from './MoneyRequestConfirmationList/TaxController';
 import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFooter';
 import BareUserListItem from './SelectionList/ListItem/BareUserListItem';
 import SelectionListWithSections from './SelectionList/SelectionListWithSections';
+import type {MeasurableInput, SelectionListWithSectionsHandle} from './SelectionList/SelectionListWithSections/types';
 
 type MoneyRequestConfirmationListProps = {
     /** Callback to inform parent modal of success */
@@ -234,6 +235,13 @@ function MoneyRequestConfirmationList({
     const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
+    const listRef = useRef<SelectionListWithSectionsHandle>(null);
+
+    // In the new manual expense flow the inline fields live in the list footer, so they can be hidden behind the keyboard.
+    // We let those fields ask the list to scroll them into view when focused.
+    const scrollFocusedInputIntoView = useCallback((input: MeasurableInput) => {
+        listRef.current?.scrollInputIntoView(input);
+    }, []);
 
     const isDistanceRequest = isDistanceRequestUtil(transaction);
     const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
@@ -356,6 +364,8 @@ function MoneyRequestConfirmationList({
         routeError,
         isTypeSplit,
         shouldShowReadOnlySplits,
+        isNewManualExpenseFlowEnabled,
+        isDistanceRequest,
     });
 
     const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
@@ -567,6 +577,7 @@ function MoneyRequestConfirmationList({
                 }}
                 compactControls={{showMoreFields, setShowMoreFields}}
                 onSubmitForm={confirm}
+                scrollFocusedInputIntoView={scrollFocusedInputIntoView}
             />
         </View>
     );
@@ -637,6 +648,7 @@ function MoneyRequestConfirmationList({
             />
             <MouseProvider>
                 <SelectionListWithSections<MoneyRequestConfirmationListItem>
+                    ref={listRef}
                     sections={sections}
                     ListItem={BareUserListItem}
                     onSelectRow={navigateToParticipantPage}
