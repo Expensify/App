@@ -9,7 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import CONST from '@src/CONST';
 import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
 import TextCell from './TextCell';
@@ -20,8 +19,8 @@ type MemberListItemHeaderProps = {
     /** The member currently being looked at */
     member: TransactionMemberGroupListItemType;
 
-    /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (shiftKey?: boolean) => void;
+    /** Group-header checkbox toggle; ignores Shift. */
+    onCheckboxPress?: () => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
@@ -129,7 +128,7 @@ function MemberListItemHeader({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={(event) => onCheckboxPress?.(getShiftKeyFromEvent(event))}
+                            onPress={() => onCheckboxPress?.()}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || memberItem.isDisabledCheckbox}

@@ -96,6 +96,7 @@ function renderHarness({
             () => ({
                 setCurrentSelectedTransactionReportID: () => {},
                 setSelectedTransactions: () => {},
+                getSelectedTransactions: () => ({}),
                 applySelection: () => {},
                 setSelectedReports,
                 removeTransaction: () => {},

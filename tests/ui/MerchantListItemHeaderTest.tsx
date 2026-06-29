@@ -47,6 +47,7 @@ const mockSearchActionsContext = {
     setLastSearchType: jest.fn(),
     setCurrentSelectedTransactionReportID: jest.fn(),
     setSelectedTransactions: jest.fn(),
+    getSelectedTransactions: jest.fn(() => ({})),
     applySelection: jest.fn(),
     setSelectedReports: jest.fn(),
     removeTransaction: jest.fn(),
@@ -212,7 +213,7 @@ describe('MerchantListItemHeader', () => {
             const checkbox = screen.getByRole('checkbox');
             fireEvent.press(checkbox);
 
-            expect(onCheckboxPress).toHaveBeenCalledWith(false);
+            expect(onCheckboxPress).toHaveBeenCalled();
         });
 
         it('should show checkbox as checked when isSelectAllChecked is true', async () => {

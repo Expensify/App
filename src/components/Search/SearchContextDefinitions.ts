@@ -54,6 +54,7 @@ const defaultSearchSelectionContext: SearchSelectionContextValue = {
 
 const defaultSearchSelectionActions: SearchSelectionActionsValue = {
     setSelectedTransactions: () => {},
+    getSelectedTransactions: () => ({}),
     applySelection: () => {},
     setSelectedReports: () => {},
     setCurrentSelectedTransactionReportID: () => {},

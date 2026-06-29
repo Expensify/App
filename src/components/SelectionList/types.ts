@@ -45,7 +45,7 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     customListHeaderContent?: React.JSX.Element | null;
 
     /** Called when a selection button is pressed */
-    onSelectionButtonPress?: (item: TItem, itemTransactions?: unknown, shiftKey?: boolean) => void;
+    onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
 
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;

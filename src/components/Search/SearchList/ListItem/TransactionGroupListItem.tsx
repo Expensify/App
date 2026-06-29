@@ -327,7 +327,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             [CONST.SEARCH.GROUP_BY.FROM]: (
                 <MemberListItemHeader
                     member={groupItem as TransactionMemberGroupListItemType}
-                    onCheckboxPress={(shiftKey) => handleSelectionButtonPress(item, shiftKey)}
+                    onCheckboxPress={() => handleSelectionButtonPress(item)}
                     isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
@@ -341,7 +341,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             [CONST.SEARCH.GROUP_BY.CARD]: (
                 <CardListItemHeader
                     card={groupItem as TransactionCardGroupListItemType}
-                    onCheckboxPress={(shiftKey) => handleSelectionButtonPress(item, shiftKey)}
+                    onCheckboxPress={() => handleSelectionButtonPress(item)}
                     isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     isFocused={isFocused}
@@ -355,7 +355,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: (
                 <WithdrawalIDListItemHeader
                     withdrawalID={groupItem as TransactionWithdrawalIDGroupListItemType}
-                    onCheckboxPress={(shiftKey) => handleSelectionButtonPress(item, shiftKey)}
+                    onCheckboxPress={() => handleSelectionButtonPress(item)}
                     isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
@@ -368,7 +368,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             [CONST.SEARCH.GROUP_BY.CATEGORY]: (
                 <CategoryListItemHeader
                     category={groupItem as TransactionCategoryGroupListItemType}
-                    onCheckboxPress={(shiftKey) => handleSelectionButtonPress(item, shiftKey)}
+                    onCheckboxPress={() => handleSelectionButtonPress(item)}
                     isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
@@ -381,7 +381,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             [CONST.SEARCH.GROUP_BY.MERCHANT]: (
                 <MerchantListItemHeader
                     merchant={groupItem as TransactionMerchantGroupListItemType}
-                    onCheckboxPress={(shiftKey) => handleSelectionButtonPress(item, shiftKey)}
+                    onCheckboxPress={() => handleSelectionButtonPress(item)}
                     isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
@@ -394,7 +394,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             [CONST.SEARCH.GROUP_BY.TAG]: (
                 <TagListItemHeader
                     tag={groupItem as TransactionTagGroupListItemType}
-                    onCheckboxPress={(shiftKey) => handleSelectionButtonPress(item, shiftKey)}
+                    onCheckboxPress={() => handleSelectionButtonPress(item)}
                     isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
@@ -407,7 +407,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             [CONST.SEARCH.GROUP_BY.MONTH]: (
                 <MonthListItemHeader
                     month={groupItem as TransactionMonthGroupListItemType}
-                    onCheckboxPress={(shiftKey) => handleSelectionButtonPress(item, shiftKey)}
+                    onCheckboxPress={() => handleSelectionButtonPress(item)}
                     isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
@@ -420,7 +420,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             [CONST.SEARCH.GROUP_BY.WEEK]: (
                 <WeekListItemHeader
                     week={groupItem as TransactionWeekGroupListItemType}
-                    onCheckboxPress={(shiftKey) => handleSelectionButtonPress(item, shiftKey)}
+                    onCheckboxPress={() => handleSelectionButtonPress(item)}
                     isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
@@ -433,7 +433,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             [CONST.SEARCH.GROUP_BY.YEAR]: (
                 <YearListItemHeader
                     year={groupItem as TransactionYearGroupListItemType}
-                    onCheckboxPress={(shiftKey) => handleSelectionButtonPress(item, shiftKey)}
+                    onCheckboxPress={() => handleSelectionButtonPress(item)}
                     isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
@@ -446,7 +446,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             [CONST.SEARCH.GROUP_BY.QUARTER]: (
                 <QuarterListItemHeader
                     quarter={groupItem as TransactionQuarterGroupListItemType}
-                    onCheckboxPress={(shiftKey) => handleSelectionButtonPress(item, shiftKey)}
+                    onCheckboxPress={() => handleSelectionButtonPress(item)}
                     isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
@@ -463,7 +463,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <ReportListItemHeader
                     report={liveGroupItem as TransactionReportGroupListItemType}
                     onSelectRow={(event) => onSelectRow(item, transactionPreviewData, event)}
-                    onCheckboxPress={(shiftKey) => handleSelectionButtonPress(item, shiftKey)}
+                    onCheckboxPress={() => handleSelectionButtonPress(item)}
                     isDisabled={isDisabled}
                     isFocused={isFocused}
                     canSelectMultiple={canSelectMultiple}

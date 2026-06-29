@@ -456,19 +456,13 @@ function SearchWriteActionsProvider({
         getItemKey: (item) => item.keyForList,
         // So a cold shift+click resolves its anchor from the existing selection instead of the first row.
         getSelectedKeys: () => {
-            const selected = getSelectedTransactions?.() ?? {};
+            const selected = getSelectedTransactions();
             return Object.keys(selected).filter((key) => selected[key]?.isSelected);
         },
         isDisabledItem: (item) => isTransactionListItemType(item) && isTransactionPendingDelete(item),
         onApplyRange: applyShiftRangeBatch,
         isHeaderItem: isShiftRangeHeaderItem,
     });
-
-    // Runs seedFullRange inside the `applySelection` updater; it only writes the hook ref, so StrictMode double-invoke stays idempotent.
-    const seedSelectAllRange = (result: SelectedTransactions) => {
-        rangeApi.seedFullRange();
-        return result;
-    };
 
     const toggle: SearchRowSelectionActionsValue['toggle'] = (item, itemTransactions, shiftKey) => {
         if (isReportActionListItemType(item) || isTaskListItemType(item)) {
@@ -575,10 +569,15 @@ function SearchWriteActionsProvider({
     };
 
     const toggleAll: SearchRowSelectionActionsValue['toggleAll'] = () => {
+        // Decide select-all vs clear before the updater so the range seed/clear (only a ref write) stays out of the reducer — mirrors BaseSelectionList.
+        if (Object.keys(getSelectedTransactions()).length > 0) {
+            rangeApi.clearAnchor();
+        } else {
+            rangeApi.seedFullRange();
+        }
         applySelection(
             (selectedTransactions) => {
                 if (Object.keys(selectedTransactions).length > 0) {
-                    rangeApi.clearAnchor();
                     return {};
                 }
 
@@ -603,7 +602,7 @@ function SearchWriteActionsProvider({
                         }
                         return entries;
                     });
-                    return seedSelectAllRange(Object.fromEntries(allSelections));
+                    return Object.fromEntries(allSelections);
                 }
 
                 // When items are not grouped, data is TransactionListItemType[] not TransactionGroupListItemType[]
@@ -620,7 +619,7 @@ function SearchWriteActionsProvider({
                     const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
                     entries.push(buildSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, itemParentReport));
                 }
-                return seedSelectAllRange(Object.fromEntries(entries));
+                return Object.fromEntries(entries);
             },
             {data: filteredData, totalSelectableItemsCount},
         );

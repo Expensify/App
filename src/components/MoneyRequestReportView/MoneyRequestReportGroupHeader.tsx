@@ -1,5 +1,4 @@
 import React from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -11,7 +10,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedLeafCategoryName} from '@libs/CategoryUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
-import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {GroupedTransactions} from '@src/types/onyx';
@@ -42,8 +40,8 @@ type MoneyRequestReportGroupHeaderProps = {
     /** Whether the checkbox should be disabled (e.g., all transactions are pending delete) */
     isDisabled?: boolean;
 
-    /** Callback when group checkbox is toggled - receives groupKey */
-    onToggleSelection?: (groupKey: string, shiftKey?: boolean) => void;
+    /** Group-checkbox toggle (receives groupKey); ignores Shift. */
+    onToggleSelection?: (groupKey: string) => void;
 
     /** Pending action for offline feedback styling (Pattern B - Optimistic WITH Feedback) */
     pendingAction?: PendingAction;
@@ -79,8 +77,8 @@ function MoneyRequestReportGroupHeader({
 
     const textStyle = shouldUseNarrowLayout ? {fontSize: variables.fontSizeLabel, lineHeight: 16} : [styles.labelStrong];
 
-    const handleToggleSelection = (event?: GestureResponderEvent | KeyboardEvent) => {
-        onToggleSelection?.(groupKey, getShiftKeyFromEvent(event));
+    const handleToggleSelection = () => {
+        onToggleSelection?.(groupKey);
     };
 
     const groupHeaderStyle = !shouldUseNarrowLayout

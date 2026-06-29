@@ -4,6 +4,7 @@ import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/fl
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
@@ -136,7 +137,7 @@ function BaseSelectionList<TItem extends ListItem>({
     });
 
     const handleSelectionButtonPress = useCallback(
-        (item: TItem, itemTransactions?: unknown, shiftKey?: boolean) => {
+        (item: TItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => {
             if (onShiftRangeApply && rangeApi.applyShiftClick(item, shiftKey)) {
                 return;
             }

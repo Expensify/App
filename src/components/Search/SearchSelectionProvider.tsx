@@ -39,7 +39,7 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
         currentSearchHashRef.current = currentSearchHash;
     }, [currentSearchHash]);
 
-    // Mirror the live selection in a ref so getSelectedTransactions reads it without subscribing.
+    // Read via this ref, not selectionState.selectedTransactions directly — keeps selectionActionsValue referentially stable so actions-only consumers don't re-render on every selection change.
     const selectedTransactionsRef = useRef(selectionState.selectedTransactions);
     useEffect(() => {
         selectedTransactionsRef.current = selectionState.selectedTransactions;

@@ -39,6 +39,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {canMemberWrite, getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -502,27 +503,19 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                                 if (!batch.toSelect.length && !batch.toDeselect.length) {
                                     return prev;
                                 }
-                                const removeSet = new Set(batch.toDeselect.map((r) => r.subRateID));
-                                const seen = new Set<string>();
-                                const next: SubRateData[] = [];
+                                const nextKeys = applyShiftRangeBatchToKeySet(
+                                    batch,
+                                    prev.map((value) => value.subRateID),
+                                    (item) => item.subRateID,
+                                );
+                                const subRateDataByID = new Map<string, SubRateData>();
+                                for (const value of allSubRates) {
+                                    subRateDataByID.set(value.subRateID, value);
+                                }
                                 for (const value of prev) {
-                                    if (removeSet.has(value.subRateID) || seen.has(value.subRateID)) {
-                                        continue;
-                                    }
-                                    seen.add(value.subRateID);
-                                    next.push(value);
+                                    subRateDataByID.set(value.subRateID, value);
                                 }
-                                for (const row of batch.toSelect) {
-                                    if (row.isDisabled || row.isDisabledCheckbox || seen.has(row.subRateID)) {
-                                        continue;
-                                    }
-                                    const built = generateSingleSubRateData(allRatesArray, row.rateID, row.subRateID);
-                                    if (built) {
-                                        seen.add(row.subRateID);
-                                        next.push(built);
-                                    }
-                                }
-                                return next;
+                                return nextKeys.map((key) => subRateDataByID.get(key)).filter((value): value is SubRateData => !!value);
                             })
                         }
                         customListHeader={getCustomListHeader()}

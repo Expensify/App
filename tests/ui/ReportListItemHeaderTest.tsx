@@ -52,6 +52,7 @@ const mockSearchActionsContext = {
     setLastSearchType: jest.fn(),
     setCurrentSelectedTransactionReportID: jest.fn(),
     setSelectedTransactions: jest.fn(),
+    getSelectedTransactions: jest.fn(() => ({})),
     applySelection: jest.fn(),
     setSelectedReports: jest.fn(),
     setShouldShowFiltersBarLoading: jest.fn(),

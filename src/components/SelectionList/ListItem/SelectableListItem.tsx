@@ -26,6 +26,15 @@ function SelectableListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const ButtonComponent = canSelectMultiple ? ListCheckbox : ListRadioButton;
 
+    // Carry shiftKey to onSelectionButtonPress (range selection); plain onSelectRow otherwise.
+    const handleButtonSelect = (selectedItem: TItem, shiftKey?: boolean) => {
+        if (onSelectionButtonPress) {
+            onSelectionButtonPress(selectedItem, undefined, shiftKey);
+            return;
+        }
+        onSelectRow(selectedItem);
+    };
+
     return (
         <BaseListItem
             {...baseProps}
@@ -39,13 +48,7 @@ function SelectableListItem<TItem extends ListItem>({
                     <>
                         <ButtonComponent
                             item={item}
-                            onSelectRow={(it, opts) => {
-                                if (onSelectionButtonPress) {
-                                    onSelectionButtonPress(it, undefined, opts);
-                                    return;
-                                }
-                                onSelectRow(it);
-                            }}
+                            onSelectRow={handleButtonSelect}
                             disabled={!!isDisabled || !!item.isDisabledCheckbox}
                             style={styles.ml3}
                         />
@@ -61,13 +64,7 @@ function SelectableListItem<TItem extends ListItem>({
                       <>
                           <ButtonComponent
                               item={item}
-                              onSelectRow={(it, opts) => {
-                                  if (onSelectionButtonPress) {
-                                      onSelectionButtonPress(it, undefined, opts);
-                                      return;
-                                  }
-                                  onSelectRow(it);
-                              }}
+                              onSelectRow={handleButtonSelect}
                               disabled={!!isDisabled || item.isDisabledCheckbox}
                               style={styles.mr3}
                           />

@@ -20,7 +20,7 @@ type Api<TItem> = {
 };
 
 // `deselect` makes the range direction-aware: an anchor seeded by a click that *removed* a row extends the deselection on the next
-// shift+click instead of re-selecting it (the Excel/Sheets "range follows the anchor's state" model).
+// shift+click instead of re-selecting it (the "range follows the anchor's state" model).
 type SessionState = {kind: 'idle'} | {kind: 'anchored'; anchor: string; deselect: boolean} | {kind: 'ranging'; anchor: string; prevEnd: string; deselect: boolean};
 
 type SessionEvent = {type: 'notify'; key: string; deselect: boolean} | {type: 'clear'} | {type: 'range'; anchor: string; prevEnd: string; deselect: boolean};

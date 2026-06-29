@@ -219,8 +219,9 @@ function GroupHeader({
         shouldApplyOtherStyles: false,
     });
 
-    const handleSelectionButtonPress = (shiftKey?: boolean) => {
-        onCheckboxPress(withOriginalKey(item), isExpenseReportType ? undefined : effectiveTransactions, shiftKey);
+    // Group headers ignore Shift (normal group toggle), so no shiftKey is forwarded.
+    const handleSelectionButtonPress = () => {
+        onCheckboxPress(withOriginalKey(item), isExpenseReportType ? undefined : effectiveTransactions);
     };
 
     const pendingAction =
