@@ -1,31 +1,26 @@
 import {useEffect} from 'react';
-import useEnvironment from '@hooks/useEnvironment';
-import {getXeroSetupLink} from '@libs/actions/connections/Xero';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {openLink} from '@userActions/Link';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type XeroSetupPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.XERO_SETUP>;
 
 function XeroSetupPage({route}: XeroSetupPageProps) {
-    const {environmentURL} = useEnvironment();
     const policyID = route.params.policyID;
 
     useEffect(() => {
-        openLink(getXeroSetupLink(policyID), environmentURL);
-
-        // On web the link opens in a new tab and this page renders nothing, so close the RHP and return to the
-        // accounting page instead of leaving an empty backdrop behind (falls back to it on a deep link with no history).
-        // We wait for the RHP open transition to finish first, otherwise goBack fires mid-transition and is dropped,
-        // leaving the user stuck on the empty backdrop.
-        const transitionHandle = Navigation.runAfterUpcomingTransition(() => {
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+        // On web the connect flow opens the Xero setup link inline (new tab), so this screen has no content. It is
+        // only reached via a deep link, so just return to the workspace accounting page. We wait for the RHP open
+        // transition to finish first, otherwise goBack fires mid-transition and is dropped.
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID)),
+            waitForUpcomingTransition: true,
         });
-        return () => transitionHandle.cancel();
-    }, [policyID, environmentURL]);
+        return () => handle.cancel();
+    }, [policyID]);
 
     return null;
 }

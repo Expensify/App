@@ -1,10 +1,10 @@
 import {render} from '@testing-library/react-native';
 import React from 'react';
-import {getXeroSetupLink} from '@libs/actions/connections/Xero';
 import Navigation from '@libs/Navigation/Navigation';
 import type XeroSetupPageType from '@pages/workspace/accounting/xero/XeroSetupPage';
-import {openLink} from '@userActions/Link';
 import ROUTES from '@src/ROUTES';
+
+type RunAfterTransitionsArg = {callback: () => void};
 
 // Jest (jest-expo) resolves the `.native` variant by default, so we require the web entry point
 // explicitly (with its `.tsx` extension) to exercise the web implementation.
@@ -16,25 +16,19 @@ const xeroSetupPageModule: unknown = require('@pages/workspace/accounting/xero/X
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 const XeroSetupPage = (xeroSetupPageModule as {default: typeof XeroSetupPageType}).default;
 
-const ENVIRONMENT_URL = 'https://new.expensify.com';
 const POLICY_ID = '123';
 
-jest.mock('@hooks/useEnvironment', () => () => ({
-    environmentURL: 'https://new.expensify.com',
-}));
-jest.mock('@libs/actions/connections/Xero', () => ({
-    getXeroSetupLink: jest.fn((policyID: string) => `https://xero-setup.example/${policyID}`),
-}));
-jest.mock('@userActions/Link', () => ({
-    openLink: jest.fn(),
-}));
 jest.mock('@libs/Navigation/Navigation', () => ({
-    navigate: jest.fn(),
     goBack: jest.fn(),
-    runAfterUpcomingTransition: jest.fn((callback: () => void) => {
-        callback();
-        return {cancel: jest.fn()};
-    }),
+}));
+jest.mock('@libs/Navigation/TransitionTracker', () => ({
+    __esModule: true,
+    default: {
+        runAfterTransitions: jest.fn(({callback}: RunAfterTransitionsArg) => {
+            callback();
+            return {cancel: jest.fn()};
+        }),
+    },
 }));
 
 const mockRoute = {
@@ -45,8 +39,6 @@ const mockRoute = {
     },
 };
 
-const mockedGetXeroSetupLink = jest.mocked(getXeroSetupLink);
-const mockedOpenLink = jest.mocked(openLink);
 const mockedGoBack = jest.mocked(Navigation.goBack);
 
 const renderXeroSetupPage = () =>
@@ -62,14 +54,7 @@ describe('XeroSetupPage (web)', () => {
         jest.clearAllMocks();
     });
 
-    it('opens the Xero setup link for the given policy in the current environment', () => {
-        renderXeroSetupPage();
-
-        expect(mockedGetXeroSetupLink).toHaveBeenCalledWith(POLICY_ID);
-        expect(mockedOpenLink).toHaveBeenCalledWith(`https://xero-setup.example/${POLICY_ID}`, ENVIRONMENT_URL);
-    });
-
-    it('closes the RHP and returns to the accounting page so no empty backdrop is left behind', () => {
+    it('returns to the workspace accounting page', () => {
         renderXeroSetupPage();
 
         expect(mockedGoBack).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING.getRoute(POLICY_ID));

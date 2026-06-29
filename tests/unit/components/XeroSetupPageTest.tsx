@@ -2,7 +2,8 @@ import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
-import XeroSetupPage from '@pages/workspace/accounting/xero/XeroSetupPage';
+// This test exercises the native (in-app WebView) variant; jest resolves the `.native` entry point by default.
+import XeroSetupPage from '@pages/workspace/accounting/xero/XeroSetupPage/index.native';
 
 const AUTH_TOKEN = 'test-auth-token';
 const POLICY_ID = '123';
