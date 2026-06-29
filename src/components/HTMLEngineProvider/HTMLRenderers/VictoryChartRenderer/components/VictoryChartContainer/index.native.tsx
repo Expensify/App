@@ -41,7 +41,7 @@ function VictoryChartContainer({children}: {children: React.ReactNode}) {
 
     const containerStyle =
         hasExplicitDimensions && effectiveDesignHeight && designWidth
-            ? [{width: designWidth * scale, height: effectiveDesignHeight * scale, alignSelf: 'flex-start' as const, overflow: 'hidden' as const}]
+            ? [{width: designWidth * scale, height: effectiveDesignHeight * scale, alignSelf: 'flex-start' as const, overflow: 'hidden' as const, borderRadius}]
             : [styles.chartContainer, styles.mw100, layoutContainerStyles];
 
     return (
