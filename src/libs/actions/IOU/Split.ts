@@ -6,11 +6,13 @@ import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import * as API from '@libs/API';
 import type {CompleteSplitBillParams, CreateDistanceRequestParams, SplitBillParams, StartSplitBillParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {calculateAmount as calculateIOUAmount, updateIOUOwnerAndTotal} from '@libs/IOUUtils';
+import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
@@ -60,6 +62,7 @@ import {notifyNewAction} from '@userActions/Report';
 import {sanitizeWaypointsForAPI} from '@userActions/Transaction';
 import {removeDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant, Split} from '@src/types/onyx/IOU';
@@ -2112,7 +2115,18 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             // Use the canonical distance-amount calc so the optimistic amount rounds the same way the server does.
             const reimbursableDistanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(reimbursableDistance, distanceUnit);
             const modifiedRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(reimbursableDistanceInMeters, distanceUnit, distanceRate);
-            const modifiedRequestMerchant = `${reimbursableDistance.toFixed(2)} ${distanceUnit} @ ${distanceRate} / ${distanceUnit}`;
+            const modifiedRequestMerchant = DistanceRequestUtils.getDistanceMerchant(
+                true,
+                reimbursableDistanceInMeters,
+                distanceUnit,
+                distanceRate,
+                currency,
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                Localize.translateLocal,
+                (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+                getCurrencySymbol,
+                true,
+            );
 
             onyxData?.optimisticData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
