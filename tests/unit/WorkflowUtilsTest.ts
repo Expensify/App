@@ -3,18 +3,28 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import {
+    applyApprovalWorkflowRulesDiff,
+    buildApprovalWorkflowRules,
     calculateApprovers,
+    convertApprovalWorkflowRulesToWorkflows,
     convertApprovalWorkflowToPolicyEmployees,
     convertPolicyEmployeesToApprovalWorkflows,
     getApprovalLimitDescription,
+    getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,
     getOverLimitForwardsToDisplayName,
+    getRulesSubmitterToFirstApprover,
     mergeWorkflowMembersWithAvailableMembers,
+    reconcileApprovalWorkflowRulesForCreate,
+    reconcileApprovalWorkflowRulesForEdit,
+    reconcileApprovalWorkflowRulesForMembersChange,
+    reconcileApprovalWorkflowRulesForRemove,
     updateWorkflowDataOnApproverRemoval,
 } from '@src/libs/WorkflowUtils';
 import type {Policy} from '@src/types/onyx';
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
+import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {BankAccountList} from '@src/types/onyx/BankAccount';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type {Connections} from '@src/types/onyx/Policy';
@@ -1625,6 +1635,290 @@ describe('WorkflowUtils', () => {
             const result = getOpenConnectedToPolicyBusinessBankAccounts(bankAccountList, policyWithACH);
 
             expect(result).toEqual([openBusinessBankAccount, secondMatchingAccount]);
+        });
+    });
+
+    describe('getEligibleExistingBusinessBankAccounts', () => {
+        const openBusinessBankAccount = {
+            bankCurrency: 'USD',
+            accountData: {
+                state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+            },
+        };
+
+        it('should return an empty array when the bank account list is undefined', () => {
+            expect(getEligibleExistingBusinessBankAccounts(undefined, 'USD')).toEqual([]);
+        });
+
+        it('should return an empty array when the policy currency is undefined', () => {
+            expect(getEligibleExistingBusinessBankAccounts({'1': openBusinessBankAccount}, undefined)).toEqual([]);
+        });
+
+        it('should return open business accounts matching the policy currency', () => {
+            expect(getEligibleExistingBusinessBankAccounts({'1': openBusinessBankAccount}, 'USD')).toEqual([openBusinessBankAccount]);
+        });
+
+        it('should filter out accounts with a non-matching currency', () => {
+            const eurAccount = {...openBusinessBankAccount, bankCurrency: 'EUR'};
+            expect(getEligibleExistingBusinessBankAccounts({'1': eurAccount}, 'USD')).toEqual([]);
+        });
+
+        it('should filter out non-business accounts', () => {
+            const personalAccount = {...openBusinessBankAccount, accountData: {...openBusinessBankAccount.accountData, type: CONST.BANK_ACCOUNT.TYPE.PERSONAL}};
+            expect(getEligibleExistingBusinessBankAccounts({'1': personalAccount}, 'USD')).toEqual([]);
+        });
+
+        it('should exclude partially set up accounts by default but include them when requested', () => {
+            const setupAccount = {...openBusinessBankAccount, accountData: {...openBusinessBankAccount.accountData, state: CONST.BANK_ACCOUNT.STATE.SETUP}};
+
+            expect(getEligibleExistingBusinessBankAccounts({'1': setupAccount}, 'USD')).toEqual([]);
+            expect(getEligibleExistingBusinessBankAccounts({'1': setupAccount}, 'USD', true)).toEqual([setupAccount]);
+        });
+    });
+
+    describe('rule-based approval workflows', () => {
+        const FORWARD_ACTION = 'forward' as const;
+        const buildFromFilter = (emails: string[]) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: emails});
+        const buildPreviousApproverFilter = (email: string) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.PREVIOUS_APPROVER, right: email});
+        const keyRules = (rules: ApprovalWorkflowRule[]): Record<string, ApprovalWorkflowRule> => Object.fromEntries(rules.map((rule, index) => [`rule${index}`, rule]));
+
+        describe('buildApprovalWorkflowRules', () => {
+            it('Should return an empty list when there are no members', () => {
+                expect(buildApprovalWorkflowRules(buildWorkflow([], [1]))).toEqual([]);
+            });
+
+            it('Should return an empty list when there are no approvers', () => {
+                expect(buildApprovalWorkflowRules(buildWorkflow([2], []))).toEqual([]);
+            });
+
+            it('Should build a single `from` rule for a one-approver workflow', () => {
+                expect(buildApprovalWorkflowRules(buildWorkflow([2], [1]))).toEqual([{filters: buildFromFilter(['2@example.com']), action: FORWARD_ACTION, nextReceiver: '1@example.com'}]);
+            });
+
+            it('Should chain approvers with `previousApprover` gates', () => {
+                expect(buildApprovalWorkflowRules(buildWorkflow([3], [1, 2]))).toEqual([
+                    {filters: buildFromFilter(['3@example.com']), action: FORWARD_ACTION, nextReceiver: '1@example.com'},
+                    {
+                        filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: buildFromFilter(['3@example.com']), right: buildPreviousApproverFilter('1@example.com')},
+                        action: FORWARD_ACTION,
+                        nextReceiver: '2@example.com',
+                    },
+                ]);
+            });
+
+            it('Should split a level into under/over amount rules when the approver has a limit split', () => {
+                const workflow: ApprovalWorkflow = {
+                    members: [buildMember(2)],
+                    approvers: [buildApprover(1, {approvalLimit: 50000, overLimitForwardsTo: '3@example.com'})],
+                    isDefault: false,
+                };
+                const underAmountFilter = {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right: 50000};
+                const overAmountFilter = {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right: 50000};
+
+                expect(buildApprovalWorkflowRules(workflow)).toEqual([
+                    {filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: buildFromFilter(['2@example.com']), right: underAmountFilter}, action: FORWARD_ACTION, nextReceiver: '1@example.com'},
+                    {filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: buildFromFilter(['2@example.com']), right: overAmountFilter}, action: FORWARD_ACTION, nextReceiver: '3@example.com'},
+                ]);
+            });
+
+            it('Should ignore a limit split when the limit is not positive', () => {
+                const workflow: ApprovalWorkflow = {
+                    members: [buildMember(2)],
+                    approvers: [buildApprover(1, {approvalLimit: 0, overLimitForwardsTo: '3@example.com'})],
+                    isDefault: false,
+                };
+
+                expect(buildApprovalWorkflowRules(workflow)).toEqual([{filters: buildFromFilter(['2@example.com']), action: FORWARD_ACTION, nextReceiver: '1@example.com'}]);
+            });
+        });
+
+        describe('applyApprovalWorkflowRulesDiff', () => {
+            const ruleA: ApprovalWorkflowRule = {filters: buildFromFilter(['2@example.com']), action: FORWARD_ACTION, nextReceiver: '1@example.com'};
+            const ruleB: ApprovalWorkflowRule = {filters: buildFromFilter(['3@example.com']), action: FORWARD_ACTION, nextReceiver: '4@example.com'};
+
+            it('Should upsert non-null entries and delete null entries', () => {
+                expect(applyApprovalWorkflowRulesDiff({a: ruleA}, {a: null, b: ruleB})).toEqual({b: ruleB});
+            });
+
+            it('Should not mutate the input map', () => {
+                const existingRules = {a: ruleA};
+                applyApprovalWorkflowRulesDiff(existingRules, {a: null});
+                expect(existingRules).toEqual({a: ruleA});
+            });
+        });
+
+        describe('reconcileApprovalWorkflowRulesForCreate', () => {
+            it('Should create fresh rules when nothing matches', () => {
+                const newRules = buildApprovalWorkflowRules(buildWorkflow([10], [1]));
+                const diff = reconcileApprovalWorkflowRulesForCreate(newRules, ['10@example.com'], {existingRules: {}});
+
+                expect(Object.values(diff)).toEqual(newRules);
+            });
+
+            it('Should merge members into a structurally identical existing rule', () => {
+                const existingRules: Record<string, ApprovalWorkflowRule> = {
+                    existing1: {filters: buildFromFilter(['20@example.com']), action: FORWARD_ACTION, nextReceiver: '1@example.com'},
+                };
+                const newRules = buildApprovalWorkflowRules(buildWorkflow([10], [1]));
+                const diff = reconcileApprovalWorkflowRulesForCreate(newRules, ['10@example.com'], {existingRules});
+
+                expect(diff).toEqual({existing1: {filters: buildFromFilter(['20@example.com', '10@example.com']), action: FORWARD_ACTION, nextReceiver: '1@example.com'}});
+            });
+        });
+
+        describe('reconcileApprovalWorkflowRulesForEdit', () => {
+            it('Should drop the old rule and create the new chain when the approver changes', () => {
+                const existingRules: Record<string, ApprovalWorkflowRule> = {
+                    r1: {filters: buildFromFilter(['10@example.com']), action: FORWARD_ACTION, nextReceiver: '1@example.com'},
+                };
+                const newRules = buildApprovalWorkflowRules(buildWorkflow([10], [2]));
+                const diff = reconcileApprovalWorkflowRulesForEdit(newRules, ['10@example.com'], {existingRules});
+
+                expect(diff.r1).toBeNull();
+                const createdRules = Object.entries(diff)
+                    .filter(([ruleID]) => ruleID !== 'r1')
+                    .map(([, rule]) => rule);
+                expect(createdRules).toEqual(newRules);
+            });
+
+            it('Should leave a structurally identical rule untouched', () => {
+                const existingRules: Record<string, ApprovalWorkflowRule> = {
+                    r1: {filters: buildFromFilter(['10@example.com']), action: FORWARD_ACTION, nextReceiver: '1@example.com'},
+                };
+                const newRules = buildApprovalWorkflowRules(buildWorkflow([10], [1]));
+                const diff = reconcileApprovalWorkflowRulesForEdit(newRules, ['10@example.com'], {existingRules});
+
+                expect(diff).toEqual({});
+            });
+        });
+
+        describe('reconcileApprovalWorkflowRulesForRemove', () => {
+            it('Should remove a rule that only contains the workflow members', () => {
+                const existingRules: Record<string, ApprovalWorkflowRule> = {
+                    r1: {filters: buildFromFilter(['10@example.com']), action: FORWARD_ACTION, nextReceiver: '1@example.com'},
+                };
+
+                expect(reconcileApprovalWorkflowRulesForRemove(['10@example.com'], {existingRules})).toEqual({r1: null});
+            });
+
+            it('Should strip only the workflow members from a shared rule', () => {
+                const existingRules: Record<string, ApprovalWorkflowRule> = {
+                    r1: {filters: buildFromFilter(['10@example.com', '20@example.com']), action: FORWARD_ACTION, nextReceiver: '1@example.com'},
+                };
+
+                expect(reconcileApprovalWorkflowRulesForRemove(['10@example.com'], {existingRules})).toEqual({
+                    r1: {filters: buildFromFilter(['20@example.com']), action: FORWARD_ACTION, nextReceiver: '1@example.com'},
+                });
+            });
+
+            it('Should ignore rules that do not contain the members', () => {
+                const existingRules: Record<string, ApprovalWorkflowRule> = {
+                    r1: {filters: buildFromFilter(['30@example.com']), action: FORWARD_ACTION, nextReceiver: '1@example.com'},
+                };
+
+                expect(reconcileApprovalWorkflowRulesForRemove(['10@example.com'], {existingRules})).toEqual({});
+            });
+        });
+
+        describe('reconcileApprovalWorkflowRulesForMembersChange', () => {
+            it('Should add new members and drop removed ones from matching rules', () => {
+                const existingRules: Record<string, ApprovalWorkflowRule> = {
+                    r1: {filters: buildFromFilter(['10@example.com', '20@example.com']), action: FORWARD_ACTION, nextReceiver: '1@example.com'},
+                };
+                const diff = reconcileApprovalWorkflowRulesForMembersChange(['10@example.com', '20@example.com'], ['20@example.com', '30@example.com'], {existingRules});
+
+                expect(diff).toEqual({r1: {filters: buildFromFilter(['20@example.com', '30@example.com']), action: FORWARD_ACTION, nextReceiver: '1@example.com'}});
+            });
+
+            it('Should skip rules with no net change to the submitter list', () => {
+                const existingRules: Record<string, ApprovalWorkflowRule> = {
+                    r1: {filters: buildFromFilter(['10@example.com']), action: FORWARD_ACTION, nextReceiver: '1@example.com'},
+                };
+
+                expect(reconcileApprovalWorkflowRulesForMembersChange(['10@example.com'], ['10@example.com'], {existingRules})).toEqual({});
+            });
+
+            it('Should remove a rule when all of its members are dropped', () => {
+                const existingRules: Record<string, ApprovalWorkflowRule> = {
+                    r1: {filters: buildFromFilter(['10@example.com']), action: FORWARD_ACTION, nextReceiver: '1@example.com'},
+                };
+
+                expect(reconcileApprovalWorkflowRulesForMembersChange(['10@example.com'], [], {existingRules})).toEqual({r1: null});
+            });
+        });
+
+        describe('getRulesSubmitterToFirstApprover', () => {
+            it('Should map each submitter to the first approver in their chain', () => {
+                const rules = keyRules(buildApprovalWorkflowRules(buildWorkflow([5], [1, 2])));
+
+                expect(getRulesSubmitterToFirstApprover(rules)).toEqual({'5@example.com': '1@example.com'});
+            });
+        });
+
+        describe('convertApprovalWorkflowRulesToWorkflows', () => {
+            const createPolicyWithRules = (employees: PolicyEmployeeList, rules: Record<string, ApprovalWorkflowRule>, defaultApprover: string) =>
+                ({
+                    id: 'test-policy',
+                    name: 'Test Policy',
+                    role: 'admin' as const,
+                    type: 'team' as const,
+                    owner: 'owner@example.com',
+                    outputCurrency: 'USD',
+                    isPolicyExpenseChatEnabled: true,
+                    employeeList: employees,
+                    approver: defaultApprover,
+                    rules: {approvalWorkflows: rules},
+                }) as Policy;
+
+            it('Should reconstruct a multi-approver chain from rules', () => {
+                const rules = keyRules(buildApprovalWorkflowRules(buildWorkflow([5], [1, 2])));
+                const employees: PolicyEmployeeList = {'5@example.com': {email: '5@example.com', submitsTo: '1@example.com'}};
+                const policy = createPolicyWithRules(employees, rules, '1@example.com');
+
+                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare});
+
+                expect(approvalWorkflows).toHaveLength(1);
+                const workflow = approvalWorkflows.at(0);
+                expect(workflow?.isDefault).toBe(true);
+                expect(workflow?.members.map((member) => member.email)).toEqual(['5@example.com']);
+                expect(workflow?.approvers.map((approver) => approver.email)).toEqual(['1@example.com', '2@example.com']);
+                expect(workflow?.approvers.at(0)?.forwardsTo).toBe('2@example.com');
+                expect(workflow?.approvers.at(1)?.forwardsTo).toBeUndefined();
+            });
+
+            it('Should reconstruct an approver limit split from rules', () => {
+                const workflow: ApprovalWorkflow = {
+                    members: [buildMember(5)],
+                    approvers: [buildApprover(1, {approvalLimit: 50000, overLimitForwardsTo: '3@example.com'})],
+                    isDefault: false,
+                };
+                const rules = keyRules(buildApprovalWorkflowRules(workflow));
+                const employees: PolicyEmployeeList = {'5@example.com': {email: '5@example.com', submitsTo: '1@example.com'}};
+                const policy = createPolicyWithRules(employees, rules, '1@example.com');
+
+                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare});
+
+                const firstApprover = approvalWorkflows.at(0)?.approvers.at(0);
+                expect(firstApprover?.email).toBe('1@example.com');
+                expect(firstApprover?.approvalLimit).toBe(50000);
+                expect(firstApprover?.overLimitForwardsTo).toBe('3@example.com');
+            });
+
+            it('Should round-trip a workflow through rules and back', () => {
+                const rules = keyRules(buildApprovalWorkflowRules(buildWorkflow([5], [1, 2])));
+                const employees: PolicyEmployeeList = {'5@example.com': {email: '5@example.com', submitsTo: '1@example.com'}};
+                const policy = createPolicyWithRules(employees, rules, '1@example.com');
+
+                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare});
+
+                // Rebuilding rules from the reconstructed workflow should reproduce the original rule set.
+                const workflow = approvalWorkflows.at(0);
+                expect(workflow).toBeDefined();
+                if (workflow) {
+                    expect(buildApprovalWorkflowRules(workflow)).toEqual(Object.values(rules));
+                }
+            });
         });
     });
 });
