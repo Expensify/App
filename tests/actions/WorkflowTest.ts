@@ -852,14 +852,12 @@ describe('actions/Workflow', () => {
             mockFetch.pause();
 
             const policyID = '123456789';
-            const policy = {
+            const policy: Policy = {
+                ...createRandomPolicy(1),
                 id: policyID,
-                name: 'Test Workspace',
-                role: 'admin',
-                type: 'corporate',
                 owner: ownerEmail,
                 rules: {},
-            } as unknown as Policy;
+            };
 
             const approvalWorkflow = {
                 members: [{email: employee1Email, displayName: employee1Email}],
@@ -894,11 +892,9 @@ describe('actions/Workflow', () => {
             mockFetch.pause();
 
             const policyID = '123456789';
-            const policy = {
+            const policy: Policy = {
+                ...createRandomPolicy(1),
                 id: policyID,
-                name: 'Test Workspace',
-                role: 'admin',
-                type: 'corporate',
                 owner: ownerEmail,
                 rules: {
                     approvalWorkflows: {
@@ -909,7 +905,7 @@ describe('actions/Workflow', () => {
                         },
                     },
                 },
-            } as unknown as Policy;
+            };
 
             const initialApprovalWorkflow = {
                 members: [{email: employee1Email, displayName: employee1Email}],
@@ -949,11 +945,9 @@ describe('actions/Workflow', () => {
             mockFetch.pause();
 
             const policyID = '123456789';
-            const policy = {
+            const policy: Policy = {
+                ...createRandomPolicy(1),
                 id: policyID,
-                name: 'Test Workspace',
-                role: 'admin',
-                type: 'corporate',
                 owner: ownerEmail,
                 rules: {
                     approvalWorkflows: {
@@ -964,7 +958,7 @@ describe('actions/Workflow', () => {
                         },
                     },
                 },
-            } as unknown as Policy;
+            };
 
             const approvalWorkflow = {
                 members: [{email: employee1Email, displayName: employee1Email}],
