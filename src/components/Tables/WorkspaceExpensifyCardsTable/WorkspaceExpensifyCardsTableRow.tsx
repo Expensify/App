@@ -75,7 +75,6 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
             interactive
             rowIndex={rowIndex}
             accessibilityLabel={accessibilityLabel}
-            skeletonReasonAttributes={{context: 'workspaceExpensifyCardsTableRow'}}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ROW}
             offlineWithFeedback={{
                 errors: item.errors,

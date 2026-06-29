@@ -45,7 +45,7 @@ import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getApiRoot} from './ApiUtils';
-import {getCategoryApproverRule} from './CategoryUtils';
+import {getCategoryApproverRule, hasAnyCategoryRules} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
 import {isAnyHRConnected, isMergeHRCompleteSetupNeeded} from './HRUtils';
 import Navigation from './Navigation/Navigation';
@@ -930,7 +930,7 @@ function hasCustomCategories(policyCategories: OnyxEntry<PolicyCategories>): boo
 /**
  * Checks if a policy has any rules configured (structured rules, individual expense limits, or prohibited expenses).
  */
-function hasConfiguredRules(policy: OnyxEntry<Policy>): boolean {
+function hasConfiguredRules(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null): boolean {
     if (!policy) {
         return false;
     }
@@ -985,13 +985,17 @@ function hasConfiguredRules(policy: OnyxEntry<Policy>): boolean {
     }
 
     const {prohibitedExpenses} = policy;
-    return (
+    if (
         !!prohibitedExpenses &&
         Object.entries(CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES).some(([key, defaultValue]) => {
             const value = prohibitedExpenses[key as keyof typeof CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES];
             return value !== undefined && value !== defaultValue;
         })
-    );
+    ) {
+        return true;
+    }
+
+    return hasAnyCategoryRules(policyCategories ?? undefined);
 }
 
 /**
@@ -1411,7 +1415,24 @@ function canEditTaxRate(policy: Policy, taxID: string): boolean {
     return policy.taxRates?.defaultExternalID !== taxID && policy.taxRates?.foreignTaxDefault !== taxID;
 }
 
-function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName): boolean {
+function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null): boolean {
+    if (!isControlPolicy(policy)) {
+        return false;
+    }
+    if (policy?.areRulesEnabled === true) {
+        return true;
+    }
+    if (policy?.areRulesEnabled === false) {
+        return false;
+    }
+    // areRulesEnabled is undefined - this can happen in case of migrated old policies, in such case users might have set up category rules in Classic and we should show Rules as enabled
+    return hasAnyCategoryRules(policyCategories ?? undefined);
+}
+
+function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName, policyCategories?: PolicyCategories | null): boolean {
+    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED) {
+        return arePolicyRulesEnabled(policy, policyCategories);
+    }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
         return !!policy?.tax?.trackingEnabled;
     }
@@ -2645,6 +2666,7 @@ export {
     isPolicyAuditor,
     hasEligibleActiveAdminFromWorkspaces,
     isPolicyEmployee,
+    arePolicyRulesEnabled,
     isPolicyFeatureEnabled,
     isPolicyFieldListEmpty,
     getUberConnectionErrorDirectlyFromPolicy,

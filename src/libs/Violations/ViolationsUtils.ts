@@ -15,6 +15,7 @@ import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {
+    arePolicyRulesEnabled,
     getDistanceRateCustomUnitRate,
     getMatchingVendorByID,
     getPerDiemRateCustomUnitRate,
@@ -591,7 +592,11 @@ const ViolationsUtils = {
         const shouldCategoryShowOverLimitViolation =
             canCalculateAmountViolations && !isInvoiceTransaction && typeof categoryOverLimit === 'number' && expenseAmount > categoryOverLimit && isControlPolicy;
         const shouldShowMissingComment =
-            !isInvoiceTransaction && policyCategories?.[categoryName ?? '']?.areCommentsRequired && !updatedTransaction.comment?.comment && isControlPolicy && policy?.areRulesEnabled;
+            !isInvoiceTransaction &&
+            policyCategories?.[categoryName ?? '']?.areCommentsRequired &&
+            !updatedTransaction.comment?.comment &&
+            isControlPolicy &&
+            arePolicyRulesEnabled(policy, policyCategories);
         const rawAttendees = updatedTransaction.modifiedAttendees ?? updatedTransaction.comment?.attendees;
         const attendees = convertAttendeesToArray(rawAttendees);
         const isAttendeeTrackingEnabled = isAttendeeTrackingEnabledForPolicy(policy);
