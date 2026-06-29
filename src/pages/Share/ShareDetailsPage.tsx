@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import {isDraftReportSelector} from '@selectors/Report';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -54,7 +55,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [draftReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportOrAccountID}`);
+    const [isDraftReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportOrAccountID}`, {selector: isDraftReportSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const delegateAccountID = useDelegateAccountID();
 
@@ -138,7 +139,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
             fileSource,
             validateFileName,
             (file) => {
-                if (draftReport) {
+                if (isDraftReport) {
                     openReport({
                         reportID: report.reportID,
                         introSelected,

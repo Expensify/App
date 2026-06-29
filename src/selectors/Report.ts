@@ -200,6 +200,10 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
     } satisfies Record<keyof StableReport, unknown> & StableReport;
 }
 
+function isDraftReportSelector(draft: OnyxEntry<Report>): boolean {
+    return !!draft;
+}
+
 export {
     getArchiveReason,
     getReportChatType,
@@ -210,6 +214,7 @@ export {
     policyChatRoomsSelector,
     openExpenseReportIDsSelector,
     getStableReportSelector,
+    isDraftReportSelector,
 };
 
 export type {StableReport};
