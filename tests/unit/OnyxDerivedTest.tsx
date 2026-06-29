@@ -660,6 +660,86 @@ describe('OnyxDerived', () => {
             });
         });
 
+        describe('selector gating on addComment', () => {
+            const GATING_REPORT_ID = 'gating_report_1';
+            const GATING_TXN_ID = 'gating_txn_1';
+
+            beforeEach(async () => {
+                const report = createMockReport(GATING_REPORT_ID, {ownerAccountID: CURRENT_USER_ACCOUNT_ID});
+                // Seed an existing non-comment action so adding a comment is a member UPDATE the selector can gate.
+                // The policy is intentionally omitted — these tests assert reference equality of the derived value
+                // (gated vs. recomputed), not its contents, so todo eligibility is irrelevant here.
+                const reportActions: ReportActions = {
+                    created_action: {reportActionID: 'created_action', reportID: GATING_REPORT_ID, actionName: CONST.REPORT.ACTIONS.TYPE.CREATED, created: '2024-01-01 00:00:00.000'},
+                };
+                await Onyx.set(ONYXKEYS.SESSION, {email: CURRENT_USER_EMAIL, accountID: CURRENT_USER_ACCOUNT_ID});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${GATING_REPORT_ID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${GATING_TXN_ID}`, createMockTransaction(GATING_TXN_ID, GATING_REPORT_ID));
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${GATING_REPORT_ID}`, reportActions);
+                await waitForBatchedUpdates();
+            });
+
+            it('does not recompute when an addComment-style write lands (gated)', async () => {
+                const before = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+
+                // Mimic addComment: bump the report's last-activity fields and append an ADD_COMMENT action.
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${GATING_REPORT_ID}`, {
+                    lastVisibleActionCreated: '2024-06-01 12:00:00.000',
+                    lastMessageText: 'hello',
+                    lastMessageHtml: 'hello',
+                    lastActorAccountID: CURRENT_USER_ACCOUNT_ID,
+                    lastReadTime: '2024-06-01 12:00:00.000',
+                    lastActionType: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                });
+                const commentAction: ReportActions = {
+                    comment_action: {reportActionID: 'comment_action', reportID: GATING_REPORT_ID, actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '2024-06-01 12:00:00.000'},
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${GATING_REPORT_ID}`, commentAction);
+                await waitForBatchedUpdates();
+
+                // Gated: compute never ran, so Onyx still holds the exact same derived object reference.
+                expect(await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS)).toBe(before);
+            });
+
+            it('still recomputes when a todo-relevant field changes (control)', async () => {
+                const before = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+
+                // stateNum is read by the eligibility checks → not stripped by the selector → must recompute.
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${GATING_REPORT_ID}`, {
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                });
+                await waitForBatchedUpdates();
+
+                expect(await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS)).not.toBe(before);
+            });
+
+            it('does not recompute when a non-expense (chat) report changes', async () => {
+                const CHAT_REPORT_ID = 'gating_chat_1';
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, createMockReport(CHAT_REPORT_ID, {type: CONST.REPORT.TYPE.CHAT}));
+                await waitForBatchedUpdates();
+
+                const before = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+                // Fields that WOULD be relevant on an expense report — but todos ignores non-expense reports.
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, {managerID: CURRENT_USER_ACCOUNT_ID, stateNum: CONST.REPORT.STATE_NUM.SUBMITTED});
+                await waitForBatchedUpdates();
+
+                expect(await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS)).toBe(before);
+            });
+
+            it('does not recompute when managerID changes undefined -> DEFAULT_NUMBER_ID (normalized)', async () => {
+                // Seed (via set) a report with no managerID, let todos settle, then write the 0 placeholder.
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${GATING_REPORT_ID}`, createMockReport(GATING_REPORT_ID, {managerID: undefined}));
+                await waitForBatchedUpdates();
+
+                const before = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${GATING_REPORT_ID}`, {managerID: CONST.DEFAULT_NUMBER_ID});
+                await waitForBatchedUpdates();
+
+                expect(await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS)).toBe(before);
+            });
+        });
+
         describe('excludes reports with all expenses on hold', () => {
             const HELD_SUBMIT_REPORT_ID = 'held_submit_1';
             const HELD_APPROVE_REPORT_ID = 'held_approve_1';
