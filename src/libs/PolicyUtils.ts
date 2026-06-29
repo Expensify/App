@@ -572,24 +572,6 @@ function shouldShowPolicy(policy: OnyxEntry<Policy>, shouldShowPendingDeletePoli
     );
 }
 
-function getFilteredPoliciesInfo(policies: OnyxCollection<Policy>, email: string | undefined) {
-    let count = 0;
-    let firstID: string | undefined;
-    for (const policy of Object.values(policies ?? {})) {
-        if (!policy || !shouldShowPolicy(policy, false, email)) {
-            continue;
-        }
-        if (count === 0) {
-            firstID = policy.id;
-        }
-        count++;
-        if (count > 1) {
-            break;
-        }
-    }
-    return {filteredPoliciesCount: count, firstPolicyID: firstID};
-}
-
 /**
  * Checks if a specific user is a member of the policy.
  * Note that employeeList can be blank when the policy is not the user's default/active policy
@@ -2584,7 +2566,6 @@ export {
     getCommaSeparatedTagNameWithSanitizedColons,
     getConnectedIntegration,
     getConnectedIntegrationNamesForPolicies,
-    getFilteredPoliciesInfo,
     getConnectionExporters,
     findVendorByID,
     getMatchingVendorByID,

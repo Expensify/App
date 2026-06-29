@@ -1,5 +1,6 @@
 import {StackActions, useFocusEffect} from '@react-navigation/native';
 import {delegateEmailSelector} from '@selectors/Account';
+import {createFilteredPoliciesInfoSelector} from '@selectors/Policy';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -53,7 +54,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {ReportDetailsNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
-import {getFilteredPoliciesInfo, isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
+import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getReportName as getReportNameFromReportNameUtils} from '@libs/ReportNameUtils';
 import {
@@ -212,11 +213,12 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {filteredPoliciesCount, firstPolicyID} = getFilteredPoliciesInfo(allPolicies, currentUserPersonalDetails?.email);
+    const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createFilteredPoliciesInfoSelector(currentUserPersonalDetails?.email)}, [
+        currentUserPersonalDetails?.email,
+    ]);
     const {showConfirmModal} = useConfirmModal();
     const isPolicyAdmin = useMemo(() => isPolicyAdminUtil(policy), [policy]);
     const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtil(report?.policyID, policy), [report?.policyID, policy]);
@@ -519,8 +521,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                         currentUserAccountID: currentUserPersonalDetails.accountID,
                         currentUserEmail: currentUserPersonalDetails.email ?? '',
                         currentUserLocalCurrency,
-                        filteredPoliciesCount,
-                        firstPolicyID,
+                        filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
+                        firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
                     });
                 },
             });
@@ -546,8 +548,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                             currentUserAccountID: currentUserPersonalDetails.accountID,
                             currentUserEmail: currentUserPersonalDetails.email ?? '',
                             currentUserLocalCurrency,
-                            filteredPoliciesCount,
-                            firstPolicyID,
+                            filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
+                            firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
                         });
                     },
                 });
@@ -572,8 +574,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                             currentUserAccountID: currentUserPersonalDetails.accountID,
                             currentUserEmail: currentUserPersonalDetails.email ?? '',
                             currentUserLocalCurrency,
-                            filteredPoliciesCount,
-                            firstPolicyID,
+                            filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
+                            firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
                         });
                     },
                 });
@@ -717,8 +719,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         amountOwed,
         ownerBillingGracePeriodEnd,
         iouTransaction,
-        filteredPoliciesCount,
-        firstPolicyID,
+        filteredPoliciesInfo?.filteredPoliciesCount,
+        filteredPoliciesInfo?.firstPolicyID,
         parentReport,
         delegateEmail,
         conciergeReportID,

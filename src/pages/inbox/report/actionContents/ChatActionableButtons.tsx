@@ -1,3 +1,4 @@
+import {createFilteredPoliciesInfoSelector} from '@selectors/Policy';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React from 'react';
 import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
@@ -13,7 +14,6 @@ import {resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
-import {getFilteredPoliciesInfo} from '@libs/PolicyUtils';
 import {containsActionableFollowUps, parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
 import {
     getOriginalMessage,
@@ -58,8 +58,9 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const {filteredPoliciesCount, firstPolicyID} = getFilteredPoliciesInfo(policies, personalDetail.email);
+    const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createFilteredPoliciesInfoSelector(personalDetail.email)}, [personalDetail.email]);
+    const filteredPoliciesCount = filteredPoliciesInfo?.filteredPoliciesCount ?? 0;
+    const firstPolicyID = filteredPoliciesInfo?.firstPolicyID;
     const trackExpenseTransactionID = isActionableTrackExpense(action) ? getOriginalMessage(action)?.transactionID : undefined;
     const [trackExpenseTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(trackExpenseTransactionID)}`);
     const delegateAccountID = useDelegateAccountID();
