@@ -919,7 +919,6 @@ describe('Table', () => {
                 rowIndex={index}
                 disabled={item.disabled}
                 accessibilityLabel={item.name}
-                skeletonReasonAttributes={{context: 'tableTestRow'}}
             >
                 <Text testID={`name-${item.id}`}>{item.name}</Text>
             </Table.Row>

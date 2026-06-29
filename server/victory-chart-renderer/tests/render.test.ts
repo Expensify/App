@@ -60,7 +60,7 @@ describe('victory-chart-renderer CLI', () => {
                     copyFileSync(actualPath, goldenPath);
                 }
 
-                comparePng(actualPath, goldenPath, FIXTURE_EXPECTED_SIZES.get(fixtureName));
+                comparePng(actualPath, goldenPath, FIXTURE_EXPECTED_SIZES.get(fixtureName), fixtureName);
             });
         }
     });

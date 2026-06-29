@@ -7,7 +7,6 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {SecondaryActionEntry} from '@components/MoneyReportHeaderActions/types';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import Text from '@components/Text';
-import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getValidConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
@@ -21,6 +20,7 @@ import {
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
+import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import {cancelPayment, markReportPaymentReceived} from '@userActions/IOU/PayMoneyRequest';
 import {approveMoneyRequest, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
@@ -49,6 +49,7 @@ type UseLifecycleActionsParams = {
     startAnimation: () => void;
     startSubmittingAnimation: () => void;
     onHoldMenuOpen: (requestType: ActionHandledType, onConfirm?: () => void, paymentType?: PaymentMethodType) => void;
+    onCleanup?: () => void;
 };
 
 type UseLifecycleActionsResult = {
@@ -63,7 +64,7 @@ type UseLifecycleActionsResult = {
  * Provides report lifecycle transition actions (submit, approve, unapprove, cancel payment, retract, reopen)
  * and their associated guards (delegate access, hold, pending RTER, strict policy rules).
  */
-function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, startSubmittingAnimation, onHoldMenuOpen}: UseLifecycleActionsParams): UseLifecycleActionsResult {
+function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, startSubmittingAnimation, onHoldMenuOpen, onCleanup}: UseLifecycleActionsParams): UseLifecycleActionsResult {
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
@@ -179,6 +180,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         });
         if (skipAnimation) {
             clearSelectedTransactions(true);
+            onCleanup?.();
         }
     };
 
@@ -213,18 +215,16 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 delegateEmail,
                 submitterLogin,
             });
-            if (currentSearchQueryJSON && !isOffline) {
-                search({
-                    searchKey: currentSearchKey,
-                    shouldCalculateTotals,
-                    offset: 0,
-                    queryJSON: currentSearchQueryJSON,
-                    isOffline,
-                    isLoading: !!currentSearchResults?.search?.isLoading,
-                });
-            }
+            refreshSearchAfterReportAction({
+                currentSearchQueryJSON,
+                currentSearchKey,
+                shouldCalculateTotals,
+                isOffline,
+                isLoading: !!currentSearchResults?.search?.isLoading,
+            });
             if (skipAnimation) {
                 clearSelectedTransactions(true);
+                onCleanup?.();
             }
         };
 

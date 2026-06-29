@@ -1,6 +1,7 @@
 import type {Dispatch, SetStateAction} from 'react';
 import {useCallback, useEffect, useState} from 'react';
 import type {TableData, TableRow} from '@components/Table/types';
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -87,11 +88,24 @@ export default function useSelection<DataType extends TableData>({
         rangeApi.clearAnchor();
     }, [onRowSelectionChange, rangeApi]);
 
+    // Disable selection mode when the Android hardware back button is pressed
+    const androidBackButtonDisableSelectionMode = useCallback(() => {
+        if (!isSelectionModeEnabled) {
+            return false;
+        }
+
+        clearSelection();
+        turnOffMobileSelectionMode();
+        return true;
+    }, [isSelectionModeEnabled, clearSelection]);
+
+    useAndroidBackButtonHandler(androidBackButtonDisableSelectionMode);
+
     // Sync the selection mode with the screen size & selection state
     useEffect(() => {
         const isMobileMissingSelectionMode = shouldUseNarrowLayout && !isSelectionModeEnabled && selectedKeys.length;
         const isDesktopWithoutSelectableKeys = isSelectionModeEnabled && !selectableKeys.length && !shouldUseNarrowLayout;
-        const isSelectionModeEnabledWithoutSelectableKeys = isSelectionModeEnabled && !selectableKeys.length && originalSelectableCount > 0;
+        const isSelectionModeEnabledWithoutSelectableKeys = isSelectionModeEnabled && !selectableKeys.length && !originalSelectableCount;
 
         if (isMobileMissingSelectionMode) {
             turnOnMobileSelectionMode();
@@ -112,6 +126,10 @@ export default function useSelection<DataType extends TableData>({
 
     // When the table filters change, clear the current selection
     useEffect(() => clearSelection(), [currentFilters, clearSelection]);
+
+    // When the table unmounts, clear the selection. Should only run on unmount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => () => onRowSelectionChange?.([]), []);
 
     /**
      * When the select all checkbox is toggled, select or deselect all of the

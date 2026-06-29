@@ -28,7 +28,7 @@ function SelectBankStep() {
     const {isOffline} = useNetwork();
 
     const [addNewPersonalCard] = useOnyx(ONYXKEYS.ADD_NEW_PERSONAL_CARD);
-    const [bankSelected, setBankSelected] = useState<ValueOf<typeof CONST.PERSONAL_CARDS.BANKS> | null | undefined>(addNewPersonalCard?.data.selectedBank);
+    const [bankSelected, setBankSelected] = useState<ValueOf<typeof CONST.PERSONAL_CARDS.BANKS> | null | undefined>(addNewPersonalCard?.data?.selectedBank);
     const [hasError, setHasError] = useState(false);
     const isOtherBankSelected = bankSelected === CONST.PERSONAL_CARDS.BANKS.OTHER;
 
@@ -85,7 +85,7 @@ function SelectBankStep() {
                     setBankSelected(value);
                     setHasError(false);
                 }}
-                initiallyFocusedItemKey={addNewPersonalCard?.data.selectedBank ?? undefined}
+                initiallyFocusedItemKey={addNewPersonalCard?.data?.selectedBank ?? undefined}
                 confirmButtonOptions={{
                     showButton: true,
                     text: translate('common.next'),
