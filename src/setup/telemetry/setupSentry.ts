@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/react-native';
 import {isDevelopment} from '@libs/Environment/Environment';
 import {breadcrumbsIntegration, browserProfilingIntegration, consoleIntegration, navigationIntegration, reportingObserverIntegration, tracingIntegration} from '@libs/telemetry/integrations';
-import {processBeforeSendLogs, processBeforeSendTransactions} from '@libs/telemetry/middlewares';
+import {processBeforeSendErrors, processBeforeSendLogs, processBeforeSendTransactions} from '@libs/telemetry/middlewares';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import pkg from '../../../package.json';
@@ -25,6 +25,7 @@ function setupSentry(): void {
         integrations,
         environment: CONFIG.ENVIRONMENT,
         release: `${pkg.name}@${pkg.version}`,
+        beforeSend: processBeforeSendErrors,
         beforeSendTransaction: processBeforeSendTransactions,
         enableLogs: true,
         beforeSendLog: processBeforeSendLogs,
