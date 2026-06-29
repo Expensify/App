@@ -75,6 +75,7 @@ const SCREENS = {
         ADVANCED_FILTERS_CARD_RHP: 'Search_Advanced_Filters_Card_RHP',
         ADVANCED_FILTERS_TAX_RATE_RHP: 'Search_Advanced_Filters_Tax_Rate_RHP',
         ADVANCED_FILTERS_EXPENSE_TYPE_RHP: 'Search_Advanced_Filters_Expense_Type_RHP',
+        ADVANCED_FILTERS_RECEIPT_TYPE_RHP: 'Search_Advanced_Filters_Receipt_Type_RHP',
         ADVANCED_FILTERS_WITHDRAWAL_TYPE_RHP: 'Search_Advanced_Filters_Withdrawal_Type_RHP',
         ADVANCED_FILTERS_WITHDRAWAL_STATUS_RHP: 'Search_Advanced_Filters_Withdrawal_Status_RHP',
         ADVANCED_FILTERS_IS_RHP: 'Search_Advanced_Filters_Is_RHP',

@@ -3146,8 +3146,12 @@ function deleteReportComment(
     // we should navigate to its report in order to not show not found page
     if (Navigation.isActiveRoute(ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID)) && !isDeletedParentAction) {
         Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-    } else if (Navigation.isActiveRoute(ROUTES.REPORT_WITH_ID.getRoute(reportAction.childReportID)) && !isDeletedParentAction) {
-        Navigation.goBack(undefined);
+    } else if (!isDeletedParentAction && reportAction.childReportID) {
+        const isOnChildReport = Navigation.isActiveRoute(ROUTES.REPORT_WITH_ID.getRoute(reportAction.childReportID));
+        const isOnSearchChildReport = Navigation.getTopmostSearchReportRouteParams()?.reportID === reportAction.childReportID;
+        if (isOnChildReport || isOnSearchChildReport) {
+            Navigation.goBack();
+        }
     }
 }
 
