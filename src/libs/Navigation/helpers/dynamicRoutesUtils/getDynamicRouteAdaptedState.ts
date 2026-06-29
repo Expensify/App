@@ -85,7 +85,7 @@ function getDynamicRouteAdaptedState(state: PartialState<NavigationState>, focus
         const allSuffixMatches = findAllMatchingDynamicSuffixes(currentPath);
 
         for (const candidate of allSuffixMatches) {
-            const candidateBasePath = getPathWithoutDynamicSuffix(currentPath, candidate.actualSuffix, candidate.pattern);
+            const candidateBasePath = getPathWithoutDynamicSuffix(candidate.pathUsedForMatching, candidate.actualSuffix, candidate.pattern);
             if (!candidateBasePath || candidateBasePath === currentPath) {
                 continue;
             }
