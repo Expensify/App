@@ -1,10 +1,10 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import DateFilterContent from '@components/Search/FilterComponents/AdvancedFilters/DateFilterContent';
 import type {DateFilterContentWrapperProps} from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setCalendarPickerSelectedDateModifier} from '@libs/actions/CalendarPicker';
+import {clearCalendarPickerSelectedDateModifier, setCalendarPickerSelectedDateModifier} from '@libs/actions/CalendarPicker';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,6 +39,14 @@ function DateFilterContentPopupWrapper({filterKey, value, hasFeed, onChange}: Da
         requestAnimationFrame(() => setSelectedDateModifier(dateModifierToRestore));
     }, [storedDateModifier, storedYearSelection, selectedDateModifier]);
 
+    const handleDateModifierSelected = useCallback((modifier: SearchDateModifier | null) => {
+        // Leaving the sub-view (not via the year picker, which unmounts us instead) — drop the persisted breadcrumb.
+        if (!modifier) {
+            clearCalendarPickerSelectedDateModifier();
+        }
+        setSelectedDateModifier(modifier);
+    }, []);
+
     return (
         <View style={[styles.flex1, selectedDateModifier ? styles.pt2 : styles.pv2]}>
             <DateFilterContent
@@ -47,7 +55,7 @@ function DateFilterContentPopupWrapper({filterKey, value, hasFeed, onChange}: Da
                 hasFeed={hasFeed}
                 selectedDateModifier={selectedDateModifier}
                 style={[styles.flexShrink1]}
-                onDateModifierSelected={setSelectedDateModifier}
+                onDateModifierSelected={handleDateModifierSelected}
                 onChange={onChange}
             />
         </View>

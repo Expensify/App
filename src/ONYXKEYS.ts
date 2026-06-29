@@ -622,10 +622,14 @@ const ONYXKEYS = {
     /** Stores the role selected for members being imported from a spreadsheet */
     IMPORTED_SPREADSHEET_MEMBER_ROLE: 'importedSpreadsheetMemberRole',
 
-    /** Stores the year selected in the year picker so it can be read back by the CalendarPicker that opened it */
+    /** Generic, `contextID`-routed transient command: the year selected in the year picker, read back and cleared by the CalendarPicker that opened it (any host: DOB, ScheduleCall, Search) */
     CALENDAR_PICKER_SELECTED_YEAR: 'calendarPickerSelectedYear',
 
-    /** Stores the active Search date-filter sub-view (Custom date/range modifier) so the date filter can restore it after the year picker screen unmounts and remounts it */
+    /**
+     * Search-only companion to `CALENDAR_PICKER_SELECTED_YEAR`: the active Search date-filter sub-view (Custom date/range modifier).
+     * The Search popover unmounts when the year picker screen opens, so this breadcrumb lets it restore the sub-view on return.
+     * Only honoured while a `search*`-context year write-back is pending, and cleared when the user leaves the sub-view.
+     */
     CALENDAR_PICKER_SELECTED_DATE_MODIFIER: 'calendarPickerSelectedDateModifier',
 
     /** Stores the route to open after changing app permission from settings */

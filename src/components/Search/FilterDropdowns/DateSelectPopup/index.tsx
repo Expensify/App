@@ -13,7 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {setCalendarPickerSelectedDateModifier} from '@libs/actions/CalendarPicker';
+import {clearCalendarPickerSelectedDateModifier, setCalendarPickerSelectedDateModifier} from '@libs/actions/CalendarPicker';
 import getPlatform from '@libs/getPlatform';
 import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {getDateModifierTitle, getDateRangeDisplayValueFromFormValue} from '@libs/SearchQueryUtils';
@@ -107,6 +107,8 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
     }, [selectedDateModifier, setPopoverWidth]);
 
     const clearSelection = useCallback(() => {
+        // Leaving the sub-view (not via the year picker, which unmounts us instead) — drop the persisted breadcrumb.
+        clearCalendarPickerSelectedDateModifier();
         setSelectedDateModifier(null);
         setShouldShowRangeError(false);
     }, []);

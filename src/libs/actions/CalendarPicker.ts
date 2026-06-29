@@ -22,4 +22,9 @@ function setCalendarPickerSelectedDateModifier(selectedDateModifier: string) {
     Onyx.set(ONYXKEYS.CALENDAR_PICKER_SELECTED_DATE_MODIFIER, selectedDateModifier);
 }
 
-export {setCalendarPickerSelectedYear, clearCalendarPickerSelectedYear, setCalendarPickerSelectedDateModifier};
+/** Clears the stored Search date-filter sub-view once it is no longer needed (the user left the sub-view rather than opening the year picker). */
+function clearCalendarPickerSelectedDateModifier() {
+    Onyx.set(ONYXKEYS.CALENDAR_PICKER_SELECTED_DATE_MODIFIER, null);
+}
+
+export {setCalendarPickerSelectedYear, clearCalendarPickerSelectedYear, setCalendarPickerSelectedDateModifier, clearCalendarPickerSelectedDateModifier};
