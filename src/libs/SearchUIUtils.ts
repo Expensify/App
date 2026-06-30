@@ -5747,9 +5747,9 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: shouldShowReimbursableColumn,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: shouldShowBillableColumn,
-              [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: shouldShowCommentsColumn,
-              [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
           }
         : {
               [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
@@ -5817,11 +5817,12 @@ function getColumnsToShow({
             }
 
             if (shouldShowCommentsColumn && !addedColumns.has(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)) {
-                const totalIndex = result.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL);
-                if (totalIndex === -1) {
+                const moneyColumnIndexes = [result.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT), result.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL)].filter((index) => index !== -1);
+                const moneyColumnIndex = moneyColumnIndexes.length > 0 ? Math.min(...moneyColumnIndexes) : -1;
+                if (moneyColumnIndex === -1) {
                     result.push(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
                 } else {
-                    result.splice(totalIndex, 0, CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
+                    result.splice(moneyColumnIndex, 0, CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
                 }
             }
 
@@ -5926,14 +5927,13 @@ function getColumnsToShow({
             if (hasExchangeRate) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE] = true;
             }
-            // Expense report view: TOTAL (workspace currency) is always shown when a conversion
-            // exists. ORIGINAL_AMOUNT (the transaction's original/foreign amount) is a separate,
-            // user-selectable report column — in the report view it's gated behind an explicit
-            // selection (customResult) so it never renders by default, only when the user picks it.
+            // Expense report view: TOTAL_AMOUNT (transaction amount) is shown by default. TOTAL
+            // (workspace currency) is added when a conversion exists. ORIGINAL_AMOUNT is gated
+            // behind an explicit report-column selection so it never renders by default.
             // Search page: ORIGINAL_AMOUNT stays data-driven (shown whenever a conversion exists).
             if (hasExchangeRate) {
                 if (isExpenseReportView) {
-                    columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT] = true;
+                    columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL] = true;
                     if (customResult) {
                         columns[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = true;
                     }
@@ -6026,10 +6026,9 @@ function getColumnsToShow({
             CONST.SEARCH.TABLE_COLUMNS.TYPE,
             CONST.SEARCH.TABLE_COLUMNS.DATE,
             CONST.SEARCH.TABLE_COLUMNS.STATUS,
-            // TOTAL_AMOUNT (Amount) is data-driven in expense report view: shown only when a
-            // conversion exists. In search view, TOTAL_AMOUNT is always-true via the default
-            // columns map, so we don't need to list it here as non-data for either surface.
-            CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+            // TOTAL_AMOUNT (Amount) is the always-present report-view money column. TOTAL is
+            // data-driven and only appears when a conversion exists.
+            CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
             CONST.SEARCH.TABLE_COLUMNS.COMMENTS,
             CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
             CONST.SEARCH.TABLE_COLUMNS.BILLABLE,
