@@ -45,17 +45,16 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
     const {processedData} = useTableContext<ExpenseDefaultTableItem>();
     const {translate} = useLocalize();
 
-    const tableRowItem = processedData.at(rowIndex) ?? item;
-    const isDeleting = tableRowItem.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const isDeleting = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-    const accessibilityLabel = `${tableRowItem.typeLabel}. ${tableRowItem.conditionText}. ${tableRowItem.ruleDescription}`;
-    const badgeColors = tableRowItem.isRename ? theme.reportStatusBadge.approved : theme.reportStatusBadge.draft;
+    const accessibilityLabel = `${item.typeLabel}. ${item.conditionText}. ${item.ruleDescription}`;
+    const badgeColors = item.isRename ? theme.reportStatusBadge.approved : theme.reportStatusBadge.draft;
 
     const prevItem = rowIndex > 0 ? processedData.at(rowIndex - 1) : undefined;
     const hasMultipleSections = processedData.some((rule) => rule.isMerchantType) && processedData.some((rule) => !rule.isMerchantType);
-    const showSectionHeader = hasMultipleSections && (rowIndex === 0 || !!prevItem?.isMerchantType !== !!tableRowItem.isMerchantType);
+    const showSectionHeader = hasMultipleSections && (rowIndex === 0 || !!prevItem?.isMerchantType !== !!item.isMerchantType);
 
-    const lockIcon = tableRowItem.isMerchantType ? (
+    const lockIcon = item.isMerchantType ? (
         <Tooltip text={translate('common.locked')}>
             <View>
                 <Icon
@@ -73,7 +72,7 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
             {!!showSectionHeader && (
                 <View style={[styles.mh5, styles.pv2, styles.ph3, StyleUtils.getBackgroundColorStyle(theme.hoverComponentBG), rowIndex === 0 ? styles.borderBottom : styles.borderTop]}>
                     <TextWithTooltip
-                        text={tableRowItem.isMerchantType ? translate('workspace.rules.spendRules.merchantTypes') : translate('workspace.rules.spendRules.merchants')}
+                        text={item.isMerchantType ? translate('workspace.rules.spendRules.merchantTypes') : translate('workspace.rules.spendRules.merchants')}
                         style={[styles.textMicroBoldSupporting, styles.lh14]}
                     />
                 </View>
@@ -83,9 +82,9 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
                 rowIndex={rowIndex}
                 disabled={isDeleting}
                 accessibilityLabel={accessibilityLabel}
-                sentryLabel={tableRowItem.isMerchantType ? CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_TYPE_RULE_ITEM : CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_ITEM}
-                offlineWithFeedback={{pendingAction: tableRowItem.pendingAction, shouldHideOnDelete: false, errors: tableRowItem.errors, onClose: tableRowItem.onCloseError}}
-                onPress={tableRowItem.action}
+                sentryLabel={item.isMerchantType ? CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_TYPE_RULE_ITEM : CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_ITEM}
+                offlineWithFeedback={{pendingAction: item.pendingAction, shouldHideOnDelete: false, errors: item.errors, onClose: item.onCloseError}}
+                onPress={item.action}
                 checkboxReplacementElement={lockIcon}
             >
                 {({hovered}) => (
@@ -94,7 +93,7 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
                             <View style={[styles.flex1, styles.justifyContentCenter]}>
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                                     <Badge
-                                        text={tableRowItem.typeLabel}
+                                        text={item.typeLabel}
                                         icon={Expensicons.Pencil}
                                         iconFill={badgeColors.textColor}
                                         badgeStyles={[
@@ -108,13 +107,13 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
                                         isCondensed
                                     />
                                     <TextWithTooltip
-                                        text={tableRowItem.conditionText}
+                                        text={item.conditionText}
                                         numberOfLines={1}
                                         style={[styles.optionDisplayName, styles.pre, styles.flexShrink1]}
                                     />
                                 </View>
                                 <TextWithTooltip
-                                    text={tableRowItem.ruleDescription}
+                                    text={item.ruleDescription}
                                     numberOfLines={1}
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mt1]}
                                 />
@@ -125,7 +124,7 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
                             <>
                                 <View style={[styles.justifyContentCenter]}>
                                     <Badge
-                                        text={tableRowItem.typeLabel}
+                                        text={item.typeLabel}
                                         icon={Expensicons.Pencil}
                                         iconFill={badgeColors.textColor}
                                         badgeStyles={[
@@ -142,14 +141,14 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
                                 <View style={[styles.flex1]}>
                                     <TextWithTooltip
                                         numberOfLines={1}
-                                        text={tableRowItem.conditionText}
+                                        text={item.conditionText}
                                         style={[styles.lh16, styles.optionDisplayName, styles.pre]}
                                     />
                                 </View>
                                 <View style={[styles.flex1]}>
                                     <TextWithTooltip
                                         numberOfLines={1}
-                                        text={tableRowItem.ruleDescription}
+                                        text={item.ruleDescription}
                                         style={[styles.lh16, styles.optionDisplayName, styles.pre]}
                                     />
                                 </View>
