@@ -34,18 +34,18 @@ You'll receive the exported CSV file in a message from Concierge.
 
 You'll receive the exported CSV file in a message from Concierge.
 
-## How to export the columns currently displayed using Export current view
+## How to export the columns currently displayed using Current view
 
-Use **Export current view** to download a CSV that matches the columns currently shown on the **Expenses** page, instead of a fixed export template.
+Use **Current view** to download a CSV that matches the columns currently shown on the **Expenses** page, instead of a fixed export template.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend** > **Expenses**.
 2. Select **Display**, then select **Edit columns** to choose which columns appear on the page.
 3. Select the checkbox next to each expense you want to export, or use the top checkbox to select all.
 4. Select **Selected** at the top.
 5. Select **Export**.
-6. Select **Export current view**.
+6. Select **Current view**.
 
-The CSV includes one row per expense using the same columns displayed on the page. **Export current view** is not available when a **Group by** filter is applied.
+The CSV includes one row per expense using the same columns displayed on the page. **Current view** is not available when a **Group by** filter is applied.
 
 ---
 
@@ -63,7 +63,7 @@ For the Basic Export template, the file downloads directly to your device. For a
 
 ## Can I customize which columns appear in the export?
 
-Yes. Select **Export current view** to download a CSV that matches the columns currently shown on the **Expenses** page. Adjust which columns appear by selecting **Display** > **Edit columns**. You can also select a custom export template during export, if your Workspace Admin has created one.
+Yes. Select **Current view** to download a CSV that matches the columns currently shown on the **Expenses** page. Adjust which columns appear by selecting **Display** > **Edit columns**. You can also select a custom export template during export, if your Workspace Admin has created one.
 
 ## Why don't I see certain export templates?
 
