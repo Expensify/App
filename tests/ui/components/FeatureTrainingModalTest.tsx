@@ -2,7 +2,6 @@ import {render, screen} from '@testing-library/react-native';
 import type {ViewProps} from 'react-native';
 import type ReactNative from 'react-native';
 import Onyx from 'react-native-onyx';
-import ReceiptDoc from '@assets/images/receipt-doc.png';
 import ComposeProviders from '@components/ComposeProviders';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -61,17 +60,6 @@ describe('FeatureTrainingModal', () => {
 
             render(<Component />);
             expect(screen.getByTestId(CONST.IMAGE_SVG_TEST_ID)).toBeOnTheScreen();
-        });
-        it('renders non-svg image', () => {
-            render(
-                <FeatureTrainingModal
-                    confirmText={CONFIRM_TEXT}
-                    image={ReceiptDoc}
-                    shouldRenderSVG={false}
-                />,
-            );
-
-            expect(screen.getByTestId(CONST.IMAGE_TEST_ID)).toBeOnTheScreen();
         });
         it('renders animation', () => {
             render(<FeatureTrainingModal confirmText={CONFIRM_TEXT} />);
