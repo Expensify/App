@@ -391,6 +391,18 @@ function getReportPayActions(reportID: string): ReportAction[] {
     return Object.values(getAllReportActions(reportID)).filter((action): action is ReportAction => !!action && isPayAction(action));
 }
 
+// Whether every pay action on the report has a payment type the predicate accepts. Returns false when there are
+// no pay actions, since the payment type cannot be determined.
+function everyPayActionHasPaymentType(payActions: ReportAction[], matchesPaymentType: (paymentType: string | undefined) => boolean): boolean {
+    return (
+        payActions.length > 0 &&
+        payActions.every((action) => {
+            const originalMessage = getOriginalMessage(action);
+            return !!originalMessage && 'paymentType' in originalMessage && matchesPaymentType(originalMessage.paymentType);
+        })
+    );
+}
+
 function isCancelPaymentAction(
     currentAccountID: number,
     currentUserEmail: string,
@@ -417,13 +429,7 @@ function isCancelPaymentAction(
         }
 
         const payActions = getReportPayActions(report.reportID);
-        return (
-            payActions.length > 0 &&
-            payActions.every((action) => {
-                const originalMessage = getOriginalMessage(action);
-                return !!originalMessage && 'paymentType' in originalMessage && originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
-            })
-        );
+        return everyPayActionHasPaymentType(payActions, (paymentType) => paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
     }
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
@@ -435,13 +441,7 @@ function isCancelPaymentAction(
     const payActions = getReportPayActions(report.reportID);
 
     // Check if payment was made via bank account (not elsewhere)
-    // If no pay actions exist, we can't determine the payment type, so we assume it was NOT a bank payment
-    const isPaidViaBankAccount =
-        payActions.length > 0 &&
-        payActions.every((action) => {
-            const originalMessage = getOriginalMessage(action);
-            return originalMessage && 'paymentType' in originalMessage && originalMessage.paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
-        });
+    const isPaidViaBankAccount = everyPayActionHasPaymentType(payActions, (paymentType) => paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
 
     // For reports marked as paid elsewhere or when we can't determine payment type, show cancel button
     if (report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED && !isPaidViaBankAccount) {
