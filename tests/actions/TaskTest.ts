@@ -17,21 +17,24 @@ import {
     editTaskAssignee,
     getFinishOnboardingTaskOnyxData,
     getNavigationUrlOnTaskDelete,
+    getShareDestination,
 } from '@libs/actions/Task';
 import * as API from '@libs/API';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
+import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
 import {getFakeReport, getFakeReportAction} from '../utils/LHNTestUtils';
-import {getGlobalFetchMock} from '../utils/TestHelper';
+import {getGlobalFetchMock, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -1663,6 +1666,70 @@ describe('actions/Task', () => {
             const reportActions = reportActionsUpdate?.value as Record<string, ReportAction>;
             const cancelAction = Object.values(reportActions).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED);
             expect(cancelAction?.delegateAccountID).toBeUndefined();
+        });
+    });
+
+    describe('getShareDestination', () => {
+        const CURRENT_USER_ACCOUNT_ID = 1;
+        const OTHER_ACCOUNT_ID = 2;
+        const OTHER_LOGIN = 'other@example.com';
+        const localeCompare = (a: string, b: string) => a.localeCompare(b);
+        const personalDetails: PersonalDetailsList = {
+            [CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: 'current@example.com', displayName: 'Current User'},
+            [OTHER_ACCOUNT_ID]: {accountID: OTHER_ACCOUNT_ID, login: OTHER_LOGIN, displayName: 'Other User'},
+        };
+        const policy: Policy = {...createRandomPolicy(0), id: 'policy_share_destination', name: 'Test Workspace'};
+
+        beforeEach(async () => {
+            await act(async () => {
+                await Onyx.clear();
+                await Onyx.set(ONYXKEYS.SESSION, {email: 'current@example.com', accountID: CURRENT_USER_ACCOUNT_ID});
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('uses the other participant login as the subtitle for a one-on-one chat', () => {
+            // Given a one-on-one chat between the current user and another participant
+            const report = getFakeReport([CURRENT_USER_ACCOUNT_ID, OTHER_ACCOUNT_ID]);
+
+            // When the share destination is built
+            const result = getShareDestination(report, personalDetails, localeCompare, undefined, undefined, translateLocal);
+
+            // Then the subtitle is the other participant's login and the display name matches getReportName
+            expect(result.subtitle).toBe(OTHER_LOGIN);
+            expect(result.displayName).toBe(getReportName(report));
+            expect(result.shouldUseFullTitleToDisplay).toBe(ReportUtils.shouldUseFullTitleToDisplay(report));
+        });
+
+        it('uses the chat room subtitle (workspace name) for a non one-on-one chat', () => {
+            // Given an admin room tied to a workspace
+            const report = {
+                ...getFakeReport([CURRENT_USER_ACCOUNT_ID, OTHER_ACCOUNT_ID]),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                policyID: policy.id,
+            };
+
+            // When the share destination is built
+            const result = getShareDestination(report, personalDetails, localeCompare, policy, undefined, translateLocal);
+
+            // Then the subtitle falls back to the workspace name resolved by getChatRoomSubtitle
+            expect(result.subtitle).toBe(policy.name);
+            expect(result.displayName).toBe(getReportName(report));
+        });
+
+        it('returns icons and display names with tooltips for the destination report', () => {
+            // Given a one-on-one chat
+            const report = getFakeReport([CURRENT_USER_ACCOUNT_ID, OTHER_ACCOUNT_ID]);
+
+            // When the share destination is built
+            const result = getShareDestination(report, personalDetails, localeCompare, undefined, undefined, translateLocal);
+
+            // Then it includes the icons and tooltip metadata used to render the destination
+            expect(Array.isArray(result.icons)).toBe(true);
+            expect(result.icons.length).toBeGreaterThan(0);
+            expect(Array.isArray(result.displayNamesWithTooltips)).toBe(true);
         });
     });
 });
