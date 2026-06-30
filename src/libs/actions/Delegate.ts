@@ -20,7 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Delegate, DelegatedAccess, DelegateRole} from '@src/types/onyx/Account';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Session from '@src/types/onyx/Session';
-import {confirmReadyToOpenApp, openApp} from './App';
+import {openApp} from './App';
 import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 
@@ -216,7 +216,6 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                     return clearOnyxForDelegateTransition();
                 })
                 .then(() => {
-                    confirmReadyToOpenApp();
                     return openApp().then(() => {
                         if (!CONFIG.IS_HYBRID_APP || !policyID) {
                             return true;
@@ -269,7 +268,9 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    errorFields: {disconnect: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('delegate.genericError')},
+                    errorFields: {
+                        disconnect: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('delegate.genericError'),
+                    },
                 },
             },
         },
@@ -324,7 +325,14 @@ function clearDelegatorErrors({delegatedAccess}: ClearDelegatorErrorsParams) {
     if (!delegatedAccess?.delegators) {
         return;
     }
-    Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegators: delegatedAccess.delegators.map((delegator) => ({...delegator, errorFields: undefined}))}});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {
+        delegatedAccess: {
+            delegators: delegatedAccess.delegators.map((delegator) => ({
+                ...delegator,
+                errorFields: undefined,
+            })),
+        },
+    });
 }
 
 function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegateParams) {
@@ -343,7 +351,10 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
                         : {
                               ...delegate,
                               isLoading: true,
-                              pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                              pendingFields: {
+                                  email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                                  role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                              },
                               pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                           },
                 ) ?? []
@@ -356,13 +367,16 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
                 email,
                 role,
                 isLoading: true,
-                pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                pendingFields: {
+                    email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
         ];
     };
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -448,7 +462,10 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
                 email,
                 role,
                 isLoading: false,
-                pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                pendingFields: {
+                    email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
         ];
@@ -467,18 +484,17 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
         },
     ];
 
-    const optimisticResetActionCode = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: ONYXKEYS.VALIDATE_ACTION_CODE,
-        value: {
-            validateCodeSent: null,
-        },
+    const parameters: APIAddDelegateParams = {
+        delegateEmail: email,
+        validateCode,
+        role,
     };
-    optimisticData.push(optimisticResetActionCode);
 
-    const parameters: APIAddDelegateParams = {delegateEmail: email, validateCode, role};
-
-    API.write(WRITE_COMMANDS.ADD_DELEGATE, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.ADD_DELEGATE, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
 function removeDelegate({email, delegatedAccess}: RemoveDelegateParams) {
@@ -502,7 +518,10 @@ function removeDelegate({email, delegatedAccess}: RemoveDelegateParams) {
                             ? {
                                   ...delegate,
                                   pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                                  pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                                  pendingFields: {
+                                      email: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                                      role: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                                  },
                               }
                             : delegate,
                     ),
@@ -550,7 +569,11 @@ function removeDelegate({email, delegatedAccess}: RemoveDelegateParams) {
 
     const parameters: APIRemoveDelegateParams = {delegateEmail: email};
 
-    API.write(WRITE_COMMANDS.REMOVE_DELEGATE, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.REMOVE_DELEGATE, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
 function removeDelegator({email, delegatedAccess}: RemoveDelegateParams) {
@@ -574,7 +597,10 @@ function removeDelegator({email, delegatedAccess}: RemoveDelegateParams) {
                             ? {
                                   ...delegator,
                                   pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                                  pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                                  pendingFields: {
+                                      email: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                                      role: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                                  },
                               }
                             : delegator,
                     ),
@@ -622,7 +648,11 @@ function removeDelegator({email, delegatedAccess}: RemoveDelegateParams) {
 
     const parameters: APIRemoveDelegatorParams = {delegatorEmail: email};
 
-    API.write(WRITE_COMMANDS.REMOVE_DELEGATOR, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.REMOVE_DELEGATOR, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
 function clearDelegateErrorsByField({email, fieldName, delegatedAccess}: ClearDelegateErrorsByFieldParams) {
@@ -668,7 +698,9 @@ function updateDelegateRole({email, role, validateCode, delegatedAccess}: Update
                                   ...delegate,
                                   isLoading: true,
                                   pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                  pendingFields: {role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                  pendingFields: {
+                                      role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                  },
                               }
                             : delegate,
                     ),
@@ -727,11 +759,31 @@ function updateDelegateRole({email, role, validateCode, delegatedAccess}: Update
         },
     ];
 
-    const parameters: APIUpdateDelegateRoleParams = {delegateEmail: email, validateCode, role};
+    const parameters: APIUpdateDelegateRoleParams = {
+        delegateEmail: email,
+        validateCode,
+        role,
+    };
 
-    API.write(WRITE_COMMANDS.UPDATE_DELEGATE_ROLE, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_DELEGATE_ROLE, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
+/**
+ * Parameters used to restore the delegate's (copilot's) own original account when delegate mode ends - either
+ * an explicit "disconnect as delegate" or a reauth triggered by an expired delegate token (see `Reauthentication.ts`).
+ *
+ * @param authToken - Restored auth token for the original user's session.
+ * @param encryptedAuthToken - Restored encrypted auth token for the original user's session.
+ * @param accountID - The original user's account ID being restored.
+ * @param email - The original user's email being restored.
+ * @param stashedCredentials - The original user's credentials stashed on delegate entry (CREDENTIALS are wiped when connecting as a delegate), used to rebuild the session.
+ * @param stashedSession - The original user's session stashed on delegate entry; written back first because SESSION is preserved across `clearOnyxForDelegateTransition` via `KEYS_TO_PRESERVE_DELEGATE_ACCESS`.
+ * @param creationDate - Session creation date to restore so the rebuilt session keeps the correct timestamp.
+ */
 type RestoreDelegateSessionParams = {
     authToken?: string;
     encryptedAuthToken?: string;
@@ -768,7 +820,6 @@ function restoreDelegateSession({authToken, encryptedAuthToken, accountID, email
 
             NetworkStore.setIsAuthenticating(false);
 
-            confirmReadyToOpenApp();
             return openApp();
         })
         .then(() => {
