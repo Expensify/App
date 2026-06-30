@@ -7,7 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import {search} from '@libs/actions/Search';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {getAmount, getCreated, getCurrency, getMerchantName} from '@libs/TransactionUtils';
+import {getAmount, getCreated, getCurrency, getMerchantName, getTransactionPendingAction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, Transaction} from '@src/types/onyx';
@@ -58,6 +58,10 @@ type RecentlyAddedExpense = {
  * offline) is absent from it until the next successful search. To keep the slot reflecting optimistic data, any
  * locally-created expense still pending sync (`pendingAction === ADD`) is merged in and deduped against the
  * snapshot by `transactionID`. This mirrors how other transaction lists surface offline-pending rows.
+ *
+ * Offline edits and deletes mutate only the local `transactions_` copy, never the snapshot, so each row prefers
+ * its local copy when present. That keeps the displayed values fresh and lets the row render the offline pending
+ * treatment for edits (`pendingFields` -> UPDATE) and deletes (DELETE), not just creates.
  */
 function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
     const {accountID} = useCurrentUserPersonalDetails();
@@ -90,6 +94,19 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
             if (transaction?.inserted) {
                 map.set(transactionID, transaction.inserted);
             }
+        }
+        return map;
+    }, [localTransactions]);
+
+    // Maps transactionID -> local `transactions_` copy. When present it carries the freshest optimistic state
+    // (edited values and `pendingFields`) for an offline edit, which the server-backed snapshot doesn't yet reflect.
+    const localTransactionByID = useMemo(() => {
+        const map = new Map<string, Transaction>();
+        for (const [key, transaction] of Object.entries(localTransactions ?? {})) {
+            if (!transaction) {
+                continue;
+            }
+            map.set(transaction.transactionID ?? key.slice(ONYXKEYS.COLLECTION.TRANSACTION.length), transaction);
         }
         return map;
     }, [localTransactions]);
@@ -191,6 +208,10 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
             })
             .slice(0, CONST.HOME.SECTION_VISIBLE_LIMIT)
             .map((transaction) => {
+                // An offline edit only mutates the local `transactions_` copy (updated values + `pendingFields`); the
+                // snapshot keeps the stale, pre-edit copy. Prefer the local copy when present so the row reflects the
+                // edit and can render the offline pending treatment, matching how the Search transaction list behaves.
+                const sourceTransaction = localTransactionByID.get(transaction.transactionID) ?? transaction;
                 const reportType = reportTypeByReportID.get(transaction.reportID);
                 const isFromExpenseReport = reportType === CONST.REPORT.TYPE.EXPENSE;
                 // Self-DM and unreported (tracked) expenses support signed amounts like expense reports, so their
@@ -201,18 +222,20 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
                 return {
                     transactionID: transaction.transactionID,
                     reportID: transaction.reportID,
-                    created: getCreated(transaction),
-                    merchant: getMerchantName(transaction, translate),
+                    created: getCreated(sourceTransaction),
+                    merchant: getMerchantName(sourceTransaction, translate),
                     // Expense-report, self-DM, and tracked transactions are stored with an inverted sign, so the
                     // displayed amount must be negated for them (mirrors the Search transaction list).
-                    amount: getAmount(transaction, isFromExpenseReport, isFromTrackedExpense),
-                    currency: getCurrency(transaction),
+                    amount: getAmount(sourceTransaction, isFromExpenseReport, isFromTrackedExpense),
+                    currency: getCurrency(sourceTransaction),
                     threadReportID: getIOUActionForTransactionID(snapshotReportActions, transaction.transactionID)?.childReportID,
-                    pendingAction: transaction.pendingAction,
-                    transaction,
+                    // Derive from the local copy so an offline edit (which sets `pendingFields`, not `pendingAction`)
+                    // still surfaces the pending state, alongside offline creates (ADD) and deletes (DELETE).
+                    pendingAction: getTransactionPendingAction(sourceTransaction),
+                    transaction: sourceTransaction,
                 };
             });
-    }, [snapshotData, accountID, insertedByTransactionID, localPendingTransactions, translate]);
+    }, [snapshotData, accountID, insertedByTransactionID, localPendingTransactions, localTransactionByID, translate]);
 
     return {transactions};
 }

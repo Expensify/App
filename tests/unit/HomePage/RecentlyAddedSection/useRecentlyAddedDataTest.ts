@@ -256,6 +256,38 @@ describe('useRecentlyAddedData — locally pending (offline-created) expenses', 
     });
 });
 
+describe('useRecentlyAddedData — offline-edited expenses', () => {
+    it('surfaces the pending action for an expense edited offline, derived from its local pendingFields', () => {
+        // The snapshot keeps the stale, pre-edit copy; the offline edit lives only on the local `transactions_` copy.
+        setupSnapshot([makeTransaction({transactionID: 'edited', amount: 1000, merchant: 'Old Merchant', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
+        setupLocalTransactions([
+            makeTransaction({
+                transactionID: 'edited',
+                amount: 2500,
+                merchant: 'New Merchant',
+                inserted: '2026-06-01 10:00:00',
+                pendingFields: {amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            }),
+        ]);
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        // A single row (no duplicate), reflecting the optimistic edit and flagged as a pending UPDATE.
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['edited']);
+        expect(result.current.transactions.at(0)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+        expect(result.current.transactions.at(0)?.amount).toBe(2500);
+        expect(result.current.transactions.at(0)?.merchant).toBe('New Merchant');
+    });
+
+    it('leaves a fully-synced expense without a pending action', () => {
+        setupSnapshot([makeTransaction({transactionID: 'synced', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(result.current.transactions.at(0)?.pendingAction).toBeNull();
+    });
+});
+
 describe('useRecentlyAddedData — amount sign', () => {
     it('preserves the negative sign for self-DM credits/refunds', () => {
         setupSnapshot(
