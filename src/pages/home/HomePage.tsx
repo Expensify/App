@@ -85,8 +85,8 @@ function HomePage() {
                                         testID="homePageLeftColumn"
                                         style={styles.homePageLeftColumn}
                                     >
-                                        <GettingStartedSection />
                                         <TimeSensitiveSection />
+                                        <GettingStartedSection />
                                         <ForYouSection />
                                         <RecentlyAddedSection />
                                         <SpendOverTimeSection />
