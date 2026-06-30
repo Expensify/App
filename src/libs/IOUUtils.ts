@@ -329,8 +329,8 @@ function formatCurrentUserToAttendee(currentUser?: CurrentUserPersonalDetails, r
     if (!currentUser) {
         return;
     }
-    const login = currentUser.login || currentUser.email || '';
-    const displayName = currentUser.displayName || login;
+    const login = currentUser.login ? currentUser.login : (currentUser.email ?? '');
+    const displayName = currentUser.displayName ? currentUser.displayName : login;
 
     if (!login) {
         return;
