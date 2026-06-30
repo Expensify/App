@@ -23,7 +23,7 @@ import type {Delegate, DelegatedAccess, DelegateRole} from '@src/types/onyx/Acco
 import type Credentials from '@src/types/onyx/Credentials';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
-import {confirmReadyToOpenApp, openApp} from './App';
+import {openApp} from './App';
 import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
@@ -221,7 +221,6 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                     return clearOnyxForDelegateTransition();
                 })
                 .then(() => {
-                    confirmReadyToOpenApp();
                     return openApp()
                         .then(() => requestPusherReinitialize({accountID: response.accountID, email: response.email}))
                         .then(() => {
@@ -329,7 +328,6 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
                     });
                     Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
                     Onyx.set(ONYXKEYS.STASHED_SESSION, {});
-                    confirmReadyToOpenApp();
                     openApp()
                         .then(() => requestPusherReinitialize({accountID: response.requesterID, email: requesterEmail}))
                         .then(() => {
@@ -761,7 +759,6 @@ function restoreDelegateSession<TKey extends OnyxKey>(authenticateResponse: Resp
         NetworkStore.setAuthToken(authenticateResponse.authToken ?? null);
         NetworkStore.setIsAuthenticating(false);
 
-        confirmReadyToOpenApp();
         openApp();
     });
 }
