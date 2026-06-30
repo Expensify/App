@@ -844,6 +844,7 @@ const translations: TranslationDeepObject<typeof en> = {
         joinThread: 'Dołącz do wątku',
         leaveThread: 'Opuść wątek',
         copyOnyxData: 'Skopiuj dane Onyx',
+        copyAgentZeroRequestID: 'Skopiuj identyfikator żądania AgentZero',
         flagAsOffensive: 'Oznacz jako obraźliwe',
         menu: 'Menu',
     },
@@ -1341,6 +1342,9 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Czy na pewno chcesz usunąć te raporty?',
         }),
         settledExpensify: 'Zapłacono',
+        paidStatusMarkedAsPaid: 'Oznaczono jako zapłacone',
+        paidStatusWithdrawing: 'Wypłata',
+        paidStatusConfirmed: 'Potwierdzone',
         done: 'Gotowe',
         settledElsewhere: 'Opłacone gdzie indziej',
         individual: 'Osoba',
@@ -1656,6 +1660,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Przenieś do raportu',
         moveExpensesError: 'Nie możesz przenosić diet do raportów w innych przestrzeniach roboczych, ponieważ stawki diet mogą się różnić między przestrzeniami roboczymi.',
+        submitReportTo: {
+            sendExpense: 'Wyślij swój wydatek do dowolnej osoby',
+            sendExpenseSubtitle: 'Zaproś dowolną osobę do Expensify, używając jej adresu e-mail lub numeru telefonu.',
+        },
         changeApprover: {
             title: 'Zmień osobę zatwierdzającą',
             header: (workflowSettingLink: string) =>
@@ -9316,10 +9324,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         takeMeToExpensifyClassic: 'Przejdź do Expensify Classic',
         goBackJustOnce: 'Wróć tylko raz',
     },
-    listBoundary: {
-        errorMessage: 'Wystąpił błąd podczas wczytywania kolejnych wiadomości',
-        tryAgain: 'Spróbuj ponownie',
-    },
     systemMessage: {
         mergedWithCashTransaction: 'dopasowano paragon do tej transakcji',
     },
@@ -9783,7 +9787,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         expenseLevelExport: 'Wszystkie dane – poziom wydatku',
         exportInProgress: 'Trwa eksport',
         conciergeWillSend: 'Concierge wkrótce wyśle Ci plik.',
-        currentView: 'Eksportuj bieżący widok',
+        currentView: 'Bieżący widok',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',
