@@ -204,7 +204,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
             return option;
         });
 
-        if (allExpensesSelected && selectionModeReportLevelActions.length) {
+        if (allExpensesSelected) {
             return [...selectionModeReportLevelActions, ...mappedOptions];
         }
         return mappedOptions;

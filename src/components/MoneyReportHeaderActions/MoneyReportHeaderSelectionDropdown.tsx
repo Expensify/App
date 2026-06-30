@@ -295,7 +295,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
         return option;
     });
 
-    const selectedTransactionsOptions = allExpensesSelected && selectionModeReportLevelActions.length ? [...selectionModeReportLevelActions, ...mappedOptions] : mappedOptions;
+    const selectedTransactionsOptions = allExpensesSelected ? [...selectionModeReportLevelActions, ...mappedOptions] : mappedOptions;
 
     const popoverUseScrollView = shouldPopoverUseScrollView(selectedTransactionsOptions);
 
