@@ -48,9 +48,7 @@ function ForYouSection() {
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding);
-    // The onboarding NVP defaults to "completed" before its real value arrives from the server (Onyx reports the key
-    // as "loaded" with an `undefined` value straight away). Only treat the onboarding status as known once the actual
-    // value is present, so we don't flash the skeleton at onboarding users during the load window.
+    // The onboarding NVP defaults to "completed" before it loads, so only trust it once the value is present.
     const isOnboardingStatusKnown = onboarding !== undefined;
     const [hasSeenForYouTodo = false] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO);
     const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
@@ -182,8 +180,7 @@ function ForYouSection() {
 
     const isInitialLoad = !hasLoadedApp && (isLoadingApp || isLoadingReportData || reportCounts === undefined);
 
-    // Persist a one-time flag the first time an actionable to-do appears so the section stays visible
-    // permanently afterwards, even when it later goes empty (R2/D5). Harmless no-op for existing users.
+    // Persist a one-time flag the first time a to-do appears so the section stays visible even when later empty.
     useEffect(() => {
         if (isInitialLoad || !hasAnyTodos || hasSeenForYouTodo) {
             return;
