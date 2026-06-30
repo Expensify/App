@@ -150,15 +150,14 @@ function IOURequestStepAmount({
     }, [report, isSplitBill, skipConfirmation, isReportArchived]);
 
     // Pre-insert the destination report under the RHP on narrow layout for skip-confirmation
-    // PAY flows. Without this, revealRouteBeforeDismissingModal inserts the route at submit
+    // flows. Without this, revealRouteBeforeDismissingModal inserts the route at submit
     // time which causes a brief flash. The confirmation step handles its own pre-insertion
-    // but skip-confirmation PAY never mounts it.
+    // but skip-confirmation flows (PAY, track, scan, distance) never mount it.
     const hasPreInsertedReport = useRef(false);
     useEffect(() => {
-        const isPayFlow = iouType === CONST.IOU.TYPE.PAY && !isSearchTopmostFullScreenRoute();
-        const shouldPreInsert = shouldSkipConfirmation && getIsNarrowLayout() && !!report?.reportID;
+        const shouldPreInsert = shouldSkipConfirmation && !isSearchTopmostFullScreenRoute() && getIsNarrowLayout() && !!report?.reportID;
 
-        if (hasPreInsertedReport.current || !shouldPreInsert || !isPayFlow) {
+        if (hasPreInsertedReport.current || !shouldPreInsert) {
             return;
         }
         hasPreInsertedReport.current = true;
@@ -171,7 +170,7 @@ function IOURequestStepAmount({
                 Navigation.removePreInsertedFullscreenIfNeeded();
             }
         };
-    }, [shouldSkipConfirmation, iouType, report?.reportID]);
+    }, [shouldSkipConfirmation, report?.reportID]);
 
     useFocusEffect(
         useCallback(() => {
