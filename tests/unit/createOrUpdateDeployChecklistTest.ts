@@ -842,6 +842,95 @@ describe('createOrUpdateDeployChecklist', () => {
 
             mockGetDeployChecklistData.mockRestore();
         });
+
+        test('filters out stale Mobile-Expensify submodule updates predating the previous staging tag', async () => {
+            // Mirror scenario of the stale-PR test above, but for Mobile-Expensify submodule bumps.
+            //
+            // When a Mobile-Expensify submodule update is cherry-picked to staging and deployed to
+            // production, the original "Update Mobile-Expensify submodule..." commit on main re-enters
+            // the staging range via the post-deploy sync.  Before this fix, that stale submodule bump
+            // would appear in the chronological section even though it is already in production.
+            //
+            // The submodule update (version '9.3.20-0') was committed on 2024-01-05, before
+            // the previous staging tag date of 2024-01-10 — it is stale and must be excluded.
+            // The submodule update (version '9.3.21-0') was committed on 2024-01-11, after the
+            // previous staging tag — it is genuinely new and must appear.
+
+            vol.reset();
+            vol.fromJSON({
+                [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.3-0'}),
+            });
+
+            mockGetInput.mockImplementation((arg) => (arg === 'GITHUB_TOKEN' ? 'fake_token' : ''));
+            mockGetWorkflowRunURLForCommit.mockResolvedValue(undefined);
+
+            const PREVIOUS_TAG_DATE = '2024-01-10T00:00:00Z';
+            mockGetMergedPRsDeployedBetween.mockImplementation(async (fromRef, toRef, repositoryName) => {
+                if (fromRef === '1.0.2-1-staging' && toRef === '1.0.3-0-staging') {
+                    if (repositoryName === CONST.MOBILE_EXPENSIFY_REPO) {
+                        return {mergedPRs: [], submoduleUpdates: [], baseCommitDate: PREVIOUS_TAG_DATE};
+                    }
+                    return {
+                        mergedPRs: [
+                            // Genuinely new PR — commit date is after the previous staging tag.
+                            {prNumber: 10, date: '2024-01-11T00:00:00Z'},
+                        ],
+                        submoduleUpdates: [
+                            // Stale — this submodule bump was cherry-picked to staging and deployed
+                            // to production in the prior cycle.  Its date predates baseCommitDate.
+                            {version: '9.3.20-0', date: '2024-01-05T00:00:00Z', commit: 'stale000001'},
+                            // Fresh — committed after the previous staging tag, genuinely new.
+                            {version: '9.3.21-0', date: '2024-01-11T06:00:00Z', commit: 'fresh000001'},
+                        ],
+                        baseCommitDate: PREVIOUS_TAG_DATE,
+                    };
+                }
+                return {mergedPRs: [], submoduleUpdates: [], baseCommitDate: DEFAULT_BASE_COMMIT_DATE};
+            });
+
+            const mockGetDeployChecklistData = jest.spyOn(DeployChecklistUtils, 'getDeployChecklistData');
+            mockGetDeployChecklistData.mockImplementation(() => ({
+                title: 'Previous Checklist',
+                url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+                number: 29,
+                labels: [LABELS.STAGING_DEPLOY_CASH],
+                PRList: [],
+                PRListMobileExpensify: [],
+                deployBlockers: [],
+                internalQAPRList: [],
+                isTimingDashboardChecked: true,
+                isSentryChecked: true,
+                isGHStatusChecked: true,
+                version: '1.0.2-1',
+                tag: '1.0.2-1-staging',
+            }));
+
+            mockListIssues.mockImplementation((args: Arguments) => {
+                if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
+                    return Promise.resolve({
+                        data: [
+                            {
+                                number: 29,
+                                state: 'closed',
+                                labels: [LABELS.STAGING_DEPLOY_CASH],
+                            },
+                        ],
+                    });
+                }
+                return Promise.resolve({data: []});
+            });
+
+            const result = await run();
+
+            // The genuinely new PR and the fresh submodule bump must appear.
+            expect(result?.body).toContain('https://github.com/Expensify/App/pull/10');
+            expect(result?.body).toContain('9.3.21-0');
+
+            // The stale submodule bump was already deployed to production — must not appear.
+            expect(result?.body).not.toContain('9.3.20-0');
+
+            mockGetDeployChecklistData.mockRestore();
+        });
     });
 
     describe('chronological section with submodule updates', () => {

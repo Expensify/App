@@ -322,9 +322,24 @@ async function run(): Promise<IssuesCreateResponse | void> {
         // freshPREntries was already filtered to exclude both previous-checklist PRs and
         // stale cherry-picked entries, so we just need to sort it for the chronological view.
         const chronologicalPREntries = freshPREntries.sort((a, b) => a.date.localeCompare(b.date));
+
+        // Apply the same staleness filter to Mobile-Expensify submodule update commits.
+        // A submodule bump that predates the previous staging tag was cherry-picked to staging
+        // and deployed to production in a prior cycle; its commit re-enters the range via the
+        // post-deploy sync exactly like stale PR commits do.  Passing it to buildChronologicalSection
+        // unchanged would render an already-deployed submodule update in the new checklist.
+        const freshSubmoduleUpdates = baseCommitDate ? submoduleUpdates.filter((update) => update.date >= baseCommitDate) : submoduleUpdates;
+        const staleSubmoduleUpdates = submoduleUpdates.filter((update) => !freshSubmoduleUpdates.includes(update));
+        if (staleSubmoduleUpdates.length > 0) {
+            core.info(
+                `⚠️⚠️ Filtered out ${staleSubmoduleUpdates.length} submodule update(s) whose commit date predates the previous staging tag ` +
+                    `(already deployed to production via cherry-pick): ${staleSubmoduleUpdates.map((u) => u.version).join(', ')} ⚠️⚠️`,
+            );
+        }
+
         const chronologicalSection = await buildChronologicalSection({
             chronologicalPREntries,
-            submoduleUpdates,
+            submoduleUpdates: freshSubmoduleUpdates,
             mergedMobileExpensifyPREntries,
         });
 
