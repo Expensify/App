@@ -7,6 +7,7 @@ function useOnboardingStepCounter(page: OnboardingScreen): OnboardingStepResult 
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [purposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
 
     return getOnboardingStepCounter(page, {
         signupQualifier: onboarding?.signupQualifier,
@@ -15,6 +16,7 @@ function useOnboardingStepCounter(page: OnboardingScreen): OnboardingStepResult 
         purposeSelected: purposeSelected ?? undefined,
         isMergeAccountStepSkipped: onboarding?.isMergeAccountStepSkipped,
         isAccountValidated: !!account?.validated,
+        hasJoinablePolicies: Object.keys(joinablePolicies ?? {}).length > 0,
     });
 }
 

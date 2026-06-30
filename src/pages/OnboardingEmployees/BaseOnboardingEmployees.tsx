@@ -39,6 +39,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [purposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
 
     const onboardingFlowContext = useMemo(
         () => ({
@@ -48,11 +49,13 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
             purposeSelected: purposeSelected ?? undefined,
             isMergeAccountStepSkipped: onboardingValues?.isMergeAccountStepSkipped,
             isAccountValidated: !!account?.validated,
+            hasJoinablePolicies: Object.keys(joinablePolicies ?? {}).length > 0,
         }),
         [
             account?.hasAccessibleDomainPolicies,
             account?.isFromPublicDomain,
             account?.validated,
+            joinablePolicies,
             onboardingValues?.isMergeAccountStepSkipped,
             onboardingValues?.signupQualifier,
             purposeSelected,
