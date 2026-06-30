@@ -319,7 +319,7 @@
     "csv-writer": "^1.6.0",
     "diff-so-fancy": "^1.3.0",
     "dotenv": "^16.0.3",
-    "eslint": "^10.0.0",
+    "eslint": "^9.36.0",
     "eslint-config-airbnb-typescript": "^18.0.0",
     "eslint-config-expensify": "3.0.3",
     "eslint-config-prettier": "^9.1.0",
@@ -383,6 +383,8 @@
     "workbox-webpack-plugin": "^7.4.1"
   },
   "overrides": {
+    "brace-expansion@1": "1.1.12",
+    "brace-expansion@2": "2.0.2",
     "mapbox-gl": "^3.24.0",
     "babel-plugin-react-compiler": "0.0.0-experimental-a1856f3-20260422",
     "braces": "3.0.3",
