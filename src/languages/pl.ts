@@ -9299,10 +9299,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         takeMeToExpensifyClassic: 'Przejdź do Expensify Classic',
         goBackJustOnce: 'Wróć tylko raz',
     },
-    listBoundary: {
-        errorMessage: 'Wystąpił błąd podczas wczytywania kolejnych wiadomości',
-        tryAgain: 'Spróbuj ponownie',
-    },
     systemMessage: {
         mergedWithCashTransaction: 'dopasowano paragon do tej transakcji',
     },

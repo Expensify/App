@@ -9226,10 +9226,6 @@ ${reportName}`,
         takeMeToExpensifyClassic: 'Expensify Classic に移動',
         goBackJustOnce: '一度だけ戻る',
     },
-    listBoundary: {
-        errorMessage: 'さらにメッセージを読み込む際にエラーが発生しました',
-        tryAgain: '再試行',
-    },
     systemMessage: {
         mergedWithCashTransaction: 'この取引にレシートを照合しました',
     },

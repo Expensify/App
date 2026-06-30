@@ -9356,10 +9356,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         takeMeToExpensifyClassic: 'Bring mich zu Expensify Classic',
         goBackJustOnce: 'Nur dieses Mal zurück',
     },
-    listBoundary: {
-        errorMessage: 'Beim Laden weiterer Nachrichten ist ein Fehler aufgetreten',
-        tryAgain: 'Erneut versuchen',
-    },
     systemMessage: {
         mergedWithCashTransaction: 'hat eine Quittung mit dieser Transaktion abgeglichen',
     },

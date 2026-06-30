@@ -9390,10 +9390,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         takeMeToExpensifyClassic: 'M’emmener vers Expensify Classic',
         goBackJustOnce: 'Revenir une seule fois',
     },
-    listBoundary: {
-        errorMessage: 'Une erreur est survenue lors du chargement de messages supplémentaires',
-        tryAgain: 'Réessayer',
-    },
     systemMessage: {
         mergedWithCashTransaction: 'a fait correspondre un reçu à cette transaction',
     },
