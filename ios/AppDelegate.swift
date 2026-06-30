@@ -14,6 +14,32 @@ internal import Expo
 import ActivityKit
 import AirshipFrameworkProxy
 
+private enum BackupExclusionHelper {
+    private static func excludeDirectoryFromBackup(_ directoryPath: String?) {
+        guard let directoryPath, !directoryPath.isEmpty else {
+            return
+        }
+
+        var directoryURL = URL(fileURLWithPath: directoryPath, isDirectory: true)
+        var resourceValues = URLResourceValues()
+        resourceValues.isExcludedFromBackup = true
+
+        do {
+            try directoryURL.setResourceValues(resourceValues)
+        } catch {
+            NSLog("Failed to exclude \(directoryPath) from backup: \(error.localizedDescription)")
+        }
+    }
+
+    static func excludeAllAppDataFromBackup() {
+        // Covers all app data: Documents directory, Library directory, and the shared app group container.
+        let fileManager = FileManager.default
+        excludeDirectoryFromBackup(fileManager.urls(for: .documentDirectory, in: .userDomainMask).first?.path)
+        excludeDirectoryFromBackup(fileManager.urls(for: .libraryDirectory, in: .userDomainMask).first?.path)
+        excludeDirectoryFromBackup(fileManager.containerURL(forSecurityApplicationGroupIdentifier: "group.com.expensify.new")?.path)
+    }
+}
+
 @main
 class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
   var window: UIWindow?
@@ -21,6 +47,8 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
   var reactNativeFactory: RCTReactNativeFactory?
 
   override func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+    BackupExclusionHelper.excludeAllAppDataFromBackup()
+
     let appStartTimePreferencesKey = "AppStartTime"
     UserDefaults.standard.set(Date().timeIntervalSince1970 * 1000, forKey: appStartTimePreferencesKey)
     let delegate = ReactNativeDelegate()
