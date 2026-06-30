@@ -180,6 +180,7 @@ function DebugReportPage({
         priorityMode,
         draftComment,
         translate,
+        conciergeReportID,
     ]);
 
     const icons = useMemoizedLazyExpensifyIcons(['Eye']);
