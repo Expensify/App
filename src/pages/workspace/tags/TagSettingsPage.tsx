@@ -24,6 +24,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {isDisablingOrDeletingLastEnabledTag} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
+    arePolicyRulesEnabled,
     getCleanedTagName,
     getTagApproverRule,
     getTagListByOrderWeight,
@@ -203,7 +204,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                         </OfflineWithFeedback>
                     )}
 
-                    {!!policy?.areRulesEnabled && !isMultiLevelTags && (
+                    {arePolicyRulesEnabled(policy, policyData.categories) && !isMultiLevelTags && (
                         <>
                             <View style={[styles.mh5, styles.mv3, styles.pt3, styles.borderTop]}>
                                 <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.tags.tagRules')}</Text>
