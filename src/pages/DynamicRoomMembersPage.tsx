@@ -335,6 +335,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         selectedMembers,
         session?.accountID,
         icons.FallbackAvatar,
+        translate,
     ]);
 
     const dismissError = useCallback(
