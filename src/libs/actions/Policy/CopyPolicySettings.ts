@@ -1,19 +1,16 @@
+import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import {write} from '@libs/API';
 import type {CopyPolicySettingsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {generateHexadecimalValue} from '@libs/NumberUtils';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CopyPolicySettings as CopyPolicySettingsState, Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import type {CustomUnit} from '@src/types/onyx/Policy';
 
-import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
-
-import Onyx from 'react-native-onyx';
-
-type Part =
+export type Part =
     | 'overview'
     | 'currency'
     | 'members'
@@ -446,4 +443,3 @@ function copyPolicySettings(
 }
 
 export {setCopyPolicySettingsData, clearCopyPolicySettings, requestCopyPolicySettingsNotification, buildCopyPolicySettingsData, copyPolicySettings};
-export type {Part};
