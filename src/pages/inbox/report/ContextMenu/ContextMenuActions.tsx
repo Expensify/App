@@ -1452,9 +1452,9 @@ const ContextMenuActions: ContextMenuAction[] = [
         icon: 'Copy',
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: 'Checkmark',
-        shouldShow: ({type, reportAction, isProduction}) =>
+        shouldShow: ({type, reportAction, isProduction, isDebugModeEnabled}) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
-            !isProduction &&
+            (!isProduction || !!isDebugModeEnabled) &&
             !!(isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) && getOriginalMessage(reportAction)?.agentZeroRequestID),
         onPress: (closePopover, {reportAction}) => {
             const agentZeroRequestID = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) ? getOriginalMessage(reportAction)?.agentZeroRequestID : undefined;
