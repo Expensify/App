@@ -36,7 +36,7 @@ describe('navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue', () => {
 
         expect(navigationMock.dismissModal).toHaveBeenCalledTimes(1);
         expect(navigationMock.navigate).toHaveBeenCalledTimes(1);
-        expect(navigationMock.navigate).toHaveBeenCalledWith(ROUTES.HOME);
+        expect(navigationMock.navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
     });
 
     it('navigates to Workspace Categories with backTo=/workspaces when not using narrow layout', () => {
@@ -44,7 +44,10 @@ describe('navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue', () => {
 
         expect(navigationMock.dismissModal).toHaveBeenCalledTimes(1);
         expect(navigationMock.navigate).toHaveBeenCalledTimes(1);
-        expect(navigationMock.navigate).toHaveBeenCalledWith(`${ROUTES.WORKSPACE_CATEGORIES.getRoute('test-policy-id')}?backTo=${encodeURIComponent(ROUTES.WORKSPACES_LIST.route)}`);
+        expect(navigationMock.navigate).toHaveBeenCalledWith(
+            `${ROUTES.WORKSPACE_CATEGORIES.getRoute('test-policy-id')}?backTo=${encodeURIComponent(ROUTES.WORKSPACES_LIST.route)}`,
+            undefined,
+        );
     });
 
     it('navigates to Workspace Categories with backTo=WorkspaceInitial when using narrow layout', () => {
@@ -54,6 +57,7 @@ describe('navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue', () => {
         expect(navigationMock.navigate).toHaveBeenCalledTimes(1);
         expect(navigationMock.navigate).toHaveBeenCalledWith(
             `${ROUTES.WORKSPACE_CATEGORIES.getRoute('test-policy-id')}?backTo=${encodeURIComponent(ROUTES.WORKSPACE_INITIAL.getRoute('test-policy-id'))}`,
+            undefined,
         );
     });
 });
