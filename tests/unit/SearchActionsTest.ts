@@ -42,6 +42,7 @@ describe('queueExportSearchItemsToCSV', () => {
             transactionIDList: [],
             isBasicExport: true,
             exportColumnLabels: '{}',
+            exportName: 'Basic export',
         });
 
         expect(typeof exportID).toBe('string');
@@ -77,6 +78,7 @@ describe('queueExportSearchWithTemplate', () => {
                 reportIDList: [],
                 transactionIDList: [],
                 policyID: 'policy123',
+                exportName: 'Test Template',
             },
             true,
         );
@@ -109,6 +111,7 @@ describe('queueExportSearchWithTemplate', () => {
             reportIDList: [],
             transactionIDList: [],
             policyID: 'policy123',
+            exportName: 'Test Template',
         });
 
         const finalParameters = mockWrite.mock.calls.at(-1)?.at(1);

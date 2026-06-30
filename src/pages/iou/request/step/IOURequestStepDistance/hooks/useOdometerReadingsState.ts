@@ -1,6 +1,8 @@
 import {useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {isOdometerDraftPendingHydration} from '@libs/actions/OdometerTransactionUtils';
+import type {OdometerResyncState} from '@libs/OdometerUtils';
+import {isExternalOdometerResync, shouldInitializeOdometerFromTransaction} from '@libs/OdometerUtils';
 import CONST from '@src/CONST';
 import type {OdometerDraft, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -9,20 +11,23 @@ type UseOdometerReadingsStateParams = {
     /** The transaction whose odometer values seed and re-sync the local form state. */
     currentTransaction: OnyxEntry<Transaction>;
 
-    /** True when editing an existing odometer expense — re-sync runs whenever transaction values change. */
+    /** True when editing an existing odometer expense - re-sync runs whenever transaction values change. */
     isEditing: boolean;
 
     /** The currently selected distance-request-type tab; used to detect "switched away from odometer". */
     selectedTab: string | undefined;
 
-    /** True while the selected-tab Onyx key is still loading — suppresses the tab-reset effect. */
+    /** True while the selected-tab Onyx key is still loading - suppresses the tab-reset effect. */
     isLoadingSelectedTab: boolean;
 
     /** True once `useRestartOnOdometerImagesFailure` has finished verifying any blob URIs in the transaction (gates the initial-refs snapshot). */
     hasVerifiedBlobs: boolean;
 
-    /** Save-for-later draft, if any — used to defer the initial-refs snapshot until the draft has hydrated into the transaction. */
+    /** Save-for-later draft, if any - used to defer the initial-refs snapshot until the draft has hydrated into the transaction. */
     odometerDraft: OnyxEntry<OdometerDraft>;
+
+    /** Tracks whether the user has typed changes not yet written to the transaction - guards the resync from clobbering in-progress keystrokes. */
+    userHasUnsavedTypingRef: React.RefObject<boolean>;
 };
 
 type UseOdometerReadingsStateResult = {
@@ -53,22 +58,22 @@ type UseOdometerReadingsStateResult = {
     /** Tracks the latest `endReading`. */
     endReadingRef: React.RefObject<string>;
 
-    /** The start-reading value captured at mount — used by discard-changes confirmation. */
+    /** The start-reading value captured at mount - used by discard-changes confirmation. */
     initialStartReadingRef: React.RefObject<string>;
 
-    /** The end-reading value captured at mount — used by discard-changes confirmation. */
+    /** The end-reading value captured at mount - used by discard-changes confirmation. */
     initialEndReadingRef: React.RefObject<string>;
 
-    /** The start-odometer image captured at mount — used by discard-changes confirmation. */
+    /** The start-odometer image captured at mount - used by discard-changes confirmation. */
     initialStartImageRef: React.RefObject<FileObject | string | undefined>;
 
-    /** The end-odometer image captured at mount — used by discard-changes confirmation. */
+    /** The end-odometer image captured at mount - used by discard-changes confirmation. */
     initialEndImageRef: React.RefObject<FileObject | string | undefined>;
 
     /** Resets local form state and the initial refs back to their defaults. */
     resetOdometerLocalState: () => void;
 
-    /** True once the initial baseline has been captured — gates discard-changes detection. */
+    /** True once the initial baseline has been captured - gates discard-changes detection. */
     hasInitializedRefs: React.RefObject<boolean>;
 };
 
@@ -79,6 +84,7 @@ function useOdometerReadingsState({
     isLoadingSelectedTab,
     hasVerifiedBlobs,
     odometerDraft,
+    userHasUnsavedTypingRef,
 }: UseOdometerReadingsStateParams): UseOdometerReadingsStateResult {
     const [startReading, setStartReading] = useState<string>('');
     const [endReading, setEndReading] = useState<string>('');
@@ -126,8 +132,7 @@ function useOdometerReadingsState({
         prevSelectedTabRef.current = selectedTab;
     }, [selectedTab, isLoadingSelectedTab]);
 
-    // Initialize initial values refs on mount for DiscardChangesConfirmation
-    // These should never be updated after mount - they represent the "baseline" state
+    // Snapshot the baseline refs once on mount for the discard-changes diff; never update them after.
     useEffect(() => {
         if (hasInitializedRefs.current) {
             return;
@@ -137,13 +142,11 @@ function useOdometerReadingsState({
         if (!isEditing && !isOdometerTransaction) {
             return;
         }
-        // Wait for blob verification — otherwise Cmd+R would snapshot a stale blob URI before
-        // useRestartOnOdometerImagesFailure swaps in a fresh one, and the diff would look like an edit.
+        // Wait for blob verification, else Cmd+R snapshots a stale blob URI that later gets swapped, and the diff looks like an edit.
         if (!hasVerifiedBlobs) {
             return;
         }
-        // Wait for the save-for-later draft to land in the transaction; otherwise post-hydration
-        // values would later look like unsaved changes against this baseline.
+        // Wait for the save-for-later draft to land in the transaction, else hydrated values later look like unsaved changes.
         if (isOdometerDraftPendingHydration(odometerDraft, currentTransaction?.comment)) {
             return;
         }
@@ -151,12 +154,14 @@ function useOdometerReadingsState({
         const currentEnd = currentTransaction?.comment?.odometerEnd;
         const startValue = currentStart !== null && currentStart !== undefined ? currentStart.toString() : '';
         const endValue = currentEnd !== null && currentEnd !== undefined ? currentEnd.toString() : '';
+        // Snapshot the transaction as the baseline; the discard guard diffs current-vs-baseline, no edit tracking needed.
         initialStartReadingRef.current = startValue;
         initialEndReadingRef.current = endValue;
         initialStartImageRef.current = currentTransaction?.comment?.odometerStartImage;
         initialEndImageRef.current = currentTransaction?.comment?.odometerEndImage;
         hasInitializedRefs.current = true;
     }, [
+        currentTransaction?.transactionID,
         currentTransaction?.iouRequestType,
         currentTransaction?.comment,
         currentTransaction?.comment?.odometerStart,
@@ -168,37 +173,44 @@ function useOdometerReadingsState({
         odometerDraft,
     ]);
 
-    // Initialize values from transaction when editing or when transaction has data (but not when switching tabs)
-    // This updates the current state, but NOT the initial refs (those are set only once on mount)
+    // Reconcile local readings with the transaction (the source of truth), without the mount refs.
+    // Two jobs: (1) re-hydrate the inputs from the transaction when it should drive them (mount/edit/navigate-back),
+    // never clobbering in-progress typing; (2) slide the discard-changes baseline on a non-user (external) change.
     useEffect(() => {
         const currentStart = currentTransaction?.comment?.odometerStart;
         const currentEnd = currentTransaction?.comment?.odometerEnd;
+        const startValue = currentStart !== null && currentStart !== undefined ? currentStart.toString() : '';
+        const endValue = currentEnd !== null && currentEnd !== undefined ? currentEnd.toString() : '';
 
-        // Only initialize if:
-        // 1. We haven't initialized yet AND transaction has data, OR
-        // 2. We're editing and transaction has data (to load existing values), OR
-        // 3. Transaction has data but local state is empty (user navigated back from another page)
-        const hasTransactionData = (currentStart !== null && currentStart !== undefined) || (currentEnd !== null && currentEnd !== undefined);
-        const hasLocalState = startReadingRef.current || endReadingRef.current;
+        const resyncState: OdometerResyncState = {
+            transactionStartValue: startValue,
+            transactionEndValue: endValue,
+            localStartValue: startReadingRef.current,
+            localEndValue: endReadingRef.current,
+            hasTransactionData: (currentStart !== null && currentStart !== undefined) || (currentEnd !== null && currentEnd !== undefined),
+            hasLocalState: !!(startReadingRef.current || endReadingRef.current),
+            hasInitialized: hasInitializedRefs.current,
+            isUserTyping: userHasUnsavedTypingRef.current,
+            isEditing,
+        };
 
-        const shouldInitialize =
-            (!hasInitializedRefs.current && hasTransactionData) ||
-            (isEditing && hasTransactionData && !hasLocalState) ||
-            (hasTransactionData && !hasLocalState && hasInitializedRefs.current);
+        const isExternalResync = isExternalOdometerResync(resyncState);
 
-        if (shouldInitialize) {
-            const startValue = currentStart !== null && currentStart !== undefined ? currentStart.toString() : '';
-            const endValue = currentEnd !== null && currentEnd !== undefined ? currentEnd.toString() : '';
-
-            if (startValue || endValue) {
-                // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: syncing local form state from the Onyx transaction (an external source) when the user navigates back to the page
-                setStartReading(startValue);
-                setEndReading(endValue);
-                startReadingRef.current = startValue;
-                endReadingRef.current = endValue;
-            }
+        // Sync the local readings up from the transaction (but never clobber in-progress typing)
+        if (shouldInitializeOdometerFromTransaction(resyncState, isExternalResync) && (startValue || endValue)) {
+            setStartReading(startValue);
+            setEndReading(endValue);
+            startReadingRef.current = startValue;
+            endReadingRef.current = endValue;
         }
-    }, [currentTransaction?.comment?.odometerStart, currentTransaction?.comment?.odometerEnd, isEditing]);
+
+        // Slide the readings baseline on an external (non-user) reading change (e.g. draft hydration) so leaving
+        // doesn't flag it. Images aren't slid - they use a separate, never-slid, re-mint-invariant baseline.
+        if (isExternalResync) {
+            initialStartReadingRef.current = startValue;
+            initialEndReadingRef.current = endValue;
+        }
+    }, [currentTransaction?.comment?.odometerStart, currentTransaction?.comment?.odometerEnd, isEditing, userHasUnsavedTypingRef]);
 
     return {
         startReading,
