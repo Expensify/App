@@ -171,6 +171,26 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/workspaces/p123/tags/tag-create')).toBe(undefined);
     });
 
+    it('redirects old merge transaction routes to the new dynamic suffix shape', () => {
+        expect(getMatchingNewRoute('/merge/t123/receipt')).toBe('/merge/t123/merge-transaction-receipt');
+        expect(getMatchingNewRoute('/merge/t123/details')).toBe('/merge/t123/merge-transaction-details');
+        expect(getMatchingNewRoute('/merge/t123/confirmation')).toBe('/merge/t123/merge-transaction-confirmation');
+    });
+
+    it('preserves query params when redirecting old merge transaction routes', () => {
+        expect(getMatchingNewRoute('/merge/t123/receipt?isOnSearch=true')).toBe('/merge/t123/merge-transaction-receipt?isOnSearch=true');
+        expect(getMatchingNewRoute('/merge/t123/details?isOnSearch=true')).toBe('/merge/t123/merge-transaction-details?isOnSearch=true');
+        expect(getMatchingNewRoute('/merge/t123/confirmation?isOnSearch=true')).toBe('/merge/t123/merge-transaction-confirmation?isOnSearch=true');
+    });
+
+    it('does not redirect the new merge transaction dynamic routes', () => {
+        expect(getMatchingNewRoute('/merge/t123/merge-transaction-receipt')).toBe(undefined);
+        expect(getMatchingNewRoute('/merge/t123/merge-transaction-details')).toBe(undefined);
+        expect(getMatchingNewRoute('/merge/t123/receipt/merge-transaction-details')).toBe(undefined);
+        expect(getMatchingNewRoute('/merge/t123/merge-transaction-confirmation')).toBe(undefined);
+        expect(getMatchingNewRoute('/merge/t123/receipt/merge-transaction-confirmation')).toBe(undefined);
+    });
+
     it('redirects old flag comment path to report-based dynamic route', () => {
         expect(getMatchingNewRoute('/flag/123/456')).toBe('/r/123/flag/123/456');
     });
