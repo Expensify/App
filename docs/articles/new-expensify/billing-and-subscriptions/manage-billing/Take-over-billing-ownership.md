@@ -1,5 +1,5 @@
 ---
-title: How to take over billing
+title: Take over billing ownership
 description: Learn how a Workspace Admin can take over billing for a workspace and become its billing owner.
 keywords: [New Expensify, take over billing, transfer owner, billing owner, change owner, workspace owner, transfer ownership, subscription]
 internalScope: Audience is Workspace Admins who want to become the billing owner of a workspace. Covers how to take over billing from the current billing owner under Workspaces > Members. Does not cover how to configure or cancel a plan or subscription.
@@ -7,7 +7,7 @@ contentType: task
 platform: new
 ---
 
-# How to take over billing from someone else
+# Take over billing ownership
 
 Taking over billing makes you the **billing owner** of a workspace—the person whose payment card is charged for its subscription and the only one who can manage its billing settings.
 
