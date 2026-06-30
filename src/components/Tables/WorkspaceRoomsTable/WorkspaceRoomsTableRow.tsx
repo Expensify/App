@@ -51,7 +51,6 @@ function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
             interactive
             rowIndex={rowIndex}
             accessibilityLabel={item.name}
-            skeletonReasonAttributes={{context: 'WorkspaceRoomsTableRow'}}
             onPress={item.action}
         >
             {({hovered}) => (
