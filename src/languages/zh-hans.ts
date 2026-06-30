@@ -6148,6 +6148,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 one: '设为工作区管理员',
                 other: '设为工作区管理员',
             }),
+            makeGroupAdmin: () => ({
+                one: '设为管理员',
+                other: '设为管理员',
+            }),
             makeAuditor: () => ({
                 one: '设为审计员',
                 other: '创建审计员',
