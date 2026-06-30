@@ -1,6 +1,6 @@
 import {Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
-import getBoundedImageResize from '@libs/getBoundedImageResize';
+import getBoundedImageResize, {getBoundedResizeForDimensions} from '@libs/getBoundedImageResize';
 import CONST from '@src/CONST';
 
 jest.mock('react-native-image-size');
@@ -93,6 +93,48 @@ describe('getBoundedImageResize', () => {
             const result = await getBoundedImageResize('file://corrupt.heic');
 
             expect(result).toBeUndefined();
+        });
+    });
+});
+
+describe('getBoundedResizeForDimensions', () => {
+    describe('on non-iOS platforms', () => {
+        let platformReplaceProperty: jest.ReplaceProperty<string>;
+
+        beforeEach(() => {
+            platformReplaceProperty = jest.replaceProperty(Platform, 'OS', 'android');
+        });
+
+        afterEach(() => {
+            platformReplaceProperty.restore();
+        });
+
+        it('returns undefined even for an oversized image (the cap is iOS-only)', () => {
+            expect(getBoundedResizeForDimensions(8000, 6000)).toBeUndefined();
+        });
+    });
+
+    describe('on iOS', () => {
+        let platformReplaceProperty: jest.ReplaceProperty<string>;
+
+        beforeEach(() => {
+            platformReplaceProperty = jest.replaceProperty(Platform, 'OS', 'ios');
+        });
+
+        afterEach(() => {
+            platformReplaceProperty.restore();
+        });
+
+        it('returns undefined when both sides fit within the budget', () => {
+            expect(getBoundedResizeForDimensions(2000, 1500)).toBeUndefined();
+        });
+
+        it('caps the width for an oversized landscape crop', () => {
+            expect(getBoundedResizeForDimensions(8000, 6000)).toEqual({width: MAX});
+        });
+
+        it('caps the height for an oversized portrait crop', () => {
+            expect(getBoundedResizeForDimensions(6000, 8000)).toEqual({height: MAX});
         });
     });
 });
