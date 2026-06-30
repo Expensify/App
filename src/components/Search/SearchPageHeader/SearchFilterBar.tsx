@@ -1,6 +1,7 @@
 import React from 'react';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import type {DropdownButtonProps} from '@components/Search/FilterDropdowns/DropdownButton';
+import useFilterBankAccountValue from '@components/Search/hooks/useFilterBankAccountValue';
 import useFilterCardValue from '@components/Search/hooks/useFilterCardValue';
 import useFilterFeedValue from '@components/Search/hooks/useFilterFeedValue';
 import useFilterReportValue from '@components/Search/hooks/useFilterReportValue';
@@ -67,6 +68,19 @@ function CardDropdown({label, value, PopoverComponent, sentryLabel, onClosePress
     );
 }
 
+function BankAccountDropdown({label, value, PopoverComponent, sentryLabel, onClosePress}: DropdownProps) {
+    const bankAccountValue = useFilterBankAccountValue(value);
+    return (
+        <DropdownButton
+            label={label}
+            value={bankAccountValue}
+            PopoverComponent={PopoverComponent}
+            sentryLabel={sentryLabel}
+            onClosePress={onClosePress}
+        />
+    );
+}
+
 function TaxRateDropdown({label, value, PopoverComponent, sentryLabel, onClosePress}: DropdownProps) {
     const taxRateValue = useFilterTaxRateValue(value as string[]);
     return (
@@ -103,6 +117,7 @@ const FILTER_COMPONENT_MAP: Partial<Record<SearchFilter['key'], React.ComponentT
 
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED]: FeedDropdown,
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID]: CardDropdown,
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT]: BankAccountDropdown,
 
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE]: TaxRateDropdown,
 
