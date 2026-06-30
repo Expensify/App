@@ -1078,7 +1078,7 @@ describe('TSCompilerUtils', () => {
             const existingProperty = ts.factory.createPropertyAssignment('makeGroupAdmin', initializer);
             const objectLiteral = ts.factory.createObjectLiteralExpression([existingProperty]);
 
-            const newValue = ts.factory.createStringLiteral('Hacer admin');
+            const newValue = ts.factory.createStringLiteral('Updated admin');
             const updatedObject = TSCompilerUtils.injectDeepObjectValue(objectLiteral, 'makeGroupAdmin.one', newValue);
 
             const updatedProperty = updatedObject.properties.at(0) as ts.PropertyAssignment;
@@ -1099,7 +1099,7 @@ describe('TSCompilerUtils', () => {
             ) as ts.PropertyAssignment;
 
             // The targeted leaf is replaced and the sibling leaf is preserved
-            expect((oneProp.initializer as ts.StringLiteral).text).toBe('Hacer admin');
+            expect((oneProp.initializer as ts.StringLiteral).text).toBe('Updated admin');
             expect((otherProp.initializer as ts.StringLiteral).text).toBe('Make admins');
         });
 
