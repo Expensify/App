@@ -76,7 +76,6 @@ export default function WorkspaceTagsTableRow({
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
-            skeletonReasonAttributes={{context: 'workspaceTagsTableRow'}}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.ROW}
             onPress={item.action}
             offlineWithFeedback={{
