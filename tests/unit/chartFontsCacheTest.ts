@@ -96,7 +96,7 @@ describe('chartFontsCache', () => {
 
         expect(fonts.typefaces.EXP_NEUE_BOLD).toBeNull();
         expect(fonts.typefaces.EXP_NEUE).not.toBeNull();
-        expect(fonts.fontMgr).not.toBeNull();
+        expect(fonts.fontManager).not.toBeNull();
     });
 
     it('should cache partial success so getChartFontsSnapshot returns loaded typefaces', async () => {
@@ -107,7 +107,7 @@ describe('chartFontsCache', () => {
         const snapshot = getChartFontsSnapshot();
         expect(snapshot.typefaces.EXP_NEUE_BOLD).toBeNull();
         expect(snapshot.typefaces.EXP_NEUE).not.toBeNull();
-        expect(snapshot.fontMgr).not.toBeNull();
+        expect(snapshot.fontManager).not.toBeNull();
     });
 
     it('should return empty chart fonts when every asset fails to load', async () => {
@@ -117,7 +117,7 @@ describe('chartFontsCache', () => {
         const fonts = await loadChartFontsOnce();
 
         expect(Object.values(fonts.typefaces).every((typeface) => typeface === null)).toBe(true);
-        expect(fonts.fontMgr).toBeNull();
+        expect(fonts.fontManager).toBeNull();
     });
 
     it('should retry loading when every font-mgr typeface fails to load', async () => {
@@ -130,7 +130,7 @@ describe('chartFontsCache', () => {
         expect(mockFromURI).toHaveBeenCalledTimes(22);
     });
 
-    it('should not build fontMgr when only the emoji font loads', async () => {
+    it('should not build fontManager when only the emoji font loads', async () => {
         mockFromURI.mockImplementation((uri: string) => {
             const key = uri.replace('mock://font/', '');
 
@@ -144,7 +144,7 @@ describe('chartFontsCache', () => {
 
         const fonts = await loadChartFontsOnce();
 
-        expect(fonts.fontMgr).toBeNull();
+        expect(fonts.fontManager).toBeNull();
         expect(Object.values(fonts.typefaces).every((typeface) => typeface === null)).toBe(true);
     });
 });

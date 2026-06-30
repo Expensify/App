@@ -12,7 +12,7 @@ import logChartFontLoadError from './logChartFontLoadError';
 
 const EMPTY_CHART_FONTS: ChartFontsValue = {
     typefaces: Object.fromEntries((Object.keys(CHART_SKIA_TYPEFACE_ASSETS) as ChartSkiaTypefaceKey[]).map((key) => [key, null])) as ChartDefaultTypeface,
-    fontMgr: null,
+    fontManager: null,
 };
 
 let cachedChartFonts: ChartFontsValue | null = null;
@@ -61,16 +61,16 @@ async function buildChartFontsValue(typefaces: ChartDefaultTypeface): Promise<Ch
         return EMPTY_CHART_FONTS;
     }
 
-    const fontMgr = buildSkiaFontManager(typefaces);
+    const fontManager = buildSkiaFontManager(typefaces);
     const supplementalTypefaces = await loadChartTypefacesFromAssets(CHART_FONT_MGR_SUPPLEMENTAL_ASSETS, async (asset) => loadTypefaceFromAsset(asset), logChartFontLoadError);
 
     for (const [familyName, typeface] of Object.entries(supplementalTypefaces)) {
         if (typeface) {
-            fontMgr.registerFont(typeface, familyName);
+            fontManager.registerFont(typeface, familyName);
         }
     }
 
-    return {typefaces, fontMgr};
+    return {typefaces, fontManager};
 }
 
 function loadChartFonts(): Promise<ChartFontsValue> {

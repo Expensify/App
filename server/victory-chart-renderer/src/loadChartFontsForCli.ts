@@ -40,19 +40,19 @@ async function loadChartFontsForCli(): Promise<ChartFontsValue> {
     const typefaces = await loadChartTypefacesFromAssets(CHART_SKIA_TYPEFACE_ASSETS, async (asset) => loadTypefaceFromAsset(asset), logChartFontLoadError);
 
     if (!hasAnyLoadedChartTypeface(typefaces)) {
-        return {typefaces, fontMgr: null};
+        return {typefaces, fontManager: null};
     }
 
-    const fontMgr = buildSkiaFontManager(typefaces);
+    const fontManager = buildSkiaFontManager(typefaces);
     const supplementalTypefaces = await loadChartTypefacesFromAssets(CHART_FONT_MGR_SUPPLEMENTAL_ASSETS, async (asset) => loadTypefaceFromAsset(asset), logChartFontLoadError);
 
     for (const [familyName, typeface] of Object.entries(supplementalTypefaces)) {
         if (typeface) {
-            fontMgr.registerFont(typeface, familyName);
+            fontManager.registerFont(typeface, familyName);
         }
     }
 
-    return {typefaces, fontMgr};
+    return {typefaces, fontManager};
 }
 
 export default loadChartFontsForCli;
