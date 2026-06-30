@@ -4,7 +4,7 @@ import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useCallback, useDeferredValue, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ViewToken} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import {getButtonRole} from '@components/Button/utils';
@@ -33,7 +33,7 @@ import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {getInvoicePayerName, getReportName} from '@libs/ReportNameUtils';
+import {getInvoicePayerName} from '@libs/ReportNameUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
     getDisplayNameForParticipant,
@@ -64,7 +64,9 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ReportAttributesDerivedValue, Transaction} from '@src/types/onyx';
+import {reportNameSelector} from '@src/selectors/Attributes';
+import {transactionViolationsByIDsSelector} from '@src/selectors/TransactionViolations';
+import type {ReportAttributesDerivedValue, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import AccessMoneyRequestReportPreviewPlaceHolder from './AccessMoneyRequestReportPreviewPlaceHolder';
 import EmptyMoneyRequestReportPreview from './EmptyMoneyRequestReportPreview';
@@ -77,8 +79,6 @@ const ITEM_LAYOUT_TYPE = {
     PREVIEW: 'preview',
     SHOW_MORE: 'showMore',
 };
-
-const reportAttributesSelector = (c: OnyxEntry<ReportAttributesDerivedValue>) => c?.reports;
 
 function MoneyRequestReportPreviewContent({
     iouReportID,
@@ -131,8 +131,15 @@ function MoneyRequestReportPreviewContent({
 
     const shouldShowLoading =
         chatReportLoadingState != null && chatReportLoadingState.hasOnceLoadedReportActions !== true && transactions.length === 0 && !chatReportMetadata?.isOptimisticReport;
+    const transactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
+    const selectTransactionViolations = useCallback(
+        (allViolations: OnyxCollection<TransactionViolations>) => transactionViolationsByIDsSelector(transactionIDs)(allViolations),
+        [transactionIDs],
+    );
+    // Pass `transactionIDs` as a dependency so the selector re-runs once the transactions hydrate (otherwise
+    // it stays closed over the initial empty list and violations would never be selected on first load).
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: selectTransactionViolations}, [transactionIDs]);
     // `hasOnceLoadedReportActions` becomes true before transactions populate fully,
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     // so we defer the loading state update to ensure transactions are loaded
     const shouldShowLoadingDeferred = useDeferredValue(shouldShowLoading);
     const lastTransaction = transactions?.at(0);
@@ -184,12 +191,14 @@ function MoneyRequestReportPreviewContent({
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
+    const [methodID, setMethodID] = useState<number>();
     const [shouldShowPayButton, setShouldShowPayButton] = useState(false);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
 
-    const handleHoldMenuOpen = (holdRequestType: string, holdPaymentType?: PaymentMethodType, canPay?: boolean) => {
+    const handleHoldMenuOpen = (holdRequestType: string, holdPaymentType?: PaymentMethodType, canPay?: boolean, holdMethodID?: number) => {
         setRequestType(holdRequestType as ActionHandledType);
         setPaymentType(holdPaymentType);
+        setMethodID(holdMethodID);
         setShouldShowPayButton(!!canPay);
         setIsHoldMenuVisible(true);
     };
@@ -220,9 +229,11 @@ function MoneyRequestReportPreviewContent({
 
     const shouldShowRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, lastTransactionViolations);
 
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
-        selector: reportAttributesSelector,
+    const selectReportName = useCallback((attributes: OnyxEntry<ReportAttributesDerivedValue>) => reportNameSelector(attributes, iouReportID), [iouReportID]);
+    const [derivedReportName] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: selectReportName,
     });
+    const reportName = derivedReportName ?? iouReport?.reportName ?? '';
 
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
@@ -240,7 +251,7 @@ function MoneyRequestReportPreviewContent({
 
         let payerOrApproverName;
         if (isPolicyExpenseChat || isTripRoom) {
-            payerOrApproverName = getPolicyName({report: chatReport, policy});
+            payerOrApproverName = getPolicyName({report: chatReport, policy, unavailableTranslation: translate('workspace.common.unavailable')});
         } else if (isInvoiceRoom) {
             payerOrApproverName = getInvoicePayerName(chatReport, invoiceReceiverPolicy, invoiceReceiverPersonalDetail);
         } else {
@@ -669,7 +680,7 @@ function MoneyRequestReportPreviewContent({
                                                             style={[styles.headerText]}
                                                             testID="MoneyRequestReportPreview-reportName"
                                                         >
-                                                            {getReportName(iouReport, reportAttributes) || action.childReportName}
+                                                            {reportName || action.childReportName}
                                                         </Text>
                                                     </Animated.View>
                                                 </View>
@@ -743,6 +754,7 @@ function MoneyRequestReportPreviewContent({
                                                 iouReportID={iouReportID}
                                                 chatReportID={chatReportID}
                                                 chatReport={chatReport}
+                                                iouReport={iouReport}
                                                 isPaidAnimationRunning={isPaidAnimationRunning}
                                                 isApprovedAnimationRunning={isApprovedAnimationRunning}
                                                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
@@ -787,6 +799,7 @@ function MoneyRequestReportPreviewContent({
                                 onClose={() => setIsHoldMenuVisible(false)}
                                 isVisible={isHoldMenuVisible}
                                 paymentType={paymentType}
+                                methodID={methodID}
                                 chatReport={chatReport}
                                 moneyRequestReport={iouReport}
                                 transactionCount={numberOfRequests}

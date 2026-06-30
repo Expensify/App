@@ -8,7 +8,6 @@ import personalAndWorkspaceCardListConfig from './configs/personalAndWorkspaceCa
 import reportAttributesConfig from './configs/reportAttributes';
 import reportTransactionsAndViolationsConfig from './configs/reportTransactionsAndViolations';
 import sortedReportActionsConfig from './configs/sortedReportActions';
-import todosConfig from './configs/todos';
 import visibleReportActionsConfig from './configs/visibleReportActions';
 import type {OnyxDerivedValueConfig} from './types';
 
@@ -24,7 +23,6 @@ const ONYX_DERIVED_VALUES = {
     [ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST]: nonPersonalAndWorkspaceCardListConfig,
     [ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST]: personalAndWorkspaceCardListConfig,
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: cardFeedErrorsConfig,
-    [ONYXKEYS.DERIVED.TODOS]: todosConfig,
     [ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS]: sortedReportActionsConfig,
     [ONYXKEYS.DERIVED.FLAGGED_EXPENSES]: flaggedExpensesConfig,
 } as const satisfies {
