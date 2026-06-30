@@ -39,9 +39,11 @@ Flag when ALL of these are true:
 - Its only purpose is membership/lookup checks (`.has(...)`, `.includes(...)`, `[key]`) answerable O(1) directly against the raw source.
 - That structure is then passed as a function argument.
 
+Stronger signal (flag with higher confidence) when the callee runs conditionally/lazily - a `useCallback`/event handler, `useFocusEffect`, or a `useState(() => ...)` initializer - since the digest is then built on every render even when the callee, and the lookup, never run.
+
 **DO NOT flag if:**
 
-- The digest is reused across many lookups in a hot path and is built once (memoized/stable, not rebuilt every render) - a genuine precompute win.
+- The digest is queried repeatedly in a way visible in the diff (e.g. `.has(...)` inside a loop, or several distinct lookup sites against it) - a genuine precompute win. If the usage is a single pass, or the lookup site isn't visible in the diff, default to flagging.
 - The raw source isn't already available to the callee and would otherwise need its own expensive fetch.
 - The structure meaningfully reshapes data (not just a membership/lookup index) and the callee needs the whole thing.
 
@@ -53,3 +55,6 @@ Flag when ALL of these are true:
 - `\.includes\(`
 - `useMemo`
 - `useOnyx\(ONYXKEYS\.COLLECTION\.`
+- `useCallback`
+- `useFocusEffect`
+- `useState\(\(\) =>`
