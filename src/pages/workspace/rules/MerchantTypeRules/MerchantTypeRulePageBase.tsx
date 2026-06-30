@@ -17,8 +17,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {clearDraftMerchantTypeRule, setDraftMerchantTypeRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {getDefaultMccGroupCategory, getMerchantTypeDisplayName, getMerchantTypeRuleFormFromMccGroup, isDefaultMccGroupID, saveMerchantTypeRule} from '@libs/MerchantTypeRulesUtils';
+import {getDefaultMccGroupCategory, getMerchantTypeRuleFormFromMccGroup, isDefaultMccGroupID, saveMerchantTypeRule} from '@libs/MerchantTypeRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getMccGroupDisplayName} from '@libs/PolicyRulesUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
@@ -58,7 +59,7 @@ function MerchantTypeRulePageBase({policyID, groupID, testID}: MerchantTypeRuleP
 
     const mccGroup = policy?.mccGroup;
     const currentCategory = mccGroup?.[groupID]?.category ?? getDefaultMccGroupCategory(groupID);
-    const merchantTypeDisplayName = getMerchantTypeDisplayName(groupID);
+    const merchantTypeDisplayName = getMccGroupDisplayName(groupID);
     const categoryDisplayName = form?.[CONST.MERCHANT_TYPE_RULE.FIELDS.CATEGORY] ? getDecodedCategoryName(form[CONST.MERCHANT_TYPE_RULE.FIELDS.CATEGORY]) : undefined;
 
     useEffect(() => () => clearDraftMerchantTypeRule(), []);

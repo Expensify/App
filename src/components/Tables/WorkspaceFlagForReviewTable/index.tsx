@@ -1,5 +1,5 @@
 import React from 'react';
-import WorkspaceCategoryRulesTable from '@components/Tables/WorkspaceCategoryRulesTable';
+import WorkspaceCategoryRulesTable, {type CategoryRulesTableRenderRowProps} from '@components/Tables/WorkspaceCategoryRulesTable';
 import useLocalize from '@hooks/useLocalize';
 import type {FlagForReviewTableItem} from '@libs/FlagForReviewRulesUtils';
 import WorkspaceFlagForReviewTableRow from './WorkspaceFlagForReviewTableRow';
@@ -15,7 +15,7 @@ type WorkspaceFlagForReviewTableProps = {
 function WorkspaceFlagForReviewTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, emptyStateContent}: WorkspaceFlagForReviewTableProps) {
     const {translate} = useLocalize();
 
-    const renderRow = ({item, rowIndex, shouldUseNarrowTableLayout}: {item: FlagForReviewTableItem; rowIndex: number; shouldUseNarrowTableLayout: boolean}) => (
+    const renderRow = ({item, rowIndex, shouldUseNarrowTableLayout}: CategoryRulesTableRenderRowProps<FlagForReviewTableItem>) => (
         <WorkspaceFlagForReviewTableRow
             key={item.ruleID}
             item={item}

@@ -20,6 +20,12 @@ type CategoryRulesTableItem = TableData & {
     searchTokens: string[];
 };
 
+type CategoryRulesTableRenderRowProps<TItem extends CategoryRulesTableItem> = {
+    item: TItem;
+    rowIndex: number;
+    shouldUseNarrowTableLayout: boolean;
+};
+
 type WorkspaceCategoryRulesTableProps<TItem extends CategoryRulesTableItem> = {
     rulesData: TItem[];
     selectionEnabled: boolean;
@@ -31,7 +37,7 @@ type WorkspaceCategoryRulesTableProps<TItem extends CategoryRulesTableItem> = {
     typeColumnLabel: string;
     conditionColumnLabel: string;
     ruleColumnLabel: string;
-    renderRow: (props: {item: TItem; rowIndex: number; shouldUseNarrowTableLayout: boolean}) => React.ReactElement;
+    renderRow: (props: CategoryRulesTableRenderRowProps<TItem>) => React.ReactElement;
 };
 
 function WorkspaceCategoryRulesTable<TItem extends CategoryRulesTableItem>({
@@ -121,3 +127,4 @@ function WorkspaceCategoryRulesTable<TItem extends CategoryRulesTableItem>({
 }
 
 export default WorkspaceCategoryRulesTable;
+export type {CategoryRulesTableRenderRowProps};
