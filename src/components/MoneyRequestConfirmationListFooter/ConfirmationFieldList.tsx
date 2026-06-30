@@ -51,9 +51,6 @@ type ConfirmationFieldListProps = {
 
     /** Compact-mode bookkeeping */
     compactState: CompactState;
-
-    /** Triggers submit from inline inputs */
-    onSubmitForm?: () => void;
 };
 
 function ConfirmationFieldList({
@@ -67,7 +64,6 @@ function ConfirmationFieldList({
     errorState,
     toggleHandlers,
     compactState,
-    onSubmitForm,
 }: ConfirmationFieldListProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -142,7 +138,6 @@ function ConfirmationFieldList({
                 iouCurrencyCode={flags.iouCurrencyCode}
                 isCompactMode={compactState.isCompactMode}
                 fieldVisibility={fieldVisibility}
-                onSubmitForm={onSubmitForm}
                 isParticipantPickerVisible={visibilityFlags.isParticipantPickerVisible}
             />
 
