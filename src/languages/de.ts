@@ -8303,7 +8303,14 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `Ausgaberegel von ${cards}`,
                 composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} auf ${cards}`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} von ${cards}`,
+                bodyCurrency: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} Währung „${value}“` : `Währung „${value}“`),
+                bodyCurrencyValueOnly: ({value}: {value: string}) => `'${value}'`,
+                bodyCurrencyChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} Währung von „${oldValue}“ zu „${newValue}“` : `Währung von „${oldValue}“ zu „${newValue}“`,
+                bodyCurrencyRestriction: 'die Währungsbeschränkung',
             },
+            allowedCurrencyFilters: ({currencies}: {currencies: string}) => `Währungen ${currencies}`,
+            blockedCurrencyFilters: ({currencies}: {currencies: string}) => `Währungen, die nicht in ${currencies} sind`,
         },
         updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
             `hat den Standardsteuersatz der Kategorie „${categoryName}“ auf „${newTax}“ geändert (zuvor „${oldTax}“)`,
