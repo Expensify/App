@@ -1,6 +1,7 @@
-import type {Context, RefObject} from 'react';
+import type {Context} from 'react';
 import {createContext, useContext} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -55,6 +56,7 @@ type ReportPreviewCarouselList = Pick<
 type ReportPreviewActions = {
     openReportFromPreview: () => void;
     onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => void;
+    onHoldMenuClose: () => void;
     onPaymentOptionsShow?: () => void;
     onPaymentOptionsHide?: () => void;
     stopAnimation: () => void;
@@ -65,14 +67,15 @@ type ReportPreviewActions = {
     goToNext: () => void;
 };
 
-/** Imperative handle exposed by the hold menu so the sibling action button can open it. */
-type ReportPreviewHoldMenuHandle = {
-    open: (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => void;
+type ReportPreviewHoldMenuState = {
+    requestType: ActionHandledType;
+    paymentType: PaymentMethodType | undefined;
+    canPay: boolean;
+    methodID: number | undefined;
 };
 
 type ReportPreviewMeta = {
     setCarouselRef: ReturnType<typeof useReportPreviewCarousel>['setCarouselRef'];
-    holdMenuRef: RefObject<ReportPreviewHoldMenuHandle | null>;
 };
 
 const ReportPreviewCarouselStateContext = createContext<ReportPreviewCarouselState | undefined>(undefined);
@@ -81,6 +84,7 @@ const ReportPreviewDataContext = createContext<ReportPreviewData | undefined>(un
 const ReportPreviewUIStateContext = createContext<ReportPreviewUIState | undefined>(undefined);
 const ReportPreviewCarouselListContext = createContext<ReportPreviewCarouselList | undefined>(undefined);
 const ReportPreviewActionsContext = createContext<ReportPreviewActions | undefined>(undefined);
+const ReportPreviewHoldMenuContext = createContext<ReportPreviewHoldMenuState | null | undefined>(undefined);
 const ReportPreviewMetaContext = createContext<ReportPreviewMeta | undefined>(undefined);
 
 function useSliceContext<T>(context: Context<T | undefined>, name: string): T {
@@ -97,6 +101,13 @@ const useReportPreviewData = () => useSliceContext(ReportPreviewDataContext, 'us
 const useReportPreviewUIState = () => useSliceContext(ReportPreviewUIStateContext, 'useReportPreviewUIState');
 const useReportPreviewCarouselList = () => useSliceContext(ReportPreviewCarouselListContext, 'useReportPreviewCarouselList');
 const useReportPreviewActions = () => useSliceContext(ReportPreviewActionsContext, 'useReportPreviewActions');
+const useReportPreviewHoldMenu = () => {
+    const value = useContext(ReportPreviewHoldMenuContext);
+    if (value === undefined) {
+        throw new Error('useReportPreviewHoldMenu must be used within a MoneyRequestReportPreviewProvider');
+    }
+    return value;
+};
 const useReportPreviewMeta = () => useSliceContext(ReportPreviewMetaContext, 'useReportPreviewMeta');
 
 export {
@@ -106,6 +117,7 @@ export {
     ReportPreviewUIStateContext,
     ReportPreviewCarouselListContext,
     ReportPreviewActionsContext,
+    ReportPreviewHoldMenuContext,
     ReportPreviewMetaContext,
     useReportPreviewCarouselState,
     useReportPreviewAnimationState,
@@ -113,6 +125,6 @@ export {
     useReportPreviewUIState,
     useReportPreviewCarouselList,
     useReportPreviewActions,
+    useReportPreviewHoldMenu,
     useReportPreviewMeta,
 };
-export type {ReportPreviewHoldMenuHandle};

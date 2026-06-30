@@ -1,7 +1,8 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {ListRenderItem} from '@shopify/flash-list';
-import React, {useCallback, useDeferredValue, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useDeferredValue, useMemo, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -35,10 +36,10 @@ import {
     ReportPreviewCarouselListContext,
     ReportPreviewCarouselStateContext,
     ReportPreviewDataContext,
+    ReportPreviewHoldMenuContext,
     ReportPreviewMetaContext,
     ReportPreviewUIStateContext,
 } from './MoneyRequestReportPreviewContext';
-import type {ReportPreviewHoldMenuHandle} from './MoneyRequestReportPreviewContext';
 import type {MoneyRequestReportPreviewStyleType} from './types';
 import usePreviewMessageAnimation from './usePreviewMessageAnimation';
 import useReportPreviewCarousel from './useReportPreviewCarousel';
@@ -95,6 +96,12 @@ function MoneyRequestReportPreviewProvider({
         const pending = getPendingSubmitFollowUpAction();
         return pending?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT && (pending?.reportID === chatReportID || pending?.reportID === iouReportID);
     });
+    const [holdMenu, setHoldMenu] = useState<{
+        requestType: ActionHandledType;
+        paymentType: PaymentMethodType | undefined;
+        canPay: boolean;
+        methodID: number | undefined;
+    } | null>(null);
 
     useFocusEffect(
         useCallback(() => {
@@ -232,10 +239,13 @@ function MoneyRequestReportPreviewProvider({
         }
     }, [iouReportID, isSmallScreenWidth]);
 
-    const holdMenuRef = useRef<ReportPreviewHoldMenuHandle>(null);
     const onHoldMenuOpen = useCallback((requestType: string, paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => {
-        holdMenuRef.current?.open(requestType, paymentType, canPay, methodID);
+        if (requestType !== CONST.IOU.REPORT_ACTION_TYPE.PAY && requestType !== CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
+            return;
+        }
+        setHoldMenu({requestType, paymentType, canPay: !!canPay, methodID});
     }, []);
+    const onHoldMenuClose = useCallback(() => setHoldMenu(null), []);
 
     const shouldShowCarouselArrows = !shouldUseNarrowLayout && !shouldShowAccessPlaceHolder && transactions.length > 2 && reportPreviewStyles.expenseCountVisible;
 
@@ -260,6 +270,7 @@ function MoneyRequestReportPreviewProvider({
     const actionsValue = {
         openReportFromPreview,
         onHoldMenuOpen,
+        onHoldMenuClose,
         onPaymentOptionsShow,
         onPaymentOptionsHide,
         stopAnimation,
@@ -269,7 +280,7 @@ function MoneyRequestReportPreviewProvider({
         goToPrevious,
         goToNext,
     };
-    const metaValue = {setCarouselRef, holdMenuRef};
+    const metaValue = {setCarouselRef};
 
     return (
         <ReportPreviewDataContext.Provider value={dataValue}>
@@ -278,7 +289,9 @@ function MoneyRequestReportPreviewProvider({
                     <ReportPreviewAnimationStateContext.Provider value={animationStateValue}>
                         <ReportPreviewCarouselListContext.Provider value={carouselList}>
                             <ReportPreviewActionsContext.Provider value={actionsValue}>
-                                <ReportPreviewMetaContext.Provider value={metaValue}>{children}</ReportPreviewMetaContext.Provider>
+                                <ReportPreviewHoldMenuContext.Provider value={holdMenu}>
+                                    <ReportPreviewMetaContext.Provider value={metaValue}>{children}</ReportPreviewMetaContext.Provider>
+                                </ReportPreviewHoldMenuContext.Provider>
                             </ReportPreviewActionsContext.Provider>
                         </ReportPreviewCarouselListContext.Provider>
                     </ReportPreviewAnimationStateContext.Provider>

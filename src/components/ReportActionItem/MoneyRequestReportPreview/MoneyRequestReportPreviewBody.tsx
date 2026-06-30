@@ -15,7 +15,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import {useReportPreviewActions, useReportPreviewAnimationState, useReportPreviewData, useReportPreviewMeta, useReportPreviewUIState} from './MoneyRequestReportPreviewContext';
+import {useReportPreviewActions, useReportPreviewAnimationState, useReportPreviewData, useReportPreviewUIState} from './MoneyRequestReportPreviewContext';
 import ReportPreviewActionButton from './ReportPreviewActionButton';
 import ReportPreviewHeader from './ReportPreviewHeader';
 import ReportPreviewHoldMenu from './ReportPreviewHoldMenu';
@@ -73,7 +73,6 @@ function MoneyRequestReportPreviewBody({
     const {isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning} = useReportPreviewAnimationState();
     const {openReportFromPreview, onHoldMenuOpen, onPaymentOptionsShow, onPaymentOptionsHide, stopAnimation, startAnimation, startApprovedAnimation, startSubmittingAnimation} =
         useReportPreviewActions();
-    const {holdMenuRef} = useReportPreviewMeta();
 
     const isReportDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const totalAmountStyle = shouldUseNarrowLayout ? [styles.flexColumnReverse, styles.alignItemsStretch] : [styles.flexRow, styles.alignItemsCenter];
@@ -158,7 +157,7 @@ function MoneyRequestReportPreviewBody({
                         </View>
                     </PressableWithoutFeedback>
                 </View>
-                <ReportPreviewHoldMenu ref={holdMenuRef} />
+                <ReportPreviewHoldMenu />
             </OfflineWithFeedback>
         </View>
     );

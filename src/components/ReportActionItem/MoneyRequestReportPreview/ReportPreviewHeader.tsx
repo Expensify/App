@@ -31,14 +31,14 @@ function ReportPreviewHeader() {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'BackArrow']);
-    const {iouReport, action, transactions} = useReportPreviewData();
+    const {iouReportID, iouReport, action, transactions} = useReportPreviewData();
     const {previewMessageStyle, shouldShowSkeleton, showStatusAndSkeleton, skeletonReasonAttributes, shouldShowEmptyPlaceholder, shouldShowAccessPlaceHolder, shouldShowCarouselArrows} =
         useReportPreviewUIState();
     const {isPreviousDisabled, isNextDisabled} = useReportPreviewCarouselState();
     const {goToPrevious, goToNext} = useReportPreviewActions();
     const numberOfRequests = transactions.length;
 
-    const selectReportName = useCallback((attributes: OnyxEntry<ReportAttributesDerivedValue>) => reportNameSelector(attributes, iouReport?.reportID), [iouReport?.reportID]);
+    const selectReportName = useCallback((attributes: OnyxEntry<ReportAttributesDerivedValue>) => reportNameSelector(attributes, iouReportID), [iouReportID]);
     const [derivedReportName] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: selectReportName});
     const reportName = derivedReportName ?? iouReport?.reportName ?? '';
 
