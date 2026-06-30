@@ -28,8 +28,11 @@ import useReportScrollManager from './useReportScrollManager';
 import useScrollToEndOnNewMessageReceived from './useScrollToEndOnNewMessageReceived';
 
 type UseReportActionsScrollParams = {
+    /** The ID of the report currently being looked at */
+    reportID: string;
+
     /** The report currently being looked at */
-    report: OnyxTypes.Report;
+    report: OnyxEntry<OnyxTypes.Report>;
 
     /** The transaction thread report associated with the current report, if any */
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -112,6 +115,7 @@ type UseReportActionsScrollResult = {
 };
 
 function useReportActionsScroll({
+    reportID,
     report,
     transactionThreadReport,
     parentReportAction,
@@ -127,7 +131,6 @@ function useReportActionsScroll({
     treatAsNoPaginationAnchor,
     setTreatAsNoPaginationAnchor,
 }: UseReportActionsScrollParams): UseReportActionsScrollResult {
-    const reportID = report.reportID;
     const reportScrollManager = useReportScrollManager();
     const {scrollOffsetRef} = useContext(ActionListContext);
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();

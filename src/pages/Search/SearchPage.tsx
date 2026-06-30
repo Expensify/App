@@ -3,7 +3,6 @@ import Animated from 'react-native-reanimated';
 import {useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SearchParams} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
-import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import useLocalize from '@hooks/useLocalize';
@@ -43,7 +42,6 @@ function SearchPage({route}: SearchPageProps) {
 
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
 
-    useConfirmReadyToOpenApp();
     useSearchPageSetup(currentSearchQueryJSON);
 
     // Adjust state during rendering rather than in a useEffect: the value is consumed in the same
