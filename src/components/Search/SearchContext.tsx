@@ -54,7 +54,6 @@ export {
     SearchResultsActionsContext,
     SearchSelectionContext,
     SearchSelectionActionsContext,
-    SearchShiftRangeChildrenContext,
     useSearchQueryContext,
     useSearchQueryActions,
     useSearchResultsContext,
