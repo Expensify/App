@@ -89,10 +89,6 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
             onRowSelectionChange={onRowSelectionChange}
         >
             <Table.FilterBar label={translate('workspace.taxes.findTaxRate')} />
-            <Table.EmptyState
-                title="No taxes yet"
-                subtitle="Try creating one"
-            />
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
