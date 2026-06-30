@@ -39,7 +39,7 @@ function SearchAdvancedFiltersContentBase() {
     const validFilterKey = isFilterKeyValid(filterKey) ? filterKey : undefined;
 
     const goBack = () => {
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
     return (
