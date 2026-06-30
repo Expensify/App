@@ -131,16 +131,29 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowRece
             </>
         );
 
+    // A pending-delete expense is on its way out, so its row must not navigate anywhere (offline it stays
+    // visible with strikethrough; online OfflineWithFeedback hides it entirely).
+    const isPendingDelete = expense.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
     return (
         <OfflineWithFeedback pendingAction={expense.pendingAction}>
             <PressableWithFeedback
                 testID={`recentlyAddedRow-${expense.transactionID}`}
                 accessibilityLabel={expense.merchant}
                 sentryLabel="RecentlyAddedRow"
-                onPress={onPress}
+                onPress={isPendingDelete ? () => {} : onPress}
                 wrapperStyle={styles.w100}
                 hoverStyle={styles.hoveredComponentBG}
-                style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, styles.ph3, styles.w100, shouldShowSeparator && styles.borderBottom]}
+                style={[
+                    styles.flexRow,
+                    styles.alignItemsCenter,
+                    styles.gap3,
+                    styles.pv3,
+                    styles.ph3,
+                    styles.w100,
+                    shouldShowSeparator && styles.borderBottom,
+                    isPendingDelete && styles.cursorDefault,
+                ]}
             >
                 {({hovered}) => renderRowContent(hovered)}
             </PressableWithFeedback>
