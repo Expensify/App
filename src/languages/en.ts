@@ -879,6 +879,7 @@ const translations = {
         joinThread: 'Join thread',
         leaveThread: 'Leave thread',
         copyOnyxData: 'Copy Onyx data',
+        copyAgentZeroRequestID: 'Copy AgentZero request ID',
         flagAsOffensive: 'Flag as offensive',
         menu: 'Menu',
     },
@@ -9893,7 +9894,7 @@ const translations = {
     },
     export: {
         basicExport: 'Basic export',
-        currentView: 'Export current view',
+        currentView: 'Current view',
         reportLevelExport: 'All Data - report level',
         expenseLevelExport: 'All Data - expense level',
         exportInProgress: 'Export in progress',

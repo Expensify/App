@@ -27,6 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {
+    arePolicyRulesEnabled,
     canPolicyAccessFeature,
     getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
@@ -109,6 +110,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const isUberConnected = useIsPolicyConnectedToUberReceiptPartner({policyID});
     const [cardFeeds] = useCardFeeds(policyID);
     const policyData = usePolicyData(policyID);
+    const {categories: policyCategories} = policyData;
     const defaultFundID = useDefaultFundID(policyID);
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -462,7 +464,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             icon={illustrations.Rules}
                             title={translate('workspace.moreFeatures.rules.title')}
                             subtitle={translate('workspace.moreFeatures.rules.subtitle')}
-                            isActive={policy?.areRulesEnabled ?? false}
+                            isActive={arePolicyRulesEnabled(policy, policyCategories)}
                             pendingAction={policy?.pendingFields?.areRulesEnabled}
                             disabled={!canWriteMoreFeatures}
                             disabledAction={withReadOnlyFallback()}
