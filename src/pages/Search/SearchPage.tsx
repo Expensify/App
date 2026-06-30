@@ -15,7 +15,7 @@ import useSearchOverlay from '@hooks/useSearchOverlay';
 import useSearchPageSetup from '@hooks/useSearchPageSetup';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
-import {search} from '@libs/actions/Search';
+import {clearFooterConversion, search} from '@libs/actions/Search';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -87,6 +87,9 @@ function SearchPage({route}: SearchPageProps) {
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Converted footer totals are ephemeral, session-scoped display data, so drop them when leaving Search.
+    useEffect(() => () => clearFooterConversion(), []);
 
     const prevIsLoading = usePrevious(currentSearchResults?.isLoading);
 

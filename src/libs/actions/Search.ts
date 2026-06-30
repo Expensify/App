@@ -76,6 +76,7 @@ import type {
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {AnyOnyxUpdate, OnyxData} from '@src/types/onyx/Request';
+import type SearchFooterConversion from '@src/types/onyx/SearchFooterConversion';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
@@ -949,6 +950,61 @@ function search({
     return waitForWrites(READ_COMMANDS.SEARCH).then(startRequest);
 }
 
+/**
+ * Fetches converted footer-total figures for the Search footer currency picker. The Auth command merges the
+ * results into the SEARCH_FOOTER_CONVERSION cache via onyxData (nested under the target currency), leaving the
+ * live search snapshot untouched:
+ *  - transactionIDList: each transaction's converted amount.
+ *  - reportIDList: each report's converted total (the Reports search).
+ *  - neither: the whole-search converted total/count + the first page's per-transaction amounts.
+ * Callers should check the cache first to avoid redundant requests.
+ */
+function getFooterConvertedAmounts({
+    queryJSON,
+    targetCurrency,
+    transactionIDList,
+    reportIDList,
+    sources,
+}: {
+    queryJSON: Readonly<SearchQueryJSON>;
+    targetCurrency: string;
+    transactionIDList?: string;
+    reportIDList?: string;
+    /** Default-currency source figures to stamp the requested conversions against (for stale detection on edit). */
+    sources?: SearchFooterConversion['sources'];
+}) {
+    if (!targetCurrency) {
+        return;
+    }
+
+    const {flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
+    const jsonQuery = serializeQueryJSONForBackend({
+        ...queryJSONWithoutFlatFilters,
+        filters: queryJSONWithoutFlatFilters.filters ?? null,
+    });
+
+    // Stamp the source figures this request converts, so a later edit that moves them is detected as stale. The
+    // command merges its converted figures into the same key, so the two halves live side by side.
+    if (sources) {
+        Onyx.merge(ONYXKEYS.SEARCH_FOOTER_CONVERSION, {sources});
+    }
+
+    read(READ_COMMANDS.GET_TRANSACTIONS_CONVERTED_AMOUNT, {
+        jsonQuery,
+        targetCurrency,
+        ...(transactionIDList && {transactionIDList}),
+        ...(reportIDList && {reportIDList}),
+    });
+}
+
+/**
+ * Clears the footer-currency conversion cache. The converted figures are ephemeral, session-scoped display
+ * data, so they are dropped when leaving Search rather than persisted across sessions.
+ */
+function clearFooterConversion() {
+    Onyx.set(ONYXKEYS.SEARCH_FOOTER_CONVERSION, null);
+}
+
 function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: Policy[], submitterLogin: string | undefined, currentSearchKey?: SearchKey) {
     const firstReport = (reportList.at(0) ?? {}) as Report;
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE>> = [
@@ -1720,6 +1776,8 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
 export {
     saveSearch,
     search,
+    getFooterConvertedAmounts,
+    clearFooterConversion,
     rejectMoneyRequestsOnSearch,
     exportSearchItemsToCSV,
     queueExportSearchItemsToCSV,
