@@ -68,7 +68,7 @@ function TextInputFilterContent({filterKey, value: initialValue, autoFocus, larg
                                   keyForList={item.keyForList}
                                   onSelectRow={() => setMerchantOperator(item.keyForList)}
                               />
-                              {item.isSelected && <View style={styles.mt2}>{filterInput}</View>}
+                              {item.isSelected && <View style={styles.mv2}>{filterInput}</View>}
                           </Fragment>
                       ))
                     : filterInput}
