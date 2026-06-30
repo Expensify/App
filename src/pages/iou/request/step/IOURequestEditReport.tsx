@@ -17,7 +17,7 @@ import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNav
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {isExpenseUnreported, isManagedCardTransaction} from '@libs/TransactionUtils';
+import {isUnreportedManagedCardTransaction} from '@libs/TransactionUtils';
 import {createNewReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -73,7 +73,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [transactions] = useTransactionsByID(transactionIDs);
-    const hasUnreportedManagedCardTransactions = transactions.some((transaction) => isExpenseUnreported(transaction) && isManagedCardTransaction(transaction));
+    const hasUnreportedManagedCardTransactions = transactions.some((transaction) => isUnreportedManagedCardTransaction(transaction));
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (transactionIDs.length === 0 || item.value === reportID) {
             Navigation.dismissToSuperWideRHP();

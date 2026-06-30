@@ -17,7 +17,7 @@ import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNav
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID, getPersonalDetailsForAccountID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {isExpenseUnreported, isManagedCardTransaction} from '@libs/TransactionUtils';
+import {isUnreportedManagedCardTransaction} from '@libs/TransactionUtils';
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -49,7 +49,7 @@ function SearchTransactionsChangeReport() {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionsKeys);
-    const hasUnreportedManagedCardTransactions = transactions.some((transaction) => isExpenseUnreported(transaction) && isManagedCardTransaction(transaction));
+    const hasUnreportedManagedCardTransactions = transactions.some((transaction) => isUnreportedManagedCardTransaction(transaction));
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);

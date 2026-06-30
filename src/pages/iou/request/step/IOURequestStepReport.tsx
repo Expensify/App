@@ -16,7 +16,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getPersonalDetailsForAccountID, getReportOrDraftReport, isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
-import {isExpenseUnreported, isManagedCardTransaction, isPerDiemRequest, isTimeRequest as isTimeRequestUtil} from '@libs/TransactionUtils';
+import {isPerDiemRequest, isTimeRequest as isTimeRequestUtil, isUnreportedManagedCardTransaction as isUnreportedManagedCardTransactionUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -69,7 +69,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         : selectedReport?.ownerAccountID;
     const ownerPersonalDetails = getPersonalDetailsForAccountID(ownerAccountID, personalDetails) as PersonalDetails;
     const isPerDiemTransaction = isPerDiemRequest(transaction);
-    const isUnreportedManagedCardTransaction = isExpenseUnreported(transaction) && isManagedCardTransaction(transaction);
+    const isUnreportedManagedCardTransaction = isUnreportedManagedCardTransactionUtil(transaction);
 
     const transactionPolicyID = transaction?.participants?.at(0)?.isPolicyExpenseChat ? transaction?.participants.at(0)?.policyID : undefined;
     // When moving an expense that belongs to another user, or when the selection includes per diem

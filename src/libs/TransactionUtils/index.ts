@@ -2950,6 +2950,10 @@ function isExpenseUnreported(transaction?: Transaction): transaction is Unreport
     return transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 }
 
+function isUnreportedManagedCardTransaction(transaction?: Transaction): boolean {
+    return isExpenseUnreported(transaction) && isManagedCardTransaction(transaction);
+}
+
 /**
  * Returns true if the violation should block report submission.
  */
@@ -3215,4 +3219,5 @@ export {
     hasSmartScanFailedWithMissingFields,
     isDeletedTransaction,
     getDistanceRequestType,
+    isUnreportedManagedCardTransaction,
 };
