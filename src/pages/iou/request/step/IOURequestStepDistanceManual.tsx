@@ -9,6 +9,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -142,6 +143,16 @@ function IOURequestStepDistanceManual({
     const rate = mileageRate.rate ?? 0;
     const distanceInMeters = getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit ? transaction.comment.customUnit.distanceUnit : unit);
     const distance = typeof transaction?.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit)) : undefined;
+
+    const {notifySaving} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => {
+            const typedDistance = numberFormRef.current?.getNumber() ?? '';
+            return typedDistance !== (distance?.toString() ?? '');
+        },
+        onCancel: () => {
+            focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
+        },
+    });
 
     let shouldSkipConfirmation = false;
     if (skipConfirmation && report?.reportID) {
@@ -283,6 +294,7 @@ function IOURequestStepDistanceManual({
             return;
         }
 
+        notifySaving();
         navigateToNextPage(value);
     };
 
