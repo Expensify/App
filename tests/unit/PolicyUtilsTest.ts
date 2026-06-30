@@ -3528,4 +3528,12 @@ describe('getDefaultChatEnabledPolicy', () => {
     it('returns undefined when there are no eligible workspaces', () => {
         expect(getDefaultChatEnabledPolicy([], undefined)).toBeUndefined();
     });
+
+    it('does not return the active policy when it is not in the eligible list (e.g. Submit beta off), falling back to the eligible workspace', () => {
+        expect(getDefaultChatEnabledPolicy([teamPolicy], submitPolicy)).toBe(teamPolicy);
+    });
+
+    it('returns undefined when the active policy is ineligible and there are multiple eligible workspaces', () => {
+        expect(getDefaultChatEnabledPolicy([teamPolicy, corporatePolicy], submitPolicy)).toBeUndefined();
+    });
 });
