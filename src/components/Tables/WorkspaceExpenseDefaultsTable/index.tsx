@@ -92,7 +92,7 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
             title={translate('workspace.rules.tabs.expenseDefaults')}
         >
             <Table.FilterBar label={translate('workspace.rules.expenseDefaultsTable.findRule')} />
-            <Table.NoResultsState subtitle="Try adjusting your filters or a new search" />
+            <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
         </Table>
