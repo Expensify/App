@@ -51,7 +51,7 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
             return;
         }
         lastAutoNavRequestIDRef.current = requestID;
-        Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+        Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     }, [isSmallScreenWidth, editingSavedView?.requestID, editingSavedView?.hash, queryJSON.hash]);
 
     if (isSmallScreenWidth) {
