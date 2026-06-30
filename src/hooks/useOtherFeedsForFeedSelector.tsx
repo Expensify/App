@@ -54,7 +54,7 @@ function useOtherFeedsForFeedSelector(policyID: string): CardFeedListItem[] {
         for (const feed of visibleFeeds) {
             // Feeds linked to the active policy are shown as available feeds, not under "From other workspaces".
             // Linked policy IDs can differ in casing, so compare case-insensitively (matches the Expensify-card path).
-            if (feed?.linkedPolicyIDs?.some((linkedPolicyID) => linkedPolicyID.toUpperCase() === policyID.toUpperCase())) {
+            if (feed?.linkedPolicyIDs?.filter(Boolean).some((linkedPolicyID) => linkedPolicyID.toUpperCase() === policyID.toUpperCase())) {
                 continue;
             }
             // Skip feeds already present in the active policy's available list to avoid duplicate rows across the two lists.
@@ -78,7 +78,7 @@ function useOtherFeedsForFeedSelector(policyID: string): CardFeedListItem[] {
                 feed: feedName as CompanyCardFeedWithNumber,
                 fundID: Number(feed.fundID),
                 country: feed?.country,
-                alternateText: domainName ?? linkedPolicy?.name,
+                alternateText: domainName ?? linkedPolicy?.name ?? firstLinkedPolicyID,
                 text: getCustomOrFormattedFeedName(translate, feedName, feed.name),
                 // feed.id (`${fundID}_${feed}`) is unique per feed, so a stable key avoids duplicate rows.
                 keyForList: feed.id,
