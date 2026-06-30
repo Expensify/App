@@ -2,13 +2,16 @@ import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useMemo} from 'react';
 import Table from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import {getRateStatus} from '@libs/PolicyDistanceRatesUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import WorkspaceDistanceRatesTableRow from './WorkspaceDistanceRatesTableRow';
 import type {DistanceRateTableItemData} from './WorkspaceDistanceRatesTableRow';
 
@@ -16,8 +19,10 @@ type DistanceRatesTableColumnKey = 'status' | 'name' | 'rate' | 'startDate' | 'e
 
 type WorkspaceDistanceRatesTableProps = {
     ratesData: DistanceRateTableItemData[];
+    policyID: string;
     selectionEnabled: boolean;
     selectedKeys: string[];
+    canWriteDistanceRates: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
@@ -28,9 +33,10 @@ const STATUS_ORDER: Record<string, number> = {
     [CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE]: 3,
 };
 
-function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys, onRowSelectionChange}: WorkspaceDistanceRatesTableProps) {
+function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, selectedKeys, canWriteDistanceRates, onRowSelectionChange}: WorkspaceDistanceRatesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
@@ -97,6 +103,20 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
         return matchingItems.length > 0;
     };
 
+    const emptyStateButtons = canWriteDistanceRates
+        ? [
+              {
+                  icon: icons.Plus,
+                  buttonText: translate('workspace.distanceRates.addRate'),
+
+                  success: true,
+                  buttonAction: () => {
+                      Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID));
+                  },
+              },
+          ]
+        : undefined;
+
     const statusLabels = useMemo(
         () => ({
             [CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE]: translate('workspace.distanceRates.statusActive'),
@@ -135,8 +155,9 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
         >
             <Table.FilterBar label={translate('workspace.distanceRates.findRate')} />
             <Table.EmptyState
-                title="No distance rates yet"
-                subtitle="Try creating one"
+                title={translate('workspace.distanceRates.emptyRates.title')}
+                subtitle={translate('workspace.distanceRates.emptyRates.subtitle')}
+                buttons={emptyStateButtons}
             />
             <Table.NoResultsState />
             <Table.Header />
