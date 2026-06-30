@@ -8,6 +8,9 @@ import {buildFullstoryUserVars} from './libs/Fullstory/utils';
 import {shallowCompare} from './libs/ObjectUtils';
 import ONYXKEYS from './ONYXKEYS';
 
+const SESSION_URL_RETRY_DELAY_MS = 250;
+const MAX_SESSION_URL_RETRY_ATTEMPTS = 20;
+
 function FullstoryUserContextHandler() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -23,6 +26,7 @@ function FullstoryUserContextHandler() {
     const activePolicy = activePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`] : undefined;
 
     const previousUserVars = useRef<OnyxEntry<FullstoryUserVars>>(undefined);
+    const sessionURLRetryAttempts = useRef(0);
 
     useEffect(() => {
         if (!userMetadata?.accountID) {
@@ -45,9 +49,16 @@ function FullstoryUserContextHandler() {
                         }
 
                         if (!sessionURL) {
-                            retryTimeoutID = setTimeout(syncUserVars, 250);
+                            sessionURLRetryAttempts.current += 1;
+                            if (sessionURLRetryAttempts.current >= MAX_SESSION_URL_RETRY_ATTEMPTS) {
+                                return;
+                            }
+
+                            retryTimeoutID = setTimeout(syncUserVars, SESSION_URL_RETRY_DELAY_MS);
                             return;
                         }
+
+                        sessionURLRetryAttempts.current = 0;
 
                         const userVars = buildFullstoryUserVars({
                             account,
@@ -75,7 +86,12 @@ function FullstoryUserContextHandler() {
                         return;
                     }
 
-                    retryTimeoutID = setTimeout(syncUserVars, 250);
+                    sessionURLRetryAttempts.current += 1;
+                    if (sessionURLRetryAttempts.current >= MAX_SESSION_URL_RETRY_ATTEMPTS) {
+                        return;
+                    }
+
+                    retryTimeoutID = setTimeout(syncUserVars, SESSION_URL_RETRY_DELAY_MS);
                 });
         };
 
@@ -83,6 +99,7 @@ function FullstoryUserContextHandler() {
 
         return () => {
             didCancel = true;
+            sessionURLRetryAttempts.current = 0;
             if (retryTimeoutID) {
                 clearTimeout(retryTimeoutID);
             }
