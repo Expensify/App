@@ -68,7 +68,6 @@ function hasPolicyAdminsRoomsAccess(role: string | undefined): boolean {
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    waitForCollectionCallback: true,
     callback: (actions) => (allReportActions = actions),
 });
 

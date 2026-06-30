@@ -1045,7 +1045,6 @@ Onyx.connect({
 let deprecatedAllReportsDraft: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT,
-    waitForCollectionCallback: true,
     callback: (value) => (deprecatedAllReportsDraft = value),
 });
 
@@ -1053,7 +1052,6 @@ let allPolicies: OnyxCollection<Policy>;
 let policiesArray: Policy[] = [];
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allPolicies = value;
         policiesArray = Object.values(value ?? {}).filter((policy): policy is Policy => !!policy);
@@ -1063,7 +1061,6 @@ Onyx.connect({
 let allPolicyDrafts: OnyxCollection<Policy>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_DRAFTS,
-    waitForCollectionCallback: true,
     callback: (value) => (allPolicyDrafts = value),
 });
 
@@ -1071,7 +1068,6 @@ let deprecatedAllReports: OnyxCollection<Report>;
 let deprecatedReportsByPolicyID: ReportByPolicyMap;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         deprecatedAllReports = value;
 
@@ -1108,7 +1104,6 @@ let deprecatedAllTransactions: OnyxCollection<Transaction> = {};
 let deprecatedReportsTransactions: Record<string, Transaction[]> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
-    waitForCollectionCallback: true,
     callback: (value) => {
         if (!value) {
             return;
@@ -1134,7 +1129,6 @@ Onyx.connect({
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    waitForCollectionCallback: true,
     callback: (actions) => {
         if (!actions) {
             return;
@@ -1147,7 +1141,6 @@ let allReportMetadata: OnyxCollection<ReportMetadata>;
 const allReportMetadataKeyValue: Record<string, ReportMetadata> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_METADATA,
-    waitForCollectionCallback: true,
     callback: (value) => {
         if (!value) {
             return;
@@ -1177,7 +1170,6 @@ Onyx.connectWithoutView({
 let allReportNameValuePair: OnyxCollection<ReportNameValuePairs>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-    waitForCollectionCallback: true,
     callback: (value) => {
         if (!value) {
             return;

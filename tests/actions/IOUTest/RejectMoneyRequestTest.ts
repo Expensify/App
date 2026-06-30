@@ -276,7 +276,6 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             let allReports: OnyxCollection<Report>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.REPORT,
-                waitForCollectionCallback: true,
                 callback: (reports) => {
                     allReports = reports;
                 },

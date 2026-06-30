@@ -54,14 +54,12 @@ function registerPaginationConfig<TResourceKey extends OnyxCollectionKey, TPageK
     paginationConfigs.set(nextCommand, {...config, type: 'next'} as unknown as PaginationConfigMapValue);
     Onyx.connectWithoutView<OnyxCollectionKey>({
         key: config.resourceCollectionKey,
-        waitForCollectionCallback: true,
         callback: (data) => {
             resources.set(config.resourceCollectionKey, data);
         },
     });
     Onyx.connectWithoutView<OnyxPagesKey>({
         key: config.pageCollectionKey,
-        waitForCollectionCallback: true,
         callback: (data) => {
             pages.set(config.pageCollectionKey, data);
         },

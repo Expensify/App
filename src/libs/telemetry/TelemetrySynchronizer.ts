@@ -45,7 +45,6 @@ Onyx.connectWithoutView({
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
     callback: (value) => {
         if (!value) {
             return;
@@ -57,7 +56,6 @@ Onyx.connectWithoutView({
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         if (!value) {
             return;

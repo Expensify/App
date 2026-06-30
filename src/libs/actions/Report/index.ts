@@ -60,7 +60,6 @@ import type UpdateRoomVisibilityParams from '@libs/API/parameters/UpdateRoomVisi
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import * as Browser from '@libs/Browser';
-import * as CollectionUtils from '@libs/CollectionUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
 import * as Environment from '@libs/Environment/Environment';
@@ -405,8 +404,7 @@ type AddAttachmentWithCommentParams = {
 };
 
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
-// map of reportID to all reportActions for that report
-const allReportActions: OnyxCollection<ReportActions> = {};
+let allReportActions: OnyxCollection<ReportActions> = {};
 const STALE_DM_RECOVERY_TARGET_TTL_MS = 30000;
 const staleDMRecoveryTargetBySourceReportID: Record<string, string> = {};
 const staleDMRecoverySourceByTargetReportID: Record<string, string> = {};
@@ -457,19 +455,14 @@ function clearStaleDMRecoveryTargetByTargetReportID(targetReportID: string) {
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (actions, key) => {
-        if (!key || !actions) {
-            return;
-        }
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-        allReportActions[reportID] = actions;
+    callback: (value) => {
+        allReportActions = value ?? {};
     },
 });
 
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
     },
@@ -523,7 +516,6 @@ Onyx.connect({
 let allAttachments: OnyxCollection<Attachment> = {};
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.ATTACHMENT,
-    waitForCollectionCallback: true,
     callback: (value) => (allAttachments = value),
 });
 
@@ -1176,7 +1168,7 @@ function addComment({
 }
 
 function reportActionsExist(reportID: string): boolean {
-    return allReportActions?.[reportID] !== undefined;
+    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] !== undefined;
 }
 
 function updateChatName(reportID: string, oldReportName: string | undefined, reportName: string, type: typeof CONST.REPORT.CHAT_TYPE.GROUP | typeof CONST.REPORT.CHAT_TYPE.TRIP_ROOM) {
@@ -2994,7 +2986,7 @@ function deleteReportComment(
     // We prefer the actions passed directly from the calling component (currentReportActionsParam)
     // since those come from useOnyx and are guaranteed to be up to date. We fall back to the
     // module-level allReportActions cache.
-    const reportActionsForReport = currentReportActionsParam ?? allReportActions?.[originalReportID] ?? {};
+    const reportActionsForReport = currentReportActionsParam ?? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`] ?? {};
     const unresolvedMentionWhisperIDs: string[] = [];
 
     const mentionWhisperID = String(BigInt(reportActionID) + 1n);
@@ -3049,7 +3041,7 @@ function deleteReportComment(
 
     const didCommentMentionCurrentUser = ReportActionsUtils.didMessageMentionCurrentUser(reportAction, currentEmail);
     if (didCommentMentionCurrentUser && reportAction.created === report?.lastMentionedTime) {
-        const reportActionsForReportID = allReportActions?.[reportID];
+        const reportActionsForReportID = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
         const latestMentionedReportAction = Object.values(reportActionsForReportID ?? {}).find(
             (action) =>
                 action.reportActionID !== reportAction.reportActionID &&
@@ -4589,7 +4581,7 @@ function shouldShowReportActionNotification(reportID: string, currentUserAccount
 
     // If the report is a transaction thread and we are currently viewing the associated one-transaction report do no show a notification.
     const topmostReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${topmostReportID}`];
-    const topmostReportActions = allReportActions?.[`${topmostReport?.reportID}`];
+    const topmostReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${topmostReport?.reportID}`];
     const chatTopmostReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${topmostReport?.chatReportID}`];
     if (reportID === ReportActionsUtils.getOneTransactionThreadReportID(topmostReport, chatTopmostReport, topmostReportActions) && Visibility.isVisible() && Visibility.hasFocus()) {
         Log.info(`${tag} No notification because the report is a transaction thread associated with the current one-transaction report`);
@@ -6905,7 +6897,7 @@ function convertIOUReportToExpenseReport(iouReport: Report, policy: Policy, poli
     // We need to move the report preview action from the DM to the expense chat.
     const oldChatReportID = iouReport.chatReportID;
     const reportPreviewActionID = iouReport.parentReportActionID;
-    const reportPreview = !!oldChatReportID && !!reportPreviewActionID ? allReportActions?.[oldChatReportID]?.[reportPreviewActionID] : undefined;
+    const reportPreview = !!oldChatReportID && !!reportPreviewActionID ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`]?.[reportPreviewActionID] : undefined;
 
     if (reportPreview?.reportActionID) {
         optimisticData.push({

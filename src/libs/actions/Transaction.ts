@@ -86,7 +86,6 @@ import type TransactionState from '@src/types/utils/TransactionStateType';
 let allReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         if (!value) {
             return;
