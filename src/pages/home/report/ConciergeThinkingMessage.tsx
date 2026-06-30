@@ -1,6 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {Easing, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -25,11 +24,10 @@ import ReportActionItemMessageHeaderSender from '@pages/inbox/report/ReportActio
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
 
 type ConciergeThinkingMessageProps = {
     /** The report for this thinking message */
-    report: OnyxEntry<Report>;
+    reportID: string;
 };
 
 /**
@@ -37,10 +35,9 @@ type ConciergeThinkingMessageProps = {
  * custom agents). The candidate set comes from the per-agent processing-indicator NVP, so each
  * bubble is attributed to the agent the server actually named — not a guessed persona.
  */
-function ConciergeThinkingMessage({report}: ConciergeThinkingMessageProps) {
+function ConciergeThinkingMessage({reportID}: ConciergeThinkingMessageProps) {
     const {candidateAgentIDs} = useAgentZeroStatus();
-    const shouldSuppress = useShouldSuppressConciergeIndicators(report?.reportID);
-    const reportID = report?.reportID;
+    const shouldSuppress = useShouldSuppressConciergeIndicators(reportID);
 
     if (shouldSuppress || !reportID || candidateAgentIDs.length === 0) {
         return null;

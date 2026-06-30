@@ -82,6 +82,7 @@ const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
     const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: policyTagsSelector});
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: policyCategoriesSelector});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     // Helps to avoid unnecessary recalculations when user open report details screen. React Compiler does not provide same result.
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
@@ -100,6 +101,7 @@ const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
               taxRates,
               exportedToFilterOptions,
               currentUserPersonalDetails.accountID,
+              bankAccountList,
           )
         : getEmptyObject<Partial<SearchAdvancedFiltersForm>>();
 
