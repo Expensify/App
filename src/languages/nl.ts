@@ -9316,10 +9316,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         takeMeToExpensifyClassic: 'Breng me naar Expensify Classic',
         goBackJustOnce: 'Eenmalig teruggaan',
     },
-    listBoundary: {
-        errorMessage: 'Er is een fout opgetreden bij het laden van meer berichten',
-        tryAgain: 'Probeer het opnieuw',
-    },
     systemMessage: {
         mergedWithCashTransaction: 'heeft een bonnetje aan deze transactie gekoppeld',
     },

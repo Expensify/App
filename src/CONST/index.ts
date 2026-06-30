@@ -5931,18 +5931,11 @@ const CONST = {
     DOT_INDICATOR_TEST_ID: 'DotIndicator',
     ANIMATED_COLLAPSIBLE_CONTENT_TEST_ID: 'animated-collapsible-content',
 
-    CHAT_HEADER_LOADER_HEIGHT: 36,
-
     HORIZONTAL_SPACER: {
         DEFAULT_BORDER_BOTTOM_WIDTH: 1,
         DEFAULT_MARGIN_VERTICAL: 8,
         HIDDEN_MARGIN_VERTICAL: 4,
         HIDDEN_BORDER_BOTTOM_WIDTH: 0,
-    },
-
-    LIST_COMPONENTS: {
-        HEADER: 'header',
-        FOOTER: 'footer',
     },
 
     MISSING_TRANSLATION: 'MISSING TRANSLATION',
@@ -7948,7 +7941,6 @@ const CONST = {
         },
         REPORT: {
             FLOATING_MESSAGE_COUNTER: 'Report-FloatingMessageCounter',
-            LIST_BOUNDARY_LOADER_RETRY: 'Report-ListBoundaryLoaderRetry',
             SEND_BUTTON: 'Report-SendButton',
             ATTACHMENT_PICKER_CREATE_BUTTON: 'Report-AttachmentPickerCreateButton',
             ATTACHMENT_PICKER_EXPAND_BUTTON: 'Report-AttachmentPickerExpandButton',
