@@ -274,6 +274,7 @@ export default function WorkspaceMembersTable({
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
             headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
         >
             <Table.Body />
         </Table>

@@ -93,6 +93,7 @@ function WorkspaceRoomsTable({rooms, highlightedReportID, headerComponent}: Work
             title={translate('workspace.common.rooms')}
             keyExtractor={(row, index) => `${row.reportID}-${index}`}
             headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
         >
             <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />
         </Table>

@@ -139,6 +139,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
             initialSortColumn="workspaces"
             title={translate('common.workspaces')}
             headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
             ListEmptyComponent={WorkspacesEmptyStateComponent}
             keyExtractor={(row, index) => `${row.policyID}-${index}`}
         >

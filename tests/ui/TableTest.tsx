@@ -401,6 +401,7 @@ describe('Table', () => {
                     renderItem={renderItem}
                     keyExtractor={props.keyExtractor}
                     headerComponent={<Text testID="table-header-component">Page header</Text>}
+                    shouldUseStickyColumnHeader
                 >
                     <Table.Body />
                 </Table>,
@@ -432,6 +433,7 @@ describe('Table', () => {
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
                     headerComponent={<Text testID="table-header-component">Page header</Text>}
+                    shouldUseStickyColumnHeader
                 >
                     <Table.Body />
                 </Table>
@@ -486,6 +488,7 @@ describe('Table', () => {
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
                     headerComponent={<Text testID="table-header-component">Page header</Text>}
+                    shouldUseStickyColumnHeader
                 >
                     <Table.Body />
                 </Table>,

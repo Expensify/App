@@ -144,6 +144,7 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
             narrowLayoutSortColumn="name"
             title={translate('workspace.common.distanceRates')}
             headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
         >
             {isEmpty && EmptyStateComponent}
             {!isEmpty && <Table.Body />}

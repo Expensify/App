@@ -1,6 +1,5 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
-import {View} from 'react-native';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import Table from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
@@ -66,7 +65,7 @@ export default function DomainGroupsTable({groups}: DomainGroupsTableProps) {
         />
     );
     const shouldShowSearchBar = groups.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const tableHeaderComponent = shouldShowSearchBar ? <Table.SearchBar label={translate('domain.groups.findGroup')} /> : <View />;
+    const tableHeaderComponent = shouldShowSearchBar ? <Table.SearchBar label={translate('domain.groups.findGroup')} /> : undefined;
 
     return (
         <Table
@@ -79,6 +78,7 @@ export default function DomainGroupsTable({groups}: DomainGroupsTableProps) {
             title={translate('domain.groups.title')}
             keyExtractor={(item) => item.keyForList}
             headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
         >
             <Table.Body />
         </Table>

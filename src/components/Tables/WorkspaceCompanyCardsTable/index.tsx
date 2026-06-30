@@ -376,7 +376,8 @@ function WorkspaceCompanyCardsTable({
             isItemInFilter={isItemInFilter}
             initialSortColumn="member"
             title={translate('workspace.common.companyCards')}
-            headerComponent={showCards ? (headerButtonsComponent ?? <View />) : undefined}
+            headerComponent={showCards ? headerButtonsComponent : undefined}
+            shouldUseStickyColumnHeader={showCards}
             ListEmptyComponent={isLoadingCards ? LoadingComponent : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
         >
             {!showCards && !shouldUseNarrowTableLayout && headerButtonsComponent}

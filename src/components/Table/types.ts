@@ -134,6 +134,9 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
         /** Optional content rendered above the sticky table header inside the table list. */
         headerComponent?: ReactElement;
 
+        /** Whether the table column header should be rendered as a sticky FlashList row. */
+        shouldUseStickyColumnHeader?: boolean;
+
         /** Array of data items to display in the table. */
         data: DataType[] | undefined;
 

@@ -97,6 +97,7 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
             keyExtractor={(tax) => tax.keyForList}
             onRowSelectionChange={onRowSelectionChange}
             headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
         >
             <Table.Body />
         </Table>

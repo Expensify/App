@@ -162,6 +162,7 @@ export default function WorkspaceCategoriesTable({
             keyExtractor={(category) => category.keyForList}
             onRowSelectionChange={onRowSelectionChange}
             headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
         >
             {isEmpty && EmptyStateComponent}
             {!isEmpty && <Table.Body />}

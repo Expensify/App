@@ -152,6 +152,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     initialSortColumn,
     narrowLayoutSortColumn,
     headerComponent,
+    shouldUseStickyColumnHeader = false,
     children,
     selectionEnabled,
     onRowSelectionChange,
@@ -209,7 +210,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 
     const originalDataLength = data?.length ?? 0;
     const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasActiveSearchString || hasActiveFilters);
-    const shouldRenderStickyHeader = !!headerComponent && processedData.length > 0 && !isEmptyResult && !(shouldUseNarrowTableLayout && !title);
+    const shouldRenderStickyHeader = shouldUseStickyColumnHeader && processedData.length > 0 && !isEmptyResult && !(shouldUseNarrowTableLayout && !title);
 
     /**
      * Exposes table control methods through the ref.
