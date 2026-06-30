@@ -99,8 +99,9 @@ function parseAndLogRoute(state: NavigationState) {
     }
 
     // Fullstory Page navigation tracking
+    const isTransitionRoute = currentPath.startsWith(`/${ROUTES.TRANSITION_BETWEEN_APPS}`);
     const focusedRouteName = focusedRoute?.name;
-    if (focusedRouteName) {
+    if (focusedRouteName && !isTransitionRoute) {
         new FS.Page(focusedRouteName, {path: currentPath}).start();
         trackFullstoryEvent('Page_viewed', buildPageViewedEvent(focusedRouteName, currentPath));
     }
