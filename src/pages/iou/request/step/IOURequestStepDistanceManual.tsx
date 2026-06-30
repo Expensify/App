@@ -65,7 +65,7 @@ function IOURequestStepDistanceManual({
 }: IOURequestStepDistanceManualProps) {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
-    const illustrations = useMemoizedLazyIllustrations(['HouseMoney']);
+    const illustrations = useMemoizedLazyIllustrations(['HouseWithMap']);
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
@@ -296,8 +296,10 @@ function IOURequestStepDistanceManual({
                 confirmText: translate('common.buttonConfirm'),
                 shouldShowCancelButton: false,
                 shouldShowDismissIcon: true,
-                image: illustrations.HouseMoney,
+                image: illustrations.HouseWithMap,
                 shouldUseSuccessStyleForConfirm: true,
+                shouldFitImageToContainer: true,
+                imageStyles: styles.commuterExclusionStaticIllustration,
             });
             return;
         }

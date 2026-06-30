@@ -81,7 +81,7 @@ function IOURequestStepDistanceOdometer({
 }: IOURequestStepDistanceOdometerProps) {
     const {translate, fromLocaleDigit, numberFormat} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
-    const illustrations = useMemoizedLazyIllustrations(['HouseMoney']);
+    const illustrations = useMemoizedLazyIllustrations(['HouseWithMap']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -463,7 +463,9 @@ function IOURequestStepDistanceOdometer({
                 shouldUseSuccessStyleForConfirm: true,
                 shouldShowCancelButton: false,
                 shouldShowDismissIcon: true,
-                image: illustrations.HouseMoney,
+                image: illustrations.HouseWithMap,
+                shouldFitImageToContainer: true,
+                imageStyles: styles.commuterExclusionStaticIllustration,
             });
             return;
         }
