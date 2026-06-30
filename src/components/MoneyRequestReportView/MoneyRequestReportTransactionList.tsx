@@ -496,6 +496,7 @@ function MoneyRequestReportTransactionList({
         return getColumnsToShow({
             currentAccountID: currentUserDetails?.accountID,
             data: transactions,
+            report,
             visibleColumns: (isExpenseReportViewFromIOUReport ? [] : (reportDetailsColumns ?? [])) as SearchCustomColumnIds[],
             isExpenseReportView: true,
             isExpenseReportViewFromIOUReport,
@@ -513,7 +514,7 @@ function MoneyRequestReportTransactionList({
         shouldShowBillableColumn,
         shouldShowCommentsColumn,
         reportDetailsColumns,
-        report?.currency,
+        report,
         isTaxEnabled,
         policyCategories,
     ]);
