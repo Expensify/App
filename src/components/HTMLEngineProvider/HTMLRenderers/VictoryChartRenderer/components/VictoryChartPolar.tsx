@@ -61,7 +61,7 @@ function VictoryChartPolar({explicitSize, headless}: VictoryChartPolarProps) {
             {...getChartLayoutModeProps(explicitSize, headless)}
         >
             {headless ? (
-                chartContent
+                <ThemeContext.Provider value={theme}>{chartContent}</ThemeContext.Provider>
             ) : (
                 <ThemeContext.Provider value={theme}>
                     <ChartFontsLoaderProvider>{chartContent}</ChartFontsLoaderProvider>

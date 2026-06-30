@@ -82,6 +82,7 @@ function TransactionItemRowWide({
     radioButtonContainerStyle,
     shouldShowErrors = true,
     isDisabled = false,
+    shouldDisableActionPointerEvents = false,
     violations,
     shouldShowBottomBorder,
     onArrowRightPress,
@@ -308,7 +309,7 @@ function TransactionItemRowWide({
                                 policyID={report?.policyID}
                                 hash={transactionItem?.hash}
                                 amount={report?.total}
-                                shouldDisablePointerEvents={isDisabled}
+                                shouldDisablePointerEvents={isDisabled || shouldDisableActionPointerEvents}
                                 isMarkAsDone={isMarkAsDone}
                             />
                         )}
