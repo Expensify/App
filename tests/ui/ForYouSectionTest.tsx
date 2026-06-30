@@ -3,12 +3,13 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTodoCounts from '@hooks/useTodoCounts';
 import Navigation from '@libs/Navigation/Navigation';
 import ForYouSection from '@pages/home/ForYouSection';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {TodosDerivedValue, TransactionViolations} from '@src/types/onyx';
+import type {TransactionViolations} from '@src/types/onyx';
 import {createMockReport} from '../utils/ReportTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -19,6 +20,19 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
+
+jest.mock('@hooks/useTodoCounts', () => jest.fn());
+
+// ForYouSection calls useIsFocused() to freeze useTodoCounts when unfocused; this test renders it outside a
+// NavigationContainer, so stub the focus hook (useTodoCounts is mocked, so the focus value itself is irrelevant).
+jest.mock('@react-navigation/native', () => {
+    const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
+
+    return {
+        ...actualNavigation,
+        useIsFocused: jest.fn(() => true),
+    };
+});
 
 const mockNavigateToTransactionThread = jest.fn();
 jest.mock('@hooks/useNavigateToTransactionThread', () => jest.fn(() => mockNavigateToTransactionThread));
@@ -85,15 +99,25 @@ jest.mock('react-native-reanimated', () => {
 
 const mockNavigate = jest.mocked(Navigation.navigate);
 const mockUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
+const mockUseTodoCounts = jest.mocked(useTodoCounts);
 
 const ACCOUNT_ID = 12345;
 
-const BASE_TODOS: TodosDerivedValue = {
+// ForYouSection now derives its counts/single-IDs from the useTodoCounts hook (which is mocked here) instead of the
+// removed TODOS derived value, so the fixtures only need the report buckets the hook's return is computed from.
+type TodoReport = {reportID: string};
+type TodoFixture = {
+    reportsToSubmit: TodoReport[];
+    reportsToApprove: TodoReport[];
+    reportsToPay: TodoReport[];
+    reportsToExport: TodoReport[];
+};
+
+const BASE_TODOS: TodoFixture = {
     reportsToSubmit: [],
     reportsToApprove: [],
     reportsToPay: [],
     reportsToExport: [],
-    transactionsByReportID: {},
 };
 
 /**
@@ -119,6 +143,24 @@ async function seedFlaggedExpenses(...expenses: Array<{transactionID: string; re
             Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, violations),
         ]),
     );
+}
+// Drive the component by controlling the mocked hook's return value from the report-bucket fixtures.
+function setTodoCounts(todos: TodoFixture) {
+    const singleReportID = (reports: TodoReport[]) => (reports.length === 1 ? reports.at(0)?.reportID : undefined);
+    mockUseTodoCounts.mockReturnValue({
+        counts: {
+            [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: todos.reportsToSubmit.length,
+            [CONST.SEARCH.SEARCH_KEYS.APPROVE]: todos.reportsToApprove.length,
+            [CONST.SEARCH.SEARCH_KEYS.PAY]: todos.reportsToPay.length,
+            [CONST.SEARCH.SEARCH_KEYS.EXPORT]: todos.reportsToExport.length,
+        },
+        singleReportIDs: {
+            [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: singleReportID(todos.reportsToSubmit),
+            [CONST.SEARCH.SEARCH_KEYS.APPROVE]: singleReportID(todos.reportsToApprove),
+            [CONST.SEARCH.SEARCH_KEYS.PAY]: singleReportID(todos.reportsToPay),
+            [CONST.SEARCH.SEARCH_KEYS.EXPORT]: singleReportID(todos.reportsToExport),
+        },
+    });
 }
 
 function renderForYouSection() {
@@ -151,6 +193,8 @@ describe('ForYouSection', () => {
             isInLandscapeMode: false,
         });
 
+        setTodoCounts(BASE_TODOS);
+
         await act(async () => {
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {accountID: ACCOUNT_ID, email: 'test@example.com'},
@@ -171,7 +215,7 @@ describe('ForYouSection', () => {
     describe('EmptyState', () => {
         it('renders EmptyState when there are no todos', async () => {
             await act(async () => {
-                await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
+                setTodoCounts(BASE_TODOS);
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -185,9 +229,9 @@ describe('ForYouSection', () => {
     describe('review row', () => {
         it('is not rendered when there are no flagged expenses', async () => {
             await act(async () => {
-                await Onyx.set(ONYXKEYS.DERIVED.TODOS, {
+                setTodoCounts({
                     ...BASE_TODOS,
-                    reportsToSubmit: [{reportID: '1'} as TodosDerivedValue['reportsToSubmit'][number]],
+                    reportsToSubmit: [{reportID: '1'}],
                 });
             });
             await waitForBatchedUpdatesWithAct();
@@ -200,7 +244,7 @@ describe('ForYouSection', () => {
 
         it('renders with the count-1 string when exactly one expense is flagged', async () => {
             await act(async () => {
-                await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
+                setTodoCounts(BASE_TODOS);
                 await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'});
             });
             await waitForBatchedUpdatesWithAct();
@@ -213,7 +257,7 @@ describe('ForYouSection', () => {
 
         it('renders with the count-N string when multiple expenses are flagged', async () => {
             await act(async () => {
-                await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
+                setTodoCounts(BASE_TODOS);
                 await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'}, {transactionID: 't2', reportID: 'r2'}, {transactionID: 't3', reportID: 'r3'});
             });
             await waitForBatchedUpdatesWithAct();
@@ -226,12 +270,12 @@ describe('ForYouSection', () => {
 
         it('renders the review row above submit/approve/pay/export rows', async () => {
             await act(async () => {
-                await Onyx.set(ONYXKEYS.DERIVED.TODOS, {
+                setTodoCounts({
                     ...BASE_TODOS,
-                    reportsToSubmit: [{reportID: 's1'} as TodosDerivedValue['reportsToSubmit'][number]],
-                    reportsToApprove: [{reportID: 'a1'} as TodosDerivedValue['reportsToApprove'][number]],
-                    reportsToPay: [{reportID: 'p1'} as TodosDerivedValue['reportsToPay'][number]],
-                    reportsToExport: [{reportID: 'e1'} as TodosDerivedValue['reportsToExport'][number]],
+                    reportsToSubmit: [{reportID: 's1'}],
+                    reportsToApprove: [{reportID: 'a1'}],
+                    reportsToPay: [{reportID: 'p1'}],
+                    reportsToExport: [{reportID: 'e1'}],
                 });
                 await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'});
             });
@@ -258,7 +302,7 @@ describe('ForYouSection', () => {
 
         it('exposes a Begin CTA and uses the ReceiptSearch icon asset', async () => {
             await act(async () => {
-                await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
+                setTodoCounts(BASE_TODOS);
                 await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'});
             });
             await waitForBatchedUpdatesWithAct();
@@ -277,7 +321,7 @@ describe('ForYouSection', () => {
         it('does not surface flagged expenses while the Home tab is blurred (scan skipped)', async () => {
             mockIsFocused = false;
             await act(async () => {
-                await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
+                setTodoCounts(BASE_TODOS);
                 await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'});
             });
             await waitForBatchedUpdatesWithAct();
@@ -290,7 +334,7 @@ describe('ForYouSection', () => {
 
         it('keeps the last flagged count after the Home tab is blurred (no flash to empty)', async () => {
             await act(async () => {
-                await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
+                setTodoCounts(BASE_TODOS);
                 await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'});
             });
             await waitForBatchedUpdatesWithAct();
@@ -313,7 +357,7 @@ describe('ForYouSection', () => {
     describe('review row navigation', () => {
         it('delegates to useNavigateToTransactionThread with the first flagged expense and all sibling transaction IDs', async () => {
             await act(async () => {
-                await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
+                setTodoCounts(BASE_TODOS);
                 await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'}, {transactionID: 't2', reportID: 'r2'});
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}r1`, {
                     action1: {
@@ -348,8 +392,7 @@ describe('ForYouSection', () => {
 
         it('does not render the review row or navigate when a violated transaction is not on a current-user OPEN expense report', async () => {
             await act(async () => {
-                await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
-                // Submitted (not OPEN) report: the transaction has a violation but must not be flagged.
+                setTodoCounts(BASE_TODOS);
                 await Onyx.set(
                     `${ONYXKEYS.COLLECTION.REPORT}r1`,
                     createMockReport({
@@ -376,9 +419,9 @@ describe('ForYouSection', () => {
     describe('navigation with multiple reports (search route)', () => {
         it('navigates to SEARCH_ROOT when submit has multiple reports', async () => {
             await act(async () => {
-                await Onyx.set(ONYXKEYS.DERIVED.TODOS, {
+                setTodoCounts({
                     ...BASE_TODOS,
-                    reportsToSubmit: [{reportID: '1'} as TodosDerivedValue['reportsToSubmit'][number], {reportID: '2'} as TodosDerivedValue['reportsToSubmit'][number]],
+                    reportsToSubmit: [{reportID: '1'}, {reportID: '2'}],
                 });
             });
             await waitForBatchedUpdatesWithAct();
@@ -395,9 +438,9 @@ describe('ForYouSection', () => {
 
         it('navigates to SEARCH_ROOT when approve has multiple reports', async () => {
             await act(async () => {
-                await Onyx.set(ONYXKEYS.DERIVED.TODOS, {
+                setTodoCounts({
                     ...BASE_TODOS,
-                    reportsToApprove: [{reportID: '3'} as TodosDerivedValue['reportsToApprove'][number], {reportID: '4'} as TodosDerivedValue['reportsToApprove'][number]],
+                    reportsToApprove: [{reportID: '3'}, {reportID: '4'}],
                 });
             });
             await waitForBatchedUpdatesWithAct();
@@ -434,9 +477,9 @@ describe('ForYouSection', () => {
             it('navigates to EXPENSE_REPORT_RHP when submit has exactly one report on wide layout', async () => {
                 const reportID = '42';
                 await act(async () => {
-                    await Onyx.set(ONYXKEYS.DERIVED.TODOS, {
+                    setTodoCounts({
                         ...BASE_TODOS,
-                        reportsToSubmit: [{reportID} as TodosDerivedValue['reportsToSubmit'][number]],
+                        reportsToSubmit: [{reportID}],
                     });
                 });
                 await waitForBatchedUpdatesWithAct();
@@ -453,9 +496,9 @@ describe('ForYouSection', () => {
             it('navigates to EXPENSE_REPORT_RHP when approve has exactly one report on wide layout', async () => {
                 const reportID = '55';
                 await act(async () => {
-                    await Onyx.set(ONYXKEYS.DERIVED.TODOS, {
+                    setTodoCounts({
                         ...BASE_TODOS,
-                        reportsToApprove: [{reportID} as TodosDerivedValue['reportsToApprove'][number]],
+                        reportsToApprove: [{reportID}],
                     });
                 });
                 await waitForBatchedUpdatesWithAct();
@@ -472,9 +515,9 @@ describe('ForYouSection', () => {
             it('navigates to EXPENSE_REPORT_RHP when pay has exactly one report on wide layout', async () => {
                 const reportID = '66';
                 await act(async () => {
-                    await Onyx.set(ONYXKEYS.DERIVED.TODOS, {
+                    setTodoCounts({
                         ...BASE_TODOS,
-                        reportsToPay: [{reportID} as TodosDerivedValue['reportsToPay'][number]],
+                        reportsToPay: [{reportID}],
                     });
                 });
                 await waitForBatchedUpdatesWithAct();
@@ -491,9 +534,9 @@ describe('ForYouSection', () => {
             it('navigates to EXPENSE_REPORT_RHP when export has exactly one report on wide layout', async () => {
                 const reportID = '77';
                 await act(async () => {
-                    await Onyx.set(ONYXKEYS.DERIVED.TODOS, {
+                    setTodoCounts({
                         ...BASE_TODOS,
-                        reportsToExport: [{reportID} as TodosDerivedValue['reportsToExport'][number]],
+                        reportsToExport: [{reportID}],
                     });
                 });
                 await waitForBatchedUpdatesWithAct();
@@ -528,9 +571,9 @@ describe('ForYouSection', () => {
             it('navigates to REPORT_WITH_ID when submit has exactly one report on narrow layout', async () => {
                 const reportID = '99';
                 await act(async () => {
-                    await Onyx.set(ONYXKEYS.DERIVED.TODOS, {
+                    setTodoCounts({
                         ...BASE_TODOS,
-                        reportsToSubmit: [{reportID} as TodosDerivedValue['reportsToSubmit'][number]],
+                        reportsToSubmit: [{reportID}],
                     });
                 });
                 await waitForBatchedUpdatesWithAct();
@@ -547,9 +590,9 @@ describe('ForYouSection', () => {
             it('navigates to REPORT_WITH_ID when approve has exactly one report on narrow layout', async () => {
                 const reportID = '100';
                 await act(async () => {
-                    await Onyx.set(ONYXKEYS.DERIVED.TODOS, {
+                    setTodoCounts({
                         ...BASE_TODOS,
-                        reportsToApprove: [{reportID} as TodosDerivedValue['reportsToApprove'][number]],
+                        reportsToApprove: [{reportID}],
                     });
                 });
                 await waitForBatchedUpdatesWithAct();
