@@ -25,6 +25,9 @@ exports[`Column availability single source of truth the derived picker lists mat
   "amount",
   "total",
   "withdrawalID",
+  "submitterUserID",
+  "submitterPayrollID",
+  "orderDealNumbers",
 ]
 `;
 
@@ -64,5 +67,8 @@ exports[`Column availability single source of truth the derived picker lists mat
   "exportedto",
   "action",
   "withdrawalID",
+  "submitterUserID",
+  "submitterPayrollID",
+  "orderDealNumbers",
 ]
 `;

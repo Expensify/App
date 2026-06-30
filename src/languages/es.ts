@@ -446,6 +446,7 @@ const translations: TranslationDeepObject<typeof en> = {
         exchangeRate: 'Tipo de cambio',
         reimbursableTotal: 'Total reembolsable',
         nonReimbursableTotal: 'Total no reembolsable',
+        internationalReimbursementIDs: 'IDs de reembolso internacional',
         opensInNewTab: 'Se abre en una nueva pestaña',
         locked: 'Bloqueado',
         month: 'Monat',
@@ -789,6 +790,7 @@ const translations: TranslationDeepObject<typeof en> = {
         joinThread: 'Unirse al hilo',
         leaveThread: 'Dejar hilo',
         copyOnyxData: 'Copiar datos de Onyx',
+        copyAgentZeroRequestID: 'Copiar ID de solicitud de AgentZero',
         flagAsOffensive: 'Marcar como ofensivo',
         menu: 'Menú',
     },
@@ -4408,7 +4410,7 @@ ${amount} para ${merchant} - ${date}`,
             viewTransactions: 'Ver transacciones',
             policyExpenseChatName: (displayName) => `${displayName}'s gastos`,
             deepDiveExpensifyCard: `<muted-text-label>Las transacciones de la Tarjeta Expensify se exportan automáticamente a una "Cuenta de Responsabilidad de la Tarjeta Expensify" creada con <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nuestra integración</a>.</muted-text-label>`,
-            travelInvoicing: 'Exportar gastos de facturación de viajes como',
+            travelInvoicing: 'Exportar gastos de facturación consolidada de viajes como',
             travelInvoicingVendor: 'Proveedor de viajes',
             travelInvoicingPayableAccount: 'Cuenta por pagar de viajes',
             findDomain: 'Buscar dominio',
@@ -5655,8 +5657,8 @@ ${amount} para ${merchant} - ${date}`,
             travel: {
                 title: 'Viajes',
                 subtitle: 'Reserva, gestiona y concilia todos tus viajes de negocios.',
-                disableTravelTitle: 'Desactiva primero la facturación de viajes',
-                disableTravelPrompt: 'La facturación de viajes está habilitada para este espacio de trabajo. Desactívala antes de poder deshabilitar Viajes.',
+                disableTravelTitle: 'Desactiva primero la Facturación de Viajes Consolidada',
+                disableTravelPrompt: 'La facturación consolidada de viajes está habilitada para este espacio de trabajo. Desactívala antes de poder deshabilitar Viajes.',
                 disableTravelButton: 'Ve a la configuración de Viajes',
                 getStarted: {
                     title: 'Comienza con Expensify Travel',
@@ -5686,7 +5688,7 @@ ${amount} para ${merchant} - ${date}`,
                         manageTravelLabel: 'Gestionar viajes',
                     },
                     travelInvoicingSection: {
-                        title: 'Facturación de viajes',
+                        title: 'Facturación consolidada de viajes',
                         subtitle: 'Centraliza todos los gastos de viaje en una factura mensual en lugar de pagar en el momento de la compra.',
                         learnHow: 'Aprende cómo.',
                         subsections: {
@@ -5703,16 +5705,16 @@ ${amount} para ${merchant} - ${date}`,
                             reduceLimitTitle: '¿Reducir el límite de gasto en viajes?',
                             reduceLimitWarning: 'Si reduces el límite, los miembros que ya hayan gastado más de este importe no podrán hacer nuevas reservas de viaje hasta el próximo mes.',
                             provisioningError:
-                                'No hemos podido aprovisionar a algunos de los miembros de tu espacio de trabajo para la facturación de viajes. Inténtalo de nuevo más tarde o ponte en contacto con Concierge para obtener ayuda.',
+                                'No hemos podido aprovisionar a algunos miembros de tu espacio de trabajo para la Facturación de Viajes Consolidada. Por favor, inténtalo de nuevo más tarde o contacta con Concierge para obtener ayuda.',
                         },
                     },
                     disableModal: {
-                        title: '¿Desactivar la facturación de viajes?',
+                        title: '¿Desactivar la facturación consolidada de viajes?',
                         body: 'Es posible que las próximas reservas de hotel y alquiler de coches deban volver a reservarse con un método de pago diferente para evitar su cancelación.',
                         confirm: 'Desactivar',
                     },
                     outstandingBalanceModal: {
-                        title: 'No se puede desactivar la facturación de viajes',
+                        title: 'No se puede desactivar la Facturación de Viajes Consolidada',
                         body: 'Aún tienes un saldo pendiente de viajes. Por favor, paga tu saldo primero.',
                         confirm: 'Entendido',
                     },
@@ -5724,8 +5726,8 @@ ${amount} para ${merchant} - ${date}`,
                     exportToCSV: 'Exportar a CSV',
                     selectDateRangeError: 'Por favor, selecciona un rango de fechas para exportar',
                     invalidDateRangeError: 'La fecha de inicio debe ser anterior a la fecha de fin',
-                    enabled: '¡Facturación de viajes habilitada!',
-                    enabledDescription: 'Todos los gastos de viaje en este espacio de trabajo ahora se centralizarán en una factura mensual.',
+                    enabled: '¡Facturación de viajes consolidada habilitada!',
+                    enabledDescription: 'Todos los gastos de viaje de este espacio de trabajo ahora se centralizarán en una factura mensual.',
                 },
                 personalDetailsDescription: 'Para poder reservar el viaje, por favor ingrese su nombre legal tal como aparece en su identificación oficial emitida por el gobierno.',
             },
@@ -6498,11 +6500,11 @@ ${amount} para ${merchant} - ${date}`,
                 chooseBankAccount: 'Elige la cuenta bancaria con la que se conciliarán los pagos de tu Tarjeta Expensify.',
                 settlementAccountReconciliation: (settlementAccountUrl, lastFourPAN) =>
                     `Asegúrate de que esta cuenta coincide con <a href="${settlementAccountUrl}">la cuenta de liquidación de tu Tarjeta Expensify</a> (que termina en ${lastFourPAN}) para que la conciliación continua funcione correctamente.`,
-                chooseTravelInvoicingBankAccount: 'Elige la cuenta bancaria con la que se reconciliarán los pagos de tus facturas de viaje.',
+                chooseTravelInvoicingBankAccount: 'Elige la cuenta bancaria con la que se conciliarán los pagos de tu facturación de viajes consolidada.',
                 travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
-                    `Asegúrate de que esta cuenta coincida con tu cuenta de liquidación de facturas de viaje (que termina en ${lastFourPAN}) para que la conciliación continua funcione correctamente.`,
+                    `Asegúrate de que esta cuenta coincida con tu cuenta de liquidación de Facturación Consolidada de Viajes (terminada en ${lastFourPAN}) para que la Reconciliación Continua funcione correctamente.`,
             },
-            syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes',
+            syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes consolidadas',
         },
         card: {
             issueCard: 'Emitir tarjeta',
@@ -6704,7 +6706,7 @@ ${amount} para ${merchant} - ${date}`,
                 optionFixedDistanceTitle: 'Excluir una distancia fija por reclamación',
                 optionFixedDistanceHelp: 'Resta la misma distancia de desplazamiento de cada solicitud. Ideal para personas que envían una solicitud por día laborable.',
                 distanceLabel: 'Distancia',
-                errors: {distanceMustBePositive: 'La distancia debe ser mayor que 0.'},
+                errors: {distanceMustBePositive: 'La distancia debe ser un número entero positivo.'},
             },
             distance: 'Distancia',
             centrallyManage: 'Gestiona centralizadamente las tasas, elige si contabilizar en millas o kilómetros, y define una categoría por defecto',
@@ -7412,6 +7414,8 @@ ${amount} para ${merchant} - ${date}`,
             agentRules: {
                 title: 'Reglas del agente',
                 subtitle: 'Configura reglas para cómo los agentes de IA gestionan los gastos en este espacio de trabajo.',
+                enforcedBy: 'Las reglas del agente se aplican mediante',
+                ruleBotName: 'RuleBot',
                 addRule: 'Añadir regla de agente',
                 findRule: 'Encontrar regla de agente',
                 addRuleTitle: 'Añadir regla',
@@ -7957,36 +7961,36 @@ ${amount} para ${merchant} - ${date}`,
             approvedReimbursedClosedSpend,
         ) =>
             `¡Atención! Este espacio de trabajo tiene un presupuesto ${budgetFrequency} ${budgetTypeForNotificationMessage} de "${budgetAmount}" para la categoría "${budgetName}". Actualmente estás en ${approvedReimbursedClosedSpend}, lo que supera el ${thresholdPercentage}% del presupuesto. También hay ${awaitingApprovalSpend} en espera de aprobación y ${unsubmittedSpend} que aún no se ha enviado, para un total de ${totalSpend}.${summaryLink ? ` <a href="${summaryLink}">Aquí hay un informe</a> con todos esos gastos para tus registros.` : ''}`,
-        updatedFeatureEnabled: ({enabled, featureName}) => {
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
             switch (featureName) {
                 case 'categories':
-                    return `${enabled ? 'activó' : 'desactivó'} las categorías`;
+                    return `${enabled ? 'habilitado' : 'desactivado'} categorías`;
                 case 'tags':
-                    return `${enabled ? 'activó' : 'desactivó'} las etiquetas`;
+                    return `${enabled ? 'habilitado' : 'desactivado'} etiquetas`;
                 case 'workflows':
-                    return `${enabled ? 'activó' : 'desactivó'} los flujos de trabajo`;
+                    return `Flujos de trabajo ${enabled ? 'habilitado' : 'desactivado'}`;
                 case 'distance rates':
-                    return `${enabled ? 'activó' : 'desactivó'} las tasas por distancia`;
+                    return `${enabled ? 'habilitado' : 'desactivado'} tarifas por distancia`;
                 case 'accounting':
-                    return `${enabled ? 'activó' : 'desactivó'} la contabilidad`;
+                    return `${enabled ? 'habilitado' : 'desactivado'} contabilidad`;
                 case 'Expensify Cards':
-                    return `${enabled ? 'activó' : 'desactivó'} las tarjetas Expensify`;
+                    return `${enabled ? 'habilitado' : 'desactivado'} Tarjetas Expensify`;
                 case 'travel invoicing':
-                    return `${enabled ? 'activó' : 'desactivó'} la facturación de viajes`;
+                    return `${enabled ? 'habilitado' : 'desactivado'} Facturación consolidada de viajes`;
                 case 'company cards':
-                    return `${enabled ? 'activó' : 'desactivó'} las tarjetas de empresa`;
+                    return `${enabled ? 'habilitado' : 'desactivado'} tarjetas de la empresa`;
                 case 'invoicing':
-                    return `${enabled ? 'activó' : 'desactivó'} las facturas`;
+                    return `Facturación ${enabled ? 'habilitado' : 'desactivado'}`;
                 case 'per diem':
-                    return `${enabled ? 'activó' : 'desactivó'} per diem`;
+                    return `${enabled ? 'habilitado' : 'desactivado'} Per diem`;
                 case 'receipt partners':
-                    return `${enabled ? 'activó' : 'desactivó'} la importación de recibos`;
+                    return `${enabled ? 'habilitado' : 'desactivado'} socios de recibos`;
                 case 'rules':
-                    return `${enabled ? 'activó' : 'desactivó'} las reglas`;
+                    return `${enabled ? 'habilitado' : 'desactivado'} reglas`;
                 case 'tax tracking':
-                    return `${enabled ? 'activó' : 'desactivó'} el seguimiento de impuestos`;
+                    return `seguimiento de impuestos ${enabled ? 'habilitado' : 'desactivado'}`;
                 default:
-                    return `${enabled ? 'activó' : 'desactivó'} ${featureName}`;
+                    return `${enabled ? 'habilitado' : 'desactivado'} ${featureName}`;
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'habilitó' : 'deshabilitó'} el seguimiento de asistentes`,
@@ -8300,13 +8304,14 @@ ${amount} para ${merchant} - ${date}`,
             completed: 'Completadas',
             card: {
                 expensify: 'Expensify',
-                travelInvoicing: 'Facturación de viajes',
+                travelInvoicing: 'Facturación consolidada de viajes',
                 individualCards: 'Tarjetas individuales',
                 closedCards: 'Tarjetas cerradas',
                 cardFeeds: 'Flujos de tarjetas',
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}) => `Todo ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}) => `Todas las Tarjetas Importadas desde CSV${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
             },
+            bankAccount: {banks: 'Cuentas bancarias', closedBankAccounts: 'Cuentas bancarias cerradas'},
             amount: {
                 lessThan: (amount) => `Menos de ${amount ?? ''}`,
                 greaterThan: (amount) => `Más que ${amount ?? ''}`,
@@ -8349,7 +8354,7 @@ ${amount} para ${merchant} - ${date}`,
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Tarjeta Expensify',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reembolso',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Facturación de viajes',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Facturación consolidada de viajes',
             },
             is: 'Es',
             action: {
@@ -8377,6 +8382,12 @@ ${amount} para ${merchant} - ${date}`,
         noMerchant: 'Sin comerciante',
         noTag: 'Sin etiqueta',
         expenseType: 'Tipo de gasto',
+        receiptType: 'Tipo de recibo',
+        receiptTypeValues: {
+            ereceipt: 'Recibo electrónico',
+            itemized: 'Detallado',
+            hotel: 'Hotel',
+        },
         withdrawalType: 'Tipo de retiro',
         recentSearches: 'Búsquedas recientes',
         recentChats: 'Chats recientes',
@@ -9202,7 +9213,7 @@ ${amount} para ${merchant} - ${date}`,
         personalCard: 'Tarjeta personal',
         companyCard: 'Tarjeta corporativa',
         expensifyCard: 'Tarjeta Expensify',
-        travelInvoicing: 'Facturación de viajes',
+        travelInvoicing: 'Facturación consolidada de viajes',
         travelCard: 'Tarjeta de viaje',
     },
     distance: {
@@ -9963,7 +9974,7 @@ ${amount} para ${merchant} - ${date}`,
         expenseLevelExport: 'Todos los datos - a nivel de gasto',
         exportInProgress: 'Exportación en curso',
         conciergeWillSend: 'Concierge te enviará el archivo en breve.',
-        currentView: 'Exportar vista actual',
+        currentView: 'Vista actual',
     },
     exportDownload: {
         preparingTitle: 'Preparando descarga...',

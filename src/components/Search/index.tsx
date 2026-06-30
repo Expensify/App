@@ -1071,7 +1071,7 @@ function Search({
                             SearchTableHeader={searchTableHeader}
                             tableHeaderVisible={tableHeaderVisible}
                             contentContainerStyle={[styles.pb3, contentContainerStyle]}
-                            containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3]}
+                            containerStyle={[styles.pv0]}
                             onScroll={onSearchListScroll}
                             onEndReached={fetchMoreResults}
                             ListFooterComponent={listFooterComponent}
@@ -1093,7 +1093,7 @@ function Search({
                             shouldPreventLongPressRow={isChat || isTask}
                             SearchTableHeader={searchTableHeader}
                             contentContainerStyle={[styles.pb3, contentContainerStyle]}
-                            containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3]}
+                            containerStyle={[styles.pv0]}
                             onScroll={onSearchListScroll}
                             onEndReachedThreshold={0.75}
                             onEndReached={fetchMoreResults}

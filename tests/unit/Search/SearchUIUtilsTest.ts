@@ -44,6 +44,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {CustomCardFeedData} from '@src/types/onyx/CardFeeds';
 import type {Connections} from '@src/types/onyx/Policy';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import createRandomPolicy from '../../utils/collections/policies';
 import getOnyxValue from '../../utils/getOnyxValue';
 import {formatPhoneNumber, localeCompare, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -8301,6 +8302,95 @@ describe('SearchUIUtils', () => {
             expect(response.visibility.unapprovedCash).toBe(true);
             expect(response.visibility.unapprovedCard).toBe(true);
             expect(response.visibility.reconciliation).toBe(true);
+        });
+
+        test('Should show Statements for an Expensify Card-only paid workspace (Expensify Cards enabled, no company card feed, default Expensify card present)', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    id: policyID,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areExpensifyCardsEnabled: true,
+                    areCompanyCardsEnabled: false,
+                },
+            };
+
+            const defaultExpensifyCard: CardFeedForDisplay = {
+                id: 'fund1_Expensify Card',
+                feed: 'Expensify Card',
+                fundID: 'fund1',
+                name: 'Expensify Card',
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, defaultExpensifyCard);
+            expect(response.visibility.statements).toBe(true);
+        });
+
+        test('Should hide Statements for an Expensify Card-only paid workspace when there is no Expensify card feed', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    id: policyID,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areExpensifyCardsEnabled: true,
+                    areCompanyCardsEnabled: false,
+                },
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.visibility.statements).toBe(false);
+        });
+
+        test('Should still show Statements for a company-card paid workspace with a card feed (regression)', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    id: policyID,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCompanyCardsEnabled: true,
+                },
+            };
+
+            const cardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+                [policyID]: [
+                    {
+                        id: 'fund1_oauth.chase.com',
+                        feed: 'oauth.chase.com',
+                        fundID: 'fund1',
+                        name: 'Chase',
+                    },
+                ],
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, cardFeedsByPolicy, policies, undefined);
+            expect(response.visibility.statements).toBe(true);
+        });
+
+        test('Should show Statements when a domain card feed is linked via linkedPolicyIDs but areCompanyCardsEnabled is false on the policy summary', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    id: policyID,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCompanyCardsEnabled: false,
+                    areExpensifyCardsEnabled: false,
+                },
+            };
+
+            const cardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+                [policyID]: [
+                    {
+                        id: 'fund1_oauth.chase.com',
+                        feed: 'oauth.chase.com',
+                        fundID: 'fund1',
+                        linkedPolicyIDs: [policyID],
+                        name: 'Chase',
+                    },
+                ],
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, cardFeedsByPolicy, policies, undefined);
+            expect(response.visibility.statements).toBe(true);
         });
     });
 

@@ -35,6 +35,7 @@ import {
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
@@ -103,6 +104,9 @@ function TransactionListItem<TItem extends ListItem>({
 
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
     const [transactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`);
+    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(transactionItem?.report?.ownerAccountID)}, [
+        transactionItem?.report?.ownerAccountID,
+    ]);
     const [transaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`);
     const [transactionViolationsForRow] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`);
     const parentReportActionSelector = (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${transactionItem?.reportAction?.reportActionID}`];
@@ -112,7 +116,7 @@ function TransactionListItem<TItem extends ListItem>({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [parentChatReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID)}`);
     const [chatReportActions] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID ?? snapshotReport?.parentReportID)}`);
-    const {amountOwed, currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy} = useReportPaymentContext({
+    const {amountOwed, currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, delegateEmail} = useReportPaymentContext({
         reportID: transactionItem.reportID,
         chatReportPolicyID: parentChatReport?.policyID,
     });
@@ -173,6 +177,7 @@ function TransactionListItem<TItem extends ListItem>({
             goToItem: () => onSelectRow(item, transactionPreviewData, event),
             snapshotReport,
             snapshotPolicy,
+            submitterLogin,
             policy: parentPolicy,
             lastPaymentMethod,
             userBillingGracePeriodEnds,
@@ -195,6 +200,7 @@ function TransactionListItem<TItem extends ListItem>({
             iouReportCurrentNextStepDeprecated: nextStep,
             searchData: currentSearchResults?.data,
             chatReportActions,
+            delegateEmail,
         });
     };
 
