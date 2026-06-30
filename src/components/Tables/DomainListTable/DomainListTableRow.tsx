@@ -81,7 +81,6 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
             onPress={item.action}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
-            skeletonReasonAttributes={{context: 'domainTableRow'}}
             offlineWithFeedback={{
                 errors: item.errors,
                 pendingAction: item.pendingAction,
