@@ -152,7 +152,7 @@ function IOURequestStepAmount({
     // Pre-insert the destination report under the RHP on narrow layout for skip-confirmation
     // flows. Without this, revealRouteBeforeDismissingModal inserts the route at submit
     // time which causes a brief flash. The confirmation step handles its own pre-insertion
-    // but skip-confirmation flows (PAY, track, scan, distance) never mount it.
+    // but skip-confirmation flows (PAY, track, scan) never mount it.
     const hasPreInsertedReport = useRef(false);
     useEffect(() => {
         const shouldPreInsert = shouldSkipConfirmation && !isSearchTopmostFullScreenRoute() && getIsNarrowLayout() && !!report?.reportID;
