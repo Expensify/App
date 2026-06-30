@@ -5,6 +5,7 @@ import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputF
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 /**
@@ -63,7 +64,10 @@ function TableSearchBar({label}: TableSearchBarProps) {
             containerStyles={containerStyles}
             textInputContainerStyles={textInputContainerStyles}
             touchableInputWrapperStyle={touchableInputWrapperStyle}
-            shouldShowClearButton={false}
+            accessibilityLabel={label}
+            shouldHideClearButton={false}
+            clearButtonStyle={shouldUseNarrowTableLayout ? undefined : styles.mh0}
+            clearButtonIconSize={shouldUseNarrowTableLayout ? undefined : variables.iconSizeSmall}
             onBlur={() => setInputFocused(false)}
             onFocus={() => setInputFocused(true)}
             onChangeText={(text) => updateSearchString(text)}

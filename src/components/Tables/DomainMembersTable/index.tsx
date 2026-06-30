@@ -44,7 +44,7 @@ function DomainMembersGroupFilterSync({shouldShowGroupFilter, groupOptionValuesK
     const groupFilterValue = activeFilters.group;
 
     useEffect(() => {
-        const activeGroupFilter = typeof groupFilterValue === 'string' ? groupFilterValue : undefined;
+        const activeGroupFilter = groupFilterValue.at(0);
         const groupOptionValues = groupOptionValuesKey ? groupOptionValuesKey.split(',') : [];
 
         if (!shouldShowGroupFilter) {
