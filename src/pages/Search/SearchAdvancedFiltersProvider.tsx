@@ -67,8 +67,7 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
     const advancedFiltersToReset = searchAdvancedFiltersForm ? getAdvancedFiltersToReset(searchAdvancedFiltersForm) : undefined;
 
     const isEditingSavedView = !!editingSavedView;
-    // The hash the edited draft would be saved under. Saved views are keyed by query hash, so we use it to decide which
-    // save buttons to disable (avoids clobbering/duplicating other views — same helper the wide popover uses).
+    // The hash the edited draft would save under; used to decide which save buttons to disable.
     const editedQueryHash = buildSearchQueryJSON(buildFilterQueryString(values))?.hash;
     const {isSaveAsNewViewDisabled, isSaveEditsDisabled} = getSavedViewSaveButtonDisabledStates(savedSearches, editedQueryHash, editingSavedView?.hash);
 
@@ -113,9 +112,8 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
         if (!queryString) {
             return;
         }
-        // Carry the edited query to the save page WITHOUT changing the active search. Mobile filters are a draft (nothing
-        // is applied until you save), so the active search stays on the view being edited — backing out of the save page
-        // returns there, and the save page saves these edited filters (and lands on the new view once saved).
+        // Carry the edited query to the save page without changing the active search (mobile filters are a draft), so
+        // backing out returns to the edited view.
         setSaveAsNewViewQuery(queryString);
         Navigation.dismissModal({
             afterTransition: () => {

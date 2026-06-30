@@ -31,10 +31,7 @@ type SavedViewEditFooterProps = {
     style?: StyleProp<ViewStyle>;
 };
 
-/**
- * The "Edit filters" footer (Cancel + a Save dropdown offering "Save edits" / "Save as new view"). Shared by the wide
- * advanced-filters popover and the narrow fullscreen filters page so both stay in sync with the approved design.
- */
+/** The mobile "Edit filters" footer: Cancel + a Save dropdown ("Save edits" / "Save as new view"). */
 function SavedViewEditFooter({onCancel, onSaveEdits, onSaveAsNewView, isSaveEditsDisabled = false, isSaveAsNewViewDisabled = false, style}: SavedViewEditFooterProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();

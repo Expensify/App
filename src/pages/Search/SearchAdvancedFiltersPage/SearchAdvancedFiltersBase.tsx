@@ -17,8 +17,7 @@ function SearchAdvancedFiltersBase() {
     const {currentDraftFilters, shouldShowResetFilters, isEditingSavedView, isSaveEditsDisabled, isSaveAsNewViewDisabled} = useContext(SearchAdvancedFiltersContext);
     const {applyFilters, resetFilters, saveEdits, saveAsNewView, cancelEdits} = useContext(SearchAdvancedFiltersActionContext);
 
-    // Clear edit mode if the fullscreen filters route is dismissed by any means (hardware/browser back, swipe), not
-    // only the header back button or footer Cancel, so a stale SEARCH_EDITING_SAVED_VIEW can't keep a view highlighted.
+    // Clear edit mode if the route is dismissed by hardware/browser back or swipe (not just the header/Cancel).
     useEffect(
         () => () => {
             exitSavedViewEditMode();

@@ -36,11 +36,8 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
     const [editingSavedView] = useOnyx(ONYXKEYS.SEARCH_EDITING_SAVED_VIEW);
     const isEditingSavedView = !!editingSavedView;
 
-    // On small screens the filters are a fullscreen route (not a popover), so a saved-view "Edit filters" request opens
-    // that route here. Keyed by requestID so each click opens it once (and doesn't re-open after the user backs out).
-    // We wait until the active search has navigated to the view being edited (queryJSON.hash === editingSavedView.hash)
-    // so useSearchFilterSync has populated the form with that view's filters before the fullscreen page reads them —
-    // otherwise editing a view other than the current search would open with the previous search's (stale) filters.
+    // On small screens the filters are a fullscreen route, so "Edit filters" opens it here. Keyed by requestID so each
+    // click opens it once. Wait for queryJSON.hash === editingSavedView.hash so the form has the edited view's filters.
     const lastAutoNavRequestIDRef = useRef<number | undefined>(undefined);
     useEffect(() => {
         const requestID = editingSavedView?.requestID;

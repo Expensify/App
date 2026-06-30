@@ -73,8 +73,7 @@ function SearchAdvancedFiltersPopup({queryJSON, editingSavedView, closeOverlay}:
 
     const popoverHeight = Math.min(windowHeight, CONST.ADVANCED_FILTERS_POPOVER_HEIGHT);
 
-    // In edit mode the popover also shows a footer, so the master-detail must shrink to share the fixed popover height
-    // (otherwise its fixed height + the footer overflow the measured popover card and the footer spills out below it).
+    // In edit mode the popover also shows a footer, so the master-detail must shrink to share the fixed popover height.
     const masterDetailRowStyle = isEditingSavedView ? [styles.flex1, styles.mnh0] : StyleUtils.getHeight(popoverHeight);
 
     const masterDetail = (

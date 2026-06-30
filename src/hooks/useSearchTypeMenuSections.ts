@@ -128,9 +128,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
     );
 
     const activeItemIndex = useMemo(() => {
-        // While editing a saved view, the LHN should reflect the view being edited — not the live (unsaved) query — so
-        // don't light a standard search just because the in-progress filters happen to match one (the edited view itself
-        // stays highlighted via SavedSearchList's editingSavedViewHash).
+        // While editing, don't let the live (unsaved) query light a standard search.
         const isSavedSearchActive = !!editingSavedView || (hash !== undefined && !!savedSearches && Object.keys(savedSearches).some((key) => Number(key) === hash));
 
         if (isSavedSearchActive) {

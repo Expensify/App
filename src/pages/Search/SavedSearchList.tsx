@@ -65,8 +65,7 @@ function buildSavedSearchMenuItem({
     isCopied,
     editingSavedViewHash,
 }: SavedSearchMenuItemBuilderParams): SavedSearchMenuItem {
-    // Keep the saved view highlighted while it is being edited, even though the live query changes as filters are tweaked.
-    // While editing a saved view, light only that view — not whatever the live (unsaved) query happens to match.
+    // While editing, highlight only the edited view, not the live query's match.
     const isItemFocused = editingSavedViewHash !== undefined ? Number(key) === editingSavedViewHash : Number(key) === hash;
     const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, isItemFocused);
 
