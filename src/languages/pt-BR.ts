@@ -512,6 +512,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Editor',
         restrictions: 'Restrições',
+        tryAgain: 'Tentar novamente',
         off: 'Desligado',
     },
     socials: {
@@ -3683,7 +3684,6 @@ ${amount} para ${merchant} - ${date}`,
         facialScan: 'Política e Autorização de Varredura Facial da Onfido',
         onfidoLinks: (onfidoTitle: string) =>
             `<muted-text-micro>${onfidoTitle} <a href='${CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}'>Política e Autorização de Varredura Facial da Onfido</a>, <a href='${CONST.ONFIDO_PRIVACY_POLICY_URL}'>Privacidade</a> e <a href='${CONST.ONFIDO_TERMS_OF_SERVICE_URL}'>Termos de Serviço</a>.</muted-text-micro>`,
-        tryAgain: 'Tentar novamente',
         verifyIdentity: 'Verificar identidade',
         letsVerifyIdentity: 'Vamos verificar sua identidade',
         butFirst: `Mas primeiro, a parte chata. Leia o juridiquês na próxima etapa e clique em “Aceitar” quando estiver pronto.`,
@@ -5470,7 +5470,6 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 workspaceFeedsCouldNotBeLoadedMessage: 'Ocorreu um erro ao carregar os feeds de cartões do workspace. Tente novamente ou contate o seu administrador.',
                 feedCouldNotBeLoadedTitle: 'Não foi possível carregar este feed',
                 feedCouldNotBeLoadedMessage: 'Ocorreu um erro ao carregar este feed. Tente novamente ou entre em contato com seu administrador.',
-                tryAgain: 'Tentar novamente',
             },
             addNewCard: {
                 other: 'Outro',
@@ -6259,6 +6258,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 conciergeNotificationTitle: 'O Concierge vai avisar você',
                 conciergeNotificationDescription: 'Quando o processo for concluído, o Concierge vai enviar uma mensagem para você.',
                 copyCompleted: 'As configurações do seu workspace foram copiadas.',
+                copyFailedTitle: 'Falha ao copiar',
             },
         },
         emptyWorkspace: {
@@ -9297,7 +9297,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     },
     listBoundary: {
         errorMessage: 'Ocorreu um erro ao carregar mais mensagens',
-        tryAgain: 'Tentar novamente',
     },
     systemMessage: {
         mergedWithCashTransaction: 'correspondeu um recibo a esta transação',
