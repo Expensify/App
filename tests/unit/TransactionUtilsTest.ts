@@ -1,7 +1,12 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
-import {doesMoneyRequestDraftHaveUserInput, shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
+import {
+    doesMoneyRequestDraftHaveUserInput,
+    hasUnsavedMoneyRequestInput,
+    shouldShowBrokenConnectionViolation,
+    shouldShowBrokenConnectionViolationForMultipleTransactions,
+} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -3642,5 +3647,28 @@ describe('doesMoneyRequestDraftHaveUserInput', () => {
     it('returns true when the user entered a waypoint', () => {
         const transaction = generateTransaction({comment: {waypoints: {waypoint0: {address: '350 5th Ave, New York', lat: 40.7484, lng: -73.9857}, waypoint1: {}}}});
         expect(doesMoneyRequestDraftHaveUserInput(transaction)).toBe(true);
+    });
+});
+
+describe('hasUnsavedMoneyRequestInput', () => {
+    describe('create entry (committed baseline is empty)', () => {
+        it('is unsaved whenever a value is present, even when it already matches the draft', () => {
+            expect(hasUnsavedMoneyRequestInput(100, 0, 0, true)).toBe(true);
+            expect(hasUnsavedMoneyRequestInput(100, 100, 0, true)).toBe(true);
+            expect(hasUnsavedMoneyRequestInput('1', '', '', true)).toBe(true);
+            expect(hasUnsavedMoneyRequestInput('1', '1', '', true)).toBe(true);
+        });
+
+        it('is not unsaved when nothing was entered', () => {
+            expect(hasUnsavedMoneyRequestInput(0, 0, 0, true)).toBe(false);
+            expect(hasUnsavedMoneyRequestInput('', '', '', true)).toBe(false);
+        });
+    });
+
+    describe('editing (committed baseline is the saved value)', () => {
+        it('is unsaved only when the value changed from the committed one', () => {
+            expect(hasUnsavedMoneyRequestInput(100, 50, 0, false)).toBe(true);
+            expect(hasUnsavedMoneyRequestInput(100, 100, 0, false)).toBe(false);
+        });
     });
 });

@@ -1232,10 +1232,23 @@ function hasDisplayableMCC(mcc: number | string | null | undefined): boolean {
  */
 /**
  * Whether a draft holds tab-entered input that is lost when the flow is abandoned (drafts are not restored on the next open).
- * Forward-navigation fields (amount, receipt, ...) are deliberately excluded; extend per-field as new tabs persist input to the draft.
+ * Covers fields that persist to the draft as they are entered (waypoints). Forward-navigation fields that persist only on
+ * "Next" (amount, hours) live in the live input until then, so they use {@link hasUnsavedMoneyRequestInput} instead.
  */
 function doesMoneyRequestDraftHaveUserInput(transaction: OnyxEntry<Transaction>): boolean {
     return Object.keys(getValidWaypoints(getWaypoints(transaction))).length > 0;
+}
+
+/**
+ * Whether a money-request step's current value is unsaved — i.e. it differs from the last *committed* value.
+ *
+ * On the **create entry** (leaving discards the draft) nothing is committed, so the baseline is `emptyValue` and any
+ * entry counts; otherwise (editing, or leaving returns without discarding) the baseline is `committedValue`, so only a
+ * change counts. The live draft can't be the baseline on the create entry — "Next" persists into it, so a draft baseline
+ * would stop flagging the value once saved forward.
+ */
+function hasUnsavedMoneyRequestInput<T>(currentValue: T, committedValue: T, emptyValue: T, isCreateEntry: boolean): boolean {
+    return currentValue !== (isCreateEntry ? emptyValue : committedValue);
 }
 
 function getWaypoints(transaction: OnyxEntry<Transaction>): WaypointCollection | undefined {
@@ -3021,6 +3034,7 @@ export {
     didReceiptScanSucceed,
     getValidWaypoints,
     doesMoneyRequestDraftHaveUserInput,
+    hasUnsavedMoneyRequestInput,
     haveWaypointAddressesChanged,
     isDistanceRequest,
     isMapDistanceRequest,

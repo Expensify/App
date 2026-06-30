@@ -24,7 +24,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExistingTransactionID} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, shouldEnableNegative} from '@libs/ReportUtils';
-import {getRequestType, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
+import {getRequestType, hasUnsavedMoneyRequestInput, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import type {MoneyRequestAmountFormHandle} from '@pages/iou/MoneyRequestAmountForm';
 import CONST from '@src/CONST';
@@ -122,11 +122,12 @@ function IOURequestStepAmount({
     const [selectedCurrency, setSelectedCurrency] = useState(originalCurrency);
     const decimals = getCurrencyDecimals(selectedCurrency || CONST.CURRENCY.USD);
 
+    const isAmountCreateEntry = !backTo && !isEditing;
     const {notifySaving} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => {
             const typedAmount = amountFormRef.current?.getNumber() ?? '';
             const typedAmountInBackendUnits = typedAmount ? convertToBackendAmount(Number.parseFloat(typedAmount)) : 0;
-            return typedAmountInBackendUnits !== transactionAmount || selectedCurrency !== originalCurrency;
+            return hasUnsavedMoneyRequestInput(typedAmountInBackendUnits, transactionAmount, 0, isAmountCreateEntry) || selectedCurrency !== originalCurrency;
         },
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);

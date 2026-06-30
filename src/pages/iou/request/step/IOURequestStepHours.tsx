@@ -20,6 +20,7 @@ import {getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {computeTimeAmount, formatTimeMerchant} from '@libs/TimeTrackingUtils';
+import {hasUnsavedMoneyRequestInput} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {setMoneyRequestAmount, setMoneyRequestMerchant, setMoneyRequestParticipantsFromReport, setMoneyRequestTimeCount, setMoneyRequestTimeRate} from '@userActions/IOU/MoneyRequest';
 import CONST from '@src/CONST';
@@ -83,7 +84,7 @@ function IOURequestStepHours({
     const {notifySaving} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => {
             const typedCount = moneyRequestTimeInputRef.current?.getNumber() ?? '';
-            return typedCount !== `${transaction?.comment?.units?.count ?? ''}`;
+            return hasUnsavedMoneyRequestInput(typedCount, `${transaction?.comment?.units?.count ?? ''}`, '', isEmbeddedInStartPage);
         },
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInputRef.current?.focus(), CONST.ANIMATED_TRANSITION);
