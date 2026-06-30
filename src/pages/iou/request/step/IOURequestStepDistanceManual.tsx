@@ -29,11 +29,12 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import {getStringFieldHasUnsavedChanges} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {generateReportID, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
-import {getDistanceInMeters, hasUnsavedMoneyRequestInput} from '@libs/TransactionUtils';
+import {getDistanceInMeters} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -147,7 +148,7 @@ function IOURequestStepDistanceManual({
     const {notifySaving} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => {
             const typedDistance = numberFormRef.current?.getNumber() ?? '';
-            return hasUnsavedMoneyRequestInput(typedDistance, distance?.toString() ?? '', '', isCreatingNewRequest);
+            return getStringFieldHasUnsavedChanges(typedDistance, distance?.toString() ?? '', isCreatingNewRequest);
         },
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);

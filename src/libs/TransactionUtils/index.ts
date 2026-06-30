@@ -1259,14 +1259,17 @@ function doesMoneyRequestDraftHaveUserInput(transaction: OnyxEntry<Transaction>)
 }
 
 /**
- * Whether a money-request step's value is unsaved — i.e. it differs from the last *committed* value.
+ * Whether a money-request step's value is unsaved.
  *
- * On the **create entry** (leaving discards the draft) the baseline is `emptyValue`, so any entry counts; otherwise it's
- * `committedValue`, so only a change counts. The draft can't be the baseline here — "Next" persists into it, so it would
- * stop flagging the value once saved forward.
+ * On the **create entry** (leaving discards the draft) any input counts, so it's unsaved whenever the current value
+ * isn't empty; otherwise only a change counts, so it's unsaved when the current value differs from the committed one.
+ *
+ * `isCurrentValueEmpty` is supplied by the caller because emptiness can live in a different space than the equality
+ * check: an amount is compared in backend units (where a typed "0" and an empty field both read as 0), but its
+ * emptiness must be judged on the raw input string ("0" is input, "" is not).
  */
-function hasUnsavedMoneyRequestInput<T>(currentValue: T, committedValue: T, emptyValue: T, isCreateEntry: boolean): boolean {
-    return currentValue !== (isCreateEntry ? emptyValue : committedValue);
+function hasUnsavedMoneyRequestInput<T>(currentValue: T, committedValue: T, isCurrentValueEmpty: boolean, isCreateEntry: boolean): boolean {
+    return isCreateEntry ? !isCurrentValueEmpty : currentValue !== committedValue;
 }
 
 function getWaypoints(transaction: OnyxEntry<Transaction>): WaypointCollection | undefined {

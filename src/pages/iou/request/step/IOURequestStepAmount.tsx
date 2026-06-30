@@ -19,12 +19,12 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
-import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExistingTransactionID} from '@libs/IOUUtils';
+import {getAmountHasUnsavedChanges} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, shouldEnableNegative} from '@libs/ReportUtils';
-import {getRequestType, hasUnsavedMoneyRequestInput, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
+import {getRequestType, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import type {MoneyRequestAmountFormHandle} from '@pages/iou/MoneyRequestAmountForm';
 import CONST from '@src/CONST';
@@ -124,11 +124,14 @@ function IOURequestStepAmount({
 
     const isAmountCreateEntry = !backTo && !isEditing;
     const {notifySaving} = useDiscardChangesConfirmation({
-        getHasUnsavedChanges: () => {
-            const typedAmount = amountFormRef.current?.getNumber() ?? '';
-            const typedAmountInBackendUnits = typedAmount ? convertToBackendAmount(Number.parseFloat(typedAmount)) : 0;
-            return hasUnsavedMoneyRequestInput(typedAmountInBackendUnits, transactionAmount, 0, isAmountCreateEntry) || selectedCurrency !== originalCurrency;
-        },
+        getHasUnsavedChanges: () =>
+            getAmountHasUnsavedChanges({
+                typedAmount: amountFormRef.current?.getNumber() ?? '',
+                committedAmount: transactionAmount,
+                isCreateEntry: isAmountCreateEntry,
+                selectedCurrency,
+                originalCurrency,
+            }),
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
         },

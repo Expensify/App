@@ -3854,24 +3854,31 @@ describe('doesMoneyRequestDraftHaveUserInput', () => {
 });
 
 describe('hasUnsavedMoneyRequestInput', () => {
-    describe('create entry (committed baseline is empty)', () => {
-        it('is unsaved whenever a value is present, even when it already matches the draft', () => {
-            expect(hasUnsavedMoneyRequestInput(100, 0, 0, true)).toBe(true);
-            expect(hasUnsavedMoneyRequestInput(100, 100, 0, true)).toBe(true);
-            expect(hasUnsavedMoneyRequestInput('1', '', '', true)).toBe(true);
-            expect(hasUnsavedMoneyRequestInput('1', '1', '', true)).toBe(true);
+    describe('create entry (any input counts)', () => {
+        it('is unsaved whenever the current value is not empty, even when it matches the committed value', () => {
+            expect(hasUnsavedMoneyRequestInput(100, 0, false, true)).toBe(true);
+            expect(hasUnsavedMoneyRequestInput(100, 100, false, true)).toBe(true);
+            expect(hasUnsavedMoneyRequestInput('1', '1', false, true)).toBe(true);
         });
 
-        it('is not unsaved when nothing was entered', () => {
-            expect(hasUnsavedMoneyRequestInput(0, 0, 0, true)).toBe(false);
-            expect(hasUnsavedMoneyRequestInput('', '', '', true)).toBe(false);
+        it('is unsaved for a typed "0" that normalizes to the empty value, e.g. an amount in backend units', () => {
+            expect(hasUnsavedMoneyRequestInput(0, 100, false, true)).toBe(true);
+        });
+
+        it('is not unsaved when the current value is empty', () => {
+            expect(hasUnsavedMoneyRequestInput(0, 0, true, true)).toBe(false);
+            expect(hasUnsavedMoneyRequestInput('', '', true, true)).toBe(false);
         });
     });
 
-    describe('editing (committed baseline is the saved value)', () => {
-        it('is unsaved only when the value changed from the committed one', () => {
-            expect(hasUnsavedMoneyRequestInput(100, 50, 0, false)).toBe(true);
-            expect(hasUnsavedMoneyRequestInput(100, 100, 0, false)).toBe(false);
+    describe('editing (only a change counts)', () => {
+        it('is unsaved only when the current value differs from the committed one', () => {
+            expect(hasUnsavedMoneyRequestInput(100, 50, false, false)).toBe(true);
+            expect(hasUnsavedMoneyRequestInput(100, 100, false, false)).toBe(false);
+        });
+
+        it('ignores the emptiness flag — only the current/committed comparison matters', () => {
+            expect(hasUnsavedMoneyRequestInput(0, 100, true, false)).toBe(true);
         });
     });
 });

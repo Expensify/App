@@ -1,5 +1,13 @@
 import {isValidPerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
-import {handleNegativeAmountFlipping, isValidMerchant, isValidMoneyRequestAmount, validateAmount, validatePercentage} from '@libs/MoneyRequestUtils';
+import {
+    getAmountHasUnsavedChanges,
+    getStringFieldHasUnsavedChanges,
+    handleNegativeAmountFlipping,
+    isValidMerchant,
+    isValidMoneyRequestAmount,
+    validateAmount,
+    validatePercentage,
+} from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import type Report from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -310,6 +318,63 @@ describe('ReportActionsUtils', () => {
 
         it('should trim whitespace before validation', () => {
             expect(isValidMerchant('  Valid Merchant  ')).toBe(true);
+        });
+    });
+});
+
+describe('getAmountHasUnsavedChanges', () => {
+    const sameCurrency = {selectedCurrency: 'USD', originalCurrency: 'USD'};
+
+    describe('create entry (any input counts)', () => {
+        it('flags a typed value', () => {
+            expect(getAmountHasUnsavedChanges({...sameCurrency, typedAmount: '1', committedAmount: 100, isCreateEntry: true})).toBe(true);
+        });
+
+        it('flags an explicit "0" even though it normalizes to the empty backend value', () => {
+            expect(getAmountHasUnsavedChanges({...sameCurrency, typedAmount: '0', committedAmount: 100, isCreateEntry: true})).toBe(true);
+        });
+
+        it('does not flag an empty field', () => {
+            expect(getAmountHasUnsavedChanges({...sameCurrency, typedAmount: '', committedAmount: 0, isCreateEntry: true})).toBe(false);
+        });
+
+        it('flags a currency change even with no amount entered', () => {
+            expect(getAmountHasUnsavedChanges({typedAmount: '', committedAmount: 0, isCreateEntry: true, selectedCurrency: 'EUR', originalCurrency: 'USD'})).toBe(true);
+        });
+    });
+
+    describe('editing (only a real change counts)', () => {
+        it('does not flag formatting-only differences like "5" vs "5.00"', () => {
+            expect(getAmountHasUnsavedChanges({...sameCurrency, typedAmount: '5', committedAmount: 500, isCreateEntry: false})).toBe(false);
+            expect(getAmountHasUnsavedChanges({...sameCurrency, typedAmount: '5.00', committedAmount: 500, isCreateEntry: false})).toBe(false);
+        });
+
+        it('flags a real numeric change', () => {
+            expect(getAmountHasUnsavedChanges({...sameCurrency, typedAmount: '6', committedAmount: 500, isCreateEntry: false})).toBe(true);
+        });
+
+        it('flags a currency change even when the amount is unchanged', () => {
+            expect(getAmountHasUnsavedChanges({typedAmount: '5', committedAmount: 500, isCreateEntry: false, selectedCurrency: 'EUR', originalCurrency: 'USD'})).toBe(true);
+        });
+    });
+});
+
+describe('getStringFieldHasUnsavedChanges (hours, manual distance)', () => {
+    describe('create entry (any input counts)', () => {
+        it('flags any typed value, including "0"', () => {
+            expect(getStringFieldHasUnsavedChanges('2', '', true)).toBe(true);
+            expect(getStringFieldHasUnsavedChanges('0', '', true)).toBe(true);
+        });
+
+        it('does not flag an empty field', () => {
+            expect(getStringFieldHasUnsavedChanges('', '', true)).toBe(false);
+        });
+    });
+
+    describe('editing (only a change counts)', () => {
+        it('flags only a change from the committed value', () => {
+            expect(getStringFieldHasUnsavedChanges('2', '2', false)).toBe(false);
+            expect(getStringFieldHasUnsavedChanges('3', '2', false)).toBe(true);
         });
     });
 });

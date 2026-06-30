@@ -2,10 +2,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Report, Transaction} from '@src/types/onyx';
-import {convertToFrontendAmountAsInteger} from './CurrencyUtils';
+import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
 import {isInvoiceReport, isIOUReport} from './ReportUtils';
 import StringUtils from './StringUtils';
-import {isExpenseUnreported} from './TransactionUtils';
+import {hasUnsavedMoneyRequestInput, isExpenseUnreported} from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
 
 /**
@@ -206,6 +206,32 @@ function isValidMerchant(merchant: string | undefined, transaction?: OnyxEntry<T
     return valueByteLength <= CONST.MERCHANT_NAME_MAX_BYTES;
 }
 
+type AmountHasUnsavedChangesParams = {
+    typedAmount: string;
+    committedAmount: number;
+    isCreateEntry: boolean;
+    selectedCurrency: string;
+    originalCurrency: string;
+};
+
+/**
+ * Whether the amount step has unsaved input. Emptiness is judged on the raw string so a typed "0" still counts, the
+ * change is compared in backend units so formatting-only differences like "5" vs "5.00" aren't flagged, and a currency
+ * change counts on its own.
+ */
+function getAmountHasUnsavedChanges({typedAmount, committedAmount, isCreateEntry, selectedCurrency, originalCurrency}: AmountHasUnsavedChangesParams): boolean {
+    const typedAmountInBackendUnits = typedAmount ? convertToBackendAmount(Number.parseFloat(typedAmount)) : 0;
+    return hasUnsavedMoneyRequestInput(typedAmountInBackendUnits, committedAmount, typedAmount === '', isCreateEntry) || selectedCurrency !== originalCurrency;
+}
+
+/**
+ * Whether a raw-string money-request step (hours, manual distance) has unsaved input: the typed value is non-empty on
+ * the create entry, or differs from the committed value when editing.
+ */
+function getStringFieldHasUnsavedChanges(typedValue: string, committedValue: string, isCreateEntry: boolean): boolean {
+    return hasUnsavedMoneyRequestInput(typedValue, committedValue, typedValue === '', isCreateEntry);
+}
+
 export {
     addLeadingZero,
     replaceAllDigits,
@@ -219,4 +245,6 @@ export {
     isValidMoneyRequestAmount,
     isTaxAmountInvalid,
     isValidMerchant,
+    getAmountHasUnsavedChanges,
+    getStringFieldHasUnsavedChanges,
 };
