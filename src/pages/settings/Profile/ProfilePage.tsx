@@ -219,7 +219,7 @@ function ProfilePage() {
                             <View style={[styles.pt3, styles.pb6, styles.alignSelfStart, styles.w100]}>
                                 {isEmptyObject(currentUserPersonalDetails) || accountID === -1 || !avatarURL ? (
                                     <AvatarSkeleton
-                                        size={CONST.AVATAR_SIZE.X_LARGE}
+                                        size={CONST.AVATAR_SIZE.XXXXX_LARGE}
                                         reasonAttributes={{
                                             context: 'ProfilePage',
                                             isPersonalDetailsEmpty: isEmptyObject(currentUserPersonalDetails),
@@ -239,7 +239,7 @@ function ProfilePage() {
                                                 source={avatarURL}
                                                 avatarID={accountID}
                                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_AVATAR)}
-                                                size={CONST.AVATAR_SIZE.X_LARGE}
+                                                size={CONST.AVATAR_SIZE.XXXXX_LARGE}
                                                 avatarStyle={avatarStyle}
                                                 pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
                                                 fallbackIcon={currentUserPersonalDetails?.fallbackIcon}

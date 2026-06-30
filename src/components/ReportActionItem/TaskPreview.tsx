@@ -114,7 +114,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     const hasAssignee = taskAssigneeAccountID > 0;
     const personalDetails = usePersonalDetails();
     const avatar = personalDetails?.[taskAssigneeAccountID]?.avatar ?? icons.FallbackAvatar;
-    const avatarSize = CONST.AVATAR_SIZE.SMALL;
+    const avatarSize = CONST.AVATAR_SIZE.X_SMALL;
     const isDeletedParentAction = isCanceledTaskReport(taskReport, action);
     const iconWrapperStyle = StyleUtils.getTaskPreviewIconWrapper(hasAssignee ? avatarSize : undefined);
 

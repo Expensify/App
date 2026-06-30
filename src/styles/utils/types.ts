@@ -14,21 +14,19 @@ type EReceiptColorName = ValueOf<typeof CONST.ERECEIPT_COLORS>;
 type AvatarSizeValue = ValueOf<
     Pick<
         typeof variables,
-        | 'avatarSizeNormal'
-        | 'avatarSizeSmallSubscript'
-        | 'avatarSizeMidSubscript'
-        | 'avatarSizeSubscript'
+        | 'avatarSizeXxxxxSmall'
+        | 'avatarSizeXxxxSmall'
+        | 'avatarSizeXxxSmall'
+        | 'avatarSizeXxSmall'
+        | 'avatarSizeXSmall'
         | 'avatarSizeSmall'
-        | 'avatarSizeSmaller'
-        | 'avatarSizeXLarge'
-        | 'avatarSizeLarge'
         | 'avatarSizeMedium'
-        | 'avatarSizeMediumLarge'
-        | 'avatarSizeLargeBordered'
-        | 'avatarSizeHeader'
-        | 'avatarSizeMentionIcon'
-        | 'avatarSizeSmallNormal'
-        | 'avatarSizeLargeNormal'
+        | 'avatarSizeLarge'
+        | 'avatarSizeXLarge'
+        | 'avatarSizeXxLarge'
+        | 'avatarSizeXxxLarge'
+        | 'avatarSizeXxxxLarge'
+        | 'avatarSizeXxxxxLarge'
     >
 >;
 

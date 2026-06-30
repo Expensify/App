@@ -194,7 +194,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                         setAvatarFile(undefined);
                         setWorkspaceAvatar({avatarUri: null, avatarFileName: null, avatarFileType: null});
                     }}
-                    size={CONST.AVATAR_SIZE.X_LARGE}
+                    size={CONST.AVATAR_SIZE.XXXXX_LARGE}
                     avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
                     editIcon={icons.Camera}
                     editIconStyle={styles.smallEditIconAccount}

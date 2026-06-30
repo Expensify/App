@@ -19,7 +19,7 @@ type AvatarStyles = {
     secondAvatarStyles: ViewStyle & ImageStyle;
 };
 
-type AvatarSizeToStyles = typeof CONST.AVATAR_SIZE.SMALL | typeof CONST.AVATAR_SIZE.LARGE | typeof CONST.AVATAR_SIZE.X_LARGE | typeof CONST.AVATAR_SIZE.DEFAULT;
+type AvatarSizeToStyles = typeof CONST.AVATAR_SIZE.X_SMALL | typeof CONST.AVATAR_SIZE.XXX_LARGE | typeof CONST.AVATAR_SIZE.XXXXX_LARGE | typeof CONST.AVATAR_SIZE.DEFAULT;
 
 type AvatarSizeToStylesMap = Record<AvatarSizeToStyles, AvatarStyles>;
 
@@ -55,19 +55,19 @@ function DiagonalAvatars({
     const secondaryIcon = icons.at(1);
 
     const tooltipTexts = shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, icon.name)) : [''];
-    const removeRightMargin = icons.length === 2 && size === CONST.AVATAR_SIZE.X_LARGE;
+    const removeRightMargin = icons.length === 2 && size === CONST.AVATAR_SIZE.XXXXX_LARGE;
     const avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
 
     const avatarSizeToStylesMap: AvatarSizeToStylesMap = {
-        [CONST.AVATAR_SIZE.SMALL]: {
+        [CONST.AVATAR_SIZE.X_SMALL]: {
             singleAvatarStyle: styles.singleAvatarSmall,
             secondAvatarStyles: styles.secondAvatarSmall,
         },
-        [CONST.AVATAR_SIZE.LARGE]: {
+        [CONST.AVATAR_SIZE.XXX_LARGE]: {
             singleAvatarStyle: styles.singleAvatarMedium,
             secondAvatarStyles: styles.secondAvatarMedium,
         },
-        [CONST.AVATAR_SIZE.X_LARGE]: {
+        [CONST.AVATAR_SIZE.XXXXX_LARGE]: {
             singleAvatarStyle: styles.singleAvatarMediumLarge,
             secondAvatarStyles: styles.secondAvatarMediumLarge,
         },
@@ -79,17 +79,17 @@ function DiagonalAvatars({
 
     let avatarSize;
     if (useMidSubscriptSize) {
-        avatarSize = CONST.AVATAR_SIZE.MID_SUBSCRIPT;
-    } else if (size === CONST.AVATAR_SIZE.LARGE) {
-        avatarSize = CONST.AVATAR_SIZE.MEDIUM;
-    } else if (size === CONST.AVATAR_SIZE.X_LARGE) {
-        avatarSize = CONST.AVATAR_SIZE.MEDIUM_LARGE;
+        avatarSize = CONST.AVATAR_SIZE.XXXX_SMALL;
+    } else if (size === CONST.AVATAR_SIZE.XXX_LARGE) {
+        avatarSize = CONST.AVATAR_SIZE.X_LARGE;
+    } else if (size === CONST.AVATAR_SIZE.XXXXX_LARGE) {
+        avatarSize = CONST.AVATAR_SIZE.XX_LARGE;
     } else {
-        avatarSize = CONST.AVATAR_SIZE.SMALLER;
+        avatarSize = CONST.AVATAR_SIZE.XX_SMALL;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    const {singleAvatarStyle, secondAvatarStyles} = avatarSizeToStylesMap[size as AvatarSizeToStyles] ?? avatarSizeToStylesMap.default;
+    const {singleAvatarStyle, secondAvatarStyles} = avatarSizeToStylesMap[size as AvatarSizeToStyles] ?? avatarSizeToStylesMap[CONST.AVATAR_SIZE.DEFAULT];
     const secondaryAvatarContainerStyles = secondaryAvatarContainerStyle ?? [StyleUtils.getBackgroundAndBorderStyle(isHovered ? theme.activeComponentBG : theme.componentBG)];
 
     return (
@@ -165,7 +165,7 @@ function DiagonalAvatars({
                                 testID="ReportActionAvatars-MultipleAvatars-LimitReached"
                             >
                                 <Text
-                                    style={[styles.userSelectNone, size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText]}
+                                    style={[styles.userSelectNone, size === CONST.AVATAR_SIZE.X_SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText]}
                                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                 >
                                     {`+${icons.length - 1}`}

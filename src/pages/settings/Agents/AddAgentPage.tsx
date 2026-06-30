@@ -130,7 +130,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
                             text={translate('addAgentPage.editAvatar')}
                             source={avatarSource}
                             onPress={handleAvatarPress}
-                            size={CONST.AVATAR_SIZE.X_LARGE}
+                            size={CONST.AVATAR_SIZE.XXXXX_LARGE}
                             avatarStyle={avatarStyle}
                             editIcon={expensifyIcons.Pencil}
                             editIconStyle={styles.smallEditIconAccount}

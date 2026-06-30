@@ -26,7 +26,7 @@ function ExpenseReportListItemAvatar({item, showTooltip, isHovered = false, isFo
         StyleUtils.getItemBackgroundColorStyle(isSelected, isFocused || isHovered, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
     const icons = [item.primaryAvatar, item.secondaryAvatar].filter((icon) => icon !== undefined);
-    const avatarSize = isLargeScreenWidth ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
+    const avatarSize = isLargeScreenWidth ? CONST.AVATAR_SIZE.X_SMALL : CONST.AVATAR_SIZE.DEFAULT;
 
     return (
         <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR), styles.alignItemsStretch]}>

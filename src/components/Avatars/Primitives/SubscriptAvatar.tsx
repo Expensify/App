@@ -58,21 +58,21 @@ function SubscriptAvatar({
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
 
-    const isSmall = size === CONST.AVATAR_SIZE.SMALL;
+    const isSmall = size === CONST.AVATAR_SIZE.X_SMALL;
     const containerStyle = StyleUtils.getContainerStyles(size);
 
     let subscriptAvatarStyle;
-    if (size === CONST.AVATAR_SIZE.SMALL) {
+    if (size === CONST.AVATAR_SIZE.X_SMALL) {
         subscriptAvatarStyle = styles.secondAvatarSubscriptCompact;
-    } else if (size === CONST.AVATAR_SIZE.SMALL_NORMAL) {
+    } else if (size === CONST.AVATAR_SIZE.SMALL) {
         subscriptAvatarStyle = styles.secondAvatarSubscriptSmallNormal;
-    } else if (size === CONST.AVATAR_SIZE.X_LARGE) {
+    } else if (size === CONST.AVATAR_SIZE.XXXXX_LARGE) {
         subscriptAvatarStyle = styles.secondAvatarSubscriptXLarge;
     } else {
         subscriptAvatarStyle = styles.secondAvatarSubscript;
     }
 
-    const subscriptAvatarSize = size === CONST.AVATAR_SIZE.X_LARGE ? CONST.AVATAR_SIZE.HEADER : CONST.AVATAR_SIZE.SUBSCRIPT;
+    const subscriptAvatarSize = size === CONST.AVATAR_SIZE.XXXXX_LARGE ? CONST.AVATAR_SIZE.MEDIUM : CONST.AVATAR_SIZE.XXX_SMALL;
 
     return (
         <View
@@ -109,15 +109,15 @@ function SubscriptAvatar({
                     accountID={Number(secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
                     icon={secondaryAvatar}
                 >
-                    <View style={[size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, subscriptAvatarStyle]}>
+                    <View style={[size === CONST.AVATAR_SIZE.SMALL ? styles.flex1 : {}, subscriptAvatarStyle]}>
                         <ProfileAvatar
                             useProfileNavigationWrapper={useProfileNavigationWrapper}
                             iconAdditionalStyles={[
-                                StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : subscriptAvatarSize),
+                                StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.XXXXX_SMALL : subscriptAvatarSize),
                                 StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor ?? theme.componentBG),
                             ]}
                             source={secondaryAvatar.source}
-                            size={isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : subscriptAvatarSize}
+                            size={isSmall ? CONST.AVATAR_SIZE.XXXXX_SMALL : subscriptAvatarSize}
                             fill={secondaryAvatar.fill}
                             name={secondaryAvatar.name}
                             avatarID={secondaryAvatar.id}
@@ -132,7 +132,7 @@ function SubscriptAvatar({
             {!!subscriptCardFeed && (
                 <View
                     style={[
-                        size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {},
+                        size === CONST.AVATAR_SIZE.SMALL ? styles.flex1 : {},
                         // Nullish coalescing thinks that empty strings are truthy, thus I'm using OR operator
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor || theme.sidebar),

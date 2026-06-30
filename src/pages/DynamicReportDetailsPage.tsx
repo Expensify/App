@@ -738,7 +738,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 <View style={styles.mb3}>
                     <ReportActionAvatars
                         noRightMarginOnSubscriptContainer
-                        size={CONST.AVATAR_SIZE.X_LARGE}
+                        size={CONST.AVATAR_SIZE.XXXXX_LARGE}
                         useProfileNavigationWrapper
                         singleAvatarContainerStyle={[]}
                         reportID={report?.reportID ?? moneyRequestReport?.reportID}
@@ -752,7 +752,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 source={icons.at(0)?.source}
                 avatarID={icons.at(0)?.id}
                 isUsingDefaultAvatar={!report.avatarUrl}
-                size={CONST.AVATAR_SIZE.X_LARGE}
+                size={CONST.AVATAR_SIZE.XXXXX_LARGE}
                 avatarStyle={styles.avatarXLarge}
                 onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
                 onImageRemoved={() => {

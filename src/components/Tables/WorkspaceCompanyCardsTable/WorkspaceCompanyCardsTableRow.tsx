@@ -107,7 +107,7 @@ function WorkspaceCompanyCardTableRow({
         isDeleting,
     };
 
-    const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
+    const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.X_SMALL;
     const subscriptCardFeedIconSize = shouldUseNarrowTableLayout
         ? {width: variables.cardAvatarWidth, height: variables.cardAvatarHeight}
         : {width: variables.cardAvatarWidthSmall, height: variables.cardAvatarHeightSmall};

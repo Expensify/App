@@ -16,7 +16,7 @@ function useWorkspaceConfirmationAvatar({policyID, source, name}: {policyID: str
                 imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
                 source={source}
                 fallbackIcon={icons.FallbackWorkspaceAvatar}
-                size={CONST.AVATAR_SIZE.X_LARGE}
+                size={CONST.AVATAR_SIZE.XXXXX_LARGE}
                 name={name}
                 avatarID={policyID}
                 type={CONST.ICON_TYPE_WORKSPACE}

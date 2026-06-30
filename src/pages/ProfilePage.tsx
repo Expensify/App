@@ -213,7 +213,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                         source={details?.avatar}
                                         avatarID={accountID}
                                         type={CONST.ICON_TYPE_AVATAR}
-                                        size={CONST.AVATAR_SIZE.X_LARGE}
+                                        size={CONST.AVATAR_SIZE.XXXXX_LARGE}
                                         fallbackIcon={fallbackIcon}
                                     />
                                 </OfflineWithFeedback>

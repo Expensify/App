@@ -133,11 +133,11 @@ function ReceiptEmptyState({
                                     height={variables.eReceiptEmptyIconWidth}
                                 />
                                 {!isThumbnail && (
-                                    <View style={[styles.moneyRequestAttachReceiptThumbnailIcon, {width: variables.avatarSizeSmall, height: variables.avatarSizeSmall}]}>
+                                    <View style={[styles.moneyRequestAttachReceiptThumbnailIcon, {width: variables.avatarSizeXSmall, height: variables.avatarSizeXSmall}]}>
                                         <ReceiptPlaceholderPlusIcon
                                             circleFill={theme.success}
                                             plusFill={theme.receiptPlaceholderPlus}
-                                            size={variables.avatarSizeSmall}
+                                            size={variables.avatarSizeXSmall}
                                         />
                                     </View>
                                 )}

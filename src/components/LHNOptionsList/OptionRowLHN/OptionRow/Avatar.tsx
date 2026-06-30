@@ -65,7 +65,7 @@ function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps)
         <IconsAvatar
             icons={icons}
             avatarType={optionItem.shouldShowSubscript ? CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT : undefined}
-            size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+            size={isInFocusMode ? CONST.AVATAR_SIZE.X_SMALL : CONST.AVATAR_SIZE.DEFAULT}
             subscriptAvatarBorderColor={avatarBackgroundColor}
             useMidSubscriptSize={isInFocusMode}
             secondaryAvatarContainerStyle={StyleUtils.getBackgroundAndBorderStyle(avatarBackgroundColor)}

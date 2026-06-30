@@ -24,7 +24,7 @@ function ReportSearchHeader({report, style, transactions, avatarBorderColor}: Re
                 shouldEnableDetailPageNavigation={false}
                 shouldEnableAvatarNavigation={false}
                 avatarBorderColor={avatarBorderColor}
-                size={isLargeScreenWidth ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                size={isLargeScreenWidth ? CONST.AVATAR_SIZE.X_SMALL : CONST.AVATAR_SIZE.DEFAULT}
                 customDisplayNameStyle={styles.fontWeightNormal}
                 parentNavigationSubtitleTextStyles={[styles.textLineHeightNormal, styles.minHeight4, styles.mt1, !isLargeScreenWidth && styles.textMicro]}
                 parentNavigationStatusContainerStyles={statusContainerStyle}

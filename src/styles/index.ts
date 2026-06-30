@@ -2548,8 +2548,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         avatarXLarge: {
-            width: variables.avatarSizeXLarge,
-            height: variables.avatarSizeXLarge,
+            width: variables.avatarSizeXxxxxLarge,
+            height: variables.avatarSizeXxxxxLarge,
         },
 
         avatarInnerText: {
@@ -2570,33 +2570,33 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         emptyAvatar: {
-            height: variables.avatarSizeNormal,
-            width: variables.avatarSizeNormal,
-        },
-
-        emptyAvatarSmall: {
-            height: variables.avatarSizeSmall,
-            width: variables.avatarSizeSmall,
-        },
-
-        emptyAvatarSmaller: {
-            height: variables.avatarSizeSmaller,
-            width: variables.avatarSizeSmaller,
-        },
-
-        emptyAvatarMedium: {
             height: variables.avatarSizeMedium,
             width: variables.avatarSizeMedium,
         },
 
+        emptyAvatarSmall: {
+            height: variables.avatarSizeXSmall,
+            width: variables.avatarSizeXSmall,
+        },
+
+        emptyAvatarSmaller: {
+            height: variables.avatarSizeXxSmall,
+            width: variables.avatarSizeXxSmall,
+        },
+
+        emptyAvatarMedium: {
+            height: variables.avatarSizeXLarge,
+            width: variables.avatarSizeXLarge,
+        },
+
         emptyAvatarLarge: {
-            height: variables.avatarSizeLarge,
-            width: variables.avatarSizeLarge,
+            height: variables.avatarSizeXxxLarge,
+            width: variables.avatarSizeXxxLarge,
         },
 
         emptyAvatarXLarge: {
-            height: variables.avatarSizeXLarge,
-            width: variables.avatarSizeXLarge,
+            height: variables.avatarSizeXxxxxLarge,
+            width: variables.avatarSizeXxxxxLarge,
         },
 
         emptyAvatarMargin: {
@@ -4367,7 +4367,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         assigneeTextStyle: {
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            minHeight: variables.avatarSizeSubscript,
+            minHeight: variables.avatarSizeXxxSmall,
         },
 
         taskRightIconContainer: {

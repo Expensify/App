@@ -34,7 +34,7 @@ function SingleSelectWithAvatarListItem<TItem extends ListItem>({item, wrapperSt
                 avatarID={icon.id}
                 type={icon.type ?? CONST.ICON_TYPE_AVATAR}
                 fallbackIcon={icon.fallbackIcon}
-                iconAdditionalStyles={[{width: variables.avatarSizeNormal, height: variables.avatarSizeNormal}, styles.mr3]}
+                iconAdditionalStyles={[{width: variables.avatarSizeMedium, height: variables.avatarSizeMedium}, styles.mr3]}
             />
         </View>
     );

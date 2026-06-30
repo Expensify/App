@@ -69,7 +69,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
             },
         });
     }
-
+    console.log('hasActiveScheduledCall', hasActiveScheduledCall, latestScheduledCall);
     if (hasActiveScheduledCall && latestScheduledCall) {
         options.push({
             text: `${DateUtils.formatInTimeZoneWithFallback(latestScheduledCall.eventTime, userTimezone, CONST.DATE.WEEKDAY_TIME_FORMAT)}, ${DateUtils.formatInTimeZoneWithFallback(
@@ -86,12 +86,12 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
             descriptionTextStyle: [styles.themeTextColor, styles.ml2],
             displayInDefaultIconColor: true,
             icon: illustrations.HeadSet,
-            iconWidth: variables.avatarSizeLargeNormal,
-            iconHeight: variables.avatarSizeLargeNormal,
+            iconWidth: variables.avatarSizeLarge,
+            iconHeight: variables.avatarSizeLarge,
             wrapperStyle: [styles.mb3, styles.pl4, styles.pr5, styles.pt3, styles.pb6, styles.borderBottom],
             interactive: false,
             titleStyle: styles.ml2,
-            avatarSize: CONST.AVATAR_SIZE.LARGE_NORMAL,
+            avatarSize: CONST.AVATAR_SIZE.LARGE,
         });
         options.push({
             text: translate('common.reschedule'),

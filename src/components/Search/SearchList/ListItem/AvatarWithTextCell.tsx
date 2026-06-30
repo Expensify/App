@@ -28,7 +28,7 @@ function AvatarWithTextCell({reportName, icon, isLargeScreenWidth}: AvatarWithTe
                     avatarID={icon.id}
                     type={icon.type}
                     fallbackIcon={icon.fallbackIcon}
-                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                    size={CONST.AVATAR_SIZE.XXXX_SMALL}
                     containerStyles={[styles.pr2]}
                 />
             )}

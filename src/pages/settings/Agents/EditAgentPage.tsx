@@ -96,7 +96,7 @@ function EditAgentPage({route}: EditAgentPageProps) {
                             source={personalDetails?.avatar ?? ''}
                             avatarID={accountID}
                             onPress={handleEditAvatarPress}
-                            size={CONST.AVATAR_SIZE.X_LARGE}
+                            size={CONST.AVATAR_SIZE.XXXXX_LARGE}
                             avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
                             pendingAction={personalDetails?.pendingFields?.avatar}
                             sentryLabel={CONST.SENTRY_LABEL.EDIT_AGENT_PAGE.AVATAR}
