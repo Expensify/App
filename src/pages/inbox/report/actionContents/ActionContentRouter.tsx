@@ -197,6 +197,7 @@ function ActionContentRouter({
         return (
             <MoneyRequestReportPreview
                 iouReportID={getIOUReportIDFromReportActionPreview(action)}
+                iouReport={iouReport}
                 policyID={policyID}
                 chatReportID={reportID}
                 chatReport={report}

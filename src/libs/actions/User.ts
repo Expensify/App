@@ -1758,6 +1758,29 @@ function deleteExpenseRules(expenseRules: ExpenseRule[], selectedRuleKeys: strin
     });
 }
 
+function clearExpenseRuleErrors(expenseRules: ExpenseRule[], selectedRuleKey: string, getKeyForRule: (rule: ExpenseRule) => string) {
+    const ruleIndex = expenseRules.findIndex((rule, index) => `${getKeyForRule(rule)}-${index}` === selectedRuleKey);
+
+    if (ruleIndex === -1) {
+        return;
+    }
+
+    const updatedExpenseRules = [...expenseRules];
+    const rule = updatedExpenseRules.at(ruleIndex);
+
+    if (!rule) {
+        return;
+    }
+
+    updatedExpenseRules[ruleIndex] = {
+        ...rule,
+        pendingAction: null,
+        errors: undefined,
+    };
+
+    Onyx.set(ONYXKEYS.NVP_EXPENSE_RULES, updatedExpenseRules);
+}
+
 function saveExpenseRule(expenseRules: ExpenseRule[], newRule: ExpenseRule, existingRuleKey: string | undefined, getKeyForRule: (rule: ExpenseRule) => string) {
     const isEditing = !!existingRuleKey;
     const pendingAction = isEditing ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
@@ -1944,6 +1967,7 @@ export {
     clearDraftRule,
     saveExpenseRule,
     deleteExpenseRules,
+    clearExpenseRuleErrors,
     setDraftMerchantRule,
     updateDraftMerchantRule,
     clearDraftMerchantRule,
