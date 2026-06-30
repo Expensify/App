@@ -42,6 +42,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getAllPersonalDetails, getAllTransactionViolations} from '.';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
 import {getReportPreviewAction} from './MoneyRequestBuilder';
+import {getYourSpendSnapshotReportMoveUpdates} from './YourSpendSnapshotUpdate';
 
 type PayInvoiceArgs = {
     paymentMethodType: PaymentMethodType;
@@ -75,6 +76,7 @@ type PayMoneyRequestData = {
         | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD
         | typeof ONYXKEYS.COLLECTION.TRANSACTION
         | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+        | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         | BuildPolicyDataKeys
     >;
 };
@@ -197,6 +199,7 @@ function getPayMoneyRequestParams({
         | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD
         | typeof ONYXKEYS.COLLECTION.TRANSACTION
         | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+        | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         | BuildPolicyDataKeys
     > = {
         optimisticData: [],
@@ -500,6 +503,20 @@ function getPayMoneyRequestParams({
         optimisticHoldReportExpenseActionIDs = JSON.stringify(holdReportOnyxData.optimisticHoldReportExpenseActionIDs);
     }
 
+    // Paying a report moves it out of "Awaiting approval" and into "Repaid (last 30 days)" in the Your spend widget.
+    // Home reads those section totals from cached snapshots that are only refreshed online, and the linked Search page
+    // renders its list from `snapshot.data` — so without this optimistic patch the repaid section opens empty offline.
+    const yourSpendSnapshotUpdates = getYourSpendSnapshotReportMoveUpdates({
+        iouReport,
+        reportTransactions,
+        fromStatus: {stateNum: iouReport?.stateNum, statusNum: iouReport?.statusNum},
+        toStatus: {stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED},
+        currentUserAccountID: currentUserAccountIDParam,
+    });
+    onyxData.optimisticData?.push(...yourSpendSnapshotUpdates.optimisticData);
+    onyxData.successData?.push(...yourSpendSnapshotUpdates.successData);
+    onyxData.failureData?.push(...yourSpendSnapshotUpdates.failureData);
+
     return {
         params: {
             iouReportID: iouReport?.reportID,
@@ -717,6 +734,14 @@ function cancelPayment(
         }),
     });
 
+    const yourSpendSnapshotUpdates = getYourSpendSnapshotReportMoveUpdates({
+        iouReport: expenseReport,
+        reportTransactions: getReportTransactions(expenseReport.reportID),
+        fromStatus: {stateNum: expenseReport.stateNum, statusNum: expenseReport.statusNum},
+        toStatus: {stateNum, statusNum},
+        currentUserAccountID: currentUserAccountIDParam,
+    });
+
     API.write(
         WRITE_COMMANDS.CANCEL_PAYMENT,
         {
@@ -725,7 +750,11 @@ function cancelPayment(
             managerAccountID: expenseReport.managerID ?? CONST.DEFAULT_NUMBER_ID,
             reportActionID: optimisticReportAction.reportActionID,
         },
-        {optimisticData, successData, failureData},
+        {
+            optimisticData: [...optimisticData, ...yourSpendSnapshotUpdates.optimisticData],
+            successData: [...successData, ...yourSpendSnapshotUpdates.successData],
+            failureData: [...failureData, ...yourSpendSnapshotUpdates.failureData],
+        },
     );
 
     notifyNewAction(expenseReport.reportID, undefined, true);

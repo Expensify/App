@@ -34,6 +34,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllReports, getAllTransactions, getAllTransactionViolations} from '.';
 import {getReportPreviewAction} from './MoneyRequestBuilder';
+import {getYourSpendSnapshotTransactionRemovalUpdates} from './YourSpendSnapshotUpdate';
 
 type DeleteMoneyRequestFunctionParams = {
     transactionID: string | undefined;
@@ -957,8 +958,18 @@ function deleteMoneyRequest({
         reportActionID: reportAction.reportActionID,
     };
 
+    const yourSpendSnapshotUpdates = getYourSpendSnapshotTransactionRemovalUpdates({
+        transaction,
+        iouReport,
+        currentUserAccountID,
+    });
+
     // STEP 3: Make the API request
-    API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {
+        optimisticData: [...optimisticData, ...yourSpendSnapshotUpdates.optimisticData],
+        successData: [...successData, ...yourSpendSnapshotUpdates.successData],
+        failureData: [...failureData, ...yourSpendSnapshotUpdates.failureData],
+    });
     clearPdfByOnyxKey(transactionID);
 
     return urlToNavigateBack;

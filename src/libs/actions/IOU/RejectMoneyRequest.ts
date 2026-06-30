@@ -40,6 +40,7 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getAllReports, getAllTransactions, getAllTransactionViolations} from '.';
+import {getYourSpendSnapshotReportMoveUpdates, getYourSpendSnapshotTransactionRemovalUpdates} from './YourSpendSnapshotUpdate';
 
 type RejectMoneyRequestData = {
     optimisticData: Array<
@@ -51,6 +52,7 @@ type RejectMoneyRequestData = {
             | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
             | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
     >;
     successData: Array<
@@ -65,6 +67,7 @@ type RejectMoneyRequestData = {
             | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
             | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
     >;
     parameters: RejectMoneyRequestParams;
@@ -178,6 +181,7 @@ function prepareRejectMoneyRequestData(
             | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
             | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
     > = [];
 
@@ -201,6 +205,7 @@ function prepareRejectMoneyRequestData(
             | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
             | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
     > = [];
 
@@ -896,6 +901,14 @@ function prepareRejectMoneyRequestData(
         expenseCreatedReportActionID,
     };
 
+    const yourSpendSnapshotUpdates = getYourSpendSnapshotTransactionRemovalUpdates({
+        transaction,
+        iouReport: report,
+        currentUserAccountID: currentUserAccountIDParam,
+    });
+    optimisticData.push(...yourSpendSnapshotUpdates.optimisticData);
+    failureData.push(...yourSpendSnapshotUpdates.failureData);
+
     return {optimisticData, successData, failureData, parameters, urlToNavigateBack: urlToNavigateBack as Route};
 }
 
@@ -1176,7 +1189,19 @@ function rejectExpenseReport(
         rejectedCommentReportActionID: optimisticCommentAction.reportActionID,
     };
 
-    API.write(WRITE_COMMANDS.REJECT_EXPENSE_REPORT, parameters, {optimisticData, successData, failureData});
+    const yourSpendSnapshotUpdates = getYourSpendSnapshotReportMoveUpdates({
+        iouReport: report,
+        reportTransactions: getReportTransactions(reportID),
+        fromStatus: {stateNum: report.stateNum, statusNum: report.statusNum},
+        toStatus: {stateNum: optimisticStateNum, statusNum: optimisticStatusNum},
+        currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+    });
+
+    API.write(WRITE_COMMANDS.REJECT_EXPENSE_REPORT, parameters, {
+        optimisticData: [...optimisticData, ...yourSpendSnapshotUpdates.optimisticData],
+        successData: [...successData, ...yourSpendSnapshotUpdates.successData],
+        failureData: [...failureData, ...yourSpendSnapshotUpdates.failureData],
+    });
 }
 
 export {dismissRejectUseExplanation, prepareRejectMoneyRequestData, rejectMoneyRequest, markRejectViolationAsResolved, rejectExpenseReport};

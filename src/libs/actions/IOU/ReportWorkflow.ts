@@ -85,6 +85,7 @@ import {getAllReportNameValuePairs, getAllTransactionViolations} from '.';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
 import type {AdditionalPayOnyxData} from './PayMoneyRequest';
 import {mergeAdditionalPayOnyxData} from './PayMoneyRequest';
+import {getYourSpendSnapshotReportMoveUpdates} from './YourSpendSnapshotUpdate';
 
 type ApproveMoneyRequestFunctionParams = {
     expenseReport: OnyxEntry<OnyxTypes.Report>;
@@ -789,11 +790,34 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         optimisticCreatedReportForUnapprovedTransactionsActionID,
     };
 
+    // DEW policies don't optimistically change the report state (the backend decides the workflow), so there's
+    // nothing to patch into Your spend until the next online refresh.
+    const yourSpendSnapshotUpdates = isDEWPolicy
+        ? {optimisticData: [], successData: [], failureData: []}
+        : getYourSpendSnapshotReportMoveUpdates({
+              iouReport: expenseReport,
+              reportTransactions,
+              fromStatus: {stateNum: expenseReport.stateNum, statusNum: expenseReport.statusNum},
+              toStatus: {stateNum: predictedNextState, statusNum: predictedNextStatus},
+              currentUserAccountID: currentUserAccountIDParam,
+          });
+
     onApproved?.();
     if (shouldPlaySuccessSound) {
         playSound(SOUNDS.SUCCESS);
     }
-    API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, mergeAdditionalPayOnyxData({optimisticData, successData, failureData}, additionalOnyxData));
+    API.write(
+        WRITE_COMMANDS.APPROVE_MONEY_REQUEST,
+        parameters,
+        mergeAdditionalPayOnyxData(
+            {
+                optimisticData: [...optimisticData, ...yourSpendSnapshotUpdates.optimisticData],
+                successData: [...successData, ...yourSpendSnapshotUpdates.successData],
+                failureData: [...failureData, ...yourSpendSnapshotUpdates.failureData],
+            },
+            additionalOnyxData,
+        ),
+    );
     return optimisticHoldReportID;
 }
 
@@ -1160,7 +1184,19 @@ function retractReport(
         reportActionID: optimisticRetractReportAction.reportActionID,
     };
 
-    API.write(WRITE_COMMANDS.RETRACT_REPORT, parameters, {optimisticData, successData, failureData});
+    const yourSpendSnapshotUpdates = getYourSpendSnapshotReportMoveUpdates({
+        iouReport: expenseReport,
+        reportTransactions: getReportTransactions(expenseReport.reportID),
+        fromStatus: {stateNum: expenseReport.stateNum, statusNum: expenseReport.statusNum},
+        toStatus: {stateNum: predictedNextState, statusNum: predictedNextStatus},
+        currentUserAccountID: currentUserAccountIDParam,
+    });
+
+    API.write(WRITE_COMMANDS.RETRACT_REPORT, parameters, {
+        optimisticData: [...optimisticData, ...yourSpendSnapshotUpdates.optimisticData],
+        successData: [...successData, ...yourSpendSnapshotUpdates.successData],
+        failureData: [...failureData, ...yourSpendSnapshotUpdates.failureData],
+    });
 }
 
 function unapproveExpenseReport(
@@ -1323,7 +1359,19 @@ function unapproveExpenseReport(
         reportActionID: optimisticUnapprovedReportAction.reportActionID,
     };
 
-    API.write(WRITE_COMMANDS.UNAPPROVE_EXPENSE_REPORT, parameters, {optimisticData, successData, failureData});
+    const yourSpendSnapshotUpdates = getYourSpendSnapshotReportMoveUpdates({
+        iouReport: expenseReport,
+        reportTransactions: getReportTransactions(expenseReport.reportID),
+        fromStatus: {stateNum: expenseReport.stateNum, statusNum: expenseReport.statusNum},
+        toStatus: {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
+        currentUserAccountID: currentUserAccountIDParam,
+    });
+
+    API.write(WRITE_COMMANDS.UNAPPROVE_EXPENSE_REPORT, parameters, {
+        optimisticData: [...optimisticData, ...yourSpendSnapshotUpdates.optimisticData],
+        successData: [...successData, ...yourSpendSnapshotUpdates.successData],
+        failureData: [...failureData, ...yourSpendSnapshotUpdates.failureData],
+    });
 }
 
 function submitReport({
@@ -1605,8 +1653,26 @@ function submitReport({
         reportActionID: optimisticSubmittedReportAction.reportActionID,
     };
 
+    // DEW policies don't optimistically change the report state (the backend decides the workflow), so there's
+    // nothing to patch into Your spend until the next online refresh.
+    const yourSpendSnapshotUpdates = isDEWPolicy
+        ? {optimisticData: [], successData: [], failureData: []}
+        : getYourSpendSnapshotReportMoveUpdates({
+              iouReport: expenseReport,
+              reportTransactions: getReportTransactions(expenseReport.reportID),
+              fromStatus: {stateNum: expenseReport.stateNum, statusNum: expenseReport.statusNum},
+              toStatus: isSubmitAndClosePolicy
+                  ? {stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED}
+                  : {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
+              currentUserAccountID: currentUserAccountIDParam,
+          });
+
     onSubmitted?.();
-    API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {
+        optimisticData: [...optimisticData, ...yourSpendSnapshotUpdates.optimisticData],
+        successData: [...successData, ...yourSpendSnapshotUpdates.successData],
+        failureData: [...failureData, ...yourSpendSnapshotUpdates.failureData],
+    });
 }
 
 function assignReportToMe(

@@ -1,6 +1,6 @@
-import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
+import {buildQueryStringFromFilterFormValues} from './SearchQueryUtils';
 
 function get30DaysAgoDateString(): string {
     const date = new Date();
@@ -41,4 +41,4 @@ function buildRecentCardTransactionsQuery(accountID: number, cardID: number): st
     });
 }
 
-export {buildAwaitingApprovalQuery, buildRepaidLast30DaysQuery, buildRecentCardTransactionsQuery};
+export {buildAwaitingApprovalQuery, buildRepaidLast30DaysQuery, buildRecentCardTransactionsQuery, get30DaysAgoDateString};
