@@ -98,6 +98,9 @@ type EducationalTooltipProps = ChildrenProps &
         /** Whether the actual Tooltip should be rendered. If false, it's just going to return the children */
         shouldRender?: boolean;
 
+        /** Whether the tooltip content should be visible. When omitted, matches shouldRender. */
+        shouldDisplayTooltip?: boolean;
+
         /** Whether the tooltip should hide when navigating */
         shouldHideOnNavigate?: boolean;
 
