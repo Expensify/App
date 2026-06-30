@@ -4,6 +4,7 @@ import React, {Fragment} from 'react';
 import {useChartTypefaces} from '@components/Charts/context/ChartFontsContext';
 import getChartSkiaTypeface from '@components/Charts/utils/getChartSkiaTypeface';
 import type {LegendItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import getSkiaLineMetrics from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getSkiaLineMetrics';
 import resolveChartThemeColor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
 import useTheme from '@hooks/useTheme';
 
@@ -34,13 +35,13 @@ function VictoryChartLegend({x, y, entries, gutter, symbolSpacer, chartWidth}: V
         (acc, {text, color, fontSize, fontWeight, fontFamily, fontStyle, symbolColor, symbolSize}) => {
             const typeface = getChartSkiaTypeface(typefaces, {fontFamily, fontStyle, fontWeight});
             const font = typeface && fontSize ? Skia.Font(typeface, fontSize) : null;
-            const fontMetrics = font?.getMetrics();
-            const lineHeight = fontMetrics ? fontMetrics.ascent + fontMetrics.descent + fontMetrics.leading : 0;
+            const {ascent, descent, lineHeight} = getSkiaLineMetrics(font);
+            const rowCenterY = y + lineHeight / 2;
             const symbolX = acc.x;
-            const symbolY = y;
+            const symbolY = rowCenterY;
             acc.x += (symbolSize ?? 0) + (symbolSpacer ?? 0);
             const textX = acc.x;
-            const textY = y - lineHeight / 2;
+            const textY = rowCenterY + (ascent - descent) / 2;
             acc.x += (font?.getGlyphWidths(font.getGlyphIDs(text)).reduce((totalWidth, width) => totalWidth + width, 0) ?? 0) + (gutter ?? 0);
             const resolvedColor = resolveChartThemeColor(color, theme);
 

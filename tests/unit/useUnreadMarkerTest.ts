@@ -1,6 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 import {DeviceEventEmitter} from 'react-native';
 import useUnreadMarker from '@hooks/useUnreadMarker';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {getFakeReportAction} from '../utils/ReportTestUtils';
 
@@ -11,6 +12,7 @@ const LAST_READ_TIME = '2023-01-01 10:00:00.000';
 
 let mockIsAnonymousUser = false;
 let mockLastReadTime: string = LAST_READ_TIME;
+let mockLastReadTimeByReportID: Record<string, string> = {};
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
@@ -22,9 +24,13 @@ jest.mock('@hooks/useIsAnonymousUser', () => ({
     default: () => mockIsAnonymousUser,
 }));
 
+// The hook subscribes to `${ONYXKEYS.COLLECTION.REPORT}${reportID}` with a selector that returns
+// `lastReadTime`. The implementation is set in beforeEach so it can use ONYXKEYS freely (a jest.mock
+// factory cannot reference out-of-scope variables).
+const mockUseOnyx = jest.fn<[string], [string]>();
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
-    default: () => [mockLastReadTime],
+    default: (key: string) => mockUseOnyx(key),
 }));
 
 function makeAction(reportActionID: string, overrides: Partial<OnyxTypes.ReportAction> = {}): OnyxTypes.ReportAction {
@@ -55,6 +61,11 @@ describe('useUnreadMarker', () => {
     beforeEach(() => {
         mockIsAnonymousUser = false;
         mockLastReadTime = LAST_READ_TIME;
+        mockLastReadTimeByReportID = {};
+        mockUseOnyx.mockImplementation((key) => {
+            const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT, '');
+            return [mockLastReadTimeByReportID[reportID] ?? mockLastReadTime];
+        });
     });
 
     it('returns [null, -1] for an anonymous user', () => {
@@ -106,5 +117,25 @@ describe('useUnreadMarker', () => {
 
         expect(result.current.unreadMarkerReportActionID).toBeNull();
         expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
+    });
+
+    it('seeds the marker from the switched-to report lastReadTime (one mount per report)', () => {
+        // Setup: report 'A' was last read at 10:00 and 'B' at 12:00; one action from another user lands
+        // at 11:00 — after A's read time (unread on A) but before B's read time (already read on B).
+        mockLastReadTimeByReportID = {
+            A: '2023-01-01 10:00:00.000',
+            B: '2023-01-01 12:00:00.000',
+        };
+        const action = makeAction('msg', {created: '2023-01-01 11:00:00.000'});
+
+        // Mounted on A: 11:00 is after A's 10:00 read time → unread → marker lands on the action.
+        const {result: resultA} = renderUnreadMarker({reportID: 'A', sortedVisibleReportActions: [action], sortedReportActions: [action]});
+        expect(resultA.current.unreadMarkerReportActionID).toBe('msg');
+        expect(resultA.current.unreadMarkerReportActionIndex).toBe(0);
+
+        // Mounted on B: 11:00 is before B's 12:00 read time → already read → no marker.
+        const {result: resultB} = renderUnreadMarker({reportID: 'B', sortedVisibleReportActions: [action], sortedReportActions: [action]});
+        expect(resultB.current.unreadMarkerReportActionID).toBeNull();
+        expect(resultB.current.unreadMarkerReportActionIndex).toBe(-1);
     });
 });
