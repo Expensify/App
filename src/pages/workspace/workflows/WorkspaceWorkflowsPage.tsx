@@ -7,6 +7,7 @@ import type {TupleToUnion} from 'type-fest';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import ConnectionStatusBadge from '@components/ConnectionStatusBadge';
 import ConnectionStatusMessage from '@components/ConnectionStatusMessage';
+import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {BankName} from '@components/Icon/BankIconsUtils';
@@ -684,42 +685,50 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 <View style={[styles.sectionMenuItemTopDescription, styles.mt5, styles.pb1, styles.pt1]}>
                                     <Text style={[styles.textLabelSupportingNormal, styles.colorMuted]}>{translate('workflowsPayerPage.paymentAccount')}</Text>
                                 </View>
-                                <MenuItem
-                                    title={bankTitle}
-                                    description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, accountData, translate)}
-                                    onPress={canInteractWithBankAccountRow ? handleBankAccountPress : undefined}
-                                    displayInDefaultIconColor
-                                    icon={bankIcon.icon}
-                                    iconHeight={bankIcon.iconHeight ?? bankIcon.iconSize}
-                                    iconWidth={bankIcon.iconWidth ?? bankIcon.iconSize}
-                                    iconStyles={bankIcon.iconStyles}
-                                    titleStyle={isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined}
-                                    descriptionTextStyle={isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined}
-                                    disabled={isOffline || !isPolicyAdmin}
-                                    badgeText={canAccessSubmit2026Features ? undefined : getBadgeText(accountData?.state)}
-                                    badgeIcon={bankBadgeIcon}
-                                    isBadgeSuccess={canAccessSubmit2026Features ? undefined : isAccountInSetupState}
-                                    isBadgeError={isBusinessBankAccountLocked && isPolicyAdmin}
-                                    descriptionAddon={bankConnectionStatusAddon}
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT}
-                                    shouldShowRightIcon={canWritePayments}
-                                    interactive={canWritePayments}
-                                    shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
-                                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                                    brickRoadIndicator={canAccessSubmit2026Features && bankConnectionMessage ? undefined : bankConnectionBrickRoadIndicator}
-                                />
-                                {!!canAccessSubmit2026Features && !!bankConnectionMessage && (
-                                    <View style={styles.mt2}>
-                                        <ConnectionStatusMessage
-                                            message={bankConnectionMessage}
-                                            actionText={bankConnectionActionText}
-                                            onActionPress={canInteractWithBankAccountRow ? handleBankAccountPress : undefined}
-                                            isActionDisabled={!canInteractWithBankAccountRow}
-                                            statusTone="danger"
-                                            shouldIncludeHorizontalPadding={false}
-                                        />
-                                    </View>
-                                )}
+                                <Hoverable>
+                                    {(isHovered) => (
+                                        <View style={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3, isHovered && styles.hoveredComponentBG]}>
+                                            <MenuItem
+                                                title={bankTitle}
+                                                description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, accountData, translate)}
+                                                onPress={canInteractWithBankAccountRow ? handleBankAccountPress : undefined}
+                                                displayInDefaultIconColor
+                                                icon={bankIcon.icon}
+                                                iconHeight={bankIcon.iconHeight ?? bankIcon.iconSize}
+                                                iconWidth={bankIcon.iconWidth ?? bankIcon.iconSize}
+                                                iconStyles={bankIcon.iconStyles}
+                                                titleStyle={isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined}
+                                                descriptionTextStyle={isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined}
+                                                disabled={isOffline || !isPolicyAdmin}
+                                                badgeText={canAccessSubmit2026Features ? undefined : getBadgeText(accountData?.state)}
+                                                badgeIcon={bankBadgeIcon}
+                                                isBadgeSuccess={canAccessSubmit2026Features ? undefined : isAccountInSetupState}
+                                                isBadgeError={isBusinessBankAccountLocked && isPolicyAdmin}
+                                                descriptionAddon={bankConnectionStatusAddon}
+                                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT}
+                                                shouldShowRightIcon={canWritePayments}
+                                                interactive={canWritePayments}
+                                                shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
+                                                shouldRemoveBackground
+                                                shouldRemoveHoverBackground
+                                                wrapperStyle={styles.ph0}
+                                                brickRoadIndicator={canAccessSubmit2026Features && bankConnectionMessage ? undefined : bankConnectionBrickRoadIndicator}
+                                            />
+                                            {!!canAccessSubmit2026Features && !!bankConnectionMessage && (
+                                                <View style={styles.mb2}>
+                                                    <ConnectionStatusMessage
+                                                        message={bankConnectionMessage}
+                                                        actionText={bankConnectionActionText}
+                                                        onActionPress={canInteractWithBankAccountRow ? handleBankAccountPress : undefined}
+                                                        isActionDisabled={!canInteractWithBankAccountRow}
+                                                        statusTone="danger"
+                                                        shouldIncludeHorizontalPadding={false}
+                                                    />
+                                                </View>
+                                            )}
+                                        </View>
+                                    )}
+                                </Hoverable>
                             </OfflineWithFeedback>
                         ) : (
                             canWritePayments && (
