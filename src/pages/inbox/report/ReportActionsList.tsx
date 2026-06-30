@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList, LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
@@ -164,9 +164,11 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     const {scrollOffsetRef, registerListRef} = useActionListContext();
 
-    // Own the list ref locally and publish it so handlers resolve it via `getListRef()`.
+    // Own the list ref locally and publish it so handlers resolve it via `getListRef()`. Use a
+    // layout effect so the ref is registered at commit — before the list's `onLayout` fires and
+    // calls into `getListRef()` — rather than after paint, which could leave handlers reading null.
     const listRef = useRef<FlatList>(null);
-    useEffect(() => {
+    useLayoutEffect(() => {
         registerListRef(listRef);
         return () => registerListRef(null);
     }, [registerListRef]);

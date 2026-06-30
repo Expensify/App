@@ -198,9 +198,11 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const {scrollOffsetRef, registerListRef} = useActionListContext();
 
-    // Own the list ref locally and publish it so handlers resolve it via `getListRef()`.
+    // Own the list ref locally and publish it so handlers resolve it via `getListRef()`. Use a
+    // layout effect so the ref is registered at commit — before any layout-time scroll handler
+    // reads it via `getListRef()` — rather than after paint.
     const listRef = useRef<FlatList>(null);
-    useEffect(() => {
+    useLayoutEffect(() => {
         registerListRef(listRef);
         return () => registerListRef(null);
     }, [registerListRef]);

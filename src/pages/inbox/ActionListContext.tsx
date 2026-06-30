@@ -1,4 +1,4 @@
-import {createContext, useContext, useRef} from 'react';
+import React, {createContext, useContext, useRef} from 'react';
 import type {ReactNode, RefObject} from 'react';
 import type FlatListRefType from '@components/FlashList/types';
 
