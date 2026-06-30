@@ -14,7 +14,7 @@ import VictoryTheme, {
 } from '@components/Charts/VictoryTheme';
 import variables from '@styles/variables';
 
-/** One reusable ParagraphBuilder per fontMgr instance. Auto-GC'd when fontMgr is released. */
+/** One reusable ParagraphBuilder per fontManager instance. Auto-GC'd when fontManager is released. */
 const builderCache = new WeakMap<SkTypefaceFontProvider, SkParagraphBuilder>();
 
 /**
@@ -22,14 +22,14 @@ const builderCache = new WeakMap<SkTypefaceFontProvider, SkParagraphBuilder>();
  * Encapsulates the shared font configuration (families, weight, size, optional color).
  * The caller is responsible for calling `para.layout(width)` before measuring or rendering.
  *
- * Reuses a cached ParagraphBuilder per fontMgr (via reset()) to avoid allocating a new
+ * Reuses a cached ParagraphBuilder per fontManager (via reset()) to avoid allocating a new
  * builder on every call.
  */
-function buildChartParagraph(text: string, fontMgr: SkTypefaceFontProvider, fontSize: number, color?: string): SkParagraph {
-    let builder = builderCache.get(fontMgr);
+function buildChartParagraph(text: string, fontManager: SkTypefaceFontProvider, fontSize: number, color?: string): SkParagraph {
+    let builder = builderCache.get(fontManager);
     if (!builder) {
-        builder = Skia.ParagraphBuilder.Make({}, fontMgr);
-        builderCache.set(fontMgr, builder);
+        builder = Skia.ParagraphBuilder.Make({}, fontManager);
+        builderCache.set(fontManager, builder);
     } else {
         builder.reset();
     }
@@ -82,12 +82,12 @@ function getAdditionalOffset(angleRad: number): number {
  *
  * Returns `true` when `text` is empty/nullish (nothing to render).
  */
-function canFontRenderText(text: string | undefined, fontMgr: SkTypefaceFontProvider): boolean {
+function canFontRenderText(text: string | undefined, fontManager: SkTypefaceFontProvider): boolean {
     if (!text) {
         return true;
     }
 
-    const typefaces = VictoryTheme.fontFamilies.map((family) => fontMgr.matchFamilyStyle(family, FontStyle.Normal));
+    const typefaces = VictoryTheme.fontFamilies.map((family) => fontManager.matchFamilyStyle(family, FontStyle.Normal));
 
     for (const char of text) {
         const isRenderable = typefaces.some((typeface) => typeface?.getGlyphIDs(char).some((id) => id !== 0));
@@ -101,10 +101,10 @@ function canFontRenderText(text: string | undefined, fontMgr: SkTypefaceFontProv
 
 /**
  * Measures the rendered pixel width of a string using the Paragraph API.
- * Supports multi-font fallback via fontMgr (e.g. NotoSansSymbols for currency glyphs).
+ * Supports multi-font fallback via fontManager (e.g. NotoSansSymbols for currency glyphs).
  */
-function measureTextWidth(text: string, fontMgr: SkTypefaceFontProvider, fontSize: number): number {
-    const para = buildChartParagraph(text, fontMgr, fontSize);
+function measureTextWidth(text: string, fontManager: SkTypefaceFontProvider, fontSize: number): number {
+    const para = buildChartParagraph(text, fontManager, fontSize);
     para.layout(MAX_X_AXIS_LABEL_WIDTH);
     return para.getLongestLine();
 }
@@ -113,8 +113,8 @@ function measureTextWidth(text: string, fontMgr: SkTypefaceFontProvider, fontSiz
  * Returns ascent and descent for the chart font at the given size.
  * Uses a representative string so Skia resolves the actual glyph metrics.
  */
-function getFontLineMetrics(fontMgr: SkTypefaceFontProvider, fontSize: number): {ascent: number; descent: number} {
-    const para = buildChartParagraph('Ag', fontMgr, fontSize);
+function getFontLineMetrics(fontManager: SkTypefaceFontProvider, fontSize: number): {ascent: number; descent: number} {
+    const para = buildChartParagraph('Ag', fontManager, fontSize);
     para.layout(MAX_X_AXIS_LABEL_WIDTH);
     const metrics = para.getLineMetrics().at(0);
     return {
@@ -441,23 +441,23 @@ function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: nu
 }
 
 /** Returns the pixel width needed for truncated category labels on the Y axis in horizontal bar charts. */
-function getCategoryLabelWidth(labels: string[], labelWidths: number[], ellipsisWidth: number, fontMgr: SkTypefaceFontProvider | null, fontSize: number): number {
-    if (!fontMgr || labels.length === 0) {
+function getCategoryLabelWidth(labels: string[], labelWidths: number[], ellipsisWidth: number, fontManager: SkTypefaceFontProvider | null, fontSize: number): number {
+    if (!fontManager || labels.length === 0) {
         return 0;
     }
 
-    return Math.max(0, ...labels.map((label, index) => measureTextWidth(truncateLabel(label, labelWidths.at(index) ?? 0, MAX_Y_AXIS_LABEL_WIDTH, ellipsisWidth), fontMgr, fontSize)));
+    return Math.max(0, ...labels.map((label, index) => measureTextWidth(truncateLabel(label, labelWidths.at(index) ?? 0, MAX_Y_AXIS_LABEL_WIDTH, ellipsisWidth), fontManager, fontSize)));
 }
 
 /** Returns the pixel width needed for Y-axis labels given the chart data. */
 function getYAxisLabelWidth(
     data: ChartDataPoint[],
     formatValue: (value: number) => string,
-    fontMgr: SkTypefaceFontProvider | null,
+    fontManager: SkTypefaceFontProvider | null,
     fontSize: number,
     domainPadding: {top: number; bottom: number},
 ): number {
-    if (!fontMgr) {
+    if (!fontManager) {
         return 0;
     }
     const totals = data.map((p) => p.total);
@@ -466,7 +466,7 @@ function getYAxisLabelWidth(
     return Math.max(
         0,
         ...getNiceYAxisTicks(rawDataMax, rawDataMin, VictoryTheme.axis.tickCount, domainPadding.top, domainPadding.bottom).map((tick) =>
-            measureTextWidth(formatValue(tick), fontMgr, fontSize),
+            measureTextWidth(formatValue(tick), fontManager, fontSize),
         ),
     );
 }

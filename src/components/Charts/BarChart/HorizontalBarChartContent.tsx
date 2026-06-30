@@ -32,7 +32,7 @@ type HorizontalBarChartProps = CartesianChartProps & {
 function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress}: HorizontalBarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const fontMgr = useChartFontManager();
+    const fontManager = useChartFontManager();
     const [chartWidth, setChartWidth] = useState(0);
 
     const chartData = data.map((point, index) => ({
@@ -42,7 +42,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
 
     const categoryIndices = data.map((_, index) => index);
     const originalLabels = data.map((point) => point.label);
-    const measurements = useChartLabelMeasurements(data, fontMgr, variables.iconSizeExtraSmall);
+    const measurements = useChartLabelMeasurements(data, fontManager, variables.iconSizeExtraSmall);
     const {formatValue} = useChartLabelFormats({
         data,
         unit: yAxisUnit,
@@ -111,7 +111,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
     }));
 
     const renderOutside = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
-        if (!fontMgr) {
+        if (!fontManager) {
             return null;
         }
 
@@ -125,7 +125,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
                     yScale={args.yScale}
                     chartBounds={args.chartBounds}
                     fontSize={variables.iconSizeExtraSmall}
-                    fontMgr={fontMgr}
+                    fontManager={fontManager}
                     labelColor={theme.textSupporting}
                 />
                 <ChartValueXAxisLabels
@@ -133,7 +133,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
                     xScale={args.xScale}
                     chartBounds={args.chartBounds}
                     fontSize={variables.iconSizeExtraSmall}
-                    fontMgr={fontMgr}
+                    fontManager={fontManager}
                     labelColor={theme.textSupporting}
                     formatValue={formatValue}
                 />
@@ -141,9 +141,9 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         );
     };
 
-    const categoryLabelWidth = getCategoryLabelWidth(originalLabels, measurements.labelWidths, measurements.ellipsisWidth, fontMgr, variables.iconSizeExtraSmall);
-    const valueLabelWidth = getYAxisLabelWidth(data, formatValue, fontMgr, variables.iconSizeExtraSmall, VALUE_AXIS_DOMAIN_PADDING);
-    const {ascent, descent} = fontMgr ? getFontLineMetrics(fontMgr, variables.iconSizeExtraSmall) : {ascent: 0, descent: 0};
+    const categoryLabelWidth = getCategoryLabelWidth(originalLabels, measurements.labelWidths, measurements.ellipsisWidth, fontManager, variables.iconSizeExtraSmall);
+    const valueLabelWidth = getYAxisLabelWidth(data, formatValue, fontManager, variables.iconSizeExtraSmall, VALUE_AXIS_DOMAIN_PADDING);
+    const {ascent, descent} = fontManager ? getFontLineMetrics(fontManager, variables.iconSizeExtraSmall) : {ascent: 0, descent: 0};
     const xAxisLabelHeight = ascent + descent + VictoryTheme.axis.labelGap;
 
     const contentHeight = Math.max(CHART_CONTENT_MIN_HEIGHT, data.length * MIN_BAR_ROW_HEIGHT + VictoryTheme.axis.padding.top + VictoryTheme.axis.padding.bottom + xAxisLabelHeight);
@@ -158,11 +158,11 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
 
     const defaultBarColor = VictoryTheme.colors.default;
 
-    if (isLoading || !fontMgr) {
+    if (isLoading || !fontManager) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
             context: 'HorizontalBarChartContent',
             isLoading,
-            isFontLoading: !fontMgr,
+            isFontLoading: !fontManager,
         };
         return (
             <View style={styles.chartActivityIndicator}>

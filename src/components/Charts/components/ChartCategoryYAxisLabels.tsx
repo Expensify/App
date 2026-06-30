@@ -29,17 +29,17 @@ type ChartCategoryYAxisLabelsProps = {
     fontSize: number;
 
     /** Font manager for Paragraph API rendering with multi-font fallback. */
-    fontMgr: SkTypefaceFontProvider;
+    fontManager: SkTypefaceFontProvider;
 
     /** Fill color for the label text. */
     labelColor: string;
 };
 
-function ChartCategoryYAxisLabels({labels, labelWidths, ellipsisWidth, categoryIndices, yScale, chartBounds, fontSize, fontMgr, labelColor}: ChartCategoryYAxisLabelsProps) {
+function ChartCategoryYAxisLabels({labels, labelWidths, ellipsisWidth, categoryIndices, yScale, chartBounds, fontSize, fontManager, labelColor}: ChartCategoryYAxisLabelsProps) {
     const truncatedLabels = labels.map((label, i) => truncateLabel(label, labelWidths.at(i) ?? 0, MAX_Y_AXIS_LABEL_WIDTH, ellipsisWidth));
-    const paragraphs = useChartParagraphs(truncatedLabels, fontMgr, fontSize, labelColor, MAX_Y_AXIS_LABEL_WIDTH);
+    const paragraphs = useChartParagraphs(truncatedLabels, fontManager, fontSize, labelColor, MAX_Y_AXIS_LABEL_WIDTH);
     const maxWidth = Math.max(0, ...paragraphs.map((item) => item.width));
-    const {ascent, descent} = getFontLineMetrics(fontMgr, fontSize);
+    const {ascent, descent} = getFontLineMetrics(fontManager, fontSize);
     const lineHeight = ascent + descent;
 
     return categoryIndices.map((categoryIndex) => {

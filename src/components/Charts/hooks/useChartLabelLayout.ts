@@ -9,7 +9,7 @@ type LabelLayoutConfig = {
     data: ChartDataPoint[];
 
     /** Font manager for Paragraph API rendering with multi-font fallback. */
-    fontMgr: SkTypefaceFontProvider | null;
+    fontManager: SkTypefaceFontProvider | null;
 
     /** Font size used for measuring label text widths. */
     fontSize: number;
@@ -48,7 +48,7 @@ const EMPTY_LAYOUT = {
 
 function useChartLabelLayout({
     data,
-    fontMgr,
+    fontManager,
     tickSpacing,
     labelAreaWidth,
     firstTickLeftSpace = Infinity,
@@ -61,7 +61,7 @@ function useChartLabelLayout({
     // Phase 2: layout decisions + label truncation.
     // Memoized on all geometry inputs so labelMaxWidths and truncatedLabelWidths have stable
     // references between re-renders where only unrelated state changes.
-    if (!fontMgr || !measurements || tickSpacing <= 0 || labelAreaWidth <= 0) {
+    if (!fontManager || !measurements || tickSpacing <= 0 || labelAreaWidth <= 0) {
         return EMPTY_LAYOUT;
     }
 

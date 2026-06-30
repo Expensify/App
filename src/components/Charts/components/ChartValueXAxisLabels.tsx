@@ -20,7 +20,7 @@ type ChartValueXAxisLabelsProps = {
     fontSize: number;
 
     /** Font manager for Paragraph API rendering with multi-font fallback. */
-    fontMgr: SkTypefaceFontProvider;
+    fontManager: SkTypefaceFontProvider;
 
     /** Fill color for the label text. */
     labelColor: string;
@@ -29,10 +29,10 @@ type ChartValueXAxisLabelsProps = {
     formatValue: (value: number) => string;
 };
 
-function ChartValueXAxisLabels({xTicks, xScale, chartBounds, fontSize, fontMgr, labelColor, formatValue}: ChartValueXAxisLabelsProps) {
+function ChartValueXAxisLabels({xTicks, xScale, chartBounds, fontSize, fontManager, labelColor, formatValue}: ChartValueXAxisLabelsProps) {
     const formattedLabels = xTicks.map((tick) => formatValue(tick));
-    const paragraphs = useChartParagraphs(formattedLabels, fontMgr, fontSize, labelColor, MAX_Y_AXIS_LABEL_WIDTH);
-    const {ascent} = getFontLineMetrics(fontMgr, fontSize);
+    const paragraphs = useChartParagraphs(formattedLabels, fontManager, fontSize, labelColor, MAX_Y_AXIS_LABEL_WIDTH);
+    const {ascent} = getFontLineMetrics(fontManager, fontSize);
     const labelY = chartBounds.bottom + VictoryTheme.axis.labelGap;
 
     return xTicks.map((tick, i) => {
