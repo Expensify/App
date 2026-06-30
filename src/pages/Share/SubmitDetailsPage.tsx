@@ -47,7 +47,7 @@ import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isGroupPolicy} from '@libs/PolicyUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
-import {endSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
 import DraftWorkspaceOpener from '@pages/iou/request/step/confirmation/DraftWorkspaceOpener';
 import CONST from '@src/CONST';
@@ -127,9 +127,16 @@ function SubmitDetailsPage({
     const fileType = shouldUsePreValidatedFile ? (validFilesToUpload?.type ?? CONST.RECEIPT_ALLOWED_FILE_TYPES.JPEG) : (currentAttachment?.mimeType ?? '');
     const [hasOnlyPersonalPolicies = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesUtil});
 
-    useEffect(() => {
+    const endOpenSubmitFlowSpan = useCallback(() => {
         endSpan(CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW);
     }, []);
+
+    useEffect(
+        () => () => {
+            cancelSpan(CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW);
+        },
+        [],
+    );
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
@@ -441,7 +448,10 @@ function SubmitDetailsPage({
                     }}
                     onInitialGetLocationCompleted={() => setIsConfirming(false)}
                 />
-                <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
+                <View
+                    style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}
+                    onLayout={endOpenSubmitFlowSpan}
+                >
                     <MoneyRequestConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}
