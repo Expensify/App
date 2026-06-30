@@ -1,7 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
-import ActionListContextProvider from '@hooks/ActionListContextProvider';
-import {useActionListContext} from '@pages/inbox/ReportScreenContext';
-import type {FlatListRefType} from '@pages/inbox/ReportScreenContext';
+import type FlatListRefType from '@components/FlashList/types';
+import {ActionListContextProvider, useActionListContext} from '@pages/inbox/ActionListContext';
 
 /**
  * `ActionListContextProvider` owns a private holder and exposes `registerListRef(ref)` / `getListRef()`

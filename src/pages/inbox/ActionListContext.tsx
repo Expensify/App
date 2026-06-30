@@ -1,7 +1,30 @@
-import {useRef} from 'react';
-import type {ReactNode} from 'react';
-import {ActionListContext} from '@pages/inbox/ReportScreenContext';
-import type {ActionListContextType, FlatListRefType, ScrollPosition} from '@pages/inbox/ReportScreenContext';
+import {createContext, useContext, useRef} from 'react';
+import type {ReactNode, RefObject} from 'react';
+import type FlatListRefType from '@components/FlashList/types';
+
+type ScrollPosition = {offset?: number};
+
+type ActionListContextType = {
+    scrollPositionRef: RefObject<ScrollPosition>;
+    scrollOffsetRef: RefObject<number>;
+
+    /** Each list publishes its locally-owned ref on mount; pass `null` to clear on unmount. */
+    registerListRef: (ref: FlatListRefType) => void;
+
+    /** Reads the currently registered list ref. Call from handlers only, never during render. */
+    getListRef: () => FlatListRefType;
+};
+
+const ActionListContext = createContext<ActionListContextType>({
+    scrollPositionRef: {current: {}},
+    scrollOffsetRef: {current: 0},
+    registerListRef: () => {},
+    getListRef: () => null,
+});
+
+function useActionListContext() {
+    return useContext(ActionListContext);
+}
 
 /** Owns the action-list context value so screens don't wire it up themselves. */
 function ActionListContextProvider({children}: {children: ReactNode}) {
@@ -27,4 +50,5 @@ function ActionListContextProvider({children}: {children: ReactNode}) {
     return <ActionListContext.Provider value={value}>{children}</ActionListContext.Provider>;
 }
 
-export default ActionListContextProvider;
+export {ActionListContext, ActionListContextProvider, useActionListContext};
+export type {ActionListContextType};

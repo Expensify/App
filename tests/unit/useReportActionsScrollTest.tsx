@@ -4,7 +4,7 @@ import type {ReactNode} from 'react';
 import Onyx from 'react-native-onyx';
 import useReportActionsScroll from '@hooks/useReportActionsScroll';
 import type Navigation from '@libs/Navigation/Navigation';
-import {ActionListContext} from '@pages/inbox/ReportScreenContext';
+import {ActionListContext} from '@pages/inbox/ActionListContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';

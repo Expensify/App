@@ -65,7 +65,7 @@ import {
 } from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
 import shouldBreakAccessibilityGrouping from '@libs/shouldBreakAccessibilityGrouping';
-import {ReactionListContext} from '@pages/inbox/ReportScreenContext';
+import {ReactionListContext} from '@pages/inbox/ReactionListContext';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';

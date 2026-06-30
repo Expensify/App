@@ -1,4 +1,4 @@
-import {useActionListContext} from '@pages/inbox/ReportScreenContext';
+import {useActionListContext} from '@pages/inbox/ActionListContext';
 import type ReportScrollManagerData from './types';
 
 function useReportScrollManager(): ReportScrollManagerData {
