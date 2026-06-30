@@ -298,7 +298,6 @@ export default function WorkspaceMembersTable({
         >
             <Table.FilterBar label={translate('workspace.people.findMember')} />
             <Table.NoResultsState />
-
             <Table.Header />
             <Table.Body />
         </Table>

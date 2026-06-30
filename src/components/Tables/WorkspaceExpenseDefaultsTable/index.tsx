@@ -92,10 +92,6 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
             title={translate('workspace.rules.tabs.expenseDefaults')}
         >
             <Table.FilterBar label={translate('workspace.rules.expenseDefaultsTable.findRule')} />
-            <Table.EmptyState
-                title="No expense defaults yet"
-                subtitle="Try creating one"
-            />
             <Table.NoResultsState subtitle="Try adjusting your filters or a new search" />
             <Table.Header />
             <Table.Body />

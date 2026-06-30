@@ -30,3 +30,5 @@ export default function TableEmptyState(emptyStateProps: TableEmptyStateProps) {
         </ScrollView>
     );
 }
+
+export type {TableEmptyStateProps};
