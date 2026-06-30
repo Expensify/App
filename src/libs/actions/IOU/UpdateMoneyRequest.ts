@@ -227,6 +227,7 @@ function updateMoneyRequestDate({
     const transaction = getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const isTrackExpense = isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport);
     const effectivePolicy = isTrackExpense ? policyForTrackExpense : policy;
+    const currentTransactionViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
     const newRateID = getRecalculatedDistanceRateIDForExpenseDate({
         transaction,
         transactionThreadReport,
@@ -263,6 +264,7 @@ function updateMoneyRequestDate({
             updatedTaxCode: distanceRateTaxUpdates?.taxCode,
             updatedTaxValue: distanceRateTaxUpdates?.taxValue,
             distanceOriginalPolicy,
+            currentTransactionViolations,
         });
         return;
     }
@@ -273,7 +275,17 @@ function updateMoneyRequestDate({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
 
     if (isTrackExpense) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, effectivePolicy, delegateAccountID, hash, undefined, distanceOriginalPolicy);
+        data = getUpdateTrackExpenseParams(
+            transactionID,
+            transactionThreadReport?.reportID,
+            transactionChanges,
+            effectivePolicy,
+            delegateAccountID,
+            hash,
+            undefined,
+            distanceOriginalPolicy,
+            currentTransactionViolations,
+        );
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,
@@ -293,6 +305,7 @@ function updateMoneyRequestDate({
             hash,
             delegateAccountID,
             distanceOriginalPolicy,
+            violations: currentTransactionViolations,
         });
         removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
     }
@@ -1157,6 +1170,7 @@ function updateMoneyRequestDistanceRate({
     isOffline,
     shouldBuildOptimisticModifiedExpenseReportAction = true,
     distanceOriginalPolicy,
+    currentTransactionViolations: currentTransactionViolationsParam,
 }: {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -1180,6 +1194,7 @@ function updateMoneyRequestDistanceRate({
     isOffline?: boolean;
     shouldBuildOptimisticModifiedExpenseReportAction?: boolean;
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>;
+    currentTransactionViolations?: OnyxEntry<OnyxTypes.TransactionViolations>;
 }) {
     const transactionChanges: TransactionChanges = {
         customUnitRateID: rateID,
@@ -1204,6 +1219,9 @@ function updateMoneyRequestDistanceRate({
 
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
 
+    const currentTransactionViolations =
+        currentTransactionViolationsParam ?? (transaction?.transactionID ? transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] : undefined);
+
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
         data = getUpdateTrackExpenseParams(
             transaction?.transactionID,
@@ -1214,6 +1232,7 @@ function updateMoneyRequestDistanceRate({
             hash,
             shouldBuildOptimisticModifiedExpenseReportAction,
             distanceOriginalPolicy,
+            currentTransactionViolations,
         );
     } else {
         data = getUpdateMoneyRequestParams({
@@ -1235,6 +1254,7 @@ function updateMoneyRequestDistanceRate({
             delegateAccountID,
             shouldBuildOptimisticModifiedExpenseReportAction,
             distanceOriginalPolicy,
+            violations: currentTransactionViolations,
         });
         if (created && transaction?.transactionID && transactions && transactionViolations) {
             removeTransactionFromDuplicateTransactionViolation(data.onyxData, transaction.transactionID, transactions, transactionViolations);
@@ -1872,9 +1892,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             hasModifiedTaxCode ||
             hasModifiedAttendees)
     ) {
-        // TODO: https://github.com/Expensify/App/issues/66512
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const currentTransactionViolations = getAllTransactionViolations()[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+        const currentTransactionViolations = violations ?? [];
         // If the amount, currency or date have been modified, we remove the duplicate violations since they would be out of date as the transaction has changed
         let optimisticViolations =
             hasModifiedAmount || hasModifiedDate || hasModifiedCurrency
@@ -2057,6 +2075,7 @@ function getUpdateTrackExpenseParams(
     hash?: number,
     shouldBuildOptimisticModifiedExpenseReportAction = true,
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>,
+    currentTransactionViolations?: OnyxEntry<OnyxTypes.TransactionViolations>,
 ): UpdateMoneyRequestData<
     | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
     | typeof ONYXKEYS.COLLECTION.TRANSACTION
@@ -2140,14 +2159,13 @@ function getUpdateTrackExpenseParams(
         isDistanceRequestTransactionUtils(updatedTransaction) &&
         (hasModifiedDistanceRate || hasModifiedCreated || hasModifiedDate)
     ) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const currentTransactionViolations = getAllTransactionViolations()[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+        const transactionViolationsList = currentTransactionViolations ?? [];
         const optimisticViolations = hasModifiedDistanceRate
-            ? currentTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE)
-            : currentTransactionViolations;
+            ? transactionViolationsList.filter((violation) => violation.name !== CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE)
+            : transactionViolationsList;
 
         syncedOptimisticViolations = syncCustomUnitRateOutOfDateRangeViolation(optimisticViolations, updatedTransaction, policyForTransaction);
-        currentTransactionViolationsForFailure = currentTransactionViolations;
+        currentTransactionViolationsForFailure = transactionViolationsList;
     }
 
     if (transaction && updatedTransaction && hasPendingWaypoints) {

@@ -1860,7 +1860,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, []);
             await waitForBatchedUpdates();
 
-            const {onyxData} = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, {created: '2026-06-15'}, fakePolicy, undefined, snapshotHash);
+            const {onyxData} = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, {created: '2026-06-15'}, fakePolicy, undefined, snapshotHash, undefined, undefined, []);
 
             const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as const;
             const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as const;

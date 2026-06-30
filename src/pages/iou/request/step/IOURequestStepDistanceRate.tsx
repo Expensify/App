@@ -65,6 +65,7 @@ function IOURequestStepDistanceRate({
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [currentTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
 
     const {policy: policyForTransaction} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType, policyDraft});
 
@@ -214,6 +215,7 @@ function IOURequestStepDistanceRate({
                     updatedTaxValue: taxValue,
                     delegateAccountID,
                     isOffline,
+                    currentTransactionViolations,
                 });
             } else {
                 setMoneyRequestDistanceRate(transaction, customUnitRateID, policy, shouldUseTransactionDraft(action));
