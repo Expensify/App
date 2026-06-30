@@ -13,10 +13,6 @@ type CellAlignment = {
     textAlign: TextStyle['textAlign'];
 };
 
-/**
- * Reads the column alignment that Parsedown emits as an inline `text-align` style on table cells.
- * Inline CSS processing is disabled on the render engine, so the style attribute is parsed here.
- */
 function getCellAlignment(styleAttribute: string | undefined): CellAlignment {
     if (styleAttribute?.includes('text-align: right')) {
         return {alignItems: 'flex-end', textAlign: 'right'};
