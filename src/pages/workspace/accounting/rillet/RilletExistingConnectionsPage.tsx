@@ -28,7 +28,7 @@ function RilletExistingConnectionsPage({route}: RilletExistingConnectionsPagePro
     const {reusablePoliciesConnectedTo: reusablePoliciesConnectedToRillet} = useReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.RILLET, policyID);
 
     const menuItems = reusablePoliciesConnectedToRillet.map((policy) => {
-        const lastSuccessfulSyncDate = policy.connections?.rillet.lastSync?.successfulDate;
+        const lastSuccessfulSyncDate = policy.connections?.rillet?.lastSync?.successfulDate;
         const date = lastSuccessfulSyncDate ? datetimeToRelative(lastSuccessfulSyncDate) : undefined;
         return {
             title: policy.name,

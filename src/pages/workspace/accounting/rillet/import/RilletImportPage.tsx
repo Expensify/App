@@ -30,6 +30,9 @@ function RilletImportPage({policy}: WithPolicyConnectionsProps) {
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.RILLET}
         >
+            <View style={[styles.mv3, styles.mh5]}>
+                <Text>{translate('workspace.rillet.importDescription')}</Text>
+            </View>
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.accounts')}
                 subtitle={translate('workspace.rillet.accountTypesDescription')}

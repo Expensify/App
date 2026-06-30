@@ -404,7 +404,7 @@ function getAccountingIntegrationData(
                 subscribedImportSettings: [
                     CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES,
                     CONST.RILLET_CONFIG.SYNC_TAX_RATES,
-                    ...(policy?.connections?.rillet?.data?.fields.map((field) => `${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`) ?? []),
+                    ...(policy?.connections?.rillet?.data?.fields?.map((field) => `${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`) ?? []),
                 ],
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.getRoute(policyID)),
                 subscribedExportSettings: [

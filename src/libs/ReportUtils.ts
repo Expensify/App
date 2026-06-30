@@ -5957,6 +5957,7 @@ function getChatRoomSubtitle(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     conciergeReportID: string | undefined,
+    translate: LocalizedTranslate,
     isPolicyNamePreferred = false,
     isReportArchived = false,
 ): string | undefined {
@@ -5964,13 +5965,13 @@ function getChatRoomSubtitle(
         return '';
     }
     if (isSelfDM(report)) {
-        return translateLocal('reportActionsView.yourSpace');
+        return translate('reportActionsView.yourSpace');
     }
     if (isInvoiceRoom(report)) {
-        return translateLocal('workspace.common.invoices');
+        return translate('workspace.common.invoices');
     }
     if (isConciergeChatReport(report, conciergeReportID)) {
-        return translateLocal('reportActionsView.conciergeSupport');
+        return translate('reportActionsView.conciergeSupport');
     }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
@@ -5985,15 +5986,15 @@ function getChatRoomSubtitle(
         const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
 
         if (!subtitle || !isPolicyNamePreferred) {
-            return getPolicyName({report, policy});
+            return getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')});
         }
-        return `${getReportSubtitlePrefix(report)}${translateLocal('iou.submitsTo', subtitle ?? '')}`;
+        return `${getReportSubtitlePrefix(report)}${translate('iou.submitsTo', subtitle ?? '')}`;
     }
 
     if (isReportArchived) {
         return report?.oldPolicyName ?? '';
     }
-    return getPolicyName({report, policy});
+    return getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')});
 }
 
 /**
@@ -13007,6 +13008,28 @@ function getReportStatusTranslation({stateNum, statusNum, isDeleted, translate}:
     return '';
 }
 
+/**
+ * Returns the tooltip text shown on hover of the "Paid" report status label, distinguishing the three paid sub-states.
+ * Returns an empty string for any state/status that isn't one of the paid sub-states.
+ */
+function getReportStatusTooltipTranslation({stateNum, statusNum, isDeleted, translate}: GetReportStatusParams): string {
+    if (isDeleted || statusNum !== CONST.REPORT.STATUS_NUM.REIMBURSED) {
+        return '';
+    }
+
+    if (stateNum === CONST.REPORT.STATE_NUM.APPROVED) {
+        return translate('iou.paidStatusMarkedAsPaid');
+    }
+    if (stateNum === CONST.REPORT.STATE_NUM.BILLING) {
+        return translate('iou.paidStatusWithdrawing');
+    }
+    if (stateNum === CONST.REPORT.STATE_NUM.AUTOREIMBURSED) {
+        return translate('iou.paidStatusConfirmed');
+    }
+
+    return '';
+}
+
 function getReportStatusColorStyle(theme: ThemeColors, stateNum?: number, statusNum?: number, isDeleted?: boolean): {backgroundColor?: ColorValue; textColor?: ColorValue} | undefined {
     if (isDeleted) {
         return theme.reportStatusBadge.deleted;
@@ -13566,6 +13589,7 @@ export {
     isWorkspaceThread,
     isMoneyRequestReportEligibleForMerge,
     getReportStatusTranslation,
+    getReportStatusTooltipTranslation,
     getReportStatusColorStyle,
     getStatusBadgeBackgroundColor,
     getMovedActionMessage,

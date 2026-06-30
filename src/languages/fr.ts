@@ -846,6 +846,7 @@ const translations: TranslationDeepObject<typeof en> = {
         joinThread: 'Rejoindre la discussion',
         leaveThread: 'Quitter la discussion',
         copyOnyxData: 'Copier les données Onyx',
+        copyAgentZeroRequestID: "Copier l'ID de requête AgentZero",
         flagAsOffensive: 'Signaler comme offensant',
         menu: 'Menu',
     },
@@ -1348,6 +1349,9 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Êtes-vous sûr de vouloir supprimer ces rapports ?',
         }),
         settledExpensify: 'Payé',
+        paidStatusMarkedAsPaid: 'Marqué comme payé',
+        paidStatusWithdrawing: 'Retrait',
+        paidStatusConfirmed: 'Confirmé',
         done: 'Terminé',
         settledElsewhere: 'Payé ailleurs',
         individual: 'Individuel',
@@ -1668,6 +1672,10 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpenses: 'Déplacer vers le rapport',
         moveExpensesError:
             'Vous ne pouvez pas déplacer des frais de per diem vers des notes de frais d’autres espaces de travail, car les taux de per diem peuvent varier d’un espace de travail à l’autre.',
+        submitReportTo: {
+            sendExpense: 'Envoyez votre dépense à n’importe qui',
+            sendExpenseSubtitle: 'Invitez n’importe qui sur Expensify en utilisant son adresse e-mail ou son numéro de téléphone.',
+        },
         changeApprover: {
             title: 'Modifier l’approbateur',
             header: (workflowSettingLink: string) =>
@@ -9408,10 +9416,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         takeMeToExpensifyClassic: 'M’emmener vers Expensify Classic',
         goBackJustOnce: 'Revenir une seule fois',
     },
-    listBoundary: {
-        errorMessage: 'Une erreur est survenue lors du chargement de messages supplémentaires',
-        tryAgain: 'Réessayer',
-    },
     systemMessage: {
         mergedWithCashTransaction: 'a fait correspondre un reçu à cette transaction',
     },
@@ -9877,7 +9881,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         expenseLevelExport: 'Toutes les données - niveau dépense',
         exportInProgress: 'Export en cours',
         conciergeWillSend: 'Concierge vous enverra le fichier sous peu.',
-        currentView: 'Exporter la vue actuelle',
+        currentView: 'Vue actuelle',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',
