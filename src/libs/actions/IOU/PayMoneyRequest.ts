@@ -613,8 +613,9 @@ function cancelPayment(
 
     // A P2P "send money" payment waiting for the receiver to set up their wallet has no policy, approval
     // flow, or next step, so it is cancelled through a simplified path that just reverses the optimistic IOU
-    // report state and lets the backend return the held funds.
-    if (isIOUReport(expenseReport)) {
+    // report state and lets the backend return the held funds. Other IOU reports (e.g. a money request paid
+    // elsewhere) keep using the standard path below.
+    if (isIOUReport(expenseReport) && expenseReport.isWaitingOnBankAccount) {
         cancelSendMoneyPayment(expenseReport, chatReport, currentUserAccountIDParam);
         return;
     }
