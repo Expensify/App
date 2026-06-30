@@ -28,6 +28,7 @@ function ModifiedExpenseContent({action, policyID, originalReport}: ModifiedExpe
     // Fall back to policyForMovingExpensesID (actual destination workspace) for correct tag list.
     const policyIDForTags = policyID === CONST.POLICY.OWNER_EMAIL_FAKE && policyForMovingExpensesID ? policyForMovingExpensesID : policyID;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyIDForTags}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyIDForTags}`);
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(action, CONST.REPORT.MOVE_TYPE.FROM)}`);
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(action, CONST.REPORT.MOVE_TYPE.TO)}`);
 
@@ -38,6 +39,7 @@ function ModifiedExpenseContent({action, policyID, originalReport}: ModifiedExpe
         movedFromReport,
         movedToReport,
         policyTags: policyTags ?? CONST.POLICY.DEFAULT_TAG_LIST,
+        policyCategories,
         currentUserLogin: currentUserEmail ?? '',
     });
 
