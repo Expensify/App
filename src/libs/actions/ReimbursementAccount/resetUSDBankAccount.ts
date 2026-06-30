@@ -62,9 +62,11 @@ function resetUSDBankAccount(
                               reimburser: reimburserEmail,
                               bankAccountID: null,
                               accountNumber: null,
+                              routingNumber: null,
                               addressName: null,
                               bankName: null,
                               state: null,
+                              sharees: null,
                           }
                         : null,
                 },

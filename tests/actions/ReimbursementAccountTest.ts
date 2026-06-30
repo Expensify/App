@@ -22,6 +22,8 @@ function expectDisconnectedAchAccount(achAccount: ACHAccount | null | undefined,
     expect(achAccount?.addressName).toBeFalsy();
     expect(achAccount?.bankName).toBeFalsy();
     expect(achAccount?.state).toBeFalsy();
+    expect(achAccount?.routingNumber).toBeFalsy();
+    expect(achAccount?.sharees).toBeFalsy();
 }
 
 describe('ReimbursementAccount', () => {
