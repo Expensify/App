@@ -107,11 +107,11 @@ type MoneyRequestConfirmationListFooterProps = {
     /** Compact-mode controls (the footer derives `isCompactMode` itself) */
     compactControls?: CompactControls;
 
-    /** Triggers submit from inline inputs */
-    onSubmitForm?: () => void;
-
     /** Scrolls the surface so an inline field's input is not hidden behind the keyboard when focused (new manual expense flow) */
     scrollFocusedInputIntoView?: (input: MeasurableInput) => void;
+
+    /** Submits the whole expense (used by inline inputs to keep Enter-to-confirm on hardware-keyboard setups) */
+    onSubmitForm?: () => void;
 };
 
 function MoneyRequestConfirmationListFooter({
@@ -140,8 +140,8 @@ function MoneyRequestConfirmationListFooter({
     toggleHandlers,
     receiptOptions,
     compactControls,
-    onSubmitForm,
     scrollFocusedInputIntoView,
+    onSubmitForm,
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
@@ -173,6 +173,7 @@ function MoneyRequestConfirmationListFooter({
             isOdometerDistanceRequest={distanceFlags.isOdometerDistanceRequest}
             isGPSDistanceRequest={distanceFlags.isGPSDistanceRequest}
             scrollFocusedInputIntoView={scrollFocusedInputIntoView}
+            onSubmitForm={onSubmitForm}
         >
             <View style={isCompactMode ? styles.flex1 : undefined}>
                 <View>
@@ -214,7 +215,6 @@ function MoneyRequestConfirmationListFooter({
                     errorState={errorState}
                     toggleHandlers={toggleHandlers ?? {}}
                     compactState={{isCompactMode, setShowMoreFields}}
-                    onSubmitForm={onSubmitForm}
                 />
             </View>
         </ConfirmationFieldsProvider>

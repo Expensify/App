@@ -45,7 +45,7 @@ import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getApiRoot} from './ApiUtils';
-import {getCategoryApproverRule} from './CategoryUtils';
+import {getCategoryApproverRule, hasAnyCategoryRules} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
 import {isAnyHRConnected, isMergeHRCompleteSetupNeeded} from './HRUtils';
 import Navigation from './Navigation/Navigation';
@@ -988,7 +988,7 @@ function hasCustomCategories(policyCategories: OnyxEntry<PolicyCategories>): boo
 /**
  * Checks if a policy has any rules configured (structured rules, individual expense limits, or prohibited expenses).
  */
-function hasConfiguredRules(policy: OnyxEntry<Policy>): boolean {
+function hasConfiguredRules(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null): boolean {
     if (!policy) {
         return false;
     }
@@ -1043,13 +1043,17 @@ function hasConfiguredRules(policy: OnyxEntry<Policy>): boolean {
     }
 
     const {prohibitedExpenses} = policy;
-    return (
+    if (
         !!prohibitedExpenses &&
         Object.entries(CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES).some(([key, defaultValue]) => {
             const value = prohibitedExpenses[key as keyof typeof CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES];
             return value !== undefined && value !== defaultValue;
         })
-    );
+    ) {
+        return true;
+    }
+
+    return hasAnyCategoryRules(policyCategories ?? undefined);
 }
 
 /**
@@ -1469,7 +1473,24 @@ function canEditTaxRate(policy: Policy, taxID: string): boolean {
     return policy.taxRates?.defaultExternalID !== taxID && policy.taxRates?.foreignTaxDefault !== taxID;
 }
 
-function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName): boolean {
+function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null): boolean {
+    if (!isControlPolicy(policy)) {
+        return false;
+    }
+    if (policy?.areRulesEnabled === true) {
+        return true;
+    }
+    if (policy?.areRulesEnabled === false) {
+        return false;
+    }
+    // areRulesEnabled is undefined - this can happen in case of migrated old policies, in such case users might have set up category rules in Classic and we should show Rules as enabled
+    return hasAnyCategoryRules(policyCategories ?? undefined);
+}
+
+function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName, policyCategories?: PolicyCategories | null): boolean {
+    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED) {
+        return arePolicyRulesEnabled(policy, policyCategories);
+    }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
         return !!policy?.tax?.trackingEnabled;
     }
@@ -2164,10 +2185,10 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
 }
 
 /**
- * Returns the vendor list imported into the workspace from whichever connected integration scopes
- * the vendor field for this workspace (QBO or Sage Intacct). Empty array when no integration is
- * connected or the sync hasn't populated vendors yet. Source of truth for the vendor selector RHP
- * and inactive-vendor lookups.
+ * Single source of truth for which connected integration scopes the vendor field for this workspace
+ * (QBO or Sage Intacct) and what its vendor list looks like. Returns `undefined` when no
+ * vendor-matching integration is active OR when the active integration's list hasn't synced yet —
+ * distinct from `[]` (loaded-empty). Lets callers tell "no vendors" from "not loaded".
  *
  * Selection mirrors `hasVendorFeature`: each branch is gated on the integration's own
  * non-reimbursable export destination, so a dual-connected workspace (e.g. mid-migration with stale
@@ -2178,12 +2199,12 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
  * the human-readable label lives in `value` (Intacct's `name` is an internal code), matching how
  * `getSageIntacctVendors` and `getDefaultVendorName` populate the existing Intacct export UI.
  */
-function getMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] {
+function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | undefined {
     if (!policy) {
-        return [];
+        return undefined;
     }
     if (isQBOVendorMatchingActive(policy)) {
-        return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors ?? [];
+        return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors;
     }
     if (isIntacctVendorMatchingActive(policy)) {
         const intacctVendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.data?.vendors ?? [];
@@ -2194,7 +2215,27 @@ function getMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] {
             email: '',
         }));
     }
-    return [];
+    return undefined;
+}
+
+/**
+ * Returns the vendor list imported into the workspace from whichever connected integration scopes
+ * the vendor field for this workspace (QBO or Sage Intacct). Empty array when no integration is
+ * connected or the sync hasn't populated vendors yet. Source of truth for the vendor selector RHP
+ * and inactive-vendor lookups.
+ */
+function getMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] {
+    return getActiveVendorMatchingVendors(policy) ?? [];
+}
+
+/**
+ * True only when the active vendor-matching integration's vendor list has been written to Onyx —
+ * including the loaded-but-empty case. Lets callers distinguish "vendor not in list" (the
+ * inactive-vendor case) from "vendor list hasn't synced yet" (a transient render before Onyx
+ * hydrates), so the inactive-vendor copy isn't shown against an unloaded list.
+ */
+function isMatchingVendorListLoaded(policy: OnyxEntry<Policy>): boolean {
+    return getActiveVendorMatchingVendors(policy) !== undefined;
 }
 
 /**
@@ -2661,6 +2702,7 @@ export {
     getMatchingVendorByID,
     getMatchingVendors,
     hasVendorFeature,
+    isMatchingVendorListLoaded,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
@@ -2715,6 +2757,7 @@ export {
     isPolicyAuditor,
     hasEligibleActiveAdminFromWorkspaces,
     isPolicyEmployee,
+    arePolicyRulesEnabled,
     isPolicyFeatureEnabled,
     isPolicyFieldListEmpty,
     getUberConnectionErrorDirectlyFromPolicy,

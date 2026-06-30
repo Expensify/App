@@ -84,7 +84,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 
     const transactionsWithoutPendingDelete = transactions.filter((t) => !isTransactionPendingDelete(t));
 
-    const beginExportWithTemplate = (templateName: string, templateType: string, transactionIDList: string[]) => {
+    const beginExportWithTemplate = (templateName: string, templateType: string, transactionIDList: string[], exportName: string) => {
         if (isOffline) {
             setOfflineModalVisible(true);
             return;
@@ -102,6 +102,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                 reportIDList: [report.reportID],
                 transactionIDList,
                 policyID: policy?.id,
+                exportName,
             },
             true,
         );
@@ -148,7 +149,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
         onExportFailed: () => setIsDownloadErrorModalVisible(true),
         onExportOffline: () => setOfflineModalVisible(true),
         policy,
-        beginExportWithTemplate: (templateName, templateType, transactionIDList) => beginExportWithTemplate(templateName, templateType, transactionIDList),
+        beginExportWithTemplate: (templateName, templateType, transactionIDList, exportName) => beginExportWithTemplate(templateName, templateType, transactionIDList, exportName),
         onDeleteSelected,
     });
 
@@ -158,6 +159,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
         hasPayInSelectionMode,
         onSelectionModePaymentSelect,
         selectionModeKYCSuccess,
+        shouldBlockAction,
         primaryAction,
         kycWallRef,
         isHoldMenuVisible,
@@ -253,6 +255,12 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                                 report={report}
                                 onSelectionModePaymentSelect={onSelectionModePaymentSelect}
                                 selectionModeKYCSuccess={selectionModeKYCSuccess}
+                                onWorkspacePolicySelect={(selectedPolicy, triggerKYCFlow) => {
+                                    if (shouldBlockAction()) {
+                                        return;
+                                    }
+                                    triggerKYCFlow({policy: selectedPolicy});
+                                }}
                                 primaryAction={primaryAction}
                                 selectedTransactionsOptions={selectedTransactionsOptions}
                                 selectedTransactionIDs={selectedTransactionIDs}
