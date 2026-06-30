@@ -2597,6 +2597,20 @@ function getRulesDocumentSourceURL(rulesDocumentURL: string | undefined, policyI
     );
 }
 
+/**
+ * Determines whether the tax code was explicitly defined by the user.
+ * Returns `true` only when the `previousTaxCode` field contains a value
+ */
+function isTaxCodeCustomized(taxCode: string | undefined, policy: OnyxEntry<Policy>) {
+    if (!taxCode || !policy) {
+        return false;
+    }
+
+    const currentTaxID = getCurrentTaxID(policy, taxCode);
+    const currentTaxRate = currentTaxID && policy?.taxRates?.taxes?.[currentTaxID];
+    return !!currentTaxRate && !!currentTaxRate.previousTaxCode;
+}
+
 export {
     canEditTaxRate,
     canPolicyAccessFeature,
@@ -2786,6 +2800,7 @@ export {
     isSubmitPolicy,
     isSubmitterApproveBlockedOnSubmitWorkspace,
     hasAnyPaidPolicy,
+    isTaxCodeCustomized,
     isMergeHRCompleteSetupNeededSelector,
 };
 

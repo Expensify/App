@@ -48,6 +48,7 @@ import {
     isMergeHRCompleteSetupNeededSelector,
     isPolicyMemberWithoutPendingDelete,
     isSubmitterApproveBlockedOnSubmitWorkspace,
+    isTaxCodeCustomized,
     shouldShowPolicy,
     sortPoliciesByName,
     sortWorkspacesBySelected,
@@ -2247,6 +2248,37 @@ describe('PolicyUtils', () => {
             };
             const result = getAllTaxRates(policies);
             expect(result).toEqual({VAT: ['id_vat']});
+        });
+    });
+
+    describe('isTaxCodeCustomized', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            taxRates: {
+                taxes: {
+                    id_vat: {name: 'VAT', value: '20'},
+                    id_gst: {name: 'GST', value: '10', previousTaxCode: 'id_gst_prev'},
+                    id_sales: {name: 'Sales Tax', value: '8', previousTaxCode: ''},
+                },
+                name: '',
+                defaultExternalID: '',
+                defaultValue: '',
+                foreignTaxDefault: '',
+            },
+        };
+
+        it('returns false when there is no policy, tax code, or tax rate', () => {
+            expect(isTaxCodeCustomized(undefined, policy)).toEqual(false);
+            expect(isTaxCodeCustomized('', policy)).toEqual(false);
+            expect(isTaxCodeCustomized('id_vat', undefined)).toEqual(false);
+            expect(isTaxCodeCustomized('id_INVALID', policy)).toEqual(false);
+        });
+
+        it('returns true only when the tax rate has a non-empty `previousTaxCode` value', () => {
+            expect(isTaxCodeCustomized('id_vat', policy)).toEqual(false);
+            expect(isTaxCodeCustomized('id_gst', policy)).toEqual(true);
+            expect(isTaxCodeCustomized('id_gst_prev', policy)).toEqual(true);
+            expect(isTaxCodeCustomized('id_sales', policy)).toEqual(false);
         });
     });
 

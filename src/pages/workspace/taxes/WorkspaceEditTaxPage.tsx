@@ -18,7 +18,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canEditTaxRate as canEditTaxRateUtil, getCurrentTaxID, hasAccountingConnections, isControlPolicy} from '@libs/PolicyUtils';
+import {canEditTaxRate as canEditTaxRateUtil, getCurrentTaxID, hasAccountingConnections, isControlPolicy, isTaxCodeCustomized} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -42,9 +42,10 @@ function WorkspaceEditTaxPage({
     const {showConfirmModal} = useConfirmModal();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const {canWrite: canWriteTaxes, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAXES);
-    const canEditTaxRate = canWriteTaxes && policy && canEditTaxRateUtil(policy, currentTaxID ?? taxID);
+    const canEditTaxFields = !!canWriteTaxes && !!policy;
+    const canDisableOrDeleteTaxRate = !!canWriteTaxes && !!policy && canEditTaxRateUtil(policy, currentTaxID ?? taxID);
 
-    const shouldShowDeleteMenuItem = canEditTaxRate && !hasAccountingConnections(policy);
+    const shouldShowDeleteMenuItem = canDisableOrDeleteTaxRate && !hasAccountingConnections(policy);
 
     const toggleTaxRate = () => {
         if (!currentTaxRate) {
@@ -81,7 +82,7 @@ function WorkspaceEditTaxPage({
         }
         return <NotFoundPage />;
     }
-    const taxCodeToShow = isControlPolicy(policy) ? taxID : '';
+    const taxCodeToShow = isControlPolicy(policy) && isTaxCodeCustomized(taxID, policy) ? taxID : '';
 
     return (
         <AccessOrNotFoundWrapper
@@ -114,9 +115,9 @@ function WorkspaceEditTaxPage({
                                     isOn={!currentTaxRate?.isDisabled}
                                     accessibilityLabel={translate('workspace.taxes.actions.enable')}
                                     onToggle={toggleTaxRate}
-                                    disabled={!canEditTaxRate}
+                                    disabled={!canDisableOrDeleteTaxRate}
                                     disabledAction={withReadOnlyFallback()}
-                                    showLockIcon={!canEditTaxRate}
+                                    showLockIcon={!canDisableOrDeleteTaxRate}
                                 />
                             </View>
                         </View>
@@ -128,13 +129,13 @@ function WorkspaceEditTaxPage({
                         onClose={() => clearTaxRateFieldError(policyID, taxID, 'name')}
                     >
                         <MenuItemWithTopDescription
-                            shouldShowRightIcon={canEditTaxRate}
+                            shouldShowRightIcon={canEditTaxFields}
                             title={currentTaxRate?.name}
                             description={translate('common.name')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_NAME.getRoute(`${policyID}`, taxID))}
-                            interactive={canEditTaxRate}
+                            interactive={canEditTaxFields}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback
@@ -144,13 +145,13 @@ function WorkspaceEditTaxPage({
                         onClose={() => clearTaxRateFieldError(policyID, taxID, 'value')}
                     >
                         <MenuItemWithTopDescription
-                            shouldShowRightIcon={canEditTaxRate}
+                            shouldShowRightIcon={canEditTaxFields}
                             title={currentTaxRate?.value}
                             description={translate('workspace.taxes.value')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_VALUE.getRoute(`${policyID}`, taxID))}
-                            interactive={canEditTaxRate}
+                            interactive={canEditTaxFields}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback
@@ -160,7 +161,7 @@ function WorkspaceEditTaxPage({
                         onClose={() => clearTaxRateFieldError(policyID, taxID, 'code')}
                     >
                         <MenuItemWithTopDescription
-                            shouldShowRightIcon={canEditTaxRate}
+                            shouldShowRightIcon={canEditTaxFields}
                             title={taxCodeToShow}
                             description={translate('workspace.taxes.taxCode')}
                             style={[styles.moneyRequestMenuItem]}
@@ -178,7 +179,7 @@ function WorkspaceEditTaxPage({
                                 }
                                 Navigation.navigate(ROUTES.WORKSPACE_TAX_CODE.getRoute(`${policyID}`, taxID));
                             }}
-                            interactive={canEditTaxRate}
+                            interactive={canEditTaxFields}
                         />
                     </OfflineWithFeedback>
                     {!!shouldShowDeleteMenuItem && (
