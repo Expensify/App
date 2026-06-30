@@ -1,3 +1,4 @@
+import type {fetch as nitroFetch} from 'react-native-nitro-fetch';
 import type {OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -12,6 +13,8 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API
 import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
 import {setLoadTestParameters} from './Network/LoadTestState';
+import preparePrefetchRequest from './Prefetch/preparePrefetchRequest';
+import registerPrefetchOnAppStart from './Prefetch/registerPrefetchOnAppStart';
 import prepareRequestPayload from './prepareRequestPayload';
 import markAppStartupNetworkRequestEnd from './telemetry/markAppStartupNetworkRequestEnd';
 
@@ -74,17 +77,24 @@ function processHTTPRequest<TKey extends OnyxKey>(
 
     const command = url.match(APICommandRegex)?.[1];
 
-    return fetch(url, {
+    const {prefetchKey, prefetchHeaders} = preparePrefetchRequest(command);
+
+    const fetchParams: NonNullable<Parameters<typeof nitroFetch>[1]> = {
         // We hook requests to the same Controller signal, so we can cancel them all at once
         signal: abortSignal,
         method,
         body,
+        headers: prefetchHeaders,
         // On Web fetch already defaults to 'omit' for credentials, but it seems that this is not the case for the ReactNative implementation
         // so to avoid sending cookies with the request we set it to 'omit' explicitly
         // this avoids us sending specially the expensifyWeb cookie, which makes a CSRF token required
         // more on that here: https://stackoverflowteams.com/c/expensify/questions/93
         credentials: 'omit',
-    })
+    };
+
+    registerPrefetchOnAppStart({prefetchKey, fetchParams, command, url});
+
+    return fetch(url, fetchParams)
         .then((response) => {
             if (response.headers) {
                 setLoadTestParameters(response.headers.get('X-Load-Test'));
