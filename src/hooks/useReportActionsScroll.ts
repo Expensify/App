@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import {useContext, useEffect, useState} from 'react';
+import {useContext, useEffect, useEffectEvent, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/FlatList/hooks/useFlatListScrollKey';
@@ -28,8 +28,11 @@ import useReportScrollManager from './useReportScrollManager';
 import useScrollToEndOnNewMessageReceived from './useScrollToEndOnNewMessageReceived';
 
 type UseReportActionsScrollParams = {
+    /** The ID of the report currently being looked at */
+    reportID: string;
+
     /** The report currently being looked at */
-    report: OnyxTypes.Report;
+    report: OnyxEntry<OnyxTypes.Report>;
 
     /** The transaction thread report associated with the current report, if any */
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -112,6 +115,7 @@ type UseReportActionsScrollResult = {
 };
 
 function useReportActionsScroll({
+    reportID,
     report,
     transactionThreadReport,
     parentReportAction,
@@ -127,7 +131,6 @@ function useReportActionsScroll({
     treatAsNoPaginationAnchor,
     setTreatAsNoPaginationAnchor,
 }: UseReportActionsScrollParams): UseReportActionsScrollResult {
-    const reportID = report.reportID;
     const reportScrollManager = useReportScrollManager();
     const {scrollOffsetRef} = useContext(ActionListContext);
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -225,12 +228,12 @@ function useReportActionsScroll({
         });
     }, [draftAutoScrollKey, hasNewestReportAction, previousDraftAutoScrollKey, reportScrollManager, scrollOffsetRef, setIsFloatingMessageCounterVisible]);
 
-    useEffect(() => {
+    const scheduleInitialScrollToBottom = useEffectEvent(() => {
         if (initialScrollKey) {
-            return;
+            return undefined;
         }
 
-        const handle = TransitionTracker.runAfterTransitions({
+        return TransitionTracker.runAfterTransitions({
             callback: () => {
                 if (shouldFocusToTopOnMount) {
                     return;
@@ -240,9 +243,12 @@ function useReportActionsScroll({
             },
             waitForUpcomingTransition: true,
         });
-        return () => handle.cancel();
-        // The initial scroll-to-bottom must be scheduled exactly once, on mount; re-running it as deps change would yank the user back down while they read history.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+    });
+
+    // The initial scroll-to-bottom must be scheduled exactly once, on mount; re-running it as deps change would yank the user back down while they read history.
+    useEffect(() => {
+        const handle = scheduleInitialScrollToBottom();
+        return () => handle?.cancel();
     }, []);
 
     // Fixes Safari-specific issue where the whisper option is not highlighted correctly on hover after adding new transaction.
@@ -278,18 +284,18 @@ function useReportActionsScroll({
     const lastIOUActionWithError = sortedVisibleReportActions.find((action) => action.errors);
     const prevLastIOUActionWithError = usePrevious(lastIOUActionWithError);
 
-    useEffect(() => {
-        if (lastIOUActionWithError?.reportActionID === prevLastIOUActionWithError?.reportActionID) {
-            return;
+    // Scroll to the bottom when a new errored action appears, so the user sees the failed money request. Re-checked
+    // only when a new action arrives (keyed on lastAction), so loading older history never yanks a user who has
+    // scrolled up. The !lastIOUActionWithError guard keeps a cleared error (retry succeeded / dismissed) from scrolling.
+    const scheduleScrollToNewError = useEffectEvent(() => {
+        if (!lastIOUActionWithError || lastIOUActionWithError.reportActionID === prevLastIOUActionWithError?.reportActionID) {
+            return undefined;
         }
-        const handle = TransitionTracker.runAfterTransitions({
-            callback: () => {
-                reportScrollManager.scrollToBottom();
-            },
-        });
-        return () => handle.cancel();
-        // Intentionally keyed to lastAction (not the error object) so the scroll re-evaluates once per new action; the reportActionID comparison above guards actual re-runs.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        return TransitionTracker.runAfterTransitions({callback: () => reportScrollManager.scrollToBottom()});
+    });
+    useEffect(() => {
+        const handle = scheduleScrollToNewError();
+        return () => handle?.cancel();
     }, [lastAction]);
 
     const scrollToBottomAndMarkReportAsRead = () => {
