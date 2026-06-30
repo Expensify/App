@@ -229,78 +229,21 @@ function buildOptimisticPolicyCategories(policyID: string, categories: readonly 
     return onyxData;
 }
 
-const DEFAULT_MCC_GROUP_DEFINITIONS = {
-    airlines: {
-        category: CONST.POLICY.DEFAULT_CATEGORIES.TRAVEL,
-        groupID: 'airlines',
-    },
-    commuter: {
-        category: CONST.POLICY.DEFAULT_CATEGORIES.CAR,
-        groupID: 'commuter',
-    },
-    gas: {
-        category: CONST.POLICY.DEFAULT_CATEGORIES.CAR,
-        groupID: 'gas',
-    },
-    goods: {
-        category: CONST.POLICY.DEFAULT_CATEGORIES.MATERIALS,
-        groupID: 'goods',
-    },
-    groceries: {
-        category: CONST.POLICY.DEFAULT_CATEGORIES.MEALS_AND_ENTERTAINMENT,
-        groupID: 'groceries',
-    },
-    hotel: {
-        category: CONST.POLICY.DEFAULT_CATEGORIES.TRAVEL,
-        groupID: 'hotel',
-    },
-    mail: {
-        category: CONST.POLICY.DEFAULT_CATEGORIES.OFFICE_SUPPLIES,
-        groupID: 'mail',
-    },
-    meals: {
-        category: CONST.POLICY.DEFAULT_CATEGORIES.MEALS_AND_ENTERTAINMENT,
-        groupID: 'meals',
-    },
-    rental: {
-        category: CONST.POLICY.DEFAULT_CATEGORIES.TRAVEL,
-        groupID: 'rental',
-    },
-    services: {
-        category: CONST.POLICY.DEFAULT_CATEGORIES.PROFESSIONAL_SERVICES,
-        groupID: 'services',
-    },
-    taxi: {
-        category: CONST.POLICY.DEFAULT_CATEGORIES.TRAVEL,
-        groupID: 'taxi',
-    },
-    uncategorized: {
-        category: CONST.POLICY.DEFAULT_CATEGORIES.OTHER,
-        groupID: 'uncategorized',
-    },
-    utilities: {
-        category: CONST.POLICY.DEFAULT_CATEGORIES.UTILITIES,
-        groupID: 'utilities',
-    },
-} as const;
+type DefaultMccGroupID = keyof typeof CONST.POLICY.DEFAULT_MCC_GROUPS;
 
-type DefaultMccGroupID = keyof typeof DEFAULT_MCC_GROUP_DEFINITIONS;
-
-function buildDefaultMccGroupRecord(): Record<string, MccGroup> {
-    return Object.fromEntries(
-        Object.entries(DEFAULT_MCC_GROUP_DEFINITIONS).map(([groupID, definition]) => [
-            groupID,
-            {
-                ...definition,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-        ]),
-    );
-}
+const DEFAULT_MCC_GROUP: Record<string, MccGroup> = Object.fromEntries(
+    Object.entries(CONST.POLICY.DEFAULT_MCC_GROUPS).map(([groupID, definition]) => [
+        groupID,
+        {
+            ...definition,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        },
+    ]),
+);
 
 function buildOptimisticMccGroup() {
     const optimisticMccGroup: Record<'mccGroup', Record<string, MccGroup>> = {
-        mccGroup: buildDefaultMccGroupRecord(),
+        mccGroup: Object.fromEntries(Object.entries(DEFAULT_MCC_GROUP).map(([groupID, group]) => [groupID, {...group}])),
     };
 
     const successMccGroup: Record<'mccGroup', Record<string, Partial<MccGroup>>> = {mccGroup: {}};
@@ -317,12 +260,8 @@ function buildOptimisticMccGroup() {
     return mccGroupData;
 }
 
-function getDefaultMccGroup(): Record<string, MccGroup> {
-    return buildDefaultMccGroupRecord();
-}
-
 function isDefaultMccGroupID(groupID: string): groupID is DefaultMccGroupID {
-    return Object.hasOwn(DEFAULT_MCC_GROUP_DEFINITIONS, groupID);
+    return Object.hasOwn(CONST.POLICY.DEFAULT_MCC_GROUPS, groupID);
 }
 
 function getImportCategoriesFinalModal({added, updated}: {added: number; updated: number}): ImportFinalModal {
@@ -1911,7 +1850,7 @@ function setPolicyCategoryAttendeesRequired(policyID: string, categoryName: stri
 export {
     buildOptimisticPolicyCategories,
     buildOptimisticMccGroup,
-    getDefaultMccGroup,
+    DEFAULT_MCC_GROUP,
     isDefaultMccGroupID,
     clearCategoryErrors,
     createPolicyCategory,

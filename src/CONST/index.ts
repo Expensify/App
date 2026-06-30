@@ -3919,6 +3919,60 @@ const CONST = {
             TRAVEL: 'Travel',
             UTILITIES: 'Utilities',
         },
+        DEFAULT_MCC_GROUPS: {
+            airlines: {
+                category: 'Travel',
+                groupID: 'airlines',
+            },
+            commuter: {
+                category: 'Car',
+                groupID: 'commuter',
+            },
+            gas: {
+                category: 'Car',
+                groupID: 'gas',
+            },
+            goods: {
+                category: 'Materials',
+                groupID: 'goods',
+            },
+            groceries: {
+                category: 'Meals and Entertainment',
+                groupID: 'groceries',
+            },
+            hotel: {
+                category: 'Travel',
+                groupID: 'hotel',
+            },
+            mail: {
+                category: 'Office Supplies',
+                groupID: 'mail',
+            },
+            meals: {
+                category: 'Meals and Entertainment',
+                groupID: 'meals',
+            },
+            rental: {
+                category: 'Travel',
+                groupID: 'rental',
+            },
+            services: {
+                category: 'Professional Services',
+                groupID: 'services',
+            },
+            taxi: {
+                category: 'Travel',
+                groupID: 'taxi',
+            },
+            uncategorized: {
+                category: 'Other',
+                groupID: 'uncategorized',
+            },
+            utilities: {
+                category: 'Utilities',
+                groupID: 'utilities',
+            },
+        },
         OWNERSHIP_ERRORS: {
             NO_BILLING_CARD: 'noBillingCard',
             AMOUNT_OWED: 'amountOwed',

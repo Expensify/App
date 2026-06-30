@@ -6,7 +6,7 @@ import type {Route} from '@src/ROUTES';
 import type {MerchantTypeRuleForm} from '@src/types/form/MerchantTypeRuleForm';
 import type {Policy} from '@src/types/onyx';
 import type {CodingRule} from '@src/types/onyx/Policy';
-import {getDefaultMccGroup, isDefaultMccGroupID} from './actions/Policy/Category';
+import {DEFAULT_MCC_GROUP, isDefaultMccGroupID} from './actions/Policy/Category';
 import {setWorkspaceDefaultSpendCategory} from './actions/Policy/Policy';
 import {clearPolicyCodingRuleErrors} from './actions/Policy/Rules';
 import {getDecodedCategoryName} from './CategoryUtils';
@@ -24,12 +24,8 @@ function isMerchantTypeRuleKey(key: string) {
     return key.startsWith(MERCHANT_TYPE_RULE_KEY_PREFIX);
 }
 
-function getMerchantTypeDisplayName(groupID: string) {
-    return getMccGroupDisplayName(groupID);
-}
-
 function getDefaultMccGroupCategory(groupID: string) {
-    return getDefaultMccGroup()[groupID]?.category ?? '';
+    return DEFAULT_MCC_GROUP[groupID]?.category ?? '';
 }
 
 function getMerchantTypeRuleNavigationRoute(policyID: string, groupID: string): Route {
@@ -68,13 +64,13 @@ function getMerchantTypeRulesTableData({
     }
 
     const policyID = policy.id;
-    const mccGroup = policy.mccGroup ?? getDefaultMccGroup();
+    const mccGroup = policy.mccGroup ?? DEFAULT_MCC_GROUP;
     const typeLabel = translate('workspace.rules.expenseDefaultsTable.update');
     const fieldLabel = translate('common.category').toLowerCase();
 
     return Object.keys(mccGroup).map((groupID) => {
         const category = mccGroup[groupID]?.category ?? getDefaultMccGroupCategory(groupID);
-        const merchantTypeName = getMerchantTypeDisplayName(groupID);
+        const merchantTypeName = getMccGroupDisplayName(groupID);
         const decodedCategoryName = category ? getDecodedCategoryName(category) : '';
         const ruleDescription = category ? translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabel, decodedCategoryName) : '';
         const conditionText = translate('workspace.rules.expenseDefaultsTable.merchantTypeIs', merchantTypeName);
@@ -193,12 +189,4 @@ function getExpenseDefaultsTableData({
     return [...merchantRules, ...merchantTypeRules];
 }
 
-export {
-    getDefaultMccGroupCategory,
-    getExpenseDefaultsTableData,
-    getMerchantTypeDisplayName,
-    getMerchantTypeRuleFormFromMccGroup,
-    isDefaultMccGroupID,
-    isMerchantTypeRuleKey,
-    saveMerchantTypeRule,
-};
+export {getDefaultMccGroupCategory, getExpenseDefaultsTableData, getMerchantTypeRuleFormFromMccGroup, isDefaultMccGroupID, isMerchantTypeRuleKey, saveMerchantTypeRule};
