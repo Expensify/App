@@ -93,13 +93,13 @@ afterEach(() => {
 
 describe('ConciergeThinkingMessage avatar prop integration', () => {
     test('should pass accountIDs=CONCIERGE to UserAvatar in admin room', () => {
-        render(<ConciergeThinkingMessage report={mockAdminRoom} />);
+        render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
 
         expect(mockCapturedAvatarProps.accountID).toEqual(conciergeAccountID);
     });
 
     test('should pass accountIDs=CONCIERGE to UserAvatar in announce room', () => {
-        render(<ConciergeThinkingMessage report={mockAnnounceRoom} />);
+        render(<ConciergeThinkingMessage reportID={mockAnnounceRoom.reportID} />);
 
         expect(mockCapturedAvatarProps.accountID).toEqual(conciergeAccountID);
     });
