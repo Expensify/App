@@ -2,6 +2,7 @@ import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 import Table from '@components/Table';
+import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,10 +47,12 @@ type WorkspaceTagsTableProps = {
     hasDependentTags: boolean;
     shouldShowGLCodeColumn: boolean;
     shouldShowApproverColumn: boolean;
+    emptyState: TableEmptyStateProps;
 };
 
 export default function WorkspaceTagsTable({
     tags,
+    emptyState,
     selectionEnabled,
     selectedKeys,
     onRowSelectionChange,
@@ -204,10 +207,7 @@ export default function WorkspaceTagsTable({
             onRowSelectionChange={onRowSelectionChange}
         >
             <Table.FilterBar label={translate('workspace.tags.findTag')} />
-            <Table.EmptyState
-                title="No tags yet"
-                subtitle="Try creating one"
-            />
+            <Table.EmptyState {...emptyState} />
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
