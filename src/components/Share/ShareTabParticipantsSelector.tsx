@@ -1,14 +1,15 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import {clearMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {saveUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';
+import {cancelSpan, startSpan} from '@libs/telemetry/activeSpans';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import {getOptimisticChatReport, saveReportDraft} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type ROUTES from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 
 type ShareTabParticipantsSelectorProps = {
@@ -19,6 +20,19 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [selectedReportID, setSelectedReportID] = useState<string | number | undefined>();
+
+    const isSubmitFlow = detailsPageRouteObject === ROUTES.SHARE_SUBMIT_DETAILS;
+
+    useEffect(
+        () => () => {
+            if (!isSubmitFlow) {
+                return;
+            }
+            cancelSpan(CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW);
+        },
+        [isSubmitFlow],
+    );
+
     return (
         <MoneyRequestParticipantsSelector
             iouType={CONST.IOU.TYPE.SUBMIT}
@@ -30,6 +44,18 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
                 const participant = value.at(0);
                 let reportID = participant?.reportID ?? CONST.DEFAULT_NUMBER_ID;
                 const accountID = participant?.accountID;
+
+                if (isSubmitFlow) {
+                    startSpan(CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW, {
+                        name: '/share/submit-details/*',
+                        op: CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW,
+                        attributes: {
+                            [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID.toString(),
+                            [CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM]: Navigation.getActiveRoute() || 'unknown',
+                        },
+                    });
+                }
+
                 if (accountID && !reportID) {
                     saveUnknownUserDetails(participant);
                     const optimisticReport = getOptimisticChatReport(accountID, currentUserAccountID);
