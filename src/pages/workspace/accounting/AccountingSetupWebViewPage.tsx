@@ -69,6 +69,4 @@ function AccountingSetupWebViewPage({uri, testID, context}: AccountingSetupWebVi
     );
 }
 
-AccountingSetupWebViewPage.displayName = 'AccountingSetupWebViewPage';
-
 export default AccountingSetupWebViewPage;
