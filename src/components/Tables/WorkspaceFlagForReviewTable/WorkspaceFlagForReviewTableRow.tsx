@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
-import {useTableContext} from '@components/Table/TableContext';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -28,21 +27,18 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Flag']);
-    const {processedData} = useTableContext<FlagForReviewTableItem>();
 
-    const tableRowItem = processedData.at(rowIndex) ?? item;
-
-    const accessibilityLabel = `${tableRowItem.typeLabel}. ${tableRowItem.conditionText}. ${tableRowItem.ruleDescription}`;
+    const accessibilityLabel = `${item.typeLabel}. ${item.conditionText}. ${item.ruleDescription}`;
 
     return (
         <Table.Row
             interactive
             rowIndex={rowIndex}
-            disabled={tableRowItem.disabled}
+            disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_ITEM}
-            offlineWithFeedback={{pendingAction: tableRowItem.pendingAction, shouldHideOnDelete: false}}
-            onPress={tableRowItem.action}
+            offlineWithFeedback={{pendingAction: item.pendingAction, shouldHideOnDelete: false}}
+            onPress={item.action}
         >
             {({hovered}) => (
                 <>
@@ -50,7 +46,7 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
                         <View style={[styles.flex1, styles.justifyContentCenter]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                                 <Badge
-                                    text={tableRowItem.typeLabel}
+                                    text={item.typeLabel}
                                     icon={Expensicons.Flag}
                                     iconFill={FLAG_BADGE_TEXT_COLOR}
                                     badgeStyles={[
@@ -64,13 +60,13 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
                                     isCondensed
                                 />
                                 <TextWithTooltip
-                                    text={tableRowItem.conditionText}
+                                    text={item.conditionText}
                                     numberOfLines={1}
                                     style={[styles.optionDisplayName, styles.pre, styles.flexShrink1]}
                                 />
                             </View>
                             <TextWithTooltip
-                                text={tableRowItem.ruleDescription}
+                                text={item.ruleDescription}
                                 numberOfLines={1}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mt1]}
                             />
@@ -81,7 +77,7 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
                         <>
                             <View style={[styles.justifyContentCenter]}>
                                 <Badge
-                                    text={tableRowItem.typeLabel}
+                                    text={item.typeLabel}
                                     icon={Expensicons.Flag}
                                     iconFill={FLAG_BADGE_TEXT_COLOR}
                                     badgeStyles={[
@@ -98,14 +94,14 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
                             <View style={[styles.flex1]}>
                                 <TextWithTooltip
                                     numberOfLines={1}
-                                    text={tableRowItem.conditionText}
+                                    text={item.conditionText}
                                     style={[styles.lh16, styles.optionDisplayName, styles.pre]}
                                 />
                             </View>
                             <View style={[styles.flex1]}>
                                 <TextWithTooltip
                                     numberOfLines={1}
-                                    text={tableRowItem.ruleDescription}
+                                    text={item.ruleDescription}
                                     style={[styles.lh16, styles.optionDisplayName, styles.pre]}
                                 />
                             </View>
@@ -115,7 +111,7 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
                     <Icon
                         src={Expensicons.ArrowRight}
                         fill={theme.icon}
-                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || tableRowItem.disabled) && styles.opacitySemiTransparent]}
+                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
                         width={variables.iconSizeNormal}
                         height={variables.iconSizeNormal}
                     />
