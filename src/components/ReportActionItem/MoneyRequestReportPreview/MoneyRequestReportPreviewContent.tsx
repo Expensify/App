@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import {reportNameSelector} from '@selectors/ReportAttributes';
 import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useDeferredValue, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -54,7 +55,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {reportNameSelector} from '@src/selectors/Attributes';
 import {transactionViolationsByIDsSelector} from '@src/selectors/TransactionViolations';
 import type {ReportAttributesDerivedValue, TransactionViolations} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
