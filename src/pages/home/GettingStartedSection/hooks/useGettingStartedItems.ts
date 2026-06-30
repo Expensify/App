@@ -7,6 +7,7 @@ import {enablePolicyCategories} from '@libs/actions/Policy/Category';
 import {hasCompanyCardFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
+    arePolicyRulesEnabled,
     getValidConnectedIntegration,
     hasAccountingFeatureConnection,
     hasConfiguredRules,
@@ -153,11 +154,11 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         enableFeature: () => enableCompanyCards(activePolicyID, true, false),
     });
 
-    if (policy.areRulesEnabled) {
+    if (arePolicyRulesEnabled(policy, policyCategories)) {
         items.push({
             key: 'setupRules',
             label: translate('homePage.gettingStartedSection.setupRules'),
-            isComplete: hasConfiguredRules(policy),
+            isComplete: hasConfiguredRules(policy, policyCategories),
             route: ROUTES.WORKSPACE_RULES.getRoute(activePolicyID),
         });
     }
