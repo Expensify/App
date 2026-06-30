@@ -56,21 +56,21 @@ function RilletImportPage({policy}: WithPolicyConnectionsProps) {
             <View style={[styles.mv3, styles.mh5]}>
                 <Text>{translate('workspace.rillet.dimensionsImport')}</Text>
             </View>
-            {rilletData?.fields.map((field) => (
+            {rilletData?.fields?.map((field) => (
                 <ToggleSettingOptionRow
                     key={field.id}
                     title={field.name}
                     switchAccessibilityLabel={field.name}
                     shouldPlaceSubtitleBelowSwitch
                     wrapperStyle={[styles.mv3, styles.mh5]}
-                    isActive={rilletConfig?.coding?.fieldMappings[field.id] === CONST.RILLET_MAPPING_VALUE.TAG}
+                    isActive={rilletConfig?.coding?.fieldMappings?.[field.id] === CONST.RILLET_MAPPING_VALUE.TAG}
                     onToggle={() =>
                         policyID &&
                         updateRilletFieldMapping(
                             policyID,
                             field.id,
-                            rilletConfig?.coding?.fieldMappings[field.id] === CONST.RILLET_MAPPING_VALUE.TAG ? CONST.RILLET_MAPPING_VALUE.NONE : CONST.RILLET_MAPPING_VALUE.TAG,
-                            rilletConfig?.coding?.fieldMappings[field.id],
+                            rilletConfig?.coding?.fieldMappings?.[field.id] === CONST.RILLET_MAPPING_VALUE.TAG ? CONST.RILLET_MAPPING_VALUE.NONE : CONST.RILLET_MAPPING_VALUE.TAG,
+                            rilletConfig?.coding?.fieldMappings?.[field.id],
                         )
                     }
                     pendingAction={settingsPendingAction([`${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`], rilletConfig?.pendingFields)}
@@ -78,7 +78,7 @@ function RilletImportPage({policy}: WithPolicyConnectionsProps) {
                     onCloseError={() => policyID && clearRilletErrorField(policyID, `${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`)}
                 />
             ))}
-            {!!rilletData?.taxRates.length && (
+            {!!rilletData?.taxRates?.length && (
                 <>
                     <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
                     <ToggleSettingOptionRow
