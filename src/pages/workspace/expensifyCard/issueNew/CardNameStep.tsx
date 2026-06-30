@@ -39,12 +39,13 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
     const isInLandscapeMode = useIsInLandscapeMode();
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
     const isEditing = issueNewCard?.isEditing;
     const data = issueNewCard?.data;
     const isVirtualCard = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL;
-    const areSpendRulesAvailable = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED);
+    const areSpendRulesAvailable = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, policyCategories);
 
     const userName = getUserNameByEmail(data?.assigneeEmail ?? '', 'firstName');
     const defaultCardTitle = !isVirtualCard ? getDefaultCardName(userName) : '';
