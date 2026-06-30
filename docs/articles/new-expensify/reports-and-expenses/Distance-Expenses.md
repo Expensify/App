@@ -193,3 +193,7 @@ Yes. Enter your start reading before the trip, then select **Save for later**. A
 
 Only one in-progress odometer expense can be saved to your device at a time.
 
+## What happens if I switch tabs with unsaved odometer readings?
+
+If you've entered odometer readings or attached odometer images and then select a different tab (**GPS**, **Map**, or **Manual**) without saving, a **Discard changes?** confirmation appears. Select **Discard changes** to clear your readings and images and switch tabs, or select **Cancel** to stay on the **Odometer** tab and keep your entries. If you haven't entered any readings or images, switching tabs happens immediately with no confirmation.
+
