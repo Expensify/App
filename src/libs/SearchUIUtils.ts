@@ -110,7 +110,7 @@ import interceptAnonymousUser from './interceptAnonymousUser';
 import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
-import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {getDisplayNameOrDefault, getLoginByAccountID} from './PersonalDetailsUtils';
 import {
     arePaymentsEnabled,
     canSendInvoice,
@@ -145,6 +145,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getPersonalDetailsForAccountID,
     getPolicyName,
+    getReportCustomColumnValue,
     getReportOrDraftReport,
     getReportStatusTranslation,
     hasHeldExpenses,
@@ -1094,7 +1095,7 @@ function getSuggestedSearchesVisibility(
         const isEligibleForPaySuggestion = isPaidPolicy && isPayer;
         const isPolicyEligibleForApproveSuggestion = isPaidPolicy && isEligibleForApproveSuggestion(policy.approvalMode, isUserApprover, isSubmittedTo);
         const isEligibleForExportSuggestion = isExporter && !hasExportError;
-        const isEligibleForStatementsSuggestion = isPaidPolicy && !!policy.areCompanyCardsEnabled && hasCardFeed;
+        const isEligibleForStatementsSuggestion = isPaidPolicy && (hasCardFeed || !!defaultExpensifyCard);
         const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isApprovalEnabled && isPaymentEnabled;
         const isEligibleForUnapprovedCardSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isApprovalEnabled && (hasCardFeed || !!defaultExpensifyCard);
         const isEligibleForExpensifyCardSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isECardEnabled;
@@ -2420,7 +2421,7 @@ function getActions(
 
     const hasOnlyPendingCardOrScanningTransactions = allReportTransactions.length > 0 && allReportTransactions.every((t) => isScanning(t) || isPending(t));
 
-    const submitToAccountID = getSubmitToAccountID(policy, report);
+    const submitToAccountID = getSubmitToAccountID(policy, report, getLoginByAccountID(report.ownerAccountID, data.personalDetailsList));
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy);
 
     // We're not supporting approve partial amount on search page now
@@ -3858,6 +3859,14 @@ function getSortedTransactionData(
         });
     }
 
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID || sortBy === CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID || sortBy === CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS) {
+        return data.sort((a, b) => {
+            const aValue = getReportCustomColumnValue(sortBy, a.report);
+            const bValue = getReportCustomColumnValue(sortBy, b.report);
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
     const sortingProperty = sortBy === CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE ? undefined : transactionColumnNamesToSortingProperty[sortBy];
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME) {
@@ -4078,6 +4087,14 @@ function getSortedReportData(
         return data.sort((a, b) => {
             const aValue = `${!!a.exported}`;
             const bValue = `${!!b.exported}`;
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID || sortBy === CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID || sortBy === CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS) {
+        return data.sort((a, b) => {
+            const aValue = getReportCustomColumnValue(sortBy, a);
+            const bValue = getReportCustomColumnValue(sortBy, b);
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
@@ -4345,6 +4362,12 @@ function getSearchColumnTranslationKey(column: SearchSortBy): TranslationPaths {
             return 'common.total';
         case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
             return 'common.withdrawalID';
+        case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID:
+            return 'workspace.common.customField1';
+        case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID:
+            return 'workspace.common.customField2';
+        case CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS:
+            return 'common.internationalReimbursementIDs';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID:
             return 'common.withdrawalID';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH:
@@ -5001,6 +5024,10 @@ const FILTER_VIEW_MAP = {
         labelKey: 'iou.attendees',
         icon: 'Users',
     },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT]: {
+        labelKey: 'common.bankAccount',
+        icon: 'Bank',
+    },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE]: {
         labelKey: 'search.filters.billable',
         icon: 'Paycheck',
@@ -5331,7 +5358,15 @@ function getDisplayValue(
         return formValue?.map((option) => translate(`common.${option}`)).join(', ');
     }
 
-    if (key === FILTER_KEYS.FROM || key === FILTER_KEYS.TO || key === FILTER_KEYS.ATTENDEE || key === FILTER_KEYS.ASSIGNEE || key === FILTER_KEYS.TAX_RATE || key === FILTER_KEYS.IN) {
+    if (
+        key === FILTER_KEYS.FROM ||
+        key === FILTER_KEYS.TO ||
+        key === FILTER_KEYS.ATTENDEE ||
+        key === FILTER_KEYS.ASSIGNEE ||
+        key === FILTER_KEYS.TAX_RATE ||
+        key === FILTER_KEYS.IN ||
+        key === FILTER_KEYS.BANK_ACCOUNT
+    ) {
         return form[key];
     }
 
@@ -5536,6 +5571,7 @@ function getPolicyCategoriesForPolicyID(policyCategories: PolicyCategoriesLookup
 function getColumnsToShow({
     currentAccountID,
     data,
+    report,
     visibleColumns = [],
     isExpenseReportView = false,
     type,
@@ -5552,6 +5588,7 @@ function getColumnsToShow({
 }: {
     currentAccountID: number | undefined;
     data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[];
+    report?: OnyxEntry<OnyxTypes.Report>;
     visibleColumns?: SearchCustomColumnIds[];
     isExpenseReportView?: boolean;
     type?: SearchDataTypes;
@@ -5566,6 +5603,14 @@ function getColumnsToShow({
     policyCategories?: PolicyCategoriesLookup;
     fallbackPolicyID?: string;
 }): SearchColumnType[] {
+    const reportCustomColumns = new Set<SearchColumnType>([
+        CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
+        CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
+        CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
+    ]);
+
+    const hasReportCustomColumnValue = (column: SearchColumnType, reportToCheck: OnyxEntry<OnyxTypes.Report>): boolean => !!getReportCustomColumnValue(column, reportToCheck);
+
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         const defaultReportColumns: SearchColumnType[] = [
             CONST.SEARCH.TABLE_COLUMNS.AVATAR,
@@ -5601,7 +5646,24 @@ function getColumnsToShow({
             result.push(col);
         }
 
-        return result;
+        if (Array.isArray(data)) {
+            return result;
+        }
+
+        return result.filter((column) => {
+            if (!reportCustomColumns.has(column)) {
+                return true;
+            }
+
+            return Object.keys(data).some((key) => {
+                if (!isReportEntry(key)) {
+                    return false;
+                }
+
+                const reportToCheck = data[key];
+                return reportToCheck?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && hasReportCustomColumnValue(column, reportToCheck);
+            });
+        });
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
@@ -5828,6 +5890,15 @@ function getColumnsToShow({
         // Only update when we have custom columns to filter (customResult) or in expense report view,
         // so that the default search page path doesn't show extra columns.
         if (customResult || isExpenseReportView) {
+            if (customResult) {
+                const reportForCustomColumns = Array.isArray(data) ? report : (getReportOrDraftReport(transaction.reportID) ?? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`]);
+                for (const column of reportCustomColumns) {
+                    if (hasReportCustomColumnValue(column, reportForCustomColumns)) {
+                        columns[column] = true;
+                    }
+                }
+            }
+
             if (transaction.cardName && transaction.cardName !== CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.CARD] = true;
             }
@@ -6305,7 +6376,6 @@ export {
     compareValues,
     isSearchDataLoaded,
     getValidGroupBy,
-    getStatusOptions,
     getTypeOptions,
     getSortByOptions,
     getSortOrderOptions,
@@ -6318,7 +6388,6 @@ export {
     isTransactionTaxAmountTooLong,
     getDatePresets,
     createAndOpenSearchTransactionThread,
-    getWithdrawalTypeOptions,
     getWithdrawalStatusOptions,
     getWithdrawalStatusDisplayText,
     getColumnsToShow,
