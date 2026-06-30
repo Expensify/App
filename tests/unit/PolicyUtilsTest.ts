@@ -6,6 +6,7 @@ import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
+    arePolicyRulesEnabled,
     canAccessSubmitWorkspaceFeatures,
     canMemberRead,
     canMemberWrite,
@@ -25,6 +26,7 @@ import {
     getManagerAccountID,
     getMatchingVendorByID,
     getMatchingVendors,
+    getPolicyBrickRoadIndicatorStatus,
     getPolicyByCustomUnitID,
     getPolicyEmployeeAccountIDs,
     getRateDisplayValue,
@@ -55,7 +57,6 @@ import {
 } from '@libs/PolicyUtils';
 import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import {getPolicyBrickRoadIndicatorStatus} from '@src/libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
@@ -718,7 +719,7 @@ describe('PolicyUtils', () => {
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
-                expect(getSubmitToAccountID(policy, expenseReport)).toBe(ownerAccountID);
+                expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(ownerAccountID);
             });
             it('should return the policy approver/owner if the policy use the optional workflow', () => {
                 const policy: Policy = {
@@ -733,7 +734,7 @@ describe('PolicyUtils', () => {
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
-                expect(getSubmitToAccountID(policy, expenseReport)).toBe(ownerAccountID);
+                expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(ownerAccountID);
             });
             it('should return the employee submitsTo if the policy use the advance workflow', () => {
                 const policy: Policy = {
@@ -749,7 +750,7 @@ describe('PolicyUtils', () => {
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
-                expect(getSubmitToAccountID(policy, expenseReport)).toBe(adminAccountID);
+                expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(adminAccountID);
             });
         });
         describe('Has category/tag approver', () => {
@@ -782,7 +783,7 @@ describe('PolicyUtils', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
                 } as unknown as OnyxMultiSetInput);
-                expect(getSubmitToAccountID(policy, expenseReport)).toBe(categoryApprover1AccountID);
+                expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(categoryApprover1AccountID);
             });
             it('should return default approver if rule approver is submitter and prevent self approval is enabled', async () => {
                 const policy: Policy = {
@@ -808,7 +809,7 @@ describe('PolicyUtils', () => {
                 };
 
                 await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-                expect(getSubmitToAccountID(policy, expenseReport)).toBe(adminAccountID);
+                expect(getSubmitToAccountID(policy, expenseReport, categoryApprover1Email)).toBe(adminAccountID);
             });
             it('should return the category approver of the first transaction sorted by created if we have many transaction categories match with the category approver rule', async () => {
                 const policy: Policy = {
@@ -841,7 +842,7 @@ describe('PolicyUtils', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
                 } as unknown as OnyxMultiSetInput);
-                expect(getSubmitToAccountID(policy, expenseReport)).toBe(categoryApprover2AccountID);
+                expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(categoryApprover2AccountID);
             });
             it('should return the first rule approver who is not the current submitter', async () => {
                 const policy: Policy = {
@@ -888,7 +889,7 @@ describe('PolicyUtils', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction3.transactionID}`]: transaction3,
                 } as unknown as OnyxMultiSetInput);
 
-                expect(getSubmitToAccountID(policy, expenseReport)).toBe(tagApprover1AccountID);
+                expect(getSubmitToAccountID(policy, expenseReport, categoryApprover1Email)).toBe(tagApprover1AccountID);
             });
             describe('Has no transaction match with the category approver rule', () => {
                 it('should return the first tag approver if has any transaction tag match with with the tag approver rule ', async () => {
@@ -924,7 +925,7 @@ describe('PolicyUtils', () => {
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
                     } as unknown as OnyxMultiSetInput);
-                    expect(getSubmitToAccountID(policy, expenseReport)).toBe(tagApprover1AccountID);
+                    expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(tagApprover1AccountID);
                 });
                 it('should return the tag approver of the first transaction sorted by created if we have many transaction tags match with the tag approver rule', async () => {
                     const policy: Policy = {
@@ -959,7 +960,7 @@ describe('PolicyUtils', () => {
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
                     } as unknown as OnyxMultiSetInput);
-                    expect(getSubmitToAccountID(policy, expenseReport)).toBe(tagApprover2AccountID);
+                    expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(tagApprover2AccountID);
                 });
             });
         });
@@ -1014,10 +1015,7 @@ describe('PolicyUtils', () => {
                 type: CONST.POLICY.TYPE.PERSONAL,
                 approver: categoryApprover1Email,
             };
-            const report: Report = {
-                ...createRandomReport(0, undefined),
-            };
-            const result = getManagerAccountID(policy, report);
+            const result = getManagerAccountID(policy, '');
 
             expect(result).toBe(categoryApprover1AccountID);
         });
@@ -1030,11 +1028,8 @@ describe('PolicyUtils', () => {
                 approver: undefined,
                 owner: '',
             };
-            const report: Report = {
-                ...createRandomReport(0, undefined),
-            };
 
-            const result = getManagerAccountID(policy, report);
+            const result = getManagerAccountID(policy, '');
 
             expect(result).toBe(-1);
         });
@@ -1051,12 +1046,8 @@ describe('PolicyUtils', () => {
                     },
                 },
             };
-            const report: Report = {
-                ...createRandomReport(0, undefined),
-                ownerAccountID: employeeAccountID,
-            };
 
-            const result = getManagerAccountID(policy, report);
+            const result = getManagerAccountID(policy, employeeEmail);
 
             expect(result).toBe(adminAccountID);
         });
@@ -1068,12 +1059,8 @@ describe('PolicyUtils', () => {
                 approvalMode: undefined,
                 approver: categoryApprover1Email,
             };
-            const report: Report = {
-                ...createRandomReport(0, undefined),
-                ownerAccountID: employeeAccountID,
-            };
 
-            const result = getManagerAccountID(policy, report);
+            const result = getManagerAccountID(policy, '');
 
             expect(result).toBe(categoryApprover1AccountID);
         });
@@ -2987,6 +2974,16 @@ describe('PolicyUtils', () => {
                 expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {}}))).toBe(false);
             });
         });
+
+        it('returns true when only Classic category rules exist', () => {
+            const categories = {Travel: {name: 'Travel', enabled: true, maxAmountNoReceipt: 0}};
+            expect(hasConfiguredRules(createMock<Policy>({}), categories)).toBe(true);
+        });
+
+        it('returns false when categories have no active rule fields', () => {
+            const categories = {Advertising: {name: 'Advertising', enabled: true, 'GL Code': '1234'}};
+            expect(hasConfiguredRules(createMock<Policy>({}), categories)).toBe(false);
+        });
     });
 
     describe('getExpensifyTeamExclusions', () => {
@@ -3521,5 +3518,55 @@ describe('PolicyUtils', () => {
             const policy = buildMergeHRPolicy(5, mergeHRBase);
             expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(true);
         });
+    });
+});
+
+describe('arePolicyRulesEnabled', () => {
+    const corporateBase = createMock<Policy>({id: 'policy1', type: CONST.POLICY.TYPE.CORPORATE});
+    const teamBase = createMock<Policy>({id: 'policy2', type: CONST.POLICY.TYPE.TEAM});
+
+    it('returns true for a corporate policy with areRulesEnabled explicitly true', () => {
+        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: true})).toBe(true);
+    });
+
+    it('returns false for a corporate policy with areRulesEnabled explicitly false', () => {
+        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: false})).toBe(false);
+    });
+
+    it('returns false for a corporate policy with areRulesEnabled undefined and no categories', () => {
+        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined})).toBe(false);
+    });
+
+    it('returns false for a corporate policy with areRulesEnabled undefined and categories with no rule fields', () => {
+        const categories = {Advertising: {name: 'Advertising', enabled: true, 'GL Code': '1234'}};
+        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(false);
+    });
+
+    it('returns true for a corporate policy with areRulesEnabled undefined and a category with maxExpenseAmount set', () => {
+        const categories = {Advertising: {name: 'Advertising', enabled: true, maxExpenseAmount: 50000}};
+        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(true);
+    });
+
+    it('returns true for a corporate policy with areRulesEnabled undefined and a category with maxAmountNoReceipt = 0', () => {
+        const categories = {Travel: {name: 'Travel', enabled: true, maxAmountNoReceipt: 0}};
+        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(true);
+    });
+
+    it('returns true for a corporate policy with areRulesEnabled undefined and a category with areCommentsRequired = true', () => {
+        const categories = {Meals: {name: 'Meals', enabled: true, areCommentsRequired: true}};
+        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(true);
+    });
+
+    it('returns true for a corporate policy with areRulesEnabled undefined and a category with commentHint set', () => {
+        const categories = {Car: {name: 'Car', enabled: true, commentHint: 'Enter purpose'}};
+        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(true);
+    });
+
+    it('returns false for a team policy with areRulesEnabled undefined', () => {
+        expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: undefined})).toBe(false);
+    });
+
+    it('returns false for a team policy even when areRulesEnabled is true', () => {
+        expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: true})).toBe(false);
     });
 });
