@@ -9,7 +9,7 @@ import {setWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberAssignRole, goBackFromInvalidPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
+import {canMemberAssignElevatedRole, canMemberAssignRole, goBackFromInvalidPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -43,7 +43,7 @@ function DynamicWorkspaceInviteMessageRolePage({policy, route}: DynamicWorkspace
             policyID={route.params.policyID}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!canMemberAssignRole(policy, currentUserLogin, CONST.POLICY.ROLE.AUDITOR)}
+            shouldBeBlocked={!canMemberAssignElevatedRole(policy, currentUserLogin)}
             fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
         >
             <ScreenWrapper

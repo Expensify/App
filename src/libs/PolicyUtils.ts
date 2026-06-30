@@ -209,6 +209,10 @@ function canMemberAssignRole(policy: OnyxInputOrEntry<Policy>, login: string, ro
         return false;
     }
 
+    if (isControlPolicyOnlyRole(role) && !isControlPolicy(policy)) {
+        return false;
+    }
+
     if (canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES)) {
         return true;
     }
@@ -216,9 +220,13 @@ function canMemberAssignRole(policy: OnyxInputOrEntry<Policy>, login: string, ro
     return (
         policy?.type === CONST.POLICY.TYPE.CORPORATE &&
         canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.MEMBERS) &&
-        getPolicyRole(policy, login) === CONST.POLICY.ROLE.PEOPLE_ADMIN &&
         (role === CONST.POLICY.ROLE.USER || role === CONST.POLICY.ROLE.AUDITOR)
     );
+}
+
+// Whether the member can assign any elevated role: admins (via assignElevatedRoles) on any policy, or People Admins (up to auditor) on Control.
+function canMemberAssignElevatedRole(policy: OnyxInputOrEntry<Policy>, login: string): boolean {
+    return canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES) || canMemberAssignRole(policy, login, CONST.POLICY.ROLE.AUDITOR);
 }
 
 function canMemberManageMemberWithRole(policy: OnyxInputOrEntry<Policy>, login: string, role: string | undefined): boolean {
@@ -2684,6 +2692,7 @@ export {
     canMemberRead,
     canMemberWrite,
     canMemberAssignRole,
+    canMemberAssignElevatedRole,
     canMemberManageMemberWithRole,
     isGroupPolicy,
     isGroupPolicyByType,

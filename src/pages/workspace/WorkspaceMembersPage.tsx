@@ -54,7 +54,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
 import {
-    canEditWorkspaceSettings,
+    canEditWorkspaceSettings as canEditWorkspaceSettingsUtil,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
     canMemberWrite,
@@ -115,7 +115,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const currentUserLogin = currentUserPersonalDetails.login;
-    const isPolicyAdmin = canEditWorkspaceSettings(policy, currentUserLogin);
+    const canEditWorkspaceSettings = canEditWorkspaceSettingsUtil(policy, currentUserLogin);
     const canWriteMembers = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS);
 
     // Group policies (Collect/Control + Submit) allow member management.
@@ -352,7 +352,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     const data: WorkspaceMemberRowData[] = useMemo(() => {
         return filteredMembers.map(({policyEmployee, accountID, details}) => {
-            const isPendingDeleteOrError = isPolicyAdmin && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors));
+            const isPendingDeleteOrError = canEditWorkspaceSettings && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors));
             const role = policy?.owner === details.login ? CONST.POLICY.ROLE.OWNER : policyEmployee.role;
 
             const login = details.login ?? '';
@@ -387,7 +387,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         });
     }, [
         filteredMembers,
-        isPolicyAdmin,
+        canEditWorkspaceSettings,
         canWriteMembers,
         currentUserLogin,
         policy,
@@ -435,7 +435,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     const memberCount = data.filter((member) => member.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const connectedHRProvider = getConnectedHRProvider(policy);
-    const shouldShowHRSyncLink = isPolicyAdmin && !!connectedHRProvider;
+    const shouldShowHRSyncLink = canEditWorkspaceSettings && !!connectedHRProvider;
     const isMergeHRSyncInProgress =
         connectedHRProvider?.connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR &&
         policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]?.lastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.SYNCING;
