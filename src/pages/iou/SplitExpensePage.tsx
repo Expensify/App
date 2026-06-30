@@ -540,7 +540,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         KeyboardUtils.dismiss({
             afterTransition: () => {
                 initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, item.reportID ?? reportID);
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SPLIT_EXPENSE_EDIT.getRoute(item.reportID ?? reportID, item.transactionID)));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SPLIT_EXPENSE_EDIT.getRoute(item.reportID ?? reportID, transactionID, item.transactionID)));
             },
         });
     };

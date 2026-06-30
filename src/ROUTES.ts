@@ -197,14 +197,14 @@ const DYNAMIC_ROUTES = {
         getRoute: (accountID: number) => `avatar/${accountID}` as const,
     },
     SPLIT_EXPENSE_EDIT: {
-        path: 'edit/split-expense/:reportID/:splitExpenseTransactionID?',
+        path: 'edit/split-expense/:reportID/:transactionID/:splitExpenseTransactionID?',
         entryScreens: [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE, SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_SEARCH],
-        getRoute: (reportID: string | undefined, splitExpenseTransactionID?: string) => {
-            if (!reportID) {
-                Log.warn(`Invalid ${reportID}(reportID) is used to build the SPLIT_EXPENSE_EDIT dynamic route`);
+        getRoute: (reportID: string | undefined, transactionID: string | undefined, splitExpenseTransactionID?: string) => {
+            if (!reportID || !transactionID) {
+                Log.warn(`Invalid ${reportID}(reportID) or ${transactionID}(transactionID) is used to build the SPLIT_EXPENSE_EDIT dynamic route`);
             }
 
-            return `edit/split-expense/${reportID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}` as const;
+            return `edit/split-expense/${reportID}/${transactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}` as const;
         },
     },
     NEW_REPORT_WORKSPACE_SELECTION: {
