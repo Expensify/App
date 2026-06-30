@@ -190,7 +190,11 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
 
         // Merge in locally-pending expenses, skipping any already in the snapshot so a row never appears twice.
         const snapshotTransactionIDs = new Set(snapshotTransactions.map((transaction) => transaction.transactionID));
-        const combined = [...filtered, ...localPendingTransactions.filter((transaction) => !snapshotTransactionIDs.has(transaction.transactionID))];
+        const combined = [...filtered, ...localPendingTransactions.filter((transaction) => !snapshotTransactionIDs.has(transaction.transactionID))]
+            // When an expense is split, its (local) copy is reassigned to the synthetic SPLIT_REPORT_ID and the
+            // resulting split children are added as new expenses. Drop the now-orphaned original so the slot shows
+            // only the splits. Prefer the local copy's reportID, which reflects the split even before the snapshot refreshes.
+            .filter((transaction) => (localTransactionByID.get(transaction.transactionID)?.reportID ?? transaction.reportID) !== CONST.REPORT.SPLIT_REPORT_ID);
 
         // Recency key: prefer the local `inserted` timestamp (full precision, present for recently added expenses),
         // then any snapshot `inserted`, then fall back to the expense date. Newest first.

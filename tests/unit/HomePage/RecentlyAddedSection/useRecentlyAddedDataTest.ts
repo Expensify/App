@@ -256,6 +256,39 @@ describe('useRecentlyAddedData — locally pending (offline-created) expenses', 
     });
 });
 
+describe('useRecentlyAddedData — split expenses', () => {
+    it('drops the original expense once it is split, keeping only the resulting splits', () => {
+        // Splitting reassigns the original transaction to the synthetic SPLIT_REPORT_ID and adds the split children
+        // as new pending expenses. The snapshot still carries the (now reassigned) original.
+        setupSnapshot(
+            [
+                makeTransaction({transactionID: 'splitParent', reportID: CONST.REPORT.SPLIT_REPORT_ID, inserted: '2026-06-01 10:00:00'}),
+                makeTransaction({transactionID: 'unrelated', reportID: 'report_owned', inserted: '2026-06-02 10:00:00'}),
+            ],
+            [makeReport('report_owned', ACCOUNT_ID)],
+        );
+        setupLocalTransactions([
+            makeTransaction({transactionID: 'splitParent', reportID: CONST.REPORT.SPLIT_REPORT_ID, inserted: '2026-06-01 10:00:00'}),
+            makeTransaction({transactionID: 'splitChild1', reportID: 'report_owned', inserted: '2026-06-03 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}),
+            makeTransaction({transactionID: 'splitChild2', reportID: 'report_owned', inserted: '2026-06-04 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}),
+        ]);
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['splitChild2', 'splitChild1', 'unrelated']);
+    });
+
+    it('drops the split-parent when only its local copy has been reassigned (snapshot not yet refreshed)', () => {
+        // Offline split: the snapshot still holds the original reportID, but the local copy is already reassigned.
+        setupSnapshot([makeTransaction({transactionID: 'splitParent', reportID: 'report_owned', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
+        setupLocalTransactions([makeTransaction({transactionID: 'splitParent', reportID: CONST.REPORT.SPLIT_REPORT_ID, inserted: '2026-06-01 10:00:00'})]);
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(resultTransactionIDs(result.current.transactions)).toEqual([]);
+    });
+});
+
 describe('useRecentlyAddedData — offline-edited expenses', () => {
     it('surfaces the pending action for an expense edited offline, derived from its local pendingFields', () => {
         // The snapshot keeps the stale, pre-edit copy; the offline edit lives only on the local `transactions_` copy.
