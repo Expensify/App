@@ -2,7 +2,8 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
-import RadioButtonWithLabel from '@components/RadioButtonWithLabel';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,14 +33,16 @@ function TextInputFilterContent({filterKey, value: initialValue, autoFocus, larg
     const [value, setValue] = useState(initialValue);
     const shouldShowMerchantMatchType = filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT;
     const [merchantOperator, setMerchantOperator] = useState<MerchantMatchType>(initialMerchantOperator ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
-    const merchantMatchTypeItems: Array<{value: MerchantMatchType; label: string}> = [
+    const merchantMatchTypeItems: Array<ListItem<MerchantMatchType>> = [
         {
-            value: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-            label: translate('search.filters.merchant.equalTo'),
+            keyForList: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+            text: translate('search.filters.merchant.equalTo'),
+            isSelected: merchantOperator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
         },
         {
-            value: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
-            label: translate('search.filters.merchant.contains'),
+            keyForList: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
+            text: translate('search.filters.merchant.contains'),
+            isSelected: merchantOperator === CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
         },
     ];
 
@@ -55,15 +58,15 @@ function TextInputFilterContent({filterKey, value: initialValue, autoFocus, larg
                     onChange={(v) => setValue(typeof v === 'string' ? v : undefined)}
                 />
                 {shouldShowMerchantMatchType && (
-                    <View style={[styles.mt4, styles.ph5]}>
-                        <Text style={[styles.textLabelSupporting, styles.mb2]}>{translate('search.filters.merchant.matchType')}</Text>
+                    <View style={styles.mt4}>
+                        <Text style={[styles.textLabelSupporting, styles.mb2, styles.ph5]}>{translate('search.filters.merchant.matchType')}</Text>
                         {merchantMatchTypeItems.map((item) => (
-                            <RadioButtonWithLabel
-                                key={item.value}
-                                isChecked={item.value === merchantOperator}
-                                style={styles.optionRowCompact}
-                                onPress={() => setMerchantOperator(item.value)}
-                                label={item.label}
+                            <SingleSelectListItem
+                                key={item.keyForList}
+                                item={item}
+                                showTooltip={false}
+                                keyForList={item.keyForList}
+                                onSelectRow={() => setMerchantOperator(item.keyForList)}
                             />
                         ))}
                     </View>
