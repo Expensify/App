@@ -4,7 +4,10 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-jest.mock('@libs/Navigation/helpers/resetOnboardingStackToRoot', () => jest.requireActual('@libs/Navigation/helpers/resetOnboardingStackToRoot/index.ts'));
+jest.mock('@libs/Navigation/helpers/resetOnboardingStackToRoot', () =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    jest.requireActual('@libs/Navigation/helpers/resetOnboardingStackToRoot/index.ts'),
+);
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
     isReady: jest.fn(),
@@ -12,34 +15,40 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
     dispatch: jest.fn(),
 }));
 
+/* eslint-disable @typescript-eslint/unbound-method -- jest.fn() mocks don't rely on `this` binding */
+const mockedIsReady = jest.mocked(navigationRef.isReady);
+const mockedGetRootState = jest.mocked(navigationRef.getRootState);
+const mockedDispatch = jest.mocked(navigationRef.dispatch);
+/* eslint-enable @typescript-eslint/unbound-method */
+
 describe('resetOnboardingStackToRoot', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
     it('should not dispatch when navigation is not ready', () => {
-        jest.mocked(navigationRef.isReady).mockReturnValue(false);
+        mockedIsReady.mockReturnValue(false);
 
         resetOnboardingStackToRoot();
 
-        expect(navigationRef.dispatch).not.toHaveBeenCalled();
+        expect(mockedDispatch).not.toHaveBeenCalled();
     });
 
     it('should not dispatch when onboarding modal is not mounted', () => {
-        jest.mocked(navigationRef.isReady).mockReturnValue(true);
-        jest.mocked(navigationRef.getRootState).mockReturnValue({
+        mockedIsReady.mockReturnValue(true);
+        mockedGetRootState.mockReturnValue({
             index: 0,
             routes: [{name: NAVIGATORS.TAB_NAVIGATOR, key: 'tab-key'}],
-        } as ReturnType<typeof navigationRef.getRootState>);
+        });
 
         resetOnboardingStackToRoot();
 
-        expect(navigationRef.dispatch).not.toHaveBeenCalled();
+        expect(mockedDispatch).not.toHaveBeenCalled();
     });
 
     it('should not dispatch when onboarding stack has only one route', () => {
-        jest.mocked(navigationRef.isReady).mockReturnValue(true);
-        jest.mocked(navigationRef.getRootState).mockReturnValue({
+        mockedIsReady.mockReturnValue(true);
+        mockedGetRootState.mockReturnValue({
             index: 1,
             routes: [
                 {name: NAVIGATORS.TAB_NAVIGATOR, key: 'tab-key'},
@@ -53,16 +62,16 @@ describe('resetOnboardingStackToRoot', () => {
                     },
                 },
             ],
-        } as ReturnType<typeof navigationRef.getRootState>);
+        });
 
         resetOnboardingStackToRoot();
 
-        expect(navigationRef.dispatch).not.toHaveBeenCalled();
+        expect(mockedDispatch).not.toHaveBeenCalled();
     });
 
     it('should pop nested onboarding routes back to the first step', () => {
-        jest.mocked(navigationRef.isReady).mockReturnValue(true);
-        jest.mocked(navigationRef.getRootState).mockReturnValue({
+        mockedIsReady.mockReturnValue(true);
+        mockedGetRootState.mockReturnValue({
             index: 1,
             routes: [
                 {name: NAVIGATORS.TAB_NAVIGATOR, key: 'tab-key'},
@@ -80,11 +89,11 @@ describe('resetOnboardingStackToRoot', () => {
                     },
                 },
             ],
-        } as ReturnType<typeof navigationRef.getRootState>);
+        });
 
         resetOnboardingStackToRoot();
 
-        expect(navigationRef.dispatch).toHaveBeenCalledWith({
+        expect(mockedDispatch).toHaveBeenCalledWith({
             ...StackActions.pop(2),
             target: 'nested-key',
         });
