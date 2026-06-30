@@ -5,7 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 import {exitSavedViewEditMode, saveSavedViewEdits, setSaveAsNewViewQuery, setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, getAdvancedFiltersToReset} from '@libs/SearchQueryUtils';
-import {getSavedViewSaveButtonDisabledStates} from '@libs/SearchUIUtils';
+import {canSaveEditedView} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -18,11 +18,8 @@ type SearchAdvancedFiltersValue = {
     /** Whether the filters page was opened through the saved-view "Edit filters" flow (shows the edit footer) */
     isEditingSavedView: boolean;
 
-    /** Save edits would clobber a different saved view at the edited query's hash */
-    isSaveEditsDisabled: boolean;
-
-    /** The edited query already matches a saved view, so saving a "new" one would just rename it */
-    isSaveAsNewViewDisabled: boolean;
+    /** Whether the edited filters can be saved (there's a change and the query isn't already a saved view) */
+    hasSaveableChange: boolean;
 };
 
 type SearchAdvancedFiltersActionValue = {
@@ -38,8 +35,7 @@ const SearchAdvancedFiltersContext = React.createContext<SearchAdvancedFiltersVa
     currentDraftFilters: {},
     shouldShowResetFilters: false,
     isEditingSavedView: false,
-    isSaveEditsDisabled: false,
-    isSaveAsNewViewDisabled: false,
+    hasSaveableChange: false,
 });
 
 const SearchAdvancedFiltersActionContext = React.createContext<SearchAdvancedFiltersActionValue>({
@@ -69,7 +65,7 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
     const isEditingSavedView = !!editingSavedView;
     // The hash the edited draft would save under; used to decide which save buttons to disable.
     const editedQueryHash = buildSearchQueryJSON(buildFilterQueryString(values))?.hash;
-    const {isSaveAsNewViewDisabled, isSaveEditsDisabled} = getSavedViewSaveButtonDisabledStates(savedSearches, editedQueryHash, editingSavedView?.hash);
+    const hasSaveableChange = canSaveEditedView(savedSearches, editedQueryHash);
 
     const applyFilters = () => {
         Navigation.dismissModal({afterTransition: () => setFilterQueryParams(values)});
@@ -134,8 +130,7 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
         currentDraftFilters: values,
         shouldShowResetFilters: !isEmptyObject(advancedFiltersToReset),
         isEditingSavedView,
-        isSaveEditsDisabled,
-        isSaveAsNewViewDisabled,
+        hasSaveableChange,
     };
 
     const searchAdvancedFiltersActionValue: SearchAdvancedFiltersActionValue = {

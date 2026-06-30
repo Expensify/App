@@ -11,13 +11,15 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {cancelSavedViewEdits, saveSavedViewEdits} from '@libs/actions/Search';
+import {exitSavedViewEditMode, saveSavedViewEdits, setSaveAsNewViewQuery} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getSavedViewSaveButtonDisabledStates} from '@libs/SearchUIUtils';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {canSaveEditedView} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {EditingSavedSearch} from '@src/types/onyx';
 import AmountFilterContentPopupWrapper from './AmountFilterContentPopupWrapper';
 import CommonFilterContentPopupWrapper from './CommonFilterContentPopupWrapper';
@@ -45,35 +47,51 @@ function SearchAdvancedFiltersPopup({queryJSON, editingSavedView, closeOverlay}:
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
 
-    const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
+    const {updateFilterQueryParams, getUpdatedFilterFormValues, buildFilterQueryString, setFilterQueryParams} = useUpdateFilterQuery(queryJSON);
 
     const isEditingSavedView = !!editingSavedView;
 
-    // Saved views are keyed by their query hash; the helper computes which save buttons to disable (see its docs).
-    const {isSaveAsNewViewDisabled, isSaveEditsDisabled} = getSavedViewSaveButtonDisabledStates(savedSearches, queryJSON.hash, editingSavedView?.hash);
+    // In edit mode the filters are a draft: changes don't touch the active search until Save, so clicking outside leaves
+    // the saved view unchanged. The draft starts from the view's filters (the active search is the view while editing).
+    const [draftValues, setDraftValues] = useState<Partial<SearchAdvancedFiltersForm>>(searchAdvancedFiltersForm ?? {});
+    const displayValues = isEditingSavedView ? draftValues : searchAdvancedFiltersForm;
+    const onFilterChange = isEditingSavedView
+        ? (values: Partial<SearchAdvancedFiltersForm>) => setDraftValues((prev) => getUpdatedFilterFormValues(prev, values))
+        : updateFilterQueryParams;
 
+    const draftQueryJSON = isEditingSavedView ? buildSearchQueryJSON(buildFilterQueryString(draftValues)) : undefined;
+    // Only show the footer once the draft is saveable (changed from the view and not already another saved view).
+    const shouldShowEditFooter = isEditingSavedView && canSaveEditedView(savedSearches, draftQueryJSON?.hash);
+
+    // The draft never touches the active search, so leaving edit mode just clears the flag (nothing to revert).
     const onCancel = () => {
-        if (editingSavedView) {
-            cancelSavedViewEdits(editingSavedView);
-        }
+        exitSavedViewEditMode();
         closeOverlay?.();
     };
 
     const onSaveAsNewView = () => {
+        const queryString = buildFilterQueryString(draftValues);
+        if (!queryString) {
+            return;
+        }
+        // Carry the draft to the save page without changing the active search (it stays on the view until saved).
+        setSaveAsNewViewQuery(queryString);
         closeOverlay?.();
         Navigation.navigate(ROUTES.SEARCH_SAVE);
     };
 
     const onSaveEdits = () => {
-        if (editingSavedView) {
-            saveSavedViewEdits({queryJSON, editingSavedView});
+        if (editingSavedView && draftQueryJSON) {
+            // Apply the draft to the active search and persist it onto the view.
+            setFilterQueryParams(draftValues);
+            saveSavedViewEdits({queryJSON: draftQueryJSON, editingSavedView});
         }
         closeOverlay?.();
     };
 
     const popoverHeight = Math.min(windowHeight, CONST.ADVANCED_FILTERS_POPOVER_HEIGHT);
 
-    // In edit mode the popover also shows a footer, so the master-detail must shrink to share the fixed popover height.
+    // In edit mode the popover reserves space for the footer, so the master-detail shrinks to share the popover height.
     const masterDetailRowStyle = isEditingSavedView ? [styles.flex1, styles.mnh0] : StyleUtils.getHeight(popoverHeight);
 
     const masterDetail = (
@@ -81,8 +99,8 @@ function SearchAdvancedFiltersPopup({queryJSON, editingSavedView, closeOverlay}:
             <View style={[styles.flexRow, masterDetailRowStyle]}>
                 <FilterList
                     style={[styles.typeFiltersPopupContainer]}
-                    type={searchAdvancedFiltersForm?.type}
-                    policyID={searchAdvancedFiltersForm?.policyID}
+                    type={displayValues?.type}
+                    policyID={displayValues?.policyID}
                     selectedFilter={selectedFilter}
                     onHoverIn={setSelectedFilter}
                     onFocus={setSelectedFilter}
@@ -92,7 +110,7 @@ function SearchAdvancedFiltersPopup({queryJSON, editingSavedView, closeOverlay}:
                     style={[styles.filterContentContainer]}
                 >
                     <SearchAdvancedFiltersContent
-                        values={searchAdvancedFiltersForm}
+                        values={displayValues}
                         filterKey={selectedFilter}
                         policyIDQuery={queryJSON.policyID}
                         components={{
@@ -102,7 +120,7 @@ function SearchAdvancedFiltersPopup({queryJSON, editingSavedView, closeOverlay}:
                             Date: DateFilterContentPopupWrapper,
                             ReportField: ReportFieldFilterContentPopupWrapper,
                         }}
-                        onChange={updateFilterQueryParams}
+                        onChange={onFilterChange}
                     />
                 </View>
             </View>
@@ -116,30 +134,32 @@ function SearchAdvancedFiltersPopup({queryJSON, editingSavedView, closeOverlay}:
     return (
         <View style={[styles.flexColumn, StyleUtils.getHeight(popoverHeight)]}>
             <View style={[styles.flex1, styles.mnh0]}>{masterDetail}</View>
-            <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap2, styles.ph3, styles.pv3, styles.borderTop]}>
-                <Button
-                    text={translate('common.cancel')}
-                    onPress={onCancel}
-                    innerStyles={styles.bgTransparent}
-                    textStyles={styles.textSupporting}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_BUTTON}
-                />
-                <View style={[styles.flexRow, styles.gap2]}>
+            {shouldShowEditFooter && (
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap2, styles.ph3, styles.pv3, styles.borderTop]}>
                     <Button
-                        text={translate('search.saveAsNewView')}
-                        onPress={onSaveAsNewView}
-                        isDisabled={isSaveAsNewViewDisabled}
-                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_VIEW_BUTTON}
+                        text={translate('common.cancel')}
+                        onPress={onCancel}
+                        innerStyles={styles.bgTransparent}
+                        textStyles={styles.textSupporting}
+                        shouldUseDefaultHover={false}
+                        hoverStyles={styles.hoveredComponentBG}
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_BUTTON}
                     />
-                    <Button
-                        success
-                        text={translate('search.saveEdits')}
-                        onPress={onSaveEdits}
-                        isDisabled={isSaveEditsDisabled}
-                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_VIEW_BUTTON}
-                    />
+                    <View style={[styles.flexRow, styles.gap2]}>
+                        <Button
+                            text={translate('search.saveAsNewView')}
+                            onPress={onSaveAsNewView}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_VIEW_BUTTON}
+                        />
+                        <Button
+                            success
+                            text={translate('search.saveEdits')}
+                            onPress={onSaveEdits}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_VIEW_BUTTON}
+                        />
+                    </View>
                 </View>
-            </View>
+            )}
         </View>
     );
 }

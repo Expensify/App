@@ -42,14 +42,13 @@ describe('SavedViewEditFooter', () => {
         jest.clearAllMocks();
     });
 
-    const renderFooter = async (props: Partial<{isSaveEditsDisabled: boolean; isSaveAsNewViewDisabled: boolean}> = {}) => {
+    const renderFooter = async () => {
         render(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                 <SavedViewEditFooter
                     onCancel={onCancel}
                     onSaveEdits={onSaveEdits}
                     onSaveAsNewView={onSaveAsNewView}
-                    {...props}
                 />
             </ComposeProviders>,
         );
@@ -75,21 +74,5 @@ describe('SavedViewEditFooter', () => {
         await renderFooter();
         fireEvent.press(screen.getByRole('button', {name: translateLocal('common.cancel')}));
         expect(onCancel).toHaveBeenCalledTimes(1);
-    });
-
-    it('disables both options and the Save button itself when both saves are disabled', async () => {
-        await renderFooter({isSaveEditsDisabled: true, isSaveAsNewViewDisabled: true});
-        const disabledByValue = Object.fromEntries((mockDropdownProps?.options ?? []).map((option) => [option.value, option.disabled]));
-        expect(disabledByValue.edits).toBe(true);
-        expect(disabledByValue.newView).toBe(true);
-        expect(mockDropdownProps?.isDisabled).toBe(true);
-    });
-
-    it('keeps Save edits (and the Save button) enabled when only Save as new view is disabled', async () => {
-        await renderFooter({isSaveAsNewViewDisabled: true});
-        const disabledByValue = Object.fromEntries((mockDropdownProps?.options ?? []).map((option) => [option.value, option.disabled]));
-        expect(disabledByValue.edits).toBe(false);
-        expect(disabledByValue.newView).toBe(true);
-        expect(mockDropdownProps?.isDisabled).toBe(false);
     });
 });

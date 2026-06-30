@@ -21,25 +21,19 @@ type SavedViewEditFooterProps = {
     /** Saves the edited filters as a brand new view */
     onSaveAsNewView: () => void;
 
-    /** Disables "Save edits" (the edited query would clobber a different saved view) */
-    isSaveEditsDisabled?: boolean;
-
-    /** Disables "Save as new view" (the edited query already matches a saved view) */
-    isSaveAsNewViewDisabled?: boolean;
-
     /** Styles for the footer container (padding/border supplied by the caller) */
     style?: StyleProp<ViewStyle>;
 };
 
 /** The mobile "Edit filters" footer: Cancel + a Save dropdown ("Save edits" / "Save as new view"). */
-function SavedViewEditFooter({onCancel, onSaveEdits, onSaveAsNewView, isSaveEditsDisabled = false, isSaveAsNewViewDisabled = false, style}: SavedViewEditFooterProps) {
+function SavedViewEditFooter({onCancel, onSaveEdits, onSaveAsNewView, style}: SavedViewEditFooterProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Plus']);
 
     const saveOptions: Array<DropdownOption<SaveViewAction>> = [
-        {value: 'edits', text: translate('search.saveEdits'), icon: icons.Checkmark, disabled: isSaveEditsDisabled, onSelected: onSaveEdits},
-        {value: 'newView', text: translate('search.saveAsNewView'), icon: icons.Plus, disabled: isSaveAsNewViewDisabled, onSelected: onSaveAsNewView},
+        {value: 'edits', text: translate('search.saveEdits'), icon: icons.Checkmark, onSelected: onSaveEdits},
+        {value: 'newView', text: translate('search.saveAsNewView'), icon: icons.Plus, onSelected: onSaveAsNewView},
     ];
 
     return (
@@ -60,7 +54,6 @@ function SavedViewEditFooter({onCancel, onSaveEdits, onSaveAsNewView, isSaveEdit
                 shouldUseOptionIcon
                 isSplitButton={false}
                 customText={translate('common.save')}
-                isDisabled={isSaveEditsDisabled && isSaveAsNewViewDisabled}
                 wrapperStyle={styles.flex1}
                 anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
             />

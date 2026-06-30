@@ -2569,29 +2569,24 @@ describe('SearchUIUtils', () => {
         });
     });
 
-    describe('Test getSavedViewSaveButtonDisabledStates', () => {
+    describe('Test canSaveEditedView', () => {
         // Two existing saved views, keyed by query hash (111 is the one being edited).
         const savedSearches = {
             111: {name: 'View A', query: 'type:expense'},
             222: {name: 'View B', query: 'type:invoice'},
-        } as Parameters<typeof SearchUIUtils.getSavedViewSaveButtonDisabledStates>[0];
+        } as Parameters<typeof SearchUIUtils.canSaveEditedView>[0];
 
-        it('disables both save buttons when the edited query collides with a DIFFERENT saved view', () => {
-            // Editing view 111, but the edited query now hashes to view 222 -> saving edits would clobber 222.
-            expect(SearchUIUtils.getSavedViewSaveButtonDisabledStates(savedSearches, 222, 111)).toEqual({isSaveAsNewViewDisabled: true, isSaveEditsDisabled: true});
+        it('returns false when the edited query is already a saved view (no change, or it matches another view)', () => {
+            expect(SearchUIUtils.canSaveEditedView(savedSearches, 111)).toBe(false);
+            expect(SearchUIUtils.canSaveEditedView(savedSearches, 222)).toBe(false);
         });
 
-        it('keeps "Save edits" enabled and only disables "Save as new view" when the query still matches the edited view itself', () => {
-            // Editing view 111 and the edited query still hashes to 111 -> editing in place is fine, but it is not a new view.
-            expect(SearchUIUtils.getSavedViewSaveButtonDisabledStates(savedSearches, 111, 111)).toEqual({isSaveAsNewViewDisabled: true, isSaveEditsDisabled: false});
+        it('returns true when the edited query does not match any saved view', () => {
+            expect(SearchUIUtils.canSaveEditedView(savedSearches, 999)).toBe(true);
         });
 
-        it('enables both save buttons when the edited query does not match any saved view', () => {
-            expect(SearchUIUtils.getSavedViewSaveButtonDisabledStates(savedSearches, 999, 111)).toEqual({isSaveAsNewViewDisabled: false, isSaveEditsDisabled: false});
-        });
-
-        it('enables both save buttons when the edited query hash could not be computed', () => {
-            expect(SearchUIUtils.getSavedViewSaveButtonDisabledStates(savedSearches, undefined, 111)).toEqual({isSaveAsNewViewDisabled: false, isSaveEditsDisabled: false});
+        it('returns false when the edited query hash could not be computed', () => {
+            expect(SearchUIUtils.canSaveEditedView(savedSearches, undefined)).toBe(false);
         });
     });
 

@@ -118,7 +118,7 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
             }}
             renderButton={filterButton}
-            autoExpandToken={editingSavedView?.requestID}
+            autoExpandToken={editingSavedView && queryJSON.hash === editingSavedView.hash ? editingSavedView.requestID : undefined}
             onOverlayClose={isEditingSavedView ? exitSavedViewEditMode : undefined}
         />
     );

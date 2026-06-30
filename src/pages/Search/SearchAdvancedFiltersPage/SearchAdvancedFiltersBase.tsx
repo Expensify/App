@@ -14,8 +14,11 @@ import ROUTES from '@src/ROUTES';
 function SearchAdvancedFiltersBase() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {currentDraftFilters, shouldShowResetFilters, isEditingSavedView, isSaveEditsDisabled, isSaveAsNewViewDisabled} = useContext(SearchAdvancedFiltersContext);
+    const {currentDraftFilters, shouldShowResetFilters, isEditingSavedView, hasSaveableChange} = useContext(SearchAdvancedFiltersContext);
     const {applyFilters, resetFilters, saveEdits, saveAsNewView, cancelEdits} = useContext(SearchAdvancedFiltersActionContext);
+
+    // Only show the edit footer once there's a change you could save.
+    const shouldShowEditFooter = isEditingSavedView && hasSaveableChange;
 
     // Clear edit mode if the route is dismissed by hardware/browser back or swipe (not just the header/Cancel).
     useEffect(
@@ -42,16 +45,15 @@ function SearchAdvancedFiltersBase() {
                 policyID={currentDraftFilters.policyID}
                 onPress={(filterKey) => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.getRoute(filterKey))}
             />
-            {isEditingSavedView ? (
+            {shouldShowEditFooter && (
                 <SavedViewEditFooter
                     style={[styles.ph5, styles.pt3, styles.pb5]}
                     onCancel={cancelEdits}
                     onSaveEdits={saveEdits}
                     onSaveAsNewView={saveAsNewView}
-                    isSaveEditsDisabled={isSaveEditsDisabled}
-                    isSaveAsNewViewDisabled={isSaveAsNewViewDisabled}
                 />
-            ) : (
+            )}
+            {!isEditingSavedView && (
                 <>
                     {shouldShowResetFilters && (
                         <Button

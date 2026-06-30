@@ -4414,32 +4414,13 @@ type ShareProps = {
     isCopied: boolean;
 };
 
-/** Which save buttons of the "Edit filters" footer must be disabled. */
-type SavedViewSaveButtonDisabledStates = {
-    /** The edited query already matches a saved view, so saving a "new" one would just rename it. */
-    isSaveAsNewViewDisabled: boolean;
-
-    /** The edited query's hash belongs to a DIFFERENT saved view, so saving edits would clobber/delete that view. */
-    isSaveEditsDisabled: boolean;
-};
-
 /**
- * Saved views are keyed by their query hash. When editing a view's filters, returns which footer save buttons must be
- * disabled to avoid two failure modes: "Save as new view" creating a duplicate of an already-saved query (it would just
- * rename that entry), and "Save edits" writing the edited query under a hash that belongs to a DIFFERENT saved view
- * (which would clobber/delete that unrelated view, and a failed save removes it locally). Shared by the wide popover and
- * the narrow fullscreen footer.
+ * Whether the edited filters can be saved as a view. Saved views are keyed by their query hash, so the edit footer is
+ * only actionable when the edited query isn't already a saved view: an unchanged query has nothing new to save, and a
+ * query matching another view would just duplicate it. Shared by the wide popover and the narrow fullscreen footer.
  */
-function getSavedViewSaveButtonDisabledStates(
-    savedSearches: OnyxEntry<SaveSearch>,
-    editedQueryHash: number | undefined,
-    editingViewHash: number | undefined,
-): SavedViewSaveButtonDisabledStates {
-    const isCurrentQueryAlreadySaved = editedQueryHash !== undefined && !!savedSearches?.[editedQueryHash];
-    return {
-        isSaveAsNewViewDisabled: isCurrentQueryAlreadySaved,
-        isSaveEditsDisabled: isCurrentQueryAlreadySaved && editedQueryHash !== editingViewHash,
-    };
+function canSaveEditedView(savedSearches: OnyxEntry<SaveSearch>, editedQueryHash: number | undefined): boolean {
+    return editedQueryHash !== undefined && !savedSearches?.[editedQueryHash];
 }
 
 /**
@@ -6411,7 +6392,7 @@ export {
     isReportActionListItemType,
     shouldShowYear,
     getOverflowMenu,
-    getSavedViewSaveButtonDisabledStates,
+    canSaveEditedView,
     isCorrectSearchUserName,
     isReportActionEntry,
     isTaskListItemType,

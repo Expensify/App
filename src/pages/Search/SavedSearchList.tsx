@@ -47,7 +47,6 @@ type SavedSearchMenuItemBuilderParams = {
     itemStyle: SavedSearchMenuItem['style'];
     tooltipWrapperStyle: SavedSearchMenuItem['tooltipWrapperStyle'];
     isCopied: boolean;
-    editingSavedViewHash: number | undefined;
 };
 
 function buildSavedSearchMenuItem({
@@ -63,10 +62,8 @@ function buildSavedSearchMenuItem({
     itemStyle,
     tooltipWrapperStyle,
     isCopied,
-    editingSavedViewHash,
 }: SavedSearchMenuItemBuilderParams): SavedSearchMenuItem {
-    // While editing, highlight only the edited view, not the live query's match.
-    const isItemFocused = editingSavedViewHash !== undefined ? Number(key) === editingSavedViewHash : Number(key) === hash;
+    const isItemFocused = Number(key) === hash;
     const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, isItemFocused);
 
     return {
@@ -107,7 +104,6 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
     const isFocused = useIsFocused();
 
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const [editingSavedView] = useOnyx(ONYXKEYS.SEARCH_EDITING_SAVED_VIEW);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const personalDetails = usePersonalDetails();
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
@@ -184,7 +180,6 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
                       itemStyle,
                       tooltipWrapperStyle,
                       isCopied: copiedHash === Number(key),
-                      editingSavedViewHash: editingSavedView?.hash,
                   }),
               )
               .sort((a, b) => localeCompare(a.title ?? '', b.title ?? ''))
