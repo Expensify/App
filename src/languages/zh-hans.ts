@@ -2765,6 +2765,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     agentsPage: {
         title: '代理人',
         subtitle: `<muted-text>智能代理为你处理工作流程，让你每天多出数小时。<a href="${CONST.CUSTOM_AGENTS_HELP_URL}">了解详情</a>。</muted-text>`,
+        findAgent: '查找代理人',
         newAgent: '新代理人',
         emptyAgents: {
             title: '尚未创建代理',
