@@ -4,6 +4,7 @@ import WidgetContainer from '@components/WidgetContainer';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -26,12 +27,15 @@ function GettingStartedSection() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const activePolicy = usePolicy(activePolicyID);
     const [guideDetails] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountGuideDetailsSelector});
     const hasGuide = !!guideDetails?.email;
     const {shouldShowSection, items} = useGettingStartedItems();
 
     const openAdminsRoom = () => {
-        const adminsRoomReportID = activePolicyID ? getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, activePolicyID)?.reportID : undefined;
+        const policyAdminsReportID = activePolicy?.chatReportIDAdmins?.toString();
+        const adminsRoomReportIDFromPolicy = policyAdminsReportID && policyAdminsReportID !== CONST.DEFAULT_NUMBER_ID.toString() ? policyAdminsReportID : undefined;
+        const adminsRoomReportID = (activePolicyID ? getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, activePolicyID)?.reportID : undefined) ?? adminsRoomReportIDFromPolicy;
         if (!adminsRoomReportID) {
             return;
         }
