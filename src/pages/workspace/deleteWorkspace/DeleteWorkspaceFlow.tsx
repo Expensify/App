@@ -99,8 +99,8 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
         !isEmptyObject(cardsList) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.policyAccountID);
-    const hasExpensifyCardsEnabledOnWorkspace = !!policy?.areExpensifyCardsEnabled && !!policy?.policyAccountID && !isEmptyObject(cardsList);
-    const hasDeleteWorkspaceExpensifyCardsError = !!hasExpensifyCardsEnabledOnWorkspace && !!isOffline;
+    const hasExpensifyCardsEnabledOnWorkspace = !!policy?.areExpensifyCardsEnabled && !!policy?.policyAccountID;
+    const hasDeleteWorkspaceExpensifyCardsError = !!hasExpensifyCardsEnabledOnWorkspace && !isEmptyObject(cardsList) && !!isOffline;
 
     const policyLatestErrorMessage = getLatestErrorMessage(policy);
     const isPendingDelete = isPendingDeletePolicy(policy);

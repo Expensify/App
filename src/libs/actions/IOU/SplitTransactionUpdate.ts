@@ -70,6 +70,7 @@ import type {UpdateMoneyRequestDataKeys} from './UpdateMoneyRequest';
 type UpdateSplitTransactionsParams = {
     allTransactionsList: OnyxCollection<OnyxTypes.Transaction>;
     allReportsList: OnyxCollection<OnyxTypes.Report>;
+    allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
     allReportNameValuePairsList: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
     allSnapshots?: OnyxCollection<OnyxTypes.SearchResults>;
     transactionData: {
@@ -102,6 +103,7 @@ type UpdateSplitTransactionsParams = {
 function updateSplitTransactions({
     allTransactionsList,
     allReportsList,
+    allReportActionsList,
     allReportNameValuePairsList,
     allSnapshots,
     transactionData,
@@ -296,7 +298,11 @@ function updateSplitTransactions({
     }
 
     let updatedReportPreviewAction: Partial<OnyxTypes.ReportAction> | undefined;
-    const originalReportPreviewAction = getReportPreviewAction(expenseReport?.chatReportID, expenseReport?.reportID);
+    const originalReportPreviewAction = getReportPreviewAction(
+        expenseReport?.chatReportID,
+        expenseReport?.reportID,
+        allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.chatReportID}`],
+    );
     const transactionReportActions = getAllReportActions(firstIOU?.childReportID);
     const expenseReportNameValuePairs = allReportNameValuePairsList?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
     const isArchivedExpenseReport = isArchivedReport(expenseReportNameValuePairs);

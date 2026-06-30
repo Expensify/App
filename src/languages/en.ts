@@ -1403,6 +1403,9 @@ const translations = {
             other: 'Are you sure that you want to delete these reports?',
         }),
         settledExpensify: 'Paid',
+        paidStatusMarkedAsPaid: 'Marked as paid',
+        paidStatusWithdrawing: 'Withdrawing',
+        paidStatusConfirmed: 'Confirmed',
         done: 'Done',
         deleted: 'Deleted',
         settledElsewhere: 'Paid elsewhere',
@@ -1723,6 +1726,10 @@ const translations = {
         },
         moveExpenses: 'Move to report',
         moveExpensesError: "You can't move per diem expenses to reports on other workspaces, because the per diem rates may differ between workspaces.",
+        submitReportTo: {
+            sendExpense: 'Send your expense to anyone',
+            sendExpenseSubtitle: 'Invite anyone to Expensify by using their email address or phone number.',
+        },
         changeApprover: {
             title: 'Change approver',
             header: (workflowSettingLink: string) =>
@@ -6404,6 +6411,10 @@ const translations = {
                 one: 'Make workspace admin',
                 other: 'Make workspace admins',
             }),
+            makeGroupAdmin: () => ({
+                one: 'Make admin',
+                other: 'Make admins',
+            }),
             makeAuditor: () => ({
                 one: 'Make auditor',
                 other: 'Make auditors',
@@ -8009,6 +8020,8 @@ const translations = {
                 under: 'under',
             },
             amountFilter: ({operator, amount}: {operator: string; amount: string}) => `amounts ${operator} ${amount}`,
+            allowedCurrencyFilters: ({currencies}: {currencies: string}) => `currencies ${currencies}`,
+            blockedCurrencyFilters: ({currencies}: {currencies: string}) => `currencies not in ${currencies}`,
             theCard: 'the card',
             multipleCards: ({count}: {count: number}) => ({
                 one: '1 card',
@@ -8048,6 +8061,11 @@ const translations = {
                 bodySpendCategoryValueOnly: ({value}: {value: string}) => `'${value}'`,
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `${adjective} spend category from '${oldValue}' to '${newValue}'` : `spend category from '${oldValue}' to '${newValue}'`,
+                bodyCurrency: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} currency '${value}'` : `currency '${value}'`),
+                bodyCurrencyValueOnly: ({value}: {value: string}) => `'${value}'`,
+                bodyCurrencyChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} currency from '${oldValue}' to '${newValue}'` : `currency from '${oldValue}' to '${newValue}'`,
+                bodyCurrencyRestriction: 'the currency restriction',
                 bodyMaxAmount: 'max amount',
                 bodyMaxAmountSet: ({value}: {value: string}) => `max amount to ${value}`,
                 bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `max amount from ${oldValue} to ${newValue}`,
@@ -9435,10 +9453,6 @@ const translations = {
         bookACallTextBottom: 'We’d be excited to get on a call with you to understand why. You can book a call with one of our senior product managers to discuss your needs.',
         takeMeToExpensifyClassic: 'Take me to Expensify Classic',
         goBackJustOnce: 'Go back just once',
-    },
-    listBoundary: {
-        errorMessage: 'An error occurred while loading more messages',
-        tryAgain: 'Try again',
     },
     systemMessage: {
         mergedWithCashTransaction: 'matched a receipt to this transaction',

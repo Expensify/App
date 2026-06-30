@@ -9,7 +9,7 @@ type LabelLayoutConfig = {
     data: ChartDataPoint[];
 
     /** Font manager for Paragraph API rendering with multi-font fallback. */
-    fontMgr: SkTypefaceFontProvider | null;
+    fontManager: SkTypefaceFontProvider | null;
 
     /** Font size used for measuring label text widths. */
     fontSize: number;
@@ -42,13 +42,13 @@ const EMPTY_LAYOUT = {
     ellipsisWidth: 0,
 };
 
-function useChartLabelLayout({data, fontMgr, tickSpacing, labelAreaWidth, firstTickLeftSpace = Infinity, lastTickRightSpace = Infinity, measurements}: LabelLayoutConfig) {
+function useChartLabelLayout({data, fontManager, tickSpacing, labelAreaWidth, firstTickLeftSpace = Infinity, lastTickRightSpace = Infinity, measurements}: LabelLayoutConfig) {
     // Phase 1: font/data measurements — stable across geometry-only changes (resize).
 
     // Phase 2: layout decisions + label truncation.
     // Memoized on all geometry inputs so labelMaxWidths and truncatedLabelWidths have stable
     // references between re-renders where only unrelated state changes.
-    if (!fontMgr || !measurements || tickSpacing <= 0 || labelAreaWidth <= 0) {
+    if (!fontManager || !measurements || tickSpacing <= 0 || labelAreaWidth <= 0) {
         return EMPTY_LAYOUT;
     }
 
