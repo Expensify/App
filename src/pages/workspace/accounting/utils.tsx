@@ -406,7 +406,7 @@ function getAccountingIntegrationData(
                     CONST.RILLET_CONFIG.SYNC_TAX_RATES,
                     ...(policy?.connections?.rillet?.data?.fields.map((field) => `${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`) ?? []),
                 ],
-                onExportPagePress: () => null,
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.getRoute(policyID)),
                 subscribedExportSettings: [
                     CONST.RILLET_CONFIG.EXPORTER,
                     CONST.RILLET_CONFIG.EXPORT_DATE,

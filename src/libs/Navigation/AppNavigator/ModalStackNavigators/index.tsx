@@ -916,7 +916,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/import/RilletImportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_EXPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/export/RilletExportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_PREFERRED_EXPORTER]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/export/RilletPreferredExporterPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_VENDOR_BILL]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/export/RilletVendorBillDatePage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_VENDOR_BILL_DATE]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/export/RilletVendorBillDatePage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_COMPANY_CARD_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/export/RilletCompanyCardAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_DEFAULT_COMPANY_CARD_VENDOR]: () =>

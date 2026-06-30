@@ -1710,22 +1710,22 @@ type RilletBankAccount = {
  */
 type RilletConnectionData = {
     /** Collection of subsidiaries. */
-    subsidiaries: RilletSubsidiary[];
+    subsidiaries?: RilletSubsidiary[];
 
     /** Collection of accounts. */
-    accounts: RilletAccount[];
+    accounts?: RilletAccount[];
 
     /** Collection of custom fields. */
-    fields: RilletField[];
+    fields?: RilletField[];
 
     /** Collection of tax rates. */
-    taxRates: RilletTaxRate[];
+    taxRates?: RilletTaxRate[];
 
     /** Collection of vendors. */
-    vendors: RilletVendor[];
+    vendors?: RilletVendor[];
 
     /** Collection of bank accounts. */
-    bankAccounts: RilletBankAccount[];
+    bankAccounts?: RilletBankAccount[];
 };
 
 /**
@@ -1735,7 +1735,7 @@ type RilletCoding = {
     /**
      * Mapping of Rillet field IDs to their configured mapping behavior.
      */
-    fieldMappings: Record<string, ValueOf<typeof CONST.RILLET_MAPPING_VALUE>>;
+    fieldMappings?: Record<string, ValueOf<typeof CONST.RILLET_MAPPING_VALUE>>;
 
     /** Whether tax rates should be synchronized from Rillet. */
     syncTaxRates: boolean;
@@ -1752,17 +1752,17 @@ type RilletCodingOfflineFeedbackKeys = keyof Omit<RilletCoding, 'fieldMappings'>
 /**
  * Available dates that can be used as the export date.
  */
-type RilletExportDate = 'LAST_EXPENSE' | 'REPORT_EXPORTED' | 'REPORT_SUBMITTED';
+type RilletExportDate = ValueOf<typeof CONST.RILLET_EXPORT_DATE>;
 
 /**
  * Export strategy for reimbursable expenses.
  */
-type RilletExportReimbursable = 'VENDOR_BILL';
+type RilletExportReimbursable = ValueOf<typeof CONST.RILLET_EXPORT_REIMBURSABLE>;
 
 /**
  * Export strategy for company card expenses.
  */
-type RilletExportCompanyCard = 'CREDIT_CARD';
+type RilletExportCompanyCard = ValueOf<typeof CONST.RILLET_EXPORT_COMPANY_CARD>;
 
 /**
  * Export configuration for sending accounting data to Rillet.

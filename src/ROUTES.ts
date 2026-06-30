@@ -4009,9 +4009,9 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/rillet/export/preferred-exporter',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/preferred-exporter` as const,
     },
-    POLICY_ACCOUNTING_RILLET_VENDOR_BILL: {
-        route: 'workspaces/:policyID/accounting/rillet/export/vendor-bill',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/vendor-bill` as const,
+    POLICY_ACCOUNTING_RILLET_VENDOR_BILL_DATE: {
+        route: 'workspaces/:policyID/accounting/rillet/export/vendor-bill-date',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/vendor-bill-date` as const,
     },
     POLICY_ACCOUNTING_RILLET_COMPANY_CARD_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/rillet/export/company-card-account',
