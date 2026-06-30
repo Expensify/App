@@ -1442,7 +1442,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const includeReportLevelExport = ((isExpenseReportType || typeInvoice) && areFullReportsSelected) || (typeExpense && !isExpenseReportType && isAllOneTransactionReport);
 
             const policy = selectedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyIDs.at(0)}`] : undefined;
-            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy, includeReportLevelExport);
+            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, localeCompare, policy, includeReportLevelExport);
 
             const exportOptions: PopoverMenuItem[] = [];
 
@@ -1568,6 +1568,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 },
                 shouldCloseModalOnSelect: true,
                 shouldCallAfterModalHide: true,
+                // Divider between the accounting actions group and the current view group (suppressed when this is the first item)
+                addSeparatorBefore: true,
             });
 
             if (!isGroupedSearch) {
@@ -1583,6 +1585,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             if (!allSelectedAreDeleted && !includesGroupExport) {
+                let previousIsStandardTemplate: boolean | undefined;
                 for (const template of exportTemplates) {
                     const isStandardTemplate =
                         template.templateName === CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT || template.templateName === CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT;
@@ -1595,7 +1598,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         },
                         shouldCloseModalOnSelect: true,
                         shouldCallAfterModalHide: true,
+                        // Divider before the first template (separating from current view) and at the custom/default group boundary
+                        addSeparatorBefore: isStandardTemplate !== previousIsStandardTemplate,
                     });
+                    previousIsStandardTemplate = isStandardTemplate;
                 }
             }
 

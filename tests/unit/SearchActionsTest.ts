@@ -1,9 +1,11 @@
-import {queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
+import {getExportTemplates, queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ExportTemplate} from '@src/types/onyx';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
+import {translateLocal} from '../utils/TestHelper';
 
 const EXPENSE_STATUS_ALL = CONST.SEARCH.STATUS.EXPENSE.ALL;
 
@@ -118,5 +120,38 @@ describe('queueExportSearchWithTemplate', () => {
 
         const options = mockWrite.mock.calls.at(-1)?.at(2);
         expect(options).toEqual({});
+    });
+});
+
+describe('getExportTemplates', () => {
+    const translate = translateLocal;
+    const localeCompare = (first: string, second: string) => first.localeCompare(second);
+    const makeTemplate = (name: string): ExportTemplate => ({name, templateName: name, type: '', policyID: undefined, description: ''});
+
+    it('returns the custom/IS templates first (sorted alphabetically), followed by the default templates (sorted alphabetically)', () => {
+        const integrationsExportTemplates: ExportTemplate[] = [makeTemplate('Zebra integration'), makeTemplate('Apple integration')];
+        const csvExportLayouts: Record<string, ExportTemplate> = {
+            mango: makeTemplate('Mango layout'),
+            banana: makeTemplate('Banana layout'),
+        };
+
+        const result = getExportTemplates(integrationsExportTemplates, csvExportLayouts, translate, localeCompare);
+        const names = result.map((template) => template.name);
+
+        // Custom/IS group is sorted alphabetically and comes first
+        const customGroup = names.slice(0, 4);
+        expect(customGroup).toEqual(['Apple integration', 'Banana layout', 'Mango layout', 'Zebra integration']);
+
+        // Default group (expense/report level) is sorted alphabetically and comes last
+        const defaultGroup = names.slice(4);
+        expect(defaultGroup).toEqual([translate('export.expenseLevelExport'), translate('export.reportLevelExport')]);
+    });
+
+    it('excludes the report level export template when includeReportLevelExport is false', () => {
+        const result = getExportTemplates([], {}, translate, localeCompare, undefined, false);
+        const templateNames = result.map((template) => template.templateName);
+
+        expect(templateNames).toContain(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT);
+        expect(templateNames).not.toContain(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT);
     });
 });

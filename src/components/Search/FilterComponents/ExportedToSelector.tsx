@@ -90,8 +90,8 @@ function ExportedToSelector({value = [], policyIDs = [], selectionListTextInputS
 
         const usedPickerValueKeys = new Set(connectedIntegrationPickerItems.map((item) => item.value));
         const policiesToLoadTemplatesFrom = policyIDs.length > 0 ? policyIDs.map((id) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]).filter(Boolean) : Object.values(policies ?? {});
-        const exportTemplatesFromPolicies = policiesToLoadTemplatesFrom.flatMap((policy) => getExportTemplates([], {}, translate, policy, false));
-        const exportTemplatesFromAccount = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, undefined, true);
+        const exportTemplatesFromPolicies = policiesToLoadTemplatesFrom.flatMap((policy) => getExportTemplates([], {}, translate, localeCompare, policy, false));
+        const exportTemplatesFromAccount = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, localeCompare, undefined, true);
         const allExportTemplates = [...exportTemplatesFromAccount, ...exportTemplatesFromPolicies];
 
         const exportTemplatesByTemplateId = new Map<string, TupleToUnion<typeof allExportTemplates>>();
