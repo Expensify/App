@@ -47,6 +47,8 @@ function useCompleteOnboarding() {
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [adminsChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboardingAdminsChatReportID}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [isLoading, setIsLoading] = useState(false);
@@ -108,6 +110,8 @@ function useCompleteOnboarding() {
                 shouldWaitForRHPVariantInitialization: isSidePanelReportSupported,
                 introSelected,
                 isSelfTourViewed,
+                conciergeChat,
+                adminsChatReport,
             });
             const rhpVariant = isSidePanelReportSupported ? extractRHPVariantFromResponse(response) : undefined;
 
