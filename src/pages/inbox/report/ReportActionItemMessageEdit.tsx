@@ -433,7 +433,7 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
                                 }
 
                                 if (isMobileChrome()) {
-                                    reportScrollManager.scrollToIndexInstance({index, animated: false});
+                                    reportScrollManager.scrollToIndex(index, {animated: false});
                                 }
 
                                 // Clear active report action when another action gets focused

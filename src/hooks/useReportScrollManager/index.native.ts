@@ -7,14 +7,15 @@ function useReportScrollManager(): ReportScrollManagerData {
     const {getListRef, scrollPositionRef} = useActionListContext();
 
     /**
-     * Scroll to the provided index.
+     * Scroll to the provided index. `isEditing` is accepted for signature parity with the web
+     * implementation but is a no-op here, matching the previous native behavior.
      */
-    const scrollToIndex = (index: number) => {
+    const scrollToIndex = (index: number, {animated = true}: {isEditing?: boolean; animated?: boolean} = {}) => {
         const listRef = getListRef();
         if (!listRef?.current) {
             return;
         }
-        listRef.current.scrollToIndex({index});
+        listRef.current.scrollToIndex({index, animated});
     };
 
     /**
@@ -58,15 +59,7 @@ function useReportScrollManager(): ReportScrollManagerData {
         listRef.current.scrollToOffset({offset, animated: false});
     };
 
-    const scrollToIndexInstance = ({index, animated}: {index: number; animated: boolean}) => {
-        const listRef = getListRef();
-        if (!listRef?.current) {
-            return;
-        }
-        listRef.current.scrollToIndex({index, animated});
-    };
-
-    return {scrollToIndex, scrollToBottom, scrollToEnd, scrollToOffset, scrollToIndexInstance};
+    return {scrollToIndex, scrollToBottom, scrollToEnd, scrollToOffset};
 }
 
 export default useReportScrollManager;

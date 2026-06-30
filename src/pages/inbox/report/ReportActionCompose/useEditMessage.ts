@@ -53,7 +53,7 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
 
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
         if (shouldScrollToLastMessage) {
-            reportScrollManager.scrollToIndex(0, false);
+            reportScrollManager.scrollToIndex(0);
         }
     }
 

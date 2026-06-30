@@ -5,15 +5,16 @@ function useReportScrollManager(): ReportScrollManagerData {
     const {getListRef} = useActionListContext();
 
     /**
-     * Scroll to the provided index. On non-native implementations we do not want to scroll when we are scrolling because
+     * Scroll to the provided index. When `isEditing` is set we skip the scroll so the list doesn't
+     * jump while the user is editing a message.
      */
-    const scrollToIndex = (index: number, isEditing?: boolean) => {
+    const scrollToIndex = (index: number, {isEditing = false, animated = true}: {isEditing?: boolean; animated?: boolean} = {}) => {
         const listRef = getListRef();
         if (!listRef?.current || isEditing) {
             return;
         }
 
-        listRef.current.scrollToIndex({index, animated: true});
+        listRef.current.scrollToIndex({index, animated});
     };
 
     /**
@@ -50,16 +51,7 @@ function useReportScrollManager(): ReportScrollManagerData {
         listRef.current.scrollToOffset({animated: true, offset});
     };
 
-    const scrollToIndexInstance = ({index, animated}: {index: number; animated: boolean}) => {
-        const listRef = getListRef();
-        if (!listRef?.current) {
-            return;
-        }
-
-        listRef.current.scrollToIndex({index, animated});
-    };
-
-    return {scrollToIndex, scrollToBottom, scrollToEnd, scrollToOffset, scrollToIndexInstance};
+    return {scrollToIndex, scrollToBottom, scrollToEnd, scrollToOffset};
 }
 
 export default useReportScrollManager;

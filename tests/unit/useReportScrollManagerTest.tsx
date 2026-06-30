@@ -6,7 +6,8 @@ import type {FlatListRefType} from '@pages/inbox/ReportScreenContext';
 
 /**
  * `useReportScrollManager` resolves the list ref via `getListRef()` at call time (never captured at
- * init), and exposes `scrollToIndexInstance` for ReportActionItemMessageEdit's Safari keyboard hack.
+ * init). `scrollToIndex` takes an options object — ReportActionItemMessageEdit's Android Chrome
+ * keyboard hack passes `{animated: false}` to scroll instantly while the composer is focused.
  */
 
 // Returns the ref to register plus a typed handle to the spies for assertions. The spy object
@@ -77,7 +78,7 @@ describe('useReportScrollManager', () => {
                 result.current.manager.scrollToEnd();
                 result.current.manager.scrollToIndex(3);
                 result.current.manager.scrollToOffset(100);
-                result.current.manager.scrollToIndexInstance({index: 1, animated: false});
+                result.current.manager.scrollToIndex(1, {animated: false});
             });
         }).not.toThrow();
     });
@@ -102,12 +103,12 @@ describe('useReportScrollManager', () => {
         expect(methods.scrollToOffset).toHaveBeenCalledWith(expect.objectContaining({offset: 250}));
     });
 
-    it('scrollToIndexInstance forwards index + animated to the registered ref', () => {
+    it('scrollToIndex forwards the animated option to the registered ref (Android Chrome keyboard hack)', () => {
         const {result} = renderManager();
         const {ref, methods} = buildMockListRef();
         act(() => result.current.registerListRef(ref));
 
-        act(() => result.current.manager.scrollToIndexInstance({index: 2, animated: false}));
+        act(() => result.current.manager.scrollToIndex(2, {animated: false}));
 
         expect(methods.scrollToIndex).toHaveBeenCalledWith({index: 2, animated: false});
     });
