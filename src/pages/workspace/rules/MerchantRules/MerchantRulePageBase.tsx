@@ -1,3 +1,4 @@
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -161,9 +162,11 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
 
     useNetwork({onReconnect: fetchPolicyData});
 
-    useEffect(() => {
-        fetchPolicyData();
-    }, [fetchPolicyData]);
+    useFocusEffect(
+        useCallback(() => {
+            fetchPolicyData();
+        }, [fetchPolicyData]),
+    );
 
     const hasCategories = () => {
         if (!policy?.areCategoriesEnabled) {

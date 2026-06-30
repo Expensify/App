@@ -1,4 +1,5 @@
-import React, {useEffect, useRef, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -112,18 +113,20 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
         });
     }, [category, categoryName, isEditing]);
 
-    const fetchPolicyData = () => {
+    const fetchPolicyData = useCallback(() => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
             return;
         }
         openPolicyCategoriesPage(policyID);
-    };
+    }, [policyID, policy?.areCategoriesEnabled, policyCategories]);
 
     useNetwork({onReconnect: fetchPolicyData});
 
-    useEffect(() => {
-        fetchPolicyData();
-    }, [fetchPolicyData]);
+    useFocusEffect(
+        useCallback(() => {
+            fetchPolicyData();
+        }, [fetchPolicyData]),
+    );
 
     const fieldToggles: Array<{key: RequireFieldsRuleToggleFieldKey; label: string; isVisible: boolean}> = [
         {key: INPUT_IDS.REQUIRE_DESCRIPTION, label: translate('common.description'), isVisible: true},

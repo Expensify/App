@@ -1,4 +1,5 @@
-import React, {useEffect, useRef, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -101,18 +102,20 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
         setDraftFlagForReviewRule(getFlagForReviewFormFromCategory(category, getCurrencyDecimals, policyCurrency));
     }, [category, categoryName, getCurrencyDecimals, isEditing, policyCurrency]);
 
-    const fetchPolicyData = () => {
+    const fetchPolicyData = useCallback(() => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
             return;
         }
         openPolicyCategoriesPage(policyID);
-    };
+    }, [policyID, policy?.areCategoriesEnabled, policyCategories]);
 
     useNetwork({onReconnect: fetchPolicyData});
 
-    useEffect(() => {
-        fetchPolicyData();
-    }, [fetchPolicyData]);
+    useFocusEffect(
+        useCallback(() => {
+            fetchPolicyData();
+        }, [fetchPolicyData]),
+    );
 
     const errorMessage = getValidationError(form, translate);
 
