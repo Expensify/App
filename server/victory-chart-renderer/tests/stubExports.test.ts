@@ -12,7 +12,6 @@ function getNamedExportsFromSource(source: string): string[] {
     if (!exportMatch) {
         throw new Error('Could not find named export block in activeSpans.ts');
     }
-
     return exportMatch[1]
         .split(',')
         .map((exportName) => exportName.trim())
