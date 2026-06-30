@@ -10,6 +10,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
+import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils, hasUpdatedTotal, shouldShowMarkAsDone} from '@libs/ReportUtils';
@@ -170,6 +171,11 @@ function useSelectionModeReportActions({
 
     const allExpensesSelected = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactions.length;
 
+    const selectedTransactions = transactions.filter((transaction) => selectedTransactionIDs.includes(transaction.transactionID));
+    const hasSelectedTransactionsOnSubmitPolicy = isSubmitPolicy(policy) && selectedTransactions.length > 0;
+    const isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy = hasSelectedTransactionsOnSubmitPolicy && selectedTransactions.length > 1;
+    const effectiveShouldBlockSubmit = shouldBlockSubmit || isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy;
+
     // Shared payment hook
     const {
         confirmPayment,
@@ -220,7 +226,7 @@ function useSelectionModeReportActions({
     const selectionModeReportLevelActions = (() => {
         const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuItems'>> = [];
         let idx = 0;
-        if (hasSubmitAction && !shouldBlockSubmit) {
+        if (hasSubmitAction && !effectiveShouldBlockSubmit) {
             actions[idx++] = {
                 text: shouldShowMarkAsDone({policy, report, isTrackIntentUser}) ? translate('common.markAsDone') : translate('common.submit'),
                 icon: expensifyIcons.Send,
@@ -263,7 +269,7 @@ function useSelectionModeReportActions({
     return {
         selectionModeReportLevelActions,
         allExpensesSelected,
-        shouldBlockSubmit,
+        shouldBlockSubmit: effectiveShouldBlockSubmit,
         isBlockSubmitDueToPreventSelfApproval,
 
         // Hold menu state
@@ -281,6 +287,7 @@ function useSelectionModeReportActions({
         hasPayAction,
         hasPayInSelectionMode,
         hasSubmitAction,
+        hasSelectedTransactionsOnSubmitPolicy,
         hasApproveAction,
         totalAmount,
         canAllowSettlement,
