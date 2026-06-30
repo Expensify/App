@@ -1,7 +1,7 @@
 import {ImageFormat, Skia} from '@shopify/react-native-skia';
 import RNFS from 'react-native-fs';
 import Log from '@libs/Log';
-import {getOdometerImageUri} from '@libs/OdometerImageUtils';
+import {getOdometerImageUri} from '@libs/OdometerUtils';
 import type {FileObject} from '@src/types/utils/Attachment';
 import STITCHED_ODOMETER_FILENAME_PREFIX from './constants';
 import calculateStitchLayout from './stitchLayout';
