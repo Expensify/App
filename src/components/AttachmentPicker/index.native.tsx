@@ -3,7 +3,7 @@ import {keepLocalCopy, pick, types} from '@react-native-documents/picker';
 import {Str} from 'expensify-common';
 import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {Alert, Platform, View} from 'react-native';
+import {Alert, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import {launchImageLibrary} from 'react-native-image-picker';
 import type {Asset, Callback, CameraOptions, ImageLibraryOptions, ImagePickerResponse} from 'react-native-image-picker';
@@ -26,6 +26,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject, ImagePickerResponse as FileResponse} from '@src/types/utils/Attachment';
 import type IconAsset from '@src/types/utils/IconAsset';
 import launchCamera from './launchCamera/launchCamera';
+import processAssets from './processAssets';
 import type AttachmentPickerProps from './types';
 
 const EXTENSION_TO_NATIVE_TYPE: Record<string, string> = {
@@ -259,24 +260,11 @@ function AttachmentPicker({
                         }
                     };
 
-                    // Each HEIC asset is decoded to a full native bitmap during conversion. On iOS HybridApp the
-                    // process shares a single jetsam budget with OldDot, so converting the whole selection at once can
-                    // allocate N large bitmaps simultaneously and OOM. There we process assets one at a time to keep at
-                    // most one heavy decode alive; other platforms keep the original concurrent behavior (per #93846).
-                    const processAssets = async () => {
-                        if (Platform.OS === 'ios') {
-                            for (const asset of assets) {
-                                // eslint-disable-next-line no-await-in-loop
-                                await processAsset(asset);
-                            }
-                        } else {
-                            await Promise.all(assets.map(processAsset));
-                        }
-
-                        resolve(processedAssets.length > 0 ? processedAssets : undefined);
-                    };
-
-                    processAssets().catch(reject);
+                    // `processAssets` is resolved by file extension: sequential on iOS to avoid OOMing on
+                    // concurrent HEIC decodes (see processAssets/index.ios.ts), concurrent elsewhere (per #93846).
+                    processAssets(assets, processAsset)
+                        .then(() => resolve(processedAssets.length > 0 ? processedAssets : undefined))
+                        .catch(reject);
                 });
             }),
         [fileLimit, showGeneralAlert, translate, type],
