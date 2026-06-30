@@ -28,14 +28,14 @@ const MOCK_EMAIL = 'test@expensify.com';
 const mockGetValidOptions = jest.mocked(getValidOptions);
 const mockGetSearchOptions = jest.mocked(getSearchOptions);
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-jest.mock('@components/OptionListContextProvider', () => ({
-    ...jest.requireActual('@components/OptionListContextProvider'),
-    useOptionsList: () => ({
+jest.mock('@hooks/useFilteredOptions', () => ({
+    __esModule: true,
+    default: () => ({
         options: {reports: [], personalDetails: []},
-        areOptionsInitialized: true,
-        initializeOptions: jest.fn(),
-        resetOptions: jest.fn(),
+        isLoading: false,
+        loadMore: jest.fn(),
+        hasMore: false,
+        isLoadingMore: false,
     }),
 }));
 

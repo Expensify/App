@@ -144,6 +144,9 @@ type OriginalMessageAddComment = {
 
     /** The accountID of the human agent assisting Concierge when "Reply as yourself" is used */
     humanAgentAccountID?: number;
+
+    /** The AgentZero request ID that produced this comment, surfaced for internal tracing in non-production builds */
+    agentZeroRequestID?: string;
 };
 
 /** Model of `actionable mention whisper` report action */
