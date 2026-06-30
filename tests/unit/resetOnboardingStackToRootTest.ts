@@ -37,8 +37,12 @@ describe('resetOnboardingStackToRoot', () => {
     it('should not dispatch when onboarding modal is not mounted', () => {
         mockedIsReady.mockReturnValue(true);
         mockedGetRootState.mockReturnValue({
+            key: 'root-key',
             index: 0,
+            routeNames: [NAVIGATORS.TAB_NAVIGATOR],
             routes: [{name: NAVIGATORS.TAB_NAVIGATOR, key: 'tab-key'}],
+            type: 'stack',
+            stale: false,
         });
 
         resetOnboardingStackToRoot();
@@ -49,7 +53,9 @@ describe('resetOnboardingStackToRoot', () => {
     it('should not dispatch when onboarding stack has only one route', () => {
         mockedIsReady.mockReturnValue(true);
         mockedGetRootState.mockReturnValue({
+            key: 'root-key',
             index: 1,
+            routeNames: [NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR],
             routes: [
                 {name: NAVIGATORS.TAB_NAVIGATOR, key: 'tab-key'},
                 {
@@ -62,6 +68,8 @@ describe('resetOnboardingStackToRoot', () => {
                     },
                 },
             ],
+            type: 'stack',
+            stale: false,
         });
 
         resetOnboardingStackToRoot();
@@ -72,7 +80,9 @@ describe('resetOnboardingStackToRoot', () => {
     it('should pop nested onboarding routes back to the first step', () => {
         mockedIsReady.mockReturnValue(true);
         mockedGetRootState.mockReturnValue({
+            key: 'root-key',
             index: 1,
+            routeNames: [NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR],
             routes: [
                 {name: NAVIGATORS.TAB_NAVIGATOR, key: 'tab-key'},
                 {
@@ -89,6 +99,8 @@ describe('resetOnboardingStackToRoot', () => {
                     },
                 },
             ],
+            type: 'stack',
+            stale: false,
         });
 
         resetOnboardingStackToRoot();
