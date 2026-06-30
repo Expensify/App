@@ -8265,7 +8265,7 @@ ${reportName}`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: '支付',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: '导出',
             },
-            merchant: {matchType: '匹配类型', equalTo: '等于', contains: '包含'},
+            merchant: {equalTo: '等于', contains: '包含'},
         },
         display: {
             label: '显示',

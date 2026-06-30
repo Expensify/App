@@ -8581,7 +8581,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Payer',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exporter',
             },
-            merchant: {matchType: 'Type de correspondance', equalTo: 'Égal à', contains: 'Contient'},
+            merchant: {equalTo: 'Égal à', contains: 'Contient'},
         },
         display: {
             label: 'Affichage',

@@ -8496,7 +8496,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Zapłać',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Eksportuj',
             },
-            merchant: {matchType: 'Typ dopasowania', equalTo: 'Równe', contains: 'Zawiera'},
+            merchant: {equalTo: 'Równe', contains: 'Zawiera'},
         },
         display: {
             label: 'Wyświetl',

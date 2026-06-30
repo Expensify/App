@@ -1,10 +1,9 @@
-import React, {useState} from 'react';
+import React, {Fragment, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -46,31 +45,33 @@ function TextInputFilterContent({filterKey, value: initialValue, autoFocus, larg
         },
     ];
 
+    const filterInput = (
+        <FilterComponents
+            value={value}
+            policyIDs={undefined}
+            filterKey={filterKey}
+            policyIDQuery={undefined}
+            autoFocus={autoFocus}
+            onChange={(v) => setValue(typeof v === 'string' ? v : undefined)}
+        />
+    );
+
     return (
         <View style={[styles.flex1, styles.justifyContentBetween, style]}>
             <View>
-                <FilterComponents
-                    value={value}
-                    policyIDs={undefined}
-                    filterKey={filterKey}
-                    policyIDQuery={undefined}
-                    autoFocus={autoFocus}
-                    onChange={(v) => setValue(typeof v === 'string' ? v : undefined)}
-                />
-                {shouldShowMerchantMatchType && (
-                    <View style={styles.mt4}>
-                        <Text style={[styles.textLabelSupporting, styles.mb2, styles.ph5]}>{translate('search.filters.merchant.matchType')}</Text>
-                        {merchantMatchTypeItems.map((item) => (
-                            <SingleSelectListItem
-                                key={item.keyForList}
-                                item={item}
-                                showTooltip={false}
-                                keyForList={item.keyForList}
-                                onSelectRow={() => setMerchantOperator(item.keyForList)}
-                            />
-                        ))}
-                    </View>
-                )}
+                {shouldShowMerchantMatchType
+                    ? merchantMatchTypeItems.map((item) => (
+                          <Fragment key={item.keyForList}>
+                              <SingleSelectListItem
+                                  item={item}
+                                  showTooltip={false}
+                                  keyForList={item.keyForList}
+                                  onSelectRow={() => setMerchantOperator(item.keyForList)}
+                              />
+                              {item.isSelected && <View style={styles.mt2}>{filterInput}</View>}
+                          </Fragment>
+                      ))
+                    : filterInput}
             </View>
             <Button
                 style={[styles.ph5, styles.pb5]}
