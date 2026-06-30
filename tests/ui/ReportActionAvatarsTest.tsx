@@ -517,7 +517,7 @@ describe('ReportActionAvatars', () => {
         it('splits horizontally stacked avatars into two rows when displayInRows is enabled', async () => {
             const retrievedData = await retrieveDataFromAvatarView({
                 accountIDs: [LOGGED_USER_ID, SECOND_USER_ID, THIRD_USER_ID],
-                horizontalStacking: {displayInRows: true, maxAvatarsInRow: 2},
+                horizontalStacking: {shouldDisplayAvatarsInRows: true, maxAvatarsInRow: 2},
             });
             const rows = retrievedData.fragments.filter((fragment) => fragment === 'ReportActionAvatars-MultipleAvatars-StackedHorizontally-Row');
             expect(rows).toHaveLength(2);

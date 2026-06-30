@@ -11,6 +11,7 @@ import SubscriptAvatar from '@components/Avatars/Primitives/SubscriptAvatar';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {sortIconsByName} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -132,6 +133,7 @@ function ReportActionAvatars({
     const accountIDs = passedAccountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
     const allPersonalDetails = usePersonalDetails();
     const {localeCompare} = useLocalize();
+    const styles = useThemeStyles();
 
     const reportID =
         potentialReportID ??
@@ -200,11 +202,11 @@ function ReportActionAvatars({
                 secondaryAvatar={secondaryAvatar}
                 size={size}
                 shouldShowTooltip={shouldShowTooltip}
-                noRightMarginOnContainer={noRightMarginOnSubscriptContainer}
+                containerStyle={noRightMarginOnSubscriptContainer ? styles.mr0 : {}}
                 subscriptAvatarBorderColor={subscriptAvatarBorderColor}
                 subscriptCardFeed={subscriptCardFeed}
                 subscriptCardFeedIconSize={subscriptCardFeedIconSize}
-                useProfileNavigationWrapper={useProfileNavigationWrapper}
+                shouldUseProfileNavigationWrapper={useProfileNavigationWrapper}
                 fallbackDisplayName={fallbackDisplayName}
                 reportID={reportID}
             />
@@ -220,7 +222,7 @@ function ReportActionAvatars({
                 icons={icons}
                 isInReportAction={isInReportAction}
                 shouldShowTooltip={shouldShowTooltip}
-                useProfileNavigationWrapper={useProfileNavigationWrapper}
+                shouldUseProfileNavigationWrapper={useProfileNavigationWrapper}
                 fallbackDisplayName={fallbackDisplayName}
                 reportID={reportID}
             />
@@ -234,11 +236,11 @@ function ReportActionAvatars({
                 size={size}
                 icons={icons}
                 isInReportAction={isInReportAction}
-                useMidSubscriptSize={useMidSubscriptSizeForMultipleAvatars}
+                shouldUseMidSubscriptSize={useMidSubscriptSizeForMultipleAvatars}
                 secondaryAvatarContainerStyle={secondaryAvatarContainerStyle}
                 isHovered={isHovered}
                 fallbackDisplayName={fallbackDisplayName}
-                useProfileNavigationWrapper={useProfileNavigationWrapper}
+                shouldUseProfileNavigationWrapper={useProfileNavigationWrapper}
                 reportID={reportID}
             />
         );
@@ -254,7 +256,7 @@ function ReportActionAvatars({
             delegateAccountID={source.action?.delegateAccountID}
             fallbackIcon={primaryAvatar.fallbackIcon}
             fallbackDisplayName={fallbackDisplayName}
-            useProfileNavigationWrapper={useProfileNavigationWrapper}
+            shouldUseProfileNavigationWrapper={useProfileNavigationWrapper}
             reportID={reportID}
         />
     );

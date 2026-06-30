@@ -1,6 +1,7 @@
 import React from 'react';
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import {WorkspaceBuilding} from '@components/Icon/WorkspaceDefaultAvatars';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
@@ -19,13 +20,11 @@ type AvatarStyles = {
     secondAvatarStyles: ViewStyle & ImageStyle;
 };
 
-type AvatarSizeToStyles = typeof CONST.AVATAR_SIZE.SMALL | typeof CONST.AVATAR_SIZE.LARGE | typeof CONST.AVATAR_SIZE.X_LARGE | typeof CONST.AVATAR_SIZE.DEFAULT;
-
-type AvatarSizeToStylesMap = Record<AvatarSizeToStyles, AvatarStyles>;
+type AvatarSizeToStylesMap = Record<ValueOf<typeof CONST.AVATAR_SIZE>, AvatarStyles>;
 
 type DiagonalAvatarsProps = MultipleAvatarsProps & {
     /** Whether to use the mid-subscript size for the avatars */
-    useMidSubscriptSize: boolean;
+    shouldUseMidSubscriptSize: boolean;
 
     /** Style for the secondary avatar container */
     secondaryAvatarContainerStyle?: StyleProp<ViewStyle>;
@@ -34,15 +33,18 @@ type DiagonalAvatarsProps = MultipleAvatarsProps & {
     isHovered?: boolean;
 };
 
+/** `DiagonalAvatars` renders two avatars stacked diagonally — the primary in the top-left and the secondary in the bottom-right.
+ * When more than two `icons` are passed, the secondary slot shows a "+N" overflow count instead of the second avatar.
+ */
 function DiagonalAvatars({
     size,
     shouldShowTooltip,
     icons,
     isInReportAction,
-    useMidSubscriptSize,
+    shouldUseMidSubscriptSize,
     secondaryAvatarContainerStyle,
     isHovered = false,
-    useProfileNavigationWrapper,
+    shouldUseProfileNavigationWrapper,
     fallbackDisplayName,
     reportID,
 }: DiagonalAvatarsProps) {
@@ -58,7 +60,7 @@ function DiagonalAvatars({
     const removeRightMargin = icons.length === 2 && size === CONST.AVATAR_SIZE.X_LARGE;
     const avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
 
-    const avatarSizeToStylesMap: AvatarSizeToStylesMap = {
+    const avatarSizeToStylesMap: Partial<AvatarSizeToStylesMap> = {
         [CONST.AVATAR_SIZE.SMALL]: {
             singleAvatarStyle: styles.singleAvatarSmall,
             secondAvatarStyles: styles.secondAvatarSmall,
@@ -71,14 +73,15 @@ function DiagonalAvatars({
             singleAvatarStyle: styles.singleAvatarMediumLarge,
             secondAvatarStyles: styles.secondAvatarMediumLarge,
         },
-        [CONST.AVATAR_SIZE.DEFAULT]: {
-            singleAvatarStyle: styles.singleAvatar,
-            secondAvatarStyles: styles.secondAvatar,
-        },
+    };
+
+    const defaultAvatarStyles: AvatarStyles = {
+        singleAvatarStyle: styles.singleAvatar,
+        secondAvatarStyles: styles.secondAvatar,
     };
 
     let avatarSize;
-    if (useMidSubscriptSize) {
+    if (shouldUseMidSubscriptSize) {
         avatarSize = CONST.AVATAR_SIZE.MID_SUBSCRIPT;
     } else if (size === CONST.AVATAR_SIZE.LARGE) {
         avatarSize = CONST.AVATAR_SIZE.MEDIUM;
@@ -88,8 +91,7 @@ function DiagonalAvatars({
         avatarSize = CONST.AVATAR_SIZE.SMALLER;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    const {singleAvatarStyle, secondAvatarStyles} = avatarSizeToStylesMap[size as AvatarSizeToStyles] ?? avatarSizeToStylesMap.default;
+    const {singleAvatarStyle, secondAvatarStyles} = avatarSizeToStylesMap[size] ?? defaultAvatarStyles;
     const secondaryAvatarContainerStyles = secondaryAvatarContainerStyle ?? [StyleUtils.getBackgroundAndBorderStyle(isHovered ? theme.activeComponentBG : theme.componentBG)];
 
     return (
@@ -110,10 +112,10 @@ function DiagonalAvatars({
                     {/* View is necessary for tooltip to show for multiple avatars in LHN */}
                     <View>
                         <ProfileAvatar
-                            useProfileNavigationWrapper={useProfileNavigationWrapper}
+                            shouldUseProfileNavigationWrapper={shouldUseProfileNavigationWrapper}
                             source={primaryIcon?.source ?? WorkspaceBuilding}
                             size={avatarSize}
-                            imageStyles={[singleAvatarStyle]}
+                            imageStyles={singleAvatarStyle}
                             name={primaryIcon?.name}
                             type={primaryIcon?.type ?? CONST.ICON_TYPE_AVATAR}
                             avatarID={primaryIcon?.id}
@@ -142,10 +144,10 @@ function DiagonalAvatars({
                         >
                             <View>
                                 <ProfileAvatar
-                                    useProfileNavigationWrapper={useProfileNavigationWrapper}
+                                    shouldUseProfileNavigationWrapper={shouldUseProfileNavigationWrapper}
                                     source={secondaryIcon?.source ?? WorkspaceBuilding}
                                     size={avatarSize}
-                                    imageStyles={[singleAvatarStyle]}
+                                    imageStyles={singleAvatarStyle}
                                     name={secondaryIcon?.name}
                                     avatarID={secondaryIcon?.id}
                                     type={secondaryIcon?.type ?? CONST.ICON_TYPE_AVATAR}

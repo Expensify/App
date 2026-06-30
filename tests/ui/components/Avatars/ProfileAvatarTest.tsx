@@ -36,7 +36,7 @@ describe('ProfileAvatar', () => {
     it('navigates to the user profile avatar route for a non-workspace avatar', () => {
         render(
             <ProfileAvatar
-                useProfileNavigationWrapper
+                shouldUseProfileNavigationWrapper
                 type={CONST.ICON_TYPE_AVATAR}
                 avatarID={123}
             />,
@@ -51,7 +51,7 @@ describe('ProfileAvatar', () => {
     it('navigates to the workspace avatar route for a workspace avatar without a reportID', () => {
         render(
             <ProfileAvatar
-                useProfileNavigationWrapper
+                shouldUseProfileNavigationWrapper
                 type={CONST.ICON_TYPE_WORKSPACE}
                 avatarID="POLICY_ID"
                 name="Workspace"
@@ -67,7 +67,7 @@ describe('ProfileAvatar', () => {
     it('navigates to the report avatar route for a workspace avatar with a reportID', () => {
         render(
             <ProfileAvatar
-                useProfileNavigationWrapper
+                shouldUseProfileNavigationWrapper
                 type={CONST.ICON_TYPE_WORKSPACE}
                 avatarID="POLICY_ID"
                 name="Workspace"
@@ -84,7 +84,7 @@ describe('ProfileAvatar', () => {
     it('falls back to the letter "A" for a workspace avatar with no name', () => {
         render(
             <ProfileAvatar
-                useProfileNavigationWrapper
+                shouldUseProfileNavigationWrapper
                 type={CONST.ICON_TYPE_WORKSPACE}
                 avatarID="POLICY_ID"
             />,

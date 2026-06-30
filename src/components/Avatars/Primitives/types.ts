@@ -14,7 +14,7 @@ type BaseAvatarProps = {
     fallbackDisplayName?: string;
 
     /** Whether clicking the avatar navigates to the profile/workspace page */
-    useProfileNavigationWrapper?: boolean;
+    shouldUseProfileNavigationWrapper?: boolean;
 
     /** Report ID used for avatar navigation */
     reportID?: string;

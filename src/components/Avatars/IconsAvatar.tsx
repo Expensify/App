@@ -21,7 +21,7 @@ type IconsAvatarProps = {
     shouldShowTooltip?: boolean;
 
     /** Whether to use mid subscript size for diagonal avatars */
-    useMidSubscriptSize?: boolean;
+    shouldUseMidSubscriptSize?: boolean;
 
     /** Style for secondary avatar container in diagonal layout */
     secondaryAvatarContainerStyle?: StyleProp<ViewStyle>;
@@ -48,7 +48,7 @@ function IconsAvatar({
     avatarType,
     size,
     shouldShowTooltip = true,
-    useMidSubscriptSize = false,
+    shouldUseMidSubscriptSize = false,
     secondaryAvatarContainerStyle,
     subscriptAvatarBorderColor,
     reportID,
@@ -85,7 +85,7 @@ function IconsAvatar({
                 size={size}
                 icons={icons}
                 isInReportAction={false}
-                useMidSubscriptSize={useMidSubscriptSize}
+                shouldUseMidSubscriptSize={shouldUseMidSubscriptSize}
                 secondaryAvatarContainerStyle={secondaryAvatarContainerStyle}
                 reportID={reportID}
             />

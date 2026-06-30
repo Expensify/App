@@ -67,7 +67,7 @@ function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps)
             avatarType={optionItem.shouldShowSubscript ? CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT : undefined}
             size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
             subscriptAvatarBorderColor={avatarBackgroundColor}
-            useMidSubscriptSize={isInFocusMode}
+            shouldUseMidSubscriptSize={isInFocusMode}
             secondaryAvatarContainerStyle={StyleUtils.getBackgroundAndBorderStyle(avatarBackgroundColor)}
             singleAvatarContainerStyle={singleAvatarContainerStyle}
             shouldShowTooltip={shouldOptionShowTooltip(optionItem)}

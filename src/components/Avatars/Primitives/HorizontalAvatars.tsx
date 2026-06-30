@@ -15,30 +15,33 @@ import ProfileAvatar from './ProfileAvatar';
 import type {MultipleAvatarsProps} from './types';
 
 type HorizontalStackingOptions = Partial<{
-    displayInRows: boolean;
+    shouldDisplayAvatarsInRows: boolean;
     isHovered: boolean;
     isActive: boolean;
     isPressed: boolean;
     overlapDivider: number;
     maxAvatarsInRow: number;
-    useCardBG: boolean;
+    shouldUseCardBackground: boolean;
 }>;
 
 type HorizontalAvatarsProps = HorizontalStackingOptions & MultipleAvatarsProps;
 
+/** `HorizontalAvatars` renders a horizontally overlapping row of avatars, with a "+N" overflow indicator once `maxAvatarsInRow` is exceeded.
+ * When `shouldDisplayAvatarsInRows` is set and the icons overflow, they wrap onto a second row instead of overflowing a single one.
+ */
 function HorizontalAvatars({
     isHovered = false,
     isActive = false,
     isPressed = false,
     maxAvatarsInRow = CONST.AVATAR_ROW_SIZE.DEFAULT,
-    displayInRows: shouldDisplayAvatarsInRows = false,
-    useCardBG: shouldUseCardBackground = false,
+    shouldDisplayAvatarsInRows = false,
+    shouldUseCardBackground = false,
     overlapDivider = 3,
     size,
     shouldShowTooltip,
     icons,
     isInReportAction,
-    useProfileNavigationWrapper,
+    shouldUseProfileNavigationWrapper,
     fallbackDisplayName,
     reportID,
 }: HorizontalAvatarsProps) {
@@ -83,7 +86,7 @@ function HorizontalAvatars({
                 >
                     <View style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize), StyleUtils.getAvatarBorderRadius(size, icon.type)]}>
                         <ProfileAvatar
-                            useProfileNavigationWrapper={useProfileNavigationWrapper}
+                            shouldUseProfileNavigationWrapper={shouldUseProfileNavigationWrapper}
                             iconAdditionalStyles={[
                                 StyleUtils.getHorizontalStackedAvatarBorderStyle({
                                     theme,

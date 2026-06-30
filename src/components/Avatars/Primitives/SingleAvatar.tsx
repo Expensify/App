@@ -29,6 +29,7 @@ type SingleAvatarProps = BaseAvatarProps & {
     isInReportAction?: boolean;
 };
 
+/** `SingleAvatar` renders one avatar wrapped in a `UserDetailsTooltip`, used when there is a single actor to display. */
 function SingleAvatar({
     avatar,
     size,
@@ -38,7 +39,7 @@ function SingleAvatar({
     accountID,
     fallbackIcon,
     isInReportAction,
-    useProfileNavigationWrapper,
+    shouldUseProfileNavigationWrapper,
     fallbackDisplayName,
     reportID,
 }: SingleAvatarProps) {
@@ -58,7 +59,7 @@ function SingleAvatar({
         >
             <View>
                 <ProfileAvatar
-                    useProfileNavigationWrapper={useProfileNavigationWrapper}
+                    shouldUseProfileNavigationWrapper={shouldUseProfileNavigationWrapper}
                     containerStyles={containerStyles ?? avatarContainerStyles}
                     source={avatar?.source}
                     type={avatar?.type ?? CONST.ICON_TYPE_AVATAR}

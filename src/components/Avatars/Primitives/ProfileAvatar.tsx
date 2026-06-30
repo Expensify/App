@@ -10,7 +10,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 type ProfileAvatarProps = Parameters<typeof Avatar>[0] & {
     /** Whether clicking the avatar navigates to the profile/workspace page */
-    useProfileNavigationWrapper?: boolean;
+    shouldUseProfileNavigationWrapper?: boolean;
 
     /** Report ID used for avatar navigation */
     reportID?: string;
@@ -19,13 +19,14 @@ type ProfileAvatarProps = Parameters<typeof Avatar>[0] & {
 /** `ProfileAvatar` wraps an `Avatar` in a pressable that navigates to the correct "view avatar" route.
  * The branch it picks depends on `type` (workspace vs user) and whether a `reportID` is provided.
  */
-function ProfileAvatar(props: ProfileAvatarProps) {
+function ProfileAvatar({shouldUseProfileNavigationWrapper, ...props}: ProfileAvatarProps) {
     const {translate} = useLocalize();
-    const {avatarID, useProfileNavigationWrapper, type, name, reportID} = props;
 
-    if (!useProfileNavigationWrapper) {
-        return <Avatar {...{...props, useProfileNavigationWrapper: undefined}} />;
+    if (!shouldUseProfileNavigationWrapper) {
+        return <Avatar {...props} />;
     }
+
+    const {avatarID, type, name, reportID} = props;
 
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
@@ -50,7 +51,7 @@ function ProfileAvatar(props: ProfileAvatarProps) {
             accessibilityRole={CONST.ROLE.BUTTON}
             sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_AVATAR}
         >
-            <Avatar {...{...props, useProfileNavigationWrapper: undefined}} />
+            <Avatar {...props} />
         </PressableWithoutFocus>
     );
 }

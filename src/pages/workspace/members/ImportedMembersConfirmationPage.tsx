@@ -134,7 +134,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                         size={CONST.AVATAR_SIZE.LARGE}
                         accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
                         horizontalStacking={{
-                            displayInRows: true,
+                            shouldDisplayAvatarsInRows: true,
                         }}
                         secondaryAvatarContainerStyle={[styles.secondAvatarInline]}
                     />

@@ -1,5 +1,5 @@
 import React from 'react';
-import type {ColorValue} from 'react-native';
+import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
@@ -23,9 +23,6 @@ type SubscriptAvatarProps = BaseAvatarProps & {
     /** The secondary (subscript) avatar icon */
     secondaryAvatar?: IconType;
 
-    /** Whether to remove the right margin on the container */
-    noRightMarginOnContainer?: boolean;
-
     /** Border color for the subscript avatar */
     subscriptAvatarBorderColor?: ColorValue;
 
@@ -34,19 +31,23 @@ type SubscriptAvatarProps = BaseAvatarProps & {
 
     /** Size of the subscript card feed icon */
     subscriptCardFeedIconSize?: {width: number; height: number};
+
+    /** Style for  avatar container */
+    containerStyle?: StyleProp<ViewStyle>;
 };
 
+/** `SubscriptAvatar` renders a primary avatar with a smaller secondary avatar (or a card-feed icon) overlaid as a subscript in the bottom-right corner. */
 function SubscriptAvatar({
     primaryAvatar,
     secondaryAvatar,
     size,
     shouldShowTooltip,
-    noRightMarginOnContainer,
     subscriptAvatarBorderColor,
     subscriptCardFeed,
     fallbackDisplayName,
-    useProfileNavigationWrapper,
+    shouldUseProfileNavigationWrapper,
     reportID,
+    containerStyle,
     subscriptCardFeedIconSize = {
         width: variables.cardAvatarWidth,
         height: variables.cardAvatarHeight,
@@ -59,7 +60,6 @@ function SubscriptAvatar({
     const companyCardFeedIcons = useCompanyCardFeedIcons();
 
     const isSmall = size === CONST.AVATAR_SIZE.SMALL;
-    const containerStyle = StyleUtils.getContainerStyles(size);
 
     let subscriptAvatarStyle;
     if (size === CONST.AVATAR_SIZE.SMALL) {
@@ -76,7 +76,7 @@ function SubscriptAvatar({
 
     return (
         <View
-            style={[containerStyle, noRightMarginOnContainer ? styles.mr0 : {}]}
+            style={[StyleUtils.getContainerStyles(size), containerStyle]}
             testID="ReportActionAvatars-Subscript"
         >
             <UserDetailsTooltip
@@ -90,7 +90,7 @@ function SubscriptAvatar({
             >
                 <View>
                     <ProfileAvatar
-                        useProfileNavigationWrapper={useProfileNavigationWrapper}
+                        shouldUseProfileNavigationWrapper={shouldUseProfileNavigationWrapper}
                         containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size || CONST.AVATAR_SIZE.DEFAULT))}
                         source={primaryAvatar.source}
                         size={size}
@@ -111,7 +111,7 @@ function SubscriptAvatar({
                 >
                     <View style={[size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, subscriptAvatarStyle]}>
                         <ProfileAvatar
-                            useProfileNavigationWrapper={useProfileNavigationWrapper}
+                            shouldUseProfileNavigationWrapper={shouldUseProfileNavigationWrapper}
                             iconAdditionalStyles={[
                                 StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : subscriptAvatarSize),
                                 StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor ?? theme.componentBG),
