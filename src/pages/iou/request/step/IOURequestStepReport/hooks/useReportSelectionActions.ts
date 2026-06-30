@@ -1,5 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
@@ -9,6 +7,7 @@ import {setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU/MoneyReque
 import {clearSubrates} from '@libs/actions/IOU/PerDiem';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -177,8 +176,9 @@ function useReportSelectionActions({
         }
 
         handleGoBack();
-        InteractionManager.runAfterInteractions(() => {
-            Navigation.setNavigationActionToMicrotaskQueue(() => {
+        TransitionTracker.runAfterTransitions({
+            waitForUpcomingTransition: true,
+            callback: () => {
                 const participants = buildParticipants(report);
 
                 setTransactionReport(
@@ -208,7 +208,7 @@ function useReportSelectionActions({
                     });
                     removeTransaction(transaction.transactionID);
                 }
-            });
+            },
         });
     };
 
@@ -216,21 +216,22 @@ function useReportSelectionActions({
         if (!transaction) {
             return;
         }
-        Navigation.dismissToSuperWideRHP();
-        InteractionManager.runAfterInteractions(() => {
-            const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
-            changeTransactionsReport({
-                transactionIDs: targetTransactionIDs,
-                isASAPSubmitBetaEnabled,
-                accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                email: session?.email ?? '',
-                policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
-                policyTagList,
-                transactions: targetTransactions,
-                allTransactionViolation: transactionViolations,
-                allReports,
-            });
-            removeTransaction(transaction.transactionID);
+        Navigation.dismissToSuperWideRHP({
+            afterTransition: () => {
+                const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
+                changeTransactionsReport({
+                    transactionIDs: targetTransactionIDs,
+                    isASAPSubmitBetaEnabled,
+                    accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    email: session?.email ?? '',
+                    policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
+                    policyTagList,
+                    transactions: targetTransactions,
+                    allTransactionViolation: transactionViolations,
+                    allReports,
+                });
+                removeTransaction(transaction.transactionID);
+            },
         });
     };
 

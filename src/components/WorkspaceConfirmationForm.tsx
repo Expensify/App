@@ -64,9 +64,18 @@ type WorkspaceConfirmationFormProps = {
 
     /** Whether bottom safe area padding should be added */
     addBottomSafeAreaPadding?: boolean;
+
+    /** Whether the submit button should display a loading spinner (e.g. while the new workspace is revealed) */
+    isLoading?: boolean;
 };
 
-function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButtonPress = () => Navigation.goBack(), addBottomSafeAreaPadding = true}: WorkspaceConfirmationFormProps) {
+function WorkspaceConfirmationForm({
+    onSubmit,
+    policyOwnerEmail = '',
+    onBackButtonPress = () => Navigation.goBack(),
+    addBottomSafeAreaPadding = true,
+    isLoading = false,
+}: WorkspaceConfirmationFormProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Camera', 'ImageCropSquareMask']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -208,6 +217,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                     submitButtonText={translate('common.confirm')}
                     style={[styles.flexGrow1, styles.ph5]}
                     scrollContextEnabled
+                    isLoading={isLoading}
                     validate={validate}
                     onSubmit={(val) => {
                         onSubmit({
