@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {FlatList, View} from 'react-native';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -7,14 +7,14 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import useChatWithAgent from '@hooks/useChatWithAgent';
+import type {AgentRowData} from '@components/Tables/AgentsTable';
+import AgentsTable from '@components/Tables/AgentsTable';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -23,16 +23,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
-import AgentsListRow from './AgentsListRow';
-
-type AgentItem = {
-    accountID: number;
-    displayName: string;
-    login: string;
-    pendingAction?: PendingAction | null;
-    errors?: Errors | null;
-    hasUpdateErrors: boolean;
-};
 
 function AgentsPage() {
     const {translate} = useLocalize();
@@ -40,8 +30,6 @@ function AgentsPage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['TvScreenRobot', 'AiBot']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
-    const chatWithAgent = useChatWithAgent();
-    const switchToDelegator = useSwitchToDelegator();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     useDocumentTitle(translate('agentsPage.title'));
@@ -56,27 +44,6 @@ function AgentsPage() {
         openAgentsPage();
     }, [isCustomAgentEnabled]);
 
-    const agentItems: AgentItem[] = Object.entries(agentPrompts ?? {})
-        .map(([key, agentPrompt]) => {
-            const accountID = Number(key.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length));
-            const details = personalDetailsList?.[accountID];
-            if (!details) {
-                return null;
-            }
-            const hasNameErrors = Object.keys(agentPrompt?.nameErrors ?? {}).length > 0;
-            const hasPromptErrors = Object.keys(agentPrompt?.promptErrors ?? {}).length > 0;
-            const hasAvatarErrors = Object.keys(agentPrompt?.avatarErrors ?? {}).length > 0;
-            return {
-                accountID,
-                displayName: details.displayName ?? details.login ?? '',
-                login: details.login ?? '',
-                pendingAction: agentPrompt?.pendingAction,
-                errors: agentPrompt?.errors,
-                hasUpdateErrors: hasNameErrors || hasPromptErrors || hasAvatarErrors,
-            };
-        })
-        .filter(Boolean) as AgentItem[];
-
     const handleErrorClose = (pendingAction: PendingAction | null | undefined, accountID: number) => {
         if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             clearAgentError(accountID);
@@ -90,23 +57,35 @@ function AgentsPage() {
     const shouldShowErrors = (pendingAction: PendingAction | null | undefined) =>
         pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-    const renderItem = ({item}: {item: AgentItem}) => (
-        <AgentsListRow
-            accountID={item.accountID}
-            displayName={item.displayName}
-            login={item.login}
-            pendingAction={item.pendingAction}
-            errors={shouldShowErrors(item.pendingAction) ? item.errors : null}
-            onErrorClose={() => handleErrorClose(item.pendingAction, item.accountID)}
-            brickRoadIndicator={item.hasUpdateErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : null}
-            onChatPress={chatWithAgent}
-            onCopilotPress={switchToDelegator}
-        />
-    );
+    const agents: AgentRowData[] = Object.entries(agentPrompts ?? {})
+        .map(([key, agentPrompt]) => {
+            const accountID = Number(key.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length));
+            const details = personalDetailsList?.[accountID];
+            if (!details) {
+                return null;
+            }
+            const hasNameErrors = Object.keys(agentPrompt?.nameErrors ?? {}).length > 0;
+            const hasPromptErrors = Object.keys(agentPrompt?.promptErrors ?? {}).length > 0;
+            const hasAvatarErrors = Object.keys(agentPrompt?.avatarErrors ?? {}).length > 0;
+            const pendingAction = agentPrompt?.pendingAction;
+            const isPendingDeletion = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-    const keyExtractor = (item: AgentItem) => String(item.accountID);
+            return {
+                keyForList: String(accountID),
+                accountID,
+                displayName: details.displayName ?? details.login ?? '',
+                login: details.login ?? '',
+                hasUpdateErrors: hasNameErrors || hasPromptErrors || hasAvatarErrors,
+                pendingAction,
+                errors: shouldShowErrors(pendingAction) ? (agentPrompt?.errors as Errors) : undefined,
+                disabled: isPendingDeletion,
+                action: () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID)),
+                dismissError: () => handleErrorClose(pendingAction, accountID),
+            };
+        })
+        .filter(Boolean) as AgentRowData[];
 
-    const hasAgents = agentItems.length > 0;
+    const hasAgents = agents.length > 0;
 
     const newAgentButton = (
         <Button
@@ -143,16 +122,12 @@ function AgentsPage() {
             </HeaderWithBackButton>
             {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{newAgentButton}</View>}
             {hasAgents ? (
-                <FlatList
-                    data={agentItems}
-                    renderItem={renderItem}
-                    keyExtractor={keyExtractor}
-                    ListHeaderComponent={
-                        <View style={[styles.renderHTML, styles.ph5, styles.pb3, styles.pt3]}>
-                            <RenderHTML html={translate('agentsPage.subtitle')} />
-                        </View>
-                    }
-                />
+                <>
+                    <View style={[styles.renderHTML, styles.ph5, styles.pb3, styles.pt3]}>
+                        <RenderHTML html={translate('agentsPage.subtitle')} />
+                    </View>
+                    <AgentsTable agents={agents} />
+                </>
             ) : (
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                     <GenericEmptyStateComponent
