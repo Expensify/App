@@ -66,6 +66,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
     const [allPolicies] = useMappedPolicies(policyMapper);
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+    const [editingSavedView] = useOnyx(ONYXKEYS.SEARCH_EDITING_SAVED_VIEW);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
@@ -127,7 +128,10 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
     );
 
     const activeItemIndex = useMemo(() => {
-        const isSavedSearchActive = hash !== undefined && !!savedSearches && Object.keys(savedSearches).some((key) => Number(key) === hash);
+        // While editing a saved view, the LHN should reflect the view being edited — not the live (unsaved) query — so
+        // don't light a standard search just because the in-progress filters happen to match one (the edited view itself
+        // stays highlighted via SavedSearchList's editingSavedViewHash).
+        const isSavedSearchActive = !!editingSavedView || (hash !== undefined && !!savedSearches && Object.keys(savedSearches).some((key) => Number(key) === hash));
 
         if (isSavedSearchActive) {
             return -1;
@@ -165,7 +169,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
         }
 
         return -1;
-    }, [typeMenuSections, savedSearches, hash, similarSearchHash, sortBy, sortOrder, type]);
+    }, [typeMenuSections, savedSearches, hash, similarSearchHash, sortBy, sortOrder, type, editingSavedView]);
 
     const activeKey = activeItemIndex < 0 ? undefined : typeMenuSections.flatMap((section) => section.menuItems).at(activeItemIndex)?.key;
 
