@@ -557,12 +557,12 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
  * approver), because that is the flow where the backend generates the report PDF for the submitter. The caller is
  * responsible for additionally gating this on the SUBMIT_2026 beta and on Submit already being the primary action.
  */
-function isSubmitViaPDFAction(report: Report, currentUserAccountID: number, policy?: Policy): boolean {
+function isSubmitViaPDFAction(report: Report, currentUserAccountID: number, ownerLogin: string | undefined, policy?: Policy): boolean {
     if (!isSubmitPolicy(policy)) {
         return false;
     }
 
-    const submitToAccountID = getSubmitToAccountID(policy, report);
+    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin);
     return isCurrentUserSubmitter(report) && report.ownerAccountID === currentUserAccountID && submitToAccountID === report.ownerAccountID;
 }
 

@@ -115,7 +115,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
 
     // Submit via PDF is only offered for Submit workspaces (behind the SUBMIT_2026 beta) when the submitter submits to
     // themselves, since that's the flow where the backend generates the report PDF.
-    const canSubmitViaPDF = !!moneyRequestReport && isBetaEnabled(CONST.BETAS.SUBMIT_2026) && isSubmitViaPDFAction(moneyRequestReport, accountID, policy);
+    const canSubmitViaPDF = !!moneyRequestReport && isBetaEnabled(CONST.BETAS.SUBMIT_2026) && isSubmitViaPDFAction(moneyRequestReport, accountID, submitterLogin, policy);
 
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
