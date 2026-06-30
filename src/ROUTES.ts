@@ -1952,8 +1952,19 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_PARTICIPANTS: {
         route: ':action/:iouType/participants/:transactionID/:reportID',
-        getRoute: (iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', action: IOUAction = 'create', isWorkspacesOnly = false) =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/participants/${transactionID}/${reportID}${isWorkspacesOnly ? '?isWorkspacesOnly=true' : ''}`, backTo),
+        getRoute: (
+            iouType: IOUType,
+            transactionID: string | undefined,
+            reportID: string | undefined,
+            backTo = '',
+            action: IOUAction = 'create',
+            isWorkspacesOnly = false,
+            // "Submit to my employer" with multiple Submit workspaces restricts the picker to Submit (submit2026) workspaces.
+            isSubmitWorkspacesOnly = false,
+        ) => {
+            const queryParams = [isWorkspacesOnly ? 'isWorkspacesOnly=true' : '', isSubmitWorkspacesOnly ? 'isSubmitWorkspacesOnly=true' : ''].filter(Boolean).join('&');
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/participants/${transactionID}/${reportID}${queryParams ? `?${queryParams}` : ''}`, backTo);
+        },
     },
     MONEY_REQUEST_STEP_SCAN: {
         route: ':action/:iouType/scan/:transactionID/:reportID',

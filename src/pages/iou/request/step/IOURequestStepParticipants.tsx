@@ -26,12 +26,14 @@ type IOURequestStepParticipantsProps = WithWritableReportOrNotFoundProps<typeof 
 
 function IOURequestStepParticipants({
     route: {
-        params: {iouType, reportID, transactionID: initialTransactionID, action, backTo, isWorkspacesOnly: isWorkspacesOnlyParam},
+        params: {iouType, reportID, transactionID: initialTransactionID, action, backTo, isWorkspacesOnly: isWorkspacesOnlyParam, isSubmitWorkspacesOnly: isSubmitWorkspacesOnlyParam},
     },
     transaction: initialTransaction,
 }: IOURequestStepParticipantsProps) {
     // "Submit to my employer" with multiple submit-enabled workspaces passes isWorkspacesOnly=true to limit the picker to workspaces.
     const isWorkspacesOnlyFromRoute = isWorkspacesOnlyParam === 'true';
+    // ...and isSubmitWorkspacesOnly=true to further restrict the picker to Submit (submit2026) workspaces only.
+    const isSubmitWorkspacesOnly = isSubmitWorkspacesOnlyParam === 'true';
     const participants = initialTransaction?.participants;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -119,7 +121,9 @@ function IOURequestStepParticipants({
     };
 
     // In new flow - the amount step is skipped, so we need to include the recents for all the cases.
-    const isWorkspacesOnly = isWorkspacesOnlyFromRoute || (isNewManualExpenseFlowEnabled ? false : getIsWorkspacesOnlyForTransaction(initialTransaction, iouRequestType));
+    // Submit-only implies workspaces-only (we still hide individuals/recents in the Submit-to-employer picker).
+    const isWorkspacesOnly =
+        isWorkspacesOnlyFromRoute || isSubmitWorkspacesOnly || (isNewManualExpenseFlowEnabled ? false : getIsWorkspacesOnlyForTransaction(initialTransaction, iouRequestType));
     const selectedParticipant = isSplitRequest ? undefined : participants?.find((participant) => participant.selected && !participant.isSender);
     // Participants with a reportID are found in the list and highlighted via initiallySelectedReportID.
     // Those without one (e.g. users to invite who don't have an account yet) must be passed explicitly
@@ -150,6 +154,7 @@ function IOURequestStepParticipants({
                 isPerDiemRequest={isPerDiem}
                 isTimeRequest={isTime}
                 isWorkspacesOnly={isWorkspacesOnly}
+                isSubmitWorkspacesOnly={isSubmitWorkspacesOnly}
                 isTransactionFromCreditCardImport={isTransactionFromCreditCardImport}
                 initiallySelectedReportID={selectedParticipant?.reportID}
                 shouldMoveSelectedToTop

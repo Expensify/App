@@ -11417,10 +11417,28 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         return;
     }
 
-    // "Submit to my employer" routes the expense into a submit-enabled workspace instead of an individual recipient.
+    // "Submit to my employer" routes the expense into a Submit (submit2026) workspace instead of an individual recipient.
     if (actionName === CONST.IOU.ACTION.SUBMIT && submitDestination === CONST.IOU.SUBMIT_DESTINATION.EMPLOYER) {
-        // No accessible workspace: spin up a new Submit (submit2026) workspace and drop the expense into its draft report.
-        if (filteredPoliciesCount === 0) {
+        // Only consider Submit (submit2026) workspaces here — the employer flow must never route into a team/corporate
+        // workspace. (The shared filteredPoliciesCount above counts every non-personal policy, so it can't be reused.)
+        let firstSubmitPolicy: Policy | undefined;
+        let submitPoliciesCount = 0;
+        for (const policy of policiesArray) {
+            if (policy?.type !== CONST.POLICY.TYPE.SUBMIT || !shouldShowPolicy(policy, false, deprecatedCurrentUserEmail)) {
+                continue;
+            }
+            if (submitPoliciesCount === 0) {
+                firstSubmitPolicy = policy;
+            }
+            submitPoliciesCount++;
+            // Short-circuit once we find 2 Submit workspaces.
+            if (submitPoliciesCount > 1) {
+                break;
+            }
+        }
+
+        // No accessible Submit workspace: spin up a new Submit (submit2026) workspace and drop the expense into its draft report.
+        if (submitPoliciesCount === 0) {
             createDraftWorkspaceAndNavigateToConfirmationScreen(
                 introSelected,
                 transactionID,
@@ -11434,9 +11452,9 @@ function createDraftTransactionAndNavigateToParticipantSelector({
             return;
         }
 
-        // Exactly one accessible workspace: skip the destination picker and submit straight to that workspace.
-        if (filteredPoliciesCount === 1 && firstPolicy) {
-            const policyExpenseReport = getPolicyExpenseChat(deprecatedCurrentUserAccountID, firstPolicy.id);
+        // Exactly one accessible Submit workspace: skip the destination picker and submit straight to that workspace.
+        if (submitPoliciesCount === 1 && firstSubmitPolicy) {
+            const policyExpenseReport = getPolicyExpenseChat(deprecatedCurrentUserAccountID, firstSubmitPolicy.id);
             if (policyExpenseReport) {
                 setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport, deprecatedCurrentUserAccountID).then(() => {
                     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.SUBMIT, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReport.reportID));
@@ -11445,8 +11463,8 @@ function createDraftTransactionAndNavigateToParticipantSelector({
             }
         }
 
-        // Multiple accessible workspaces: show the destination picker limited to workspaces.
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined, actionName, true));
+        // Multiple accessible Submit workspaces: show the destination picker limited to Submit workspaces.
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined, actionName, true, true));
         return;
     }
 
