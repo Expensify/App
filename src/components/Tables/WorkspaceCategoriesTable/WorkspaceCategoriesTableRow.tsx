@@ -51,7 +51,6 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
-            skeletonReasonAttributes={{context: 'categoriesTableRow'}}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.ROW}
             onPress={item.action}
             offlineWithFeedback={{
