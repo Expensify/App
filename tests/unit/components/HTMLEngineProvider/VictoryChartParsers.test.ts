@@ -1,13 +1,31 @@
 import type {TNode} from 'react-native-render-html';
-import type {ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import processVictoryChartTree from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/processVictoryChartTree';
 import parseVictoryAxisNode from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/victoryAxisParser';
 import parseVictoryLegendNode from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/victoryLegendParser';
 import parseVictoryPieNode from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/victoryPieParser';
 import parseVictorySeriesNode from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/victorySeriesParser';
+import type {ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 
 function createNode(tagName: string, attributes: Record<string, string> = {}, children: TNode[] = []): TNode {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal mock that only exposes the fields victory chart parsers read
     return {tagName, attributes, children} as unknown as TNode;
+}
+
+function createHorizontalChartContext(): ProcessNodeResult {
+    return {
+        data: {},
+        xKey: 'x',
+        yKeys: [],
+        xAxis: undefined,
+        yAxis: undefined,
+        domain: undefined,
+        domainPadding: undefined,
+        padding: undefined,
+        isHorizontal: true,
+        categories: undefined,
+        labelItems: [],
+        legendItems: [],
+    };
 }
 
 // Each value parses to a non-array (raw string, number, object) that the old `?? []` guard let through.
@@ -21,7 +39,9 @@ describe('victoryLegendParser', () => {
     });
 
     it('skips non-object entries', () => {
-        const node = createNode('victorylegend', {data: "[null, 5, 'x', {name: 'A'}]"});
+        const node = createNode('victorylegend', {
+            data: "[null, 5, 'x', {name: 'A'}]",
+        });
         const result = parseVictoryLegendNode(node);
         const entries = result.legendItems?.at(0)?.entries;
         expect(entries).toHaveLength(1);
@@ -37,7 +57,9 @@ describe('victorySeriesParser', () => {
     });
 
     it('skips non-object points', () => {
-        const node = createNode('victorybar', {data: "[null, 1, {x: 'Jan', y: 10}]"});
+        const node = createNode('victorybar', {
+            data: "[null, 1, {x: 'Jan', y: 10}]",
+        });
         const result = parseVictorySeriesNode(node, null, null);
         expect(Object.keys(result.data ?? {})).toEqual(['Jan']);
     });
@@ -51,12 +73,17 @@ describe('victoryPieParser', () => {
     });
 
     it('does not throw when colorscale is non-array', () => {
-        const node = createNode('victorypie', {data: "[{x: 'A', y: 1}]", colorscale: 'oops'});
+        const node = createNode('victorypie', {
+            data: "[{x: 'A', y: 1}]",
+            colorscale: 'oops',
+        });
         expect(() => parseVictoryPieNode(node)).not.toThrow();
     });
 
     it('skips non-object categories', () => {
-        const node = createNode('victorypie', {data: "[null, 1, {x: 'A', y: 1}]"});
+        const node = createNode('victorypie', {
+            data: "[null, 1, {x: 'A', y: 1}]",
+        });
         const result = parseVictoryPieNode(node);
         expect(Object.keys(result.data ?? {})).toEqual(['A']);
     });
@@ -64,7 +91,10 @@ describe('victoryPieParser', () => {
 
 describe('victoryAxisParser', () => {
     it.each(NON_ARRAY_DATA)('does not throw when tickvalues/tickformat are non-array (%p) and the format callback is invoked', (data) => {
-        const node = createNode('victoryaxis', {tickvalues: data, tickformat: data});
+        const node = createNode('victoryaxis', {
+            tickvalues: data,
+            tickformat: data,
+        });
         const result = parseVictoryAxisNode(node, null, null);
         const formatLabel = result.xAxis?.formatXLabel;
         expect(formatLabel).toBeInstanceOf(Function);
@@ -73,14 +103,19 @@ describe('victoryAxisParser', () => {
     });
 
     it('derives sequential tick values from tickformat when tickvalues are omitted', () => {
-        const node = createNode('victoryaxis', {tickformat: "['Alpha','Beta','Gamma']"});
-        const result = parseVictoryAxisNode(node, null, {isHorizontal: true} as ProcessNodeResult);
+        const node = createNode('victoryaxis', {
+            tickformat: "['Alpha','Beta','Gamma']",
+        });
+        const result = parseVictoryAxisNode(node, null, createHorizontalChartContext());
         expect(result.yAxis?.at(0)?.tickValues).toEqual([0, 1, 2]);
         expect(result.yAxis?.at(0)?.formatYLabel?.(1)).toBe('Beta');
     });
 
     it('keeps explicit tickvalues when both tickvalues and tickformat are provided', () => {
-        const node = createNode('victoryaxis', {tickvalues: '[10, 20, 30]', tickformat: "['A','B','C']"});
+        const node = createNode('victoryaxis', {
+            tickvalues: '[10, 20, 30]',
+            tickformat: "['A','B','C']",
+        });
         const result = parseVictoryAxisNode(node, null, null);
         expect(result.xAxis?.tickValues).toEqual([10, 20, 30]);
         expect(result.xAxis?.formatXLabel?.(20)).toBe('B');
