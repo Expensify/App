@@ -6704,6 +6704,59 @@ describe('ReportUtils', () => {
             ).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
         });
 
+        it('should return DEFAULT for an empty concierge chat identified solely via the conciergeReportID param', async () => {
+            const conciergeReportID = 'concierge-report-param-456';
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: conciergeReportID,
+            };
+
+            // Ensure the deprecated Onyx.connect fallback is empty so only the explicit param can mark this as the concierge chat
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, null);
+            await waitForBatchedUpdates();
+
+            expect(
+                reasonForReportToBeInOptionList({
+                    report,
+                    chatReport: mockedChatReport,
+                    currentReportId: '',
+                    isInFocusMode: false,
+                    betas: [CONST.BETAS.DEFAULT_ROOMS],
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: true,
+                    draftComment: '',
+                    isReportArchived: undefined,
+                    conciergeReportID,
+                }),
+            ).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
+        });
+
+        it('should hide an empty concierge chat when the conciergeReportID param does not match the report', async () => {
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: 'concierge-report-param-789',
+            };
+
+            // Clear the deprecated Onyx.connect fallback so the non-matching param is the only source considered
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, null);
+            await waitForBatchedUpdates();
+
+            expect(
+                reasonForReportToBeInOptionList({
+                    report,
+                    chatReport: mockedChatReport,
+                    currentReportId: '',
+                    isInFocusMode: false,
+                    betas: [CONST.BETAS.DEFAULT_ROOMS],
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: true,
+                    draftComment: '',
+                    isReportArchived: undefined,
+                    conciergeReportID: 'some-other-report-id',
+                }),
+            ).toBeNull();
+        });
+
         it('should return false when the users email is domain-based and the includeDomainEmail is false', () => {
             const report = LHNTestUtils.getFakeReport();
             const currentReportId = '';

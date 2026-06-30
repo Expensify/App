@@ -96,6 +96,7 @@ function SidebarOrderedReportsContextProvider({
     const [reportNameValuePairs, {sourceValue: reportNameValuePairsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [reportsDrafts, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportAttributes = useReportAttributes();
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -223,6 +224,7 @@ function SidebarOrderedReportsContextProvider({
                 isOffline,
                 currentUserLogin: currentUserLogin ?? '',
                 currentUserAccountID: accountID,
+                conciergeReportID,
             });
         } else {
             Log.info('[useSidebarOrderedReports] building reportsToDisplay from scratch');
@@ -239,6 +241,7 @@ function SidebarOrderedReportsContextProvider({
                 currentUserAccountID: accountID,
                 reportNameValuePairs,
                 reportAttributes,
+                conciergeReportID,
             });
         }
 
@@ -259,6 +262,7 @@ function SidebarOrderedReportsContextProvider({
         clearCacheDummyCounter,
         currentUserLogin,
         accountID,
+        conciergeReportID,
     ]);
 
     // Derive a stable boolean map indicating which reports have drafts.

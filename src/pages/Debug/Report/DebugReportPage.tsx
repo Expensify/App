@@ -119,6 +119,7 @@ function DebugReportPage({
             draftComment,
             currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID,
+            conciergeReportID,
         });
 
         return [

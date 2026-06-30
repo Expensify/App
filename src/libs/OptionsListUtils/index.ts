@@ -2201,6 +2201,7 @@ function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, 
         currentUserLogin,
         shouldAlwaysIncludeDM,
         isTimeRequest = false,
+        conciergeReportID,
     } = config;
     const topmostReportId = Navigation.getTopmostReportId();
     const doesReportHaveViolations = !!getViolatingReportIDForRBRInLHN(option.item, transactionViolations);
@@ -2220,6 +2221,7 @@ function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, 
         draftComment,
         currentUserLogin,
         currentUserAccountID,
+        conciergeReportID,
     });
 
     if (!shouldBeInOptionList) {
@@ -2596,6 +2598,7 @@ function getValidOptions(
                     loginsToExclude: loginsToExcludeFromSuggestions,
                     currentUserAccountID,
                     currentUserLogin: currentUserEmail,
+                    conciergeReportID,
                 },
                 draftComment,
                 chatReport,

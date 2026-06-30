@@ -23,6 +23,14 @@ Onyx.connectWithoutView({
     },
 });
 
+let conciergeReportID: string | undefined;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.CONCIERGE_REPORT_ID,
+    callback: (value) => {
+        conciergeReportID = value;
+    },
+});
+
 let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs> = {};
 // This subscription is used to update the unread indicators count which is not linked to UI and it does not update any UI state.
 Onyx.connectWithoutView({
@@ -93,6 +101,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
             draftComment,
             currentUserLogin,
             currentUserAccountID,
+            conciergeReportID,
         });
     });
 }
