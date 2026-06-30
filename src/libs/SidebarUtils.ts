@@ -283,7 +283,6 @@ type ShouldDisplayReportInLHNParams = {
     reportAttributes?: ReportAttributesDerivedValue['reports'];
     currentUserLogin: string;
     currentUserAccountID: number;
-    // TODO: conciergeReportID will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
     conciergeReportID?: string;
 };
 
@@ -394,7 +393,6 @@ function getReportsToDisplayInLHN({
     currentUserAccountID: number;
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
-    // TODO: conciergeReportID will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
     conciergeReportID?: string;
 }) {
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
@@ -452,7 +450,6 @@ type UpdateReportsToDisplayInLHNProps = {
     isOffline: boolean;
     currentUserLogin: string;
     currentUserAccountID: number;
-    // TODO: conciergeReportID will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
     conciergeReportID?: string;
 };
 

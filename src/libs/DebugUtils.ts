@@ -1445,7 +1445,6 @@ function getReasonForShowingRowInLHN({
     draftComment: string | undefined;
     currentUserLogin?: string;
     currentUserAccountID?: number;
-    // TODO: conciergeReportID will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
     conciergeReportID?: string;
 }): TranslationPaths | null {
     if (!report) {

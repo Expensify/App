@@ -113,6 +113,7 @@ function SidebarOrderedReportsContextProvider({
     const prevBetas = usePrevious(betas);
     const prevPriorityMode = usePrevious(priorityMode);
     const prevIsOffline = usePrevious(isOffline);
+    const prevConciergeReportID = usePrevious(conciergeReportID);
 
     const perfRef = useRef<{hookDuration: number}>({
         hookDuration: 0,
@@ -125,7 +126,10 @@ function SidebarOrderedReportsContextProvider({
     const getUpdatedReports = useCallback(() => {
         const reportsToUpdate = new Set<string>();
 
-        if (betas !== prevBetas || priorityMode !== prevPriorityMode || isOffline !== prevIsOffline) {
+        // A conciergeReportID change (e.g. it hydrates after the report collection) can flip whether a report is the
+        // Concierge chat, so every report must be rechecked. Otherwise an empty Concierge chat excluded before the ID
+        // was known would stay out of the LHN until an unrelated full rebuild.
+        if (betas !== prevBetas || priorityMode !== prevPriorityMode || isOffline !== prevIsOffline || conciergeReportID !== prevConciergeReportID) {
             for (const key of Object.keys(chatReports ?? {})) {
                 reportsToUpdate.add(key);
             }
@@ -194,6 +198,8 @@ function SidebarOrderedReportsContextProvider({
         prevPriorityMode,
         isOffline,
         prevIsOffline,
+        conciergeReportID,
+        prevConciergeReportID,
         prevDerivedCurrentReportID,
         derivedCurrentReportID,
     ]);
