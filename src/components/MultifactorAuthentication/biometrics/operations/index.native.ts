@@ -1,0 +1,26 @@
+import VALUES from '@libs/MultifactorAuthentication/VALUES';
+
+import CONST from '@src/CONST';
+
+import {isSensorAvailable} from '@sbaiahmed1/react-native-biometrics';
+
+/**
+ * Platform-resolved biometric operations shared by the MFA machine actors and the React biometrics
+ * hooks. These functions read no Onyx and no React state, so a machine actor can import them directly
+ * instead of reaching through a hook. Native resolves to this file and web resolves to the `index.ts`
+ * sibling. Later slices add the registration and authorization operations here.
+ */
+
+/** The authentication method this platform verifies with. Native verifies with HSM-backed biometrics. */
+const deviceVerificationType = CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM;
+
+/** The failure reason to report when this platform cannot run the verification method. */
+const deviceCheckFailureReason = VALUES.REASON.LOCAL_ERRORS.NO_AUTHENTICATION_METHODS_ENROLLED;
+
+/** Resolves to whether this device has an enrolled, secured biometric sensor. */
+async function doesDeviceSupportAuthenticationMethod(): Promise<boolean> {
+    const sensorResult = await isSensorAvailable();
+    return sensorResult.isDeviceSecure;
+}
+
+export {deviceVerificationType, deviceCheckFailureReason, doesDeviceSupportAuthenticationMethod};

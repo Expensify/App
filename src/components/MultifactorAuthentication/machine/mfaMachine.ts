@@ -1,5 +1,6 @@
 import {navigate as mfaNavigate, resetMfaNavigation} from '@components/MultifactorAuthentication/mfaNavigation';
 
+import {createLocalMFAError, MFAActorError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -9,7 +10,16 @@ import {assign, setup} from 'xstate';
 
 import type {MfaContext, MfaEvent} from './types';
 
+import createActors from './mfaActors';
+
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
+
+// Absolute targets for the two outcome leaves, whose ids are set on the leaves below. The device
+// check runs under `preparing`, so reaching the sibling `outcome` branch needs an id target rather
+// than a relative one.
+const SUCCESS_TARGET = `#${MFA_STATE.SUCCESS}` as const;
+const FAILURE_TARGET = `#${MFA_STATE.FAILURE}` as const;
+
 const DEFAULT_CONTEXT: MfaContext = {
     error: undefined,
     scenarioName: undefined,
@@ -36,6 +46,7 @@ const MFAMachine = setup({
         events: {} as MfaEvent,
     },
     /* eslint-enable @typescript-eslint/no-unsafe-type-assertion */
+    actors: createActors(),
     actions: {
         // Seeds the flow's context from the INIT event. A named action's event is typed as the full
         // MfaEvent union, so the guard narrows it to INIT to read the scenario fields; INIT is the only
@@ -51,10 +62,13 @@ const MFAMachine = setup({
                 payload: event.payload,
             };
         }),
-        navigateToSuccessOutcome: () => {
-            // runAfterTransition defers the push until the modal-open transition settles, so the
-            // success screen slides in with a measured width (Android animation race).
-            Navigation.runAfterTransition(() => mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS));
+        // Navigates to the outcome route that matches the error in context. OutcomePage reads the same
+        // error to render the specific success or failure screen, so the route only labels the outcome
+        // in the stack. runAfterTransition defers the push until the modal-open transition settles, which
+        // lets the screen slide in with a measured width and avoids the Android animation race.
+        navigateToOutcome: ({context}) => {
+            const screen = context.error ? SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE : SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS;
+            Navigation.runAfterTransition(() => mfaNavigate(screen));
         },
         // Runs on CLOSE_MODAL: drops the cancel-confirmation modal so it cannot linger over the
         // closing navigator (CLOSE_MODAL can fire without the flow completing, e.g. an offline cancel).
@@ -89,19 +103,52 @@ const MFAMachine = setup({
             initial: MFA_STATE.PREPARING,
             on: {
                 CLOSE_MODAL: {target: MFA_STATE.CLOSING, actions: 'hideCancelConfirmModal'},
+                // Any open state can hit a fatal error. It records the error and ends the flow on the
+                // failure outcome, where the screen is chosen from the error reason.
+                SET_ERROR: {target: FAILURE_TARGET, actions: assign({error: ({event}) => event.error})},
             },
             states: {
-                // Transparent initial screen. There is no pre-screen work yet, so it falls straight through;
-                // later slices replace `always` with child states (device check, registration decision, ...).
+                // The transparent initial screen. Its child states run the pre-screen work the user
+                // waits through. This slice adds the device check, and later slices add the
+                // registration and authorization steps as siblings.
                 [MFA_STATE.PREPARING]: {
-                    always: MFA_STATE.OUTCOME,
+                    initial: MFA_STATE.VALIDATING_DEVICE,
+                    states: {
+                        [MFA_STATE.VALIDATING_DEVICE]: {
+                            invoke: {
+                                id: 'validateDevice',
+                                src: 'validateDevice',
+                                input: ({context}) => ({scenario: context.scenario}),
+                                // The device passed both gates, so continue to the outcome screen.
+                                // Device-ok lands on success until the registration and authorization
+                                // slices insert their steps before it.
+                                onDone: SUCCESS_TARGET,
+                                // The actor throws the blocking MFAError when the device cannot complete
+                                // the scenario, so carry it to the failure outcome. A non-MFAError means
+                                // the platform check itself threw unexpectedly.
+                                onError: {
+                                    target: FAILURE_TARGET,
+                                    actions: assign({
+                                        error: ({event}) =>
+                                            event.error instanceof MFAActorError
+                                                ? event.error.mfaError
+                                                : createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION, 'Device check threw an unexpected error'),
+                                    }),
+                                },
+                            },
+                        },
+                    },
                 },
                 [MFA_STATE.OUTCOME]: {
+                    // Entering the outcome navigates once to the route matching the error. The success
+                    // and failure children are the finite states the flow settles on, which the tests and
+                    // later slices read. Their `id` lets the device check target them from the `preparing`
+                    // branch.
+                    entry: ['navigateToOutcome'],
                     initial: MFA_STATE.SUCCESS,
                     states: {
-                        [MFA_STATE.SUCCESS]: {
-                            entry: ['navigateToSuccessOutcome'],
-                        },
+                        [MFA_STATE.SUCCESS]: {id: MFA_STATE.SUCCESS},
+                        [MFA_STATE.FAILURE]: {id: MFA_STATE.FAILURE},
                     },
                 },
             },

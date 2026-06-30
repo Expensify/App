@@ -54,13 +54,18 @@ type MultifactorAuthenticationInitEvent<T extends MultifactorAuthenticationScena
 };
 
 /**
- * Events accepted by the machine. So far only the three that drive the
- * `closed -> success -> teardown` lifecycle exist; semantic input events (validate code, soft prompt, ...) are
- * added by the slices that introduce their states.
+ * Events accepted by the machine. INIT starts a flow and the lifecycle events drive the modal.
+ * SET_ERROR is the shared fatal-error entry that stops the flow on the failure outcome from any open
+ * state. Other semantic input events such as validate code and soft prompt are added by the slices
+ * that introduce their states.
  *
- * CLOSE_MODAL requests the close (flow -> `closing`); MODAL_CLOSED is the navigator's notification
- * that the close animation fully finished (`closing` -> `closed`, which wipes the context).
+ * CLOSE_MODAL requests the close so the flow moves to `closing`. MODAL_CLOSED is the navigator's
+ * notification that the close animation fully finished, which moves `closing` to `closed` and wipes
+ * the context.
  */
-type MfaEvent = MultifactorAuthenticationInitEvent | {type: 'CLOSE_MODAL'} | {type: 'MODAL_CLOSED'};
+type MfaEvent = MultifactorAuthenticationInitEvent | {type: 'SET_ERROR'; error: MFAError} | {type: 'CLOSE_MODAL'} | {type: 'MODAL_CLOSED'};
 
-export type {MfaContext, MfaEvent, MfaModalState, MultifactorAuthenticationInitEvent};
+/** Input for the device-check actor. The scenario's allowed methods decide whether this device qualifies. */
+type ValidateDeviceInput = Pick<MfaContext, 'scenario'>;
+
+export type {MfaContext, MfaEvent, MfaModalState, MultifactorAuthenticationInitEvent, ValidateDeviceInput};
