@@ -5566,6 +5566,7 @@ const translations = {
             enableNewAccountsTitle: 'Enable newly imported accounts',
             enableNewAccountsDescription: 'New Rillet accounts will be available as categories.',
             dimensionsImport: 'All Rillet dimensions import as tags',
+            importDescription: 'Choose which coding configurations to import from Rillet.',
         },
         type: {
             free: 'Free',
