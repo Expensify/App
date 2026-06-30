@@ -40,9 +40,10 @@ function ActionableItemButtons(props: ActionableItemButtonsProps) {
                     text={props.shouldUseLocalization ? translate(item.text as TranslationPaths) : item.text}
                     medium
                     success={item.isPrimary}
-                    // Let a button that is wider than the viewport shrink to fit and wrap its text to multiple lines instead of overflowing horizontally
+                    // Let a button that is wider than the viewport shrink/clamp to the available width instead of overflowing horizontally...
                     style={isHorizontal ? [styles.flexShrink1, styles.mw100] : undefined}
-                    innerStyles={props.styles?.button}
+                    // ...and stretch the inner content so the label reflows to the clamped width and wraps to multiple lines (without this, the label stays content-sized on a single line and overflows the clamped button)
+                    innerStyles={isHorizontal ? [props.styles?.button, styles.alignItemsStretch] : props.styles?.button}
                     primaryTextNumberOfLines={props.primaryTextNumberOfLines}
                     textStyles={props.styles?.text}
                 />
