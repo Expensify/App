@@ -19067,14 +19067,14 @@ describe('ReportUtils', () => {
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: 'owner@example.com', accountID: USER_ID},
             });
-            mockedPolicyUtils.isPolicyAdmin.mockImplementation(() => false);
-            mockedPolicyUtils.isPolicyOwner.mockImplementation(() => false);
+            // mockedPolicyUtils.isPolicyAdmin.mockImplementation(() => false);
+            // mockedPolicyUtils.isPolicyOwner.mockImplementation(() => false);
             return waitForBatchedUpdates();
         });
 
         afterAll(async () => {
-            mockedPolicyUtils.isPolicyAdmin.mockRestore();
-            mockedPolicyUtils.isPolicyOwner.mockRestore();
+            // mockedPolicyUtils.isPolicyAdmin.mockRestore();
+            // mockedPolicyUtils.isPolicyOwner.mockRestore();
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
             });
@@ -19185,8 +19185,14 @@ describe('ReportUtils', () => {
             expect(canMergeReports([makeOpenReport(), closed], USER_ID)).toBe(false);
         });
 
-        // The user must be able to write to each report AND must be the report
-        // owner, a workspace admin, or the current approver.
+        // The user must be able to write to each report
+        it('returns false when the current user is not able to write to each report', async () => {
+            const r1 = makeOpenReport({permissions: [CONST.REPORT.PERMISSIONS.READ]});
+            const r2 = makeOpenReport();
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        // The user must be the report owner, a workspace admin, or the current approver.
         it('returns false when the current user is not owner/admin/approver of a report', async () => {
             // Seed the session with a different user (not the owner of the fixture reports)
             const STRANGER_ID = 77;

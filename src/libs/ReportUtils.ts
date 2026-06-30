@@ -13252,8 +13252,8 @@ function canMergeReports(selectedReports: Array<OnyxEntry<Report>>, currentUserA
 
         // The user must be able to write to the report, AND must be either the
         // report owner or an admin / approver on the workspace.
-        const policy = allPolicies?.[report.policyID];
-        const isReportArchived = isArchivedReport(allReportNameValuePair?.[report.reportID]);
+        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+        const isReportArchived = isArchivedReport(allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
         const hasWriteAccess = canUserPerformWriteAction(report, isReportArchived);
         const isOwnerOrAdminOrApprover = isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID);
 
