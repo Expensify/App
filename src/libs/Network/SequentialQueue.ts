@@ -23,8 +23,6 @@ import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type Report from '@src/types/onyx/Report';
-import type ReportAction from '@src/types/onyx/ReportAction';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyOnyxUpdate, AnyRequest, ConflictData} from '@src/types/onyx/Request';
 
@@ -191,21 +189,17 @@ function process(): Promise<void> {
                 const reportID = requestToProcess.data?.reportID;
                 if (typeof reportID === 'string') {
                     let serverTimestamp = '';
+                    // The report's lastVisibleActionCreated in the server response carries the server-assigned
+                    // timestamp of the just-processed offline comment, which is what we need to reconcile.
                     for (const update of response?.onyxData ?? []) {
-                        if (update.key === `${ONYXKEYS.COLLECTION.REPORT}${reportID}`) {
-                            const reportUpdate = update.value as Partial<Report> | null;
-                            if (reportUpdate?.lastVisibleActionCreated && reportUpdate.lastVisibleActionCreated > serverTimestamp) {
-                                serverTimestamp = reportUpdate.lastVisibleActionCreated;
-                            }
+                        if (update.key !== `${ONYXKEYS.COLLECTION.REPORT}${reportID}`) {
+                            continue;
                         }
-                        if (update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`) {
-                            const actionsUpdate = update.value as Record<string, Partial<ReportAction>> | null;
-                            if (actionsUpdate) {
-                                for (const action of Object.values(actionsUpdate)) {
-                                    if (action?.created && action.created > serverTimestamp) {
-                                        serverTimestamp = action.created;
-                                    }
-                                }
+                        const value: unknown = update.value;
+                        if (value && typeof value === 'object' && 'lastVisibleActionCreated' in value) {
+                            const lastVisibleActionCreated = value.lastVisibleActionCreated;
+                            if (typeof lastVisibleActionCreated === 'string' && lastVisibleActionCreated > serverTimestamp) {
+                                serverTimestamp = lastVisibleActionCreated;
                             }
                         }
                     }
