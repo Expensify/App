@@ -29,8 +29,10 @@ function ActionableItemButtons(props: ActionableItemButtonsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    const isHorizontal = props.layout === 'horizontal';
+
     return (
-        <View style={[styles.gap2, styles.mt2, props.layout === 'horizontal' ? [styles.flexRow, styles.flexWrap] : [styles.flexColumn, styles.alignItemsStart]]}>
+        <View style={[styles.gap2, styles.mt2, isHorizontal ? [styles.flexRow, styles.flexWrap] : [styles.flexColumn, styles.alignItemsStart]]}>
             {props.items?.map((item) => (
                 <Button
                     key={item.key}
@@ -38,6 +40,8 @@ function ActionableItemButtons(props: ActionableItemButtonsProps) {
                     text={props.shouldUseLocalization ? translate(item.text as TranslationPaths) : item.text}
                     medium
                     success={item.isPrimary}
+                    // Let a button that is wider than the viewport shrink to fit and wrap its text to multiple lines instead of overflowing horizontally
+                    style={isHorizontal ? [styles.flexShrink1, styles.mw100] : undefined}
                     innerStyles={props.styles?.button}
                     primaryTextNumberOfLines={props.primaryTextNumberOfLines}
                     textStyles={props.styles?.text}
