@@ -929,10 +929,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return;
         }
 
-        // "Submit to my employer" with no existing workspace creates a draft Submit workspace. Route it through
-        // trackExpense (AddTrackedExpenseToPolicy) so the workspace is created and the expense submitted atomically,
-        // instead of requestMoney/ConvertTrackedExpenseToRequest which can't create a workspace.
-        const isSubmittingExpenseToDraftWorkspace = action === CONST.IOU.ACTION.SUBMIT && isDraftPolicy;
+        // "Submit to my employer" with no existing workspace creates a draft Submit (submit2026) workspace. Route it
+        // through trackExpense (AddTrackedExpenseToPolicy) so the workspace is created and the expense submitted
+        // atomically, instead of requestMoney/ConvertTrackedExpenseToRequest which can't create a workspace.
+        // Scoped to submit2026 drafts only so other (team/corporate) draft flows keep their existing behavior.
+        const isSubmittingExpenseToDraftWorkspace = action === CONST.IOU.ACTION.SUBMIT && isDraftPolicy && policy?.type === CONST.POLICY.TYPE.SUBMIT;
 
         if (!isPerDiemRequest && (isTrackExpense || isCategorizingTrackExpense || isSharingTrackExpense || isSubmittingExpenseToDraftWorkspace)) {
             if (Object.values(receiptFiles).filter((receipt) => !!receipt).length && transaction) {

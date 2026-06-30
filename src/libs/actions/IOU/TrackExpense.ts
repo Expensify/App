@@ -2253,7 +2253,8 @@ function submitTrackedExpenseToPolicy(trackedExpenseParams: TrackedExpenseParams
         customUnitID: createdWorkspaceParams?.customUnitID,
         customUnitRateID: createdWorkspaceParams?.customUnitRateID ?? transactionParams.customUnitRateID,
         attendees: transactionParams.attendees ? JSON.stringify(transactionParams.attendees) : undefined,
-        // A draft workspace means the backend has to create the workspace as part of this request; tell it to create a Submit (submit2026) one.
+        // submitTrackedExpenseToPolicy is only reached for the submit2026 draft flow (gated in useExpenseSubmission and
+        // getTrackExpenseInformation), so when a workspace is created here it must be a Submit (submit2026) workspace.
         type: createdWorkspaceParams ? CONST.POLICY.TYPE.SUBMIT : undefined,
     };
 
@@ -2594,7 +2595,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
         optimisticChatReportID,
         delegateAccountID,
         currentUserLocalCurrency,
-        policyType: action === CONST.IOU.ACTION.SUBMIT ? CONST.POLICY.TYPE.SUBMIT : undefined,
+        // Only "Submit to my employer" creates a Submit (submit2026) workspace from a draft; everything else keeps the default (team) type.
+        policyType: action === CONST.IOU.ACTION.SUBMIT && policy?.type === CONST.POLICY.TYPE.SUBMIT ? CONST.POLICY.TYPE.SUBMIT : undefined,
     }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
     const onyxData: TrackedExpenseParams['onyxData'] = trackExpenseInformationOnyxData;
