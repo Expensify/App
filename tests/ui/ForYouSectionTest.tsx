@@ -240,9 +240,8 @@ describe('ForYouSection', () => {
 
         it('renders nothing for a new user with no todos', async () => {
             await act(async () => {
+                setTodoCounts(BASE_TODOS);
                 await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, NEW_USER_TRIAL_START);
-                await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
-                await Onyx.set(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, EMPTY_FLAGGED_EXPENSES);
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -255,9 +254,8 @@ describe('ForYouSection', () => {
 
         it('renders the empty state for an old user with no todos', async () => {
             await act(async () => {
+                setTodoCounts(BASE_TODOS);
                 await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, OLD_USER_TRIAL_START);
-                await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
-                await Onyx.set(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, EMPTY_FLAGGED_EXPENSES);
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -269,12 +267,11 @@ describe('ForYouSection', () => {
 
         it('renders to-do items for a new user who has todos', async () => {
             await act(async () => {
-                await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, NEW_USER_TRIAL_START);
-                await Onyx.set(ONYXKEYS.DERIVED.TODOS, {
+                setTodoCounts({
                     ...BASE_TODOS,
-                    reportsToSubmit: [{reportID: '1'} as TodosDerivedValue['reportsToSubmit'][number]],
+                    reportsToSubmit: [{reportID: '1'}],
                 });
-                await Onyx.set(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, EMPTY_FLAGGED_EXPENSES);
+                await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, NEW_USER_TRIAL_START);
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -287,25 +284,23 @@ describe('ForYouSection', () => {
 
         it('keeps the section visible for a new user after to-dos clear once a to-do has been seen', async () => {
             await act(async () => {
-                await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, NEW_USER_TRIAL_START);
-                await Onyx.set(ONYXKEYS.DERIVED.TODOS, {
+                setTodoCounts({
                     ...BASE_TODOS,
-                    reportsToSubmit: [{reportID: '1'} as TodosDerivedValue['reportsToSubmit'][number]],
+                    reportsToSubmit: [{reportID: '1'}],
                 });
-                await Onyx.set(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, EMPTY_FLAGGED_EXPENSES);
+                await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, NEW_USER_TRIAL_START);
             });
             await waitForBatchedUpdatesWithAct();
 
-            renderForYouSection();
+            const {rerender} = renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
             // The section renders to-dos and persists the "has seen a to-do" flag.
             expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
 
             // Clearing the to-dos must not unmount the section; it should stay visible (now empty).
-            await act(async () => {
-                await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
-            });
+            setTodoCounts(BASE_TODOS);
+            rerender(<ForYouSection />);
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
@@ -315,9 +310,8 @@ describe('ForYouSection', () => {
         it('renders nothing for a user still going through onboarding before the trial date arrives', async () => {
             await act(async () => {
                 // No NVP_FIRST_DAY_FREE_TRIAL yet (the NVP arrives later during onboarding).
+                setTodoCounts(BASE_TODOS);
                 await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
-                await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
-                await Onyx.set(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, EMPTY_FLAGGED_EXPENSES);
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -331,6 +325,8 @@ describe('ForYouSection', () => {
         it('still shows the skeleton during the initial load for a new user', async () => {
             await act(async () => {
                 await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, NEW_USER_TRIAL_START);
+                // The onboarding status must be known, otherwise the skeleton stays hidden to avoid flashing for onboarding users.
+                await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
                 await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
             });
             await waitForBatchedUpdatesWithAct();

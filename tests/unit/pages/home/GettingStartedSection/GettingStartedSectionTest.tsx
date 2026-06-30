@@ -374,7 +374,7 @@ describe('GettingStartedSection', () => {
         });
 
         it('renders the sub-text under the "Set up spend rules" step', async () => {
-            await setManageTeamUserState({areRulesEnabled: true});
+            await setManageTeamUserState({areRulesEnabled: true, policyType: CONST.POLICY.TYPE.CORPORATE});
 
             renderGettingStartedSection();
             await waitForBatchedUpdates();
