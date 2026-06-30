@@ -44,6 +44,9 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Callback to handle restricted participant selection */
     onRestrictedParticipantSelected?: () => void;
 
+    /** Callback to dismiss the participant picker overlay before the referral banner navigates, so the referral RHP isn't covered */
+    onCloseParticipantPicker?: () => void;
+
     /** Reference to the outer element */
     ref?: Ref<InputFocusRef>;
 };
@@ -66,6 +69,7 @@ function MoneyRequestParticipantsSelector({
     initiallySelectedReportID,
     shouldMoveSelectedToTop = false,
     onRestrictedParticipantSelected,
+    onCloseParticipantPicker,
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
     const platform = getPlatform();
@@ -100,6 +104,7 @@ function MoneyRequestParticipantsSelector({
             initiallySelectedReportID={initiallySelectedReportID}
             shouldMoveSelectedToTop={shouldMoveSelectedToTop}
             onRestrictedParticipantSelected={onRestrictedParticipantSelected}
+            onCloseParticipantPicker={onCloseParticipantPicker}
         />
     );
 }

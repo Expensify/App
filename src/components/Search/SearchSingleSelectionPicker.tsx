@@ -105,7 +105,7 @@ function SearchSingleSelectionPicker({
         }
         if (shouldAutoSave) {
             onSaveSelection(item.isSelected ? '' : item.value);
-            Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+            Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS);
             return;
         }
         if (!item.isSelected) {
@@ -119,7 +119,7 @@ function SearchSingleSelectionPicker({
 
     const applyChanges = () => {
         onSaveSelection(selectedItem?.value);
-        Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+        Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
     const footerContent = (
