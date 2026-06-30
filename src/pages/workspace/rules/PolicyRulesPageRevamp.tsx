@@ -6,9 +6,7 @@ import AgentPromotionalBanner from '@components/AgentPromotionalBanner';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import ScrollView from '@components/ScrollView';
 import type {ExpenseDefaultTableItem} from '@components/Tables/WorkspaceExpenseDefaultsTable';
 import WorkspaceExpenseDefaultsTable from '@components/Tables/WorkspaceExpenseDefaultsTable';
 import type {SpendRuleTableItem} from '@components/Tables/WorkspaceSpendRulesTable';
@@ -430,32 +428,24 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         enableExpensifyCard(policyID, true, true);
     };
 
-    const cardRulesEmptyState = (
-        <ScrollView
-            style={[styles.flex1, styles.mnh0]}
-            contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
-            addBottomSafeAreaPadding
-        >
-            <GenericEmptyStateComponent
-                headerMedia={illustrations.ExpensifyCardCoins}
-                headerStyles={styles.emptyStateCardIllustrationContainer}
-                headerContentStyles={shouldUseNarrowLayout ? styles.expensifyCardEmptyIllustration : styles.cardRulesEmptyStateIllustration}
-                title={translate('workspace.rules.spendRules.cardRulesUpsell.title')}
-                subtitle={translate('workspace.rules.spendRules.cardRulesUpsell.subtitle')}
-                subtitleStyles={[styles.textLabel, styles.textSupporting]}
-                minModalHeight={0}
-                containerStyles={[styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)]}
-                buttons={[
-                    {
-                        buttonText: translate('workspace.rules.spendRules.cardRulesUpsell.cta'),
-                        buttonAction: handleGetExpensifyCardPress,
-                        success: true,
-                        isDisabled: !canWriteMoreFeatures,
-                    },
-                ]}
-            />
-        </ScrollView>
-    );
+    const cardRulesEmptyState = {
+        headerMedia: illustrations.ExpensifyCardCoins,
+        headerStyles: styles.emptyStateCardIllustrationContainer,
+        headerContentStyles: shouldUseNarrowLayout ? styles.expensifyCardEmptyIllustration : styles.cardRulesEmptyStateIllustration,
+        title: translate('workspace.rules.spendRules.cardRulesUpsell.title'),
+        subtitle: translate('workspace.rules.spendRules.cardRulesUpsell.subtitle'),
+        subtitleStyles: [styles.textLabel, styles.textSupporting],
+        minModalHeight: 0,
+        containerStyles: [styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)],
+        buttons: [
+            {
+                buttonText: translate('workspace.rules.spendRules.cardRulesUpsell.cta'),
+                buttonAction: handleGetExpensifyCardPress,
+                success: true,
+                isDisabled: !canWriteMoreFeatures,
+            },
+        ],
+    };
 
     const renderTabContent = () => {
         switch (activeTab) {
@@ -538,7 +528,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                         selectionEnabled={canWriteRules}
                                         selectedKeys={filteredSelectedSpendRuleKeys}
                                         onRowSelectionChange={handleSpendRuleSelectionChange}
-                                        emptyStateContent={areCardsEnabled ? undefined : cardRulesEmptyState}
+                                        emptyState={areCardsEnabled ? undefined : cardRulesEmptyState}
                                     />
                                 )}
                                 {activeTab === RULES_TAB.EXPENSE_DEFAULTS && (

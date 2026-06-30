@@ -76,6 +76,7 @@ export default function DomainGroupsTable({groups}: DomainGroupsTableProps) {
             keyExtractor={(item) => item.keyForList}
         >
             <Table.FilterBar label={translate('domain.groups.findGroup')} />
+            <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
         </Table>

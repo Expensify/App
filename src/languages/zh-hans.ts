@@ -510,6 +510,7 @@ const translations: TranslationDeepObject<typeof en> = {
         editor: '编辑',
         restrictions: '限制',
         off: '关',
+        noResultsFoundSubtitle: '无结果。请尝试调整筛选条件或搜索内容',
     },
     socials: {
         podcast: '在播客上关注我们',
