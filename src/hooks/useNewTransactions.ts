@@ -29,25 +29,13 @@ function useNewTransactions(
     const skipFirstTransactionsChange = useRef(!hasOnceLoadedReportActions);
 
     const newTransactions = useMemo(() => {
-        if (isFocused === false) {
-            return EMPTY_TRANSACTIONS;
-        }
+        // Rail-flagged adds survive the remount the diff can't see. Truthy-only so an all-cleared tombstone rail falls through to the diff.
+        const activePendingTransactionIDs = pendingNewTransactionIDs ? Object.keys(pendingNewTransactionIDs).filter((id) => pendingNewTransactionIDs[id]) : [];
+        const railSet = new Set(activePendingTransactionIDs);
+        const railTransactions =
+            isFocused && reportID && activePendingTransactionIDs.length && transactions?.length ? transactions.filter(({transactionID}) => railSet.has(transactionID)) : EMPTY_TRANSACTIONS;
 
-        // Rail-flagged adds survive the remount the diff can't see. Built only when focused; truthy-only so an all-cleared tombstone rail falls through to the diff.
-        const railSet = new Set<string>();
-        let railTransactions: Transaction[] = EMPTY_TRANSACTIONS;
-        if (isFocused && reportID && transactions?.length && pendingNewTransactionIDs) {
-            for (const id of Object.keys(pendingNewTransactionIDs)) {
-                if (pendingNewTransactionIDs[id]) {
-                    railSet.add(id);
-                }
-            }
-            if (railSet.size) {
-                railTransactions = transactions.filter(({transactionID}) => railSet.has(transactionID));
-            }
-        }
-
-        // Diff-detected adds: render-to-render growth the rail never flagged (e.g. a Pusher add).
+        // Diff-detected adds the rail never flagged (e.g. a Pusher add). Focus-independent so a backgrounded table still highlights — design wants background highlighting.
         let diffTransactions: Transaction[] = [];
         if (transactions !== undefined && prevTransactions !== undefined && transactions.length > prevTransactions.length) {
             if (skipFirstTransactionsChange.current) {

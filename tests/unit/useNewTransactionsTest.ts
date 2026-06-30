@@ -468,8 +468,8 @@ describe('useNewTransactions with an unfocused report', () => {
     ];
     const newTransaction = {transactionID: '1', amount: 100, created: '2023-10-01T00:00:00Z', currency: 'USD', reportID: 'report1', merchant: ''};
 
-    it('stays silent for an explicitly-unfocused consumer (the rail re-delivers on refocus)', () => {
-        // A background chat preview must not animate a highlight off-screen; only a focused consumer surfaces adds.
+    it('returns newly added transactions even when the report is unfocused', () => {
+        // The diff runs regardless of focus, so a backgrounded table still highlights — design wants background highlighting.
         const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; isFocused: boolean}>(
             (props) => useNewTransactions(true, props.transactions, undefined, 'report1', props.isFocused),
             {initialProps: {transactions: transactionsAlreadyInReport, isFocused: false}},
@@ -477,7 +477,7 @@ describe('useNewTransactions with an unfocused report', () => {
         expect(result.current).toEqual([]);
 
         rerender({transactions: [...transactionsAlreadyInReport, newTransaction], isFocused: false});
-        expect(result.current).toEqual([]);
+        expect(result.current).toEqual([newTransaction]);
     });
 
     it('returns pending transactions only once the report is focused', () => {
