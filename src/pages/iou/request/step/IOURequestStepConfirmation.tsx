@@ -178,7 +178,7 @@ function IOURequestStepConfirmation({
         iouType,
         // Forward the draft policy so a freshly created draft workspace (e.g. "Submit to my employer" with no existing
         // workspace) resolves here. Without it `policy` is undefined for drafts, `isDraftPolicy` is false, and the submit
-        // is misrouted to ConvertTrackedExpenseToRequest (which needs a real payer) instead of AddTrackedExpenseToPolicy.
+        // is routed to ConvertTrackedExpenseToRequest (which needs a real payer) instead of AddTrackedExpenseToPolicy.
         policyDraft,
         isPerDiemRequest,
     });
