@@ -1,3 +1,4 @@
+import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import type {ChartDataPoint, PieSlice} from '@components/Charts/types';
 import {
     calculateMinDomainPadding,
@@ -7,6 +8,7 @@ import {
     effectiveWidth,
     findSliceAtPosition,
     getAdditionalOffset,
+    getCategoryLabelWidth,
     getNiceYAxisTicks,
     isAngleInSlice,
     isCursorInSkewedLabel,
@@ -17,6 +19,7 @@ import {
     processDataIntoSlices,
     rotatedLabelCenterCorrection,
     rotatedLabelYOffset,
+    truncateCategoryLabels,
     truncateLabel,
 } from '@components/Charts/utils';
 import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
@@ -709,5 +712,30 @@ describe('getNiceYAxisTicks', () => {
 
     it('rounds intermediate ticks to eliminate floating-point noise', () => {
         expect(getNiceYAxisTicks(0, -1.11, 5)).toEqual([-1.2, -1, -0.8, -0.6, -0.4, -0.2, 0]);
+    });
+});
+
+describe('truncateCategoryLabels', () => {
+    const ellipsisWidth = 21;
+
+    it('truncates each label to the Y-axis max width', () => {
+        const labels = ['Short', 'A'.repeat(40)];
+        const labelWidths = [35, 280];
+        const truncated = truncateCategoryLabels(labels, labelWidths, ellipsisWidth);
+        expect(truncated.at(0)).toBe('Short');
+        expect(truncated.at(1)).toMatch(/\.\.\.$/);
+        expect(truncated.at(1)?.length).toBeLessThan(labels.at(1)?.length ?? 0);
+    });
+});
+
+describe('getCategoryLabelWidth', () => {
+    const mockFontMgr = {} as SkTypefaceFontProvider;
+
+    it('returns 0 when fontManager is null', () => {
+        expect(getCategoryLabelWidth(['Label'], null, 12)).toBe(0);
+    });
+
+    it('returns 0 for an empty label list', () => {
+        expect(getCategoryLabelWidth([], mockFontMgr, 12)).toBe(0);
     });
 });

@@ -1,4 +1,5 @@
 import type {TNode} from 'react-native-render-html';
+import type {ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import processVictoryChartTree from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/processVictoryChartTree';
 import parseVictoryAxisNode from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/victoryAxisParser';
 import parseVictoryLegendNode from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/victoryLegendParser';
@@ -69,6 +70,20 @@ describe('victoryAxisParser', () => {
         expect(formatLabel).toBeInstanceOf(Function);
         expect(() => formatLabel?.('Jan')).not.toThrow();
         expect(formatLabel?.('Jan')).toBe('Jan');
+    });
+
+    it('derives sequential tick values from tickformat when tickvalues are omitted', () => {
+        const node = createNode('victoryaxis', {tickformat: "['Alpha','Beta','Gamma']"});
+        const result = parseVictoryAxisNode(node, null, {isHorizontal: true} as ProcessNodeResult);
+        expect(result.yAxis?.at(0)?.tickValues).toEqual([0, 1, 2]);
+        expect(result.yAxis?.at(0)?.formatYLabel?.(1)).toBe('Beta');
+    });
+
+    it('keeps explicit tickvalues when both tickvalues and tickformat are provided', () => {
+        const node = createNode('victoryaxis', {tickvalues: '[10, 20, 30]', tickformat: "['A','B','C']"});
+        const result = parseVictoryAxisNode(node, null, null);
+        expect(result.xAxis?.tickValues).toEqual([10, 20, 30]);
+        expect(result.xAxis?.formatXLabel?.(20)).toBe('B');
     });
 });
 
