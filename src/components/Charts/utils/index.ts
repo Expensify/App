@@ -6,6 +6,7 @@ import VictoryTheme, {
     CHART_Y_SCALE_HEIGHT,
     DIAGONAL_ANGLE_RADIAN_THRESHOLD,
     ELLIPSIS,
+    GLYPH_PADDING,
     LABEL_PADDING,
     LABEL_ROTATIONS,
     MAX_X_AXIS_LABEL_WIDTH,
@@ -454,6 +455,63 @@ function getCategoryLabelWidth(truncatedLabels: string[], fontManager: SkTypefac
     return Math.max(0, ...truncatedLabels.map((label) => measureTextWidth(label, fontManager, fontSize)));
 }
 
+type VerticalBarChartGeometry = {
+    barAreaWidth: number;
+    boundsLeft: number;
+    boundsRight: number;
+    domainPadding: {top: number; bottom: number; left: number; right: number};
+};
+
+/** Default domain padding for vertical bar charts (matches BarChartContent). */
+const VERTICAL_BAR_BASE_DOMAIN_PADDING = {
+    top: 32,
+    bottom: 1,
+    left: 0,
+    right: 0,
+};
+
+/**
+ * Estimates vertical bar chart plot geometry from container width.
+ * Used to decide label orientation when the vertical CartesianChart is not mounted (e.g. horizontal-bar fallback).
+ */
+function estimateVerticalBarChartGeometry(
+    chartWidth: number,
+    data: ChartDataPoint[],
+    fontManager: SkTypefaceFontProvider | null,
+    fontSize: number,
+    formatValue: (value: number) => string,
+    innerPadding: number,
+    baseDomainPadding: {
+        top: number;
+        bottom: number;
+        left: number;
+        right: number;
+    } = VERTICAL_BAR_BASE_DOMAIN_PADDING,
+): VerticalBarChartGeometry {
+    if (chartWidth === 0) {
+        return {
+            barAreaWidth: 0,
+            boundsLeft: 0,
+            boundsRight: 0,
+            domainPadding: baseDomainPadding,
+        };
+    }
+
+    const horizontalPadding = calculateMinDomainPadding(chartWidth, data.length, innerPadding);
+    const domainPadding = {
+        ...baseDomainPadding,
+        left: horizontalPadding,
+        right: horizontalPadding,
+    };
+
+    const yAxisLabelWidth = getYAxisLabelWidth(data, formatValue, fontManager, fontSize, baseDomainPadding);
+    const boundsLeft = yAxisLabelWidth + GLYPH_PADDING;
+    const boundsRight = chartWidth - VictoryTheme.axis.padding.right;
+    const barAreaWidth = Math.max(0, boundsRight - boundsLeft);
+
+    return {barAreaWidth, boundsLeft, boundsRight, domainPadding};
+}
+
 /** Returns the pixel width needed for Y-axis labels given the chart data. */
 function getYAxisLabelWidth(
     data: ChartDataPoint[],
@@ -502,6 +560,8 @@ export {
     getCategoryLabelWidth,
     getYAxisLabelWidth,
     truncateCategoryLabels,
+    estimateVerticalBarChartGeometry,
+    VERTICAL_BAR_BASE_DOMAIN_PADDING,
 };
 
-export type {ChartLabelHitTestParams};
+export type {ChartLabelHitTestParams, VerticalBarChartGeometry};
