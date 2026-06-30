@@ -24,7 +24,7 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
     const tickFormat = Array.isArray(rawTickFormat) ? rawTickFormat : undefined;
     const hasExplicitTickValues = Array.isArray(rawTickValues) && rawTickValues.length > 0;
     const tickValues = hasExplicitTickValues ? rawTickValues : tickFormat?.map((_, index) => index);
-    const resolvedTickCount = tickCount || (!hasExplicitTickValues && tickValues ? tickValues.length : 0);
+    const resolvedTickCount = tickCount;
 
     const formatLabel = (label: string | number) => {
         if (!tickFormat) {

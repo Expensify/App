@@ -14,12 +14,14 @@ function adjustHorizontalChartPadding({isHorizontal, padding, yAxis}: ProcessNod
     }
 
     const categoryAxis = yAxis?.at(0);
-    const hasBuiltInCategoryLabels = Boolean(categoryAxis?.font) && (categoryAxis?.tickCount ?? 0) > 0;
+    const hasBuiltInCategoryLabels = Boolean(categoryAxis?.font) && ((categoryAxis?.tickCount ?? 0) > 0 || (categoryAxis?.tickValues?.length ?? 0) > 0);
 
-    if (!hasBuiltInCategoryLabels) {
+    if (!hasBuiltInCategoryLabels || (categoryAxis?.tickCount ?? 0) === 0) {
         return padding;
     }
 
+    // victory-native adds labelWidth + labelOffset to xMin only when tickCount > 0.
+    // Collapse XML padding.left only in that case to avoid double-counting the gutter.
     return {
         ...padding,
         left: CHART_TITLE_LEFT_MARGIN,
