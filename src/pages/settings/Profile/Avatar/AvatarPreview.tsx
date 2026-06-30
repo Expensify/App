@@ -56,7 +56,7 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart, styles.alignSelfCenter];
+    const avatarStyle = [styles.avatarXxxxxLarge, styles.alignSelfStart, styles.alignSelfCenter];
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {avatarMap: avatars} = useLetterAvatars(currentUserPersonalDetails?.displayName, CONST.AVATAR_SIZE.XXXXX_LARGE);

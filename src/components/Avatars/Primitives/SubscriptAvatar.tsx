@@ -63,11 +63,11 @@ function SubscriptAvatar({
 
     let subscriptAvatarStyle;
     if (size === CONST.AVATAR_SIZE.X_SMALL) {
-        subscriptAvatarStyle = styles.secondAvatarSubscriptCompact;
+        subscriptAvatarStyle = styles.secondAvatarSubscriptXSmall;
     } else if (size === CONST.AVATAR_SIZE.SMALL) {
-        subscriptAvatarStyle = styles.secondAvatarSubscriptSmallNormal;
+        subscriptAvatarStyle = styles.secondAvatarSubscriptSmall;
     } else if (size === CONST.AVATAR_SIZE.XXXXX_LARGE) {
-        subscriptAvatarStyle = styles.secondAvatarSubscriptXLarge;
+        subscriptAvatarStyle = styles.secondAvatarSubscriptXxxxxLarge;
     } else {
         subscriptAvatarStyle = styles.secondAvatarSubscript;
     }

@@ -91,7 +91,7 @@ function AvatarAndGroupNameSection({setAvatarFile, optimisticReportID}: AvatarAn
                         setGroupDraft({avatarUri: null, avatarFileName: null, avatarFileType: null});
                     }}
                     size={CONST.AVATAR_SIZE.XXXXX_LARGE}
-                    avatarStyle={styles.avatarXLarge}
+                    avatarStyle={styles.avatarXxxxxLarge}
                     editIcon={icons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     style={styles.w100}

@@ -60,20 +60,20 @@ function DiagonalAvatars({
 
     const avatarSizeToStylesMap: AvatarSizeToStylesMap = {
         [CONST.AVATAR_SIZE.X_SMALL]: {
-            singleAvatarStyle: styles.singleAvatarSmall,
-            secondAvatarStyles: styles.secondAvatarSmall,
+            singleAvatarStyle: styles.singleAvatarXxxxSmall,
+            secondAvatarStyles: styles.secondAvatarXxxxSmall,
         },
         [CONST.AVATAR_SIZE.XXX_LARGE]: {
-            singleAvatarStyle: styles.singleAvatarMedium,
-            secondAvatarStyles: styles.secondAvatarMedium,
+            singleAvatarStyle: styles.singleAvatarXLarge,
+            secondAvatarStyles: styles.secondAvatarXLarge,
         },
         [CONST.AVATAR_SIZE.XXXXX_LARGE]: {
-            singleAvatarStyle: styles.singleAvatarMediumLarge,
-            secondAvatarStyles: styles.secondAvatarMediumLarge,
+            singleAvatarStyle: styles.singleAvatarXxLarge,
+            secondAvatarStyles: styles.secondAvatarXxLarge,
         },
         [CONST.AVATAR_SIZE.DEFAULT]: {
-            singleAvatarStyle: styles.singleAvatar,
-            secondAvatarStyles: styles.secondAvatar,
+            singleAvatarStyle: styles.singleAvatarXxSmall,
+            secondAvatarStyles: styles.secondAvatarXxSmall,
         },
     };
 

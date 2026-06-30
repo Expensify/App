@@ -2005,19 +2005,19 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
         switch (size) {
             case CONST.AVATAR_SIZE.X_SMALL:
-                containerStyles = [styles.emptyAvatarSmall, styles.emptyAvatarMargin];
+                containerStyles = [styles.emptyAvatarXSmall, styles.emptyAvatarMargin];
                 break;
             case CONST.AVATAR_SIZE.XX_SMALL:
-                containerStyles = [styles.emptyAvatarSmaller, styles.emptyAvatarMarginSmaller];
+                containerStyles = [styles.emptyAvatarXxSmall, styles.emptyAvatarMarginXxSmall];
                 break;
             case CONST.AVATAR_SIZE.X_LARGE:
-                containerStyles = [styles.emptyAvatarMedium, styles.emptyAvatarMargin];
+                containerStyles = [styles.emptyAvatarXLarge, styles.emptyAvatarMargin];
                 break;
             case CONST.AVATAR_SIZE.XXX_LARGE:
-                containerStyles = [styles.emptyAvatarLarge, styles.mb2, styles.mr2];
+                containerStyles = [styles.emptyAvatarXxxLarge, styles.mb2, styles.mr2];
                 break;
             case CONST.AVATAR_SIZE.XXXXX_LARGE:
-                containerStyles = [styles.emptyAvatarXLarge, styles.mb3, styles.mr3];
+                containerStyles = [styles.emptyAvatarXxxxxLarge, styles.mb3, styles.mr3];
                 break;
             default:
                 containerStyles = [styles.emptyAvatar, isInReportAction ? styles.emptyAvatarMarginChat : styles.emptyAvatarMargin];

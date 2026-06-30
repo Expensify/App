@@ -43,7 +43,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
     const defaultAgentName = displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined;
     const defaultPrompt = translate('addAgentPage.defaultPrompt');
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
-    const avatarStyle = [styles.avatarXLarge, styles.alignSelfCenter];
+    const avatarStyle = [styles.avatarXxxxxLarge, styles.alignSelfCenter];
     const [selectedPresetID, setSelectedPresetID] = useState<AgentAvatarID | null>(() => AGENT_AVATARS.ordered.at(Math.floor(Math.random() * AGENT_AVATARS.ordered.length))?.id ?? null);
     const [uploadedURI, setUploadedURI] = useState<string | null>(null);
     const pendingFileRef = useRef<{file: File | CustomRNImageManipulatorResult; uri: string} | null>(null);

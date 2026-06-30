@@ -12,8 +12,8 @@ function useWorkspaceConfirmationAvatar({policyID, source, name}: {policyID: str
     return useCallback(
         () => (
             <Avatar
-                containerStyles={styles.avatarXLarge}
-                imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
+                containerStyles={styles.avatarXxxxxLarge}
+                imageStyles={[styles.avatarXxxxxLarge, styles.alignSelfCenter]}
                 source={source}
                 fallbackIcon={icons.FallbackWorkspaceAvatar}
                 size={CONST.AVATAR_SIZE.XXXXX_LARGE}
@@ -22,7 +22,7 @@ function useWorkspaceConfirmationAvatar({policyID, source, name}: {policyID: str
                 type={CONST.ICON_TYPE_WORKSPACE}
             />
         ),
-        [name, policyID, source, styles.alignSelfCenter, styles.avatarXLarge, icons.FallbackWorkspaceAvatar],
+        [name, policyID, source, styles.alignSelfCenter, styles.avatarXxxxxLarge, icons.FallbackWorkspaceAvatar],
     );
 }
 
