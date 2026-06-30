@@ -449,15 +449,26 @@ function injectDeepObjectValue(objectLiteral: ts.ObjectLiteralExpression, dotPat
         }
 
         // Recursively inject into the existing nested structure
-        // Handle both direct ObjectLiteralExpression and SatisfiesExpression wrapping an object
+        // Handle direct ObjectLiteralExpression, SatisfiesExpression wrapping an object,
+        // and arrow functions returning an object (e.g. pluralized translations: `() => ({one: '...', other: '...'})`)
         let nestedObject: ts.ObjectLiteralExpression | undefined;
         let satisfiesType: ts.TypeNode | undefined;
+        let arrowFunction: ts.ArrowFunction | undefined;
 
-        if (ts.isObjectLiteralExpression(existingProperty.initializer)) {
-            nestedObject = existingProperty.initializer;
-        } else if (ts.isSatisfiesExpression(existingProperty.initializer) && ts.isObjectLiteralExpression(existingProperty.initializer.expression)) {
-            nestedObject = existingProperty.initializer.expression;
-            satisfiesType = existingProperty.initializer.type;
+        const {initializer} = existingProperty;
+        if (ts.isObjectLiteralExpression(initializer)) {
+            nestedObject = initializer;
+        } else if (ts.isSatisfiesExpression(initializer) && ts.isObjectLiteralExpression(initializer.expression)) {
+            nestedObject = initializer.expression;
+            satisfiesType = initializer.type;
+        } else if (ts.isArrowFunction(initializer)) {
+            // Unwrap the object returned by the arrow function so we can inject into it.
+            // The body is parenthesized in the `() => ({...})` form, but handle a bare object body too.
+            const body = ts.isParenthesizedExpression(initializer.body) ? initializer.body.expression : initializer.body;
+            if (ts.isObjectLiteralExpression(body)) {
+                nestedObject = body;
+                arrowFunction = initializer;
+            }
         }
 
         if (!nestedObject) {
@@ -466,8 +477,21 @@ function injectDeepObjectValue(objectLiteral: ts.ObjectLiteralExpression, dotPat
 
         const updatedNestedObject = injectDeepObjectValue(nestedObject, remainingPath, value);
 
-        // Re-wrap with satisfies if it was originally wrapped
-        const finalValue = satisfiesType ? ts.factory.createSatisfiesExpression(updatedNestedObject, satisfiesType) : updatedNestedObject;
+        // Re-wrap the injected object to match the shape of the original initializer
+        let finalValue: ts.Expression = updatedNestedObject;
+        if (satisfiesType) {
+            finalValue = ts.factory.createSatisfiesExpression(updatedNestedObject, satisfiesType);
+        } else if (arrowFunction) {
+            finalValue = ts.factory.updateArrowFunction(
+                arrowFunction,
+                arrowFunction.modifiers,
+                arrowFunction.typeParameters,
+                arrowFunction.parameters,
+                arrowFunction.type,
+                arrowFunction.equalsGreaterThanToken,
+                ts.factory.createParenthesizedExpression(updatedNestedObject),
+            );
+        }
 
         const updatedProperty = ts.factory.createPropertyAssignment(topLevelKey, finalValue);
         const updatedProperties = objectLiteral.properties.map((prop) => (prop === existingProperty ? updatedProperty : prop));

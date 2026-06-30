@@ -1072,6 +1072,37 @@ describe('TSCompilerUtils', () => {
             expect((nestedProp.initializer as ts.StringLiteral).text).toBe('test value');
         });
 
+        it('should inject into an object returned by an arrow function (pluralized translations)', () => {
+            // Pluralized translations use the form `key: () => ({one: '...', other: '...'})`
+            const initializer = TSCompilerUtils.parseCodeStringToAST("() => ({one: 'Make admin', other: 'Make admins'})") as ts.ArrowFunction;
+            const existingProperty = ts.factory.createPropertyAssignment('makeGroupAdmin', initializer);
+            const objectLiteral = ts.factory.createObjectLiteralExpression([existingProperty]);
+
+            const newValue = ts.factory.createStringLiteral('Hacer admin');
+            const updatedObject = TSCompilerUtils.injectDeepObjectValue(objectLiteral, 'makeGroupAdmin.one', newValue);
+
+            const updatedProperty = updatedObject.properties.at(0) as ts.PropertyAssignment;
+            expect((updatedProperty.name as ts.Identifier).text).toBe('makeGroupAdmin');
+
+            // The arrow function wrapper should be preserved
+            expect(ts.isArrowFunction(updatedProperty.initializer)).toBe(true);
+            const arrowFunction = updatedProperty.initializer as ts.ArrowFunction;
+            const body = ts.isParenthesizedExpression(arrowFunction.body) ? arrowFunction.body.expression : arrowFunction.body;
+            expect(ts.isObjectLiteralExpression(body)).toBe(true);
+
+            const returnedObject = body as ts.ObjectLiteralExpression;
+            const oneProp = returnedObject.properties.find(
+                (prop) => ts.isPropertyAssignment(prop) && ts.isIdentifier(prop.name) && prop.name.text === 'one',
+            ) as ts.PropertyAssignment;
+            const otherProp = returnedObject.properties.find(
+                (prop) => ts.isPropertyAssignment(prop) && ts.isIdentifier(prop.name) && prop.name.text === 'other',
+            ) as ts.PropertyAssignment;
+
+            // The targeted leaf is replaced and the sibling leaf is preserved
+            expect((oneProp.initializer as ts.StringLiteral).text).toBe('Hacer admin');
+            expect((otherProp.initializer as ts.StringLiteral).text).toBe('Make admins');
+        });
+
         it('should throw error when trying to inject into non-object property', () => {
             // Start with existing property that's not an object
             const existingProperty = ts.factory.createPropertyAssignment('existing', ts.factory.createStringLiteral('value'));
