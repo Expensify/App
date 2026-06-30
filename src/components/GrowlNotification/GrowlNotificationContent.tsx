@@ -1,7 +1,7 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {Directions, Gesture, GestureDetector} from 'react-native-gesture-handler';
-import {useSharedValue, withSpring} from 'react-native-reanimated';
+import {runOnJS, useSharedValue, withSpring} from 'react-native-reanimated';
 import type {SvgProps} from 'react-native-svg';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
@@ -17,11 +17,8 @@ import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import GrowlNotificationContainer from './GrowlNotificationContainer';
 
-const INACTIVE_OFFSET = 255;
+const INACTIVE_OFFSET = CONST.GROWL.OFFSCREEN_OFFSET;
 const INACTIVE_POSITION_Y = -INACTIVE_OFFSET;
-// Approximate time for the slide spring to settle. Used to delay onDismissed
-// until the slide-out animation has visibly finished.
-const SLIDE_DURATION_MS = 400;
 
 const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
 
@@ -33,6 +30,16 @@ type GrowlNotificationContentProps = {
     onDismissed: () => void;
 };
 
+// Every non-loading growl variant must have an icon mapping. Loading is rendered separately
+// (ActivityIndicator), so it's excluded here — keeping this map exhaustive over the rest.
+type GrowlIconTypes = Record<
+    Exclude<GrowlType, typeof CONST.GROWL.LOADING>,
+    {
+        icon: React.FC<SvgProps> | IconAsset;
+        iconColor: string;
+    }
+>;
+
 function GrowlNotificationContent({bodyText, type, duration, action, onDismissed}: GrowlNotificationContentProps) {
     // Normalized: 0 = fully offscreen for the current anchor, 1 = fully visible. The container
     // multiplies this against the live `inactiveY`, so the offscreen position stays correct
@@ -41,13 +48,6 @@ function GrowlNotificationContent({bodyText, type, duration, action, onDismissed
     // Guards against double-firing the action's onPress while the slide-out animation
     // is still on screen. Reset whenever new growl content arrives.
     const isActionPressedRef = useRef(false);
-    // Holds the post-fling-out setTimeout so the content-change effect can cancel a
-    // pending unmount when a new growl arrives mid-dismissal. Only touched inside effects.
-    const dismissTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    // Counter that triggers the dismiss-after-slide-out effect. Kept in state (rather than
-    // a ref) so triggerDismiss doesn't transitively read a ref — that would make the React
-    // Compiler reject the gesture's useMemo as "ref access during render".
-    const [dismissNonce, setDismissNonce] = useState(0);
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -57,16 +57,6 @@ function GrowlNotificationContent({bodyText, type, duration, action, onDismissed
     // Derived live so that resizing the window flips position + slide direction during display.
     const useBottomPosition = !!action && !shouldUseNarrowLayout;
     const inactiveY = useBottomPosition ? INACTIVE_OFFSET : INACTIVE_POSITION_Y;
-
-    // Every non-loading growl variant must have an icon mapping. Loading is rendered separately
-    // (ActivityIndicator), so it's excluded here — keeping this map exhaustive over the rest.
-    type GrowlIconTypes = Record<
-        Exclude<GrowlType, typeof CONST.GROWL.LOADING>,
-        {
-            icon: React.FC<SvgProps> | IconAsset;
-            iconColor: string;
-        }
-    >;
 
     const types: GrowlIconTypes = {
         [CONST.GROWL.SUCCESS]: {
@@ -87,12 +77,17 @@ function GrowlNotificationContent({bodyText, type, duration, action, onDismissed
      * Animate growl notification. `targetProgress` is 0 for offscreen, 1 for visible.
      */
     const fling = useCallback(
-        (targetProgress = 0) => {
+        (targetProgress = 0, onSettled?: () => void) => {
             'worklet';
 
             progress.set(
-                withSpring(targetProgress, {
-                    overshootClamping: false,
+                withSpring(targetProgress, {overshootClamping: false}, (finished) => {
+                    // Reanimated calls this with finished=false if the spring is interrupted
+                    // (e.g. new growl content slides in before this slide-out completes), so a
+                    // stale slide-out can't unmount a freshly-shown growl.
+                    if (finished && onSettled) {
+                        runOnJS(onSettled)();
+                    }
                 }),
             );
         },
@@ -100,36 +95,14 @@ function GrowlNotificationContent({bodyText, type, duration, action, onDismissed
     );
 
     /**
-     * Slide the growl off-screen and schedule its unmount via the dismissNonce effect.
+     * Slide the growl off-screen; the spring's completion callback invokes onDismissed.
      */
     const triggerDismiss = useCallback(() => {
-        fling(0);
-        setDismissNonce((n) => n + 1);
-    }, [fling]);
-
-    // Schedule unmount once a dismiss has been requested. Effect cleanup cancels the timer
-    // when this effect re-runs or the component unmounts.
-    useEffect(() => {
-        if (dismissNonce === 0) {
-            return;
-        }
-        const timeoutId = setTimeout(onDismissed, SLIDE_DURATION_MS);
-        dismissTimeoutRef.current = timeoutId;
-        return () => {
-            clearTimeout(timeoutId);
-            dismissTimeoutRef.current = null;
-        };
-    }, [dismissNonce, onDismissed]);
+        fling(0, onDismissed);
+    }, [fling, onDismissed]);
 
     useEffect(() => {
         isActionPressedRef.current = false;
-        // New content arrived — cancel any in-flight unmount-after-slide-out from the previous
-        // growl. (We can't reset dismissNonce here because setState in an effect body is
-        // disallowed by lint; clearing the timer directly via the ref achieves the same result.)
-        if (dismissTimeoutRef.current) {
-            clearTimeout(dismissTimeoutRef.current);
-            dismissTimeoutRef.current = null;
-        }
 
         // Snap to fully offscreen before sliding in so the slide-in direction matches the
         // current placement (from above for top, from below for bottom).
