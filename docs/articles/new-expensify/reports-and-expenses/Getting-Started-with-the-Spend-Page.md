@@ -88,6 +88,8 @@ Each row represents an expense and includes:
 
 ---
 
+# Filters
+
 ## How to apply filters in New Expensify
 
 Web:
@@ -122,7 +124,15 @@ You can also combine filters with a keyword search for even more precision. For 
 
 **Note**: If no filters are applied, the page defaults to showing all your unreported expenses.
 
+## How to export from the Spend page
+
+The **Current view** option within the **Export** menu lets you download a CSV of exactly what you're currently seeing on the Spend page—your active filters, column configuration, and ordering are all preserved. The exported file is named `Expensify_<current_view>_<unique id>.csv`. Once you initiate the export, you can choose to wait for the download to finish or have **Concierge** send it to you once it's ready.
+
+For more detail on every export method, see [how to export from the Spend page](/articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses).
+
 ---
+
+# Smart Suggestions
 
 ## How to use Smart Suggestions
 
@@ -147,7 +157,7 @@ If you create a draft report and have unreported expenses in your SelfDM, a prom
 # FAQ
 
 ## Can I export reports from the Spend page?
-Yes! You can [export filtered reports to CSV](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses) using the export option at the top of the Spend page.
+Yes! Choose the **Current view** option within the **Export** menu to download a CSV of exactly what you're seeing—your active filters, columns, and ordering are all preserved. You can also use a template-based export for a standard set of columns. Learn more about [exporting from the Spend page](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses).
 
 ## Do smart suggestions work on mobile?
 Yes, smart suggestions also appear in the mobile Inbox and draft reports.
