@@ -48,7 +48,7 @@ import {
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainCardNavigatorParamList, SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {arePersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
+import {areAddressAndPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import {clearRevealedPhysicalCardPin, clearRevealedVirtualCardDetails, useAllRevealedVirtualCardDetails, useRevealedPhysicalCardPin} from '@libs/RevealedCardSecretsStore';
@@ -98,7 +98,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [personalDetailsDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const cardList = useNonPersonalCardList();
     const [, cardListResult] = useOnyx(ONYXKEYS.CARD_LIST);
@@ -511,13 +510,13 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                                     return;
                                                                 }
 
-                                                                if (arePersonalDetailsMissing(privatePersonalDetails)) {
+                                                                if (areAddressAndPersonalDetailsMissing(privatePersonalDetails)) {
                                                                     Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(card.cardID)));
                                                                     return;
                                                                 }
 
                                                                 if (isUkEuExpensifyCard(card)) {
-                                                                    const personalDetailsForm = getNormalizedSubPageValues(privatePersonalDetails, personalDetailsDraft);
+                                                                    const personalDetailsForm = getNormalizedSubPageValues(privatePersonalDetails);
                                                                     const personalDetailsParams = buildSetPersonalDetailsAndShipExpensifyCardsParams(personalDetailsForm, countryCode);
                                                                     executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PERSONAL_DETAILS_AND_REVEAL_CARD_DETAILS, {
                                                                         ...personalDetailsParams,

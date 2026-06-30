@@ -30,7 +30,6 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
     const primaryLogin = usePrimaryContactMethod();
     const {setIsCardDetailsLoading, setCardsDetails, setCardsDetailsErrors} = useExpensifyCardActions();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [personalDetailsDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
     const navigateBack = () => {
@@ -50,7 +49,7 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
         // That is why this action is handled manually and the response is stored in a local state.
         // Hence eslint disable here.
 
-        const personalDetailsForm = getNormalizedSubPageValues(privatePersonalDetails, personalDetailsDraft);
+        const personalDetailsForm = getNormalizedSubPageValues(privatePersonalDetails);
         const personalDetailsParams = buildSetPersonalDetailsAndShipExpensifyCardsParams(personalDetailsForm, countryCode);
 
         setPersonalDetailsAndRevealExpensifyCard(personalDetailsParams, Number.parseInt(cardID, 10), validateCode)

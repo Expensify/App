@@ -10,7 +10,7 @@ import {
     isCardWithPotentialFraud,
     isExpensifyCard,
 } from '@libs/CardUtils';
-import {arePersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
+import {areAddressAndPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {getUnresolvedCardFraudAlertAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,7 +21,7 @@ function useTimeSensitiveCards() {
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
-    const personalDetailsMissing = arePersonalDetailsMissing(privatePersonalDetails);
+    const personalDetailsMissing = areAddressAndPersonalDetailsMissing(privatePersonalDetails);
 
     const cardsNeedingShippingAddress: Card[] = [];
     const cardsNeedingActivation: Card[] = [];

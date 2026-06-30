@@ -52,12 +52,14 @@ function getInitialSubPage(values: PersonalDetailsForm, shouldCollectPin = false
 }
 
 /**
- * Builds the `PersonalDetailsForm` values used to populate the reveal payload, combining
- * stored private details with any in-flight form draft and normalizing the country code
- * so legacy "United States"-style data is converted to "US".
+ * Builds the `PersonalDetailsForm` values used to populate the reveal payload from the
+ * stored private details only, and normalizes the country code so legacy "United States"-
+ * style data is converted to "US". Intentionally ignores `PERSONAL_DETAILS_FORM_DRAFT` —
+ * the reveal flow shouldn't silently submit stale drafts left over from an abandoned
+ * Profile > Private edit.
  */
-function getNormalizedSubPageValues(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>, personalDetailsDraft: OnyxEntry<PersonalDetailsForm>): PersonalDetailsForm {
-    const values = getSubPageValues(privatePersonalDetails, personalDetailsDraft);
+function getNormalizedSubPageValues(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): PersonalDetailsForm {
+    const values = getSubPageValues(privatePersonalDetails, undefined);
     if (!values[INPUT_IDS.COUNTRY]) {
         return values;
     }

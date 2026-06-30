@@ -41,7 +41,7 @@ import {
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
-import {arePersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
+import {areAddressAndPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
 import {getTravelInvoicingCard, isTravelCVVEligible} from '@libs/TravelInvoicingUtils';
 import colors from '@styles/theme/colors';
@@ -228,7 +228,7 @@ function PaymentMethodList({
             const assignedCardsSorted = lodashSortBy(assignedCards, getAssignedCardSortKey);
             const companyCardsGrouped: PaymentMethodItem[] = [];
             const personalCardsGrouped: PaymentMethodItem[] = [];
-            const hasMissingPersonalDetails = arePersonalDetailsMissing(privatePersonalDetails);
+            const hasMissingPersonalDetails = areAddressAndPersonalDetailsMissing(privatePersonalDetails);
             for (const card of assignedCardsSorted) {
                 const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                 const isUserPersonalCard = isPersonalCard(card);
