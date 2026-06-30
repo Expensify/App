@@ -79,6 +79,10 @@ function releaseInput(input: InputElement) {
     }
 }
 
+function blurActiveInput() {
+    getActiveInput()?.blur();
+}
+
 function getId() {
     return uniqueModalId++;
 }
@@ -223,6 +227,8 @@ function refocusAfterModalFullyClosed(id: ModalId, restoreType: RestoreFocusType
 }
 
 export default {
+    blurActiveInput,
+    getActiveInput,
     getId,
     saveFocusedInput,
     clearFocusedInput,

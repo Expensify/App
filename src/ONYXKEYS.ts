@@ -1196,6 +1196,7 @@ const ONYXKEYS = {
         CARD_FEED_ERRORS: 'cardFeedErrors',
         RAM_ONLY_SORTED_REPORT_ACTIONS: 'sortedReportActions',
         FLAGGED_EXPENSES: 'flaggedExpenses',
+        LOGIN_TO_ACCOUNT_ID_MAP: 'loginToAccountIDMap',
     },
 
     /** Stores HybridApp specific state required to interoperate with OldDot */
@@ -1683,6 +1684,7 @@ type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: OnyxTypes.CardFeedErrorsDerivedValue;
     [ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS]: OnyxTypes.SortedReportActionsDerivedValue;
     [ONYXKEYS.DERIVED.FLAGGED_EXPENSES]: OnyxTypes.FlaggedExpensesDerivedValue;
+    [ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP]: OnyxTypes.LoginToAccountIDMapDerivedValue;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping & OnyxDerivedValuesMapping;
