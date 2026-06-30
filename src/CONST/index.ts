@@ -32,12 +32,6 @@ const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze({});
 // Shared immutable map used in hot paths that only read from the instance.
 const EMPTY_MAP = new Map<string, string>();
-const EMPTY_TODOS_REPORT_COUNTS = Object.freeze({
-    submit: 0,
-    approve: 0,
-    pay: 0,
-    export: 0,
-});
 
 // Using 28 days to align with OldDot and because all months are guaranteed to be at least 28 days.
 const MONTH_DAYS = Object.freeze([...Array(28).keys()].map((i) => i + 1));
@@ -1241,7 +1235,6 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     EMPTY_MAP,
-    EMPTY_TODOS_REPORT_COUNTS,
     DEFAULT_NUMBER_ID,
     DEFAULT_MISSING_ID,
     DEFAULT_COUNTRY_CODE,
@@ -1950,6 +1943,10 @@ const CONST = {
         MAX_LINES_LANDSCAPE_MODE: 2,
         // The minimum height needed to enable the full screen composer
         FULL_COMPOSER_MIN_HEIGHT: 60,
+        // Max number of animation frames to wait for the composer's clearWorklet ref to re-attach before giving up.
+        // The composer lives on an RNSScreen that react-native-screens freezes while another screen (e.g. the
+        // attachment preview) is on top, so its imperative handle can be briefly missing right after navigating back.
+        CLEAR_WORKLET_MAX_RETRIES: 60,
         /**
          * TestIDs for the main report composer vs inline message editor (E2E / integration tests only).
          * See tests/ui/ReportActionMessageEditLayoutTest.tsx
@@ -2358,6 +2355,9 @@ const CONST = {
         BAD_GATEWAY: 502,
         GATEWAY_TIMEOUT: 504,
         UNKNOWN_ERROR: 520,
+    },
+    HTTP_HEADER_NAMES: {
+        AUTH_TOKEN: 'authToken',
     },
     ERROR: {
         XHR_FAILED: 'xhrFailed',
@@ -6496,6 +6496,9 @@ const CONST = {
                 EXPORTED_TO: {column: this.TABLE_COLUMNS.EXPORTED_TO, search: true, reportView: false},
                 ACTION: {column: this.TABLE_COLUMNS.ACTION, search: true, reportView: false},
                 WITHDRAWAL_ID: {column: this.TABLE_COLUMNS.WITHDRAWAL_ID, search: true, reportView: true},
+                SUBMITTER_USER_ID: {column: this.TABLE_COLUMNS.SUBMITTER_USER_ID, search: true, reportView: true},
+                SUBMITTER_PAYROLL_ID: {column: this.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID, search: true, reportView: true},
+                ORDER_DEAL_NUMBERS: {column: this.TABLE_COLUMNS.ORDER_DEAL_NUMBERS, search: true, reportView: true},
             };
         },
         get TYPE_CUSTOM_COLUMNS() {
@@ -6522,6 +6525,9 @@ const CONST = {
                     REPORT_ID: this.TABLE_COLUMNS.REPORT_ID,
                     BASE_62_REPORT_ID: this.TABLE_COLUMNS.BASE_62_REPORT_ID,
                     AMOUNT: this.TABLE_COLUMNS.TOTAL,
+                    SUBMITTER_USER_ID: this.TABLE_COLUMNS.SUBMITTER_USER_ID,
+                    SUBMITTER_PAYROLL_ID: this.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
+                    ORDER_DEAL_NUMBERS: this.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
                     EXPORTED_ICON: this.TABLE_COLUMNS.EXPORTED_TO,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
@@ -6729,6 +6735,9 @@ const CONST = {
             TAX_CODE: 'taxCode',
             CATEGORY_GL_CODE: 'categoryGLCode',
             WITHDRAWAL_ID: 'withdrawalID',
+            SUBMITTER_USER_ID: 'submitterUserID',
+            SUBMITTER_PAYROLL_ID: 'submitterPayrollID',
+            ORDER_DEAL_NUMBERS: 'orderDealNumbers',
             AVATAR: 'avatar',
             STATUS: 'status',
             EXPENSES: 'expenses',
@@ -6985,12 +6994,6 @@ const CONST = {
         },
         get CUSTOM_DATE_MODIFIERS() {
             return [this.DATE_MODIFIERS.ON, this.DATE_MODIFIERS.BEFORE, this.DATE_MODIFIERS.AFTER] as const;
-        },
-        DATE_FILTER_SUB_PAGE: {
-            ON: 'on',
-            AFTER: 'after',
-            BEFORE: 'before',
-            RANGE: 'range',
         },
         AMOUNT_MODIFIERS: {
             LESS_THAN: 'LessThan',
@@ -7930,6 +7933,9 @@ const CONST = {
             SORTABLE_HEADER: 'Search-SortableHeader',
             UNREPORTED_EXPENSE_LIST_ITEM: 'UnreportedExpenseListItem',
         },
+        EXPENSE_RULES: {
+            TABLE_ROW: 'ExpenseRules-TableRow',
+        },
         TABLE: {
             EDITABLE_CELL: 'Table-EditableCell',
         },
@@ -7998,6 +8004,7 @@ const CONST = {
             FLAG_AS_OFFENSIVE: 'ContextMenu-FlagAsOffensive',
             DOWNLOAD: 'ContextMenu-Download',
             COPY_ONYX_DATA: 'ContextMenu-CopyOnyxData',
+            COPY_AGENT_ZERO_REQUEST_ID: 'ContextMenu-CopyAgentZeroRequestID',
             DEBUG: 'ContextMenu-Debug',
             DELETE: 'ContextMenu-Delete',
             MENU: 'ContextMenu-Menu',
@@ -8366,6 +8373,7 @@ const CONST = {
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceRules-BulkActionsDropdown',
             },
             EXPENSIFY_CARD: {
+                ROW: 'WorkspaceExpensifyCard-Row',
                 ISSUE_CARD_BUTTON: 'WorkspaceExpensifyCard-IssueCardButton',
                 MORE_DROPDOWN: 'WorkspaceExpensifyCard-MoreDropdown',
                 CHOOSE_SPEND_RULE: 'WorkspaceExpensifyCard-ChooseSpendRule',
