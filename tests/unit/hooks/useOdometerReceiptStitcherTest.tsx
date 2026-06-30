@@ -57,7 +57,7 @@ jest.mock('@libs/Log', () => ({
 
 // OdometerImageUtils is used inline by the hook. Stub it to break the transitive import chain
 // (FileUtils → saveLastRoute → API → ...). The hook only needs getOdometerImageUri.
-jest.mock('@libs/OdometerImageUtils', () => ({
+jest.mock('@libs/OdometerUtils', () => ({
     __esModule: true,
     getOdometerImageUri: (image: unknown) => {
         if (typeof image === 'string') {

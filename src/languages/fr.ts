@@ -394,6 +394,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reportID: 'ID de note de frais',
         longReportID: 'ID de note de frais longue',
         withdrawalID: 'ID de retrait',
+        internationalReimbursementIDs: 'ID de remboursement international',
         withdrawalStatus: 'Statut de retrait',
         bankAccounts: 'Comptes bancaires',
         chooseFile: 'Choisir un fichier',
@@ -844,6 +845,7 @@ const translations: TranslationDeepObject<typeof en> = {
         joinThread: 'Rejoindre la discussion',
         leaveThread: 'Quitter la discussion',
         copyOnyxData: 'Copier les données Onyx',
+        copyAgentZeroRequestID: "Copier l'ID de requête AgentZero",
         flagAsOffensive: 'Signaler comme offensant',
         menu: 'Menu',
     },
@@ -1346,6 +1348,9 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Êtes-vous sûr de vouloir supprimer ces rapports ?',
         }),
         settledExpensify: 'Payé',
+        paidStatusMarkedAsPaid: 'Marqué comme payé',
+        paidStatusWithdrawing: 'Retrait',
+        paidStatusConfirmed: 'Confirmé',
         done: 'Terminé',
         settledElsewhere: 'Payé ailleurs',
         individual: 'Individuel',
@@ -1666,6 +1671,10 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpenses: 'Déplacer vers le rapport',
         moveExpensesError:
             'Vous ne pouvez pas déplacer des frais de per diem vers des notes de frais d’autres espaces de travail, car les taux de per diem peuvent varier d’un espace de travail à l’autre.',
+        submitReportTo: {
+            sendExpense: 'Envoyez votre dépense à n’importe qui',
+            sendExpenseSubtitle: 'Invitez n’importe qui sur Expensify en utilisant son adresse e-mail ou son numéro de téléphone.',
+        },
         changeApprover: {
             title: 'Modifier l’approbateur',
             header: (workflowSettingLink: string) =>
@@ -6813,7 +6822,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 optionFixedDistanceTitle: 'Exclure une distance fixe par demande',
                 optionFixedDistanceHelp: 'Soustraire la même distance de trajet domicile-travail de chaque demande. Idéal pour les membres qui soumettent une demande par jour de travail.',
                 distanceLabel: 'Distance',
-                errors: {distanceMustBePositive: 'La distance doit être supérieure à 0.'},
+                errors: {distanceMustBePositive: 'La distance doit être un nombre entier positif.'},
             },
             distance: 'Distance',
             centrallyManage: 'Gérez les taux de manière centralisée, suivez en miles ou en kilomètres et définissez une catégorie par défaut.',
@@ -8537,6 +8546,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Toutes les cartes CSV importées${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 travelInvoicing: 'Facturation de voyages consolidée',
             },
+            bankAccount: {banks: 'Comptes bancaires', closedBankAccounts: 'Comptes bancaires fermés'},
             reportField: (name: string, value: string) => `${name} est ${value}`,
             current: 'Actuel',
             past: 'Passé',
@@ -9380,10 +9390,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         takeMeToExpensifyClassic: 'M’emmener vers Expensify Classic',
         goBackJustOnce: 'Revenir une seule fois',
     },
-    listBoundary: {
-        errorMessage: 'Une erreur est survenue lors du chargement de messages supplémentaires',
-        tryAgain: 'Réessayer',
-    },
     systemMessage: {
         mergedWithCashTransaction: 'a fait correspondre un reçu à cette transaction',
     },
@@ -9849,7 +9855,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         expenseLevelExport: 'Toutes les données - niveau dépense',
         exportInProgress: 'Export en cours',
         conciergeWillSend: 'Concierge vous enverra le fichier sous peu.',
-        currentView: 'Exporter la vue actuelle',
+        currentView: 'Vue actuelle',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

@@ -92,6 +92,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const reportAttributes = useReportAttributes();
 
@@ -120,6 +121,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             translate,
             feedKeysWithCards,
             reportAttributes,
+            bankAccountList,
         });
         const substitutions = buildSubstitutionsMap(
             currentSearchQueryJSON.inputQuery,
@@ -132,6 +134,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             currentUserAccountID,
             translate,
             reportAttributes,
+            bankAccountList,
         );
         return [query, substitutions];
     });

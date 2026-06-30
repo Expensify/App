@@ -45,15 +45,16 @@ import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getApiRoot} from './ApiUtils';
-import {getCategoryApproverRule} from './CategoryUtils';
+import {getCategoryApproverRule, hasAnyCategoryRules} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
 import {isAnyHRConnected, isMergeHRCompleteSetupNeeded} from './HRUtils';
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
 import {formatMemberForList} from './OptionsListUtils';
 import type {MemberForList} from './OptionsListUtils';
-import {getAccountIDsByLogins, getLoginByAccountID, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {getAccountIDsByLogins, getKnownAccountIDByLogin, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
+import {generateAccountID} from './UserUtils';
 import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
@@ -415,7 +416,10 @@ function cloneCustomUnitWithNewIDs(unit: CustomUnit, newCustomUnitID: string, ne
         const rates: Record<string, Rate> = {};
         for (const rate of Object.values(unit.rates)) {
             if (rate.customUnitRateID === defaultRate?.customUnitRateID) {
-                rates[newDefaultRateID] = {...rate, customUnitRateID: newDefaultRateID};
+                rates[newDefaultRateID] = {
+                    ...rate,
+                    customUnitRateID: newDefaultRateID,
+                };
             } else {
                 rates[rate.customUnitRateID] = rate;
             }
@@ -485,13 +489,17 @@ function getCustomUnitsForDuplication(
         if (!distanceCustomUnit) {
             return undefined;
         }
-        return {[distanceCustomUnitID]: cloneCustomUnitWithNewIDs(distanceCustomUnit, distanceCustomUnitID, customUnitRateID)};
+        return {
+            [distanceCustomUnitID]: cloneCustomUnitWithNewIDs(distanceCustomUnit, distanceCustomUnitID, customUnitRateID),
+        };
     }
 
     if (!perDiemUnit || !perDiemCustomUnitID) {
         return undefined;
     }
-    return {[perDiemCustomUnitID]: cloneCustomUnitWithNewIDs(perDiemUnit, perDiemCustomUnitID)};
+    return {
+        [perDiemCustomUnitID]: cloneCustomUnitWithNewIDs(perDiemUnit, perDiemCustomUnitID),
+    };
 }
 
 /**
@@ -720,6 +728,56 @@ function getMemberAccountIDsForWorkspace(employeeList: PolicyEmployeeList | unde
 }
 
 /**
+ * Resolves the accountID for a submit-to recipient chosen in the submit-to popover.
+ * Uses personal details first, then the workspace employee list (same source as ReportSubmitToContent).
+ * When the member is in employeeList but not yet in personal details, returns a stable optimistic accountID.
+ */
+function getAccountIDForSubmitManagerEmail(managerEmail: string | undefined, employeeList: PolicyEmployeeList | undefined): number | undefined {
+    const trimmed = managerEmail?.trim();
+    if (!trimmed) {
+        return undefined;
+    }
+
+    const fromPersonalDetails = getKnownAccountIDByLogin(trimmed);
+    if (fromPersonalDetails !== undefined) {
+        return fromPersonalDetails;
+    }
+
+    if (!employeeList) {
+        return undefined;
+    }
+
+    const normalizedEmail = trimmed.toLowerCase();
+    const memberAccountIDs = getMemberAccountIDsForWorkspace(employeeList, true, false);
+
+    for (const [email, accountID] of Object.entries(memberAccountIDs)) {
+        if (email.toLowerCase() === normalizedEmail) {
+            return accountID;
+        }
+    }
+
+    for (const [listKey, employee] of Object.entries(employeeList)) {
+        const employeeEmail = (employee.email ?? listKey).trim();
+        const listKeyNormalized = listKey.trim().toLowerCase();
+        const employeeEmailNormalized = employeeEmail.toLowerCase();
+
+        if (employeeEmailNormalized !== normalizedEmail && listKeyNormalized !== normalizedEmail) {
+            continue;
+        }
+
+        const accountIDFromMap = memberAccountIDs[employeeEmail] ?? memberAccountIDs[listKey];
+
+        if (accountIDFromMap !== undefined) {
+            return accountIDFromMap;
+        }
+
+        return generateAccountID(trimmed);
+    }
+
+    return undefined;
+}
+
+/**
  * Get login list that we should not show in the workspace invite options
  */
 function getIneligibleInvitees(employeeList?: PolicyEmployeeList): string[] {
@@ -930,7 +988,7 @@ function hasCustomCategories(policyCategories: OnyxEntry<PolicyCategories>): boo
 /**
  * Checks if a policy has any rules configured (structured rules, individual expense limits, or prohibited expenses).
  */
-function hasConfiguredRules(policy: OnyxEntry<Policy>): boolean {
+function hasConfiguredRules(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null): boolean {
     if (!policy) {
         return false;
     }
@@ -985,13 +1043,17 @@ function hasConfiguredRules(policy: OnyxEntry<Policy>): boolean {
     }
 
     const {prohibitedExpenses} = policy;
-    return (
+    if (
         !!prohibitedExpenses &&
         Object.entries(CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES).some(([key, defaultValue]) => {
             const value = prohibitedExpenses[key as keyof typeof CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES];
             return value !== undefined && value !== defaultValue;
         })
-    );
+    ) {
+        return true;
+    }
+
+    return hasAnyCategoryRules(policyCategories ?? undefined);
 }
 
 /**
@@ -1411,7 +1473,24 @@ function canEditTaxRate(policy: Policy, taxID: string): boolean {
     return policy.taxRates?.defaultExternalID !== taxID && policy.taxRates?.foreignTaxDefault !== taxID;
 }
 
-function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName): boolean {
+function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null): boolean {
+    if (!isControlPolicy(policy)) {
+        return false;
+    }
+    if (policy?.areRulesEnabled === true) {
+        return true;
+    }
+    if (policy?.areRulesEnabled === false) {
+        return false;
+    }
+    // areRulesEnabled is undefined - this can happen in case of migrated old policies, in such case users might have set up category rules in Classic and we should show Rules as enabled
+    return hasAnyCategoryRules(policyCategories ?? undefined);
+}
+
+function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName, policyCategories?: PolicyCategories | null): boolean {
+    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED) {
+        return arePolicyRulesEnabled(policy, policyCategories);
+    }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
         return !!policy?.tax?.trackingEnabled;
     }
@@ -1473,10 +1552,13 @@ function getRuleApprovers(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
     return [...new Set([...categoryApprovers, ...tagApprovers])];
 }
 
-function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: OnyxEntry<Report>) {
+function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: OnyxEntry<Report>, ownerLogin: string | undefined) {
     // Pre-build a lookup map of { category: { value → approver }, tag: { value → approver } }
     // from the policy's approval rules so that each transaction's category/tag can be resolved in O(1).
-    const rulesMap: Record<'category' | 'tag', Record<string, string>> = {category: {}, tag: {}};
+    const rulesMap: Record<'category' | 'tag', Record<string, string>> = {
+        category: {},
+        tag: {},
+    };
 
     for (let i = 0; i < approvalRules.length; i++) {
         const rule = approvalRules.at(i);
@@ -1504,9 +1586,6 @@ function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: Onyx
         return '';
     }
 
-    const employeeAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const employeeLogin = getLoginByAccountID(employeeAccountID);
-
     let firstCategoryApprover = '';
     let firstTagApprover = '';
 
@@ -1517,7 +1596,7 @@ function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: Onyx
 
         // Category approvers take strict priority over tag approvers.
         // Break immediately on the first match so we don't keep scanning transactions unnecessarily.
-        if (categoryApprover && categoryApprover !== employeeLogin) {
+        if (categoryApprover && categoryApprover !== ownerLogin) {
             firstCategoryApprover = categoryApprover;
             break;
         }
@@ -1527,7 +1606,7 @@ function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: Onyx
             const tag = getTag(transaction);
             const tagApprover = rulesMap.tag[tag];
 
-            if (tagApprover && tagApprover !== employeeLogin) {
+            if (tagApprover && tagApprover !== ownerLogin) {
                 firstTagApprover = tagApprover;
             }
         }
@@ -1536,46 +1615,49 @@ function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: Onyx
     return firstCategoryApprover || firstTagApprover;
 }
 
-function getManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report> | {ownerAccountID: number}) {
-    const employeeAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const employeeLogin = getLoginByAccountID(employeeAccountID) ?? '';
+function getManagerAccountEmail(policy: OnyxEntry<Policy>, ownerLogin: string | undefined): string {
     const defaultApprover = getDefaultApprover(policy);
 
     // For policy using the optional or basic workflow, the manager is the policy default approver.
     if (([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(getApprovalWorkflow(policy))) {
-        return getAccountIDsByLogins([defaultApprover]).at(0) ?? -1;
+        return defaultApprover;
     }
 
-    const employee = policy?.employeeList?.[employeeLogin];
+    const employee = policy?.employeeList?.[ownerLogin ?? ''];
     if (!employee && !defaultApprover) {
-        return -1;
+        return '';
     }
 
-    return getAccountIDsByLogins([employee?.submitsTo ?? defaultApprover]).at(0) ?? -1;
+    return employee?.submitsTo ?? defaultApprover ?? '';
+}
+
+function getManagerAccountID(policy: OnyxEntry<Policy>, ownerLogin: string | undefined) {
+    const managerEmail = getManagerAccountEmail(policy, ownerLogin);
+    return managerEmail ? (getAccountIDsByLogins([managerEmail]).at(0) ?? -1) : -1;
 }
 
 /**
  * Returns the accountID to whom the given expenseReport submits reports to in the given Policy.
  */
-function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): number {
+function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, ownerLogin: string | undefined): number {
     const approvalRules = policy?.rules?.approvalRules;
 
     if (!isSubmitAndClose(policy) && approvalRules?.length) {
-        const ruleApprover = getFirstRuleApprover(approvalRules, expenseReport);
+        const ruleApprover = getFirstRuleApprover(approvalRules, expenseReport, ownerLogin);
         if (ruleApprover) {
             return getAccountIDsByLogins([ruleApprover]).at(0) ?? -1;
         }
     }
 
-    return getManagerAccountID(policy, expenseReport);
+    return getManagerAccountID(policy, ownerLogin);
 }
 
 function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, submitterLogin: string | undefined): number | undefined {
     const ownerAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const existingManagerID = expenseReport?.managerID;
     const approvalRules = policy?.rules?.approvalRules;
-    const ruleApprover = !isSubmitAndClose(policy) && approvalRules?.length ? getFirstRuleApprover(approvalRules, expenseReport) : '';
-    const submitToAccountID = ruleApprover ? (getAccountIDsByLogins([ruleApprover]).at(0) ?? -1) : getManagerAccountID(policy, expenseReport);
+    const ruleApprover = !isSubmitAndClose(policy) && approvalRules?.length ? getFirstRuleApprover(approvalRules, expenseReport, submitterLogin) : '';
+    const submitToAccountID = getSubmitToAccountID(policy, expenseReport, submitterLogin);
     const isValidSubmitToAccountID = isValidAccountRoute(submitToAccountID);
     const isValidExistingManagerID = isValidAccountRoute(existingManagerID ?? CONST.DEFAULT_NUMBER_ID) && existingManagerID !== ownerAccountID;
     const hasReliablePolicyRoute =
@@ -1594,9 +1676,23 @@ function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseRepor
     return isValidSubmitToAccountID ? submitToAccountID : existingManagerID;
 }
 
-function getManagerAccountEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string {
-    const managerAccountID = getManagerAccountID(policy, expenseReport);
-    return getLoginsByAccountIDs([managerAccountID]).at(0) ?? '';
+/**
+ * Returns the email the expense report should submit to per workspace approval config
+ * (approval rules, employee submitsTo, or default approver for basic/optional workflows).
+ */
+function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string {
+    const defaultApprover = getDefaultApprover(policy).trim();
+    if (!expenseReport) {
+        return defaultApprover;
+    }
+
+    const ownerLogin = getLoginsByAccountIDs([expenseReport.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]).at(0);
+    const submitToAccountID = getSubmitToAccountID(policy, expenseReport, ownerLogin);
+    if (!isValidAccountRoute(submitToAccountID)) {
+        return defaultApprover;
+    }
+
+    return getLoginsByAccountIDs([submitToAccountID]).at(0)?.trim() ?? defaultApprover;
 }
 
 /**
@@ -2089,10 +2185,10 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
 }
 
 /**
- * Returns the vendor list imported into the workspace from whichever connected integration scopes
- * the vendor field for this workspace (QBO or Sage Intacct). Empty array when no integration is
- * connected or the sync hasn't populated vendors yet. Source of truth for the vendor selector RHP
- * and inactive-vendor lookups.
+ * Single source of truth for which connected integration scopes the vendor field for this workspace
+ * (QBO or Sage Intacct) and what its vendor list looks like. Returns `undefined` when no
+ * vendor-matching integration is active OR when the active integration's list hasn't synced yet —
+ * distinct from `[]` (loaded-empty). Lets callers tell "no vendors" from "not loaded".
  *
  * Selection mirrors `hasVendorFeature`: each branch is gated on the integration's own
  * non-reimbursable export destination, so a dual-connected workspace (e.g. mid-migration with stale
@@ -2103,18 +2199,43 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
  * the human-readable label lives in `value` (Intacct's `name` is an internal code), matching how
  * `getSageIntacctVendors` and `getDefaultVendorName` populate the existing Intacct export UI.
  */
-function getMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] {
+function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | undefined {
     if (!policy) {
-        return [];
+        return undefined;
     }
     if (isQBOVendorMatchingActive(policy)) {
-        return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors ?? [];
+        return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors;
     }
     if (isIntacctVendorMatchingActive(policy)) {
         const intacctVendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.data?.vendors ?? [];
-        return intacctVendors.map((vendor) => ({id: vendor.id, name: vendor.value, currency: '', email: ''}));
+        return intacctVendors.map((vendor) => ({
+            id: vendor.id,
+            name: vendor.value,
+            currency: '',
+            email: '',
+        }));
     }
-    return [];
+    return undefined;
+}
+
+/**
+ * Returns the vendor list imported into the workspace from whichever connected integration scopes
+ * the vendor field for this workspace (QBO or Sage Intacct). Empty array when no integration is
+ * connected or the sync hasn't populated vendors yet. Source of truth for the vendor selector RHP
+ * and inactive-vendor lookups.
+ */
+function getMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] {
+    return getActiveVendorMatchingVendors(policy) ?? [];
+}
+
+/**
+ * True only when the active vendor-matching integration's vendor list has been written to Onyx —
+ * including the loaded-but-empty case. Lets callers distinguish "vendor not in list" (the
+ * inactive-vendor case) from "vendor list hasn't synced yet" (a transient render before Onyx
+ * hydrates), so the inactive-vendor copy isn't shown against an unloaded list.
+ */
+function isMatchingVendorListLoaded(policy: OnyxEntry<Policy>): boolean {
+    return getActiveVendorMatchingVendors(policy) !== undefined;
 }
 
 /**
@@ -2154,7 +2275,12 @@ function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined)
     }
     const intacctVendor = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.data?.vendors?.find((vendor) => vendor.id === vendorID);
     if (intacctVendor) {
-        return {id: intacctVendor.id, name: intacctVendor.value, currency: '', email: ''};
+        return {
+            id: intacctVendor.id,
+            name: intacctVendor.value,
+            currency: '',
+            email: '',
+        };
     }
     return undefined;
 }
@@ -2576,11 +2702,13 @@ export {
     getMatchingVendorByID,
     getMatchingVendors,
     hasVendorFeature,
+    isMatchingVendorListLoaded,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
     getExcludedUsers,
     getMemberAccountIDsForWorkspace,
+    getAccountIDForSubmitManagerEmail,
     getGuideAndAccountManagerInfo,
     getSoftExclusionsForGuideAndAccountManager,
     getExpensifyTeamExclusions,
@@ -2629,6 +2757,7 @@ export {
     isPolicyAuditor,
     hasEligibleActiveAdminFromWorkspaces,
     isPolicyEmployee,
+    arePolicyRulesEnabled,
     isPolicyFeatureEnabled,
     isPolicyFieldListEmpty,
     getUberConnectionErrorDirectlyFromPolicy,
@@ -2715,6 +2844,7 @@ export {
     hasOtherControlWorkspaces,
     shouldBlockWorkspaceDeletionForInvoicifyUser,
     getManagerAccountEmail,
+    getSubmitToEmail,
     getRuleApprovers,
     canModifyPlan,
     getAdminsPrivateEmailDomains,
