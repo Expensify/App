@@ -3,7 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {base64ToFile, convertFileObjectOrUriToBase64DataURL} from '@libs/fileDownload/FileUtils';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
-import revokeOdometerImageUri, {getOdometerImageUri} from '@libs/OdometerImageUtils';
+import revokeOdometerImageUri, {getOdometerImageUri} from '@libs/OdometerUtils';
 import CONST from '@src/CONST';
 import type {OdometerImageType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,9 +20,6 @@ type SaveOdometerDraftParams = {
     endImage?: FileObject | string | null;
 };
 
-/**
- * Set the odometer readings for a transaction
- */
 function setMoneyRequestOdometerReading(transactionID: string, startReading: number | null, endReading: number | null, isDraft: boolean) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
@@ -50,6 +47,8 @@ function setMoneyRequestOdometerImage(transaction: OnyxEntry<Transaction>, image
                   name: file.name,
                   type: file.type,
                   size: file.size,
+                  // Part of the re-mint-invariant identity (getOdometerImageIdentity) so a swap to a same-name/same-size file is still detected
+                  ...(file.lastModified !== undefined && {lastModified: file.lastModified}),
               };
     const transactionID = transaction?.transactionID;
     const existingImage = transaction?.comment?.[imageKey];
@@ -123,7 +122,7 @@ async function serializeOdometerDraftImage(image: FileObject | string | null | u
     }
 }
 
-function deserializeOdometerDraftImage(image: string | undefined, transactionID: string, imageType: OdometerImageType): FileObject | string | undefined {
+function deserializeOdometerDraftImage(image: string | undefined, transactionID: string, imageType: OdometerImageType, lastModified?: number): FileObject | string | undefined {
     if (!image) {
         return undefined;
     }
@@ -139,6 +138,8 @@ function deserializeOdometerDraftImage(image: string | undefined, transactionID:
             name: file.name,
             type: file.type,
             size: file.size,
+            // Restore the original `lastModified` (base64ToFile resets it to Date.now()) so the re-minted image keeps its identity
+            ...(lastModified !== undefined && {lastModified}),
         };
     } catch (error) {
         Log.warn('Failed to deserialize odometer draft image from base64', {error});
@@ -155,11 +156,16 @@ async function saveOdometerDraft({startReading, endReading, startImage, endImage
         return;
     }
 
+    const startImageLastModified = typeof startImage === 'object' ? startImage?.lastModified : undefined;
+    const endImageLastModified = typeof endImage === 'object' ? endImage?.lastModified : undefined;
+
     const odometerDraft: OdometerDraft = {
         ...(startReading !== undefined && {odometerStartReading: startReading}),
         ...(endReading !== undefined && {odometerEndReading: endReading}),
         ...(serializedStartImage && {odometerStartImage: serializedStartImage}),
         ...(serializedEndImage && {odometerEndImage: serializedEndImage}),
+        ...(serializedStartImage && startImageLastModified !== undefined && {odometerStartImageLastModified: startImageLastModified}),
+        ...(serializedEndImage && endImageLastModified !== undefined && {odometerEndImageLastModified: endImageLastModified}),
     };
 
     await Onyx.set(ONYXKEYS.ODOMETER_DRAFT, odometerDraft);
@@ -177,8 +183,9 @@ function buildOdometerCommentFromDraft(transactionID: string, odometerDraft: Ony
         return;
     }
 
-    const startImage = deserializeOdometerDraftImage(odometerDraft.odometerStartImage, transactionID, CONST.IOU.ODOMETER_IMAGE_TYPE.START) ?? null;
-    const endImage = deserializeOdometerDraftImage(odometerDraft.odometerEndImage, transactionID, CONST.IOU.ODOMETER_IMAGE_TYPE.END) ?? null;
+    const startImage =
+        deserializeOdometerDraftImage(odometerDraft.odometerStartImage, transactionID, CONST.IOU.ODOMETER_IMAGE_TYPE.START, odometerDraft.odometerStartImageLastModified) ?? null;
+    const endImage = deserializeOdometerDraftImage(odometerDraft.odometerEndImage, transactionID, CONST.IOU.ODOMETER_IMAGE_TYPE.END, odometerDraft.odometerEndImageLastModified) ?? null;
 
     // Free the previous blob URL before the merge drops the reference - covers both replace and wipe-to-null; helper no-ops if non-blob or unchanged.
     revokeOdometerImageUri(currentComment?.odometerStartImage, startImage);
@@ -198,29 +205,72 @@ function buildOdometerCommentFromDraft(transactionID: string, odometerDraft: Ony
  * odometer tab) so blob URLs can be re-minted from the persisted base64 after a page refresh.
  * Returns silently when the draft is empty or the comment already reflects it.
  */
-function hydrateOdometerDraftIntoTransaction(transactionID: string, odometerDraft: OnyxEntry<OdometerDraft>, currentComment?: Partial<Comment>): void {
+function hydrateOdometerDraftIntoTransaction(transactionID: string, odometerDraft: OnyxEntry<OdometerDraft>, currentComment?: Partial<Comment>): Promise<void> {
     const update = buildOdometerCommentFromDraft(transactionID, odometerDraft, currentComment);
     if (!update) {
-        return;
+        return Promise.resolve();
     }
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: update});
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: update});
 }
 
 /**
- * True when an ODOMETER_DRAFT exists but the active transaction comment hasn't yet been hydrated
- * from it. Used to defer baseline snapshots that would otherwise treat post-hydration values as
- * unsaved changes.
+ * True when an ODOMETER_DRAFT exists but the transaction comment hasn't received it yet (hydration pending) -
+ * used to defer the baseline snapshot and gate the hydration effect
  */
 function isOdometerDraftPendingHydration(odometerDraft: OnyxEntry<OdometerDraft>, comment: Partial<Comment> | undefined): boolean {
     if (!odometerDraft) {
         return false;
     }
-    return (
-        (odometerDraft.odometerStartReading ?? null) !== (comment?.odometerStart ?? null) ||
-        (odometerDraft.odometerEndReading ?? null) !== (comment?.odometerEnd ?? null) ||
-        !!odometerDraft.odometerStartImage !== !!comment?.odometerStartImage ||
-        !!odometerDraft.odometerEndImage !== !!comment?.odometerEndImage
-    );
+    const startPending = odometerDraft.odometerStartReading !== undefined && (comment?.odometerStart ?? null) === null;
+    const endPending = odometerDraft.odometerEndReading !== undefined && (comment?.odometerEnd ?? null) === null;
+    const draftCarriesReadings = odometerDraft.odometerStartReading !== undefined || odometerDraft.odometerEndReading !== undefined;
+    const startImagePending = !draftCarriesReadings && !!odometerDraft.odometerStartImage && !comment?.odometerStartImage;
+    const endImagePending = !draftCarriesReadings && !!odometerDraft.odometerEndImage && !comment?.odometerEndImage;
+    return startPending || endPending || startImagePending || endImagePending;
+}
+
+type OdometerUnsavedChangesState = {
+    /** Discard guard active: focused && !editing && no bypass/save/manual-backup flags. */
+    isGuardActive: boolean;
+
+    /** Whether the reading text inputs hold values not yet written to the transaction (mid-edit typing). */
+    isUserTyping: boolean;
+
+    /** The active save-for-later draft, if any. */
+    odometerDraft: OnyxEntry<OdometerDraft>;
+
+    /** The comment of currentTransaction (split draft when editing a split, else the transaction) - used ONLY for the directional hydration check. */
+    currentComment: Partial<Comment> | undefined;
+
+    /** Re-mint-invariant start/end image identities (getOdometerImageIdentity) from the live transaction comment. */
+    transactionStartImageUri: string;
+    transactionEndImageUri: string;
+
+    /** Re-mint-invariant start/end image identities captured in the on-mount baseline refs. */
+    baselineStartImageUri: string;
+    baselineEndImageUri: string;
+
+    /** Whether the readings differ from the on-mount baseline. */
+    hasReadingChanges: boolean;
+};
+
+/**
+ * Decide whether the odometer screen has unsaved changes worth a "Discard changes?" prompt. Both checks ignore
+ * non-user noise: images diff on a re-mint-invariant identity (name|size|lastModified), and the typing guard skips mid-edit readings
+ */
+function getOdometerHasUnsavedChanges(state: OdometerUnsavedChangesState): boolean {
+    if (!state.isGuardActive) {
+        return false;
+    }
+    const hasImageChanges = state.transactionStartImageUri !== state.baselineStartImageUri || state.transactionEndImageUri !== state.baselineEndImageUri;
+    // Suppress only when the transaction still EQUALS the draft (baseline drift is not a real edit).
+    const draftReadingsMatchTransaction =
+        (state.odometerDraft?.odometerStartReading ?? null) === (state.currentComment?.odometerStart ?? null) &&
+        (state.odometerDraft?.odometerEndReading ?? null) === (state.currentComment?.odometerEnd ?? null);
+    if (!state.isUserTyping && !hasImageChanges && !!state.odometerDraft && draftReadingsMatchTransaction && !isOdometerDraftPendingHydration(state.odometerDraft, state.currentComment)) {
+        return false;
+    }
+    return state.hasReadingChanges || hasImageChanges;
 }
 
 export {
@@ -231,5 +281,7 @@ export {
     saveOdometerDraft,
     hydrateOdometerDraftIntoTransaction,
     isOdometerDraftPendingHydration,
+    getOdometerHasUnsavedChanges,
 };
+export type {OdometerUnsavedChangesState};
 export default clearOdometerDraftTransactionState;

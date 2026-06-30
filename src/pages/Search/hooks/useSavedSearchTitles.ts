@@ -16,7 +16,7 @@ function useSavedSearchTitles({savedSearches, translate, enabled = true, ...rest
     // `savedSearches` drives which items appear in the list — deferring it would cause a flash
     // `translate` is a stable function reference that never triggers heavy re-computation on its own.
     const deferredRest = useDeferredValue(rest);
-    const {PersonalDetails, reports, taxRates, cardList, cardFeeds, policies, currentUserAccountID, feedKeysWithCards, reportAttributes} = deferredRest;
+    const {PersonalDetails, reports, taxRates, cardList, cardFeeds, policies, currentUserAccountID, feedKeysWithCards, reportAttributes, bankAccountList} = deferredRest;
 
     const titles = new Map<string, string>();
 
@@ -47,6 +47,7 @@ function useSavedSearchTitles({savedSearches, translate, enabled = true, ...rest
             translate,
             feedKeysWithCards,
             reportAttributes,
+            bankAccountList,
         });
         titles.set(item.query, title);
     }
