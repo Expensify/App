@@ -41,7 +41,7 @@ function showErrorAlert(title: string, message: string) {
 function ShareRootPage() {
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
 
-    const {validateFiles} = useFilesValidation(addValidatedShareFile);
+    const {validateFiles, ErrorModal} = useFilesValidation(addValidatedShareFile);
     const isTextShared = currentAttachment?.mimeType === 'txt';
 
     const validateFileIfNecessary = useCallback(
@@ -50,13 +50,16 @@ function ShareRootPage() {
                 return;
             }
 
-            validateFiles([
-                {
-                    name: file.id,
-                    uri: file.content,
-                    type: file.mimeType,
-                },
-            ]);
+            getFileSize(file.content).then((size) => {
+                validateFiles([
+                    {
+                        name: file.id,
+                        uri: file.content,
+                        type: file.mimeType,
+                        size,
+                    },
+                ]);
+            });
         },
         [isTextShared, validateFiles],
     );
@@ -193,6 +196,7 @@ function ShareRootPage() {
                     <TabNavigatorSkeleton reasonAttributes={reasonAttributes} />
                 )}
             </View>
+            {ErrorModal}
         </ScreenWrapper>
     );
 }
