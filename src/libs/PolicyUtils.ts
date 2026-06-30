@@ -2431,14 +2431,20 @@ function getGroupPoliciesWhereReportCanBeCreated(policies: OnyxCollection<Policy
 }
 
 /**
- * This method checks if the active policy is a paid group policy (Team/Corporate).
- * If true, it returns the active policy itself, else it returns the first policy from groupPoliciesWithChatEnabled.
+ * Resolves the default workspace to use for report creation.
+ * If the active policy is a group policy (Collect/Control or Submit), it returns the active policy itself,
+ * otherwise it returns the only policy from groupPoliciesWithChatEnabled when there is exactly one.
+ *
+ * Note: this gates report-creation usability (a group feature), so it must use `isGroupPolicy` rather than
+ * `isPaidGroupPolicy` — otherwise a Submit workspace set as the active/default policy is not recognized as a
+ * valid default whenever the user has more than one eligible workspace, which wrongly forces the workspace
+ * selector and breaks the empty-report confirmation (it keys off this policy id).
  *
  * Further, if groupPoliciesWithChatEnabled is empty, then it returns undefined
  * and the user would be taken to the workspace selection page.
  */
 function getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled: Array<OnyxInputOrEntry<Policy>>, activePolicy?: OnyxInputOrEntry<Policy> | null): OnyxInputOrEntry<Policy> | undefined {
-    if (activePolicy && isPaidGroupPolicy(activePolicy)) {
+    if (activePolicy && isGroupPolicy(activePolicy)) {
         return activePolicy;
     }
 
