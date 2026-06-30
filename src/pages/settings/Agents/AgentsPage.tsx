@@ -57,20 +57,20 @@ function AgentsPage() {
     const shouldShowErrors = (pendingAction: PendingAction | null | undefined) =>
         pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-    const agents: AgentRowData[] = Object.entries(agentPrompts ?? {})
-        .map(([key, agentPrompt]) => {
-            const accountID = Number(key.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length));
-            const details = personalDetailsList?.[accountID];
-            if (!details) {
-                return undefined;
-            }
-            const hasNameErrors = Object.keys(agentPrompt?.nameErrors ?? {}).length > 0;
-            const hasPromptErrors = Object.keys(agentPrompt?.promptErrors ?? {}).length > 0;
-            const hasAvatarErrors = Object.keys(agentPrompt?.avatarErrors ?? {}).length > 0;
-            const pendingAction = agentPrompt?.pendingAction;
-            const isPendingDeletion = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const agents: AgentRowData[] = Object.entries(agentPrompts ?? {}).flatMap(([key, agentPrompt]) => {
+        const accountID = Number(key.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length));
+        const details = personalDetailsList?.[accountID];
+        if (!details) {
+            return [];
+        }
+        const hasNameErrors = Object.keys(agentPrompt?.nameErrors ?? {}).length > 0;
+        const hasPromptErrors = Object.keys(agentPrompt?.promptErrors ?? {}).length > 0;
+        const hasAvatarErrors = Object.keys(agentPrompt?.avatarErrors ?? {}).length > 0;
+        const pendingAction = agentPrompt?.pendingAction;
+        const isPendingDeletion = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-            return {
+        return [
+            {
                 keyForList: String(accountID),
                 accountID,
                 displayName: details.displayName ?? details.login ?? '',
@@ -81,9 +81,9 @@ function AgentsPage() {
                 disabled: isPendingDeletion,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID)),
                 dismissError: () => handleErrorClose(pendingAction, accountID),
-            };
-        })
-        .filter((agent): agent is AgentRowData => agent !== undefined);
+            },
+        ];
+    });
 
     const hasAgents = agents.length > 0;
 
