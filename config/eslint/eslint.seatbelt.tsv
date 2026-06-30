@@ -413,7 +413,7 @@
 "../../src/components/StatePicker/StateSelectorModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/StatePicker/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/StatusBadge.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/components/SubStepForms/AddressStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
+"../../src/components/SubStepForms/AddressStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/SubStepForms/AgreementsFullStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../src/components/SubStepForms/CountryFullStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/SubStepForms/DateOfBirthStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
