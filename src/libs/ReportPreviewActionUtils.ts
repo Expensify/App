@@ -37,6 +37,7 @@ function canSubmit(
     isReportArchived: boolean,
     currentUserAccountID: number,
     currentUserEmail: string,
+    ownerLogin: string | undefined,
     violations?: OnyxCollection<TransactionViolation[]>,
     policy?: Policy,
     transactions?: Transaction[],
@@ -59,7 +60,7 @@ function canSubmit(
         return false;
     }
 
-    const submitToAccountID = getSubmitToAccountID(policy, report);
+    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin);
 
     if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
         return false;
@@ -213,6 +214,7 @@ function getReportPreviewAction({
     isDEWSubmitPending,
     violationsData,
     reportMetadata,
+    ownerLogin,
 }: {
     isReportArchived: boolean;
     currentUserAccountID: number;
@@ -228,6 +230,7 @@ function getReportPreviewAction({
     isDEWSubmitPending?: boolean;
     violationsData?: OnyxCollection<TransactionViolation[]>;
     reportMetadata: OnyxEntry<ReportMetadata>;
+    ownerLogin: string | undefined;
 }): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
@@ -250,7 +253,7 @@ function getReportPreviewAction({
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
 
-    if (canSubmit(report, isReportArchived, currentUserAccountID, currentUserLogin, violationsData, policy, transactions)) {
+    if (canSubmit(report, isReportArchived, currentUserAccountID, currentUserLogin, ownerLogin, violationsData, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (canApprove(report, currentUserAccountID, reportMetadata, policy, transactions)) {
