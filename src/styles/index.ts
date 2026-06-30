@@ -3357,6 +3357,16 @@ const staticStyles = (theme: ThemeColors) =>
             ...positioning.pFixed,
         },
 
+        growlNotificationContainerBottomRight: {
+            maxWidth: variables.sideBarWidth,
+            width: '100%',
+            right: 0,
+            bottom: 20,
+            ...spacing.pl5,
+            ...spacing.pr5,
+            ...positioning.pFixed,
+        },
+
         growlNotificationBox: {
             backgroundColor: theme.inverse,
             borderRadius: variables.componentBorderRadiusNormal,
@@ -3364,16 +3374,39 @@ const staticStyles = (theme: ThemeColors) =>
             flexDirection: 'row',
             justifyContent: 'space-between',
             boxShadow: `${theme.shadow}`,
-            ...spacing.p5,
+            // Spec: padding-left 16px, padding-top/right/bottom 8px, 12px gap between items.
+            // The 8px top/bottom padding + the 40px-tall Medium Link action button add up to the
+            // 56px growl height from the design.
+            ...spacing.pl4,
+            ...spacing.pt2,
+            ...spacing.pr2,
+            ...spacing.pb2,
+            ...spacing.gap3,
         },
 
         growlNotificationText: {
             fontSize: variables.fontSizeNormal,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
-            width: '90%',
             lineHeight: variables.fontSizeNormalHeight,
             color: theme.textReversed,
-            ...spacing.ml4,
+        },
+
+        growlNotificationTextWithoutAction: {
+            width: '90%',
+        },
+
+        growlNotificationTextWithAction: {
+            flex: 1,
+            minWidth: 0,
+        },
+
+        // "View" action rendered as a Medium Link Button on the growl's inverse-colored surface.
+        growlNotificationActionText: {
+            color: theme.linkReversed,
+        },
+
+        growlNotificationActionHovered: {
+            backgroundColor: theme.buttonHoveredBGReversed,
         },
 
         noSelect: {
@@ -6437,14 +6470,6 @@ const dynamicStyles = (theme: ThemeColors) =>
         rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth, flex: 1}) satisfies ViewStyle,
 
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
-
-        growlNotificationTranslateY: (translateY: SharedValue<number>) => {
-            'worklet';
-
-            return {
-                transform: [{translateY: translateY.get()}],
-            };
-        },
 
         activeDropzoneDashedBorder: (borderColor: string, isActive: boolean) => {
             const browser = getBrowser();

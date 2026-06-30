@@ -26,7 +26,6 @@ function GroupChildrenContainer({
     nonPersonalAndWorkspaceCards,
     onUndelete,
     isLastItem,
-    newTransactionID,
     bankAccountList,
     cardFeeds,
     conciergeReportID,
@@ -78,7 +77,6 @@ function GroupChildrenContainer({
                             onLongPressRow={onLongPressRow}
                             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                             onUndelete={onUndelete}
-                            newTransactionID={newTransactionID}
                             bankAccountList={bankAccountList}
                             cardFeeds={cardFeeds}
                             conciergeReportID={conciergeReportID}

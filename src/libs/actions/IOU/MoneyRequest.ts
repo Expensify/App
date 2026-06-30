@@ -86,6 +86,8 @@ type CreateTransactionParams = {
     optimisticTransactionIDs: string[];
     optimisticChatReportID: string | undefined;
     currentUserLocalCurrency: string | undefined;
+    /** Whether the created action should own post-creation navigation. Skip-confirm orchestrators that dismiss/reveal first pass `false` so navigation isn't run twice. */
+    shouldHandleNavigation?: boolean;
 };
 
 function createTransaction({
@@ -114,6 +116,7 @@ function createTransaction({
     optimisticTransactionIDs,
     optimisticChatReportID,
     currentUserLocalCurrency,
+    shouldHandleNavigation = true,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
 
@@ -161,6 +164,7 @@ function createTransaction({
                 optimisticChatReportID,
                 optimisticTransactionID,
                 currentUserLocalCurrency,
+                shouldHandleNavigation,
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
@@ -203,6 +207,7 @@ function createTransaction({
                 personalDetails,
                 optimisticChatReportID,
                 optimisticTransactionID,
+                shouldHandleNavigation,
             });
         }
     }

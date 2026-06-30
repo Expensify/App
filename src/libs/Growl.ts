@@ -1,8 +1,16 @@
 import React from 'react';
 import CONST from '@src/CONST';
 
+type GrowlAction = {
+    label: string;
+    onPress: () => void;
+};
+
+/** The set of growl variants the notification UI knows how to render. */
+type GrowlType = typeof CONST.GROWL.SUCCESS | typeof CONST.GROWL.ERROR | typeof CONST.GROWL.WARNING | typeof CONST.GROWL.LOADING;
+
 type GrowlRef = {
-    show?: (bodyText: string, type: string, duration: number) => void;
+    show?: (bodyText: string, type: GrowlType, duration: number, action?: GrowlAction) => void;
 };
 
 const growlRef = React.createRef<GrowlRef>();
@@ -21,12 +29,12 @@ function setIsReady() {
 /**
  * Show the growl notification
  */
-function show(bodyText: string, type: string, duration: number = CONST.GROWL.DURATION) {
+function show(bodyText: string, type: GrowlType, duration: number = CONST.GROWL.DURATION, action?: GrowlAction) {
     isReadyPromise.then(() => {
         if (!growlRef?.current?.show) {
             return;
         }
-        growlRef.current.show(bodyText, type, duration);
+        growlRef.current.show(bodyText, type, duration, action);
     });
 }
 
@@ -40,16 +48,24 @@ function error(bodyText: string, duration: number = CONST.GROWL.DURATION) {
 /**
  * Show success growl
  */
-function success(bodyText: string, duration: number = CONST.GROWL.DURATION) {
-    show(bodyText, CONST.GROWL.SUCCESS, duration);
+function success(bodyText: string, duration: number = CONST.GROWL.DURATION, action?: GrowlAction) {
+    show(bodyText, CONST.GROWL.SUCCESS, duration, action);
+}
+
+/**
+ * Show indefinite loading growl (no auto-dismiss). Call success/error/show again to replace it.
+ */
+function loading(bodyText: string) {
+    show(bodyText, CONST.GROWL.LOADING, 0);
 }
 
 export default {
     show,
     error,
     success,
+    loading,
 };
 
-export type {GrowlRef};
+export type {GrowlRef, GrowlAction, GrowlType};
 
 export {growlRef, setIsReady};
