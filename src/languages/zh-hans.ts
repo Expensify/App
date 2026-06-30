@@ -1295,6 +1295,9 @@ const translations: TranslationDeepObject<typeof en> = {
             other: '您确定要删除这些报告吗？',
         }),
         settledExpensify: '已支付',
+        paidStatusMarkedAsPaid: '已标记为已支付',
+        paidStatusWithdrawing: '提现中',
+        paidStatusConfirmed: '已确认',
         done: '完成',
         settledElsewhere: '在其他地方支付',
         individual: '个人',
@@ -1606,6 +1609,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: '移动到报告',
         moveExpensesError: '您无法将每日津贴报销移动到其他工作区的报表中，因为不同工作区的每日津贴标准可能不同。',
+        submitReportTo: {
+            sendExpense: '将你的报销发送给任何人',
+            sendExpenseSubtitle: '使用电子邮箱地址或电话号码邀请任何人加入 Expensify。',
+        },
         changeApprover: {
             title: '更改审批人',
             header: (workflowSettingLink: string) => `选择一个选项来更改此报表的审批人。（更新你的<a href="${workflowSettingLink}">工作区设置</a>，以将其永久应用于所有报表。）`,
@@ -9045,10 +9052,6 @@ ${reportName}`,
         bookACallTextBottom: '我们非常期待与您通话以了解原因。您可以预约与我们的一位资深产品经理通话，讨论您的需求。',
         takeMeToExpensifyClassic: '带我前往 Expensify 经典版',
         goBackJustOnce: '仅此一次返回',
-    },
-    listBoundary: {
-        errorMessage: '加载更多消息时出错',
-        tryAgain: '重试',
     },
     systemMessage: {
         mergedWithCashTransaction: '已将一张收据匹配到此交易',

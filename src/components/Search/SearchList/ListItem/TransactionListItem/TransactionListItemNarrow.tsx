@@ -35,6 +35,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     isFirstItem,
     transactionViolations,
     handleActionButtonPress,
+    shouldDisableActionPointerEvents,
     transactionPreviewData,
     exportedReportActions,
     nonPersonalAndWorkspaceCards,
@@ -122,6 +123,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                             isActionLoading={isLoading ?? isActionLoading}
                             isSelected={isSelected}
                             isDisabled={!!isDisabled}
+                            shouldDisableActionPointerEvents={shouldDisableActionPointerEvents}
                             dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                             amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                             taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}

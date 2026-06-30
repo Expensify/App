@@ -1304,6 +1304,9 @@ const translations: TranslationDeepObject<typeof en> = {
             other: '¿Estás seguro de que quieres eliminar estos informes?',
         }),
         settledExpensify: 'Pagado',
+        paidStatusMarkedAsPaid: 'Marcado como pagado',
+        paidStatusWithdrawing: 'Retirada',
+        paidStatusConfirmed: 'Confirmado',
         done: 'Listo',
         deleted: 'Eliminado',
         settledElsewhere: 'Pagado de otra forma',
@@ -1627,6 +1630,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Mover a informe',
         moveExpensesError: 'No puedes mover gastos per diem a informes de otros espacios de trabajo, porque las tarifas de dietas pueden diferir entre espacios de trabajo.',
+        submitReportTo: {
+            sendExpense: 'Envía tu gasto a cualquier persona',
+            sendExpenseSubtitle: 'Invita a cualquiera a Expensify usando su dirección de correo electrónico o número de teléfono.',
+        },
         changeApprover: {
             title: 'Cambiar aprobador',
             header: (workflowSettingLink) =>
@@ -9511,10 +9518,6 @@ ${amount} para ${merchant} - ${date}`,
         bookACallTextBottom: 'Nos encantaría hablar con usted para entender por qué. Puede concertar una llamada con uno de nuestros jefes de producto para hablar de sus necesidades.',
         takeMeToExpensifyClassic: 'Llévame a Expensify Classic',
         goBackJustOnce: 'Volver solo esta vez',
-    },
-    listBoundary: {
-        errorMessage: 'Se ha producido un error al cargar más mensajes',
-        tryAgain: 'Inténtalo de nuevo',
     },
     systemMessage: {
         mergedWithCashTransaction: 'encontró un recibo para esta transacción',
