@@ -72,23 +72,6 @@ function resolveSuggestedFollowup(
     // If there's a pre-generated response, queue it for delayed display.
     const optimisticConciergeReportActionID = rand64();
 
-    // Post user's comment immediately
-    addComment({
-        report,
-        notifyReportID: notifyReportID ?? reportID,
-        ancestors,
-        text: selectedFollowup.text,
-        timezoneParam,
-        currentUserAccountID,
-        shouldPlaySound: false,
-        isInSidePanel: false,
-        pregeneratedResponseParams: {
-            optimisticConciergeReportActionID,
-            pregeneratedResponse: selectedFollowup.response,
-        },
-        delegateAccountID,
-    });
-
     // Use the full delay as createdOffset so the Concierge response timestamp is
     // strictly after the user's comment — a 1ms offset was not enough to guarantee
     // correct sort order when both actions are queued to Onyx near-simultaneously.
@@ -102,6 +85,24 @@ function resolveSuggestedFollowup(
         currentUserEmail,
         currentUserAccountID,
         delegateAccountIDParam: delegateAccountID,
+    });
+
+    // Post user's comment immediately
+    addComment({
+        report,
+        notifyReportID: notifyReportID ?? reportID,
+        ancestors,
+        text: selectedFollowup.text,
+        timezoneParam,
+        currentUserAccountID,
+        shouldPlaySound: false,
+        isInSidePanel: false,
+        pregeneratedResponseParams: {
+            optimisticConciergeReportActionID,
+            optimisticConciergeCreated: optimisticConciergeAction.reportAction.created,
+            pregeneratedResponse: selectedFollowup.response,
+        },
+        delegateAccountID,
     });
 
     addOptimisticConciergeActionWithDelay(reportID, optimisticConciergeAction);
