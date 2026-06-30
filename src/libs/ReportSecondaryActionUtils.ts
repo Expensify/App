@@ -400,12 +400,12 @@ function isCancelPaymentAction(
     policy?: Policy,
 ): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
+    const isIOUReport = isIOUReportUtils(report);
 
-    if (!isExpenseReport) {
+    if (!isExpenseReport && !isIOUReport) {
         return false;
     }
 
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isPayer = isPayerUtils(currentAccountID, currentUserEmail, report, bankAccountList, policy, false);
 
     // A P2P "send money" payment made with the Expensify wallet that is waiting for the receiver to set up their
@@ -432,11 +432,7 @@ function isCancelPaymentAction(
         return false;
     }
 
-    // Get all report actions for this report and filter for pay actions
-    // Pay actions are at the report level, not per transaction
-    const allReportActions = getAllReportActions(report.reportID);
-    const allActionsArray = Object.values(allReportActions);
-    const payActions = allActionsArray.filter((action): action is ReportAction => !!action && isPayAction(action));
+    const payActions = getReportPayActions(report.reportID);
 
     // Check if payment was made via bank account (not elsewhere)
     // If no pay actions exist, we can't determine the payment type, so we assume it was NOT a bank payment
