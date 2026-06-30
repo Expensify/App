@@ -9509,10 +9509,6 @@ ${amount} para ${merchant} - ${date}`,
         takeMeToExpensifyClassic: 'Llévame a Expensify Classic',
         goBackJustOnce: 'Volver solo esta vez',
     },
-    listBoundary: {
-        errorMessage: 'Se ha producido un error al cargar más mensajes',
-        tryAgain: 'Inténtalo de nuevo',
-    },
     systemMessage: {
         mergedWithCashTransaction: 'encontró un recibo para esta transacción',
     },
