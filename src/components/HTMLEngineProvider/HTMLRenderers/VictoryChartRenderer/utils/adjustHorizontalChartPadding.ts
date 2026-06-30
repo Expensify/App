@@ -14,9 +14,9 @@ function adjustHorizontalChartPadding({isHorizontal, padding, yAxis}: ProcessNod
     }
 
     const categoryAxis = yAxis?.at(0);
-    const hasBuiltInCategoryLabels = Boolean(categoryAxis?.font) && ((categoryAxis?.tickCount ?? 0) > 0 || (categoryAxis?.tickValues?.length ?? 0) > 0);
+    const hasBuiltInCategoryLabels = !!categoryAxis?.font && (categoryAxis?.tickCount ?? 0) > 0;
 
-    if (!hasBuiltInCategoryLabels || (categoryAxis?.tickCount ?? 0) === 0) {
+    if (!hasBuiltInCategoryLabels) {
         return padding;
     }
 

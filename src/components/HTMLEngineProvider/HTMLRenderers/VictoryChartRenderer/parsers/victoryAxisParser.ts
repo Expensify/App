@@ -24,7 +24,6 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
     const tickFormat = Array.isArray(rawTickFormat) ? rawTickFormat : undefined;
     const hasExplicitTickValues = Array.isArray(rawTickValues) && rawTickValues.length > 0;
     const tickValues = hasExplicitTickValues ? rawTickValues : tickFormat?.map((_, index) => index);
-    const resolvedTickCount = tickCount;
 
     const formatLabel = (label: string | number) => {
         if (!tickFormat) {
@@ -58,7 +57,7 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
         return isHorizontal
             ? {
                   xAxis: {
-                      tickCount: resolvedTickCount,
+                      tickCount,
                       tickValues,
                       formatXLabel: formatLabel,
                       axisSide: orientation === 'right' ? 'top' : 'bottom',
@@ -72,7 +71,7 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
             : {
                   yAxis: [
                       {
-                          tickCount: resolvedTickCount,
+                          tickCount,
                           tickValues,
                           formatYLabel: formatLabel,
                           axisSide: orientation === 'right' ? 'right' : 'left',
@@ -89,7 +88,7 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
         ? {
               yAxis: [
                   {
-                      tickCount: resolvedTickCount,
+                      tickCount,
                       tickValues,
                       formatYLabel: formatLabel,
                       axisSide: orientation === 'top' ? 'right' : 'left',
@@ -103,7 +102,7 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
           }
         : {
               xAxis: {
-                  tickCount: resolvedTickCount,
+                  tickCount,
                   tickValues,
                   formatXLabel: formatLabel,
                   axisSide: orientation === 'top' ? 'top' : 'bottom',
