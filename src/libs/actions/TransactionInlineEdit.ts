@@ -186,6 +186,7 @@ type GetIouParamsInput = {
     parentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     isSelfTourViewed: boolean | undefined;
     hasCompletedGuidedSetupFlow: boolean | undefined;
+    distanceOriginalPolicy?: OnyxEntry<Policy>;
 };
 
 type TransactionInlineEditParams = GetIouParamsInput & {
@@ -297,6 +298,7 @@ function editTransactionDateInline(params: TransactionInlineEditParams, newDate:
         transactionViolations: allTransactionViolations,
         isOffline: params.isOffline,
         hash: params.hash,
+        distanceOriginalPolicy: params.distanceOriginalPolicy,
     });
 }
 

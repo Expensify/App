@@ -77,6 +77,7 @@ type UpdateMoneyRequestDateParams = {
     hash?: number;
     delegateAccountID: number | undefined;
     policyForTrackExpense?: OnyxEntry<OnyxTypes.Policy>;
+    distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>;
 };
 
 type SearchSnapshotOnyxData = {
@@ -221,6 +222,7 @@ function updateMoneyRequestDate({
     hash,
     delegateAccountID,
     policyForTrackExpense,
+    distanceOriginalPolicy,
 }: UpdateMoneyRequestDateParams) {
     const transaction = getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const isTrackExpense = isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport);
@@ -260,6 +262,7 @@ function updateMoneyRequestDate({
             updatedTaxAmount: distanceRateTaxUpdates?.taxAmount,
             updatedTaxCode: distanceRateTaxUpdates?.taxCode,
             updatedTaxValue: distanceRateTaxUpdates?.taxValue,
+            distanceOriginalPolicy,
         });
         return;
     }
@@ -270,7 +273,7 @@ function updateMoneyRequestDate({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
 
     if (isTrackExpense) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, effectivePolicy, delegateAccountID, hash);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, effectivePolicy, delegateAccountID, hash, undefined, distanceOriginalPolicy);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,
@@ -289,6 +292,7 @@ function updateMoneyRequestDate({
             isOffline,
             hash,
             delegateAccountID,
+            distanceOriginalPolicy,
         });
         removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
     }
@@ -1152,6 +1156,7 @@ function updateMoneyRequestDistanceRate({
     transactionViolations,
     isOffline,
     shouldBuildOptimisticModifiedExpenseReportAction = true,
+    distanceOriginalPolicy,
 }: {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -1174,6 +1179,7 @@ function updateMoneyRequestDistanceRate({
     transactionViolations?: OnyxCollection<OnyxTypes.TransactionViolations>;
     isOffline?: boolean;
     shouldBuildOptimisticModifiedExpenseReportAction?: boolean;
+    distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>;
 }) {
     const transactionChanges: TransactionChanges = {
         customUnitRateID: rateID,
@@ -1207,6 +1213,7 @@ function updateMoneyRequestDistanceRate({
             delegateAccountID,
             hash,
             shouldBuildOptimisticModifiedExpenseReportAction,
+            distanceOriginalPolicy,
         );
     } else {
         data = getUpdateMoneyRequestParams({
@@ -1227,6 +1234,7 @@ function updateMoneyRequestDistanceRate({
             hash,
             delegateAccountID,
             shouldBuildOptimisticModifiedExpenseReportAction,
+            distanceOriginalPolicy,
         });
         if (created && transaction?.transactionID && transactions && transactionViolations) {
             removeTransactionFromDuplicateTransactionViolation(data.onyxData, transaction.transactionID, transactions, transactionViolations);
@@ -1351,6 +1359,7 @@ type GetUpdateMoneyRequestParamsType = {
     // TODO: This will be required eventually. Ref: https://github.com/Expensify/App/issues/66407
     isOffline?: boolean;
     delegateAccountID: number | undefined;
+    distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>;
 };
 
 type UpdateMoneyRequestDataKeys =
@@ -1392,6 +1401,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         isSelfDMSplit,
         isOffline,
         delegateAccountID,
+        distanceOriginalPolicy,
     } = params;
     const optimisticData: Array<
         OnyxUpdate<
@@ -1905,6 +1915,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             isSelfDM: isSelfDM(iouReport),
             iouReport,
             isFromExpenseReport,
+            distanceOriginalPolicy,
         });
         optimisticData.push(violationsOnyxData);
         failureData.push({

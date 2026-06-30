@@ -13,7 +13,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import DateUtils from './DateUtils';
 import getStoredDefaultP2PMileageRate from './getStoredDefaultP2PMileageRate';
 import {replaceAllDigits} from './MoneyRequestUtils';
-import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getPolicyForDistanceRateID as getPolicyForDistanceRateIDFromCollection, getUnitRateValue} from './PolicyUtils';
+import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getUnitRateValue} from './PolicyUtils';
 import {getCurrency, getRateID, isCustomUnitRateIDForP2P, isExpenseUnreported} from './TransactionUtils';
 
 type MileageRate = {
@@ -542,13 +542,6 @@ function getPersonalPolicy() {
 }
 
 /**
- * Finds the policy that owns the given distance customUnitRateID using the cached policy collection.
- */
-function getPolicyForDistanceRateID(customUnitRateID: string | undefined): OnyxEntry<Policy> {
-    return getPolicyForDistanceRateIDFromCollection(customUnitRateID, allPolicies);
-}
-
-/**
  * Get the selected rate for a transaction, from the policy or P2P default rate.
  * Use the distanceUnit stored on the transaction by default to prevent policy changes modifying existing transactions. Otherwise, get the unit from the rate.
  *
@@ -734,7 +727,6 @@ export default {
     isUnsetDistanceCustomUnitRateID,
     getBestEligibleRate,
     getRateDateLabel,
-    getPolicyForDistanceRateID,
 };
 
 export type {MileageRate};

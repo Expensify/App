@@ -457,6 +457,7 @@ const ViolationsUtils = {
         iouReport,
         isFromExpenseReport,
         shouldRemoveRejectedExpenseViolation,
+        distanceOriginalPolicy,
     }: {
         updatedTransaction: Transaction;
         transactionViolations: TransactionViolation[];
@@ -469,6 +470,7 @@ const ViolationsUtils = {
         iouReport?: OnyxEntry<Report>;
         isFromExpenseReport?: boolean;
         shouldRemoveRejectedExpenseViolation?: boolean;
+        distanceOriginalPolicy?: OnyxEntry<Policy>;
     }): OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> {
         const isScanning = TransactionUtils.isScanning(updatedTransaction);
         const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
@@ -593,7 +595,7 @@ const ViolationsUtils = {
             let policyForCustomUnitRate = policy;
 
             if (!isPerDiem && isDistanceRequestForCustomUnit && !getDistanceRateCustomUnitRate(policy, customUnitRateID)) {
-                policyForCustomUnitRate = DistanceRequestUtils.getPolicyForDistanceRateID(customUnitRateID) ?? policy;
+                policyForCustomUnitRate = distanceOriginalPolicy ?? policy;
             }
 
             const customRate = isPerDiem ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : getDistanceRateCustomUnitRate(policyForCustomUnitRate, customUnitRateID);
