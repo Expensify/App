@@ -61,8 +61,15 @@ const createQueryPromiseWrapper = () =>
 let queryPromiseWrapper = createQueryPromiseWrapper();
 let isFetchingForPendingUpdates = false;
 
+// Convergence guard: sequential gap fetches can loop ~1/s when the server keeps reporting a gap the
+// client never closes. We count fetches that don't advance the client and stop re-firing once stalled.
+let consecutiveStalledGapFetches = 0;
+let lastGapFetchClientUpdateID: number | undefined;
+
 const resetDeferralLogicVariables = () => {
     clearDeferredOnyxUpdates({shouldUnpauseSequentialQueue: false});
+    consecutiveStalledGapFetches = 0;
+    lastGapFetchClientUpdateID = undefined;
 };
 
 // This function will reset the query variables, unpause the SequentialQueue and log an info to the user.
@@ -179,6 +186,28 @@ function handleMissingOnyxUpdates<TKey extends OnyxKey>(onyxUpdatesFromServer: O
         // If a fetch is already in progress, we don't need to start another one.
         if (areDeferredUpdatesQueued || isFetchingForPendingUpdates || getMissingOnyxUpdatesQueryPromise()) {
             return false;
+        }
+
+        // Convergence guard: count fetches fired against an unchanged client update ID. When the previous
+        // fetch advanced the client, lastUpdateIDFromClient differs here and the counter resets.
+        if (lastUpdateIDFromClient === lastGapFetchClientUpdateID) {
+            consecutiveStalledGapFetches += 1;
+        } else {
+            consecutiveStalledGapFetches = 0;
+            lastGapFetchClientUpdateID = lastUpdateIDFromClient;
+        }
+
+        // The server keeps reporting a gap the client never closes. Resume the queue without firing another
+        // GetMissingOnyxMessages; the counter stays tripped until the client advances via another path.
+        if (consecutiveStalledGapFetches >= CONST.MAX_CONSECUTIVE_STALLED_GAP_FETCHES) {
+            Log.alert('[OnyxUpdateManager] GetMissingOnyxMessages is not advancing the client, backing off to avoid a request loop', {
+                lastUpdateIDFromClient,
+                previousUpdateIDFromServer,
+                lastUpdateIDFromServer,
+                consecutiveStalledGapFetches,
+            });
+            setMissingOnyxUpdatesQueryPromise(Promise.resolve());
+            return true;
         }
 
         console.debug(`[OnyxUpdateManager] Client is fetching missing updates from the server, from updates ${lastUpdateIDFromClient} to ${Number(previousUpdateIDFromServer)}`);
