@@ -44,10 +44,36 @@ const mockSubscribeToReportReasoningEvents = subscribeToReportReasoningEvents as
 const mockUnsubscribeFromReportReasoningChannel = unsubscribeFromReportReasoningChannel as jest.MockedFunction<typeof unsubscribeFromReportReasoningChannel>;
 
 const reportID = '123';
+const currentUserAccountID = 111;
+const customAgentAccountID = 555;
+
+const participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
 
 /** Simulates a reasoning event for Concierge via AgentZeroReasoningStore (the real store, since it's not mocked) */
 function simulateReasoning(data: {reasoning: string; agentZeroRequestID: string; loopCount: number}) {
     AgentZeroReasoningStore.addReasoning(reportID, CONST.ACCOUNT_ID.CONCIERGE, data);
+}
+
+async function seedCustomAgentReport({isDM}: {isDM: boolean}) {
+    await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, '999');
+    await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        reportID,
+        type: CONST.REPORT.TYPE.CHAT,
+        chatType: isDM ? undefined : CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+        participants: {
+            [currentUserAccountID]: participant,
+            [customAgentAccountID]: participant,
+        },
+    });
+    await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        [customAgentAccountID]: {
+            accountID: customAgentAccountID,
+            displayName: 'Agent',
+            isCustomAgent: true,
+        },
+    });
+    await waitForBatchedUpdates();
 }
 
 function wrapper({children}: {children: React.ReactNode}) {
@@ -67,6 +93,7 @@ describe('AgentZeroStatusContext', () => {
         // Clear AgentZeroOptimisticStore between tests so a leftover entry from a prior
         // test doesn't hydrate the next hook mount with unexpected optimistic state.
         AgentZeroOptimisticStore.clear(reportID, CONST.ACCOUNT_ID.CONCIERGE);
+        AgentZeroOptimisticStore.clear(reportID, customAgentAccountID);
 
         // Make clearAgentZeroProcessingIndicator actually clear the Onyx NVP slot for the agent
         // so safety timeout and reconnect tests can verify the full clearing flow
@@ -176,6 +203,88 @@ describe('AgentZeroStatusContext', () => {
     });
 
     describe('kickoffWaitingIndicator', () => {
+        it('should trigger optimistic waiting state for a custom-agent DM', async () => {
+            await seedCustomAgentReport({isDM: true});
+
+            const {result} = renderHook(
+                () => ({
+                    state: useAgentZeroStatus(),
+                    status: useAgentZeroStatusIndicator(reportID, customAgentAccountID),
+                    actions: useAgentZeroStatusActions(),
+                }),
+                {wrapper},
+            );
+            await waitForBatchedUpdates();
+
+            expect(result.current.state.candidateAgentIDs).toContain(customAgentAccountID);
+            expect(result.current.state.candidateAgentIDs).not.toContain(CONST.ACCOUNT_ID.CONCIERGE);
+
+            act(() => {
+                result.current.actions.kickoffWaitingIndicator();
+            });
+            await waitForBatchedUpdates();
+
+            expect(result.current.status.isProcessing).toBe(true);
+            expect(result.current.status.statusLabel).toBe('Thinking...');
+        });
+
+        it('should not trigger optimistic waiting state for a custom-agent non-DM report', async () => {
+            await seedCustomAgentReport({isDM: false});
+
+            const {result} = renderHook(
+                () => ({
+                    state: useAgentZeroStatus(),
+                    status: useAgentZeroStatusIndicator(reportID, customAgentAccountID),
+                    actions: useAgentZeroStatusActions(),
+                }),
+                {wrapper},
+            );
+            await waitForBatchedUpdates();
+
+            act(() => {
+                result.current.actions.kickoffWaitingIndicator();
+            });
+            await waitForBatchedUpdates();
+
+            expect(result.current.state.candidateAgentIDs).not.toContain(customAgentAccountID);
+            expect(result.current.status.isProcessing).toBe(false);
+            expect(result.current.status.statusLabel).toBe('');
+        });
+
+        it('should clear optimistic waiting state when a custom-agent DM reply arrives', async () => {
+            await seedCustomAgentReport({isDM: true});
+
+            const {result} = renderHook(
+                () => ({
+                    status: useAgentZeroStatusIndicator(reportID, customAgentAccountID),
+                    actions: useAgentZeroStatusActions(),
+                }),
+                {wrapper},
+            );
+            await waitForBatchedUpdates();
+
+            act(() => {
+                result.current.actions.kickoffWaitingIndicator();
+            });
+            await waitForBatchedUpdates();
+            expect(result.current.status.isProcessing).toBe(true);
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                customAgentReply: {
+                    reportActionID: 'customAgentReply',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: customAgentAccountID,
+                    created: '2024-01-01 00:00:00.000',
+                    message: [{type: 'TEXT', text: 'Agent reply'}],
+                },
+            });
+            await waitForBatchedUpdates();
+
+            await waitFor(() => {
+                expect(mockClearAgentZeroProcessingIndicator).toHaveBeenCalledWith(reportID, customAgentAccountID);
+            });
+        });
+
         it('should trigger optimistic waiting state when called in Concierge chat without server label', async () => {
             // Given a Concierge chat with no server label (user about to send a message)
             const {result} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});
