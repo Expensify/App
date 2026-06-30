@@ -38,7 +38,6 @@ type ChartCategoryYAxisLabelsProps = {
 function ChartCategoryYAxisLabels({labels, labelWidths, ellipsisWidth, categoryIndices, yScale, chartBounds, fontSize, fontManager, labelColor}: ChartCategoryYAxisLabelsProps) {
     const truncatedLabels = labels.map((label, i) => truncateLabel(label, labelWidths.at(i) ?? 0, MAX_Y_AXIS_LABEL_WIDTH, ellipsisWidth));
     const paragraphs = useChartParagraphs(truncatedLabels, fontManager, fontSize, labelColor, MAX_Y_AXIS_LABEL_WIDTH);
-    const maxWidth = Math.max(0, ...paragraphs.map((item) => item.width));
     const {ascent, descent} = getFontLineMetrics(fontManager, fontSize);
     const lineHeight = ascent + descent;
 
@@ -49,7 +48,7 @@ function ChartCategoryYAxisLabels({labels, labelWidths, ellipsisWidth, categoryI
             return null;
         }
 
-        const x = chartBounds.left - VictoryTheme.axis.labelGap + GLYPH_PADDING - maxWidth;
+        const x = chartBounds.left - VictoryTheme.axis.labelGap + GLYPH_PADDING - paraData.width;
         const tickY = yScale(categoryIndex);
 
         return (

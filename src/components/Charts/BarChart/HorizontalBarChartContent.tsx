@@ -151,7 +151,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
 
     const chartPadding = {
         ...VictoryTheme.axis.padding,
-        left: categoryLabelWidth + GLYPH_PADDING + VictoryTheme.axis.labelGap,
+        left: categoryLabelWidth + GLYPH_PADDING,
         bottom: xAxisLabelHeight + VictoryTheme.axis.padding.bottom,
         right: valueLabelWidth + GLYPH_PADDING,
     };
@@ -205,7 +205,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
                         }}
                         yAxis={[
                             {
-                                tickCount: data.length,
+                                tickCount: 0,
                                 lineWidth: VictoryTheme.axis.xLineWidth,
                             },
                         ]}

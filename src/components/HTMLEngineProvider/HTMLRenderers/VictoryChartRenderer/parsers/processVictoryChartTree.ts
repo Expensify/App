@@ -3,6 +3,7 @@ import lodashMerge from 'lodash/merge';
 import type {TNode} from 'react-native-render-html';
 import {X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import type {ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import adjustHorizontalChartPadding from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/adjustHorizontalChartPadding';
 import PARSER_REGISTRY from './parserRegistry';
 
 /**
@@ -92,7 +93,9 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         legendItems.push(...childResult.legendItems);
     }
 
-    return {data, xKey: X_KEY, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems};
+    const resolvedPadding = adjustHorizontalChartPadding({data, xKey: X_KEY, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems});
+
+    return {data, xKey: X_KEY, yKeys, xAxis, yAxis, domain, domainPadding, padding: resolvedPadding, isHorizontal, categories, labelItems, legendItems};
 }
 
 export default processVictoryChartTree;
