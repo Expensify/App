@@ -43,7 +43,7 @@ function ForYouSection() {
     // as "loaded" with an `undefined` value straight away). Only treat the onboarding status as known once the actual
     // value is present, so we don't flash the skeleton at onboarding users during the load window.
     const isOnboardingStatusKnown = onboarding !== undefined;
-    const [hasSeenForYouTodo = false] = useOnyx(ONYXKEYS.HAS_SEEN_FOR_YOU_TODO);
+    const [hasSeenForYouTodo = false] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO);
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
     const [singleReportIDs = EMPTY_TODOS_SINGLE_REPORT_IDS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosSingleReportIDsSelector});
     const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
