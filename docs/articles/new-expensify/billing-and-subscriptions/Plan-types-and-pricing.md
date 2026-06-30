@@ -44,7 +44,7 @@ The Submit plan is a free plan for employees who want to submit expenses to an a
 - Unlimited SmartScans
 - Categories and tags
 - Distance expenses
-- Submitting expenses to an approver by email
+- Submitting expenses to an approver
 - Marking outstanding reports as paid
 
 The following features are not included in the Submit plan. Attempting to enable one prompts you to upgrade to a paid plan:
