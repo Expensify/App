@@ -61,7 +61,7 @@ An aging report is a breakdown of expenses by how long they have been in a given
 Some search shortcuts only appear when the required features are enabled:
 
  - **Cash accruals** requires reimbursements
- - **Card accruals** and **Card statements** require a card feed
+ - **Card accruals** and **Card statements** require a card feed (a company card feed or the Expensify Card)
  - **Bank reconciliation** requires a validated business bank account. 
 
 If a feature isn’t enabled, its shortcut won’t appear.
