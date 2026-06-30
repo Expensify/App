@@ -138,6 +138,7 @@ jest.mock('@libs/ReportUtils', () => ({
     isMoneyRequestReport: () => mockIsMoneyRequestReport,
     isInvoiceReport: () => mockIsInvoiceReport,
     getReportLastVisibleActionCreated: () => mockLastVisibleActionCreated,
+    shouldReportAlignToTop: () => (mockIsTransactionThread && !mockIsSentMoneyReportAction) || mockIsMoneyRequestReport || mockIsInvoiceReport,
 }));
 
 // --- Browser ---
