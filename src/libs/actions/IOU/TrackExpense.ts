@@ -2201,7 +2201,7 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
  * move the tracked expense into it in a single request.
  */
 function submitTrackedExpenseToPolicy(trackedExpenseParams: TrackedExpenseParams) {
-    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, currentUser} = trackedExpenseParams;
+    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, isDistanceRequest, currentUser} = trackedExpenseParams;
     const {accountID: currentUserAccountID} = currentUser;
     const {optimisticData, successData, failureData} = onyxData ?? {};
     const {transactionID} = transactionParams;
@@ -2249,9 +2249,15 @@ function submitTrackedExpenseToPolicy(trackedExpenseParams: TrackedExpenseParams
         adminsCreatedReportActionID: createdWorkspaceParams?.adminsCreatedReportActionID,
         engagementChoice: createdWorkspaceParams?.engagementChoice,
         guidedSetupData: createdWorkspaceParams?.guidedSetupData,
+        // Forward the optimistic workspace name so the backend-created workspace matches what the user sees offline
+        // (e.g. "Test's Workspace") instead of falling back to a backend-generated default.
+        policyName: createdWorkspaceParams?.policyName,
         description: transactionParams.comment,
-        customUnitID: createdWorkspaceParams?.customUnitID,
-        customUnitRateID: createdWorkspaceParams?.customUnitRateID ?? transactionParams.customUnitRateID,
+        // Only forward the (new) workspace's distance custom unit for actual distance expenses. customUnitID/customUnitRateID
+        // are pulled from the freshly created workspace (createdWorkspaceParams), so for a manual/scan expense sending them
+        // would explicitly tell the backend to treat the moved expense as a 0-mile distance request and wipe the amount.
+        customUnitID: isDistanceRequest ? createdWorkspaceParams?.customUnitID : undefined,
+        customUnitRateID: isDistanceRequest ? (createdWorkspaceParams?.customUnitRateID ?? transactionParams.customUnitRateID) : undefined,
         attendees: transactionParams.attendees ? JSON.stringify(transactionParams.attendees) : undefined,
         // submitTrackedExpenseToPolicy is only reached for the submit2026 draft flow (gated in useExpenseSubmission and
         // getTrackExpenseInformation), so when a workspace is created here it must be a Submit (submit2026) workspace.
@@ -2791,6 +2797,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 transactionParams,
                 policyParams,
                 createdWorkspaceParams,
+                isDistanceRequest,
                 currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
             };
 

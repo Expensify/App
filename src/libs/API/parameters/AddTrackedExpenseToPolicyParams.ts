@@ -9,6 +9,8 @@ type AddTrackedExpenseToPolicyParams = CategorizeTrackedExpenseParams & {
     reimbursable?: boolean;
     distance?: number;
     shouldDeferAutoSubmit?: boolean;
+    /** Name to give the workspace when one is created as part of this request, so the backend matches the optimistic name. */
+    policyName?: string;
     /** Policy type to create when a workspace is created as part of this request (e.g. submit2026 for "Submit to my employer"). */
     type?: ValueOf<typeof CONST.POLICY.TYPE>;
 };

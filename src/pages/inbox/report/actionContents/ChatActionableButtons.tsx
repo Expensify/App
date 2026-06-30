@@ -212,7 +212,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                         preferredPolicyID,
                         actionName: CONST.IOU.ACTION.SUBMIT,
                         submitDestination: destination,
-                        defaultWorkspaceName: generateDefaultWorkspaceName(personalDetail.email ?? '', lastWorkspaceNumber, translate),
+                        defaultWorkspaceName: generateDefaultWorkspaceName(personalDetail.email ?? '', lastWorkspaceNumber, translate, personalDetail.displayName),
                     });
                 },
             });
