@@ -4,13 +4,13 @@ import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import CollapsibleSection from '@components/CollapsibleSection';
-import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import type {MenuItemWithLink} from '@components/MenuItemList';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -19,6 +19,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
@@ -64,6 +65,7 @@ import ROUTES from '@src/ROUTES';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {AccountingContextProvider, useAccountingActions, useAccountingState} from './AccountingContext';
+import {isCertiniaSRPConnection} from './certinia/utils';
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
 import {getAccountingIntegrationData, getSynchronizationErrorMessage} from './utils';
 
@@ -88,7 +90,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
     const {popoverAnchorRefs} = useAccountingState();
     const {startIntegrationFlow} = useAccountingActions();
@@ -190,7 +192,20 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             {
                 icon: icons.Trashcan,
                 text: translate('workspace.accounting.disconnect'),
-                onSelected: () => setIsDisconnectModalOpen(true),
+                onSelected: () => {
+                    showConfirmModal({
+                        title: translate('workspace.accounting.disconnectTitle', {connectionName: connectedIntegration}),
+                        prompt: translate('workspace.accounting.disconnectPrompt', {connectionName: connectedIntegration}),
+                        confirmText: translate('workspace.accounting.disconnect'),
+                        cancelText: translate('common.cancel'),
+                        danger: true,
+                    }).then(({action}) => {
+                        if (action !== ModalActions.CONFIRM || !connectedIntegration || !policyID) {
+                            return;
+                        }
+                        removePolicyConnection(policy, connectedIntegration);
+                    });
+                },
                 shouldCallAfterModalHide: true,
             },
         ],
@@ -211,6 +226,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             hasAuthError,
             credentialsMenuTextKey,
             policyID,
+            showConfirmModal,
         ],
     );
 
@@ -323,7 +339,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           interactive: false,
                       };
             case CONST.POLICY.CONNECTIONS.NAME.CERTINIA:
-                return !certiniaConfig?.hasPSA || certiniaConfig?.hasPSAOnly !== false
+                return !isCertiniaSRPConnection(certiniaConfig)
                     ? {}
                     : {
                           description: translate('workspace.certinia.company'),
@@ -802,21 +818,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         </Section>
                     </View>
                 </ScrollView>
-                <ConfirmModal
-                    title={translate('workspace.accounting.disconnectTitle', {connectionName: connectedIntegration})}
-                    isVisible={isDisconnectModalOpen}
-                    onConfirm={() => {
-                        if (connectedIntegration && policyID) {
-                            removePolicyConnection(policy, connectedIntegration);
-                        }
-                        setIsDisconnectModalOpen(false);
-                    }}
-                    onCancel={() => setIsDisconnectModalOpen(false)}
-                    prompt={translate('workspace.accounting.disconnectPrompt', {connectionName: connectedIntegration})}
-                    confirmText={translate('workspace.accounting.disconnect')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

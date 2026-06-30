@@ -7,6 +7,7 @@ import {endSpanWithAttributes} from '@libs/telemetry/activeSpans';
 import {endNavigateToReportsFirstPaint} from '@libs/telemetry/navigateToReportsSpans';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
+import useStuckSkeletonLog from './hooks/useStuckSkeletonLog';
 
 type SearchLoadingSkeletonProps = {
     containerStyle?: StyleProp<ViewStyle>;
@@ -16,6 +17,8 @@ type SearchLoadingSkeletonProps = {
 function SearchLoadingSkeleton({containerStyle, reasonAttributes}: SearchLoadingSkeletonProps) {
     const styles = useThemeStyles();
     const skeletonReasonAttributes = reasonAttributes ?? {context: 'SearchLoadingSkeleton'};
+
+    useStuckSkeletonLog(skeletonReasonAttributes);
 
     return (
         <Animated.View
