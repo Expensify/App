@@ -33,9 +33,10 @@ import {openDraftDistanceExpense, removeWaypoint, updateWaypoints as updateWaypo
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import {getWaypointsHasUnsavedChanges} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
-import {doesMoneyRequestDraftHaveUserInput, getRateID, getRequestType, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
+import {getRateID, getRequestType, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -140,7 +141,7 @@ function IOURequestStepDistanceMap({
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, currentTransaction);
 
     const {notifySaving} = useDiscardChangesConfirmation({
-        getHasUnsavedChanges: () => isCreatingNewRequest && doesMoneyRequestDraftHaveUserInput(transaction),
+        getHasUnsavedChanges: () => getWaypointsHasUnsavedChanges(transaction, transactionBackup?.comment?.waypoints, waypoints, isCreatingNewRequest),
     });
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);

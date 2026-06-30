@@ -2,6 +2,7 @@ import {isValidPerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
 import {
     getAmountHasUnsavedChanges,
     getStringFieldHasUnsavedChanges,
+    getWaypointsHasUnsavedChanges,
     handleNegativeAmountFlipping,
     isValidMerchant,
     isValidMoneyRequestAmount,
@@ -11,7 +12,8 @@ import {
 import CONST from '@src/CONST';
 import type Report from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
-import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
+import type {TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
+import createRandomTransaction from '../utils/collections/transaction';
 
 describe('ReportActionsUtils', () => {
     describe('validateAmount', () => {
@@ -375,6 +377,41 @@ describe('getStringFieldHasUnsavedChanges (hours, manual distance)', () => {
         it('flags only a change from the committed value', () => {
             expect(getStringFieldHasUnsavedChanges('2', '2', false)).toBe(false);
             expect(getStringFieldHasUnsavedChanges('3', '2', false)).toBe(true);
+        });
+    });
+});
+
+describe('getWaypointsHasUnsavedChanges (distance map)', () => {
+    const waypointsA: WaypointCollection = {
+        waypoint0: {address: 'Q Mall, Doha', lat: 25.3272762, lng: 51.4659325},
+        waypoint1: {address: 'Qatar', lat: 25.354826, lng: 51.183884},
+    };
+    const waypointsB: WaypointCollection = {
+        waypoint0: {address: 'Q Mall, Doha', lat: 25.3272762, lng: 51.4659325},
+        waypoint1: {address: 'West Walk - Salwa Road, Doha', lat: 25.2510416, lng: 51.4699357},
+    };
+
+    describe('create entry (any entered waypoint counts)', () => {
+        it('flags a draft that has valid waypoints', () => {
+            const transaction = createRandomTransaction(0);
+            transaction.modifiedWaypoints = undefined;
+            transaction.comment = {...transaction.comment, waypoints: waypointsA};
+            expect(getWaypointsHasUnsavedChanges(transaction, undefined, waypointsA, true)).toBe(true);
+        });
+
+        it('does not flag an empty draft', () => {
+            expect(getWaypointsHasUnsavedChanges(undefined, undefined, undefined, true)).toBe(false);
+        });
+    });
+
+    // The edit branch ignores the transaction and compares the committed vs current waypoints directly.
+    describe('editing (only a waypoint change counts)', () => {
+        it('flags when a waypoint address changed from the committed one', () => {
+            expect(getWaypointsHasUnsavedChanges(undefined, waypointsA, waypointsB, false)).toBe(true);
+        });
+
+        it('does not flag when the waypoints are unchanged', () => {
+            expect(getWaypointsHasUnsavedChanges(undefined, waypointsA, waypointsA, false)).toBe(false);
         });
     });
 });

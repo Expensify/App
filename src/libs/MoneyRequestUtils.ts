@@ -2,10 +2,11 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Report, Transaction} from '@src/types/onyx';
+import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
 import {isInvoiceReport, isIOUReport} from './ReportUtils';
 import StringUtils from './StringUtils';
-import {hasUnsavedMoneyRequestInput, isExpenseUnreported} from './TransactionUtils';
+import {doesMoneyRequestDraftHaveUserInput, hasUnsavedMoneyRequestInput, haveWaypointAddressesChanged, isExpenseUnreported} from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
 
 /**
@@ -232,6 +233,19 @@ function getStringFieldHasUnsavedChanges(typedValue: string, committedValue: str
     return hasUnsavedMoneyRequestInput(typedValue, committedValue, typedValue === '', isCreateEntry);
 }
 
+/**
+ * Whether the distance (map) step has unsaved waypoints: on the create entry any entered waypoint counts, otherwise
+ * it's whether the waypoint addresses changed from the committed ones.
+ */
+function getWaypointsHasUnsavedChanges(
+    transaction: OnyxEntry<Transaction>,
+    committedWaypoints: WaypointCollection | undefined,
+    currentWaypoints: WaypointCollection | undefined,
+    isCreateEntry: boolean,
+): boolean {
+    return isCreateEntry ? doesMoneyRequestDraftHaveUserInput(transaction) : haveWaypointAddressesChanged(committedWaypoints, currentWaypoints);
+}
+
 export {
     addLeadingZero,
     replaceAllDigits,
@@ -247,4 +261,5 @@ export {
     isValidMerchant,
     getAmountHasUnsavedChanges,
     getStringFieldHasUnsavedChanges,
+    getWaypointsHasUnsavedChanges,
 };
