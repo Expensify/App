@@ -1,8 +1,9 @@
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {Directions, Gesture, GestureDetector} from 'react-native-gesture-handler';
-import {runOnJS, useSharedValue, withSpring} from 'react-native-reanimated';
+import {useSharedValue, withSpring} from 'react-native-reanimated';
 import type {SvgProps} from 'react-native-svg';
+import {scheduleOnRN} from 'react-native-worklets';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
@@ -76,30 +77,28 @@ function GrowlNotificationContent({bodyText, type, duration, action, onDismissed
     /**
      * Animate growl notification. `targetProgress` is 0 for offscreen, 1 for visible.
      */
-    const fling = useCallback(
-        (targetProgress = 0, onSettled?: () => void) => {
-            'worklet';
+    const fling = (targetProgress = 0, onSettled?: () => void) => {
+        'worklet';
 
-            progress.set(
-                withSpring(targetProgress, {overshootClamping: false}, (finished) => {
-                    // Reanimated calls this with finished=false if the spring is interrupted
-                    // (e.g. new growl content slides in before this slide-out completes), so a
-                    // stale slide-out can't unmount a freshly-shown growl.
-                    if (finished && onSettled) {
-                        runOnJS(onSettled)();
-                    }
-                }),
-            );
-        },
-        [progress],
-    );
+        progress.set(
+            withSpring(targetProgress, {overshootClamping: false}, (finished) => {
+                // Reanimated calls this with finished=false if the spring is interrupted
+                // (e.g. new growl content slides in before this slide-out completes), so a
+                // stale slide-out can't unmount a freshly-shown growl.
+                if (!finished || !onSettled) {
+                    return;
+                }
+                scheduleOnRN(onSettled);
+            }),
+        );
+    };
 
     /**
      * Slide the growl off-screen; the spring's completion callback invokes onDismissed.
      */
-    const triggerDismiss = useCallback(() => {
+    const triggerDismiss = () => {
         fling(0, onDismissed);
-    }, [fling, onDismissed]);
+    };
 
     useEffect(() => {
         isActionPressedRef.current = false;
