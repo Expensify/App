@@ -51,4 +51,3 @@ function ActionListContextProvider({children}: {children: ReactNode}) {
 }
 
 export {ActionListContext, ActionListContextProvider, useActionListContext};
-export type {ActionListContextType};
