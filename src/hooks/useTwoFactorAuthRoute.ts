@@ -1,11 +1,16 @@
+import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import useOnyx from './useOnyx';
 
+type TwoFactorAuthRouteOptions = {
+    forceSetup?: boolean;
+};
+
 type TwoFactorAuthRouteResult = {
-    getTwoFactorAuthRoute: (backTo?: Route) => Route;
+    getTwoFactorAuthRoute: (backTo?: Route, options?: TwoFactorAuthRouteOptions) => Route;
     is2FAEnabled: boolean;
 };
 
@@ -23,16 +28,35 @@ function useTwoFactorAuthRoute(): TwoFactorAuthRouteResult {
 
     const is2FAEnabled = !!account?.requiresTwoFactorAuth;
 
-    const getTwoFactorAuthRoute = (backTo?: Route): Route => {
-        if (is2FAEnabled) {
+    const getTwoFactorAuthRoute = (backTo?: Route, options?: TwoFactorAuthRouteOptions): Route => {
+        if (is2FAEnabled && !options?.forceSetup) {
+            Log.info('[Require2FA] Resolved route to SETTINGS_2FA_ENABLED', false, {
+                is2FAEnabled,
+                forceSetup: options?.forceSetup,
+                backTo,
+            });
             return ROUTES.SETTINGS_2FA_ENABLED;
         }
 
         if (!account?.validated) {
-            return createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY_ACCOUNT.path, backTo);
+            const route = createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY_ACCOUNT.path, backTo);
+            Log.info('[Require2FA] Resolved route to verify-account', false, {
+                route,
+                backTo,
+                forceSetup: options?.forceSetup,
+                validated: account?.validated,
+            });
+            return route;
         }
 
-        return createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path, backTo);
+        const route = createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path, backTo);
+        Log.info('[Require2FA] Resolved route to setup root', false, {
+            route,
+            backTo,
+            forceSetup: options?.forceSetup,
+            validated: account?.validated,
+        });
+        return route;
     };
 
     return {getTwoFactorAuthRoute, is2FAEnabled};

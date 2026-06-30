@@ -1289,7 +1289,11 @@ function clearDisableTwoFactorAuthErrors() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {errorFields: {requiresTwoFactorAuth: null}});
 }
 
-function updateAuthTokenAndOpenApp(authToken?: string, encryptedAuthToken?: string) {
+type ValidateTwoFactorAuthOptions = {
+    shouldKeepTwoFactorAuthFlowOpen?: boolean;
+};
+
+function updateAuthToken(authToken?: string, encryptedAuthToken?: string) {
     // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
     updateSessionAuthTokens(authToken, encryptedAuthToken);
 
@@ -1297,11 +1301,14 @@ function updateAuthTokenAndOpenApp(authToken?: string, encryptedAuthToken?: stri
     // reconnectApp will immediate post and use the local authToken. Onyx updates subscribers lately so it is not
     // enough to do the updateSessionAuthTokens() call above.
     NetworkStore.setAuthToken(authToken ?? null);
+}
 
+function updateAuthTokenAndOpenApp(authToken?: string, encryptedAuthToken?: string) {
+    updateAuthToken(authToken, encryptedAuthToken);
     openApp();
 }
 
-function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boolean) {
+function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boolean, options: ValidateTwoFactorAuthOptions = {}) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1340,6 +1347,11 @@ function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boole
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.TWO_FACTOR_AUTH_VALIDATE, params, {optimisticData, successData, failureData}).then((response) => {
         if (!response?.authToken) {
+            return;
+        }
+
+        if (options.shouldKeepTwoFactorAuthFlowOpen) {
+            updateAuthToken(response.authToken, response.encryptedAuthToken);
             return;
         }
 
