@@ -714,7 +714,7 @@ function clearError(transactionID: string) {
  * Clears a transaction's error and, when it is a split child whose original is still the hidden split
  * container (`SPLIT_REPORT_ID`), clears the original's error too
  */
-function clearErrorWithOriginalTransaction(transactionID: string) {
+function clearErrorWithOriginalTransactionError(transactionID: string) {
     clearError(transactionID);
     const transactions = getAllTransactions();
     const originalTransactionID = originalTransactionIDSelector(transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]);
@@ -1904,7 +1904,7 @@ export {
     getRoute,
     updateWaypoints,
     clearError,
-    clearErrorWithOriginalTransaction,
+    clearErrorWithOriginalTransactionError,
     markAsCash,
     markPendingRTERTransactionsAsCash,
     dismissDuplicateTransactionViolation,

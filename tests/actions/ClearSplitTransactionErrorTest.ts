@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {clearErrorWithOriginalTransaction} from '@libs/actions/Transaction';
+import {clearErrorWithOriginalTransactionError} from '@libs/actions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
@@ -13,7 +13,7 @@ function buildChild(): Partial<Transaction> {
     return {transactionID: CHILD_ID, reportID: CONST.REPORT.UNREPORTED_REPORT_ID, comment: {originalTransactionID: ORIGINAL_ID}, errors: {1: 'child error'}};
 }
 
-describe('clearErrorWithOriginalTransaction', () => {
+describe('clearErrorWithOriginalTransactionError', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -28,7 +28,7 @@ describe('clearErrorWithOriginalTransaction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${CHILD_ID}`, buildChild());
         await waitForBatchedUpdates();
 
-        clearErrorWithOriginalTransaction(CHILD_ID);
+        clearErrorWithOriginalTransactionError(CHILD_ID);
         await waitForBatchedUpdates();
 
         const child = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${CHILD_ID}`);
@@ -42,7 +42,7 @@ describe('clearErrorWithOriginalTransaction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${CHILD_ID}`, buildChild());
         await waitForBatchedUpdates();
 
-        clearErrorWithOriginalTransaction(CHILD_ID);
+        clearErrorWithOriginalTransactionError(CHILD_ID);
         await waitForBatchedUpdates();
 
         const child = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${CHILD_ID}`);
@@ -55,7 +55,7 @@ describe('clearErrorWithOriginalTransaction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${CHILD_ID}`, {transactionID: CHILD_ID, reportID: '987654', errors: {1: 'some error'}});
         await waitForBatchedUpdates();
 
-        clearErrorWithOriginalTransaction(CHILD_ID);
+        clearErrorWithOriginalTransactionError(CHILD_ID);
         await waitForBatchedUpdates();
 
         const child = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${CHILD_ID}`);
