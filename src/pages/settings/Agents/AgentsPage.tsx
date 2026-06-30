@@ -22,7 +22,7 @@ import {clearAgentDeleteError, clearAgentError, clearAgentUpdateError, openAgent
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 function AgentsPage() {
     const {translate} = useLocalize();
@@ -62,7 +62,7 @@ function AgentsPage() {
             const accountID = Number(key.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length));
             const details = personalDetailsList?.[accountID];
             if (!details) {
-                return null;
+                return undefined;
             }
             const hasNameErrors = Object.keys(agentPrompt?.nameErrors ?? {}).length > 0;
             const hasPromptErrors = Object.keys(agentPrompt?.promptErrors ?? {}).length > 0;
@@ -77,13 +77,13 @@ function AgentsPage() {
                 login: details.login ?? '',
                 hasUpdateErrors: hasNameErrors || hasPromptErrors || hasAvatarErrors,
                 pendingAction,
-                errors: shouldShowErrors(pendingAction) ? (agentPrompt?.errors as Errors) : undefined,
+                errors: shouldShowErrors(pendingAction) ? (agentPrompt?.errors ?? undefined) : undefined,
                 disabled: isPendingDeletion,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID)),
                 dismissError: () => handleErrorClose(pendingAction, accountID),
             };
         })
-        .filter(Boolean) as AgentRowData[];
+        .filter((agent): agent is AgentRowData => agent !== undefined);
 
     const hasAgents = agents.length > 0;
 
