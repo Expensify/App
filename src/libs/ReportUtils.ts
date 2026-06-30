@@ -11264,6 +11264,8 @@ type CreateDraftTransactionParams = {
      * - 'employer': route to a submit-enabled workspace, auto-selecting/creating one as needed.
      */
     submitDestination?: ValueOf<typeof CONST.IOU.SUBMIT_DESTINATION>;
+    /** Localized default name for a workspace created on the fly (e.g. "Submit to my employer" with no existing workspace). */
+    defaultWorkspaceName?: string;
 };
 
 function createDraftTransactionAndNavigateToParticipantSelector({
@@ -11283,6 +11285,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     currentUserEmail,
     currentUserLocalCurrency,
     submitDestination = CONST.IOU.SUBMIT_DESTINATION.FRIEND,
+    defaultWorkspaceName = '',
 }: CreateDraftTransactionParams): void {
     const transactionID = transaction?.transactionID;
     if (!transactionID || !reportID) {
@@ -11422,7 +11425,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
                 introSelected,
                 transactionID,
                 actionName,
-                '',
+                defaultWorkspaceName,
                 currentUserAccountID,
                 currentUserEmail,
                 currentUserLocalCurrency,

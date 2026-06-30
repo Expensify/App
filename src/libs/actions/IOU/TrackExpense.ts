@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import * as API from '@libs/API';
 import type {
+    AddTrackedExpenseToPolicyParams,
     CategorizeTrackedExpenseParams as CategorizeTrackedExpenseApiParams,
     CreateWorkspaceParams,
     DeleteMoneyRequestParams,
@@ -192,6 +193,8 @@ type GetTrackExpenseInformationParams = {
     currentUserLocalCurrency: string | undefined;
     // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
+    /** Policy type for the workspace created from a draft report (e.g. submit2026 for the "Submit to my employer" flow). Defaults to a team workspace. */
+    policyType?: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.SUBMIT;
 };
 
 type DeleteTrackExpenseParams = {
@@ -853,6 +856,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         optimisticChatReportID,
         delegateAccountID,
         currentUserLocalCurrency,
+        policyType,
     } = params;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy} = policyParams;
@@ -991,6 +995,8 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             policyID: policy?.id,
             expenseReportId: chatReport?.reportID,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+            // "Submit to my employer" with no existing workspace creates a Submit (submit2026) workspace; categorize/share default to a team workspace.
+            type: policyType,
             currency: currentUserLocalCurrency,
             currentUserAccountIDParam,
             currentUserEmailParam,
@@ -2189,6 +2195,77 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     }
 }
 
+/**
+ * Submit a tracked expense ("Submit to my employer") into a workspace. Uses AddTrackedExpenseToPolicy, which is a
+ * backend alias of CategorizeTrackedExpense, so it can both create a Submit (submit2026) workspace from a draft and
+ * move the tracked expense into it in a single request.
+ */
+function submitTrackedExpenseToPolicy(trackedExpenseParams: TrackedExpenseParams) {
+    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, currentUser} = trackedExpenseParams;
+    const {accountID: currentUserAccountID} = currentUser;
+    const {optimisticData, successData, failureData} = onyxData ?? {};
+    const {transactionID} = transactionParams;
+    const {isDraftPolicy} = policyParams;
+    const {
+        actionableWhisperReportActionID,
+        moneyRequestReportID,
+        linkedTrackedExpenseReportAction,
+        linkedTrackedExpenseReportID,
+        transactionThreadReportID,
+        isLinkedTrackedExpenseReportArchived,
+    } = reportInformation;
+    const {
+        optimisticData: moveTransactionOptimisticData,
+        successData: moveTransactionSuccessData,
+        failureData: moveTransactionFailureData,
+        modifiedExpenseReportActionID,
+    } = getConvertTrackedExpenseInformation(
+        transactionID,
+        actionableWhisperReportActionID,
+        moneyRequestReportID,
+        linkedTrackedExpenseReportAction,
+        linkedTrackedExpenseReportID,
+        transactionThreadReportID,
+        CONST.IOU.ACTION.SUBMIT,
+        isLinkedTrackedExpenseReportArchived,
+        currentUserAccountID,
+    );
+
+    optimisticData?.push(...moveTransactionOptimisticData);
+    successData?.push(...moveTransactionSuccessData);
+    failureData?.push(...moveTransactionFailureData);
+
+    const parameters: AddTrackedExpenseToPolicyParams = {
+        ...{
+            ...reportInformation,
+            linkedTrackedExpenseReportAction: undefined,
+        },
+        ...policyParams,
+        ...transactionParams,
+        modifiedExpenseReportActionID,
+        policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
+        policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
+        adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
+        adminsCreatedReportActionID: createdWorkspaceParams?.adminsCreatedReportActionID,
+        engagementChoice: createdWorkspaceParams?.engagementChoice,
+        guidedSetupData: createdWorkspaceParams?.guidedSetupData,
+        description: transactionParams.comment,
+        customUnitID: createdWorkspaceParams?.customUnitID,
+        customUnitRateID: createdWorkspaceParams?.customUnitRateID ?? transactionParams.customUnitRateID,
+        attendees: transactionParams.attendees ? JSON.stringify(transactionParams.attendees) : undefined,
+        // A draft workspace means the backend has to create the workspace as part of this request; tell it to create a Submit (submit2026) one.
+        type: createdWorkspaceParams ? CONST.POLICY.TYPE.SUBMIT : undefined,
+    };
+
+    API.write(WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY, parameters, {optimisticData, successData, failureData});
+
+    // If a draft policy was used, then AddTrackedExpenseToPolicy will create a real one, so track that conversion here.
+    if (isDraftPolicy) {
+        const workspaceCreatedEvent = getWorkspaceCreatedAnalyticsEvent(createdWorkspaceParams?.engagementChoice, createdWorkspaceParams?.companySize, currentUser.email ?? '');
+        GoogleTagManager.publishEvent(workspaceCreatedEvent, currentUserAccountID, currentUser.email ?? '');
+    }
+}
+
 function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     const {
         onyxData: trackedExpenseOnyxData,
@@ -2517,6 +2594,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         optimisticChatReportID,
         delegateAccountID,
         currentUserLocalCurrency,
+        policyType: action === CONST.IOU.ACTION.SUBMIT ? CONST.POLICY.TYPE.SUBMIT : undefined,
     }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
     const onyxData: TrackedExpenseParams['onyxData'] = trackExpenseInformationOnyxData;
@@ -2663,6 +2741,58 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 personalDetailsList,
             };
             shareTrackedExpense(trackedExpenseParams);
+            break;
+        }
+        case CONST.IOU.ACTION.SUBMIT: {
+            if (!linkedTrackedExpenseReportAction || !linkedTrackedExpenseReportID) {
+                return;
+            }
+            const transactionParams: TrackedExpenseTransactionParams = {
+                transactionID: transaction?.transactionID,
+                amount,
+                currency,
+                comment,
+                distance,
+                merchant,
+                created,
+                taxCode,
+                taxAmount,
+                category,
+                tag,
+                billable,
+                reimbursable,
+                receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
+                waypoints: sanitizedWaypoints,
+                customUnitRateID: mileageRate,
+                attendees,
+            };
+            const policyParams: TrackedExpensePolicyParams = {
+                policyID: chatReport?.policyID,
+                policy,
+                isDraftPolicy,
+            };
+            const reportInformation: TrackedExpenseReportInformation = {
+                moneyRequestPreviewReportActionID: iouAction?.reportActionID,
+                moneyRequestReportID: iouReport?.reportID,
+                moneyRequestCreatedReportActionID: createdIOUReportActionID,
+                actionableWhisperReportActionID,
+                linkedTrackedExpenseReportAction,
+                linkedTrackedExpenseReportID,
+                transactionThreadReportID,
+                reportPreviewReportActionID: reportPreviewAction?.reportActionID,
+                chatReportID: chatReport?.reportID,
+                isLinkedTrackedExpenseReportArchived: transactionData.isLinkedTrackedExpenseReportArchived,
+            };
+            const trackedExpenseParams: TrackedExpenseParams = {
+                onyxData,
+                reportInformation,
+                transactionParams,
+                policyParams,
+                createdWorkspaceParams,
+                currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
+            };
+
+            submitTrackedExpenseToPolicy(trackedExpenseParams);
             break;
         }
         default: {

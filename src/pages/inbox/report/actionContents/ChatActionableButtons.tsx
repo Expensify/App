@@ -7,10 +7,13 @@ import FollowupListSkeleton from '@components/ReportActionItem/FollowupListSkele
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -45,6 +48,8 @@ type ChatActionableButtonsProps = {
 
 function ChatActionableButtons({action, originalReportID, reportID, hasPendingFollowupListSkeleton}: ChatActionableButtonsProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const lastWorkspaceNumber = useLastWorkspaceNumber();
     const actionOwnerReportID = originalReportID ?? reportID;
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(originalReportID)}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
@@ -207,6 +212,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                         preferredPolicyID,
                         actionName: CONST.IOU.ACTION.SUBMIT,
                         submitDestination: destination,
+                        defaultWorkspaceName: generateDefaultWorkspaceName(personalDetail.email ?? '', lastWorkspaceNumber, translate),
                     });
                 },
             });
