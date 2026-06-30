@@ -201,8 +201,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
         isDistance && !isP2PRate && (!rates[currentRateID] || !rate || rawPolicyRate?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || rawPolicyRate?.enabled === false);
     const policyWithAvailableRates = effectivePolicy ?? policyForMovingExpenses;
     const hasAvailableEnabledRates = Object.keys(DistanceRequestUtils.getMileageRates(policyWithAvailableRates)).length > 0;
-    // `shouldSelectPolicy` covers the multi-workspace case where `policyForMovingExpenses` is undefined but
-    // selectable rates exist across workspaces — keep the P2P rate flagged out-of-policy
+    // `shouldSelectPolicy` means rates exist across workspaces but none is resolved yet — keep it flagged out-of-policy.
     const isCustomUnitOutOfPolicy = isSelfDMSplit
         ? isRateBroken || (isDistance && isP2PRate && (hasAvailableEnabledRates || shouldSelectPolicy))
         : !rates[currentRateID] || (isDistance && !rate);

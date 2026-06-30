@@ -712,7 +712,15 @@ function getUpdatedTransaction({
             // When the waypoints are being fetched from the server, we have no information about the distance, and cannot recalculate the updated amount.
             // Otherwise, recalculate the fields based on the new rate.
 
-            const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false});
+            let updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false});
+            // The provided `policy` may not own the new rate, leaving the amount at 0. Fall back to
+            // resolving the rate across every policy the user belongs to.
+            if (!updatedMileageRate.rate && transactionChanges.customUnitRateID) {
+                const rateFromAnyPolicy = DistanceRequestUtils.getEnabledRateByCustomUnitRateIDFromAnyPolicy(transactionChanges.customUnitRateID);
+                if (rateFromAnyPolicy?.rate) {
+                    updatedMileageRate = rateFromAnyPolicy;
+                }
+            }
             const {unit, rate} = updatedMileageRate;
 
             const distanceInMeters = getDistanceInMeters(updatedTransaction, unit);
