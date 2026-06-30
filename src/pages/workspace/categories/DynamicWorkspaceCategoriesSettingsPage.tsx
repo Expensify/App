@@ -51,12 +51,9 @@ function DynamicWorkspaceCategoriesSettingsPage({policy, route}: DynamicWorkspac
         [policyData],
     );
 
-    const updateShowCategoryGLCodes = useCallback(
-        (value: boolean) => {
-            setPolicyShowCategoryGLCodes(policyID, value);
-        },
-        [policyID],
-    );
+    const updateShowCategoryGLCodes = (value: boolean) => {
+        setPolicyShowCategoryGLCodes(policyID, value);
+    };
 
     const data = useMemo(() => {
         if (!policyData.policy?.mccGroup) {

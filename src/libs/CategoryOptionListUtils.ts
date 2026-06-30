@@ -271,7 +271,6 @@ function sortCategories(categories: Record<string, Category>, localeCompare: Loc
             name: category.name,
             pendingAction: category.pendingAction,
             enabled: category.enabled ?? false,
-            ...(category.glCode !== undefined ? {glCode: category.glCode} : {}),
         });
     }
 
@@ -282,13 +281,12 @@ function sortCategories(categories: Record<string, Category>, localeCompare: Loc
      */
     const flatHierarchy = (initialHierarchy: Hierarchy) =>
         Object.values(initialHierarchy).reduce((acc: Category[], category) => {
-            const {name, pendingAction, enabled, glCode, ...subcategories} = category;
+            const {name, pendingAction, enabled, ...subcategories} = category;
             if (name) {
                 const categoryObject: Category = {
                     name,
                     pendingAction,
                     enabled: enabled ?? false,
-                    ...(glCode !== undefined ? {glCode} : {}),
                 };
 
                 acc.push(categoryObject);
