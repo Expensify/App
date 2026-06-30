@@ -6,7 +6,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
  * Pops the nested OnboardingModalNavigator stack back to its first route so useLinking
  * unwinds per-step browser history entries before onboarding completes and the modal unmounts.
  */
-function collapseOnboardingNestedStack() {
+function resetOnboardingStackToRoot() {
     if (!navigationRef.isReady()) {
         return;
     }
@@ -26,4 +26,4 @@ function collapseOnboardingNestedStack() {
     });
 }
 
-export default collapseOnboardingNestedStack;
+export default resetOnboardingStackToRoot;
