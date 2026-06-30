@@ -202,7 +202,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: {
-                            path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
+                            path: ROUTES.SETTINGS_ENABLE_PAYMENTS.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT]: {
@@ -1973,7 +1973,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: {
                     screens: {
-                        [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(),
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.route,
                     },
                 },

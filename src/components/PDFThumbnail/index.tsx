@@ -20,7 +20,9 @@ function PDFThumbnail({previewSourceURL, style, enabled = true, onPassword, onLo
                 loading={<LoadingIndicator />}
                 file={previewSourceURL}
                 options={{
-                    cMapUrl: 'cmaps/',
+                    // Use a root-relative URL so the CMap files (needed to render non-Latin fonts)
+                    // resolve against the server root instead of the current deep route.
+                    cMapUrl: '/cmaps/',
                     cMapPacked: true,
                 }}
                 externalLinkTarget="_blank"

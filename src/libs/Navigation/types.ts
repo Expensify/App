@@ -9,7 +9,7 @@ import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUti
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {AttachmentModalContainerModalProps} from '@pages/media/AttachmentModalScreen/types';
 import type RECONCILIATION_ACCOUNT_SETTINGS_TYPE from '@pages/workspace/accounting/reconciliation/constants';
-import type {Country, IOUAction, IOURequestType, IOUType, OdometerImageType} from '@src/CONST';
+import type {Country, EnablePaymentsPageType, EnablePaymentsSubPageType, IOUAction, IOURequestType, IOUType, OdometerImageType} from '@src/CONST';
 import type CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as ExpensifyRoute, Route as Routes} from '@src/ROUTES';
@@ -203,7 +203,11 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.IMPORT_TRANSACTIONS_CURRENCY]: undefined;
     [SCREENS.SETTINGS.WALLET.IMPORT_TRANSACTIONS_SPREADSHEET]: {cardID?: string};
     [SCREENS.SETTINGS.WALLET.TRANSACTIONS_IMPORTED]: {cardID?: string};
-    [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: undefined;
+    [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: {
+        page?: EnablePaymentsPageType;
+        subPage?: EnablePaymentsSubPageType;
+        action?: 'edit';
+    };
     [SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT]: {
         bankAccountID: string;
     };
@@ -3325,10 +3329,6 @@ type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName | typeo
 
 type WorkspaceNavigatorRouteName = keyof WorkspaceNavigatorParamList;
 
-type WorkspaceScreenName = keyof WorkspaceSplitNavigatorParamList;
-
-type DomainScreenName = keyof DomainSplitNavigatorParamList;
-
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace ReactNavigation {
@@ -3410,7 +3410,6 @@ export type {
     PolicyCopySettingsNavigatorParamList,
     TwoFactorAuthNavigatorParamList,
     ScheduleCallParamList,
-    WorkspaceScreenName,
     TestDriveDemoNavigatorParamList,
     SplitExpenseParamList,
     SetParamsAction,
@@ -3422,7 +3421,6 @@ export type {
     ReportCardActivateNavigatorParamList,
     WorkspacesDomainModalNavigatorParamList,
     DomainSplitNavigatorParamList,
-    DomainScreenName,
     SearchColumnsParamList,
     MultifactorAuthenticationParamList,
     MultifactorAuthenticationModalNavigatorParamList,
