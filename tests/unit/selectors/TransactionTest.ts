@@ -1,20 +1,20 @@
 import {originalTransactionIDSelector} from '@selectors/Transaction';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {Transaction} from '@src/types/onyx';
+import createRandomTransaction from '../../utils/collections/transaction';
 
 describe('originalTransactionIDSelector', () => {
     it('returns the originalTransactionID of a split child', () => {
-        const transaction = {comment: {originalTransactionID: '789'}} as OnyxEntry<Transaction>;
+        const transaction: Transaction = {...createRandomTransaction(0), comment: {originalTransactionID: '789'}};
         expect(originalTransactionIDSelector(transaction)).toBe('789');
     });
 
     it('returns undefined when there is no originalTransactionID', () => {
-        const transaction = {comment: {}} as OnyxEntry<Transaction>;
+        const transaction: Transaction = {...createRandomTransaction(0), comment: {}};
         expect(originalTransactionIDSelector(transaction)).toBeUndefined();
     });
 
     it('returns undefined when there is no comment', () => {
-        const transaction = {} as OnyxEntry<Transaction>;
+        const transaction: Transaction = {...createRandomTransaction(0), comment: undefined};
         expect(originalTransactionIDSelector(transaction)).toBeUndefined();
     });
 
