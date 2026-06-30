@@ -54,9 +54,11 @@ function simulateReasoning(data: {reasoning: string; agentZeroRequestID: string;
     AgentZeroReasoningStore.addReasoning(reportID, CONST.ACCOUNT_ID.CONCIERGE, data);
 }
 
-async function seedCustomAgentReport({isDM}: {isDM: boolean}) {
+async function seedCustomAgentReport({isDM, includeSession = true}: {isDM: boolean; includeSession?: boolean}) {
     await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, '999');
-    await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+    if (includeSession) {
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+    }
     await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         reportID,
         type: CONST.REPORT.TYPE.CHAT,
@@ -218,6 +220,35 @@ describe('AgentZeroStatusContext', () => {
 
             expect(result.current.state.candidateAgentIDs).toContain(customAgentAccountID);
             expect(result.current.state.candidateAgentIDs).not.toContain(CONST.ACCOUNT_ID.CONCIERGE);
+
+            act(() => {
+                result.current.actions.kickoffWaitingIndicator();
+            });
+            await waitForBatchedUpdates();
+
+            expect(result.current.status.isProcessing).toBe(true);
+            expect(result.current.status.statusLabel).toBe('Thinking...');
+        });
+
+        it('should classify custom-agent DMs when session hydrates after the report', async () => {
+            await seedCustomAgentReport({isDM: true, includeSession: false});
+
+            const {result} = renderHook(
+                () => ({
+                    state: useAgentZeroStatus(),
+                    status: useAgentZeroStatusIndicator(reportID, customAgentAccountID),
+                    actions: useAgentZeroStatusActions(),
+                }),
+                {wrapper},
+            );
+            await waitForBatchedUpdates();
+
+            expect(result.current.state.candidateAgentIDs).not.toContain(customAgentAccountID);
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+            await waitForBatchedUpdates();
+
+            expect(result.current.state.candidateAgentIDs).toContain(customAgentAccountID);
 
             act(() => {
                 result.current.actions.kickoffWaitingIndicator();

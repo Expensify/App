@@ -8,9 +8,9 @@ import useOnyx from '@hooks/useOnyx';
 import {clearConciergeThinkingKickoff, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
 import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
 import type {ReasoningEntry} from '@libs/AgentZeroReasoningStore';
-import {isOneOnOneChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type Report from '@src/types/onyx/Report';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 
 type AgentZeroStatusState = {
@@ -53,6 +53,10 @@ function newestReportActionSelector(actions: OnyxEntry<ReportActions>): NewestRe
     };
 }
 
+function isDMReportSelector(report: OnyxEntry<Report>): boolean {
+    return report?.type === CONST.REPORT.TYPE.CHAT && !report.chatType && !report.parentReportID && !report.parentReportActionID;
+}
+
 const defaultState: AgentZeroStatusState = {
     candidateAgentIDs: [],
 };
@@ -74,15 +78,17 @@ const AgentZeroStatusActionsContext = createContext<AgentZeroStatusActions>(defa
  */
 function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{reportID: string | undefined}>) {
     const [chatType] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportChatType});
-    const [isOneOnOneChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: isOneOnOneChat});
+    const [isDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: isDMReportSelector});
     const [participantAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportParticipantAccountIDs});
     const [agentParticipantAccountID] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: getCustomAgentParticipantAccountID(participantAccountIDs)});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
 
     const isConciergeChat = reportID === conciergeReportID;
     const isAdmin = chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
     const isCustomAgentChat = agentParticipantAccountID !== undefined;
-    const customAgentDMAccountID = isCustomAgentChat && isOneOnOneChatReport ? agentParticipantAccountID : undefined;
+    const otherParticipantCount = currentUserAccountID === undefined ? 0 : (participantAccountIDs ?? []).filter((accountID) => accountID !== currentUserAccountID).length;
+    const customAgentDMAccountID = isCustomAgentChat && isDMReport && otherParticipantCount === 1 ? agentParticipantAccountID : undefined;
     const isAgentZeroChat = isConciergeChat || isAdmin || isCustomAgentChat;
 
     if (!reportID || !isAgentZeroChat) {
