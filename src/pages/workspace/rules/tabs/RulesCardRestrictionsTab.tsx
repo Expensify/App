@@ -20,7 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import RulesTabEmptyState from './RulesTabEmptyState';
-import type {RulesTableTabActions} from './types';
+import type RulesTableTabActions from './types';
 
 const DEFAULT_SPEND_RULE_ID = 'default-rule';
 

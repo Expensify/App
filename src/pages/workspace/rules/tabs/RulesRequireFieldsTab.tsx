@@ -13,7 +13,7 @@ import {deleteRequireFieldsRule, getRequireFieldsTableData} from '@libs/RequireF
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import RulesTabEmptyState from './RulesTabEmptyState';
-import type {RulesTableTabActions} from './types';
+import type RulesTableTabActions from './types';
 
 type RulesRequireFieldsTabProps = {
     policyID: string;

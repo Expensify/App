@@ -3,7 +3,6 @@ import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import ScrollView from '@components/ScrollView';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -22,7 +21,6 @@ type RulesTabEmptyStateProps = {
 function RulesTabEmptyState({illustration, headerContentStyles, title, subtitle, buttonText, onPress, isDisabled}: RulesTabEmptyStateProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <ScrollView

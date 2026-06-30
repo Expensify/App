@@ -41,7 +41,7 @@ import RulesExpenseDefaultsTab from './tabs/RulesExpenseDefaultsTab';
 import RulesFlagForReviewTab from './tabs/RulesFlagForReviewTab';
 import RulesGeneralTab from './tabs/RulesGeneralTab';
 import RulesRequireFieldsTab from './tabs/RulesRequireFieldsTab';
-import type {RulesTableTabActions} from './tabs/types';
+import type RulesTableTabActions from './tabs/types';
 
 const RULES_TAB = CONST.TAB.RULES;
 

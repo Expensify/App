@@ -13,7 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import RulesTabEmptyState from './RulesTabEmptyState';
-import type {RulesTableTabActions} from './types';
+import type RulesTableTabActions from './types';
 
 type RulesFlagForReviewTabProps = {
     policyID: string;

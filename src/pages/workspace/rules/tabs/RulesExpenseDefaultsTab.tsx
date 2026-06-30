@@ -6,7 +6,7 @@ import usePolicy from '@hooks/usePolicy';
 import {deletePolicyCodingRule} from '@libs/actions/Policy/Rules';
 import {getExpenseDefaultsTableData, isMerchantTypeRuleKey} from '@libs/MerchantTypeRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {RulesTableTabActions} from './types';
+import type RulesTableTabActions from './types';
 
 type RulesExpenseDefaultsTabProps = {
     policyID: string;

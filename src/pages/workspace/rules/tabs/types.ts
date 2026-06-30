@@ -3,4 +3,4 @@ type RulesTableTabActions = {
     deleteSelected: () => void;
 };
 
-export type {RulesTableTabActions};
+export default RulesTableTabActions;
