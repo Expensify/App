@@ -376,8 +376,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     shouldShowRightIcon: canWriteAccounting && rilletSubsidiaryList && rilletSubsidiaryList.length > 1,
                     shouldShowDescriptionOnTop: true,
                     interactive: canWriteAccounting,
-                    pendingAction: policy?.connections?.rillet.config.pendingFields?.subsidiaryID,
-                    brickRoadIndicator: policy?.connections?.rillet.config.errorFields?.subsidiaryID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                    pendingAction: policy?.connections?.rillet?.config.pendingFields?.subsidiaryID,
+                    brickRoadIndicator: policy?.connections?.rillet?.config.errorFields?.subsidiaryID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                     onPress:
                         policyID && canWriteAccounting && rilletSubsidiaryList && rilletSubsidiaryList.length > 1
                             ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_SUBSIDIARY_SELECTOR.getRoute(policyID))
