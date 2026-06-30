@@ -2686,6 +2686,10 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
+        htmlTableLastRow: {
+            borderBottomWidth: 0,
+        },
+
         htmlTableCell: {
             flex: 1,
             minWidth: variables.htmlTableColumnMinWidth,

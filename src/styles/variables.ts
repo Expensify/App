@@ -132,7 +132,7 @@ export default {
     tableRowPaddingVertical: 8,
     tableRowPaddingHorizontal: 12,
     htmlTableRowMinHeight: 40,
-    htmlTableColumnMinWidth: 80,
+    htmlTableColumnMinWidth: 120,
     tableGroupRowPaddingVertical: 4,
     tableGroupRowHeight: 36,
     tableCheckboxColumnWidth: 20,
