@@ -8592,6 +8592,9 @@ const CONST = {
         MFA_OVERLAY: {
             BACKDROP: 'MfaOverlay-Backdrop',
         },
+        AGENTS: {
+            TABLE_ROW: 'Agents-TableRow',
+        },
         DOMAIN: {
             ADMINS: {
                 ROW: 'DomainAdmins-Row',
