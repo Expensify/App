@@ -593,4 +593,56 @@ describe('DateUtils', () => {
             expect(result).toBe('2024-01-16 04:59:59');
         });
     });
+
+    describe('getFormattedCancellationDate', () => {
+        it('should format the date using the venue timezone embedded in the ISO string', () => {
+            // Pin "now" before 2026 so the 2026 date is treated as a non-current year and the year is shown.
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2025-01-01T00:00:00Z'));
+            // 2026-04-19T15:00:00+07:00 — venue is UTC+7, device timezone is UTC
+            const result = DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00');
+            // Should display 3:00 PM in the venue's +07:00 timezone, not converted to device-local time
+            expect(result).toBe('Sunday, Apr 19, 2026 3:00 PM, GMT+7');
+        });
+
+        it('should format without year when date is in the current year', () => {
+            // Pin "now" to 2026 so the 2026 date is treated as the current year and the year is omitted.
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2026-06-01T00:00:00Z'));
+            const result = DateUtils.getFormattedCancellationDate('2026-06-15T10:30:00+00:00');
+            expect(result).toBe('Monday, Jun 15 10:30 AM, UTC');
+        });
+
+        it('should return empty string for falsy input', () => {
+            expect(DateUtils.getFormattedCancellationDate('')).toBe('');
+        });
+
+        it('should fall back to UTC when no timezone offset is present in the ISO string', () => {
+            // Pin "now" before 2026 so the 2026 date is treated as a non-current year and the year is shown.
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2025-01-01T00:00:00Z'));
+            const result = DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00');
+            expect(result).toBe('Sunday, Apr 19, 2026 3:00 PM, UTC');
+        });
+    });
+
+    describe('getRemainingSecondsInWindow', () => {
+        const windowMs = 30 * 1000;
+
+        it('should return 0 when no timestamp is provided', () => {
+            expect(DateUtils.getRemainingSecondsInWindow(undefined, windowMs)).toBe(0);
+        });
+
+        it('should return the full window when the request just happened', () => {
+            expect(DateUtils.getRemainingSecondsInWindow(Date.now(), windowMs)).toBe(30);
+        });
+
+        it('should return the remaining seconds part-way through the window', () => {
+            expect(DateUtils.getRemainingSecondsInWindow(Date.now() - 10 * 1000, windowMs)).toBe(20);
+        });
+
+        it('should clamp to 0 once the window has elapsed', () => {
+            expect(DateUtils.getRemainingSecondsInWindow(Date.now() - 31 * 1000, windowMs)).toBe(0);
+        });
+    });
 });

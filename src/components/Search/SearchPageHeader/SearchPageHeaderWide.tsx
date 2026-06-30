@@ -34,7 +34,6 @@ function SearchPageHeaderWide({queryJSON}: SearchPageHeaderWideProps) {
         <TopBar
             shouldShowLoadingBar={false}
             breadcrumbLabel={title}
-            shouldDisplaySearch={false}
             shouldDisplayHelpButton
         />
     );

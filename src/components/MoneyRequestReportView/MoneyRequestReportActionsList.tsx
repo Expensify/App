@@ -8,8 +8,10 @@ import {DeviceEventEmitter, View} from 'react-native';
 import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
 import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsReportActionsLoaded from '@hooks/useIsReportActionsLoaded';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
+import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleton';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
@@ -106,6 +108,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
     const [reportPaginationState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportIDFromRoute}`);
+    const isReportActionsLoaded = useIsReportActionsLoaded(reportIDFromRoute);
     const reportID = report?.reportID;
 
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, route?.params?.reportActionID);
@@ -189,12 +192,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         isOffline,
         showReportActionsLoadingState: !!showReportActionsLoadingState,
     };
-    useEffect(() => {
-        if (!shouldShowOpenReportLoadingSkeleton || !report) {
-            return;
-        }
-        markOpenReportEnd(report, {warm: false});
-    }, [report, shouldShowOpenReportLoadingSkeleton]);
+    useMarkOpenReportEndOnSkeleton(report, shouldShowOpenReportLoadingSkeleton);
 
     const lastAction = visibleReportActions.at(-1);
 
@@ -358,7 +356,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             const shouldReadOnReportChange = ((isVisible && Visibility.hasFocus()) || isFromNotification) && isScrolledToEnd;
 
             if (shouldReadOnReportChange) {
-                readNewestAction(report?.reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
+                readNewestAction(report?.reportID, isReportActionsLoaded);
                 if (isFromNotification) {
                     Navigation.setParams({referrer: undefined});
                 }
@@ -368,7 +366,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         }
         // This effect should only run when the newest visible action changes, otherwise every action/report object update can prematurely consume unread state.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report?.reportID, isVisible, reportLoadingState?.hasOnceLoadedReportActions]);
+    }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report?.reportID, isVisible, isReportActionsLoaded]);
 
     useEffect(() => {
         if (!isVisible || !Visibility.hasFocus() || !isFocused) {
@@ -392,7 +390,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             return;
         }
 
-        readNewestAction(report?.reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
+        readNewestAction(report?.reportID, true);
         userActiveSince.current = DateUtils.getDBTime();
 
         // This effect logic to `mark as read` will only run when the report focused has new messages and the App visibility
@@ -401,7 +399,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
         // This effect should only run when app visibility/focus changes; the helper reads the latest report/action values without making every action update mark the report as read.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isFocused, isVisible, reportLoadingState?.hasOnceLoadedReportActions]);
+    }, [isFocused, isVisible]);
 
     /**
      * The index of the earliest message that was received while offline
@@ -438,7 +436,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                 return;
             }
             readActionSkipped.current = false;
-            readNewestAction(report?.reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
+            readNewestAction(report?.reportID, isReportActionsLoaded);
         },
         unreadMarkerReportActionIndex,
         isInverted: false,
@@ -618,8 +616,8 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
         reportScrollManager.scrollToEnd();
         readActionSkipped.current = false;
-        readNewestAction(reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, reportID, reportLoadingState?.hasOnceLoadedReportActions, introSelected, betas]);
+        readNewestAction(reportID, true);
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, reportID, introSelected, betas]);
 
     const scrollToNewTransaction = useCallback(
         (pageY: number) => {
