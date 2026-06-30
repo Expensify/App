@@ -209,7 +209,7 @@ function canMemberAssignRole(policy: OnyxInputOrEntry<Policy>, login: string, ro
         return false;
     }
 
-    if (isControlPolicyOnlyRole(role) && !isControlPolicy(policy)) {
+    if (isControlPolicyOnlyRole(role) && policy?.type !== CONST.POLICY.TYPE.CORPORATE) {
         return false;
     }
 
