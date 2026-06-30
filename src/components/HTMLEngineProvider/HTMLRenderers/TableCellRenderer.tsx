@@ -4,9 +4,7 @@ import type {FlexStyle, TextStyle} from 'react-native';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import Text from '@components/Text';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
 
 type CellAlignment = {
     alignItems: FlexStyle['alignItems'];
@@ -23,28 +21,14 @@ function getCellAlignment(styleAttribute: string | undefined): CellAlignment {
     return {alignItems: 'flex-start', textAlign: 'left'};
 }
 
-/**
- * Renders an HTML <th> or <td>. Cells share the row width equally; header cells use the smaller
- * label font and bold weight, while body cells use the normal message font.
- */
 function TableCellRenderer({tnode}: CustomRendererProps<TBlock>) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const isHeaderCell = tnode.tagName === 'th';
     const {alignItems, textAlign} = getCellAlignment(tnode.attributes.style);
 
     return (
-        <View style={[styles.flex1, {alignItems, paddingVertical: variables.tableRowPaddingVertical, paddingEnd: 8}]}>
-            <Text
-                style={[
-                    isHeaderCell ? styles.textBold : {},
-                    {
-                        color: theme.text,
-                        fontSize: isHeaderCell ? variables.fontSizeLabel : variables.fontSizeNormal,
-                        textAlign,
-                    },
-                ]}
-            >
+        <View style={[styles.htmlTableCell, {alignItems}]}>
+            <Text style={[isHeaderCell ? styles.htmlTableHeaderCellText : styles.htmlTableCellText, {textAlign}]}>
                 <TNodeChildrenRenderer tnode={tnode} />
             </Text>
         </View>
