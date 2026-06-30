@@ -143,7 +143,12 @@ function useConciergeSidePanelReportActions({
                 return false;
             }
             if (isConciergeMainDM) {
-                return isCreatedAction(action) || action.created >= sessionStartTime;
+                return (
+                    isCreatedAction(action) ||
+                    isCurrentUserPendingAddAction(action, currentUserAccountID) ||
+                    currentSessionUserActionIDs.has(action.reportActionID) ||
+                    action.created >= sessionStartTime
+                );
             }
             if (!firstUserMessageCreated) {
                 return false;
