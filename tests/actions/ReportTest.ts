@@ -130,6 +130,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     isActiveRoute: jest.fn(() => false),
     getTopmostReportId: jest.fn(() => undefined),
     getTopmostSuperWideRHPReportID: jest.fn(() => undefined),
+    getTopmostSearchReportRouteParams: jest.fn(() => undefined),
     goBack: jest.fn(),
     popToSidebar: jest.fn(),
     navigationRef: {
@@ -2548,6 +2549,59 @@ describe('actions/Report', () => {
         expect(report?.lastMentionedTime).toBeUndefined();
     });
 
+    describe('deleteReportComment SEARCH_REPORT navigation', () => {
+        const PARENT_REPORT_ID = '100';
+        const CHILD_REPORT_ID = '200';
+        const TEST_USER_ACCOUNT_ID = 1;
+
+        const mockNavigation: {isActiveRoute: jest.Mock; goBack: jest.Mock; getTopmostSearchReportRouteParams: jest.Mock} = jest.requireMock('@libs/Navigation/Navigation');
+
+        beforeEach(() => {
+            mockNavigation.goBack.mockClear();
+        });
+
+        afterEach(() => {
+            mockNavigation.isActiveRoute.mockImplementation(() => false);
+            mockNavigation.getTopmostSearchReportRouteParams.mockReturnValue(undefined);
+        });
+
+        it('calls goBack when viewing the child thread at search/view/<childReportID>', async () => {
+            const created = format(addSeconds(subMinutes(new Date(), 10), 10), CONST.DATE.FNS_DB_FORMAT_STRING);
+            const parentReport: OnyxTypes.Report = createRandomReport(Number(PARENT_REPORT_ID), undefined);
+            const reportAction = {
+                ...TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, '101'),
+                childReportID: CHILD_REPORT_ID,
+                childVisibleActionCount: 0,
+            };
+
+            mockNavigation.getTopmostSearchReportRouteParams.mockReturnValue({reportID: CHILD_REPORT_ID});
+
+            const {result: ancestors} = renderHook(() => useAncestors(parentReport));
+            Report.deleteReportComment(parentReport, reportAction, ancestors.current, undefined, undefined, '');
+            await waitForBatchedUpdates();
+
+            expect(mockNavigation.goBack).toHaveBeenCalled();
+        });
+
+        it('calls goBack when viewing the child thread at search/view/<childReportID>/<reportActionID>', async () => {
+            const created = format(addSeconds(subMinutes(new Date(), 10), 10), CONST.DATE.FNS_DB_FORMAT_STRING);
+            const parentReport: OnyxTypes.Report = createRandomReport(Number(PARENT_REPORT_ID), undefined);
+            const reportAction = {
+                ...TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, '101'),
+                childReportID: CHILD_REPORT_ID,
+                childVisibleActionCount: 0,
+            };
+
+            mockNavigation.getTopmostSearchReportRouteParams.mockReturnValue({reportID: CHILD_REPORT_ID, reportActionID: 'action-999'});
+
+            const {result: ancestors} = renderHook(() => useAncestors(parentReport));
+            Report.deleteReportComment(parentReport, reportAction, ancestors.current, undefined, undefined, '');
+            await waitForBatchedUpdates();
+
+            expect(mockNavigation.goBack).toHaveBeenCalled();
+        });
+    });
+
     it('should create new report and "create report" quick action, when createNewReport gets called', async () => {
         const accountID = 1234;
         const policyID = '5678';
@@ -2844,6 +2898,121 @@ describe('actions/Report', () => {
             const formEntries = Object.fromEntries(body as FormData);
             expect(formEntries.selectedInterestedFeatures).toBe(JSON.stringify(selectedInterestedFeatures));
         });
+
+        it('should post onboarding tasks to the existing Concierge chat', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            // An existing 1:1 Concierge chat the onboarding tasks should be posted to
+            const conciergeChatReportID = '9988776655';
+            const conciergeChat: OnyxTypes.Report = {
+                reportID: conciergeChatReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CONST.ACCOUNT_ID.CONCIERGE]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [TEST_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+            // LOOKING_AROUND posts the onboarding tasks to the Concierge chat (not the #admins room)
+            const engagementChoice = CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+            const {onboardingMessages} = getOnboardingMessages();
+
+            const onboardingData = ReportUtils.prepareOnboardingOnyxData({
+                engagementChoice,
+                onboardingMessage: onboardingMessages[engagementChoice],
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                userReportedIntegration: null,
+                introSelected: {choice: engagementChoice},
+                isSelfTourViewed: false,
+                conciergeChat,
+            });
+
+            // The onboarding optimistic data should target the existing Concierge chat
+            expect(onboardingData).toBeTruthy();
+            const targetsConciergeChat = onboardingData?.optimisticData.some((update) => update.key.includes(conciergeChatReportID));
+            expect(targetsConciergeChat).toBe(true);
+        });
+
+        it('should reuse the existing self-DM for a personal spend onboarding', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            // An existing Concierge chat (the onboarding target) and an existing self-DM the personal spend
+            // onboarding should reuse instead of creating a new one
+            const conciergeChatReportID = '6677889900';
+            const conciergeChat: OnyxTypes.Report = {
+                reportID: conciergeChatReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CONST.ACCOUNT_ID.CONCIERGE]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [TEST_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+            const selfDMReportID = '5544332211';
+            const selfDMReport: OnyxTypes.Report = {
+                reportID: selfDMReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                participants: {
+                    [TEST_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, selfDMReport);
+            await waitForBatchedUpdates();
+
+            // PERSONAL_SPEND routes the onboarding to the user's self-DM
+            const engagementChoice = CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
+            const {onboardingMessages} = getOnboardingMessages();
+
+            const onboardingData = ReportUtils.prepareOnboardingOnyxData({
+                engagementChoice,
+                onboardingMessage: onboardingMessages[engagementChoice],
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                userReportedIntegration: null,
+                introSelected: {choice: engagementChoice},
+                isSelfTourViewed: false,
+                conciergeChat,
+            });
+
+            // The existing self-DM should be reused, so no new self-DM is created
+            expect(onboardingData).toBeTruthy();
+            expect(onboardingData?.selfDMParameters?.reportID).toBeUndefined();
+        });
+
+        it('should optimistically create a self-DM for a personal spend onboarding when none exists', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            // Only a Concierge chat exists (the onboarding target); there is no self-DM yet
+            const conciergeChatReportID = '1122334455';
+            const conciergeChat: OnyxTypes.Report = {
+                reportID: conciergeChatReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CONST.ACCOUNT_ID.CONCIERGE]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [TEST_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+            const engagementChoice = CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
+            const {onboardingMessages} = getOnboardingMessages();
+
+            const onboardingData = ReportUtils.prepareOnboardingOnyxData({
+                engagementChoice,
+                onboardingMessage: onboardingMessages[engagementChoice],
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                userReportedIntegration: null,
+                introSelected: {choice: engagementChoice},
+                isSelfTourViewed: false,
+                conciergeChat,
+            });
+
+            // A new self-DM is created and added to the optimistic data
+            expect(onboardingData).toBeTruthy();
+            const newSelfDMReportID = onboardingData?.selfDMParameters?.reportID;
+            expect(newSelfDMReportID).toBeTruthy();
+            const createsSelfDM = onboardingData?.optimisticData.some((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${newSelfDMReportID}`);
+            expect(createsSelfDM).toBe(true);
+        });
     });
 
     describe('markAllMessagesAsRead', () => {
@@ -2978,15 +3147,17 @@ describe('actions/Report', () => {
                     type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 },
             };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+            const reportActions = {
                 [firstIOUAction.reportActionID]: firstIOUAction,
                 [secondIOUAction.reportActionID]: secondIOUAction,
                 [payAction.reportActionID]: payAction,
-            });
+            };
 
             // When deleting the expense report
             Report.deleteAppReport({
                 report: expenseReport,
+                reportActions,
+                parentReportAction: undefined,
                 selfDMReport: undefined,
                 currentUserEmailParam: '',
                 currentUserAccountIDParam: currentUserAccountID,
@@ -3095,6 +3266,8 @@ describe('actions/Report', () => {
             // When deleting the first expense report
             Report.deleteAppReport({
                 report: expenseReport1,
+                reportActions: undefined,
+                parentReportAction: undefined,
                 selfDMReport: undefined,
                 currentUserEmailParam: '',
                 currentUserAccountIDParam: currentUserAccountID,
@@ -3167,6 +3340,8 @@ describe('actions/Report', () => {
             // When deleting the whole expense report (the path taken when it has multiple transactions, e.g. after duplicating)
             Report.deleteAppReport({
                 report: expenseReport,
+                reportActions: undefined,
+                parentReportAction: reportPreview,
                 selfDMReport: undefined,
                 currentUserEmailParam: '',
                 currentUserAccountIDParam: currentUserAccountID,
@@ -3216,6 +3391,7 @@ describe('actions/Report', () => {
                 managerLogin: '',
                 hasViolationsParam: true,
                 isChangePolicyTrainingModalDismissed: false,
+                ownerLogin: undefined,
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
             });
@@ -3274,6 +3450,7 @@ describe('actions/Report', () => {
                 managerLogin: '',
                 hasViolationsParam: false,
                 isChangePolicyTrainingModalDismissed: false,
+                ownerLogin: undefined,
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
             });
@@ -3342,6 +3519,7 @@ describe('actions/Report', () => {
                 managerLogin: '',
                 hasViolationsParam: false,
                 isChangePolicyTrainingModalDismissed: false,
+                ownerLogin: undefined,
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
             });
@@ -3436,6 +3614,7 @@ describe('actions/Report', () => {
                 managerLogin: '',
                 hasViolationsParam: false,
                 isChangePolicyTrainingModalDismissed: false,
+                ownerLogin: undefined,
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
             });
@@ -3518,6 +3697,7 @@ describe('actions/Report', () => {
                 managerLogin: '',
                 hasViolationsParam: false,
                 isChangePolicyTrainingModalDismissed: false,
+                ownerLogin: undefined,
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
             });
@@ -4340,6 +4520,7 @@ describe('actions/Report', () => {
                 policy,
                 currentUserAccountID: 1,
                 currentUserEmail: '',
+                ownerLogin: undefined,
                 managerLogin: '',
                 hasViolationsParam: false,
                 isASAPSubmitBetaEnabled: true,
@@ -4391,6 +4572,7 @@ describe('actions/Report', () => {
                 policy,
                 currentUserAccountID: 1,
                 currentUserEmail: '',
+                ownerLogin: undefined,
                 managerLogin: '',
                 hasViolationsParam: false,
                 isASAPSubmitBetaEnabled: true,
@@ -4450,6 +4632,7 @@ describe('actions/Report', () => {
                 policy,
                 currentUserAccountID: 1,
                 currentUserEmail: '',
+                ownerLogin: undefined,
                 managerLogin: '',
                 hasViolationsParam: false,
                 isASAPSubmitBetaEnabled: true,
@@ -4496,6 +4679,7 @@ describe('actions/Report', () => {
                 policy,
                 currentUserAccountID: 1,
                 currentUserEmail: '',
+                ownerLogin: undefined,
                 managerLogin: '',
                 hasViolationsParam: false,
                 isASAPSubmitBetaEnabled: true,
@@ -4555,6 +4739,7 @@ describe('actions/Report', () => {
                 policy,
                 currentUserAccountID: 1,
                 currentUserEmail: '',
+                ownerLogin: undefined,
                 managerLogin: '',
                 hasViolationsParam: false,
                 isASAPSubmitBetaEnabled: true,
@@ -4616,6 +4801,7 @@ describe('actions/Report', () => {
                 policy,
                 currentUserAccountID: 1,
                 currentUserEmail: '',
+                ownerLogin: undefined,
                 managerLogin: '',
                 hasViolationsParam: false,
                 isASAPSubmitBetaEnabled: true,

@@ -3329,10 +3329,6 @@ type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName | typeo
 
 type WorkspaceNavigatorRouteName = keyof WorkspaceNavigatorParamList;
 
-type WorkspaceScreenName = keyof WorkspaceSplitNavigatorParamList;
-
-type DomainScreenName = keyof DomainSplitNavigatorParamList;
-
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace ReactNavigation {
@@ -3414,7 +3410,6 @@ export type {
     PolicyCopySettingsNavigatorParamList,
     TwoFactorAuthNavigatorParamList,
     ScheduleCallParamList,
-    WorkspaceScreenName,
     TestDriveDemoNavigatorParamList,
     SplitExpenseParamList,
     SetParamsAction,
@@ -3426,7 +3421,6 @@ export type {
     ReportCardActivateNavigatorParamList,
     WorkspacesDomainModalNavigatorParamList,
     DomainSplitNavigatorParamList,
-    DomainScreenName,
     SearchColumnsParamList,
     MultifactorAuthenticationParamList,
     MultifactorAuthenticationModalNavigatorParamList,

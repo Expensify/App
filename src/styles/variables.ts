@@ -133,7 +133,6 @@ export default {
     tableRowPaddingHorizontal: 12,
     tableGroupRowPaddingVertical: 4,
     tableGroupRowHeight: 36,
-    tableSkeletonHeight: 32,
     tableCheckboxColumnWidth: 20,
     tableStatusColumnWidth: 56,
     tableTypeColumnWidth: 84,
