@@ -5477,6 +5477,24 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
     return filters;
 }
 
+/**
+ * Returns the set of filter chip keys that make up a suggested search's identity. These filters must not be
+ * removable, otherwise the search would no longer match its definition (e.g. Cash accruals stops being
+ * "cash accruals" without reimbursable:yes status:drafts,outstanding). Derived from the canned query's
+ * flatFilters, which include every renderable filter (status, reimbursable, etc.) but not view-only root
+ * keys like group-by.
+ */
+function getSuggestedSearchMandatoryFilterKeys(queryJSON: SearchQueryJSON | undefined): Set<SearchFilter['key']> {
+    const mandatoryKeys = new Set<SearchFilter['key']>();
+    for (const {key} of queryJSON?.flatFilters ?? []) {
+        if (!(key in FILTER_VIEW_MAP)) {
+            continue;
+        }
+        mandatoryKeys.add(key as SearchFilter['key']);
+    }
+    return mandatoryKeys;
+}
+
 function getSingleSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, translate: LocalizedTranslate) {
     if (filterKey === FILTER_KEYS.BILLABLE || filterKey === FILTER_KEYS.REIMBURSABLE) {
         return Object.values(CONST.SEARCH.BOOLEAN).map((value) => ({value, text: translate(`common.${value}`)}));
@@ -6411,6 +6429,7 @@ export {
     getDateDisplayValue,
     shouldShowFilter,
     mapFiltersFormToLabelValueList,
+    getSuggestedSearchMandatoryFilterKeys,
     isAmountFilterKey,
     isDateFilterKey,
     getSingleSelectFilterOptions,

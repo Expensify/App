@@ -10,28 +10,32 @@ import CONST from '@src/CONST';
 
 type SearchFiltersClearButtonProps = {
     onPress: () => void;
+
+    /** On a suggested search the action resets to its defaults rather than clearing all filters */
+    isReset?: boolean;
 };
 
-function SearchFiltersClearButton({onPress}: SearchFiltersClearButtonProps) {
+function SearchFiltersClearButton({onPress, isReset = false}: SearchFiltersClearButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close', 'RotateLeft']);
+    const label = translate(isReset ? 'common.reset' : 'common.clear');
 
     return (
         <PressableWithFeedback
-            accessibilityLabel={translate('common.clear')}
+            accessibilityLabel={label}
             onPress={onPress}
             style={[styles.searchFiltersClearButton]}
             hoverStyle={styles.hoveredComponentBG}
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.CLEAR_FILTERS_BUTTON}
         >
             <Icon
-                src={expensifyIcons.Close}
+                src={isReset ? expensifyIcons.RotateLeft : expensifyIcons.Close}
                 fill={theme.icon}
                 extraSmall
             />
-            <Text style={[styles.textMicroBoldSupporting]}>{translate('common.clear')}</Text>
+            <Text style={[styles.textMicroBoldSupporting]}>{label}</Text>
         </PressableWithFeedback>
     );
 }

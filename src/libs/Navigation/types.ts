@@ -3173,6 +3173,8 @@ type SearchFullscreenNavigatorParamList = {
         rawQuery?: SearchQueryString;
         name?: string;
         groupBy?: string;
+        /** Identifies which suggested search this view belongs to, so its identity survives filter edits */
+        searchKey?: string;
     };
 };
 

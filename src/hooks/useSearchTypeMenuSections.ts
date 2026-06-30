@@ -50,6 +50,9 @@ type UseSearchTypeMenuSectionsParams = {
     sortBy?: string;
     sortOrder?: string;
     type?: string;
+
+    /** The active suggested search key, used to keep its item highlighted even after its filters are customized */
+    searchKey?: string;
 };
 
 /**
@@ -57,7 +60,7 @@ type UseSearchTypeMenuSectionsParams = {
  * currently focused search, based on the hash
  */
 const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams) => {
-    const {hash, similarSearchHash, sortBy, sortOrder, type} = queryParams ?? {};
+    const {hash, similarSearchHash, sortBy, sortOrder, type, searchKey} = queryParams ?? {};
     const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: defaultExpensifyCardSelector});
 
     const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
@@ -133,6 +136,19 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
             return -1;
         }
 
+        // A reliable searchKey (carried through navigation) keeps the item active even after its filters
+        // are customized, which would otherwise change the similarSearchHash and break hash matching.
+        if (searchKey) {
+            let keyIndex = 0;
+            for (const section of typeMenuSections) {
+                const found = section.menuItems.findIndex((item) => item.key === searchKey);
+                if (found !== -1) {
+                    return keyIndex + found;
+                }
+                keyIndex += section.menuItems.length;
+            }
+        }
+
         let index = 0;
         for (const section of typeMenuSections) {
             const found = section.menuItems.findIndex((item) => {
@@ -165,7 +181,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
         }
 
         return -1;
-    }, [typeMenuSections, savedSearches, hash, similarSearchHash, sortBy, sortOrder, type]);
+    }, [typeMenuSections, savedSearches, hash, similarSearchHash, sortBy, sortOrder, type, searchKey]);
 
     const activeKey = activeItemIndex < 0 ? undefined : typeMenuSections.flatMap((section) => section.menuItems).at(activeItemIndex)?.key;
 

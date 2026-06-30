@@ -2117,6 +2117,22 @@ function getCurrentSearchQueryJSON() {
 }
 
 /**
+ * Reads the searchKey param from the currently focused Search root route. Used by views outside the
+ * SearchQueryProvider tree (e.g. the columns RHP) to preserve the suggested-search identity on navigation.
+ */
+function getCurrentSearchKey(): string | undefined {
+    const rootState = navigationRef.getRootState();
+    const lastTabNavigator = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+    const tabStateFromParams = getParamsState(lastTabNavigator?.params);
+    const tabState = lastTabNavigator?.state ?? (lastTabNavigator?.key ? getPreservedNavigatorState(lastTabNavigator.key) : undefined) ?? tabStateFromParams;
+    const lastSearchNavigator = getLastRouteByName(tabState, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+    const lastSearchNavigatorState = lastSearchNavigator?.state ?? (lastSearchNavigator?.key ? getPreservedNavigatorState(lastSearchNavigator.key) : undefined);
+    const lastSearchRoute = getLastRouteByName(lastSearchNavigatorState, SCREENS.SEARCH.ROOT);
+    const params = lastSearchRoute?.params;
+    return isSearchRootParams(params) ? (params.searchKey as string | undefined) : undefined;
+}
+
+/**
  * Extracts the query text without the filter parts.
  * This is used to determine if a user's core search terms have changed,
  * ignoring any filter modifications.
@@ -2393,6 +2409,7 @@ export {
     getQueryWithUpdatedValues,
     getKeywordQueryWithCurrentSearchContext,
     getCurrentSearchQueryJSON,
+    getCurrentSearchKey,
     getQueryWithoutFilters,
     isDefaultExpensesQuery,
     isDefaultExpenseReportsQuery,
