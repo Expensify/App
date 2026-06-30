@@ -11,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {addTempShareFile, addValidatedShareFile, clearShareData} from '@libs/actions/Share';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
@@ -51,22 +50,16 @@ function ShareRootPage() {
                 return;
             }
 
-            getFileSize(file.content)
-                .catch((error: unknown) => {
-                    // If stat fails we still validate the file so a genuine error surfaces to the user instead of failing silently.
-                    Log.warn('[ShareRootPage] Failed to get file size for validation', {error});
-                    return undefined;
-                })
-                .then((size) => {
-                    validateFiles([
-                        {
-                            name: file.id,
-                            uri: file.content,
-                            type: file.mimeType,
-                            size,
-                        },
-                    ]);
-                });
+            getFileSize(file.content).then((size) => {
+                validateFiles([
+                    {
+                        name: file.id,
+                        uri: file.content,
+                        type: file.mimeType,
+                        size,
+                    },
+                ]);
+            });
         },
         [isTextShared, validateFiles],
     );

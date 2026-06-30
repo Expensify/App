@@ -1,5 +1,4 @@
 import RNFS from 'react-native-fs';
-import getNativeFileSystemPath from '@libs/fileDownload/getNativeFileSystemPath';
 
 /**
  * Checks if a file exists at the given path without loading it into memory.
@@ -13,11 +12,23 @@ function checkFileExists(path: string | undefined): Promise<boolean> {
         return Promise.resolve(false);
     }
 
-    // RNFS.stat uses NSFileManager.attributesOfItemAtPath: which expects a POSIX path, not a file:// URI
-    const nativePath = getNativeFileSystemPath(path);
+    // Decode URI if it's URL-encoded (handles special characters in filenames)
+    let decodedPath = path;
+    try {
+        decodedPath = decodeURI(path);
+    } catch (e) {
+        // If decoding fails, use the original path
+        decodedPath = path;
+    }
+
+    // RNFS.stat uses NSFileManager.attributesOfItemAtPath: which expects
+    // a POSIX path, not a file:// URI
+    if (decodedPath.startsWith('file://')) {
+        decodedPath = decodedPath.slice(7);
+    }
 
     // RNFS.stat() returns file info without loading the file content
-    return RNFS.stat(nativePath)
+    return RNFS.stat(decodedPath)
         .then((fileStat) => {
             // File exists if we get stats and it's actually a file (not directory)
             return fileStat.isFile();
