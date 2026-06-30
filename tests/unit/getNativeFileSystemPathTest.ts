@@ -1,3 +1,4 @@
+// cspell:ignore DCIM
 import getNativeFileSystemPath from '@libs/fileDownload/getNativeFileSystemPath';
 
 describe('getNativeFileSystemPath', () => {
