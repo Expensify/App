@@ -45,6 +45,7 @@ export default function TableFilterBar({label, children}: TableFilterBarProps) {
                     key={filter.key}
                     label={filter.label}
                     value={filter.value}
+                    wrapperStyle={styles.flex1}
                     PopoverComponent={TableFilterPopoverComponent}
                     onClosePress={filter.onClosePress}
                 />
@@ -54,7 +55,7 @@ export default function TableFilterBar({label, children}: TableFilterBarProps) {
 
     return (
         <View style={[styles.w100, styles.gap3, styles.pb3, styles.ph5]}>
-            <View style={[styles.flexRow, styles.gap3, styles.justifyContentBetween]}>
+            <View style={[styles.flexRow, styles.gap3, styles.justifyContentBetween, styles.alignItemsCenter]}>
                 <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.gap2, styles.alignItemsCenter]}>
                     <TableSearchBar label={label} />
                     {!shouldUseNarrowTableLayout && ActiveFilterChipsComponent}

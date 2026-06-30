@@ -29,7 +29,6 @@ function useDomainGroupFilter(domainAccountID: number): UseDomainGroupFilterResu
 
     const [groups] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: groupsSelector});
 
-    const allMembersLabel = translate('domain.members.allMembers');
     const shouldShowGroupFilter = (groups?.length ?? 0) > 1;
     const shouldShowGroupColumn = (groups?.length ?? 0) > 0;
 
@@ -37,7 +36,7 @@ function useDomainGroupFilter(domainAccountID: number): UseDomainGroupFilterResu
         ? undefined
         : {
               group: {
-                  label: allMembersLabel,
+                  label: translate('common.group'),
                   filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
                   options: (groups ?? []).map((group) => ({label: group.details.name ?? '', value: group.id})),
               },
