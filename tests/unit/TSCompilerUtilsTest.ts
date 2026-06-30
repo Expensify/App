@@ -1091,12 +1091,8 @@ describe('TSCompilerUtils', () => {
             expect(ts.isObjectLiteralExpression(body)).toBe(true);
 
             const returnedObject = body as ts.ObjectLiteralExpression;
-            const oneProp = returnedObject.properties.find(
-                (prop) => ts.isPropertyAssignment(prop) && ts.isIdentifier(prop.name) && prop.name.text === 'one',
-            ) as ts.PropertyAssignment;
-            const otherProp = returnedObject.properties.find(
-                (prop) => ts.isPropertyAssignment(prop) && ts.isIdentifier(prop.name) && prop.name.text === 'other',
-            ) as ts.PropertyAssignment;
+            const oneProp = returnedObject.properties.find((prop) => ts.isPropertyAssignment(prop) && ts.isIdentifier(prop.name) && prop.name.text === 'one') as ts.PropertyAssignment;
+            const otherProp = returnedObject.properties.find((prop) => ts.isPropertyAssignment(prop) && ts.isIdentifier(prop.name) && prop.name.text === 'other') as ts.PropertyAssignment;
 
             // The targeted leaf is replaced and the sibling leaf is preserved
             expect((oneProp.initializer as ts.StringLiteral).text).toBe('Updated admin');
