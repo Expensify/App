@@ -8,13 +8,15 @@ import type {PopoverComponentProps} from './FilterPopupButton';
 type CommonPopupProps = {
     filterKey: FilterComponentsProps['filterKey'];
     value: FilterComponentsProps['value'];
+    type: FilterComponentsProps['type'];
+    policyIDs: FilterComponentsProps['policyIDs'];
     label: string;
     policyIDQuery: string[] | undefined;
     closeOverlay: PopoverComponentProps['closeOverlay'];
     updateFilterForm: (value: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-function CommonPopup({filterKey, value: initialValue, label, policyIDQuery, updateFilterForm, closeOverlay}: CommonPopupProps) {
+function CommonPopup({filterKey, value: initialValue, type, policyIDs, label, policyIDQuery, updateFilterForm, closeOverlay}: CommonPopupProps) {
     const [value, setValue] = useState(initialValue);
 
     const applyChanges = () => {
@@ -22,22 +24,17 @@ function CommonPopup({filterKey, value: initialValue, label, policyIDQuery, upda
         closeOverlay();
     };
 
-    const resetChanges = () => {
-        updateFilterForm({[filterKey]: undefined});
-        closeOverlay();
-    };
-
     return (
         <BasePopup
             label={label}
             onApply={applyChanges}
-            onReset={resetChanges}
             applySentryLabel={`Search-FilterPopupApply-${filterKey}`}
-            resetSentryLabel={`Search-FilterPopupReset-${filterKey}`}
         >
             <FilterComponents
                 filterKey={filterKey}
                 value={value}
+                type={type}
+                policyIDs={policyIDs}
                 policyIDQuery={policyIDQuery}
                 onChange={setValue}
             />

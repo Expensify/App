@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import type {SearchFilterSelectionListProps} from '@components/Search/types';
+import type {SearchFilterCommonProps} from '@components/Search/types';
 import CardListItem from '@components/SelectionList/ListItem/CardListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {TextInputOptions} from '@components/SelectionList/types';
@@ -24,10 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ListFilterView from './ListFilterViewWrapper';
 
-type CardSelectorProps = SearchFilterSelectionListProps & {
-    value: string[] | undefined;
-    onChange: (cards: string[]) => void;
-};
+type CardSelectorProps = SearchFilterCommonProps<string[] | undefined>;
 
 function CardSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: CardSelectorProps) {
     const theme = useTheme();

@@ -6,7 +6,6 @@ import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -14,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobile} from '@libs/Browser';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import ONYXKEYS from '@src/ONYXKEYS';
+import InboxTabSelector from './InboxTabSelector';
 import SidebarLinksData from './SidebarLinksData';
 
 // Once the app finishes loading for the first time, we never show the skeleton again
@@ -38,9 +38,6 @@ function BaseSidebarScreen() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldShowSkeleton = isLoadingApp && !hasEverFinishedLoading;
-    // Must be called unconditionally so openApp() can proceed even when
-    // the skeleton is shown and SidebarLinksData has not mounted yet.
-    useConfirmReadyToOpenApp();
 
     return (
         <ScreenWrapper
@@ -57,6 +54,7 @@ function BaseSidebarScreen() {
                         shouldDisplaySearch={shouldUseNarrowLayout}
                         shouldDisplayHelpButton={shouldUseNarrowLayout}
                     />
+                    {!shouldShowSkeleton && <InboxTabSelector />}
                     <View style={[styles.flex1]}>
                         {shouldShowSkeleton ? (
                             <OptionsListSkeletonView

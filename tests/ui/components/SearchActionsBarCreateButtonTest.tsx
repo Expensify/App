@@ -10,10 +10,11 @@ import SearchActionsBarCreateButton from '@components/Search/SearchPageHeader/Se
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import {createNewReport} from '@libs/actions/Report';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
@@ -194,7 +195,7 @@ describe('SearchActionsBarCreateButton', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then it navigates to workspace selection
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+        expect(mockNavigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.path));
     });
 
     it('should create report directly when a single default workspace exists', async () => {
@@ -330,7 +331,7 @@ describe('SearchActionsBarCreateButton', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then it navigates to workspace selection since there are multiple workspaces and the default is restricted
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+        expect(mockNavigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.path));
     });
 
     it('should open confirmation modal when an empty report exists and confirmation is not dismissed', async () => {

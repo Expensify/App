@@ -1,10 +1,10 @@
+import {useIsFocused} from '@react-navigation/core';
 import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
 import type {ReactNode, RefObject} from 'react';
 import React, {useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
-import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
 import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
@@ -35,10 +35,8 @@ type FilterPopupButtonProps = {
     /** Wrapper style for the outer view */
     wrapperStyle?: StyleProp<ViewStyle>;
 
-    outerModalStyle?: ViewStyle;
     popoverWidth?: number;
     popoverAnchorAlignment?: AnchorAlignment;
-    smallScreenModalType?: PopoverWithMeasuredContentProps['smallScreenModalType'];
 
     /** The component to render in the popover */
     PopoverComponent: (props: PopoverComponentProps) => ReactNode;
@@ -52,20 +50,11 @@ const ANCHOR_ORIGIN = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-function FilterPopupButton({
-    viewportOffsetTop,
-    popoverWidth,
-    wrapperStyle,
-    outerModalStyle,
-    smallScreenModalType,
-    popoverAnchorAlignment: popoverAnchorAlignmentProp,
-    PopoverComponent,
-    renderButton,
-}: FilterPopupButtonProps) {
+function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popoverAnchorAlignment: popoverAnchorAlignmentProp, PopoverComponent, renderButton}: FilterPopupButtonProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHP and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-
+    const isFocused = useIsFocused();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
@@ -84,9 +73,6 @@ function FilterPopupButton({
 
     const popoverAnchorAlignment = popoverAnchorAlignmentProp ?? ANCHOR_ORIGIN;
 
-    /**
-     * Toggle the overlay between open & closed
-     */
     const toggleOverlay = () => {
         setIsOverlayVisible((previousValue) => {
             if (!previousValue && willAlertModalBecomeVisible) {
@@ -97,9 +83,6 @@ function FilterPopupButton({
         });
     };
 
-    /**
-     * Calculate popover position and toggle overlay
-     */
     const calculatePopoverPositionAndToggleOverlay = () => {
         calculatePopoverPosition(anchorRef, popoverAnchorAlignment).then((position) => {
             setPopoverTriggerPosition({...position, vertical: position.vertical});
@@ -121,36 +104,36 @@ function FilterPopupButton({
             {renderButton({ref: triggerRef, onPress: calculatePopoverPositionAndToggleOverlay, isExpanded: isOverlayVisible})}
 
             {/* Dropdown overlay */}
-            <PopoverWithMeasuredContent
-                smallScreenModalType={smallScreenModalType}
-                anchorRef={triggerRef}
-                avoidKeyboard
-                isVisible={isOverlayVisible}
-                onClose={toggleOverlay}
-                anchorPosition={popoverTriggerPosition}
-                anchorAlignment={popoverAnchorAlignment}
-                restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
-                shouldEnableNewFocusManagement
-                shouldMeasureAnchorPositionFromTop={false}
-                outerStyle={{...(outerModalStyle ?? StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop)), ...containerStyles}}
-                // This must be false because we dont want the modal to close if we open the RHP for selections
-                // such as date years
-                shouldCloseWhenBrowserNavigationChanged={false}
-                shouldHandleNavigationBack
-                innerContainerStyle={{...containerStyles, ...styles.p0}}
-                popoverDimensions={{
-                    width: actualPopoverWidth,
-                    height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
-                }}
-                shouldSkipRemeasurement
-                shouldDisplayBelowModals
-                shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
-            >
-                {popoverContent}
-            </PopoverWithMeasuredContent>
+            {isFocused && (
+                <PopoverWithMeasuredContent
+                    anchorRef={triggerRef}
+                    avoidKeyboard
+                    isVisible={isOverlayVisible}
+                    onClose={toggleOverlay}
+                    anchorPosition={popoverTriggerPosition}
+                    anchorAlignment={popoverAnchorAlignment}
+                    restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
+                    shouldEnableNewFocusManagement
+                    shouldMeasureAnchorPositionFromTop={false}
+                    outerStyle={{...StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop), ...containerStyles}}
+                    // This must be false because we dont want the modal to close if we open the RHP for selections
+                    // such as date years
+                    shouldCloseWhenBrowserNavigationChanged={false}
+                    innerContainerStyle={{...containerStyles, ...styles.p0}}
+                    popoverDimensions={{
+                        width: actualPopoverWidth,
+                        height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
+                    }}
+                    shouldSkipRemeasurement
+                    shouldDisplayBelowModals
+                    shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
+                >
+                    {popoverContent}
+                </PopoverWithMeasuredContent>
+            )}
         </View>
     );
 }
 
-export type {PopoverComponentProps, FilterPopupButtonProps};
+export type {PopoverComponentProps, ButtonComponentProps, FilterPopupButtonProps};
 export default withViewportOffsetTop(FilterPopupButton);

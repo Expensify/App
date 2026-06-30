@@ -11,10 +11,11 @@ type DatePickerFilterPopupProps = Pick<PopoverComponentProps, 'closeOverlay' | '
     filterKey: SearchDateFilterKeys;
     value: SearchDateValues;
     label: string;
+    hasFeed: boolean;
     updateFilterForm: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-function DatePickerFilterPopup({closeOverlay, setPopoverWidth, filterKey, value, label, updateFilterForm}: DatePickerFilterPopupProps) {
+function DatePickerFilterPopup({closeOverlay, setPopoverWidth, filterKey, value, label, hasFeed, updateFilterForm}: DatePickerFilterPopupProps) {
     const onChange = (selectedDates: SearchDateValues) => {
         const dateFormValues: Record<string, string | undefined> = {};
         dateFormValues[`${filterKey}On`] = selectedDates[CONST.SEARCH.DATE_MODIFIERS.ON];
@@ -30,7 +31,7 @@ function DatePickerFilterPopup({closeOverlay, setPopoverWidth, filterKey, value,
             onChange={onChange}
             closeOverlay={closeOverlay}
             setPopoverWidth={setPopoverWidth}
-            presets={getDatePresets(filterKey, true)}
+            presets={getDatePresets(filterKey, hasFeed)}
         />
     );
 }

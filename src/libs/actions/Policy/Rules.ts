@@ -1,6 +1,7 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
+import type {AddPolicyAgentRuleParams, DeletePolicyAgentRuleParams, UpdatePolicyAgentRuleParams} from '@libs/API/parameters';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
 import type SetPolicyCodingRuleParams from '@libs/API/parameters/SetPolicyCodingRuleParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -12,7 +13,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MerchantRuleForm} from '@src/types/form';
 import type Policy from '@src/types/onyx/Policy';
-import type {CodingRule, CodingRuleFilter, CodingRuleTax} from '@src/types/onyx/Policy';
+import type {AgentRule, CodingRule, CodingRuleFilter, CodingRuleTax} from '@src/types/onyx/Policy';
+import type {OnyxData} from '@src/types/onyx/Request';
 
 /**
  * Builds the tax object from a tax key and policy
@@ -206,7 +208,7 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
                         codingRules: {
                             [targetRuleID]: {
                                 ...failureRuleValue,
-                                pendingAction: null,
+                                pendingAction: isEditing ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },
@@ -324,4 +326,276 @@ function deletePolicyCodingRule(policy: Policy, ruleID: string) {
     API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
 }
 
-export {openPolicyRulesPage, setPolicyCodingRule, deletePolicyCodingRule, getTransactionsMatchingCodingRule};
+function addPolicyAgentRule(policyID: string, agentRuleID: string, prompt: string) {
+    if (!policyID || !agentRuleID || !prompt) {
+        Log.warn('Invalid params for addPolicyAgentRule', {policyID, agentRuleID, prompt});
+        return;
+    }
+
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    rules: {
+                        agentRules: {
+                            [agentRuleID]: {
+                                ruleID: agentRuleID,
+                                created: new Date().toISOString(),
+                                prompt,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    rules: {
+                        agentRules: {
+                            [agentRuleID]: {
+                                pendingAction: null,
+                                errors: null,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    rules: {
+                        agentRules: {
+                            [agentRuleID]: {
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: AddPolicyAgentRuleParams = {
+        policyID,
+        agentRuleID,
+        prompt,
+    };
+
+    API.write(WRITE_COMMANDS.ADD_POLICY_AGENT_RULE, parameters, onyxData);
+}
+
+function updatePolicyAgentRule(policyID: string, agentRuleID: string, prompt: string, previousPrompt: string) {
+    if (!policyID || !agentRuleID || !prompt) {
+        Log.warn('Invalid params for updatePolicyAgentRule', {policyID, agentRuleID, prompt});
+        return;
+    }
+
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    rules: {
+                        agentRules: {
+                            [agentRuleID]: {
+                                prompt,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    rules: {
+                        agentRules: {
+                            [agentRuleID]: {
+                                pendingAction: null,
+                                errors: null,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    rules: {
+                        agentRules: {
+                            [agentRuleID]: {
+                                prompt: previousPrompt,
+                                pendingAction: null,
+                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: UpdatePolicyAgentRuleParams = {
+        policyID,
+        agentRuleID,
+        prompt,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_AGENT_RULE, parameters, onyxData);
+}
+
+function deletePolicyAgentRule(policy: Policy, agentRuleID: string) {
+    if (!policy.id || !agentRuleID) {
+        Log.warn('Invalid params for deletePolicyAgentRule', {policyID: policy.id, agentRuleID});
+        return;
+    }
+
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policy.id}` as const;
+    const existingRule = policy.rules?.agentRules?.[agentRuleID];
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    rules: {
+                        agentRules: {
+                            [agentRuleID]: {
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    rules: {
+                        agentRules: {
+                            [agentRuleID]: null,
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    rules: {
+                        agentRules: {
+                            [agentRuleID]: {
+                                ...existingRule,
+                                pendingAction: null,
+                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: DeletePolicyAgentRuleParams = {
+        policyID: policy.id,
+        agentRuleID,
+    };
+
+    API.write(WRITE_COMMANDS.DELETE_POLICY_AGENT_RULE, parameters, onyxData);
+}
+
+function clearPolicyCodingRuleErrors(policyID: string, ruleID: string, rule: CodingRule | undefined) {
+    if (!rule) {
+        return;
+    }
+
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+
+    if (rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        Onyx.merge(policyKey, {
+            rules: {
+                codingRules: {
+                    [ruleID]: null,
+                },
+            },
+        });
+        return;
+    }
+
+    Onyx.merge(policyKey, {
+        rules: {
+            codingRules: {
+                [ruleID]: {
+                    errors: null,
+                },
+            },
+        },
+    });
+}
+
+function clearPolicyAgentRuleErrors(policyID: string, agentRuleID: string, agentRule: AgentRule | undefined) {
+    if (!agentRule) {
+        return;
+    }
+
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+
+    if (agentRule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        Onyx.merge(policyKey, {
+            rules: {
+                agentRules: {
+                    [agentRuleID]: null,
+                },
+            },
+        });
+        return;
+    }
+
+    Onyx.merge(policyKey, {
+        rules: {
+            agentRules: {
+                [agentRuleID]: {
+                    errors: null,
+                },
+            },
+        },
+    });
+}
+
+export {
+    openPolicyRulesPage,
+    setPolicyCodingRule,
+    deletePolicyCodingRule,
+    getTransactionsMatchingCodingRule,
+    addPolicyAgentRule,
+    updatePolicyAgentRule,
+    deletePolicyAgentRule,
+    clearPolicyCodingRuleErrors,
+    clearPolicyAgentRuleErrors,
+};

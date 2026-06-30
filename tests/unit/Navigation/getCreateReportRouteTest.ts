@@ -1,9 +1,10 @@
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
+import createDynamicRoute from '@src/libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspaceSelection} from '@src/libs/Navigation/helpers/getCreateReportRoute';
 import isSearchTopmostFullScreenRoute from '@src/libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -55,6 +56,6 @@ describe('getCreateReportRoute', () => {
         expect(mockNavigate).toHaveBeenCalledTimes(2);
         expect(mockNavigate).toHaveBeenNthCalledWith(1, getReportsRootRoute(), {forceReplace: true});
         expect(mockSetNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).toHaveBeenNthCalledWith(2, ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+        expect(mockNavigate).toHaveBeenNthCalledWith(2, createDynamicRoute(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.path));
     });
 });

@@ -49,19 +49,22 @@ jest.mock('@hooks/useFilteredOptions', () => ({
 
 jest.mock('@libs/OptionsListUtils', () => ({
     getSearchOptions: jest.fn(() => ({
-        recentReports: [
-            {
-                reportID: '10',
-                keyForList: '10',
-                text: 'Test Report',
-                alternateText: 'alternate text',
-                lastMessageText: 'last message',
-            },
-        ],
-        personalDetails: [],
-        currentUserOption: null,
-        userToInvite: null,
-        categoryOptions: [],
+        options: {
+            recentReports: [
+                {
+                    reportID: '10',
+                    keyForList: '10',
+                    text: 'Test Report',
+                    alternateText: 'alternate text',
+                    lastMessageText: 'last message',
+                },
+            ],
+            personalDetails: [],
+            currentUserOption: null,
+            userToInvite: null,
+            categoryOptions: [],
+        },
+        hasMore: false,
     })),
     combineOrderingOfReportsAndPersonalDetails: jest.fn(() => ({recentReports: [], personalDetails: []})),
     getAlternateText: jest.fn(),

@@ -1,11 +1,9 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -13,6 +11,7 @@ import ReportActionAvatars from '@components/ReportActionAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useCloseImportPage from '@hooks/useCloseImportPage';
+import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -44,12 +43,11 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const [isImporting, setIsImporting] = useState(false);
-    const [shouldShowConfirmModal, setShouldShowConfirmModal] = useState(true);
     const {isOffline} = useNetwork();
-    const isFocused = useIsFocused();
 
     const personalDetails = usePersonalDetails();
     const {setIsClosing} = useCloseImportPage();
+    const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
 
     useEffect(() => {
         return () => {
@@ -88,21 +86,26 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         openExternalLink(CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL);
     };
 
-    const importMembers = useCallback(() => {
+    const closeImportPageAndModal = () => {
+        setIsClosing(true);
+        setIsImporting(false);
+        closeImportPage();
+        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
+    };
+
+    const importMembers = async () => {
         if (!newMembers) {
             return;
         }
         setIsImporting(true);
         const membersWithRole = (importedSpreadsheetMemberData ?? []).map((member) => ({...member, role: member.role || role}));
-        importPolicyMembers(policy, membersWithRole);
-    }, [importedSpreadsheetMemberData, newMembers, policy, role]);
-
-    const closeImportPageAndModal = () => {
-        setIsClosing(true);
-        setIsImporting(false);
-        setShouldShowConfirmModal(false);
-        closeImportPage();
-        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
+        const importFinalModal = await importPolicyMembers(policy, membersWithRole);
+        const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
+        if (!didShowImportFinalModal) {
+            setIsImporting(false);
+            return;
+        }
+        closeImportPageAndModal();
     };
 
     if (!spreadsheet || !importedSpreadsheetMemberData) {
@@ -174,11 +177,6 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                     </View>
                 </PressableWithoutFeedback>
             </FixedFooter>
-            <ImportSpreadsheetConfirmModal
-                isVisible={spreadsheet?.shouldFinalModalBeOpened && shouldShowConfirmModal && isFocused}
-                closeImportPageAndModal={closeImportPageAndModal}
-                shouldHandleNavigationBack={false}
-            />
         </ScreenWrapper>
     );
 }

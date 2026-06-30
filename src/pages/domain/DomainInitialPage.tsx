@@ -10,7 +10,6 @@ import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -109,8 +108,6 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
 
     useNetwork({onReconnect: fetchDomainData});
 
-    useConfirmReadyToOpenApp();
-
     const shouldShowFullScreenLoadingIndicator = isLoadingOnyxValue(domainMetadata);
 
     useEffect(() => {
@@ -118,7 +115,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
             return;
         }
 
-        Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
+        Navigation.goBack(ROUTES.DOMAINS_LIST.route);
     }, [domain, isAdmin, shouldShowFullScreenLoadingIndicator]);
 
     return (
@@ -138,7 +135,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
             >
                 <HeaderWithBackButton
                     title={domainName}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAINS_LIST.route)}
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
                 />
 

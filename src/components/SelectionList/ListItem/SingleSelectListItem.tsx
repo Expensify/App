@@ -27,6 +27,7 @@ function SingleSelectListItem<TItem extends ListItem>({
     isFocusVisible,
     rightHandSideComponent,
     selectionButtonPosition,
+    titleNumberOfLines,
 }: SingleSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
 
@@ -51,6 +52,7 @@ function SingleSelectListItem<TItem extends ListItem>({
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
             isFocusVisible={isFocusVisible}
             selectionButtonPosition={selectionButtonPosition}
+            titleNumberOfLines={titleNumberOfLines}
         />
     );
 }

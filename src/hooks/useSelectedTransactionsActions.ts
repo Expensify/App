@@ -28,7 +28,7 @@ import {
     isTrackExpenseReport,
 } from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {getOriginalTransactionWithSplitInfo, hasTransactionBeenRejected} from '@libs/TransactionUtils';
+import {getChildTransactions, getOriginalTransactionWithSplitInfo, hasTransactionBeenRejected} from '@libs/TransactionUtils';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,13 +42,16 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
+import useEnvironment from './useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import useReportIsArchived from './useReportIsArchived';
+import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import {shouldShowBulkDuplicateOption} from './useSearchBulkActions';
+import useSplitEffectivePolicy from './useSplitEffectivePolicy';
 
 const {HOLD, UNHOLD, MOVE, MERGE, SPLIT, DUPLICATE} = CONST.REPORT.SELECTED_TRANSACTIONS_BULK_ACTION_TYPES;
 
@@ -71,7 +74,7 @@ function useSelectedTransactionsActions({
     onExportFailed?: () => void;
     onExportOffline?: () => void;
     policy?: Policy;
-    beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
+    beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], exportName: string, policyID?: string) => void;
     isOnSearch?: boolean;
     onDeleteSelected?: (handleDeleteTransactions: () => void, handleDeleteTransactionsWithNavigation: (backToRoute?: Route) => void) => void | Promise<void>;
 }) {
@@ -91,6 +94,10 @@ function useSelectedTransactionsActions({
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const firstSelectedTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionIDs.at(0)}`];
+    const splitEffectivePolicy = useSplitEffectivePolicy(report, undefined, firstSelectedTransaction);
+    const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const {getCurrencyDecimals} = useCurrencyListActions();
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -114,6 +121,7 @@ function useSelectedTransactionsActions({
     const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({report, reportActions, policy});
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const defaultExpensePolicy = useDefaultExpensePolicy();
+    const {isProduction} = useEnvironment();
 
     const selectedTransactionsList = selectedTransactionIDs.reduce((acc, transactionID) => {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -141,7 +149,7 @@ function useSelectedTransactionsActions({
             continue;
         }
 
-        const parentReport = getReportOrDraftReport(reportID);
+        const parentReport = getReportOrDraftReport(reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
         const ownerAccountID = parentReport?.ownerAccountID;
 
         if (typeof ownerAccountID === 'number') {
@@ -341,7 +349,8 @@ function useSelectedTransactionsActions({
                         if (!action?.childReportID) {
                             continue;
                         }
-                        unholdRequest(transactionID, action.childReportID, policy, isOffline, login ?? '', currentUserAccountID);
+                        const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+                        unholdRequest(transactionID, action.childReportID, policy, isOffline, login ?? '', currentUserAccountID, transactionViolations);
                     }
                     clearSelectedTransactions(true);
                 },
@@ -406,7 +415,7 @@ function useSelectedTransactionsActions({
                     text: template.name,
                     icon: isStandardTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
                     description: template.description,
-                    onSelected: () => beginExportWithTemplate(template.templateName, template.type, selectedTransactionIDs, template.policyID),
+                    onSelected: () => beginExportWithTemplate(template.templateName, template.type, selectedTransactionIDs, template.name, template.policyID),
                 });
             }
             return exportOptions;
@@ -427,7 +436,13 @@ function useSelectedTransactionsActions({
             }
             const iouReportAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
 
-            const canMoveExpense = canEditFieldOfMoneyRequest({reportAction: iouReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT, outstandingReportsByPolicyID, transaction});
+            const canMoveExpense = canEditFieldOfMoneyRequest({
+                reportAction: iouReportAction,
+                fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                outstandingReportsByPolicyID,
+                transaction,
+                reportNameValuePairs: allReportNameValuePairs,
+            });
             return canMoveExpense;
         });
 
@@ -472,8 +487,13 @@ function useSelectedTransactionsActions({
         const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransaction?.comment?.originalTransactionID}`];
 
         const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(firstTransaction, originalTransaction);
+        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
+        const hasMultipleSplits = getChildTransactions(allTransactions, firstTransaction?.comment?.originalTransactionID, isProduction).length > 1;
         const canSplitTransaction =
-            selectedTransactionsList.length === 1 && report && !isExpenseSplit && isSplitAction(report, [firstTransaction], originalTransaction, login ?? '', currentUserAccountID, policy);
+            selectedTransactionsList.length === 1 &&
+            report &&
+            !(isExpenseSplit && hasMultipleSplits) &&
+            isSplitAction(report, [firstTransaction], originalTransaction, login ?? '', currentUserAccountID, policy, parentReport, isProduction);
 
         if (canSplitTransaction) {
             options.push({
@@ -481,7 +501,7 @@ function useSelectedTransactionsActions({
                 icon: expensifyIcons.ArrowSplit,
                 value: SPLIT,
                 onSelected: () => {
-                    initSplitExpense(firstTransaction, policy);
+                    initSplitExpense(firstTransaction, report, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, {isProduction});
                 },
             });
         }

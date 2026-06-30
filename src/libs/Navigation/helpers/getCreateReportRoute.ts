@@ -2,7 +2,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import createDynamicRoute from './dynamicRoutesUtils/createDynamicRoute';
 import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
 import type {LinkToOptions} from './linkTo/types';
 
@@ -19,7 +20,7 @@ function getReportsRootRoute() {
 function navigateToCreateReportWorkspaceSelection(options?: LinkToOptions) {
     Navigation.navigate(getReportsRootRoute(), options);
     Navigation.setNavigationActionToMicrotaskQueue(() => {
-        Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.path));
     });
 }
 

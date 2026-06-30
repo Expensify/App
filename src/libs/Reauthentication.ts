@@ -1,20 +1,22 @@
 import * as Sentry from '@sentry/react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account} from '@src/types/onyx';
 import type Response from '@src/types/onyx/Response';
 import {isConnectedAsDelegate, restoreDelegateSession} from './actions/Delegate';
+import clearShortLivedAuthState from './actions/Session/clearShortLivedAuthState';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
 import redirectToSignIn from './actions/SignInRedirect';
-import {getAuthenticateErrorMessage} from './ErrorUtils';
+import {AUTHENTICATION_COMMAND} from './API/types';
+import HttpsError from './Errors/HttpsError';
+import {getAuthenticateErrorMessage, getErrorMessage} from './ErrorUtils';
 import Log from './Log';
 import {post} from './Network';
 import {getCredentials, hasReadRequiredDataFromStorage, setAuthToken, setIsAuthenticating} from './Network/NetworkStore';
 import requireParameters from './requireParameters';
-import {checkIfShouldUseNewPartnerName} from './SessionUtils';
+import {checkIfShouldUseNewPartnerName, getPartnerCredentials} from './SessionUtils';
 import trackAuthenticationError from './telemetry/trackAuthenticationError';
 
 type Parameters = {
@@ -36,13 +38,20 @@ let isSupportAuthTokenUsed = false;
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
-        isAuthenticatingWithShortLivedToken = !!value?.isAuthenticatingWithShortLivedToken;
         isSupportAuthTokenUsed = !!value?.isSupportAuthTokenUsed;
 
         Sentry.setUser({
             id: value?.accountID,
             email: value?.email,
         });
+    },
+});
+
+// Kept on a RAM-only key so an interrupted SignIn cannot persist a stuck `true` to IndexedDB and block all future reauth attempts.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
+    callback: (value) => {
+        isAuthenticatingWithShortLivedToken = !!value;
     },
 });
 
@@ -57,15 +66,16 @@ Onyx.connectWithoutView({
 });
 
 function Authenticate<TKey extends OnyxKey>(parameters: Parameters): Promise<Response<TKey> | void> {
-    const commandName = 'Authenticate';
+    const commandName = AUTHENTICATION_COMMAND;
 
     try {
         requireParameters(['partnerName', 'partnerPassword', 'partnerUserID', 'partnerUserSecret'], parameters, commandName);
     } catch (error) {
-        const errorMessage = (error as Error).message;
-        trackAuthenticationError(error as Error, {
+        const errorMessage = getErrorMessage(error);
+        // Caught values can be non-Error objects, but telemetry expects an Error instance.
+        trackAuthenticationError(error instanceof Error ? error : new Error(errorMessage), {
             errorType: 'missing_params',
-            functionName: 'Authenticate',
+            functionName: AUTHENTICATION_COMMAND,
             commandName,
             providedParameters: Object.keys(parameters),
         });
@@ -97,6 +107,24 @@ function Authenticate<TKey extends OnyxKey>(parameters: Parameters): Promise<Res
     });
 }
 
+function shouldRetryAuthenticateError(error: unknown): boolean {
+    if (!(error instanceof HttpsError)) {
+        return true;
+    }
+
+    // Only retry transient connectivity/service issues. Real HTTP auth failures,
+    // and auth throttling, should fall through to the normal sign-out path so we
+    // do not spin on Authenticate before redirecting to sign in.
+    return error.message === CONST.ERROR.FAILED_TO_FETCH || error.message === CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED;
+}
+
+function getAuthenticationErrorResponse(error: HttpsError): Response<OnyxKey> {
+    return {
+        jsonCode: Number(error.status),
+        message: error.message,
+    };
+}
+
 /**
  * Reauthenticate using the stored credentials and redirect to the sign in page if unable to do so.
  * @param [command] command name for logging purposes
@@ -109,11 +137,25 @@ function reauthenticate(command = ''): Promise<boolean> {
 
     // Prevent re-authentication if authentication with shortLiveToken is in progress
     if (isAuthenticatingWithShortLivedToken) {
-        Log.hmmm('[Reauthenticate] Authentication with shortLivedToken is in progress. Re-authentication aborted.', {
+        // Only treat the short-lived auth state as stale once account loading has
+        // explicitly finished. Until then, keep aborting reauth to avoid interrupting
+        // a valid short-lived-token login during startup hydration races.
+        if (account?.isLoading !== false) {
+            Log.hmmm('[Reauthenticate] Authentication with shortLivedToken is in progress. Re-authentication aborted.', {
+                command,
+                isSupportAuthTokenUsed,
+                accountIsLoading: account?.isLoading,
+            });
+            return Promise.resolve(false);
+        }
+
+        Log.alert('[Reauthenticate] Found stale shortLivedToken authentication state. Clearing it before re-authenticating.', {
             command,
             isSupportAuthTokenUsed,
         });
-        return Promise.resolve(false);
+        isAuthenticatingWithShortLivedToken = false;
+        isSupportAuthTokenUsed = false;
+        clearShortLivedAuthState();
     }
 
     // Prevent any more requests from being processed while authentication happens
@@ -125,10 +167,7 @@ function reauthenticate(command = ''): Promise<boolean> {
 
     return hasReadRequiredDataFromStorage().then(() => {
         const credentials = getCredentials();
-        const shouldUseNewPartnerName = checkIfShouldUseNewPartnerName(credentials?.autoGeneratedLogin);
-
-        const partnerName = shouldUseNewPartnerName ? CONFIG.EXPENSIFY.PARTNER_NAME : CONFIG.EXPENSIFY.LEGACY_PARTNER_NAME;
-        const partnerPassword = shouldUseNewPartnerName ? CONFIG.EXPENSIFY.PARTNER_PASSWORD : CONFIG.EXPENSIFY.LEGACY_PARTNER_PASSWORD;
+        const {partnerName, partnerPassword} = getPartnerCredentials(credentials?.autoGeneratedLogin);
 
         if (account?.isSAMLRequired) {
             Log.info(`[Reauthenticate] Redirecting to Sign In because SAML is required`);
@@ -145,7 +184,7 @@ function reauthenticate(command = ''): Promise<boolean> {
             return false;
         }
 
-        Log.info(`[Reauthenticate] Re-authenticating with ${shouldUseNewPartnerName ? 'new' : 'old'} partner name`);
+        Log.info(`[Reauthenticate] Re-authenticating with ${checkIfShouldUseNewPartnerName(credentials?.autoGeneratedLogin) ? 'new' : 'old'} partner name`);
 
         Log.hmmm('[Reauthenticate] Starting authentication process', {
             command,
@@ -226,14 +265,38 @@ function reauthenticate(command = ''): Promise<boolean> {
                 return true;
             })
             .catch((error) => {
-                trackAuthenticationError(error as Error, {
+                if (error instanceof HttpsError && !shouldRetryAuthenticateError(error)) {
+                    // Reuse the standard Authenticate response handling so HTTP
+                    // failures and body-level failures produce the same UX.
+                    const authenticationErrorResponse = getAuthenticationErrorResponse(error);
+                    const errorMessage = getAuthenticateErrorMessage(authenticationErrorResponse);
+
+                    trackAuthenticationError(error, {
+                        errorType: 'auth_failure',
+                        functionName: 'reauthenticate',
+                        jsonCode: Number(error.status),
+                        command,
+                        errorMessage,
+                    });
+                    setIsAuthenticating(false);
+                    Log.hmmm('[Reauthenticate] Redirecting to Sign In because Authenticate returned a non-retryable HTTP error', {
+                        command,
+                        error: error.message,
+                        status: error.status,
+                    });
+                    redirectToSignIn(errorMessage);
+                    return false;
+                }
+
+                // Caught values can be non-Error objects, but telemetry expects an Error instance.
+                trackAuthenticationError(error instanceof Error ? error : new Error(getErrorMessage(error)), {
                     errorType: 'unexpected_error',
                     functionName: 'reauthenticate',
                     command,
                 });
 
                 Log.alert('[Reauthenticate] Unexpected error during authentication', {
-                    error: (error as Error).message,
+                    error: getErrorMessage(error),
                     command,
                 });
                 throw error;

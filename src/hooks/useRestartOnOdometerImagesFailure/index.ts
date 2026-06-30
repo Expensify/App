@@ -4,7 +4,7 @@ import useOnyx from '@hooks/useOnyx';
 import {checkIfLocalFileIsAccessible} from '@libs/actions/IOU/Receipt';
 import clearOdometerDraftTransactionState, {hydrateOdometerDraftIntoTransaction} from '@libs/actions/OdometerTransactionUtils';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
-import {getOdometerImageUri} from '@libs/OdometerImageUtils';
+import {getOdometerImageUri} from '@libs/OdometerUtils';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -56,7 +56,7 @@ const useRestartOnOdometerImagesFailure = (
         const startImage = transaction.comment?.odometerStartImage;
         const endImage = transaction.comment?.odometerEndImage;
 
-        // Source images only — the stitched receipt URL is derived and OdometerReceiptStitcher regenerates it.
+        // Source images only — the stitched receipt URL is derived elsewhere from these.
         const urlsToCheck = [
             {
                 filename: typeof startImage === 'object' ? startImage?.name : undefined,
@@ -103,12 +103,19 @@ const useRestartOnOdometerImagesFailure = (
             // Rehydrate over the dead URLs when a draft exists — clearing first races the destination's
             // auto-hydrator and ends up dropping the wrong URL.
             if (odometerDraft) {
+                // Tell the backup hook not to revert on unmount, then re-mint the images from the draft. Only flip
+                // verification (and navigate) AFTER the merge lands, else the readings hook snapshots its baseline from
+                // the stale dead-blob image and a later swap to the re-minted image reads as a phantom "Discard changes?".
                 onBackupHandled?.({shouldResetLocalState: false});
-                hydrateOdometerDraftIntoTransaction(transaction.transactionID, odometerDraft, transaction.comment);
-            } else {
-                onBackupHandled?.({shouldResetLocalState: true});
-                clearOdometerDraftTransactionState(transaction);
+                hydrateOdometerDraftIntoTransaction(transaction.transactionID, odometerDraft, transaction.comment).then(() => {
+                    setAsyncVerificationPassed(true);
+                    navigateToStartMoneyRequestStep(CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, iouType, transaction.transactionID, reportID, CONST.IOU.ACTION.CREATE, backToReport);
+                });
+                return;
             }
+
+            onBackupHandled?.({shouldResetLocalState: true});
+            clearOdometerDraftTransactionState(transaction);
 
             navigateToStartMoneyRequestStep(CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, iouType, transaction.transactionID, reportID, CONST.IOU.ACTION.CREATE, backToReport);
         });

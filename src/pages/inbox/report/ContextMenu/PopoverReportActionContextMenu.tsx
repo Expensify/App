@@ -16,16 +16,19 @@ import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactio
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {deleteTrackExpense} from '@libs/actions/IOU/TrackExpense';
 import {deleteAppReport, deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfterPreventFirstResponder';
 import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {getOriginalMessage, isMoneyRequestAction, isReportPreviewAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
+import {getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorDimensions} from '@src/styles';
@@ -333,10 +336,14 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     }
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionIDs);
+    const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(0) ?? ''}`);
+    const [iouOriginalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransaction?.comment?.originalTransactionID)}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDRef.current}`);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionRef.current?.childReportID}`);
+    const [childReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReport?.reportID}`);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
+    const childParentReportAction = useParentReportAction(childReport);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const {currentSearchHash} = useSearchQueryContext();
@@ -361,7 +368,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         const reportAction = reportActionRef.current;
         if (isMoneyRequestAction(reportAction)) {
             const originalMessage = getOriginalMessage(reportAction);
-            if (isTrackExpenseAction(reportAction)) {
+            const {isExpenseSplit: isSelfDMExpenseSplit} = getOriginalTransactionWithSplitInfo(iouTransaction, iouOriginalTransaction);
+            if (isTrackExpenseAction(reportAction) && !isSelfDMExpenseSplit) {
                 deleteTrackExpense({
                     chatReportID: reportIDRef.current,
                     chatReport: report,
@@ -389,6 +397,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         } else if (isReportPreviewAction(reportAction)) {
             deleteAppReport({
                 report: childReport,
+                reportActions: childReportActions,
+                parentReportAction: childParentReportAction,
                 selfDMReport,
                 currentUserEmailParam: email ?? '',
                 currentUserAccountIDParam: currentUserAccountID,
@@ -416,6 +426,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         setIsDeleteCommentConfirmModalVisible(false);
     }, [
         report,
+        childReportActions,
+        childParentReportAction,
         childReport,
         selfDMReport,
         iouReport,
@@ -433,6 +445,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         bankAccountList,
         isOriginalReportArchived,
         visibleReportActionsData,
+        iouTransaction,
+        iouOriginalTransaction,
     ]);
 
     const hideDeleteModal = () => {
@@ -485,6 +499,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 anchorDimensions={contextMenuDimensions.current}
                 anchorRef={anchorRef}
                 shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <BaseReportActionContextMenu
                     isVisible={isPopoverVisible}
@@ -498,6 +513,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     originalReportID={originalReportIDRef.current}
                     disabledActions={disabledActions}
                     setIsEmojiPickerActive={onEmojiPickerToggle.current}
+                    enableEdgeToEdgeBottomSafeAreaPadding
                 />
             </PopoverWithMeasuredContent>
             <ConfirmModal

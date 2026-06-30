@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
 import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
@@ -13,6 +14,7 @@ import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 type SearchSingleSelectionPickerItem = {
     name: string;
     value: string;
+    searchableText?: string;
 };
 
 type SearchSingleSelectionPickerProps = {
@@ -23,6 +25,7 @@ type SearchSingleSelectionPickerProps = {
     backToRoute?: Route;
     shouldAutoSave?: boolean;
     shouldShowTextInput?: boolean;
+    allowNoneOption?: boolean;
 };
 
 function SearchSingleSelectionPicker({
@@ -33,6 +36,7 @@ function SearchSingleSelectionPicker({
     backToRoute,
     shouldAutoSave,
     shouldShowTextInput = true,
+    allowNoneOption = false,
 }: SearchSingleSelectionPickerProps) {
     const {translate, localeCompare} = useLocalize();
 
@@ -43,19 +47,33 @@ function SearchSingleSelectionPicker({
         setSelectedItem(initiallySelectedItem);
     }, [initiallySelectedItem]);
 
-    const initiallySelectedItemSection = initiallySelectedItem?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase())
-        ? [
-              {
-                  text: initiallySelectedItem.name,
-                  keyForList: initiallySelectedItem.value,
-                  isSelected: selectedItem?.value === initiallySelectedItem.value,
-                  value: initiallySelectedItem.value,
-              },
-          ]
-        : [];
+    const searchLower = debouncedSearchTerm?.toLowerCase();
+    const noneItem =
+        allowNoneOption && translate('common.none').toLowerCase().includes(searchLower)
+            ? [
+                  {
+                      text: translate('common.none'),
+                      keyForList: CONST.SEARCH.NONE_OPTION_KEY,
+                      isSelected: !selectedItem?.value,
+                      value: '',
+                  },
+              ]
+            : [];
+
+    const initiallySelectedItemSection =
+        initiallySelectedItem?.name.toLowerCase().includes(searchLower) || initiallySelectedItem?.searchableText?.toLowerCase().includes(searchLower)
+            ? [
+                  {
+                      text: initiallySelectedItem.name,
+                      keyForList: initiallySelectedItem.value,
+                      isSelected: selectedItem?.value === initiallySelectedItem.value,
+                      value: initiallySelectedItem.value,
+                  },
+              ]
+            : [];
 
     const remainingItemsSection = items
-        .filter((item) => item.value !== initiallySelectedItem?.value && item.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
+        .filter((item) => item.value !== initiallySelectedItem?.value && (item.name.toLowerCase().includes(searchLower) || item.searchableText?.toLowerCase().includes(searchLower)))
         .sort((a, b) => sortOptionsWithEmptyValue(a.name.toString(), b.name.toString(), localeCompare))
         .map((item) => ({
             text: item.name,
@@ -64,14 +82,14 @@ function SearchSingleSelectionPicker({
             value: item.value,
         }));
 
-    const noResultsFound = !initiallySelectedItemSection.length && !remainingItemsSection.length;
+    const noResultsFound = !noneItem.length && !initiallySelectedItemSection.length && !remainingItemsSection.length;
 
     const sections = noResultsFound
         ? []
         : [
               {
                   title: undefined,
-                  data: initiallySelectedItemSection,
+                  data: [...initiallySelectedItemSection, ...noneItem],
                   sectionIndex: 0,
               },
               {
@@ -82,12 +100,12 @@ function SearchSingleSelectionPicker({
           ];
 
     const onSelectItem = (item: Partial<OptionData & SearchSingleSelectionPickerItem>) => {
-        if (!item.text || !item.keyForList || !item.value) {
+        if (!item.text || !item.keyForList || item.value === undefined) {
             return;
         }
         if (shouldAutoSave) {
             onSaveSelection(item.isSelected ? '' : item.value);
-            Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+            Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS);
             return;
         }
         if (!item.isSelected) {
@@ -101,7 +119,7 @@ function SearchSingleSelectionPicker({
 
     const applyChanges = () => {
         onSaveSelection(selectedItem?.value);
-        Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+        Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
     const footerContent = (

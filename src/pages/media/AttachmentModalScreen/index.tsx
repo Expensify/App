@@ -57,11 +57,11 @@ function AttachmentModalScreen<Screen extends AttachmentModalScreenType>({route,
         );
     }
 
-    if (route.name === SCREENS.PROFILE_AVATAR) {
+    if (route.name === SCREENS.DYNAMIC_PROFILE_AVATAR) {
         return (
             <ProfileAvatarModalContent
-                route={routeWithContext as RouteType<typeof SCREENS.PROFILE_AVATAR>}
-                navigation={navigation as NavigationType<typeof SCREENS.PROFILE_AVATAR>}
+                route={routeWithContext as RouteType<typeof SCREENS.DYNAMIC_PROFILE_AVATAR>}
+                navigation={navigation as NavigationType<typeof SCREENS.DYNAMIC_PROFILE_AVATAR>}
             />
         );
     }

@@ -12,8 +12,10 @@ import type {TransactionDetails} from '@libs/ReportUtils';
 import {
     buildOptimisticCreatedReportAction,
     buildOptimisticModifiedExpenseReportAction,
+    buildTransactionThread,
     canEditFieldOfMoneyRequest,
     findSelfDMReportID,
+    generateReportID,
     getOutstandingChildRequest,
     getParsedComment,
     getTransactionDetails,
@@ -24,13 +26,11 @@ import {
 } from '@libs/ReportUtils';
 import {calculateTaxAmount, getAmount, getClearedPendingFields, getCurrency, getTaxValue, getUpdatedTransaction, isOnHold, isSplitChildTransaction} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
-import {createTransactionThreadReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
-import {getAllTransactionViolations} from '.';
 import {getUpdatedMoneyRequestReportData} from './MoneyRequestBuilder';
 
 function removeUnchangedBulkEditFields(
@@ -77,11 +77,9 @@ type UpdateMultipleMoneyRequestsParams = {
     reportActions: OnyxCollection<OnyxTypes.ReportActions>;
     policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>;
     policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>;
+    violations: OnyxCollection<OnyxTypes.TransactionViolations>;
     hash?: number;
     allPolicies?: OnyxCollection<OnyxTypes.Policy>;
-    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
-    currentUserLogin: string;
     currentUserAccountID: number;
     delegateAccountID: number | undefined;
 };
@@ -95,12 +93,10 @@ function updateMultipleMoneyRequests({
     reportActions,
     policyCategories,
     policyTags,
+    violations,
     hash,
     allPolicies,
-    introSelected,
-    betas,
     currentUserAccountID,
-    currentUserLogin,
     delegateAccountID,
 }: UpdateMultipleMoneyRequestsParams) {
     // Track running totals per report so multiple edits in the same report compound correctly.
@@ -132,23 +128,20 @@ function updateMultipleMoneyRequests({
             }
         }
 
-        let transactionThreadReportID = transaction.transactionThreadReportID ?? reportAction?.childReportID;
+        let transactionThreadReportID = reportAction?.childReportID ?? transaction.transactionThreadReportID;
         let transactionThread = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
 
         // Offline-created expenses can be missing a transaction thread until it's opened once.
-        // Ensure the thread exists before adding optimistic MODIFIED_EXPENSE actions so
+        // Ensure the thread exists locally before adding optimistic MODIFIED_EXPENSE actions so
         // bulk-edit comments are visible immediately while still offline.
+        // We intentionally avoid calling createTransactionThreadReport here because it fires
+        // an OpenReport API command per expense, which floods the queue and hangs the UI on
+        // large reports (40-50+ expenses). The backend already creates the transaction thread
+        // when processing UpdateMoneyRequest, so we only need local Onyx state.
         let didCreateThreadInThisIteration = false;
         if (!transactionThreadReportID && iouReport?.reportID) {
-            const optimisticTransactionThread = createTransactionThreadReport({
-                introSelected,
-                currentUserLogin,
-                currentUserAccountID,
-                betas,
-                iouReport,
-                iouReportAction: reportAction,
-                transaction,
-            });
+            const optimisticTransactionThreadReportID = generateReportID();
+            const optimisticTransactionThread = buildTransactionThread(reportAction, iouReport, currentUserAccountID, undefined, optimisticTransactionThreadReportID);
             if (optimisticTransactionThread?.reportID) {
                 transactionThreadReportID = optimisticTransactionThread.reportID;
                 transactionThread = optimisticTransactionThread;
@@ -296,6 +289,38 @@ function updateMultipleMoneyRequests({
         const snapshotSuccessData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
         const snapshotFailureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
 
+        // If we created the transaction thread optimistically above, seed it into Onyx
+        // so the MODIFIED_EXPENSE action has somewhere to land. On success the server's
+        // OpenReport data (triggered by UpdateMoneyRequest) will overwrite these values.
+        // Also link the thread back: set childReportID on the parent IOU action and
+        // transactionThreadReportID on the transaction so subsequent offline edits of the
+        // same expense reuse this thread instead of generating a new one each time.
+        if (didCreateThreadInThisIteration && transactionThread && transactionThreadReportID) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+                value: transactionThread,
+            });
+            // Link childReportID on the parent IOU report action
+            if (reportAction?.reportActionID && iouReport?.reportID) {
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                    value: {[reportAction.reportActionID]: {childReportID: transactionThreadReportID}},
+                });
+                failureData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                    value: {[reportAction.reportActionID]: {childReportID: null}},
+                });
+            }
+            failureData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+                value: null,
+            });
+        }
+
         // Pending fields for the transaction
         const pendingFields: OnyxTypes.Transaction['pendingFields'] = Object.fromEntries(Object.keys(transactionChanges).map((field) => [field, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]));
         const clearedPendingFields = getClearedPendingFields(transactionChanges);
@@ -317,7 +342,7 @@ function updateMultipleMoneyRequests({
         let optimisticViolationsData: ReturnType<typeof ViolationsUtils.getViolationsOnyxData> | undefined;
         let currentTransactionViolations: OnyxTypes.TransactionViolation[] | undefined;
         if (transactionPolicy && !isUnreportedExpense) {
-            currentTransactionViolations = getAllTransactionViolations()[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+            currentTransactionViolations = violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
             let optimisticViolations =
                 transactionChanges.amount !== undefined || transactionChanges.created || transactionChanges.currency
                     ? currentTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
@@ -328,18 +353,18 @@ function updateMultipleMoneyRequests({
                     : optimisticViolations;
             const transactionPolicyTagList = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${transactionPolicy?.id}`] ?? {};
             const transactionPolicyCategories = policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${transactionPolicy?.id}`] ?? {};
-            optimisticViolationsData = ViolationsUtils.getViolationsOnyxData(
+            optimisticViolationsData = ViolationsUtils.getViolationsOnyxData({
                 updatedTransaction,
-                optimisticViolations,
-                transactionPolicy,
-                transactionPolicyTagList,
-                transactionPolicyCategories,
-                hasDependentTags(transactionPolicy, transactionPolicyTagList),
-                isInvoiceReportReportUtils(iouReport),
-                isSelfDM(iouReport),
+                transactionViolations: optimisticViolations,
+                policy: transactionPolicy,
+                policyTagList: transactionPolicyTagList,
+                policyCategories: transactionPolicyCategories,
+                hasDependentTags: hasDependentTags(transactionPolicy, transactionPolicyTagList),
+                isInvoiceTransaction: isInvoiceReportReportUtils(iouReport),
+                isSelfDM: isSelfDM(iouReport),
                 iouReport,
                 isFromExpenseReport,
-            );
+            });
             optimisticData.push(optimisticViolationsData);
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -357,6 +382,9 @@ function updateMultipleMoneyRequests({
                 pendingFields,
                 isLoading: false,
                 errorFields: null,
+                // Link the optimistic thread back to the transaction so subsequent
+                // offline edits reuse it instead of generating a new thread each time.
+                ...(didCreateThreadInThisIteration && transactionThreadReportID ? {transactionThreadReportID} : {}),
             },
         });
 
@@ -460,9 +488,8 @@ function updateMultipleMoneyRequests({
         if (transactionThreadReportID) {
             // Backfill a CREATED action for threads never opened locally so
             // MoneyRequestView renders and the skeleton doesn't loop offline.
-            // Skip when the thread was just created above (openReport handles it).
             const threadReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {};
-            const hasCreatedAction = didCreateThreadInThisIteration || Object.values(threadReportActions).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+            const hasCreatedAction = Object.values(threadReportActions).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
             const optimisticCreatedValue: Record<string, Partial<OnyxTypes.ReportAction>> = {};
             if (!hasCreatedAction) {
                 const optimisticCreatedAction = buildOptimisticCreatedReportAction({emailCreatingAction: CONST.REPORT.OWNER_EMAIL_FAKE});
@@ -528,6 +555,9 @@ function updateMultipleMoneyRequests({
                 ...transaction,
                 pendingFields: clearedPendingFields,
                 errorFields,
+                // Clear the optimistically added transactionThreadReportID so it doesn't
+                // persist after a failed request — the server never created this thread.
+                ...(didCreateThreadInThisIteration && transactionThreadReportID ? {transactionThreadReportID: null} : {}),
             },
         });
 
