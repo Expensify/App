@@ -109,7 +109,8 @@ function GrowlNotificationContent({bodyText, type, duration, action, onDismissed
         fling(1);
 
         if (duration <= 0) {
-            // Indefinite (loading) growl - slide in but don't auto-dismiss.
+            // Non-positive duration ⇒ indefinite (loading) growl - slide in but don't auto-dismiss.
+            // (A negative value would be clamped to 0 by setTimeout and dismiss instantly, so guard it here too.)
             return;
         }
 
@@ -133,7 +134,7 @@ function GrowlNotificationContent({bodyText, type, duration, action, onDismissed
     );
 
     return (
-        <View style={[styles.growlNotificationWrapper]}>
+        <View style={styles.growlNotificationWrapper}>
             <GrowlNotificationContainer
                 progress={progress}
                 inactiveY={inactiveY}
