@@ -244,11 +244,12 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             return;
         }
 
-        Navigation.navigate(
-            isQuickSettingsFlow
-                ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(orderWeight, tag.value))
-                : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, orderWeight, tag.value, tag?.rules?.parentTagsFilter ?? undefined),
-        );
+        const parentTagsFilter = tag?.rules?.parentTagsFilter;
+        const workspaceTagSettingsSuffix = parentTagsFilter
+            ? `${DYNAMIC_ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(orderWeight, tag.value)}?parentTagsFilter=${encodeURIComponent(parentTagsFilter)}`
+            : DYNAMIC_ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(orderWeight, tag.value);
+
+        Navigation.navigate(isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(orderWeight, tag.value)) : createDynamicRoute(workspaceTagSettingsSuffix));
     };
 
     const isLoading = !isOffline && policyTags === undefined;
@@ -375,7 +376,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         Navigation.navigate(
             isQuickSettingsFlow
                 ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAGS_EDIT.getRoute(currentPolicyTag?.orderWeight ?? 0))
-                : ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID, currentPolicyTag?.orderWeight ?? 0, Navigation.getActiveRoute()),
+                : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EDIT_TAGS.getRoute(currentPolicyTag?.orderWeight ?? 0)),
         );
     };
 

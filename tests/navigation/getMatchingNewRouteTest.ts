@@ -159,16 +159,25 @@ describe('getBestMatchingPath', () => {
     it('redirects old workspace tag routes to the new dynamic suffix shape', () => {
         expect(getMatchingNewRoute('/workspaces/p123/tags/settings')).toBe('/workspaces/p123/tags/tags-settings');
         expect(getMatchingNewRoute('/workspaces/p123/tags/new')).toBe('/workspaces/p123/tags/tag-create');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/10/edit')).toBe('/workspaces/p123/tags/tags-settings/edit/10');
+        expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals')).toBe('/workspaces/p123/tags/tag-settings/10/Meals');
+        expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals/edit')).toBe('/workspaces/p123/tags/tag-settings/10/Meals/workspace-tag-edit');
+        expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals/gl-code')).toBe('/workspaces/p123/tags/tag-settings/10/Meals/workspace-tag-gl-code');
+        expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals/approver')).toBe('/workspaces/p123/tags/tag-settings/10/Meals/workspace-tag-approver');
     });
 
     it('preserves query params when redirecting old workspace tag routes', () => {
         expect(getMatchingNewRoute('/workspaces/p123/tags/settings?backTo=/home')).toBe('/workspaces/p123/tags/tags-settings?backTo=/home');
         expect(getMatchingNewRoute('/workspaces/p123/tags/new?backTo=/home')).toBe('/workspaces/p123/tags/tag-create?backTo=/home');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/10/edit?backTo=/home')).toBe('/workspaces/p123/tags/tags-settings/edit/10?backTo=/home');
+        expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals?parentTagsFilter=Food')).toBe('/workspaces/p123/tags/tag-settings/10/Meals?parentTagsFilter=Food');
     });
 
     it('does not redirect the new workspace tag dynamic routes', () => {
         expect(getMatchingNewRoute('/workspaces/p123/tags/tags-settings')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/p123/tags/tag-create')).toBe(undefined);
+        expect(getMatchingNewRoute('/workspaces/p123/tags/tags-settings/edit/10')).toBe(undefined);
+        expect(getMatchingNewRoute('/workspaces/p123/tags/tag-settings/10/Meals')).toBe(undefined);
     });
 
     it('redirects old flag comment path to report-based dynamic route', () => {
