@@ -324,19 +324,14 @@ function shouldUseTransactionDraft(action: IOUAction | undefined, type?: IOUType
     return action === CONST.IOU.ACTION.CREATE || type === CONST.IOU.TYPE.SPLIT_EXPENSE || isMovingTransactionFromTrackExpense(action);
 }
 
-function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: string) {
+function formatCurrentUserToAttendee(currentUser?: PersonalDetails) {
     if (!currentUser) {
         return;
     }
     const initialAttendee: Attendee = {
         email: currentUser?.login ?? '',
-        login: currentUser?.login ?? '',
         displayName: currentUser.displayName ?? '',
         avatarUrl: SafeString(currentUser.avatar),
-        accountID: currentUser.accountID,
-        text: currentUser.login,
-        selected: true,
-        reportID,
     };
 
     return [initialAttendee];
@@ -521,6 +516,22 @@ function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?
     return !!(participant?.accountID && !participant.isPolicyExpenseChat && !participant.isSelfDM);
 }
 
+/**
+ * Resolves the reportID that should be set on the transaction draft for
+ * global-create flows with default participants. Returns undefined when
+ * no early set is needed (non-global-create or empty participants).
+ */
+function resolveEarlyReportID(isFromGlobalCreate: boolean, participants: Participant[] | undefined): string | undefined {
+    if (!isFromGlobalCreate || !participants || participants.length === 0) {
+        return undefined;
+    }
+    const firstParticipant = participants.at(0);
+    if (firstParticipant?.isSelfDM) {
+        return CONST.REPORT.UNREPORTED_REPORT_ID;
+    }
+    return firstParticipant?.reportID;
+}
+
 export {
     calculateAmount,
     calculateSplitAmountFromPercentage,
@@ -542,4 +553,5 @@ export {
     isParticipantP2P,
     resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
+    resolveEarlyReportID,
 };

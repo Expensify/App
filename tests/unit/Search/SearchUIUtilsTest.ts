@@ -44,6 +44,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {CustomCardFeedData} from '@src/types/onyx/CardFeeds';
 import type {Connections} from '@src/types/onyx/Policy';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import createRandomPolicy from '../../utils/collections/policies';
 import getOnyxValue from '../../utils/getOnyxValue';
 import {formatPhoneNumber, localeCompare, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -212,7 +213,6 @@ const reportAction1: OnyxTypes.ReportAction = {
     originalMessage: {
         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         IOUTransactionID: transactionID,
-        IOUReportID: report1.reportID,
     },
     reportID: report1.reportID,
 };
@@ -227,7 +227,6 @@ const reportAction2: OnyxTypes.ReportAction = {
     originalMessage: {
         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         IOUTransactionID: transactionID2,
-        IOUReportID: report2.reportID,
     },
     reportID: report2.reportID,
 };
@@ -242,7 +241,6 @@ const reportAction3: OnyxTypes.ReportAction = {
     originalMessage: {
         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         IOUTransactionID: transactionID3,
-        IOUReportID: report3.reportID,
     },
     reportID: report3.reportID,
 };
@@ -257,7 +255,6 @@ const reportAction4: OnyxTypes.ReportAction = {
     originalMessage: {
         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         IOUTransactionID: transactionID4,
-        IOUReportID: report3.reportID,
     },
     reportID: report3.reportID,
 };
@@ -729,7 +726,6 @@ const reportActionListItems = [
         keyForList: reportAction1.reportActionID,
         originalMessage: {
             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            IOUReportID: report1.reportID,
             IOUTransactionID: transactionID,
         },
         reportName: report1.reportName,
@@ -778,7 +774,6 @@ const reportActionListItems = [
         keyForList: reportAction2.reportActionID,
         originalMessage: {
             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            IOUReportID: report2.reportID,
             IOUTransactionID: transactionID2,
         },
         reportName: report2.reportName,
@@ -797,7 +792,6 @@ const reportActionListItems = [
         keyForList: reportAction3.reportActionID,
         originalMessage: {
             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            IOUReportID: report3.reportID,
             IOUTransactionID: transactionID3,
         },
         reportName: report3.reportName,
@@ -816,7 +810,6 @@ const reportActionListItems = [
         keyForList: reportAction4.reportActionID,
         originalMessage: {
             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            IOUReportID: report3.reportID,
             IOUTransactionID: transactionID4,
         },
         reportName: report3.reportName,
@@ -2159,6 +2152,40 @@ describe('SearchUIUtils', () => {
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
 
             action = SearchUIUtils.getActions(searchResults.data, {}, `transactions_${transactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}).at(0);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+        });
+
+        test('Should return `Submit` action for open expense report on Submit workspace when default submit-to is the owner', () => {
+            const submitPolicyID = 'submitPolicy1';
+            const submitReportID = '6520936998330986';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`policy_${submitPolicyID}`]: {
+                    ...policy,
+                    id: submitPolicyID,
+                    type: CONST.POLICY.TYPE.SUBMIT,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    employeeList: {
+                        [adminEmail]: {
+                            email: adminEmail,
+                            submitsTo: adminEmail,
+                        },
+                    },
+                },
+                [`report_${submitReportID}`]: {
+                    ...report1,
+                    reportID: submitReportID,
+                    policyID: submitPolicyID,
+                    ownerAccountID: adminAccountID,
+                    managerID: adminAccountID,
+                },
+                [`transactions_${transactionID}`]: {
+                    ...searchResults.data[`transactions_${transactionID}`],
+                    reportID: submitReportID,
+                },
+            };
+
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${submitReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminEmail, adminAccountID, {}, {}).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
         });
 
@@ -5638,7 +5665,6 @@ describe('SearchUIUtils', () => {
                                 originalMessage: {
                                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                                     IOUTransactionID: filterTestTxID,
-                                    IOUReportID: filterTestReportID,
                                 },
                             },
                         },
@@ -8311,6 +8337,95 @@ describe('SearchUIUtils', () => {
             expect(response.visibility.unapprovedCard).toBe(true);
             expect(response.visibility.reconciliation).toBe(true);
         });
+
+        test('Should show Statements for an Expensify Card-only paid workspace (Expensify Cards enabled, no company card feed, default Expensify card present)', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    id: policyID,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areExpensifyCardsEnabled: true,
+                    areCompanyCardsEnabled: false,
+                },
+            };
+
+            const defaultExpensifyCard: CardFeedForDisplay = {
+                id: 'fund1_Expensify Card',
+                feed: 'Expensify Card',
+                fundID: 'fund1',
+                name: 'Expensify Card',
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, defaultExpensifyCard);
+            expect(response.visibility.statements).toBe(true);
+        });
+
+        test('Should hide Statements for an Expensify Card-only paid workspace when there is no Expensify card feed', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    id: policyID,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areExpensifyCardsEnabled: true,
+                    areCompanyCardsEnabled: false,
+                },
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.visibility.statements).toBe(false);
+        });
+
+        test('Should still show Statements for a company-card paid workspace with a card feed (regression)', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    id: policyID,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCompanyCardsEnabled: true,
+                },
+            };
+
+            const cardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+                [policyID]: [
+                    {
+                        id: 'fund1_oauth.chase.com',
+                        feed: 'oauth.chase.com',
+                        fundID: 'fund1',
+                        name: 'Chase',
+                    },
+                ],
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, cardFeedsByPolicy, policies, undefined);
+            expect(response.visibility.statements).toBe(true);
+        });
+
+        test('Should show Statements when a domain card feed is linked via linkedPolicyIDs but areCompanyCardsEnabled is false on the policy summary', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    id: policyID,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCompanyCardsEnabled: false,
+                    areExpensifyCardsEnabled: false,
+                },
+            };
+
+            const cardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+                [policyID]: [
+                    {
+                        id: 'fund1_oauth.chase.com',
+                        feed: 'oauth.chase.com',
+                        fundID: 'fund1',
+                        linkedPolicyIDs: [policyID],
+                        name: 'Chase',
+                    },
+                ],
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, cardFeedsByPolicy, policies, undefined);
+            expect(response.visibility.statements).toBe(true);
+        });
     });
 
     describe('Test getSuggestedSearches sort defaults', () => {
@@ -8580,7 +8695,6 @@ describe('SearchUIUtils', () => {
                 originalMessage: {
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     IOUTransactionID: 'differentUsers',
-                    IOUReportID: report2.reportID,
                 },
             };
 
@@ -8899,6 +9013,92 @@ describe('SearchUIUtils', () => {
             const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
 
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.CARD);
+        });
+
+        test('Should hide empty POSTED column in expense report view with custom columns', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+                posted: undefined,
+            };
+
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.POSTED, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
+
+            // POSTED is data-driven in the report view: hidden when no transaction has a posting date
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.POSTED);
+        });
+
+        test('Should show POSTED column when a transaction has a posting date', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+                posted: '20240115',
+            };
+
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.POSTED, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
+
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.POSTED);
+        });
+
+        test('Should hide empty ORIGINAL_AMOUNT column in expense report view with custom columns', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+                groupExchangeRate: undefined,
+                convertedAmount: undefined,
+            };
+
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL];
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
+
+            // ORIGINAL_AMOUNT is data-driven in the report view: hidden when no transaction has a currency conversion
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT);
+        });
+
+        test('Should show ORIGINAL_AMOUNT column when a transaction has a currency conversion', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+                groupExchangeRate: 1.25,
+                groupCurrency: 'EUR',
+                currency: 'USD',
+            };
+
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
+
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT);
+        });
+
+        test('Should not show POSTED or ORIGINAL_AMOUNT by default in expense report view when not explicitly selected', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            // Transaction has BOTH a posting date and a currency conversion, but no custom column
+            // selection is provided (visibleColumns is empty). POSTED and ORIGINAL_AMOUNT must only
+            // appear when the user explicitly picks them, not in the default report view.
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+                posted: '20240115',
+                groupExchangeRate: 1.25,
+                groupCurrency: 'EUR',
+                currency: 'USD',
+            };
+
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns: [], isExpenseReportView: true});
+
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.POSTED);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT);
         });
 
         test('Should hide empty TAX columns in expense report view with custom columns', () => {
@@ -9502,6 +9702,7 @@ describe('SearchUIUtils', () => {
                         actorAccountID: TEST_ACCOUNT_ID,
                         avatar: '',
                         childReportID: TEST_CHILD_REPORT_ID,
+                        reportID: TEST_REPORT_ID,
                         created: '2024-01-01 00:00:00',
                         lastModified: '2024-01-01 00:00:00',
                         message: [
@@ -9517,7 +9718,6 @@ describe('SearchUIUtils', () => {
                             },
                         ],
                         originalMessage: {
-                            IOUReportID: Number(TEST_REPORT_ID),
                             IOUTransactionID: TEST_TRANSACTION_ID,
                             amount: TEST_AMOUNT,
                             comment: `${TEST_DISTANCE} miles`,
@@ -9719,10 +9919,10 @@ describe('SearchUIUtils', () => {
                             actorAccountID: TEST_ACCOUNT_ID,
                             avatar: '',
                             childReportID: TEST_CHILD_REPORT_ID,
+                            reportID: '0',
                             created: TEST_DATETIME,
                             lastModified: TEST_DATETIME,
                             originalMessage: {
-                                IOUReportID: 0,
                                 IOUTransactionID: TEST_TRANSACTION_ID,
                                 amount: TEST_AMOUNT_HKD,
                                 comment: `${TEST_DISTANCE_KM} kilometers`,
@@ -9800,6 +10000,7 @@ describe('SearchUIUtils', () => {
                         actorAccountID: TEST_ACCOUNT_ID,
                         avatar: '',
                         childReportID: TEST_CHILD_REPORT_ID,
+                        reportID: '0',
                         created: TEST_DATETIME,
                         lastModified: TEST_DATETIME,
                         message: [
@@ -9811,7 +10012,6 @@ describe('SearchUIUtils', () => {
                             },
                         ],
                         originalMessage: {
-                            IOUReportID: 0,
                             IOUTransactionID: TEST_TRANSACTION_ID,
                             amount: TEST_AMOUNT_HKD,
                             comment: `${TEST_DISTANCE_KM} kilometers`,
@@ -9888,7 +10088,6 @@ describe('SearchUIUtils', () => {
                 originalMessage: {
                     type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                     IOUTransactionID: mockTransaction.transactionID,
-                    IOUReportID: report1.reportID,
                 },
             } as OnyxTypes.ReportAction;
 

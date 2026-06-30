@@ -77,6 +77,7 @@ function ReportDetailsColumnsPage() {
         const visibleColumns = getColumnsToShow({
             currentAccountID: currentUserDetails?.accountID,
             data: reportTransactions,
+            report,
             isExpenseReportView: true,
             isExpenseReportViewFromIOUReport: isIOUReport(report),
             shouldShowBillableColumn: isBillableEnabledOnPolicy(policy),

@@ -60,6 +60,7 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingChatMembersSelector});
+    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const delegateAccountID = useDelegateAccountID();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
@@ -70,7 +71,7 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
         ...CONST.EXPENSIFY_EMAILS_OBJECT,
     };
     const participantsAccountIDs = getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata);
-    const loginsByAccountIDs = getLoginsByAccountIDs(participantsAccountIDs);
+    const loginsByAccountIDs = getLoginsByAccountIDs(participantsAccountIDs, personalDetailsList);
     for (const login of loginsByAccountIDs) {
         const smsDomain = addSMSDomainIfPhoneNumber(login);
         excludedUsers[smsDomain] = true;
@@ -157,7 +158,7 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
                         delegateAccountID,
                     );
                 } else {
-                    inviteToRoom(report, invitedEmailsToAccountIDs, formatPhoneNumber);
+                    inviteToRoom(report, invitedEmailsToAccountIDs, personalDetailsList, formatPhoneNumber);
                 }
             };
             Navigation.goBack(backRoute, {afterTransition});

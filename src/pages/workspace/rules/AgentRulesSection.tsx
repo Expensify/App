@@ -4,8 +4,10 @@ import Badge from '@components/Badge';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import UserPill from '@components/UserPill';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -30,9 +32,15 @@ function AgentRulesSection({policyID, canWriteRules, showReadOnlyModal}: AgentRu
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
+    const personalDetailsList = usePersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
     const agentRules = policy?.rules?.agentRules;
     const hasRules = !isEmptyObject(agentRules);
+
+    // RuleBot is the agent the backend provisions on the first Agent rule and stores on the policy.
+    const ruleBotAccountID = policy?.ruleBotAccountID;
+    const ruleBot = ruleBotAccountID ? personalDetailsList?.[ruleBotAccountID] : undefined;
+    const ruleBotDisplayName = ruleBot?.displayName ?? ruleBot?.login ?? translate('workspace.rules.agentRules.ruleBotName');
 
     const sortedRules = Object.entries(agentRules ?? {})
         .filter(([, rule]) => !!rule)
@@ -59,12 +67,28 @@ function AgentRulesSection({policyID, canWriteRules, showReadOnlyModal}: AgentRu
         </View>
     );
 
+    const renderSubtitle = () => (
+        <View style={[styles.mt2, styles.gap2]}>
+            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.agentRules.subtitle')}</Text>
+            {!!ruleBotAccountID && (
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1Half]}>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.agentRules.enforcedBy')}</Text>
+                    <UserPill
+                        accountID={ruleBotAccountID}
+                        avatar={ruleBot?.avatar}
+                        displayName={ruleBotDisplayName}
+                        email={ruleBot?.login}
+                    />
+                </View>
+            )}
+        </View>
+    );
+
     return (
         <Section
             isCentralPane
             renderTitle={renderTitle}
-            subtitle={translate('workspace.rules.agentRules.subtitle')}
-            subtitleMuted
+            renderSubtitle={renderSubtitle}
             childrenStyles={[styles.gap3]}
         >
             {hasRules && (
@@ -80,7 +104,7 @@ function AgentRulesSection({policyID, canWriteRules, showReadOnlyModal}: AgentRu
                                     <MenuItemWithTopDescription
                                         title={(rule.title ?? rule.prompt).replaceAll(/\s+/g, ' ').trim()}
                                         numberOfLinesTitle={1}
-                                        wrapperStyle={[styles.borderedContentCard, styles.ph4, styles.pv4]}
+                                        wrapperStyle={[styles.borderedContentCard, styles.ph4, styles.pv2]}
                                         shouldShowRightIcon
                                         onPress={() => {
                                             if (!canWriteRules) {
