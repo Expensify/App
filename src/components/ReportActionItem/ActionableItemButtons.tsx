@@ -30,7 +30,7 @@ function ActionableItemButtons(props: ActionableItemButtonsProps) {
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.gap2, styles.mt2, props.layout === 'horizontal' ? styles.flexRow : [styles.flexColumn, styles.alignItemsStart]]}>
+        <View style={[styles.gap2, styles.mt2, props.layout === 'horizontal' ? [styles.flexRow, styles.flexWrap] : [styles.flexColumn, styles.alignItemsStart]]}>
             {props.items?.map((item) => (
                 <Button
                     key={item.key}
