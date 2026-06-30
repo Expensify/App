@@ -54,7 +54,7 @@ type GroupHeaderProps = SearchListActionProps & {
     isExpanded: boolean;
     onToggle: () => void;
     onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
-    onCheckboxPress: (item: GroupHeaderItemType, itemTransactions?: TransactionListItemType[]) => void;
+    onCheckboxPress: (item: GroupHeaderItemType, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
     onLongPressRow?: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
     onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
     shouldSyncFocus?: boolean;
@@ -219,6 +219,7 @@ function GroupHeader({
         shouldApplyOtherStyles: false,
     });
 
+    // Group headers ignore Shift (normal group toggle), so no shiftKey is forwarded.
     const handleSelectionButtonPress = () => {
         onCheckboxPress(withOriginalKey(item), isExpenseReportType ? undefined : effectiveTransactions);
     };
@@ -229,8 +230,8 @@ function GroupHeader({
             ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
             : undefined);
 
-    const handleSelectRow = (rowItem: SearchListItem, event?: ModifiedMouseEvent) => {
-        onSelectRow(withOriginalKey(rowItem), transactionPreviewData, event);
+    const handleSelectRow = (event?: ModifiedMouseEvent) => {
+        onSelectRow(withOriginalKey(groupItem), transactionPreviewData, event);
     };
 
     const renderHeader = (hovered: boolean) => {

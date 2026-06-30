@@ -4,9 +4,11 @@ import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/fl
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
+import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -44,6 +46,7 @@ function BaseSelectionList<TItem extends ListItem>({
     onSelectAll,
     onLongPressRow,
     onSelectionButtonPress,
+    onShiftRangeApply,
     onScrollBeginDrag,
     onDismissError,
     onEndReached,
@@ -114,6 +117,40 @@ function BaseSelectionList<TItem extends ListItem>({
     const isItemSelected = useCallback(
         (item: TItem) => item.isSelected ?? ((isSelected?.(item) ?? selectedItems.includes(item.keyForList)) && canSelectMultiple),
         [isSelected, selectedItems, canSelectMultiple],
+    );
+
+    const rangeApi = useShiftRangeSelection<TItem>({
+        items: data,
+        getItemKey: (item) => item.keyForList ?? null,
+        getSelectedKeys: () => {
+            // Mirror isItemSelected so custom isSelected callers still get an anchor.
+            const keys = new Set<string>();
+            for (const item of data) {
+                if (item.keyForList && isItemSelected(item)) {
+                    keys.add(item.keyForList);
+                }
+            }
+            return keys;
+        },
+        isDisabledItem: (item) => !!item.isDisabled || !!item.isDisabledCheckbox,
+        onApplyRange: onShiftRangeApply,
+    });
+
+    const handleSelectionButtonPress = useCallback(
+        (item: TItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => {
+            if (onShiftRangeApply && rangeApi.applyShiftClick(item, shiftKey)) {
+                return;
+            }
+            if (onSelectionButtonPress) {
+                onSelectionButtonPress(item, itemTransactions, shiftKey);
+            } else {
+                onSelectRow(item);
+            }
+            if (onShiftRangeApply) {
+                rangeApi.notifyAnchor(item);
+            }
+        },
+        [onShiftRangeApply, rangeApi, onSelectionButtonPress, onSelectRow],
     );
 
     const paddingBottomStyle = useMemo(() => !isKeyboardShown && safeAreaPaddingBottomStyle, [isKeyboardShown, safeAreaPaddingBottomStyle]);
@@ -191,7 +228,7 @@ function BaseSelectionList<TItem extends ListItem>({
                     textInputOptions?.onChangeText?.('');
                 } else if (isSmallScreenWidth) {
                     if (!item.isDisabledCheckbox) {
-                        onSelectionButtonPress?.(item);
+                        handleSelectionButtonPress(item);
                     }
                     return;
                 }
@@ -200,6 +237,9 @@ function BaseSelectionList<TItem extends ListItem>({
                 setFocusedIndex(indexToFocus);
             }
             onSelectRow(item);
+            if (onShiftRangeApply) {
+                rangeApi.notifyAnchor(item);
+            }
 
             if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow) {
                 focusTextInput();
@@ -215,7 +255,9 @@ function BaseSelectionList<TItem extends ListItem>({
             shouldPreventDefaultFocusOnSelectRow,
             isSmallScreenWidth,
             textInputOptions,
-            onSelectionButtonPress,
+            handleSelectionButtonPress,
+            onShiftRangeApply,
+            rangeApi,
             setFocusedIndex,
             focusTextInput,
         ],
@@ -298,7 +340,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 canSelectMultiple={canSelectMultiple}
                 onDismissError={onDismissError}
                 onLongPressRow={onLongPressRow}
-                onSelectionButtonPress={onSelectionButtonPress}
+                onSelectionButtonPress={handleSelectionButtonPress}
                 shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                 rightHandSideComponent={rightHandSideComponent}
                 isMultilineSupported={isRowMultilineSupported}
@@ -449,11 +491,20 @@ function BaseSelectionList<TItem extends ListItem>({
     }, []);
 
     const handleSelectAll = useCallback(() => {
+        const willSelectAll = !dataDetails.allSelected;
         onSelectAll?.();
+        // Skip the O(n) seed scan (and anchor bookkeeping) for lists that didn't opt into shift-range.
+        if (onShiftRangeApply) {
+            if (willSelectAll) {
+                rangeApi.seedFullRange();
+            } else {
+                rangeApi.clearAnchor();
+            }
+        }
         if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow) {
             focusTextInput();
         }
-    }, [onSelectAll, shouldShowTextInput, shouldPreventDefaultFocusOnSelectRow, focusTextInput]);
+    }, [onSelectAll, onShiftRangeApply, rangeApi, dataDetails.allSelected, shouldShowTextInput, shouldPreventDefaultFocusOnSelectRow, focusTextInput]);
 
     useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex, updateFocusedIndex, scrollToFocusedInput, focusTextInput}), [
         focusTextInput,

@@ -39,6 +39,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {canMemberWrite, getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -497,6 +498,26 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         canSelectMultiple={canSelectMultiple}
                         selectAllAccessibilityLabel={translate('accessibilityHints.selectAllPerDiemRates')}
                         onSelectionButtonPress={toggleSubRate}
+                        onShiftRangeApply={(batch) =>
+                            setSelectedPerDiem((prev) => {
+                                if (!batch.toSelect.length && !batch.toDeselect.length) {
+                                    return prev;
+                                }
+                                const nextKeys = applyShiftRangeBatchToKeySet(
+                                    batch,
+                                    prev.map((value) => value.subRateID),
+                                    (item) => item.subRateID,
+                                );
+                                const subRateDataByID = new Map<string, SubRateData>();
+                                for (const value of allSubRates) {
+                                    subRateDataByID.set(value.subRateID, value);
+                                }
+                                for (const value of prev) {
+                                    subRateDataByID.set(value.subRateID, value);
+                                }
+                                return nextKeys.map((key) => subRateDataByID.get(key)).filter((value): value is SubRateData => !!value);
+                            })
+                        }
                         customListHeader={getCustomListHeader()}
                         selectedItems={selectedPerDiem.map((item) => item.subRateID)}
                         onSelectAll={canWritePerDiem && filteredSubRatesList.length > 0 ? toggleAllSubRates : undefined}

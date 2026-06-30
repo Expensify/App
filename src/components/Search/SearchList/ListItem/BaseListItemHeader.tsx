@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import type {SearchColumnType} from '@components/Search/types';
-import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -46,7 +45,7 @@ type ColumnStyleKey =
     | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR
     | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER;
 
-type BaseListItemHeaderProps<TItem extends ListItem> = {
+type BaseListItemHeaderProps = {
     /** The group item being rendered */
     item: BaseGroupListItemType;
 
@@ -59,8 +58,8 @@ type BaseListItemHeaderProps<TItem extends ListItem> = {
     /** The column style key for sizing (e.g., CATEGORY, MERCHANT) */
     columnStyleKey: ColumnStyleKey;
 
-    /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (item: TItem) => void;
+    /** Group-header checkbox toggle; ignores Shift. */
+    onCheckboxPress?: () => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
@@ -84,7 +83,7 @@ type BaseListItemHeaderProps<TItem extends ListItem> = {
     columns?: SearchColumnType[];
 };
 
-function BaseListItemHeader<TItem extends ListItem>({
+function BaseListItemHeader({
     item,
     displayName,
     groupColumnKey,
@@ -97,7 +96,7 @@ function BaseListItemHeader<TItem extends ListItem>({
     isExpanded,
     onDownArrowClick,
     columns,
-}: BaseListItemHeaderProps<TItem>) {
+}: BaseListItemHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -144,7 +143,7 @@ function BaseListItemHeader<TItem extends ListItem>({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={() => onCheckboxPress?.(item as unknown as TItem)}
+                            onPress={() => onCheckboxPress?.()}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || item.isDisabledCheckbox}

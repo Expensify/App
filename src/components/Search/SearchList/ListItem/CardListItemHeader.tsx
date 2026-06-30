@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {SearchColumnType} from '@components/Search/types';
-import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
@@ -19,12 +18,12 @@ import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 import type {TransactionCardGroupListItemType} from './types';
 
-type CardListItemHeaderProps<TItem extends ListItem> = {
+type CardListItemHeaderProps = {
     /** The card currently being looked at */
     card: TransactionCardGroupListItemType;
 
-    /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (item: TItem) => void;
+    /** Group-header checkbox toggle; ignores Shift. */
+    onCheckboxPress?: () => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
@@ -51,7 +50,7 @@ type CardListItemHeaderProps<TItem extends ListItem> = {
     columns?: SearchColumnType[];
 };
 
-function CardListItemHeader<TItem extends ListItem>({
+function CardListItemHeader({
     card: cardItem,
     onCheckboxPress,
     isDisabled,
@@ -62,7 +61,7 @@ function CardListItemHeader<TItem extends ListItem>({
     onDownArrowClick,
     columns,
     isExpanded,
-}: CardListItemHeaderProps<TItem>) {
+}: CardListItemHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -144,7 +143,7 @@ function CardListItemHeader<TItem extends ListItem>({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={() => onCheckboxPress?.(cardItem as unknown as TItem)}
+                            onPress={() => onCheckboxPress?.()}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || cardItem.isDisabledCheckbox}

@@ -13,6 +13,7 @@ import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
+import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
 import variables from '@styles/variables';
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import {SPEND_RULE_CATEGORIES} from '@src/types/form/SpendRuleForm';
@@ -103,6 +104,7 @@ export default function SpendRuleCategoryBase({categories, onCategoriesChange}: 
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 onSelectRow={toggleCategory}
                 onSelectionButtonPress={toggleCategory}
+                onShiftRangeApply={(batch) => setSelectedCategories((prev) => applyShiftRangeBatchToKeySet(batch, prev, (c) => c.value))}
                 onSelectAll={filteredCategoryItems.length > 0 ? toggleSelectAll : undefined}
                 textInputOptions={{
                     value: inputValue,

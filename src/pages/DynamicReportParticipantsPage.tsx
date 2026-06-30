@@ -53,6 +53,7 @@ import {
     isSelfDM,
     isTaskReport,
 } from '@libs/ReportUtils';
+import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -391,6 +392,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                         onTurnOnSelectionMode={(item) => item && toggleUser(item)}
                         onSelectAll={() => toggleAllUsers(participants)}
                         onSelectionButtonPress={toggleUser}
+                        onShiftRangeApply={(batch) => setSelectedMembers((prev) => applyShiftRangeBatchToKeySet(batch, prev, (m) => m.accountID))}
                         shouldShowTextInput={shouldShowTextInput}
                         customListHeader={customListHeader}
                         showScrollIndicator

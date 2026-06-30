@@ -12,7 +12,6 @@ import {PressableWithFeedback} from '@components/Pressable';
 import ReportSearchHeader from '@components/ReportSearchHeader';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
-import type {ListItem} from '@components/SelectionList/types';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -36,15 +35,15 @@ import TotalCell from './TotalCell';
 import type {SearchListActionProps, TransactionReportGroupListItemType} from './types';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
-type ReportListItemHeaderProps<TItem extends ListItem> = SearchListActionProps & {
+type ReportListItemHeaderProps = SearchListActionProps & {
     /** The report currently being looked at */
     report: TransactionReportGroupListItemType;
 
     /** Callback to fire when the item is pressed */
-    onSelectRow: (item: TItem, event?: ModifiedMouseEvent) => void;
+    onSelectRow: (event?: ModifiedMouseEvent) => void;
 
-    /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (item: TItem) => void;
+    /** Group-header checkbox toggle; ignores Shift. */
+    onCheckboxPress?: () => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
@@ -71,12 +70,12 @@ type ReportListItemHeaderProps<TItem extends ListItem> = SearchListActionProps &
     isHovered?: boolean;
 };
 
-type FirstRowReportHeaderProps<TItem extends ListItem> = {
+type FirstRowReportHeaderProps = {
     /** The report currently being looked at */
     report: TransactionReportGroupListItemType;
 
-    /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (item: TItem) => void;
+    /** Group-header checkbox toggle; ignores Shift. */
+    onCheckboxPress?: () => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
@@ -106,7 +105,7 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
     chatReport?: OnyxEntry<Report>;
 };
 
-function HeaderFirstRow<TItem extends ListItem>({
+function HeaderFirstRow({
     report: reportItem,
     onCheckboxPress,
     isDisabled,
@@ -118,7 +117,7 @@ function HeaderFirstRow<TItem extends ListItem>({
     onDownArrowClick,
     isExpanded,
     chatReport,
-}: FirstRowReportHeaderProps<TItem>) {
+}: FirstRowReportHeaderProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -142,7 +141,7 @@ function HeaderFirstRow<TItem extends ListItem>({
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                 {!!canSelectMultiple && (
                     <Checkbox
-                        onPress={() => onCheckboxPress?.(reportItem as unknown as TItem)}
+                        onPress={() => onCheckboxPress?.()}
                         isChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
                         containerStyle={styles.m0}
@@ -207,7 +206,7 @@ function HeaderFirstRow<TItem extends ListItem>({
     );
 }
 
-function ReportListItemHeader<TItem extends ListItem>({
+function ReportListItemHeader({
     report: reportItem,
     onSelectRow,
     onCheckboxPress,
@@ -223,7 +222,7 @@ function ReportListItemHeader<TItem extends ListItem>({
     personalPolicyID,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
-}: ReportListItemHeaderProps<TItem>) {
+}: ReportListItemHeaderProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -265,7 +264,7 @@ function ReportListItemHeader<TItem extends ListItem>({
         handleActionButtonPress({
             hash: currentSearchHash,
             item: reportItem,
-            goToItem: () => onSelectRow(reportItem as unknown as TItem, event),
+            goToItem: () => onSelectRow(event),
             snapshotReport,
             snapshotPolicy,
             submitterLogin,

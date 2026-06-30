@@ -3,6 +3,7 @@ import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, View
 import type {ValueOf} from 'type-fest';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import type {ShiftRangeBatch} from '@libs/shiftRangeSelection';
 import type CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {ListItem, ValidListItem} from './ListItem/types';
@@ -44,7 +45,7 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     customListHeaderContent?: React.JSX.Element | null;
 
     /** Called when a selection button is pressed */
-    onSelectionButtonPress?: (item: TItem) => void;
+    onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
 
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
@@ -149,6 +150,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
 
         /** Called when "Select All" button is pressed */
         onSelectAll?: () => void;
+
+        /** Apply a shift+click range batch. Flat lists only — sectioned lists don't implement range selection. */
+        onShiftRangeApply?: (batch: ShiftRangeBatch<TItem>) => void;
 
         /** Callback to fire when the item is long pressed */
         onLongPressRow?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;

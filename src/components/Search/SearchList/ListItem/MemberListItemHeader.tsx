@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
 import type {SearchColumnType} from '@components/Search/types';
-import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
@@ -16,12 +15,12 @@ import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 import type {TransactionMemberGroupListItemType} from './types';
 
-type MemberListItemHeaderProps<TItem extends ListItem> = {
+type MemberListItemHeaderProps = {
     /** The member currently being looked at */
     member: TransactionMemberGroupListItemType;
 
-    /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (item: TItem) => void;
+    /** Group-header checkbox toggle; ignores Shift. */
+    onCheckboxPress?: () => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
@@ -48,7 +47,7 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
     isLargeScreenWidth?: boolean;
 };
 
-function MemberListItemHeader<TItem extends ListItem>({
+function MemberListItemHeader({
     member: memberItem,
     onCheckboxPress,
     isDisabled,
@@ -59,7 +58,7 @@ function MemberListItemHeader<TItem extends ListItem>({
     onDownArrowClick,
     columns,
     isLargeScreenWidth,
-}: MemberListItemHeaderProps<TItem>) {
+}: MemberListItemHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -129,7 +128,7 @@ function MemberListItemHeader<TItem extends ListItem>({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={() => onCheckboxPress?.(memberItem as unknown as TItem)}
+                            onPress={() => onCheckboxPress?.()}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || memberItem.isDisabledCheckbox}

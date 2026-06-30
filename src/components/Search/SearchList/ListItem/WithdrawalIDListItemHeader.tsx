@@ -5,7 +5,6 @@ import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import RenderHTML from '@components/RenderHTML';
 import type {SearchColumnType} from '@components/Search/types';
-import type {ListItem} from '@components/SelectionList/types';
 import StatusBadge from '@components/StatusBadge';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useEnvironment from '@hooks/useEnvironment';
@@ -25,12 +24,12 @@ import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 import type {TransactionWithdrawalIDGroupListItemType} from './types';
 
-type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
+type WithdrawalIDListItemHeaderProps = {
     /** The withdrawal ID currently being looked at */
     withdrawalID: TransactionWithdrawalIDGroupListItemType;
 
-    /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (item: TItem) => void;
+    /** Group-header checkbox toggle; ignores Shift. */
+    onCheckboxPress?: () => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
@@ -54,7 +53,7 @@ type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
     columns?: SearchColumnType[];
 };
 
-function WithdrawalIDListItemHeader<TItem extends ListItem>({
+function WithdrawalIDListItemHeader({
     withdrawalID: withdrawalIDItem,
     onCheckboxPress,
     isDisabled,
@@ -64,7 +63,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     onDownArrowClick,
     isExpanded,
     columns,
-}: WithdrawalIDListItemHeaderProps<TItem>) {
+}: WithdrawalIDListItemHeaderProps) {
     const {isLargeScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -185,7 +184,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={() => onCheckboxPress?.(withdrawalIDItem as unknown as TItem)}
+                            onPress={() => onCheckboxPress?.()}
                             isChecked={isSelectAllChecked}
                             disabled={!!isDisabled || withdrawalIDItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}

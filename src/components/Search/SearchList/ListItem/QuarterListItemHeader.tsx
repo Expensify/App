@@ -1,42 +1,22 @@
 import React from 'react';
-import type {ListItem} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import type {BaseListItemHeaderProps} from './BaseListItemHeader';
 import BaseListItemHeader from './BaseListItemHeader';
 import type {TransactionQuarterGroupListItemType} from './types';
 
-type QuarterListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey' | 'columnStyleKey'> & {
+type QuarterListItemHeaderProps = Omit<BaseListItemHeaderProps, 'item' | 'displayName' | 'groupColumnKey' | 'columnStyleKey'> & {
     /** The quarter group currently being looked at */
     quarter: TransactionQuarterGroupListItemType;
 };
 
-function QuarterListItemHeader<TItem extends ListItem>({
-    quarter: quarterItem,
-    onCheckboxPress,
-    isDisabled,
-    canSelectMultiple,
-    isSelectAllChecked,
-    isIndeterminate,
-    isExpanded,
-    onDownArrowClick,
-    columns,
-}: QuarterListItemHeaderProps<TItem>) {
-    const quarterName = quarterItem.formattedQuarter;
-
+function QuarterListItemHeader({quarter: quarterItem, ...baseProps}: QuarterListItemHeaderProps) {
     return (
         <BaseListItemHeader
+            {...baseProps}
             item={quarterItem}
-            displayName={quarterName}
+            displayName={quarterItem.formattedQuarter}
             groupColumnKey={CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER}
             columnStyleKey={CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER}
-            onCheckboxPress={onCheckboxPress}
-            isDisabled={isDisabled}
-            canSelectMultiple={canSelectMultiple}
-            isSelectAllChecked={isSelectAllChecked}
-            isIndeterminate={isIndeterminate}
-            isExpanded={isExpanded}
-            onDownArrowClick={onDownArrowClick}
-            columns={columns}
         />
     );
 }

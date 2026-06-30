@@ -175,7 +175,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                         policyCategories={policyCategories}
                         shouldShowTooltip={showTooltip}
                         onButtonPress={handleActionButtonPress}
-                        onCheckboxPress={() => onCheckboxPress?.(item)}
+                        onCheckboxPress={(_transactionID, options) => onCheckboxPress?.(item, undefined, options)}
                         shouldUseNarrowLayout={false}
                         isLargeScreenWidth
                         columns={columns}
