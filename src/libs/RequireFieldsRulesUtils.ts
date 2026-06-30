@@ -291,7 +291,7 @@ function getRequireFieldsTableData({
             ruleDescription,
             searchTokens: [decodedCategoryName, ruleDescription, typeLabel, ...ruleDescriptions],
             pendingAction,
-            disabled: isPendingDeleteOrUpdate(pendingAction),
+            disabled: pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             action: () => onNavigate(getRequireFieldsRuleNavigationRoute(policyID, categoryName)),
         });
     }

@@ -11,7 +11,6 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {setPolicyCategoryMaxAmount} from './actions/Policy/Category';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertToFrontendAmountAsString} from './CurrencyUtils';
-import {isPendingDeleteOrUpdate} from './PolicyRulesUtils';
 
 type FlagForReviewTableItem = TableData & {
     ruleID: string;
@@ -114,7 +113,7 @@ function getFlagForReviewTableData({
             ruleDescription,
             searchTokens: [decodedCategoryName, conditionText, ruleDescription, typeLabel],
             pendingAction: pendingFields?.maxExpenseAmount,
-            disabled: isPendingDeleteOrUpdate(pendingFields?.maxExpenseAmount),
+            disabled: pendingFields?.maxExpenseAmount === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             action: () => onNavigate(getFlagForReviewRuleNavigationRoute(policyID, categoryName)),
         });
     }
