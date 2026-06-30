@@ -240,6 +240,7 @@ function useSelectionModeReportActions({
         reportMetadata,
         isChatReportArchived,
         invoiceReceiverPolicy,
+        ownerLogin: submitterLogin,
     });
 
     const secondaryActions = (() => {

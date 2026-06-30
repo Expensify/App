@@ -415,6 +415,7 @@ const translations = {
         reportID: 'Report ID',
         longReportID: 'Long Report ID',
         withdrawalID: 'Withdrawal ID',
+        internationalReimbursementIDs: 'International reimbursement IDs',
         withdrawalStatus: 'Withdrawal status',
         bankAccounts: 'Bank accounts',
         chooseFile: 'Choose file',
@@ -8592,6 +8593,10 @@ const translations = {
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `All ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `All CSV Imported Cards${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
+            },
+            bankAccount: {
+                banks: 'Bank accounts',
+                closedBankAccounts: 'Closed bank accounts',
             },
             reportField: (name: string, value: string) => `${name} is ${value}`,
             current: 'Current',
