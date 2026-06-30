@@ -15,13 +15,15 @@ import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {
+    arePolicyRulesEnabled,
     getDistanceRateCustomUnitRate,
+    getMatchingVendorByID,
     getPerDiemRateCustomUnitRate,
-    getQBOVendorByID,
     getSortedTagKeys,
     hasVendorFeature,
     isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy,
     isDefaultTagName,
+    isMatchingVendorListLoaded,
     isTaxTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {isCurrentUserSubmitter} from '@libs/ReportUtils';
@@ -98,15 +100,16 @@ function getTagViolationsForSingleLevelTags(
     const hasEnabledTagsInList = hasEnabledTags(policyTags);
     let newTransactionViolations = [...transactionViolations];
 
-    // Add 'tagOutOfPolicy' violation if tag is not in policy and there are enabled tags
-    if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy && hasEnabledTagsInList) {
+    // Add 'tagOutOfPolicy' if the tag is not in policy. Not gated on enabled tags remaining, so deleting the
+    // last tag still flags a transaction that holds the deleted tag. Mirrors 'categoryOutOfPolicy'.
+    if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy) {
         const tagName = policyTagList[policyTagListName]?.name;
         const tagNameToShow = isDefaultTagName(tagName) ? undefined : tagName;
         newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, data: {tagName: tagNameToShow}, showInReview: true});
     }
 
-    // Remove 'tagOutOfPolicy' violation if tag is empty, in policy, or there are no enabled tags
-    if (hasTagOutOfPolicyViolation && (!updatedTransaction.tag || isTagInPolicy || !hasEnabledTagsInList)) {
+    // Remove 'tagOutOfPolicy' violation if tag is empty or in policy
+    if (hasTagOutOfPolicyViolation && (!updatedTransaction.tag || isTagInPolicy)) {
         newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY});
     }
 
@@ -416,8 +419,9 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.SMARTSCAN_FAILED});
         }
 
-        // Calculate client-side category violations
-        const policyRequiresCategories = !!policy.requiresCategory;
+        // Calculate client-side category violations. Also run when the transaction has a category (not just
+        // when the policy requires one) so disabling that category flags it optimistically. Mirrors tags below.
+        const policyRequiresCategories = (!!policy.requiresCategory || !!updatedTransaction.category) && !isSelfDM;
         if (policyRequiresCategories) {
             const hasCategoryOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'categoryOutOfPolicy');
             const hasMissingCategoryViolation = transactionViolations.some((violation) => violation.name === 'missingCategory');
@@ -446,6 +450,10 @@ const ViolationsUtils = {
             if (!hasMissingCategoryViolation && policyRequiresCategories && !categoryKey && !isSelfDM) {
                 newTransactionViolations.push({name: 'missingCategory', type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
             }
+        } else if (transactionViolations.some((violation) => violation.name === 'missingCategory')) {
+            // Categories aren't required and none is set, so a leftover 'missingCategory' is stale (e.g. after the
+            // workspace disables categories). Remove it so the optimistic state matches the backend.
+            newTransactionViolations = reject(newTransactionViolations, {name: 'missingCategory'});
         }
 
         // Calculate client-side tag violations
@@ -470,14 +478,19 @@ const ViolationsUtils = {
                 if (hasInactiveVendorViolation) {
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
                 }
-            } else if (transactionVendorID) {
-                const matchedVendor = getQBOVendorByID(policy, transactionVendorID);
+            } else if (transactionVendorID && isMatchingVendorListLoaded(policy)) {
+                // Only mutate INACTIVE_VENDOR once the active integration's vendor list has actually
+                // hydrated. While `policy.connections.*.data.vendors` is still `undefined`,
+                // `getMatchingVendorByID` returns `undefined` for every ID — pushing the violation
+                // would persist a false positive in Onyx, and rejecting it would strip a legitimate
+                // one. Leave the existing violation state untouched until the list arrives.
+                const matchedVendor = getMatchingVendorByID(policy, transactionVendorID);
                 if (!matchedVendor && !hasInactiveVendorViolation) {
                     newTransactionViolations.push({name: CONST.VIOLATIONS.INACTIVE_VENDOR, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
                 } else if (matchedVendor && hasInactiveVendorViolation) {
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
                 }
-            } else if (hasInactiveVendorViolation) {
+            } else if (!transactionVendorID && hasInactiveVendorViolation) {
                 // Vendor was cleared while the feature is still active — drop the now-stale violation.
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
             }
@@ -579,7 +592,11 @@ const ViolationsUtils = {
         const shouldCategoryShowOverLimitViolation =
             canCalculateAmountViolations && !isInvoiceTransaction && typeof categoryOverLimit === 'number' && expenseAmount > categoryOverLimit && isControlPolicy;
         const shouldShowMissingComment =
-            !isInvoiceTransaction && policyCategories?.[categoryName ?? '']?.areCommentsRequired && !updatedTransaction.comment?.comment && isControlPolicy && policy?.areRulesEnabled;
+            !isInvoiceTransaction &&
+            policyCategories?.[categoryName ?? '']?.areCommentsRequired &&
+            !updatedTransaction.comment?.comment &&
+            isControlPolicy &&
+            arePolicyRulesEnabled(policy, policyCategories);
         const rawAttendees = updatedTransaction.modifiedAttendees ?? updatedTransaction.comment?.attendees;
         const attendees = convertAttendeesToArray(rawAttendees);
         const isAttendeeTrackingEnabled = isAttendeeTrackingEnabledForPolicy(policy);
@@ -731,7 +748,10 @@ const ViolationsUtils = {
         }
 
         const hasTransactionTaxData = !!updatedTransaction.taxCode || !!updatedTransaction.taxValue || !!updatedTransaction.taxAmount;
-        const shouldAddTaxOutOfPolicy = !isTimeRequest && !isPerDiemRequest && (isPolicyTrackTaxEnabled ? !isTaxInPolicy : hasTransactionTaxData);
+
+        // When tax tracking is enabled, only a non-empty tax code that isn't a current policy rate is out of policy.
+        // A transaction with no tax code (e.g. its tax was deleted) must not be flagged.
+        const shouldAddTaxOutOfPolicy = !isTimeRequest && !isPerDiemRequest && (isPolicyTrackTaxEnabled ? !!updatedTransaction.taxCode && !isTaxInPolicy : hasTransactionTaxData);
 
         if (!hasTaxOutOfPolicyViolation && shouldAddTaxOutOfPolicy) {
             newTransactionViolations.push({name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});

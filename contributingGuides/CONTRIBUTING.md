@@ -141,6 +141,10 @@ This helps future investigators understand the history and current status of err
 ## Working on Expensify Jobs
 *Reminder: For technical guidance, please refer to the [README](https://github.com/Expensify/App/blob/main/README.md)*.
 
+### Make sure you have access to the affected codebase
+
+* Proposals for solutions can only be accepted if contributors have access to the affected repositories.
+
 ### Make sure you can test on all platforms
 * Expensify requires that you can test the app on iOS, MacOS, Android, Web, and mWeb.
 * You'll need a Mac to test the iOS and MacOS app.

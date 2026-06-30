@@ -1,6 +1,7 @@
 import React, {useId} from 'react';
 import {G, Path, Svg} from 'react-native-svg';
 import type {SvgProps} from 'react-native-svg';
+import CONST from '@src/CONST';
 import MapMarkerShadowFilter from './MapMarkerShadowFilter';
 
 function MapCurrentLocation({width = 48, height = 48}: SvgProps) {
@@ -19,7 +20,7 @@ function MapCurrentLocation({width = 48, height = 48}: SvgProps) {
             />
             <G filter={`url(#${filterId})`}>
                 <Path
-                    fill="#0185ff"
+                    fill={CONST.MAP_CURRENT_LOCATION_FILL_COLOR}
                     d="M36 20c0 6.627-5.373 12-12 12s-12-5.373-12-12S17.373 8 24 8s12 5.373 12 12"
                 />
                 <Path
