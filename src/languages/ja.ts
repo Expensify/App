@@ -1329,6 +1329,9 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'これらのレポートを削除してもよろしいですか？',
         }),
         settledExpensify: '支払い済み',
+        paidStatusMarkedAsPaid: '支払済みに設定しました',
+        paidStatusWithdrawing: '出金中',
+        paidStatusConfirmed: '確認済み',
         done: '完了',
         settledElsewhere: '他で支払い済み',
         individual: '個人',
@@ -1645,6 +1648,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'レポートに移動',
         moveExpensesError: '日当経費は、ワークスペースごとに日当レートが異なる場合があるため、他のワークスペースのレポートに移動することはできません。',
+        submitReportTo: {
+            sendExpense: '経費を誰にでも送信できます',
+            sendExpenseSubtitle: 'メールアドレスまたは電話番号を使って、誰でも Expensify に招待できます。',
+        },
         changeApprover: {
             title: '承認者を変更',
             header: (workflowSettingLink: string) =>
@@ -9218,10 +9225,6 @@ ${reportName}`,
         bookACallTextBottom: 'ぜひお電話で理由をお聞かせください。お客様のニーズについて話し合うために、シニアプロダクトマネージャーとの通話を予約できます。',
         takeMeToExpensifyClassic: 'Expensify Classic に移動',
         goBackJustOnce: '一度だけ戻る',
-    },
-    listBoundary: {
-        errorMessage: 'さらにメッセージを読み込む際にエラーが発生しました',
-        tryAgain: '再試行',
     },
     systemMessage: {
         mergedWithCashTransaction: 'この取引にレシートを照合しました',

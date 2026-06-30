@@ -1341,6 +1341,9 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Weet u zeker dat u deze rapporten wilt verwijderen?',
         }),
         settledExpensify: 'Betaald',
+        paidStatusMarkedAsPaid: 'Gemarkeerd als betaald',
+        paidStatusWithdrawing: 'Opnemen',
+        paidStatusConfirmed: 'Bevestigd',
         done: 'Gereed',
         settledElsewhere: 'Elders betaald',
         individual: 'Individueel',
@@ -1657,6 +1660,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Verplaatsen naar rapport',
         moveExpensesError: 'Je kunt dagvergoedingdeclaraties niet naar rapporten in andere werkruimten verplaatsen, omdat de dagvergoedingsbedragen per werkruimte kunnen verschillen.',
+        submitReportTo: {
+            sendExpense: 'Stuur je uitgave naar iedereen',
+            sendExpenseSubtitle: 'Nodig iedereen uit voor Expensify met hun e-mailadres of telefoonnummer.',
+        },
         changeApprover: {
             title: 'Goedkeurder wijzigen',
             header: (workflowSettingLink: string) =>
@@ -9307,10 +9314,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         bookACallTextBottom: 'We spreken graag met je om te begrijpen waarom. Je kunt een gesprek inplannen met een van onze senior productmanagers om je behoeften te bespreken.',
         takeMeToExpensifyClassic: 'Breng me naar Expensify Classic',
         goBackJustOnce: 'Eenmalig teruggaan',
-    },
-    listBoundary: {
-        errorMessage: 'Er is een fout opgetreden bij het laden van meer berichten',
-        tryAgain: 'Probeer het opnieuw',
     },
     systemMessage: {
         mergedWithCashTransaction: 'heeft een bonnetje aan deze transactie gekoppeld',
