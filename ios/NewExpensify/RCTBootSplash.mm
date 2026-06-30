@@ -171,7 +171,7 @@ RCT_EXPORT_MODULE();
 
 + (void)hide:(BOOL)fade {
   if (DIC_SHOULD_BLOCK_SPLASH) {
-    return;
+    return [RCTBootSplash clearResolveQueue];
   }
 
   if (![RCTBootSplash isLoadingViewVisible] || RCTRunningInAppExtension())
@@ -195,6 +195,7 @@ RCT_EXPORT_MODULE();
 RCT_EXPORT_METHOD(hide:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject) {
   if (DIC_SHOULD_BLOCK_SPLASH) {
+    reject(@"JAILBREAK_DETECTED", @"BootSplash blocked on jailbroken device", nil);
     return;
   }
 
