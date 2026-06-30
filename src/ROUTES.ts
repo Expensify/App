@@ -16,6 +16,7 @@ import StringUtils from './libs/StringUtils';
 import {getUrlWithParams} from './libs/Url';
 import SCREENS from './SCREENS';
 import type {Screen} from './SCREENS';
+import type {ExpenseRuleFormFieldID} from './types/form/ExpenseRuleForm';
 import type {CompanyCardFeedWithDomainID} from './types/onyx';
 import type {ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
@@ -1413,13 +1414,13 @@ const ROUTES = {
     SETTINGS_RULES: 'settings/rules',
     SETTINGS_RULES_ADD: {
         route: 'settings/rules/new/:field?/:index?',
-        getRoute: (field?: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>, index?: number) => {
+        getRoute: (field?: ExpenseRuleFormFieldID, index?: number) => {
             return `settings/rules/new/${field ? StringUtils.camelToHyphenCase(field) : ''}${index !== undefined ? `/${index === -1 ? ':index' : index}` : ''}` as const;
         },
     },
     SETTINGS_RULES_EDIT: {
         route: 'settings/rules/edit/:hash/:field?/:index?',
-        getRoute: (hash?: string, field?: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>, index?: number) => {
+        getRoute: (hash?: string, field?: ExpenseRuleFormFieldID, index?: number) => {
             return `settings/rules/edit/${hash ?? ':hash'}/${field ? StringUtils.camelToHyphenCase(field) : ''}${index !== undefined ? `/${index === -1 ? ':index' : index}` : ''}` as const;
         },
     },

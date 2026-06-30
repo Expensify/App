@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import EXPENSE_RULE_INPUT_IDS from '@src/types/form/ExpenseRuleForm';
 
 type AddReimbursablePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.RULES.EDIT_REIMBURSABLE>;
 
@@ -25,7 +26,7 @@ function AddReimbursablePage({route}: AddReimbursablePageProps) {
 
     return (
         <RuleBooleanBase
-            fieldID={CONST.EXPENSE_RULES.FIELDS.REIMBURSABLE}
+            fieldID={EXPENSE_RULE_INPUT_IDS.REIMBURSABLE}
             formID={ONYXKEYS.FORMS.EXPENSE_RULE_FORM}
             titleKey="common.reimbursable"
             onSelect={onSelect}

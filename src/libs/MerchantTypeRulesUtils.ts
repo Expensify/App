@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {MerchantTypeRuleForm} from '@src/types/form/MerchantTypeRuleForm';
+import INPUT_IDS from '@src/types/form/MerchantTypeRuleForm';
 import type {Policy} from '@src/types/onyx';
 import type {CodingRule} from '@src/types/onyx/Policy';
 import {DEFAULT_MCC_GROUP, isDefaultMccGroupID} from './actions/Policy/Category';
@@ -34,14 +35,14 @@ function getMerchantTypeRuleNavigationRoute(policyID: string, groupID: string): 
 
 function getMerchantTypeRuleFormFromMccGroup(groupID: string, category: string): MerchantTypeRuleForm {
     return {
-        [CONST.MERCHANT_TYPE_RULE.FIELDS.GROUP_ID]: groupID,
-        [CONST.MERCHANT_TYPE_RULE.FIELDS.CATEGORY]: category,
+        [INPUT_IDS.GROUP_ID]: groupID,
+        [INPUT_IDS.CATEGORY]: category,
     };
 }
 
 function saveMerchantTypeRule(policyID: string, form: MerchantTypeRuleForm, mccGroup: Policy['mccGroup']) {
-    const groupID = form[CONST.MERCHANT_TYPE_RULE.FIELDS.GROUP_ID];
-    const category = form[CONST.MERCHANT_TYPE_RULE.FIELDS.CATEGORY];
+    const groupID = form[INPUT_IDS.GROUP_ID];
+    const category = form[INPUT_IDS.CATEGORY];
 
     if (!groupID || !category) {
         return;

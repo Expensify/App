@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {FlagForReviewRuleForm} from '@src/types/form/FlagForReviewRuleForm';
+import INPUT_IDS from '@src/types/form/FlagForReviewRuleForm';
 import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {setPolicyCategoryMaxAmount} from './actions/Policy/Category';
@@ -31,8 +32,6 @@ function getFlagForReviewRuleNavigationRoute(policyID: string, categoryName: str
     return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName);
 }
 
-const FLAG_FOR_REVIEW_RULE_FIELDS = CONST.FLAG_FOR_REVIEW_RULE.FIELDS;
-
 function getFlagForReviewFormFromCategory(
     category: PolicyCategory | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
@@ -41,16 +40,14 @@ function getFlagForReviewFormFromCategory(
     const maxExpenseAmount = category?.maxExpenseAmount;
 
     return {
-        [FLAG_FOR_REVIEW_RULE_FIELDS.CATEGORY]: category?.name ?? '',
-        [FLAG_FOR_REVIEW_RULE_FIELDS.MAX_EXPENSE_AMOUNT]: hasExplicitFlagAmount(maxExpenseAmount)
-            ? convertToFrontendAmountAsString(maxExpenseAmount, getCurrencyDecimals(policyCurrency))
-            : '',
-        [FLAG_FOR_REVIEW_RULE_FIELDS.EXPENSE_LIMIT_TYPE]: category?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE,
+        [INPUT_IDS.CATEGORY]: category?.name ?? '',
+        [INPUT_IDS.MAX_EXPENSE_AMOUNT]: hasExplicitFlagAmount(maxExpenseAmount) ? convertToFrontendAmountAsString(maxExpenseAmount, getCurrencyDecimals(policyCurrency)) : '',
+        [INPUT_IDS.EXPENSE_LIMIT_TYPE]: category?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE,
     };
 }
 
 function saveFlagForReviewRule(policyID: string, policyCategories: PolicyCategories | undefined, form: FlagForReviewRuleForm) {
-    const categoryName = form[FLAG_FOR_REVIEW_RULE_FIELDS.CATEGORY];
+    const categoryName = form[INPUT_IDS.CATEGORY];
     if (!categoryName) {
         return;
     }
@@ -58,8 +55,8 @@ function saveFlagForReviewRule(policyID: string, policyCategories: PolicyCategor
     setPolicyCategoryMaxAmount(
         policyID,
         categoryName,
-        form[FLAG_FOR_REVIEW_RULE_FIELDS.MAX_EXPENSE_AMOUNT] ?? '',
-        form[FLAG_FOR_REVIEW_RULE_FIELDS.EXPENSE_LIMIT_TYPE] ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE,
+        form[INPUT_IDS.MAX_EXPENSE_AMOUNT] ?? '',
+        form[INPUT_IDS.EXPENSE_LIMIT_TYPE] ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE,
         policyCategories,
     );
 }

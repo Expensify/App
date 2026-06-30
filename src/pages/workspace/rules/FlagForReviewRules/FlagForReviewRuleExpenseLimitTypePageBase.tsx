@@ -15,6 +15,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/FlagForReviewRuleForm';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 
 type FlagForReviewRuleExpenseLimitTypePageBaseProps = {
@@ -32,7 +33,7 @@ function FlagForReviewRuleExpenseLimitTypePageBase({policyID, categoryName}: Fla
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM);
-    const currentExpenseLimitType = form?.[CONST.FLAG_FOR_REVIEW_RULE.FIELDS.EXPENSE_LIMIT_TYPE] ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
+    const currentExpenseLimitType = form?.[INPUT_IDS.EXPENSE_LIMIT_TYPE] ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
 
     const backToRoute = isEditing ? ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName) : ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID);
 
@@ -45,7 +46,7 @@ function FlagForReviewRuleExpenseLimitTypePageBase({policyID, categoryName}: Fla
     }));
 
     const onSelectRow = (item: {value: PolicyCategoryExpenseLimitType}) => {
-        updateDraftFlagForReviewRule({[CONST.FLAG_FOR_REVIEW_RULE.FIELDS.EXPENSE_LIMIT_TYPE]: item.value});
+        updateDraftFlagForReviewRule({[INPUT_IDS.EXPENSE_LIMIT_TYPE]: item.value});
         Navigation.goBack(backToRoute);
     };
 

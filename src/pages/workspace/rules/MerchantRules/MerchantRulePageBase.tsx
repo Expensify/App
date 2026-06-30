@@ -41,6 +41,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {MerchantRuleForm} from '@src/types/form';
+import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
 import type {PolicyTagLists} from '@src/types/onyx';
 import type {CodingRule} from '@src/types/onyx/Policy';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -76,7 +77,7 @@ const getBooleanTitle = (value: boolean | undefined, translate: LocalizedTransla
 };
 
 const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm) => {
-    const matchingCriteriaFields = new Set<string>([CONST.MERCHANT_RULES.FIELDS.MERCHANT_TO_MATCH, CONST.MERCHANT_RULES.FIELDS.MATCH_TYPE]);
+    const matchingCriteriaFields = new Set<string>([MERCHANT_RULE_INPUT_IDS.MERCHANT_TO_MATCH, MERCHANT_RULE_INPUT_IDS.MATCH_TYPE]);
     const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(([key, value]) => {
         if (matchingCriteriaFields.has(key)) {
             return false;

@@ -14,6 +14,7 @@ import type CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as ExpensifyRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {ExpenseRuleFormFieldID} from '@src/types/form/ExpenseRuleForm';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
@@ -277,7 +278,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.RULES.ADD_REPORT]: undefined;
     [SCREENS.SETTINGS.RULES.EDIT]: {
         hash: string;
-        field?: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>;
+        field?: ExpenseRuleFormFieldID;
     };
     [SCREENS.SETTINGS.RULES.EDIT_MERCHANT]: {
         hash: string;

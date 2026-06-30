@@ -31,6 +31,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {getRequireFieldsRuleCategoryRoute} from '@src/ROUTES';
 import type {RequireFieldsRuleForm, RequireFieldsRuleToggleFieldKey} from '@src/types/form/RequireFieldsRuleForm';
+import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
 import type {Policy, PolicyCategory} from '@src/types/onyx';
 
 type RequireFieldsRulePageBaseProps = {
@@ -39,22 +40,20 @@ type RequireFieldsRulePageBaseProps = {
     testID: string;
 };
 
-const REQUIRE_FIELDS_RULE_FIELDS = CONST.REQUIRE_FIELDS_RULE.FIELDS;
-
 function getValidationError(
     form: RequireFieldsRuleForm | null | undefined,
     category: PolicyCategory | undefined,
     policy: Policy | undefined,
     translate: ReturnType<typeof useLocalize>['translate'],
 ): string {
-    if (!form?.[REQUIRE_FIELDS_RULE_FIELDS.CATEGORY]) {
+    if (!form?.[INPUT_IDS.CATEGORY]) {
         return translate('workspace.rules.requireFieldsRule.confirmErrorCategory');
     }
 
     const effectiveForm = getEffectiveRequireFieldsRuleForm(category, form);
     const isAttendeeFieldApplicable = isAttendeeTrackingEnabled(policy);
-    const hasDescription = !!effectiveForm[REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_DESCRIPTION];
-    const hasAttendees = isAttendeeFieldApplicable && !!effectiveForm[REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ATTENDEES];
+    const hasDescription = !!effectiveForm[INPUT_IDS.REQUIRE_DESCRIPTION];
+    const hasAttendees = isAttendeeFieldApplicable && !!effectiveForm[INPUT_IDS.REQUIRE_ATTENDEES];
 
     if (!hasDescription && !hasAttendees && !categoryHasLegacyReceiptRules(category)) {
         return translate('workspace.rules.requireFieldsRule.confirmErrorField');
@@ -82,7 +81,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
     const initializedDraftForRuleKeyRef = useRef<string | null>(null);
 
     const category = categoryName ? policyCategories?.[categoryName] : undefined;
-    const selectedCategoryName = form?.[REQUIRE_FIELDS_RULE_FIELDS.CATEGORY];
+    const selectedCategoryName = form?.[INPUT_IDS.CATEGORY];
     const selectedCategory = selectedCategoryName ? policyCategories?.[selectedCategoryName] : undefined;
     const effectiveForm = form && selectedCategory ? getEffectiveRequireFieldsRuleForm(selectedCategory, form) : form;
     const categoryDisplayName = selectedCategoryName ? getDecodedCategoryName(selectedCategoryName) : undefined;
@@ -108,7 +107,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
 
         initializedDraftForRuleKeyRef.current = categoryName;
         setDraftRequireFieldsRule({
-            [REQUIRE_FIELDS_RULE_FIELDS.CATEGORY]: categoryName,
+            [INPUT_IDS.CATEGORY]: categoryName,
             ...getRequireFieldsFormFromCategory(category),
         });
     }, [category, categoryName, isEditing]);
@@ -127,8 +126,8 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
     }, [fetchPolicyData]);
 
     const fieldToggles: Array<{key: RequireFieldsRuleToggleFieldKey; label: string; isVisible: boolean}> = [
-        {key: REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_DESCRIPTION, label: translate('common.description'), isVisible: true},
-        {key: REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ATTENDEES, label: translate('iou.attendees'), isVisible: isAttendeeFieldApplicable},
+        {key: INPUT_IDS.REQUIRE_DESCRIPTION, label: translate('common.description'), isVisible: true},
+        {key: INPUT_IDS.REQUIRE_ATTENDEES, label: translate('iou.attendees'), isVisible: isAttendeeFieldApplicable},
     ];
 
     const errorMessage = getValidationError(form, selectedCategory, policy, translate);
@@ -208,7 +207,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
                     <MenuItemWithTopDescription
                         description={translate('common.category')}
                         title={categoryDisplayName}
-                        errorText={canWriteRules && shouldShowError && !form?.[REQUIRE_FIELDS_RULE_FIELDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
+                        errorText={canWriteRules && shouldShowError && !form?.[INPUT_IDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
                         onPress={canWriteRules ? () => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, categoryName)) : undefined}
                         shouldShowRightIcon={canWriteRules}
                         interactive={canWriteRules}

@@ -14,6 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import INPUT_IDS from '@src/types/form/MerchantTypeRuleForm';
 
 type MerchantTypeRuleCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_TYPE_CATEGORY>;
 
@@ -27,7 +28,7 @@ function MerchantTypeRuleCategoryPage({route}: MerchantTypeRuleCategoryPageProps
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_TYPE_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
-    const selectedCategoryName = form?.[CONST.MERCHANT_TYPE_RULE.FIELDS.CATEGORY];
+    const selectedCategoryName = form?.[INPUT_IDS.CATEGORY];
     const selectedCategoryItem = selectedCategoryName ? {name: getDecodedCategoryName(selectedCategoryName), value: selectedCategoryName} : undefined;
 
     const categoryItems = Object.values(policyCategories ?? {})
@@ -40,7 +41,7 @@ function MerchantTypeRuleCategoryPage({route}: MerchantTypeRuleCategoryPageProps
     const backToRoute = ROUTES.RULES_MERCHANT_TYPE_EDIT.getRoute(policyID, groupID);
 
     const onSave = (value?: string) => {
-        updateDraftMerchantTypeRule({[CONST.MERCHANT_TYPE_RULE.FIELDS.CATEGORY]: value});
+        updateDraftMerchantTypeRule({[INPUT_IDS.CATEGORY]: value});
     };
 
     return (

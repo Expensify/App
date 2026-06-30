@@ -1,9 +1,12 @@
 import type {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type Form from './Form';
 
-const INPUT_IDS = CONST.FLAG_FOR_REVIEW_RULE.FIELDS;
+const INPUT_IDS = {
+    CATEGORY: 'category',
+    MAX_EXPENSE_AMOUNT: 'maxExpenseAmount',
+    EXPENSE_LIMIT_TYPE: 'expenseLimitType',
+} as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;
 
@@ -16,5 +19,5 @@ type FlagForReviewRuleForm = Form<
     }
 >;
 
-// eslint-disable-next-line import/prefer-default-export
 export type {FlagForReviewRuleForm};
+export default INPUT_IDS;

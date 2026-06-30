@@ -27,6 +27,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {MerchantTypeRuleForm} from '@src/types/form/MerchantTypeRuleForm';
+import INPUT_IDS from '@src/types/form/MerchantTypeRuleForm';
 
 type MerchantTypeRulePageBaseProps = {
     policyID: string;
@@ -35,7 +36,7 @@ type MerchantTypeRulePageBaseProps = {
 };
 
 function getValidationError(form: MerchantTypeRuleForm | null | undefined, translate: ReturnType<typeof useLocalize>['translate']): string {
-    if (!form?.[CONST.MERCHANT_TYPE_RULE.FIELDS.CATEGORY]) {
+    if (!form?.[INPUT_IDS.CATEGORY]) {
         return translate('workspace.rules.merchantTypeRule.confirmErrorCategory');
     }
 
@@ -60,7 +61,7 @@ function MerchantTypeRulePageBase({policyID, groupID, testID}: MerchantTypeRuleP
     const mccGroup = policy?.mccGroup;
     const currentCategory = mccGroup?.[groupID]?.category ?? getDefaultMccGroupCategory(groupID);
     const merchantTypeDisplayName = getMccGroupDisplayName(groupID);
-    const categoryDisplayName = form?.[CONST.MERCHANT_TYPE_RULE.FIELDS.CATEGORY] ? getDecodedCategoryName(form[CONST.MERCHANT_TYPE_RULE.FIELDS.CATEGORY]) : undefined;
+    const categoryDisplayName = form?.[INPUT_IDS.CATEGORY] ? getDecodedCategoryName(form[INPUT_IDS.CATEGORY]) : undefined;
 
     useEffect(() => () => clearDraftMerchantTypeRule(), []);
 
@@ -97,7 +98,7 @@ function MerchantTypeRulePageBase({policyID, groupID, testID}: MerchantTypeRuleP
             return;
         }
 
-        if (form[CONST.MERCHANT_TYPE_RULE.FIELDS.CATEGORY] === currentCategory) {
+        if (form[INPUT_IDS.CATEGORY] === currentCategory) {
             Navigation.goBack();
             return;
         }
@@ -172,7 +173,7 @@ function MerchantTypeRulePageBase({policyID, groupID, testID}: MerchantTypeRuleP
                     <MenuItemWithTopDescription
                         description={translate('common.category')}
                         title={categoryDisplayName}
-                        errorText={canWriteRules && shouldShowError && !form?.[CONST.MERCHANT_TYPE_RULE.FIELDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
+                        errorText={canWriteRules && shouldShowError && !form?.[INPUT_IDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
                         onPress={canWriteRules ? () => Navigation.navigate(ROUTES.RULES_MERCHANT_TYPE_CATEGORY.getRoute(policyID, groupID)) : undefined}
                         shouldShowRightIcon={canWriteRules}
                         interactive={canWriteRules}

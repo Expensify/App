@@ -1,8 +1,13 @@
 import type {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
 import type Form from './Form';
 
-const INPUT_IDS = CONST.REQUIRE_FIELDS_RULE.FIELDS;
+const INPUT_IDS = {
+    CATEGORY: 'category',
+    REQUIRE_DESCRIPTION: 'requireDescription',
+    REQUIRE_RECEIPT: 'requireReceipt',
+    REQUIRE_ITEMIZED_RECEIPT: 'requireItemizedReceipt',
+    REQUIRE_ATTENDEES: 'requireAttendees',
+} as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;
 
@@ -20,3 +25,4 @@ type RequireFieldsRuleForm = Form<
 type RequireFieldsRuleToggleFieldKey = Exclude<InputID, typeof INPUT_IDS.CATEGORY>;
 
 export type {RequireFieldsRuleForm, RequireFieldsRuleToggleFieldKey};
+export default INPUT_IDS;

@@ -19,6 +19,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import FLAG_FOR_REVIEW_RULE_INPUT_IDS from '@src/types/form/FlagForReviewRuleForm';
 import INPUT_IDS from '@src/types/form/FlagForReviewRuleMaxAmountForm';
 
 type FlagForReviewRuleAmountPageBaseProps = {
@@ -38,7 +39,7 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName}: FlagForReview
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const [form] = useOnyx(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM);
-    const defaultValue = form?.[CONST.FLAG_FOR_REVIEW_RULE.FIELDS.MAX_EXPENSE_AMOUNT] ?? '';
+    const defaultValue = form?.[FLAG_FOR_REVIEW_RULE_INPUT_IDS.MAX_EXPENSE_AMOUNT] ?? '';
 
     const backToRoute = isEditing ? ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName) : ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID);
 
@@ -47,7 +48,7 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName}: FlagForReview
     };
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_MAX_AMOUNT_FORM>) => {
-        updateDraftFlagForReviewRule({[CONST.FLAG_FOR_REVIEW_RULE.FIELDS.MAX_EXPENSE_AMOUNT]: values.maxAmount.trim()});
+        updateDraftFlagForReviewRule({[FLAG_FOR_REVIEW_RULE_INPUT_IDS.MAX_EXPENSE_AMOUNT]: values.maxAmount.trim()});
         goBack();
     };
 

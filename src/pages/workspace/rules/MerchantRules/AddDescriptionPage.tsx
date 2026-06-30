@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
 
 type AddDescriptionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_DESCRIPTION>;
 
@@ -28,7 +29,7 @@ function AddDescriptionPage({route}: AddDescriptionPageProps) {
 
     return (
         <RuleTextBase
-            fieldID={CONST.MERCHANT_RULES.FIELDS.DESCRIPTION}
+            fieldID={MERCHANT_RULE_INPUT_IDS.DESCRIPTION}
             formID={ONYXKEYS.FORMS.MERCHANT_RULE_FORM}
             titleKey="common.description"
             testID="AddDescriptionPage"

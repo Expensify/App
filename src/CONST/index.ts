@@ -4679,56 +4679,9 @@ const CONST = {
         },
     },
     EXPENSE_RULES: {
-        FIELDS: {
-            BILLABLE: 'billable',
-            CATEGORY: 'category',
-            DESCRIPTION: 'comment',
-            CREATE_REPORT: 'createReport',
-            MERCHANT: 'merchantToMatch',
-            RENAME_MERCHANT: 'merchant',
-            REIMBURSABLE: 'reimbursable',
-            REPORT: 'report',
-            TAG: 'tag',
-            TAX: 'tax',
-        },
         BULK_ACTION_TYPES: {
             EDIT: 'edit',
             DELETE: 'delete',
-        },
-    },
-    MERCHANT_RULES: {
-        FIELDS: {
-            BILLABLE: 'billable',
-            CATEGORY: 'category',
-            DESCRIPTION: 'comment',
-            MATCH_TYPE: 'matchType',
-            MERCHANT_TO_MATCH: 'merchantToMatch',
-            MERCHANT: 'merchant',
-            REIMBURSABLE: 'reimbursable',
-            TAG: 'tag',
-            TAX: 'tax',
-        },
-    },
-    REQUIRE_FIELDS_RULE: {
-        FIELDS: {
-            CATEGORY: 'category',
-            REQUIRE_DESCRIPTION: 'requireDescription',
-            REQUIRE_RECEIPT: 'requireReceipt',
-            REQUIRE_ITEMIZED_RECEIPT: 'requireItemizedReceipt',
-            REQUIRE_ATTENDEES: 'requireAttendees',
-        },
-    },
-    FLAG_FOR_REVIEW_RULE: {
-        FIELDS: {
-            CATEGORY: 'category',
-            MAX_EXPENSE_AMOUNT: 'maxExpenseAmount',
-            EXPENSE_LIMIT_TYPE: 'expenseLimitType',
-        },
-    },
-    MERCHANT_TYPE_RULE: {
-        FIELDS: {
-            GROUP_ID: 'groupID',
-            CATEGORY: 'category',
         },
     },
     REQUIRE_FIELDS_RULE_TYPES: {
@@ -4765,17 +4718,6 @@ const CONST = {
             SOFTWARE: 'software',
             TRANSIT_AND_RIDESHARE: 'transitAndRideshare',
             TRAVEL_AGENCIES: 'travelAgencies',
-        },
-        FORM: {
-            FIELDS: {
-                CARD_IDS: 'cardIDs',
-                RESTRICTION_ACTION: 'restrictionAction',
-                MERCHANT_NAMES: 'merchantNames',
-                MERCHANT_MATCH_TYPES: 'merchantMatchTypes',
-                CATEGORIES: 'categories',
-                MAX_AMOUNT: 'maxAmount',
-                CURRENCIES: 'currencies',
-            },
         },
         ACTION: {
             ALLOW: 'allow',

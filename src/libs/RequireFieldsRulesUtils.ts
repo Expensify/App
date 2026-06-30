@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {RequireFieldsRuleForm, RequireFieldsRuleToggleFieldKey} from '@src/types/form/RequireFieldsRuleForm';
+import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
 import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -60,21 +61,19 @@ function categoryHasAnyRequireFieldsRule(category: PolicyCategory): boolean {
     );
 }
 
-const REQUIRE_FIELDS_RULE_FIELDS = CONST.REQUIRE_FIELDS_RULE.FIELDS;
-
 function isRequireFieldEnabled(category: PolicyCategory | undefined, field: RequireFieldsRuleToggleFieldKey): boolean {
     if (!category) {
         return false;
     }
 
     switch (field) {
-        case REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_DESCRIPTION:
+        case INPUT_IDS.REQUIRE_DESCRIPTION:
             return !!category.areCommentsRequired;
-        case REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ATTENDEES:
+        case INPUT_IDS.REQUIRE_ATTENDEES:
             return !!category.areAttendeesRequired;
-        case REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_RECEIPT:
+        case INPUT_IDS.REQUIRE_RECEIPT:
             return hasExplicitReceiptThreshold(category.maxAmountNoReceipt);
-        case REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ITEMIZED_RECEIPT:
+        case INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT:
             return hasExplicitReceiptThreshold(category.maxAmountNoItemizedReceipt);
         default:
             return false;
@@ -83,10 +82,10 @@ function isRequireFieldEnabled(category: PolicyCategory | undefined, field: Requ
 
 function getRequireFieldsFormFromCategory(category: PolicyCategory | undefined): Partial<RequireFieldsRuleForm> {
     return {
-        [REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_DESCRIPTION]: isRequireFieldEnabled(category, REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_DESCRIPTION),
-        [REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ATTENDEES]: isRequireFieldEnabled(category, REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ATTENDEES),
-        [REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_RECEIPT]: isRequireFieldEnabled(category, REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_RECEIPT),
-        [REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ITEMIZED_RECEIPT]: isRequireFieldEnabled(category, REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ITEMIZED_RECEIPT),
+        [INPUT_IDS.REQUIRE_DESCRIPTION]: isRequireFieldEnabled(category, INPUT_IDS.REQUIRE_DESCRIPTION),
+        [INPUT_IDS.REQUIRE_ATTENDEES]: isRequireFieldEnabled(category, INPUT_IDS.REQUIRE_ATTENDEES),
+        [INPUT_IDS.REQUIRE_RECEIPT]: isRequireFieldEnabled(category, INPUT_IDS.REQUIRE_RECEIPT),
+        [INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT]: isRequireFieldEnabled(category, INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT),
     };
 }
 
@@ -94,17 +93,16 @@ function getEffectiveRequireFieldsRuleForm(category: PolicyCategory | undefined,
     const categoryForm = getRequireFieldsFormFromCategory(category);
 
     return {
-        [REQUIRE_FIELDS_RULE_FIELDS.CATEGORY]: form[REQUIRE_FIELDS_RULE_FIELDS.CATEGORY] ?? '',
-        [REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_DESCRIPTION]: form[REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_DESCRIPTION] ?? categoryForm[REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_DESCRIPTION] ?? false,
-        [REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ATTENDEES]: form[REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ATTENDEES] ?? categoryForm[REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ATTENDEES] ?? false,
-        [REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_RECEIPT]: form[REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_RECEIPT] ?? categoryForm[REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_RECEIPT] ?? false,
-        [REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ITEMIZED_RECEIPT]:
-            form[REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ITEMIZED_RECEIPT] ?? categoryForm[REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ITEMIZED_RECEIPT] ?? false,
+        [INPUT_IDS.CATEGORY]: form[INPUT_IDS.CATEGORY] ?? '',
+        [INPUT_IDS.REQUIRE_DESCRIPTION]: form[INPUT_IDS.REQUIRE_DESCRIPTION] ?? categoryForm[INPUT_IDS.REQUIRE_DESCRIPTION] ?? false,
+        [INPUT_IDS.REQUIRE_ATTENDEES]: form[INPUT_IDS.REQUIRE_ATTENDEES] ?? categoryForm[INPUT_IDS.REQUIRE_ATTENDEES] ?? false,
+        [INPUT_IDS.REQUIRE_RECEIPT]: form[INPUT_IDS.REQUIRE_RECEIPT] ?? categoryForm[INPUT_IDS.REQUIRE_RECEIPT] ?? false,
+        [INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT]: form[INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT] ?? categoryForm[INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT] ?? false,
     };
 }
 
 function saveRequireFieldsRule(policyData: PolicyData, form: RequireFieldsRuleForm) {
-    const categoryName = form[REQUIRE_FIELDS_RULE_FIELDS.CATEGORY];
+    const categoryName = form[INPUT_IDS.CATEGORY];
     if (!categoryName || !policyData.policy?.id) {
         return;
     }

@@ -20,6 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
 
 type AddMerchantToMatchPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT_TO_MATCH>;
 
@@ -54,7 +55,7 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MERCHANT_RULE_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MERCHANT_RULE_FORM> = {};
-        const fieldID = CONST.MERCHANT_RULES.FIELDS.MERCHANT_TO_MATCH;
+        const fieldID = MERCHANT_RULE_INPUT_IDS.MERCHANT_TO_MATCH;
         const fieldValue = values[fieldID] ?? '';
 
         if (typeof fieldValue !== 'string') {
@@ -100,8 +101,8 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
                 <View style={styles.mb5}>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID={CONST.MERCHANT_RULES.FIELDS.MERCHANT_TO_MATCH}
-                        name={CONST.MERCHANT_RULES.FIELDS.MERCHANT_TO_MATCH}
+                        inputID={MERCHANT_RULE_INPUT_IDS.MERCHANT_TO_MATCH}
+                        name={MERCHANT_RULE_INPUT_IDS.MERCHANT_TO_MATCH}
                         defaultValue={currentValue}
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}

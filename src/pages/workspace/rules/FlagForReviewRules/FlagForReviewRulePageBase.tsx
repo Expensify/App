@@ -29,6 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {getFlagForReviewRuleAmountRoute, getFlagForReviewRuleCategoryRoute, getFlagForReviewRuleExpenseLimitTypeRoute} from '@src/ROUTES';
 import type {FlagForReviewRuleForm} from '@src/types/form/FlagForReviewRuleForm';
+import INPUT_IDS from '@src/types/form/FlagForReviewRuleForm';
 
 type FlagForReviewRulePageBaseProps = {
     policyID: string;
@@ -37,13 +38,13 @@ type FlagForReviewRulePageBaseProps = {
 };
 
 function getValidationError(form: FlagForReviewRuleForm | null | undefined, translate: ReturnType<typeof useLocalize>['translate']): string {
-    if (!form?.[CONST.FLAG_FOR_REVIEW_RULE.FIELDS.CATEGORY]) {
+    if (!form?.[INPUT_IDS.CATEGORY]) {
         return translate('workspace.rules.flagForReviewRule.confirmErrorCategory');
     }
 
-    const parsedAmount = Number.parseFloat(form[CONST.FLAG_FOR_REVIEW_RULE.FIELDS.MAX_EXPENSE_AMOUNT] ?? '');
+    const parsedAmount = Number.parseFloat(form[INPUT_IDS.MAX_EXPENSE_AMOUNT] ?? '');
 
-    if (!form[CONST.FLAG_FOR_REVIEW_RULE.FIELDS.MAX_EXPENSE_AMOUNT]?.trim() || !Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+    if (!form[INPUT_IDS.MAX_EXPENSE_AMOUNT]?.trim() || !Number.isFinite(parsedAmount) || parsedAmount <= 0) {
         return translate('workspace.rules.flagForReviewRule.confirmErrorAmount');
     }
 
@@ -69,12 +70,12 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
     const initializedDraftForRuleKeyRef = useRef<string | null>(null);
 
     const category = categoryName ? policyCategories?.[categoryName] : undefined;
-    const selectedCategoryName = form?.[CONST.FLAG_FOR_REVIEW_RULE.FIELDS.CATEGORY];
+    const selectedCategoryName = form?.[INPUT_IDS.CATEGORY];
     const categoryDisplayName = selectedCategoryName ? getDecodedCategoryName(selectedCategoryName) : undefined;
 
-    const parsedMaxAmount = Number.parseFloat(form?.[CONST.FLAG_FOR_REVIEW_RULE.FIELDS.MAX_EXPENSE_AMOUNT] ?? '');
+    const parsedMaxAmount = Number.parseFloat(form?.[INPUT_IDS.MAX_EXPENSE_AMOUNT] ?? '');
     const maxAmountMenuTitle = Number.isFinite(parsedMaxAmount) ? convertToDisplayString(convertToBackendAmount(parsedMaxAmount), policyCurrency) : '';
-    const expenseLimitType = form?.[CONST.FLAG_FOR_REVIEW_RULE.FIELDS.EXPENSE_LIMIT_TYPE] ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
+    const expenseLimitType = form?.[INPUT_IDS.EXPENSE_LIMIT_TYPE] ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
     const expenseLimitTypeTitle = translate(`workspace.rules.categoryRules.expenseLimitTypes.${expenseLimitType}`);
 
     useEffect(() => () => clearDraftFlagForReviewRule(), []);
@@ -186,7 +187,7 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
                     <MenuItemWithTopDescription
                         description={translate('common.category')}
                         title={categoryDisplayName}
-                        errorText={canWriteRules && shouldShowError && !form?.[CONST.FLAG_FOR_REVIEW_RULE.FIELDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
+                        errorText={canWriteRules && shouldShowError && !form?.[INPUT_IDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
                         onPress={canWriteRules ? () => Navigation.navigate(getFlagForReviewRuleCategoryRoute(policyID, categoryName)) : undefined}
                         shouldShowRightIcon={canWriteRules}
                         interactive={canWriteRules}
@@ -202,7 +203,7 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
                     <MenuItemWithTopDescription
                         description={translate('iou.amount')}
                         title={maxAmountMenuTitle ? translate('workspace.rules.spendRules.maxAmountAbove', {amount: maxAmountMenuTitle}) : undefined}
-                        errorText={canWriteRules && shouldShowError && !form?.[CONST.FLAG_FOR_REVIEW_RULE.FIELDS.MAX_EXPENSE_AMOUNT]?.trim() ? translate('common.error.fieldRequired') : ''}
+                        errorText={canWriteRules && shouldShowError && !form?.[INPUT_IDS.MAX_EXPENSE_AMOUNT]?.trim() ? translate('common.error.fieldRequired') : ''}
                         onPress={canWriteRules ? () => Navigation.navigate(getFlagForReviewRuleAmountRoute(policyID, categoryName)) : undefined}
                         shouldShowRightIcon={canWriteRules}
                         interactive={canWriteRules}

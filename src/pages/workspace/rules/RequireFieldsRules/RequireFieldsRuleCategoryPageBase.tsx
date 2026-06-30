@@ -12,6 +12,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
 
 type RequireFieldsRuleCategoryPageBaseProps = {
     policyID: string;
@@ -28,7 +29,7 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
     const [form] = useOnyx(ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
-    const selectedCategoryName = form?.[CONST.REQUIRE_FIELDS_RULE.FIELDS.CATEGORY];
+    const selectedCategoryName = form?.[INPUT_IDS.CATEGORY];
     const selectedCategoryItem = selectedCategoryName ? {name: getDecodedCategoryName(selectedCategoryName), value: selectedCategoryName} : undefined;
 
     const categoryItems = Object.values(policyCategories ?? {})
@@ -44,7 +45,7 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
         const selectedCategory = value ? policyCategories?.[value] : undefined;
         const draftForm = {
             ...form,
-            [CONST.REQUIRE_FIELDS_RULE.FIELDS.CATEGORY]: value,
+            [INPUT_IDS.CATEGORY]: value,
         };
 
         updateDraftRequireFieldsRule(selectedCategory ? getEffectiveRequireFieldsRuleForm(selectedCategory, draftForm) : draftForm);

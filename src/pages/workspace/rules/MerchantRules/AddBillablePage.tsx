@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
 
 type AddBillablePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_BILLABLE>;
 
@@ -27,7 +28,7 @@ function AddBillablePage({route}: AddBillablePageProps) {
 
     return (
         <RuleBooleanBase
-            fieldID={CONST.MERCHANT_RULES.FIELDS.BILLABLE}
+            fieldID={MERCHANT_RULE_INPUT_IDS.BILLABLE}
             formID={ONYXKEYS.FORMS.MERCHANT_RULE_FORM}
             titleKey="common.billable"
             onSelect={onSelect}
