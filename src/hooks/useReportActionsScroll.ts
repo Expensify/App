@@ -9,8 +9,8 @@ import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlight
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {isReportPreviewAction, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
-import {getReportLastVisibleActionCreated, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {isReportPreviewAction} from '@libs/ReportActionsUtils';
+import {getReportLastVisibleActionCreated, shouldReportAlignToTop} from '@libs/ReportUtils';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import useReportActionsNewActionLiveTail from '@pages/inbox/report/useReportActionsNewActionLiveTail';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
@@ -152,9 +152,7 @@ function useReportActionsScroll({
     const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = Object.fromEntries(sortedVisibleReportActions.map((action) => [action.reportActionID, action]));
     const prevSortedVisibleReportActionsObjects = usePrevious(sortedVisibleReportActionsObjects);
 
-    const isTransactionThreadReport = isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction);
-    const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
-    const shouldBeAlignedToTop = isTransactionThreadReport || isMoneyRequestOrInvoiceReport;
+    const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
 
     // When the report is aligned to the top, only the linked action should drive the initial scroll position and the unread marker must be ignored.
     // Otherwise, prefer the linked action and fall back to the unread marker.

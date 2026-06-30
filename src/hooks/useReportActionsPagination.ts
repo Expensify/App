@@ -2,8 +2,8 @@ import {useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getCombinedReportActions, getFilteredReportActionsForReportView, isCreatedAction, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
-import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport, isReportTransactionThread as isReportTransactionThreadUtil} from '@libs/ReportUtils';
+import {getCombinedReportActions, getFilteredReportActionsForReportView, isCreatedAction} from '@libs/ReportActionsUtils';
+import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport, isReportTransactionThread as isReportTransactionThreadUtil, shouldReportAlignToTop} from '@libs/ReportUtils';
 import getReportActionsToDisplay from '@pages/inbox/report/getReportActionsToDisplay';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
@@ -39,10 +39,7 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
 
-    // Reports that align to the top (transaction threads, money request / invoice reports)
-    // should not anchor the pagination window to the oldest unread action.
-    const isTransactionThreadReport = isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction);
-    const shouldBeAlignedToTop = isTransactionThreadReport || isMoneyRequestReport(report) || isInvoiceReport(report);
+    const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
 
     const {
         reportActions: unfilteredReportActions,
