@@ -56,6 +56,7 @@ import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {findSelfDMReportID, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {cancelTracking, getPendingSubmitFollowUpAction, isTracking} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {
     getRequestType,
@@ -535,6 +536,18 @@ function IOURequestStepConfirmation({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isTransactionReady, destinationReportID]);
 
+    // Cancel the telemetry span when confirmation unmounts without a completed submission.
+    // If getPendingSubmitFollowUpAction() is set, the orchestrator (or sendMoney flow) has
+    // already taken ownership of the span lifecycle - do not interfere.
+    useEffect(() => {
+        return () => {
+            if (!isTracking() || getPendingSubmitFollowUpAction()) {
+                return;
+            }
+            cancelTracking();
+        };
+    }, []);
+
     const handleSendMoney = useCallback(
         (paymentMethod: PaymentMethodType | undefined) => {
             if (isConfirmed) {
@@ -582,6 +595,11 @@ function IOURequestStepConfirmation({
     );
 
     const navigateBack = useCallback(() => {
+        // User is explicitly abandoning the flow - cancel any active telemetry span.
+        // The orchestrator never calls navigateBack (it uses dismissModal), so this
+        // reliably distinguishes user-initiated back from programmatic dismiss.
+        cancelTracking();
+
         if (backTo) {
             Navigation.goBack(backTo);
             return;
@@ -906,6 +924,9 @@ function IOURequestStepConfirmation({
                             onFinish={closeParticipantPicker}
                             isVisible={isParticipantPickerVisible}
                             onClose={closeParticipantPicker}
+                            // Clicking the backdrop (outside the panel) should dismiss the whole expense creation RHP,
+                            // matching standard RHP behavior, not just close the stacked participant picker.
+                            onBackdropPress={() => Navigation.dismissModal()}
                         />
                     )}
                 </View>
