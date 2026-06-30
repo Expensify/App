@@ -52,7 +52,7 @@ function ForYouSection() {
     // as "loaded" with an `undefined` value straight away). Only treat the onboarding status as known once the actual
     // value is present, so we don't flash the skeleton at onboarding users during the load window.
     const isOnboardingStatusKnown = onboarding !== undefined;
-    const [hasSeenForYouTodo = false] = useOnyx(ONYXKEYS.HAS_SEEN_FOR_YOU_TODO);
+    const [hasSeenForYouTodo = false] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO);
     const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
 
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptSearch', 'MoneyBag', 'Send', 'ThumbsUp', 'Export']);
