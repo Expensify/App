@@ -106,7 +106,7 @@ function init() {
 
                 if (OnyxKeys.isCollectionKey(dependencyOnyxKey)) {
                     // Tracks the previous snapshot for this dependency so we can reconstruct the changed-member
-                    // delta (the removed Onyx `sourceValue`) by diffing against it on each subsequent fire.
+                    // delta by diffing against it on each subsequent fire.
                     let previousCollectionValue: OnyxCollection<unknown>;
                     Onyx.connectWithoutView({
                         key: dependencyOnyxKey,
@@ -115,8 +115,7 @@ function init() {
                             Log.info(`[OnyxDerived] dependency ${collectionKey} for derived key ${key} changed, recomputing`);
                             // Diff the new snapshot against the previous one. Structural sharing keeps unchanged
                             // members reference-equal, so this is a cheap scan. On the connection's initial fire we
-                            // pass `undefined` to force a full recompute, matching the previous `sourceValue ===
-                            // undefined` behavior on the first delivery.
+                            // pass `undefined` to force a full recompute.
                             const sourceValue = connectionInitializedFlags.at(dependencyIndex) ? getCollectionDelta<unknown>(value, previousCollectionValue) : undefined;
                             previousCollectionValue = value;
                             setDependencyValue(dependencyIndex, value as Parameters<typeof compute>[0][typeof dependencyIndex]);

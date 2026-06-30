@@ -53,9 +53,6 @@ describe('OptionListContextProvider', () => {
         mockUsePersonalDetails.mockReturnValue({});
         mockUsePrivateIsArchivedMap.mockReturnValue({});
 
-        // The Onyx `sourceValue` metadata was removed; the provider now derives the changed-member
-        // delta by diffing successive values. Tests therefore drive updates by mutating `onyxState`
-        // (the value) between renders rather than injecting a source value.
         mockUseOnyx.mockImplementation(((key: string) => [onyxState[key], {status: 'loaded'}]) as typeof useOnyx);
     });
 
