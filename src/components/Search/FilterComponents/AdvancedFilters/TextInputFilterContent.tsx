@@ -52,6 +52,7 @@ function TextInputFilterContent({filterKey, value: initialValue, autoFocus, larg
             filterKey={filterKey}
             policyIDQuery={undefined}
             autoFocus={autoFocus}
+            textInputContainerStyle={shouldShowMerchantMatchType ? [styles.ph4, styles.mv2] : undefined}
             onChange={(v) => setValue(typeof v === 'string' ? v : undefined)}
         />
     );
@@ -68,7 +69,7 @@ function TextInputFilterContent({filterKey, value: initialValue, autoFocus, larg
                                   keyForList={item.keyForList}
                                   onSelectRow={() => setMerchantOperator(item.keyForList)}
                               />
-                              {item.isSelected && <View style={styles.mv2}>{filterInput}</View>}
+                              {item.isSelected && filterInput}
                           </Fragment>
                       ))
                     : filterInput}

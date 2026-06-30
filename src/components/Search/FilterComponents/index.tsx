@@ -1,4 +1,5 @@
 import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterCommonProps} from '@components/Search/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -31,6 +32,7 @@ type FilterComponentsProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[F
     type?: SearchDataTypes;
     policyIDs: string[] | undefined;
     policyIDQuery: string[] | undefined;
+    textInputContainerStyle?: StyleProp<ViewStyle>;
 };
 
 type TextInputFilterComponentsProps = {
@@ -43,6 +45,7 @@ type TextInputFilterComponentsProps = {
         | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID;
     value: string | undefined;
     autoFocus?: boolean;
+    containerStyles?: StyleProp<ViewStyle>;
     onChange: (value: string) => void;
 };
 
@@ -63,7 +66,7 @@ type MultiSelectFilterComponentsProps = SearchFilterCommonProps<SearchAdvancedFi
     type: SearchDataTypes | undefined;
 };
 
-function TextInputFilterComponents({filterKey, value, autoFocus, onChange}: TextInputFilterComponentsProps) {
+function TextInputFilterComponents({filterKey, value, autoFocus, containerStyles, onChange}: TextInputFilterComponentsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -78,7 +81,7 @@ function TextInputFilterComponents({filterKey, value, autoFocus, onChange}: Text
             onChangeText={onChange}
             accessibilityLabel={label}
             role={CONST.ROLE.PRESENTATION}
-            containerStyles={[styles.ph5]}
+            containerStyles={containerStyles ?? [styles.ph5]}
         />
     );
 }
@@ -123,7 +126,20 @@ function MultiSelectFilterComponents({filterKey, value = [], type = CONST.SEARCH
     );
 }
 
-function FilterComponents({filterKey, value, type, policyIDs, policyIDQuery, selectionListTextInputStyle, selectionListStyle, autoFocus, ready, footer, onChange}: FilterComponentsProps) {
+function FilterComponents({
+    filterKey,
+    value,
+    type,
+    policyIDs,
+    policyIDQuery,
+    selectionListTextInputStyle,
+    selectionListStyle,
+    textInputContainerStyle,
+    autoFocus,
+    ready,
+    footer,
+    onChange,
+}: FilterComponentsProps) {
     switch (filterKey) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID:
@@ -178,6 +194,7 @@ function FilterComponents({filterKey, value, type, policyIDs, policyIDQuery, sel
                     filterKey={filterKey}
                     value={typeof value === 'string' ? value : undefined}
                     autoFocus={autoFocus}
+                    containerStyles={textInputContainerStyle}
                     onChange={onChange}
                 />
             );
