@@ -14,7 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {copyPolicySettings} from '@libs/actions/Policy/CopyPolicySettings';
-import {FEATURE_ROWS, isSourceProvisionedForTravel} from '@libs/CopyPolicySettingsUtils';
+import {FEATURE_ROWS, isSourceProvisionedForTravel, shouldShowCopyPolicySettingsUpgradeStep} from '@libs/CopyPolicySettingsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -45,6 +45,8 @@ function CopyPolicySettingsConfirmPage() {
 
     const targetPolicies = targetPolicyIDs.map((id) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]).filter((policy): policy is Policy => policy !== undefined);
 
+    const areAllTargetPoliciesResolved = targetPolicyIDs.every((id) => !!policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]);
+
     // Copying travel from a provisioned source re-provisions each target with its own Spotnana
     // entity, which requires accepting Expensify Travel terms. Capture that consent here.
     const requiresTravelTermsConsent = parts.includes('travel') && isSourceProvisionedForTravel(sourcePolicy);
@@ -74,7 +76,14 @@ function CopyPolicySettingsConfirmPage() {
         .join(', ');
 
     const handleCopyPolicySettings = () => {
-        if (!sourcePolicy) {
+        if (!sourcePolicy || !sourcePolicyID || !isDataLoaded || !areAllTargetPoliciesResolved) {
+            return;
+        }
+        // Editing the workspace selection from this screen can introduce a Collect (Team) target that
+        // requires an upgrade for the already-selected Control-only settings, bypassing the Upgrade step.
+        // Re-gate at submit time and route to the Upgrade step instead of copying when one is still required.
+        if (areAllTargetPoliciesResolved && shouldShowCopyPolicySettingsUpgradeStep(targetPolicies, parts)) {
+            Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_UPGRADE.getRoute(sourcePolicyID));
             return;
         }
         copyPolicySettings(sourcePolicy, targetPolicies, parts, allPolicyCategories, allPolicyTags);
