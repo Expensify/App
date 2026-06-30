@@ -15,12 +15,14 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 
 type SummaryItem = {
+    id?: string;
     description: string;
     title: string;
     shouldShowRightIcon: boolean;
     onPress: () => void;
     brickRoadIndicator?: BrickRoad;
     errorText?: string;
+    testID?: string;
 };
 
 type ConfirmationStepProps = SubStepProps &
@@ -70,18 +72,23 @@ function ConfirmationStep({
             contentContainerStyle={[styles.flexGrow1, shouldApplySafeAreaPaddingBottom && {paddingBottom: safeAreaInsetPaddingBottom + styles.pb5.paddingBottom}]}
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{pageTitle}</Text>
-            {summaryItems.map(({description, title, shouldShowRightIcon, onPress, brickRoadIndicator, errorText}) => (
-                <MenuItemWithTopDescription
-                    key={`${title}_${description}`}
-                    description={description}
-                    title={title}
-                    shouldShowRightIcon={shouldShowRightIcon}
-                    onPress={onPress}
-                    brickRoadIndicator={brickRoadIndicator}
-                    errorText={errorText}
-                    forwardedFSClass={forwardedFSClass}
-                />
-            ))}
+            {summaryItems.map(({id, description, title, shouldShowRightIcon, onPress, brickRoadIndicator, errorText, testID}, index) => {
+                // `description`+index is stable across edits (don't embed `title` — it's the edited value). Index disambiguates same-description rows; pass explicit `id` if conditional-hide above would shift indices.
+                const stableId = id ?? `${description}-${index}`;
+                return (
+                    <MenuItemWithTopDescription
+                        key={stableId}
+                        pressableTestID={testID ?? stableId}
+                        description={description}
+                        title={title}
+                        shouldShowRightIcon={shouldShowRightIcon}
+                        onPress={onPress}
+                        brickRoadIndicator={brickRoadIndicator}
+                        errorText={errorText}
+                        forwardedFSClass={forwardedFSClass}
+                    />
+                );
+            })}
 
             {showOnfidoLinks && (
                 <View style={[styles.renderHTML, styles.ph5, styles.mt3]}>

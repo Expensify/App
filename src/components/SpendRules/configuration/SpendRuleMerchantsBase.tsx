@@ -17,15 +17,19 @@ import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 
+type SpendRuleMerchant = {
+    name: string;
+    matchType: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS> | undefined;
+};
+
 type SpendRuleMerchantsBaseProps = {
     policyID: string;
     action: string;
-    merchantNames: string[];
-    merchantMatchTypes: Array<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>;
+    merchants: SpendRuleMerchant[];
     getEditMerchantRoute: (merchantIndex: string) => Route;
 };
 
-function SpendRuleMerchantsBase({policyID, action, merchantMatchTypes, merchantNames, getEditMerchantRoute}: SpendRuleMerchantsBaseProps) {
+function SpendRuleMerchantsBase({policyID, action, merchants, getEditMerchantRoute}: SpendRuleMerchantsBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
@@ -76,23 +80,27 @@ function SpendRuleMerchantsBase({policyID, action, merchantMatchTypes, merchantN
                         titleStyle={styles.textStrong}
                         onPress={addMerchant}
                     />
-                    {merchantNames.length > 0 ? (
-                        merchantNames.map((merchantName, index) => (
-                            <MenuItemWithTopDescription
-                                // eslint-disable-next-line react/no-array-index-key
-                                key={`${merchantName}-${merchantMatchTypes.at(index) ?? ''}-${index}`}
-                                description={
-                                    merchantMatchTypes.at(index) === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO
-                                        ? translate('workspace.rules.spendRules.merchantExactlyMatches')
-                                        : translate('workspace.rules.spendRules.merchantContains')
-                                }
-                                onPress={() => navigateToMerchantEdit(String(index))}
-                                shouldShowRightIcon
-                                title={merchantName}
-                                titleStyle={styles.flex1}
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
-                            />
-                        ))
+                    {merchants.length > 0 ? (
+                        merchants.map(({name, matchType}, index) => {
+                            // `name`/`matchType` are edited on the detail screen — keying by content would remount the row on save and lose the captured focus-return target. No per-merchant backend ID.
+                            const rowId = `merchant-${index}`;
+                            return (
+                                <MenuItemWithTopDescription
+                                    key={rowId}
+                                    pressableTestID={rowId}
+                                    description={
+                                        matchType === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO
+                                            ? translate('workspace.rules.spendRules.merchantExactlyMatches')
+                                            : translate('workspace.rules.spendRules.merchantContains')
+                                    }
+                                    onPress={() => navigateToMerchantEdit(String(index))}
+                                    shouldShowRightIcon
+                                    title={name}
+                                    titleStyle={styles.flex1}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                                />
+                            );
+                        })
                     ) : (
                         <BlockingView
                             icon={illustrations.FoodTruck}
