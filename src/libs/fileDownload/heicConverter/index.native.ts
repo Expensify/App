@@ -1,5 +1,6 @@
 import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
 import {verifyFileFormat} from '@libs/fileDownload/FileUtils';
+import getBoundedImageResize from '@libs/getBoundedImageResize';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -26,9 +27,15 @@ const convertImageWithManipulator = (
         onFinish?: () => void;
     } = {},
 ) => {
-    const imageManipulatorContext = ImageManipulator.manipulate(sourceUri);
-    imageManipulatorContext
-        .renderAsync()
+    // Bound the decode dimensions before rendering so a full-resolution HEIC bitmap can't OOM iOS.
+    getBoundedImageResize(sourceUri)
+        .then((resize) => {
+            const imageManipulatorContext = ImageManipulator.manipulate(sourceUri);
+            if (resize) {
+                imageManipulatorContext.resize(resize);
+            }
+            return imageManipulatorContext.renderAsync();
+        })
         .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.JPEG}))
         .then((manipulationResult) => {
             const convertedFile = {

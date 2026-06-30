@@ -2,6 +2,7 @@ import {ImageManipulator} from 'expo-image-manipulator';
 import {Platform} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import ImageSize from 'react-native-image-size';
+import getBoundedImageResize from '@libs/getBoundedImageResize';
 import Log from '@libs/Log';
 import getSaveFormat from './getSaveFormat';
 import type {CropOrRotateImage} from './types';
@@ -15,15 +16,25 @@ const cropOrRotateImage: CropOrRotateImage = (uri, actions, options) =>
     new Promise((resolve, reject) => {
         const format = getSaveFormat(options.type);
         const context = ImageManipulator.manipulate(uri);
+        let hasCrop = false;
         for (const action of actions) {
             if ('crop' in action) {
                 context.crop(action.crop);
+                hasCrop = true;
             } else if ('rotate' in action) {
                 context.rotate(action.rotate);
             }
         }
-        context
-            .renderAsync()
+        // Bound large images to keep the full-resolution native decode from OOMing iOS. We skip this when
+        // cropping, since crop coordinates are in source-pixel space and the cropped output is already bounded.
+        const prepareResize = hasCrop ? Promise.resolve(undefined) : getBoundedImageResize(uri);
+        prepareResize
+            .then((resize) => {
+                if (resize) {
+                    context.resize(resize);
+                }
+                return context.renderAsync();
+            })
             .then((imageRef) => imageRef.saveAsync({compress: options.compress, format}))
             // We need to remove the base64 value from the result, as it is causing crashes on Release builds.
             // More info: https://github.com/Expensify/App/issues/37963#issuecomment-1989260033
