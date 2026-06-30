@@ -4,7 +4,10 @@ import {useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useNavigateToTransactionThread from '@hooks/useNavigateToTransactionThread';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import Navigation from '@libs/Navigation/Navigation';
+import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {getVisibleTransactionViolations} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,7 +19,11 @@ type ReviewFlaggedExpenses = {
     /** Number of flagged expenses awaiting review, used to decide whether to render the review row */
     count: number;
 
-    /** Opens the first flagged expense's transaction thread with the full set of flagged expenses as the review carousel */
+    /**
+     * Opens the flagged expenses for review. With multiple flagged expenses it opens the first one's transaction
+     * thread with the full set as the review carousel; with a single flagged expense it opens that expense report
+     * directly (see the handler for why).
+     */
     reviewExpenses: () => void;
 };
 
@@ -143,6 +150,7 @@ function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
     const [firstFlaggedReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(firstReportID)}`);
 
     const navigateToTransactionThread = useNavigateToTransactionThread();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     // While blurred the row isn't pressable and the scan result is undefined, so expose a stable no-op
     // instead of a fresh closure. The Onyx collection subscriptions keep firing on background writes while blurred;
@@ -156,6 +164,18 @@ function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
               }
               const firstFlaggedReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${firstFlaggedExpense.reportID}`];
               const firstFlaggedTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstFlaggedExpense.transactionID}`];
+
+              // With a single flagged expense the review carousel has nothing to navigate between, and for a
+              // one-transaction report the transaction thread is a redundant duplicate of the report itself
+              if (flaggedExpenses.length === 1 && isMoneyRequestReport(firstFlaggedReport)) {
+                  Navigation.navigate(
+                      shouldUseNarrowLayout
+                          ? ROUTES.REPORT_WITH_ID.getRoute(firstFlaggedExpense.reportID, undefined, undefined, ROUTES.HOME)
+                          : ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: firstFlaggedExpense.reportID, backTo: ROUTES.HOME}),
+                  );
+                  return;
+              }
+
               navigateToTransactionThread({
                   transactionID: firstFlaggedExpense.transactionID,
                   reportActions: Object.values(firstFlaggedReportActions ?? {}),
