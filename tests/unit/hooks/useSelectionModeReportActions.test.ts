@@ -122,7 +122,7 @@ jest.mock('@hooks/usePaymentOptions', () => ({
 const mockLifecycleHandleSubmitReport = jest.fn();
 const mockLifecycleConfirmApproval = jest.fn();
 
-function getMockLifecycleActionsReturn(overrides?: {shouldBlockSubmit?: boolean; isBlockSubmitDueToPreventSelfApproval?: boolean}) {
+function mockLifecycleActionsReturn(overrides?: {shouldBlockSubmit?: boolean; isBlockSubmitDueToPreventSelfApproval?: boolean}) {
     return {
         actions: {},
         confirmApproval: mockLifecycleConfirmApproval,
@@ -134,7 +134,7 @@ function getMockLifecycleActionsReturn(overrides?: {shouldBlockSubmit?: boolean;
 
 jest.mock('@hooks/useLifecycleActions', () => ({
     __esModule: true,
-    default: jest.fn(() => getMockLifecycleActionsReturn()),
+    default: jest.fn(() => mockLifecycleActionsReturn()),
 }));
 
 const mockConfirmPayment = jest.fn();
@@ -658,7 +658,7 @@ describe('useSelectionModeReportActions', () => {
     describe('handleSubmitReport guards', () => {
         it('hides Submit action when shouldBlockSubmit is true (from useLifecycleActions)', () => {
             mockPrimaryAction = CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
-            jest.mocked(useLifecycleActions).mockReturnValue(getMockLifecycleActionsReturn({shouldBlockSubmit: true, isBlockSubmitDueToPreventSelfApproval: true}));
+            jest.mocked(useLifecycleActions).mockReturnValue(mockLifecycleActionsReturn({shouldBlockSubmit: true, isBlockSubmitDueToPreventSelfApproval: true}));
 
             const {result} = renderSelectionModeHook();
 
@@ -666,7 +666,7 @@ describe('useSelectionModeReportActions', () => {
             const submitAction = result.current.selectionModeReportLevelActions.find((a) => a.value === CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
             expect(submitAction).toBeUndefined();
 
-            jest.mocked(useLifecycleActions).mockReturnValue(getMockLifecycleActionsReturn());
+            jest.mocked(useLifecycleActions).mockReturnValue(mockLifecycleActionsReturn());
         });
     });
 
