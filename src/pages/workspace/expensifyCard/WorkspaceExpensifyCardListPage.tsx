@@ -36,7 +36,7 @@ import {getCardsByCardholderName, getCardSettings, isCurrencySupportedForECards}
 import {getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -119,7 +119,12 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         () =>
             allCards.map((card) => {
                 const frozenByDisplayName = card.nameValuePairs?.frozen?.byAccountID
-                    ? getDisplayNameOrDefault(personalDetails?.[card.nameValuePairs.frozen.byAccountID], '', false) || undefined
+                    ? temporaryGetDisplayNameOrDefault({
+                          passedPersonalDetails: personalDetails?.[card.nameValuePairs.frozen.byAccountID],
+                          defaultValue: '',
+                          shouldFallbackToHidden: false,
+                          translate,
+                      }) || undefined
                     : undefined;
 
                 return {

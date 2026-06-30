@@ -52,7 +52,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady} from '@libs/OptionsListUtils';
-import {getDisplayNameOrDefault, getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
+import {getPersonalDetailsByID, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     canEditWorkspaceSettings,
     canMemberWrite,
@@ -354,7 +354,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
             const login = details.login ?? '';
             const memberEmail = formatPhoneNumber(login);
-            const memberName = formatPhoneNumber(getDisplayNameOrDefault(details));
+            const memberName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate}));
 
             return {
                 keyForList: login,

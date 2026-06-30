@@ -38,7 +38,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
 import {isSearchStringMatchUserDetails} from '@libs/OptionsListUtils';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     getReportPersonalDetailsParticipants,
@@ -239,7 +239,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
             isSelected: selectedMembers.includes(accountID) && canSelectMultiple,
             isDisabledCheckbox: accountID === currentUserAccountID,
             isDisabled,
-            text: formatPhoneNumber(getDisplayNameOrDefault(details)),
+            text: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
             alternateText: formatPhoneNumber(details?.login ?? ''),
             rightElement: isAdmin ? <Badge text={translate('common.admin')} /> : null,
             pendingAction,
