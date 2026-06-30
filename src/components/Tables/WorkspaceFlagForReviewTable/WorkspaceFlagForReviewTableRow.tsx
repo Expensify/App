@@ -10,7 +10,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {FlagForReviewTableItem} from '@libs/FlagForReviewRulesUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -32,12 +31,6 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
     const {processedData} = useTableContext<FlagForReviewTableItem>();
 
     const tableRowItem = processedData.at(rowIndex) ?? item;
-    const isDeleting = tableRowItem.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'WorkspaceFlagForReviewTableItem',
-        isDeleting,
-    };
 
     const accessibilityLabel = `${tableRowItem.typeLabel}. ${tableRowItem.conditionText}. ${tableRowItem.ruleDescription}`;
 
@@ -47,7 +40,6 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
             rowIndex={rowIndex}
             disabled={tableRowItem.disabled}
             accessibilityLabel={accessibilityLabel}
-            skeletonReasonAttributes={reasonAttributes}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_ITEM}
             offlineWithFeedback={{pendingAction: tableRowItem.pendingAction, shouldHideOnDelete: false}}
             onPress={tableRowItem.action}

@@ -10,7 +10,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {RequireFieldsTableItem} from '@libs/RequireFieldsRulesUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
@@ -28,12 +27,6 @@ function WorkspaceRequireFieldsTableRow({item, rowIndex, shouldUseNarrowTableLay
     const {processedData} = useTableContext<RequireFieldsTableItem>();
 
     const tableRowItem = processedData.at(rowIndex) ?? item;
-    const isDeleting = tableRowItem.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'WorkspaceRequireFieldsTableItem',
-        isDeleting,
-    };
 
     const accessibilityLabel = `${tableRowItem.typeLabel}. ${tableRowItem.conditionText}. ${tableRowItem.ruleDescription}`;
     const badgeColors = theme.reportStatusBadge.approved;
@@ -44,7 +37,6 @@ function WorkspaceRequireFieldsTableRow({item, rowIndex, shouldUseNarrowTableLay
             rowIndex={rowIndex}
             disabled={tableRowItem.disabled}
             accessibilityLabel={accessibilityLabel}
-            skeletonReasonAttributes={reasonAttributes}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_ITEM}
             offlineWithFeedback={{pendingAction: tableRowItem.pendingAction, shouldHideOnDelete: false}}
             onPress={tableRowItem.action}
