@@ -47,7 +47,7 @@ describe('getBoundedImageResize', () => {
             platformReplaceProperty.restore();
         });
 
-        it('returns undefined when the image already fits within the budget (never upscales)', async () => {
+        it('returns undefined when the image already fits within the budget (so it does not upscale)', async () => {
             mockedGetSize.mockResolvedValue({width: 1200, height: 800});
 
             const result = await getBoundedImageResize('file://small.heic');
