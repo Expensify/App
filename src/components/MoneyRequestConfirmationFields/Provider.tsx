@@ -63,6 +63,9 @@ type ProviderProps = {
     /** Scrolls the surface so an inline field's input is not hidden behind the keyboard when focused (new manual expense flow) */
     scrollFocusedInputIntoView?: (input: MeasurableInput) => void;
 
+    /** Submits the whole expense (used by inline inputs to keep Enter-to-confirm on hardware-keyboard setups) */
+    onSubmitForm?: () => void;
+
     /** Block components rendered inside the Provider */
     children: ReactNode;
 };
@@ -87,6 +90,7 @@ function Provider({
     isOdometerDistanceRequest = false,
     isGPSDistanceRequest = false,
     scrollFocusedInputIntoView,
+    onSubmitForm,
     children,
 }: ProviderProps) {
     const value = {
@@ -109,6 +113,7 @@ function Provider({
         isOdometerDistanceRequest,
         isGPSDistanceRequest,
         scrollFocusedInputIntoView,
+        onSubmitForm,
     };
     return <ConfirmationFieldsContext.Provider value={value}>{children}</ConfirmationFieldsContext.Provider>;
 }
