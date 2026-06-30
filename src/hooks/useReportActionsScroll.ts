@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import {useContext, useEffect, useEffectEvent, useState} from 'react';
+import {useEffect, useEffectEvent, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/FlatList/hooks/useFlatListScrollKey';
@@ -14,7 +14,7 @@ import {getReportLastVisibleActionCreated, isInvoiceReport, isMoneyRequestReport
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import useReportActionsNewActionLiveTail from '@pages/inbox/report/useReportActionsNewActionLiveTail';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
-import {ActionListContext} from '@pages/inbox/ReportScreenContext';
+import {useActionListContext} from '@pages/inbox/ReportScreenContext';
 import {openReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -74,9 +74,6 @@ type UseReportActionsScrollParams = {
 };
 
 type UseReportActionsScrollResult = {
-    /** Ref to attach to the inverted FlashList */
-    listRef: ReturnType<typeof useReportScrollManager>['ref'];
-
     /** Scroll handler that tracks vertical offset and floating counter visibility */
     trackVerticalScrolling: (event: NativeSyntheticEvent<NativeScrollEvent> | undefined) => void;
 
@@ -132,7 +129,7 @@ function useReportActionsScroll({
     setTreatAsNoPaginationAnchor,
 }: UseReportActionsScrollParams): UseReportActionsScrollResult {
     const reportScrollManager = useReportScrollManager();
-    const {scrollOffsetRef} = useContext(ActionListContext);
+    const {scrollOffsetRef} = useActionListContext();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
     const backTo = route?.params?.backTo;
@@ -355,7 +352,6 @@ function useReportActionsScroll({
     }, [shouldFocusToTopOnMount, shouldAutoscrollToBottom, prevHasOnceLoadedReportActions, reportLoadingState?.hasOnceLoadedReportActions]);
 
     return {
-        listRef: reportScrollManager.ref,
         trackVerticalScrolling,
         onViewableItemsChanged,
         isFloatingMessageCounterVisible,

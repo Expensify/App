@@ -1,5 +1,5 @@
 import type {RefObject, SyntheticEvent} from 'react';
-import {createContext} from 'react';
+import {createContext, useContext} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {FlatList, GestureResponderEvent, Text, View} from 'react-native';
 
@@ -18,17 +18,31 @@ type FlatListRefType = RefObject<FlatList<unknown> | null> | null;
 type ScrollPosition = {offset?: number};
 
 type ActionListContextType = {
-    flatListRef: FlatListRefType;
     scrollPositionRef: RefObject<ScrollPosition>;
     scrollOffsetRef: RefObject<number>;
+
+    /** Each list publishes its locally-owned ref on mount; pass `null` to clear on unmount. */
+    registerListRef: (ref: FlatListRefType) => void;
+
+    /** Reads the currently registered list ref. Call from handlers only, never during render. */
+    getListRef: () => FlatListRefType;
 };
 
-const ActionListContext = createContext<ActionListContextType>({flatListRef: null, scrollPositionRef: {current: {}}, scrollOffsetRef: {current: 0}});
+const ActionListContext = createContext<ActionListContextType>({
+    scrollPositionRef: {current: {}},
+    scrollOffsetRef: {current: 0},
+    registerListRef: () => {},
+    getListRef: () => null,
+});
 const ReactionListContext = createContext<ReactionListContextType>({
     showReactionList: () => {},
     hideReactionList: () => {},
     isActiveReportAction: () => false,
 });
 
-export {ActionListContext, ReactionListContext};
+function useActionListContext() {
+    return useContext(ActionListContext);
+}
+
+export {ActionListContext, ReactionListContext, useActionListContext};
 export type {ReactionListContextType, ActionListContextType, FlatListRefType, ReactionListAnchor, ReactionListEvent, ScrollPosition};

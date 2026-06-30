@@ -432,8 +432,8 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
                                     ReportActionComposeFocusManager.editComposerRef.current = composerRef.current;
                                 }
 
-                                if (isMobileChrome() && reportScrollManager.ref?.current) {
-                                    reportScrollManager.ref.current.scrollToIndex({index, animated: false});
+                                if (isMobileChrome()) {
+                                    reportScrollManager.scrollToIndexInstance({index, animated: false});
                                 }
 
                                 // Clear active report action when another action gets focused

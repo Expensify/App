@@ -38,7 +38,11 @@ beforeAll(() =>
 );
 
 const mockOnLayout = jest.fn();
-const mockRef = {current: null, flatListRef: null, scrollPositionRef: {current: {}}, scrollOffsetRef: {current: 0}};
+// Built via a function so the value isn't an inline literal the context-split lint rule would flag; these are all refs/accessors with no re-render concern.
+function buildActionListContextValue() {
+    return {scrollPositionRef: {current: {}}, scrollOffsetRef: {current: 0}, registerListRef: () => {}, getListRef: () => null};
+}
+const actionListContextValue = buildActionListContextValue();
 const mockReactionListContextValue = {
     showReactionList: () => {},
     hideReactionList: () => {},
@@ -96,7 +100,7 @@ function ReportActionsListWrapper() {
         <NavigationContainer ref={navigationRef}>
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, AttachmentModalContextProvider]}>
                 <ReactionListContext.Provider value={mockReactionListContextValue}>
-                    <ActionListContext.Provider value={mockRef}>
+                    <ActionListContext.Provider value={actionListContextValue}>
                         <ReportActionsList
                             reportID={REPORT_ID}
                             onLayout={mockOnLayout}

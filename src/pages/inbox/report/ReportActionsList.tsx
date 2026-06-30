@@ -1,8 +1,8 @@
 import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {FlatList, LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
@@ -48,7 +48,7 @@ import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
-import {ActionListContext} from '@pages/inbox/ReportScreenContext';
+import {useActionListContext} from '@pages/inbox/ReportScreenContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -162,7 +162,15 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     const linkedReportActionID = reportActionIDFromRoute;
 
-    const {scrollOffsetRef} = useContext(ActionListContext);
+    const {scrollOffsetRef, registerListRef} = useActionListContext();
+
+    // Own the list ref locally and publish it so handlers resolve it via `getListRef()`.
+    const listRef = useRef<FlatList>(null);
+    useEffect(() => {
+        registerListRef(listRef);
+        return () => registerListRef(null);
+    }, [registerListRef]);
+
     const {draftReportAction, hasActiveDraft, isDraftPendingCompletion} = useConciergeDraft();
     const {clearDraft} = useConciergeDraftActions();
 
@@ -244,7 +252,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     }, [reportAttributes?.actionTargetReportActionID, renderedVisibleReportActions]);
 
     const {
-        listRef,
         trackVerticalScrolling,
         onViewableItemsChanged,
         isFloatingMessageCounterVisible,

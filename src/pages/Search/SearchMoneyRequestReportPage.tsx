@@ -10,7 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 import useShowSuperWideRHPVersion from '@components/WideRHPContextProvider/useShowSuperWideRHPVersion';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
-import useActionListContextValue from '@hooks/useActionListContextValue';
+import {ActionListContextProvider} from '@hooks/useActionListContextValue';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDismissOnMoneyRequestReportRemoval from '@hooks/useDismissOnMoneyRequestReportRemoval';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -40,7 +40,6 @@ import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/inbox/ReactionListWrapper';
 import {ReportActionEditMessageContextProvider} from '@pages/inbox/report/ReportActionEditMessageContext';
 import useClearReportActionDraftsOnReportChange from '@pages/inbox/report/useClearReportActionDraftsOnReportChange';
-import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import {clearDeleteTransactionNavigateBackUrl, createTransactionThreadReport, openReport, updateLastVisitTime} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -115,8 +114,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const isReportArchived = useReportIsArchived(report?.reportID);
 
     const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
-
-    const actionListValue = useActionListContextValue();
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -380,7 +377,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             effectiveTransactionThreadReportID={effectiveTransactionThreadReportID}
         >
             <WideRHPOverlayWrapper>
-                <ActionListContext.Provider value={actionListValue}>
+                <ActionListContextProvider>
                     <ReactionListWrapper>
                         <ScreenWrapper
                             testID="SearchMoneyRequestReportPage"
@@ -409,7 +406,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                             </FullPageNotFoundView>
                         </ScreenWrapper>
                     </ReactionListWrapper>
-                </ActionListContext.Provider>
+                </ActionListContextProvider>
             </WideRHPOverlayWrapper>
         </ReportActionEditMessageContextProvider>
     );
