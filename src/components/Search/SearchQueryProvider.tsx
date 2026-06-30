@@ -1,14 +1,13 @@
 import {useNavigation} from '@react-navigation/native';
 import type {NavigationState} from '@react-navigation/routers';
 import React, {useEffect, useState} from 'react';
-import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import usePreviousDefined from '@hooks/usePreviousDefined';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+import useSuggestedSearches from '@hooks/useSuggestedSearches';
 import {setSuggestedSearchOverride} from '@libs/actions/Search';
 import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
-import {getSuggestedSearches} from '@libs/SearchUIUtils';
+import {doesQueryMatchSuggestedSearch, getSuggestedSearchKeyForQuery} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import SCREENS from '@src/SCREENS';
 import {SearchQueryActionsContext, SearchQueryContext} from './SearchContextDefinitions';
@@ -43,17 +42,16 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const definedQueryParam = usePreviousDefined(queryParam) ?? buildSearchQueryString();
     const currentSearchQueryJSON = buildSearchQueryJSON(definedQueryParam, rawQueryParam);
 
-    const {defaultCardFeed} = useCardFeedsForDisplay();
-    const {accountID} = useCurrentUserPersonalDetails();
-    const defaultCardFeedID = defaultCardFeed?.id;
-    const suggestedSearches = getSuggestedSearches(accountID, defaultCardFeedID);
+    const suggestedSearches = useSuggestedSearches();
 
     const currentSearchHash = currentSearchQueryJSON?.hash ?? -1;
     const currentSimilarSearchHash = currentSearchQueryJSON?.similarSearchHash ?? -1;
-    // Prefer the explicit searchKey param: it survives filter edits (which change the similarSearchHash),
-    // keeping the view anchored to its suggested search. Fall back to hash matching for queries entered
-    // without a key (e.g. deep links or the search router).
-    const currentSearchKey = searchKeyParam ?? Object.values(suggestedSearches).find((search) => search.similarSearchHash === currentSimilarSearchHash)?.key;
+    // Identity is derived from the query itself: a query belongs to a suggested search while it still contains
+    // that search's defining filters. This stays correct no matter how the query was edited (chips, the search
+    // bar, advanced filters) and releases the identity once a defining filter changes. The searchKey param is
+    // used only as a tie-breaking hint, and only while it still matches the query.
+    const paramMatchesQuery = !!searchKeyParam && doesQueryMatchSuggestedSearch(currentSearchQueryJSON, suggestedSearches[searchKeyParam]?.searchQueryJSON);
+    const currentSearchKey = paramMatchesQuery ? searchKeyParam : getSuggestedSearchKeyForQuery(currentSearchQueryJSON, suggestedSearches);
 
     // Persist the current query (filters + columns) for the active suggested search so it sticks across
     // navigation. We only store deviations from the canned defaults; matching defaults clears the override.

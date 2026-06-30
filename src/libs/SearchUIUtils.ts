@@ -39,6 +39,7 @@ import type {
 import {GROUP_ITEM_TYPES} from '@components/Search/SearchList/ListItem/types';
 import type {
     GroupedItem,
+    QueryFilter,
     QueryFilters,
     ReportFieldTextKey,
     SearchAmountFilterKeys,
@@ -5492,7 +5493,92 @@ function getSuggestedSearchMandatoryFilterKeys(queryJSON: SearchQueryJSON | unde
         }
         mandatoryKeys.add(key as SearchFilter['key']);
     }
+    // Status is a root key (not part of flatFilters) but renders as a chip, so lock it when the search defines one.
+    const status = queryJSON?.status;
+    if (Array.isArray(status) ? status.length > 0 : !!status) {
+        mandatoryKeys.add(CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS);
+    }
     return mandatoryKeys;
+}
+
+function getNormalizedStatus(status: SearchQueryJSON['status'] | undefined): string {
+    if (Array.isArray(status)) {
+        return [...status].sort().join(',');
+    }
+    return status ?? '';
+}
+
+function getSortedFilterValues(filters: QueryFilter[]): string {
+    return filters
+        .map((filter) => String(filter.value))
+        .sort()
+        .join('|');
+}
+
+// The categorical filters whose value defines a suggested search's identity (e.g. action:submit is what makes
+// "Drafts" different from "Reports", reimbursable:yes is core to Cash accruals). Every other canned filter is a
+// tunable scope (date window, person, card feed) that the user can adjust without leaving the search.
+const IDENTITY_VALUE_FILTER_KEYS = new Set<SearchFilterKey>([
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
+]);
+
+/**
+ * A query "belongs" to a suggested search when it still contains all of that search's defining filters
+ * (same type, group-by, and every canned filter present). Identity-defining categorical filters must match by
+ * value, but scope filters — dates, people (from/to/payer/exporter), card feed — only need to be present, so
+ * adjusting them (e.g. the From on Drafts, or the date on Top Merchants) keeps the search anchored. Extra filters
+ * the user added don't break the match.
+ */
+function doesQueryMatchSuggestedSearch(queryJSON: SearchQueryJSON | undefined, suggestedJSON: SearchQueryJSON | undefined): boolean {
+    if (!queryJSON || !suggestedJSON) {
+        return false;
+    }
+    if ((queryJSON.type ?? '') !== (suggestedJSON.type ?? '')) {
+        return false;
+    }
+    if ((queryJSON.groupBy ?? '') !== (suggestedJSON.groupBy ?? '')) {
+        return false;
+    }
+    // Status is a root key, so it isn't covered by the flatFilters comparison below. Only enforce it when the
+    // suggested search defines a specific status; an "all" default (empty) lets the user filter by status freely.
+    const cannedStatus = getNormalizedStatus(suggestedJSON.status);
+    if (cannedStatus && getNormalizedStatus(queryJSON.status) !== cannedStatus) {
+        return false;
+    }
+    const queryFiltersByKey = new Map(queryJSON.flatFilters.map((filter) => [filter.key, getSortedFilterValues(filter.filters)]));
+    for (const cannedFilter of suggestedJSON.flatFilters) {
+        if (!queryFiltersByKey.has(cannedFilter.key)) {
+            return false;
+        }
+        if (IDENTITY_VALUE_FILTER_KEYS.has(cannedFilter.key) && queryFiltersByKey.get(cannedFilter.key) !== getSortedFilterValues(cannedFilter.filters)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * Returns the key of the most specific suggested search the query belongs to (the one whose defaults it
+ * matches with the most filters). E.g. a `type:expense status:drafts,outstanding reimbursable:yes` query
+ * matches both Expenses and Cash accruals, and resolves to Cash accruals.
+ */
+function getSuggestedSearchKeyForQuery(queryJSON: SearchQueryJSON | undefined, suggestedSearches: Record<SearchKey, SearchTypeMenuItem>): SearchKey | undefined {
+    let bestKey: SearchKey | undefined;
+    let bestScore = -1;
+    for (const search of Object.values(suggestedSearches)) {
+        const suggestedJSON = search.searchQueryJSON;
+        if (!doesQueryMatchSuggestedSearch(queryJSON, suggestedJSON)) {
+            continue;
+        }
+        const score = suggestedJSON?.flatFilters.length ?? 0;
+        if (score > bestScore) {
+            bestScore = score;
+            bestKey = search.key;
+        }
+    }
+    return bestKey;
 }
 
 function getSingleSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, translate: LocalizedTranslate) {
@@ -6430,6 +6516,8 @@ export {
     shouldShowFilter,
     mapFiltersFormToLabelValueList,
     getSuggestedSearchMandatoryFilterKeys,
+    doesQueryMatchSuggestedSearch,
+    getSuggestedSearchKeyForQuery,
     isAmountFilterKey,
     isDateFilterKey,
     getSingleSelectFilterOptions,
