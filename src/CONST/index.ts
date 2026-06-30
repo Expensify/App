@@ -3002,7 +3002,7 @@ const CONST = {
             WEBHOOK: 'webhook',
         },
 
-        /** Maximum number of manual syncs ("Sync now") allowed within the rolling window before the App blocks further manual syncs */
+        /** Maximum number of manual syncs ("Sync now") allowed within the rolling window */
         MANUAL_SYNC_LIMIT: 2,
 
         /** Rolling window (in milliseconds) over which manual syncs are counted against MANUAL_SYNC_LIMIT (24 hours) */
