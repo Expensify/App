@@ -23,9 +23,7 @@ type MoneyRequestReportNavigationProps = {
 };
 
 type MoneyRequestReportNavigationContentProps = MoneyRequestReportNavigationProps & {
-    allReports: Array<string | undefined>;
-    isSearchLoading: boolean;
-    lastSearchQuery: OnyxEntry<LastSearchParams>;
+    contextReports: Array<string | undefined>;
 };
 
 type SnapshotGuard = {
@@ -33,7 +31,10 @@ type SnapshotGuard = {
     includesReport: boolean;
 };
 
-const EMPTY_GUARD: SnapshotGuard = {hasMultiple: false, includesReport: false};
+const EMPTY_GUARD: SnapshotGuard = {
+    hasMultiple: false,
+    includesReport: false,
+};
 
 const selectIsExpenseReportSearch = (lastSearchQuery: OnyxEntry<LastSearchParams>): boolean => lastSearchQuery?.queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
@@ -79,8 +80,20 @@ const buildSnapshotGuardSelector =
         return {hasMultiple: count > 1, includesReport};
     };
 
-function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersion, allReports, isSearchLoading, lastSearchQuery}: MoneyRequestReportNavigationContentProps) {
+function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersion, contextReports}: MoneyRequestReportNavigationContentProps) {
     const styles = useThemeStyles();
+
+    // All Onyx subscriptions for the standalone list live in useSearchSections. This component is kept
+    // mounted by the parent (via shouldKeepMounted) for the whole carousel lifetime, so selecting the
+    // source list here is a value swap rather than a component-subtree swap.
+    const {allReports: standaloneReports, isSearchLoading, lastSearchQuery} = useSearchSections();
+
+    // Fast path: use the pre-computed IDs from the search context when available and no pagination is in
+    // flight. During pagination/loading fall back to the full subscription so new pages are reflected
+    // immediately. Crucially this is now a plain value selection inside a single, stable component, so
+    // toggling isSearchLoading (e.g. the search refresh triggered by submitting a report) no longer
+    // unmounts the component and wipes the lastValidReports cache below.
+    const allReports = contextReports.length > 0 && !isSearchLoading ? contextReports : standaloneReports;
 
     const liveCurrentIndex = allReports.indexOf(reportID);
 
@@ -201,36 +214,20 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
     );
 }
 
-// All Onyx subscriptions via useSearchSections. Mounts if there are no sorted report IDs in the context.
-function MoneyRequestReportNavigationStandalone({reportID, shouldDisplayNarrowVersion}: MoneyRequestReportNavigationProps) {
-    const {allReports, isSearchLoading, lastSearchQuery} = useSearchSections();
-
-    return (
-        <MoneyRequestReportNavigationContent
-            reportID={reportID}
-            shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
-            allReports={allReports}
-            isSearchLoading={isSearchLoading}
-            lastSearchQuery={lastSearchQuery}
-        />
-    );
-}
-
 function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: MoneyRequestReportNavigationProps) {
     // Guard: only mount inner tree when snapshot confirms multiple expense reports
     const [isExpenseReportSearch] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {selector: selectIsExpenseReportSearch});
-    const [hash] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {selector: selectQueryHash});
+    const [hash] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {
+        selector: selectQueryHash,
+    });
     const snapshotGuardSelector = buildSnapshotGuardSelector(reportID);
     const [snapshotGuard = EMPTY_GUARD] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {selector: snapshotGuardSelector});
 
-    // Fast-path hooks (always called to satisfy rules of hooks)
+    // Fast-path source: pre-computed IDs from the search context. The heavier useSearchSections
+    // subscription is deferred to the inner content component, which only mounts once the guard is
+    // satisfied below.
     const {sortedReportIDs} = useSearchResultsContext();
-    const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
-    const searchLoadingSelector = (data: OnyxEntry<SearchResults>) => !!data?.search?.isLoading;
-    const [isSearchLoading = false] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {
-        selector: searchLoadingSelector,
-    });
-    const allReports = useFilterPendingDeleteReports(sortedReportIDs);
+    const contextReports = useFilterPendingDeleteReports(sortedReportIDs);
 
     const isLiveGuardSatisfied = isExpenseReportSearch && snapshotGuard.hasMultiple && snapshotGuard.includesReport;
 
@@ -247,24 +244,15 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
         return null;
     }
 
-    // Fast path: use pre-computed IDs from context when available and no pagination is in flight.
-    // During pagination fall back to full subscription so new pages are reflected immediately.
-    if (allReports.length > 0 && !isSearchLoading) {
-        return (
-            <MoneyRequestReportNavigationContent
-                reportID={reportID}
-                shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
-                allReports={allReports}
-                isSearchLoading={isSearchLoading}
-                lastSearchQuery={lastSearchQuery}
-            />
-        );
-    }
-
+    // A single, stable content instance owns the fast-path vs. standalone source selection and the
+    // lastValidReports cache. Because it is never unmounted while the carousel is visible, the search
+    // refresh that submitting a report triggers can no longer destroy that cache, so the navigation
+    // arrows stay visible after the current report drops out of the live list.
     return (
-        <MoneyRequestReportNavigationStandalone
+        <MoneyRequestReportNavigationContent
             reportID={reportID}
             shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
+            contextReports={contextReports}
         />
     );
 }
