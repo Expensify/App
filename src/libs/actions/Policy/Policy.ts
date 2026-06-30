@@ -1537,7 +1537,7 @@ function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string, currentU
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.VERIFY_3DS_SUBSCRIPTION_SOURCE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -1549,6 +1549,7 @@ function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string, currentU
                 ownerAccountID: currentUserAccountID,
             },
         },
+        ...PaymentMethods.getVerify3dsSubscriptionSourceData(source),
     ];
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [

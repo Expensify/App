@@ -281,16 +281,24 @@ function addSubscriptionPaymentCard(
 }
 
 /**
- * Records which screen initiated a 3DS verification request, so only that screen's mounted
- * useNavigateToCardAuthenticationOnLink hook reacts to the resulting link by navigating. Callers pass their own
- * `route.name`; passing nothing (e.g. the card-authentication screen re-verifying its own iframe in place) leaves
- * the existing source untouched, so a stray re-verify never clobbers the screen that originally opened the flow.
+ * Builds the `successData` entry that records which screen initiated a 3DS verification request, so only that
+ * screen's mounted useNavigateToCardAuthenticationOnLink hook reacts to the resulting link by navigating. Returning
+ * it as `successData` makes the source land in the same Onyx flush as that response's link, so it stays tied to the
+ * exact response that produced the link even when two 3DS requests are in flight. Callers pass their own `route.name`;
+ * passing nothing (e.g. the card-authentication screen re-verifying its own iframe in place) records no source and
+ * leaves the active one untouched.
  */
-function setVerify3dsSubscriptionSource(source?: string) {
+function getVerify3dsSubscriptionSourceData(source?: string): Array<OnyxUpdate<typeof ONYXKEYS.VERIFY_3DS_SUBSCRIPTION_SOURCE>> {
     if (!source) {
-        return;
+        return [];
     }
-    Onyx.merge(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION_SOURCE, source);
+    return [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.VERIFY_3DS_SUBSCRIPTION_SOURCE,
+            value: source,
+        },
+    ];
 }
 
 /**
@@ -299,7 +307,10 @@ function setVerify3dsSubscriptionSource(source?: string) {
  */
 function addPaymentCardSCA(params: AddPaymentCardParams, onyxData: OnyxData<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM> = {}, source?: string) {
     prepareCardAuthentication(source);
-    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD_SCA, params, onyxData);
+    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD_SCA, params, {
+        ...onyxData,
+        successData: [...(onyxData.successData ?? []), ...getVerify3dsSubscriptionSourceData(source)],
+    });
 }
 
 /**
@@ -334,16 +345,16 @@ function clearPaymentCard3dsVerification() {
 }
 
 /**
- * Begin a NEW 3DS attempt: drop any stale link so the backend's next link (even an identical one)
- * registers as a change and reopens the challenge, and record which screen initiated it. No-ops without
- * a source — the in-place finalize/re-verify case, which must leave the active link untouched.
+ * Begin a NEW 3DS attempt: drop any stale link so the backend's next link (even an identical one) registers as a
+ * change and reopens the challenge. No-ops without a source — the in-place finalize/re-verify case, which must leave
+ * the active link untouched. The screen that initiated the attempt is recorded separately via
+ * getVerify3dsSubscriptionSourceData in the request's successData, so the source stays tied to that response's link.
  */
 function prepareCardAuthentication(source?: string) {
     if (!source) {
         return;
     }
     clearPaymentCard3dsVerification();
-    setVerify3dsSubscriptionSource(source);
 }
 
 /**
@@ -359,12 +370,13 @@ function verifySetupIntent(accountID: number, isVerifying = true, source?: strin
             value: true,
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.SUBSCRIPTION_VERIFY_SETUP_INTENT_PENDING>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.SUBSCRIPTION_VERIFY_SETUP_INTENT_PENDING | typeof ONYXKEYS.VERIFY_3DS_SUBSCRIPTION_SOURCE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SUBSCRIPTION_VERIFY_SETUP_INTENT_PENDING,
             value: false,
         },
+        ...getVerify3dsSubscriptionSourceData(source),
     ];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.SUBSCRIPTION_VERIFY_SETUP_INTENT_PENDING>> = [
         {
@@ -676,5 +688,6 @@ export {
     verifySetupIntent,
     addPaymentCardSCA,
     prepareCardAuthentication,
+    getVerify3dsSubscriptionSourceData,
     setInvoicingTransferBankAccount,
 };
