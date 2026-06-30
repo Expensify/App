@@ -13005,6 +13005,28 @@ function getReportStatusTranslation({stateNum, statusNum, isDeleted, translate}:
     return '';
 }
 
+/**
+ * Returns the tooltip text shown on hover of the "Paid" report status label, distinguishing the three paid sub-states.
+ * Returns an empty string for any state/status that isn't one of the paid sub-states.
+ */
+function getReportStatusTooltipTranslation({stateNum, statusNum, isDeleted, translate}: GetReportStatusParams): string {
+    if (isDeleted || statusNum !== CONST.REPORT.STATUS_NUM.REIMBURSED) {
+        return '';
+    }
+
+    if (stateNum === CONST.REPORT.STATE_NUM.APPROVED) {
+        return translate('iou.paidStatusMarkedAsPaid');
+    }
+    if (stateNum === CONST.REPORT.STATE_NUM.BILLING) {
+        return translate('iou.paidStatusWithdrawing');
+    }
+    if (stateNum === CONST.REPORT.STATE_NUM.AUTOREIMBURSED) {
+        return translate('iou.paidStatusConfirmed');
+    }
+
+    return '';
+}
+
 function getReportStatusColorStyle(theme: ThemeColors, stateNum?: number, statusNum?: number, isDeleted?: boolean): {backgroundColor?: ColorValue; textColor?: ColorValue} | undefined {
     if (isDeleted) {
         return theme.reportStatusBadge.deleted;
@@ -13564,6 +13586,7 @@ export {
     isWorkspaceThread,
     isMoneyRequestReportEligibleForMerge,
     getReportStatusTranslation,
+    getReportStatusTooltipTranslation,
     getReportStatusColorStyle,
     getStatusBadgeBackgroundColor,
     getMovedActionMessage,
