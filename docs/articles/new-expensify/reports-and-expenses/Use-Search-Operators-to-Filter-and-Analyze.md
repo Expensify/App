@@ -1,7 +1,7 @@
 ---
 title: Use Search Operators to Filter and Analyze
 description: Learn how to use search operators, filters, and grouping to find, organize, and analyze expenses, chats, reports, and tasks in Expensify.
-keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax]
+keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax, bank account filter]
 internalScope: Audience is all Expensify members. Covers search operator syntax for filtering, grouping, and chart views. Does not cover saved search management or Search page UI navigation.
 ---
 
@@ -63,6 +63,7 @@ You can use the following operators to filter expenses:
 - `reimbursable:` and `billable:` – yes or no
 - `attendee:` – expense attendees (email, phone, display name, or `me`), e.g. `attendee:"Jason Mills"`
 - `posted:` – credit card posted date, e.g. `posted:last-statement`
+- `bank-account:` – settlement bank account an expense was reimbursed from. Start typing after the colon to choose from your bank accounts, each shown as the bank name and last four digits (e.g. `Chase xx1234`). Available only when you have at least one bank account.
 
 **Example queries:**
 - `type:expense merchant:Starbucks category:Meals amount>20 has:receipt`
