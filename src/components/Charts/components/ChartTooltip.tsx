@@ -7,6 +7,11 @@ import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+/** Clamps tooltip left position when placement is to the right of the anchor point. */
+function clampRightPlacementTooltipLeft(anchorX: number, chartWidth: number, tooltipWidth: number): number {
+    return Math.max(0, Math.min(chartWidth - tooltipWidth, anchorX));
+}
+
 type ChartTooltipProps = {
     /** Label text (e.g., "Airfare", "Amazon") */
     label: string;
@@ -70,7 +75,7 @@ function ChartTooltip({label, amount, percentage, chartWidth, initialTooltipPosi
 
         if (placement === 'right') {
             const width = tooltipMeasuredWidth.get();
-            const clampedLeft = Math.max(0, Math.min(chartWidth - width, x));
+            const clampedLeft = clampRightPlacementTooltipLeft(x, chartWidth, width);
 
             return {
                 position: 'absolute',
@@ -157,4 +162,5 @@ function ChartTooltip({label, amount, percentage, chartWidth, initialTooltipPosi
 
 ChartTooltip.displayName = 'ChartTooltip';
 
+export {clampRightPlacementTooltipLeft};
 export default ChartTooltip;

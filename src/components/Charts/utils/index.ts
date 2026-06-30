@@ -440,13 +440,18 @@ function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: nu
     return scaleLinear().domain([paddedMin, paddedMax]).nice().ticks(tickCount);
 }
 
+/** Returns truncated category labels for horizontal bar chart Y-axis rendering. */
+function truncateCategoryLabels(labels: string[], labelWidths: number[], ellipsisWidth: number): string[] {
+    return labels.map((label, index) => truncateLabel(label, labelWidths.at(index) ?? 0, MAX_Y_AXIS_LABEL_WIDTH, ellipsisWidth));
+}
+
 /** Returns the pixel width needed for truncated category labels on the Y axis in horizontal bar charts. */
-function getCategoryLabelWidth(labels: string[], labelWidths: number[], ellipsisWidth: number, fontManager: SkTypefaceFontProvider | null, fontSize: number): number {
-    if (!fontManager || labels.length === 0) {
+function getCategoryLabelWidth(truncatedLabels: string[], fontManager: SkTypefaceFontProvider | null, fontSize: number): number {
+    if (!fontManager || truncatedLabels.length === 0) {
         return 0;
     }
 
-    return Math.max(0, ...labels.map((label, index) => measureTextWidth(truncateLabel(label, labelWidths.at(index) ?? 0, MAX_Y_AXIS_LABEL_WIDTH, ellipsisWidth), fontManager, fontSize)));
+    return Math.max(0, ...truncatedLabels.map((label) => measureTextWidth(label, fontManager, fontSize)));
 }
 
 /** Returns the pixel width needed for Y-axis labels given the chart data. */
@@ -496,6 +501,7 @@ export {
     getNiceYAxisTicks,
     getCategoryLabelWidth,
     getYAxisLabelWidth,
+    truncateCategoryLabels,
 };
 
 export type {ChartLabelHitTestParams};

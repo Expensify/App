@@ -12,7 +12,7 @@ import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartValueXAxisLabels from '@components/Charts/components/ChartValueXAxisLabels';
 import type {HitTestArgs} from '@components/Charts/hooks';
 import {useChartFontManager, useChartInteractions, useChartLabelFormats, useChartLabelMeasurements, useDynamicYDomain} from '@components/Charts/hooks';
-import {getCategoryLabelWidth, getFontLineMetrics, getYAxisLabelWidth} from '@components/Charts/utils';
+import {getCategoryLabelWidth, getFontLineMetrics, getYAxisLabelWidth, truncateCategoryLabels} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
 import ScrollView from '@components/ScrollView';
 import useTheme from '@hooks/useTheme';
@@ -29,7 +29,7 @@ type HorizontalBarChartProps = CartesianChartProps & {
     useSingleColor?: boolean;
 };
 
-function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress}: HorizontalBarChartProps) {
+function HorizontalBarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress}: HorizontalBarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
@@ -84,7 +84,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         return args.cursorX >= barLeft && args.cursorX <= barRight && args.cursorY >= barTop && args.cursorY <= barBottom;
     };
 
-    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition} = useChartInteractions({
+    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, tooltipPlacement} = useChartInteractions({
         handlePress: handleBarPress,
         checkIsOver: checkIsOverHorizontalBar,
         nearestPointAxis: 'y',
@@ -110,6 +110,9 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',
     }));
 
+    const truncatedCategoryLabels = truncateCategoryLabels(originalLabels, measurements.labelWidths, measurements.ellipsisWidth);
+    const categoryLabelWidth = getCategoryLabelWidth(truncatedCategoryLabels, fontManager, variables.iconSizeExtraSmall);
+
     const renderOutside = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
         if (!fontManager) {
             return null;
@@ -118,9 +121,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         return (
             <>
                 <ChartCategoryYAxisLabels
-                    labels={originalLabels}
-                    labelWidths={measurements.labelWidths}
-                    ellipsisWidth={measurements.ellipsisWidth}
+                    truncatedLabels={truncatedCategoryLabels}
                     categoryIndices={categoryIndices}
                     yScale={args.yScale}
                     chartBounds={args.chartBounds}
@@ -141,7 +142,6 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         );
     };
 
-    const categoryLabelWidth = getCategoryLabelWidth(originalLabels, measurements.labelWidths, measurements.ellipsisWidth, fontManager, variables.iconSizeExtraSmall);
     const valueLabelWidth = getYAxisLabelWidth(data, formatValue, fontManager, variables.iconSizeExtraSmall, VALUE_AXIS_DOMAIN_PADDING);
     const {ascent, descent} = fontManager ? getFontLineMetrics(fontManager, variables.iconSizeExtraSmall) : {ascent: 0, descent: 0};
     const xAxisLabelHeight = ascent + descent + VictoryTheme.axis.labelGap;
@@ -245,7 +245,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
                     formatValue={formatValue}
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}
-                    placement="right"
+                    placement={tooltipPlacement}
                 />
             </Animated.View>
         </GestureDetector>
@@ -264,10 +264,6 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
             {chartBody}
         </ScrollView>
     );
-}
-
-function HorizontalBarChartContent(props: HorizontalBarChartProps) {
-    return <HorizontalBarChartContentBody {...props} />;
 }
 
 export default HorizontalBarChartContent;

@@ -3,18 +3,12 @@ import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import React from 'react';
 import type {ChartBounds, Scale} from 'victory-native';
 import {useChartParagraphs} from '@components/Charts/hooks';
-import {getFontLineMetrics, truncateLabel} from '@components/Charts/utils';
+import {getFontLineMetrics} from '@components/Charts/utils';
 import VictoryTheme, {GLYPH_PADDING, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
 
 type ChartCategoryYAxisLabelsProps = {
-    /** Category label strings, one per data point. */
-    labels: string[];
-
-    /** Pre-measured pixel width of each original label. */
-    labelWidths: number[];
-
-    /** Pixel width of the ellipsis character. */
-    ellipsisWidth: number;
+    /** Truncated category label strings, one per data point. */
+    truncatedLabels: string[];
 
     /** Category indices rendered on the Y axis (typically 0 … n-1). */
     categoryIndices: number[];
@@ -35,8 +29,7 @@ type ChartCategoryYAxisLabelsProps = {
     labelColor: string;
 };
 
-function ChartCategoryYAxisLabels({labels, labelWidths, ellipsisWidth, categoryIndices, yScale, chartBounds, fontSize, fontManager, labelColor}: ChartCategoryYAxisLabelsProps) {
-    const truncatedLabels = labels.map((label, i) => truncateLabel(label, labelWidths.at(i) ?? 0, MAX_Y_AXIS_LABEL_WIDTH, ellipsisWidth));
+function ChartCategoryYAxisLabels({truncatedLabels, categoryIndices, yScale, chartBounds, fontSize, fontManager, labelColor}: ChartCategoryYAxisLabelsProps) {
     const paragraphs = useChartParagraphs(truncatedLabels, fontManager, fontSize, labelColor, MAX_Y_AXIS_LABEL_WIDTH);
     const {ascent, descent} = getFontLineMetrics(fontManager, fontSize);
     const lineHeight = ascent + descent;

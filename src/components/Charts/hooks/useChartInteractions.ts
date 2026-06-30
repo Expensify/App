@@ -8,6 +8,11 @@ import useChartInteractionState from './useChartInteractionState';
 /** Gap between bar top and tooltip bottom */
 const TOOLTIP_BAR_GAP = 8;
 
+/** X position for a tooltip placed to the right of a horizontal bar. */
+function getRightTooltipAnchorX(targetX: number, xZero: number): number {
+    return Math.max(targetX, xZero) + TOOLTIP_BAR_GAP;
+}
+
 /**
  * Arguments passed to the checkIsOver callback for hit-testing
  */
@@ -264,7 +269,8 @@ function useChartInteractions({
                 } else {
                     const bottom = chartBottom?.get() ?? e.y;
                     const touchX = e.y >= bottom && resolveLabelTouchX ? resolveLabelTouchX(e.x, e.y) : e.x;
-                    const idx = findClosestPoint(pointOX.get(), touchX);
+                    const ox = pointOX.get();
+                    const idx = findClosestPoint(ox, touchX);
                     if (idx >= 0) {
                         syncMatchedIndex(idx);
                     }
@@ -287,7 +293,8 @@ function useChartInteractions({
                     } else {
                         const bottom = chartBottom?.get() ?? e.y;
                         const touchX = e.y >= bottom && resolveLabelTouchX ? resolveLabelTouchX(e.x, e.y) : e.x;
-                        const idx = findClosestPoint(pointOX.get(), touchX);
+                        const ox = pointOX.get();
+                        const idx = findClosestPoint(ox, touchX);
                         if (idx >= 0) {
                             syncMatchedIndex(idx);
                         }
@@ -310,12 +317,14 @@ function useChartInteractions({
 
             chartInteractionState.cursor.x.set(e.x);
             chartInteractionState.cursor.y.set(e.y);
-            const idx = nearestPointAxis === 'y' ? findClosestPointAnyOrder(pointOY.get(), e.y) : findClosestPoint(pointOX.get(), e.x);
+            const ox = pointOX.get();
+            const oy = pointOY.get();
+            const idx = nearestPointAxis === 'y' ? findClosestPointAnyOrder(oy, e.y) : findClosestPoint(ox, e.x);
             if (idx < 0) {
                 return;
             }
-            const targetX = pointOX.get().at(idx) ?? 0;
-            const targetY = pointOY.get().at(idx) ?? 0;
+            const targetX = ox.at(idx) ?? 0;
+            const targetY = oy.at(idx) ?? 0;
             chartInteractionState.matchedIndex.set(idx);
             chartInteractionState.x.position.set(targetX);
             chartInteractionState.x.value.set(idx);
@@ -345,10 +354,9 @@ function useChartInteractions({
 
         if (tooltipPlacement === 'right') {
             const currentXZero = xZero?.get() ?? targetX;
-            const barEndX = Math.max(targetX, currentXZero);
 
             return {
-                x: barEndX + TOOLTIP_BAR_GAP,
+                x: getRightTooltipAnchorX(targetX, currentXZero),
                 y: targetY,
             };
         }
@@ -385,5 +393,5 @@ function useChartInteractions({
     };
 }
 
-export {useChartInteractions, findClosestPoint, TOOLTIP_BAR_GAP};
+export {useChartInteractions, findClosestPoint, findClosestPointAnyOrder, getRightTooltipAnchorX, TOOLTIP_BAR_GAP};
 export type {HitTestArgs};
