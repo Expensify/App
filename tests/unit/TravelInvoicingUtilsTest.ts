@@ -302,28 +302,18 @@ describe('TravelInvoicingUtils', () => {
             },
         } as unknown as CardList;
 
-        it('Should return false when beta is false', () => {
-            const result = isTravelCVVEligible(false, mockTravelCardList);
-            expect(result).toBe(false);
-        });
-
         it('Should return false when cardList is undefined', () => {
-            const result = isTravelCVVEligible(true, undefined);
+            const result = isTravelCVVEligible(undefined);
             expect(result).toBe(false);
         });
 
         it('Should return false when no travel card exists', () => {
-            const result = isTravelCVVEligible(true, mockNonTravelCardList);
+            const result = isTravelCVVEligible(mockNonTravelCardList);
             expect(result).toBe(false);
         });
 
-        it('Should return false when beta is false even with travel card', () => {
-            const result = isTravelCVVEligible(false, mockTravelCardList);
-            expect(result).toBe(false);
-        });
-
-        it('Should return true when beta is true and travel card exists', () => {
-            const result = isTravelCVVEligible(true, mockTravelCardList);
+        it('Should return true when a travel card exists', () => {
+            const result = isTravelCVVEligible(mockTravelCardList);
             expect(result).toBe(true);
         });
     });

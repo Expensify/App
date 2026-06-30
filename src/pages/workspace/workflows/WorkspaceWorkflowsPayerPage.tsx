@@ -248,7 +248,10 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const setPolicyAuthorizedPayer = (member: MemberOption) => setSelectedPayer(personalDetails?.[member.accountID]?.login);
 
     const shouldShowBlockingPage =
-        (isEmptyObject(policy) && !isLoadingReportData) || isPendingDeletePolicy(policy) || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+        (isEmptyObject(policy) && !isLoadingReportData) ||
+        isPendingDeletePolicy(policy) ||
+        policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ||
+        policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
 
     const totalNumberOfEmployeesEitherOwnerOrAdmin = Object.entries(policy?.employeeList ?? {}).filter(([email, policyEmployee]) => {
         const isOwner = policy?.owner === email;
@@ -360,7 +363,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                                     return;
                                 }
                                 setShowErrorModal(false);
-                                navigateToAndOpenReportWithAccountIDs([policy.ownerAccountID], currentUserPersonalDetails.accountID, introSelected, isSelfTourViewed, betas);
+                                navigateToAndOpenReportWithAccountIDs([policy.ownerAccountID], currentUserPersonalDetails.accountID, introSelected, isSelfTourViewed, betas, personalDetails);
                             }}
                             html={translate('workflowsPayerPage.shareBankAccount.errorDescription', {
                                 admin: selectedPayerDetails?.displayName ?? '',

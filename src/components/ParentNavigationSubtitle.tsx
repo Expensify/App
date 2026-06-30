@@ -104,7 +104,6 @@ function ParentNavigationSubtitle({
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
-    const isReportInRHP = currentRoute.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
     const hasAccessToParentReport = currentReport?.hasParentAccess !== false;
     const {currentFullScreenRoute, currentFocusedNavigator} = useRootNavigationState((state) => {
         // Find the tab navigator, which wraps all full-screen navigators
@@ -128,6 +127,12 @@ function ParentNavigationSubtitle({
             currentFocusedNavigator: focusedNavigator,
         };
     });
+    const isReportInRHP =
+        currentRoute.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ||
+        (currentRoute.params &&
+            'reportID' in currentRoute.params &&
+            currentFocusedNavigator?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR &&
+            currentFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
 
     // We should not display the parent navigation subtitle if the user does not have access to the parent chat (the reportName is empty in this case)
     if (!reportName) {
@@ -186,15 +191,38 @@ function ParentNavigationSubtitle({
             // avoid stacking RHPs by going back to the search report if it's already there
             const previousRoute = currentFocusedNavigator?.state?.routes.at(-2);
 
-            if (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && lastRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT) {
-                if (previousRoute.params && 'reportID' in previousRoute.params) {
-                    const reportIDFromParams = previousRoute.params.reportID;
+            if (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && previousRoute.params && 'reportID' in previousRoute.params) {
+                const reportIDFromParams = previousRoute.params.reportID;
 
-                    if (reportIDFromParams === parentReportID) {
-                        Navigation.goBack();
-                        return;
-                    }
+                if (reportIDFromParams === parentReportID) {
+                    Navigation.goBack();
+                    return;
                 }
+            }
+
+            // When the parent report is already the topmost route in the tab underneath the RHP,
+            // update its reportActionID and dismiss the modal instead of pushing a new instance
+            // on top of the tab navigator.
+            if (currentFullScreenRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+                const fullScreenState = currentFullScreenRoute.state;
+                const topRoute = fullScreenState?.routes?.[fullScreenState.index ?? 0];
+                const topRouteReportID = topRoute?.params && 'reportID' in topRoute.params ? String(topRoute.params.reportID) : undefined;
+
+                if (topRouteReportID === parentReportID && topRoute?.key && fullScreenState?.key) {
+                    if (isVisibleAction && parentReportActionID) {
+                        Navigation.setParams({reportActionID: parentReportActionID}, topRoute.key, fullScreenState.key);
+                    }
+                    Navigation.dismissModal();
+                    return;
+                }
+            }
+
+            // Stay in the Search tab when the parent link is tapped from a SEARCH_REPORT RHP
+            // and the parent isn't already in the stack — otherwise the REPORT_WITH_ID fallback
+            // would yank the user to Inbox.
+            if (isReportInRHP) {
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, reportActionID: isVisibleAction ? parentReportActionID : undefined}));
+                return;
             }
         }
 

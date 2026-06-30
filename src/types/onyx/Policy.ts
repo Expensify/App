@@ -1,8 +1,9 @@
 import type {CONST as COMMON_CONST} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
-import type {GustoSyncResult} from '@libs/API/GustoSyncResult';
+import type HrSyncResult from '@libs/API/HrSyncResult';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import type * as OnyxTypes from '.';
 import type * as OnyxCommon from './OnyxCommon';
 import type {WorkspaceTravelSettings} from './TravelSettings';
@@ -63,6 +64,12 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Sort order index for displaying rates */
         index?: number;
+
+        /** ISO 8601 date string for when this rate becomes effective */
+        startDate?: string | null;
+
+        /** ISO 8601 date string for when this rate expires */
+        endDate?: string | null;
     },
     keyof TaxRateAttributes
 >;
@@ -134,7 +141,7 @@ type UberReceiptPartner = {
     /**
      * form data for uber partner
      */
-    connectFormData: string;
+    connectFormData?: string;
     /**
      * auto invite for uber connection
      */
@@ -299,6 +306,15 @@ type ConnectionLastSync = {
      * show an error message
      */
     isConnected?: boolean;
+};
+
+/** Last sync state specific to Merge HR connections */
+type MergeHRConnectionLastSync = ConnectionLastSync & {
+    /** Type of the sync */
+    syncType?: ValueOf<typeof CONST.MERGE_HR.SYNC_TYPE>;
+
+    /** Status of the sync */
+    syncStatus?: ValueOf<typeof CONST.MERGE_HR.SYNC_STATUS>;
 };
 
 /**
@@ -502,6 +518,9 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Default vendor of non reimbursable bill */
     nonReimbursableBillDefaultVendor: string;
 
+    /** Default vendor used as a fallback when a non-reimbursable Credit/Debit card expense has no vendor set on the expense itself. */
+    nonReimbursableCreditCardDefaultVendor?: string;
+
     /** ID of the invoice collection account */
     collectionAccountID?: string;
 
@@ -702,6 +721,9 @@ type XeroExportConfig = {
 
     /** The accounting Method for Xero connection config */
     accountingMethod?: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+
+    /** Account ID that receives the exported travel payable */
+    travelInvoicingPayableAccountID?: string;
 };
 
 /** TODO: Will be handled in another issue */
@@ -1367,6 +1389,12 @@ type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 /** Certinia (FinancialForce) export destination — FFA Payable Invoice vs PSA Expense Report */
 type FinancialForceExportDestination = ValueOf<typeof CONST.CERTINIA_EXPORT_DESTINATION>;
 
+/** Certinia export statuses that apply to FFA payable invoices */
+type FinancialForceFFAExportStatus = typeof CONST.CERTINIA_EXPORT_STATUS.COMPLETE | typeof CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS;
+
+/** Certinia export statuses that apply to PSA reports */
+type FinancialForceReportExportStatus = ValueOf<typeof CONST.CERTINIA_REPORT_EXPORT_STATUS>;
+
 /** Certinia PSA parent tag mapping mode */
 type FinancialForceParentTagMappingMode = ValueOf<typeof CONST.CERTINIA_PARENT_TAG_MAPPING>;
 
@@ -1442,7 +1470,7 @@ type FinancialForceExportConfig = {
     nonReimbursable?: FinancialForceExportDestination;
 
     /** Payable invoice / expense report export status. */
-    exportStatus?: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>;
+    exportStatus?: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS> | FinancialForceReportExportStatus;
 
     /** Date basis for export */
     exportDate?: ValueOf<typeof CONST.CERTINIA_EXPORT_DATE>;
@@ -1455,9 +1483,6 @@ type FinancialForceExportConfig = {
 
     /** PSA / SRP: company ID for export */
     companyID?: string;
-
-    /** PSA: report-level export status. */
-    reportExportStatus?: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>;
 };
 
 /** Certinia auto-sync */
@@ -1517,12 +1542,9 @@ type FinancialForceConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 /** Gusto connection data */
 type GustoConnectionData = Record<string, never>;
 
-/** Gusto connection config */
-type GustoConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+/** Shared config for HR integrations (Gusto, Merge HR) */
+type HRConnectionConfigBase = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
-        /** Gusto approval mode */
-        approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null;
-
         /** Workspace member who acts as the final approver */
         finalApprover: string | null;
 
@@ -1531,27 +1553,59 @@ type GustoConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     },
     'approvalMode' | 'finalApprover'
 >;
+
+/** Gusto connection config */
+type GustoConnectionConfig = HRConnectionConfigBase & {
+    /** Approval mode */
+    approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null;
+};
+
+/** A group of employees the admin can choose to import from (e.g. a company, cost center, department). */
+type MergeHRGroup = {
+    /** Group ID */
+    id: string;
+
+    /** Human-readable name of the group */
+    name: string;
+
+    /** Group type (department/division etc.) */
+    type: string;
+};
+
+/** Merge HR connection data */
+type MergeHRConnectionData = {
+    /** Groups available to import employees from. Distinct from `config.groups`, which is the admin's selection. */
+    groups?: MergeHRGroup[];
+};
+
+/** Merge HR connection config */
+type MergeHRConnectionConfig = HRConnectionConfigBase &
+    OnyxCommon.OnyxValueWithOfflineFeedback<{
+        /** Integration provider slug identifying which HR system is linked */
+        integration: MergeHRProviderSlug;
+
+        /** Approval mode controlling how reports are routed for approval */
+        approvalMode: ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE> | null;
+
+        /**
+         * Groups the admin chose to import employees from.
+         * - `string[]` with one or more IDs — setup complete, sync only those groups.
+         * - `null` — setup not yet complete.
+         */
+        groups: string[] | null;
+    }>;
 
 /** TriNet (Zenefits) connection data */
 type ZenefitsConnectionData = Record<string, never>;
 
 /** TriNet (Zenefits) connection config */
-type ZenefitsConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
-    {
-        /** Zenefits approval mode */
-        approvalMode: ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE> | null;
+type ZenefitsConnectionConfig = HRConnectionConfigBase & {
+    /** Zenefits approval mode */
+    approvalMode: ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE> | null;
 
-        /** Workspace member who acts as the final approver */
-        finalApprover: string | null;
-
-        /** Whether the connection has been configured */
-        isConfigured: boolean;
-
-        /** Collections of form field errors */
-        errorFields?: OnyxCommon.ErrorFields;
-    },
-    'approvalMode' | 'finalApprover'
->;
+    /** Whether the connection has been configured */
+    isConfigured: boolean;
+};
 
 /**
  * Data imported from QuickBooks Desktop.
@@ -1600,6 +1654,9 @@ type QBDExportConfig = {
 
     /** Default vendor of non reimbursable bill */
     nonReimbursableBillDefaultVendor: string;
+
+    /** Account ID that receives the exported travel payable */
+    travelInvoicingPayableAccountID?: string;
 
     /** Accounting method for QBD */
     accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
@@ -1653,9 +1710,9 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 >;
 
 /** State of integration connection */
-type Connection<ConnectionData, ConnectionConfig> = {
+type Connection<ConnectionData, ConnectionConfig, TLastSync extends ConnectionLastSync = ConnectionLastSync> = {
     /** State of the last synchronization */
-    lastSync?: ConnectionLastSync;
+    lastSync?: TLastSync;
 
     /** Data imported from integration */
     data?: ConnectionData;
@@ -1689,6 +1746,9 @@ type Connections = {
 
     /** TriNet (Zenefits) integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: Connection<ZenefitsConnectionData, ZenefitsConnectionConfig>;
+
+    /** Merge HR integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: Connection<MergeHRConnectionData, MergeHRConnectionConfig, MergeHRConnectionLastSync>;
 };
 
 /** All integration connections, including unsupported ones */
@@ -1742,6 +1802,18 @@ type ACHAccount = {
     /** Emails of users who have had the bank account shared with them */
     sharees?: string[];
 };
+
+/** Commuter exclusion configuration for a policy */
+type CommuterExclusions = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** How commuter mileage is excluded - R2 will add 'homeAndOffice' */
+    method: ValueOf<typeof CONST.POLICY.COMMUTER_EXCLUSION_METHOD>;
+
+    /** Distance subtracted from each claim when method is 'fixedDistance' */
+    fixedDistance?: number;
+
+    /** Distance unit stored alongside fixedDistance ('mi' or 'km'). Mirrors the policy distance custom unit at the time it was set. */
+    fixedDistanceUnit?: string;
+}>;
 
 /** Prohibited expense types */
 type ProhibitedExpenses = OnyxCommon.OnyxValueWithOfflineFeedback<{
@@ -1987,6 +2059,27 @@ type CodingRule = {
     errors?: OnyxCommon.Errors;
 };
 
+/** Policy Agent rule data model */
+type AgentRule = {
+    /** Unique identifier for the rule */
+    ruleID: string;
+
+    /** The Agent prompt (i.e. the rule defined with natural language) */
+    prompt: string;
+
+    /** Short one-line summary generated server-side from the prompt */
+    title?: string;
+
+    /** When this rule was created */
+    created: string;
+
+    /** The type of action that's pending  */
+    pendingAction?: OnyxCommon.PendingAction;
+
+    /** Error objects keyed by field name containing errors keyed by microtime */
+    errors?: OnyxCommon.Errors;
+};
+
 /** Model of policy data */
 type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
@@ -2197,7 +2290,13 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
             /** A set of coding rules for automatic expense field population based on merchant matching */
             codingRules?: Record<string, CodingRule>;
+
+            /** A set of Agent rules defined with natural language - The rules are run by the "RuleBot" */
+            agentRules?: Record<string, AgentRule>;
         };
+
+        /** The "RuleBot" agent account ID */
+        ruleBotAccountID?: number;
 
         /** A set of custom rules defined with natural language */
         customRules?: string;
@@ -2268,6 +2367,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Settings for the Policy's prohibited expenses */
         prohibitedExpenses?: ProhibitedExpenses;
 
+        /** Commuter exclusion configuration applied to distance expenses on this workspace */
+        commuterExclusions?: CommuterExclusions;
+
         /** Indicates if the Policy is in loading state */
         isLoading?: boolean;
 
@@ -2313,10 +2415,10 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Policy MCC Group settings */
         mccGroup?: Record<string, MccGroup>;
 
-        /** Workspace account ID configured for Expensify Card */
-        workspaceAccountID?: number;
+        /** Policy account ID configured for Expensify Card */
+        policyAccountID?: number;
 
-        /** Setup specialist guide assigned for the policy */
+        /** Account executive guide assigned for the policy */
         assignedGuide?: {
             /** The guide's email */
             email: string;
@@ -2358,7 +2460,7 @@ type PolicyConnectionSyncProgress = {
     timestamp: string;
 
     /** Optional result payload shown after a completed sync */
-    result?: GustoSyncResult;
+    result?: HrSyncResult;
 };
 
 export default Policy;
@@ -2413,7 +2515,8 @@ export type {
     SageIntacctConnectionsConfig,
     SageIntacctExportConfig,
     FinancialForceConnectionConfig,
-    FinancialForceConnectionData,
+    FinancialForceFFAExportStatus,
+    FinancialForceReportExportStatus,
     ACHAccount,
     ApprovalRule,
     ExpenseRule,
@@ -2424,5 +2527,11 @@ export type {
     MccGroup,
     Subrate,
     ProhibitedExpenses,
+    CommuterExclusions,
     NetSuiteConnectionData,
+    MergeHRConnectionConfig,
+    GustoConnectionConfig,
+    ZenefitsConnectionConfig,
+    Vendor,
+    AgentRule,
 };

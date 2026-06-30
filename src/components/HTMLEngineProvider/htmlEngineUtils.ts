@@ -137,6 +137,28 @@ function isChildOfAlertText(tnode: TNode): boolean {
     return isChildOfTagName(tnode, 'alert-text');
 }
 
+/**
+ * Recursively collects the raw text contents of a code block so it can be copied to the clipboard,
+ * preserving the original line breaks and whitespace.
+ */
+function getCodeBlockText(tnode: TNode): string {
+    // Newlines inside a code block are rendered as void `<br>` tags, which carry no `data`.
+    // Emit a newline for them so the copied text keeps its original formatting.
+    if (tnode.tagName === 'br') {
+        return '\n';
+    }
+
+    if ('data' in tnode && typeof tnode.data === 'string') {
+        return tnode.data;
+    }
+
+    if (!tnode.children) {
+        return '';
+    }
+
+    return tnode.children.map(getCodeBlockText).join('');
+}
+
 export {
     computeEmbeddedMaxWidth,
     isChildOfComment,
@@ -150,4 +172,5 @@ export {
     isChildOfMutedTextXS,
     isChildOfMutedTextMicro,
     isChildOfAlertText,
+    getCodeBlockText,
 };

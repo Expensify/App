@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -17,7 +17,10 @@ function isActiveTaskEditRoute(reportID: string | undefined): boolean {
         return false;
     }
 
-    return [ROUTES.TASK_TITLE, ROUTES.TASK_ASSIGNEE, ROUTES.REPORT_DESCRIPTION].map((route) => route.getRoute(reportID)).some(Navigation.isActiveRoute);
+    const activeRoute = Navigation.getActiveRouteWithoutParams();
+    const taskEditSuffixes = [DYNAMIC_ROUTES.TASK_TITLE.path, DYNAMIC_ROUTES.TASK_ASSIGNEE.path, DYNAMIC_ROUTES.REPORT_DESCRIPTION.path] as const;
+
+    return taskEditSuffixes.some((suffix) => activeRoute.endsWith(`/${suffix}`));
 }
 
 /**

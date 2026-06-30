@@ -2,11 +2,11 @@ import {defaultExpensifyCardSelector} from '@selectors/Card';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import {createTypeMenuSections, doesSearchItemMatchSort} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {IntroSelected, Policy, Session} from '@src/types/onyx';
+import {isTrackIntentUserSelector} from '@src/selectors/Onboarding';
+import type {Policy, Session} from '@src/types/onyx';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
 import useMappedPolicies from './useMappedPolicies';
@@ -36,14 +36,13 @@ const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         areExpensifyCardsEnabled: policy.areExpensifyCardsEnabled,
         achAccount: policy.achAccount,
         areCategoriesEnabled: policy.areCategoriesEnabled,
+        areWorkflowsEnabled: policy.areWorkflowsEnabled,
     };
 
 const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
     email: session?.email,
     accountID: session?.accountID,
 });
-
-const isTrackIntentUserSelector = (introSelected: OnyxEntry<IntroSelected>) => isTrackOnboardingChoice(introSelected?.choice);
 
 type UseSearchTypeMenuSectionsParams = {
     hash?: number;

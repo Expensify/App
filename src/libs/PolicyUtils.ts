@@ -35,8 +35,10 @@ import type {
     PolicyFeatureName,
     Rate,
     Tenant,
+    Vendor,
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
+import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
@@ -45,6 +47,7 @@ import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getApiRoot} from './ApiUtils';
 import {getCategoryApproverRule} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
+import {isAnyHRConnected, isMergeHRCompleteSetupNeeded} from './HRUtils';
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
 import {formatMemberForList} from './OptionsListUtils';
@@ -56,10 +59,10 @@ import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
 type MemberEmailsToAccountIDs = Record<string, number>;
 
 type TravelStep = ValueOf<typeof CONST.TRAVEL.STEPS>;
+type PolicyFeature = ValueOf<typeof CONST.POLICY.POLICY_FEATURE>;
+type PolicyFeatureAccess = ValueOf<typeof CONST.POLICY.POLICY_FEATURE_ACCESS>;
 
 type AccountingConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>;
-type HRConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES>;
-
 type WorkspaceDetails = {
     policyID: string | undefined;
     name: string;
@@ -103,7 +106,7 @@ function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | nul
             !!policy.name &&
             !!policy.id &&
             !!getPolicyRole(policy, currentUserLogin) &&
-            policy.isPolicyExpenseChatEnabled,
+            isPaidGroupPolicy(policy),
     );
 }
 
@@ -128,6 +131,79 @@ function getActivePoliciesWithExpenseChatAndTimeEnabled(policies: OnyxCollection
 const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, login?: string, shouldCheckGlobalPolicyRole = true): boolean =>
     getPolicyRole(policy, login, shouldCheckGlobalPolicyRole) === CONST.POLICY.ROLE.ADMIN;
 
+const WRITE_ALL_POLICY_FEATURES = Object.fromEntries(Object.values(CONST.POLICY.POLICY_FEATURE).map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE])) as Record<
+    PolicyFeature,
+    PolicyFeatureAccess
+>;
+
+const READ_ALL_POLICY_FEATURES = Object.fromEntries(Object.values(CONST.POLICY.POLICY_FEATURE).map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.READ])) as Record<
+    PolicyFeature,
+    PolicyFeatureAccess
+>;
+
+const EDITOR_POLICY_FEATURES = Object.fromEntries(
+    Object.values(CONST.POLICY.POLICY_FEATURE)
+        .filter((feature) => feature !== CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES)
+        .map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE]),
+) as Partial<Record<PolicyFeature, PolicyFeatureAccess>>;
+
+const ROLE_PERMISSION_BUNDLES: Record<string, Partial<Record<PolicyFeature, PolicyFeatureAccess>>> = {
+    [CONST.POLICY.ROLE.ADMIN]: WRITE_ALL_POLICY_FEATURES,
+    [CONST.POLICY.ROLE.EDITOR]: EDITOR_POLICY_FEATURES,
+    [CONST.POLICY.ROLE.AUDITOR]: READ_ALL_POLICY_FEATURES,
+    [CONST.POLICY.ROLE.USER]: {
+        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+    },
+    [CONST.POLICY.ROLE.CARD_ADMIN]: {
+        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+        [CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+    },
+    [CONST.POLICY.ROLE.PEOPLE_ADMIN]: {
+        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+        [CONST.POLICY.POLICY_FEATURE.WORKFLOWS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+    },
+    [CONST.POLICY.ROLE.PAYMENTS_ADMIN]: {
+        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.WORKFLOWS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+    },
+};
+
+const CONTROL_POLICY_ONLY_ROLES = [CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.CARD_ADMIN, CONST.POLICY.ROLE.PEOPLE_ADMIN, CONST.POLICY.ROLE.PAYMENTS_ADMIN];
+
+function isControlPolicyOnlyRole(role: string | undefined): boolean {
+    return CONTROL_POLICY_ONLY_ROLES.some((controlPolicyOnlyRole) => controlPolicyOnlyRole === role);
+}
+
+function hasPolicyFeaturePermission(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature, requiredAccess: PolicyFeatureAccess): boolean {
+    const role = (login ? policy?.employeeList?.[login]?.role : undefined) ?? getPolicyRole(policy, login);
+    if (isControlPolicyOnlyRole(role) && (!policy || !isControlPolicy(policy))) {
+        return false;
+    }
+
+    const access = role ? ROLE_PERMISSION_BUNDLES[role]?.[feature] : undefined;
+
+    if (requiredAccess === CONST.POLICY.POLICY_FEATURE_ACCESS.READ) {
+        return access === CONST.POLICY.POLICY_FEATURE_ACCESS.READ || access === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
+    }
+
+    return access === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
+}
+
+function canMemberRead(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature): boolean {
+    return hasPolicyFeaturePermission(policy, login, feature, CONST.POLICY.POLICY_FEATURE_ACCESS.READ);
+}
+
+function canMemberWrite(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature): boolean {
+    return hasPolicyFeaturePermission(policy, login, feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE);
+}
+
 /**
  * Checks if we have any errors stored within the policy?.employeeList. Determines whether we should show a red brick road error or not.
  */
@@ -150,6 +226,16 @@ function shouldShowTaxRateError(policy: OnyxEntry<Policy>): boolean {
  */
 function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>): boolean {
     return Object.keys(policyCategories ?? {}).some((categoryName) => Object.keys(policyCategories?.[categoryName]?.errors ?? {}).length > 0);
+}
+
+/**
+ * Check if the policy has any errors within the rules.
+ */
+function hasPolicyRulesError(policy: OnyxEntry<Policy>): boolean {
+    const codingRules = Object.values(policy?.rules?.codingRules ?? {});
+    const agentRules = Object.values(policy?.rules?.agentRules ?? {});
+
+    return codingRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0) || agentRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0);
 }
 
 /**
@@ -246,7 +332,13 @@ function getEligibleBankAccountShareRecipients(policies: OnyxCollection<Policy> 
         for (const admin of getAdminEmployees(policy)) {
             const email = admin?.email;
             // Check if the email is for the active user or an existing user in the sharees array or admins list to avoid extra iterations
-            if (!email || email === currentUserLogin || adminMap.has(email) || shareesSet.has(email)) {
+            if (
+                !email ||
+                email === currentUserLogin ||
+                adminMap.has(email) ||
+                shareesSet.has(email) ||
+                (isExpensifyTeam(email) && shouldFilterExpensifyTeam(policy.owner, currentUserLogin))
+            ) {
                 continue;
             }
             const personalDetails = getPersonalDetailByEmail(email);
@@ -276,7 +368,7 @@ function getEligibleBankAccountShareRecipients(policies: OnyxCollection<Policy> 
  */
 function hasEligibleActiveAdminFromWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): boolean {
     const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
-    const activePolicies = getActivePolicies(policies, currentUserLogin);
+    const activePolicies = getActiveAdminWorkspaces(policies, currentUserLogin);
     if (!activePolicies) {
         return false;
     }
@@ -286,7 +378,7 @@ function hasEligibleActiveAdminFromWorkspaces(policies: OnyxCollection<Policy> |
         const admins = getAdminEmployees(policy);
         for (const admin of admins) {
             const email = admin?.email;
-            if (!email || email === currentUserLogin || alreadySharedSharees.has(email)) {
+            if (!email || email === currentUserLogin || alreadySharedSharees.has(email) || (isExpensifyTeam(email) && shouldFilterExpensifyTeam(policy.owner, currentUserLogin))) {
                 continue;
             }
 
@@ -446,6 +538,11 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnecti
     return undefined;
 }
 
+/**
+ * Returns whether the Merge HR setup still needs to be completed for a policy.
+ */
+const isMergeHRCompleteSetupNeededSelector = (policy: OnyxEntry<Policy>) => isMergeHRCompleteSetupNeeded(policy);
+
 function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string, shouldCheckGlobalPolicyRole = true): string | undefined {
     if (shouldCheckGlobalPolicyRole && policy?.role) {
         return policy.role;
@@ -477,6 +574,7 @@ function shouldShowPolicy(policy: OnyxEntry<Policy>, shouldShowPendingDeletePoli
 
 /**
  * Checks if a specific user is a member of the policy.
+ * Note that employeeList can be blank when the policy is not the user's default/active policy
  */
 function isPolicyMember(policy: OnyxEntry<Policy>, userLogin: string | undefined): boolean {
     return !!policy && !!userLogin && (!!policy.employeeList?.[userLogin] || policy.owner === userLogin);
@@ -534,6 +632,41 @@ function isExpensifyTeam(email: string | undefined): boolean {
 /** Whether Expensify team members should be hidden from the given policy/user combination. */
 function shouldFilterExpensifyTeam(policyOwner: string | undefined, currentUserLogin: string | undefined): boolean {
     return !!policyOwner && !!currentUserLogin && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin);
+}
+
+/**
+ * Creates a selector for useOnyx that computes the filtered member count.
+ * Returns a primitive number to prevent unnecessary re-renders when unrelated personal details change.
+ */
+function createFilteredMemberCountSelector(employeeList: PolicyEmployeeList | undefined, policyOwner: string | undefined, currentUserLogin: string | undefined) {
+    return (personalDetails: PersonalDetailsList | undefined): number => {
+        const shouldFilter = shouldFilterExpensifyTeam(policyOwner, currentUserLogin);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, false, false);
+
+        return Object.keys(policyMemberEmailsToAccountIDs).reduce((count, email) => {
+            const accountID = policyMemberEmailsToAccountIDs[email];
+            const details = personalDetails?.[accountID];
+
+            if (shouldFilter && isExpensifyTeam(details?.login ?? details?.displayName)) {
+                return count;
+            }
+
+            return count + 1;
+        }, 0);
+    };
+}
+
+/**
+ * Creates a selector for useOnyx that returns formatted text for invoice configuration.
+ * Returns a primitive string to prevent unnecessary re-renders when unrelated bank account data changes.
+ * This matches the filtering logic used by PaymentMethodList with filterType=BUSINESS on the invoices page.
+ */
+function createInvoiceConfigurationTextSelector(translate: LocaleContextProps['translate'], invoiceCompany: string) {
+    return (bankAccountList: OnyxEntry<Record<string, {accountData?: {type?: string}}>>): string => {
+        const count = Object.values(bankAccountList ?? {}).filter((account) => account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS).length;
+        const bankAccountsText = count > 0 ? `${count} ${translate('common.bankAccounts').toLowerCase()}` : '';
+        return [bankAccountsText, invoiceCompany].filter(Boolean).join(', ');
+    };
 }
 
 /**
@@ -608,6 +741,13 @@ function getIneligibleInvitees(employeeList?: PolicyEmployeeList): string[] {
 }
 
 /**
+ * Get excluded users as a Record for use in search selector
+ */
+function getExcludedUsers(employeeList?: PolicyEmployeeList): Record<string, boolean> {
+    return Object.fromEntries(getIneligibleInvitees(employeeList).map((login) => [login, true]));
+}
+
+/**
  * Get Guide and Account Manager information including their emails/logins and exclusion record.
  * Used for filtering Guide/AM from contact lists while allowing manual entry.
  *
@@ -641,6 +781,50 @@ function getGuideAndAccountManagerInfo(
         accountManagerLogin,
         exclusions,
     };
+}
+
+/**
+ * Build a soft-exclusion map of Expensify-team logins (current and former AMs/Guides) so search
+ * filters don't surface internal Expensify staff to customers. Mirrors the visibility rule used
+ * by WorkspaceMembersPage: skip the filter when the current user is themselves Expensify staff,
+ * and preserve Expensify-team members of any Expensify-owned policy the current user belongs to.
+ */
+function getExpensifyTeamExclusions(personalDetails: OnyxEntry<PersonalDetailsList>, policies: OnyxCollection<Policy>, currentUserLogin: string | undefined): Record<string, boolean> {
+    if (!currentUserLogin || isExpensifyTeam(currentUserLogin)) {
+        return {};
+    }
+
+    const lowerCurrentUserLogin = currentUserLogin.toLowerCase();
+    const allowedExpensifyTeamLogins = new Set<string>();
+
+    for (const policy of Object.values(policies ?? {})) {
+        if (!policy?.owner || !policy.employeeList || !isExpensifyTeam(policy.owner)) {
+            continue;
+        }
+        const currentUserIsInPolicy = Object.keys(policy.employeeList).some((email) => email.toLowerCase() === lowerCurrentUserLogin);
+        if (!currentUserIsInPolicy) {
+            continue;
+        }
+        for (const email of Object.keys(policy.employeeList)) {
+            const lowerEmail = email.toLowerCase();
+            if (isExpensifyTeam(lowerEmail)) {
+                allowedExpensifyTeamLogins.add(lowerEmail);
+            }
+        }
+    }
+
+    const exclusion: Record<string, boolean> = {};
+    for (const details of Object.values(personalDetails ?? {})) {
+        const login = details?.login?.toLowerCase();
+        if (!login || !isExpensifyTeam(login)) {
+            continue;
+        }
+        if (allowedExpensifyTeamLogins.has(login)) {
+            continue;
+        }
+        exclusion[login] = true;
+    }
+    return exclusion;
 }
 
 /**
@@ -854,10 +1038,11 @@ function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
 }
 
 /**
- * Cleans up escaping of colons (used to create multi-level tags, e.g. "Parent: Child") in the tag name we receive from the backend
+ * Cleans up escaping of colons used to create multi-level tags (e.g. "Parent: Child"),
+ * and HTML-decodes the result so tags stored with encoded entities display correctly (e.g. `R&amp;D`, renders as `R&D`)
  */
 function getCleanedTagName(tag: string) {
-    return tag?.replaceAll('\\:', CONST.COLON);
+    return Str.htmlDecode(tag?.replaceAll('\\:', CONST.COLON) ?? '');
 }
 
 /**
@@ -924,12 +1109,51 @@ function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
+/**
+ * Returns true only for paid plans (Collect/Control). Use this only for billing/paid-only concerns:
+ * subscriptions, payments and reimbursement, company cards, Expensify Card, Travel, Invoices, and
+ * "do I own a paid workspace" checks.
+ *
+ * For workspace feature gating (violations, report fields, workspace chat, report creation,
+ * expense-workspace usability) use `isGroupPolicy` instead, otherwise free group plans like Submit
+ * (submit2026) are wrongly excluded. The report-based counterparts are `ReportUtils.isPaidGroupPolicy`
+ * (paid-only) and `ReportUtils.isReportInGroupPolicy` (group).
+ */
 function isPaidGroupPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
+function isPaidGroupPolicyByType(policyType: string | undefined): boolean {
+    return policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
+}
+
 function isSubmitPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.SUBMIT;
+}
+
+function isSubmitPolicyByType(policyType: string | undefined): boolean {
+    return policyType === CONST.POLICY.TYPE.SUBMIT;
+}
+
+/**
+ * Checks if the submitter's approval is blocked on the submit workspace.
+ *
+ * @param policy - The policy to check
+ * @param reportOwnerAccountID - The account ID of the report owner
+ * @param approverAccountID - The account ID of the approver
+ * @returns True if the submitter's approval is blocked on the submit workspace, false otherwise
+ */
+function isSubmitterApproveBlockedOnSubmitWorkspace(policy: OnyxInputOrEntry<Policy>, reportOwnerAccountID: number | undefined, approverAccountID: number): boolean {
+    return isSubmitPolicy(policy) && reportOwnerAccountID === approverAccountID;
+}
+
+/**
+ * We only allow users to access Submit feature if they have the SUBMIT_2026 beta enabled.
+ *
+ * @param isSubmit2026BetaEnabled - Prefer `isBetaEnabled(CONST.BETAS.SUBMIT_2026)` from `usePermissions()`, not raw betas from Onyx.
+ */
+function canAccessSubmitWorkspaceFeatures(policy: OnyxInputOrEntry<Policy>, isSubmit2026BetaEnabled: boolean): boolean {
+    return isSubmitPolicy(policy) && isSubmit2026BetaEnabled;
 }
 
 const isPolicyEditor = (policy: OnyxInputOrEntry<Policy>, login?: string): boolean => getPolicyRole(policy, login) === CONST.POLICY.ROLE.EDITOR;
@@ -946,14 +1170,22 @@ function canEditWorkspaceSettings(policy: OnyxInputOrEntry<Policy>, login?: stri
 }
 
 /**
- * Returns true for any group workspace: paid (Team/Corporate) or Submit.
+ * Returns true for any group workspace: paid (Collect/Control) or Submit.
  *
- * Note: not to be confused with `ReportUtils.isGroupPolicy(policyType: string)`,
- * which excludes Submit. Use this helper when Submit workspaces should be treated
- * like paid workspaces (e.g. access gating for shared workspace pages).
+ * Prefer this over `isPaidGroupPolicy` whenever the check is about workspace features rather than
+ * billing (violations, report fields, workspace chat, report creation, expense-workspace usability),
+ * so free group plans like Submit (submit2026) are not excluded. It is a strict superset of
+ * `isPaidGroupPolicy`, so switching a feature check to it never changes Collect/Control/Personal
+ * behavior. Use `isPaidGroupPolicy` only when the concern is genuinely billing/paid-only.
+ *
+ * For report-based call sites, use `ReportUtils.isReportInGroupPolicy(report)`, which delegates here.
  */
 function isGroupPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
     return isPaidGroupPolicy(policy) || isSubmitPolicy(policy);
+}
+
+function isGroupPolicyByType(policyType: string | undefined): boolean {
+    return isPaidGroupPolicyByType(policyType) || isSubmitPolicyByType(policyType);
 }
 
 function getOwnedPaidPolicies(policies: OnyxCollection<Policy> | null, currentUserAccountID: number | undefined): Policy[] {
@@ -962,6 +1194,21 @@ function getOwnedPaidPolicies(policies: OnyxCollection<Policy> | null, currentUs
 
 function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.CORPORATE;
+}
+
+/**
+ * For Submit workspaces, certain features require upgrading the plan before enabling.
+ * When conditions match, navigates to the workspace upgrade flow and returns true (caller should not enable the feature).
+ * @returns true if upgrade navigation was performed; false otherwise
+ */
+function tryNavigateToSubmitWorkspaceUpgrade(policy: OnyxEntry<Policy>, isEnabling: boolean, upgradeFeatureAlias: string, backTo?: string): boolean {
+    if (!policy?.id || !isEnabling || !isSubmitPolicy(policy)) {
+        return false;
+    }
+    // Default the upgrade page's back destination to More Features (the source of most upgrade-gated toggles).
+    // Entry points outside More Features (e.g. the Roles flow) pass their own backTo so the user returns there.
+    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy?.id, upgradeFeatureAlias, backTo ?? ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policy?.id)));
+    return true;
 }
 
 /**
@@ -1060,6 +1307,10 @@ function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
 
 function arePaymentsEnabled(policy: OnyxEntry<Policy>): boolean {
     return policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+}
+
+function hasApprovalFlow(policy: OnyxInputOrEntry<Policy>): boolean {
+    return isPaidGroupPolicy(policy) && !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
 function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): boolean {
@@ -1168,7 +1419,7 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
         return policy?.[featureName] ? !!policy?.[featureName] : hasAccountingFeatureConnection(policy);
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED) {
-        return policy?.isHREnabled === true || isHRIntegrationConnected(policy);
+        return policy?.isHREnabled === true || isAnyHRConnected(policy);
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED) {
         return policy?.receiptPartners?.enabled ?? false;
@@ -1319,7 +1570,7 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
     return getManagerAccountID(policy, expenseReport);
 }
 
-function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): number | undefined {
+function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, submitterLogin: string | undefined): number | undefined {
     const ownerAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const existingManagerID = expenseReport?.managerID;
     const approvalRules = policy?.rules?.approvalRules;
@@ -1327,11 +1578,10 @@ function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseRepor
     const submitToAccountID = ruleApprover ? (getAccountIDsByLogins([ruleApprover]).at(0) ?? -1) : getManagerAccountID(policy, expenseReport);
     const isValidSubmitToAccountID = isValidAccountRoute(submitToAccountID);
     const isValidExistingManagerID = isValidAccountRoute(existingManagerID ?? CONST.DEFAULT_NUMBER_ID) && existingManagerID !== ownerAccountID;
-    const employeeLogin = getLoginByAccountID(ownerAccountID) ?? '';
     const hasReliablePolicyRoute =
         ([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(getApprovalWorkflow(policy)) ||
         !!ruleApprover ||
-        !!policy?.employeeList?.[employeeLogin];
+        !!policy?.employeeList?.[submitterLogin ?? ''];
 
     if (hasReliablePolicyRoute && isValidSubmitToAccountID) {
         return submitToAccountID;
@@ -1422,7 +1672,7 @@ function canSendInvoiceFromWorkspace(policy: OnyxEntry<Policy>): boolean {
 /** Whether the user can submit per diem expense from the workspace */
 function canSubmitPerDiemExpenseFromWorkspace(policy: OnyxEntry<Policy>): boolean {
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
-    return !!policy?.isPolicyExpenseChatEnabled && !isEmptyObject(perDiemCustomUnit) && !!perDiemCustomUnit?.enabled;
+    return isPaidGroupPolicy(policy) && !isEmptyObject(perDiemCustomUnit) && !!perDiemCustomUnit?.enabled;
 }
 
 /** Whether the user can send invoice */
@@ -1800,24 +2050,113 @@ function isAccountingConnectionName(connectionName?: ConnectionName): connection
     return connectionName !== undefined && getAccountingConnectionNames().some((accountingConnectionName) => accountingConnectionName === connectionName);
 }
 
-function getHRConnectionNames(): HRConnectionName[] {
-    return [...CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES];
-}
-
-function isGustoConnected(policy?: OnyxEntry<Policy>) {
-    return !!policy?.connections?.gusto;
-}
-
-function isZenefitsConnected(policy?: OnyxEntry<Policy>) {
-    return !!policy?.connections?.zenefits;
-}
-
-function isHRIntegrationConnected(policy?: OnyxEntry<Policy>) {
-    return isGustoConnected(policy) || isZenefitsConnected(policy);
-}
-
 function getConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
     return connectionNames.find((integration) => !!policy?.connections?.[integration]);
+}
+
+/**
+ * True when the QBO connection is exporting non-reimbursables to a card account, which is the
+ * mode that scopes the vendor field on QBO.
+ */
+function isQBOVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
+    const destination = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.config?.nonReimbursableExpensesExportDestination;
+    return destination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD || destination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD;
+}
+
+/**
+ * True when the Sage Intacct connection is exporting non-reimbursables as Credit Card Charge, which
+ * is the mode that scopes the vendor field on Intacct.
+ */
+function isIntacctVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
+    return policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.config?.export?.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE;
+}
+
+/**
+ * Vendor matching feature gate. Returns true when the workspace has the `vendorMatching` beta
+ * enabled AND a supported accounting integration is connected with a non-reimbursable export type
+ * that scopes the vendor field. Mirrors the per-integration `hasVendorFeature` checks on the PHP
+ * side so the App and backend agree on which workspaces see the field.
+ *
+ * Supported integrations:
+ *   - QBO with non-reimbursable export = Credit Card or Debit Card (R1)
+ *   - Sage Intacct with non-reimbursable export = Credit Card Charge (R2)
+ */
+function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
+    if (!isVendorMatchingBetaEnabled || !policy) {
+        return false;
+    }
+    return isQBOVendorMatchingActive(policy) || isIntacctVendorMatchingActive(policy);
+}
+
+/**
+ * Returns the vendor list imported into the workspace from whichever connected integration scopes
+ * the vendor field for this workspace (QBO or Sage Intacct). Empty array when no integration is
+ * connected or the sync hasn't populated vendors yet. Source of truth for the vendor selector RHP
+ * and inactive-vendor lookups.
+ *
+ * Selection mirrors `hasVendorFeature`: each branch is gated on the integration's own
+ * non-reimbursable export destination, so a dual-connected workspace (e.g. mid-migration with stale
+ * QBO data + active Intacct) returns vendors from the integration whose export mode actually drives
+ * vendor matching, not whichever connection happens to be populated first.
+ *
+ * The shape is normalized to `Vendor` (id + name). For Intacct's `SageIntacctDataElementWithValue`,
+ * the human-readable label lives in `value` (Intacct's `name` is an internal code), matching how
+ * `getSageIntacctVendors` and `getDefaultVendorName` populate the existing Intacct export UI.
+ */
+function getMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] {
+    if (!policy) {
+        return [];
+    }
+    if (isQBOVendorMatchingActive(policy)) {
+        return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors ?? [];
+    }
+    if (isIntacctVendorMatchingActive(policy)) {
+        const intacctVendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.data?.vendors ?? [];
+        return intacctVendors.map((vendor) => ({id: vendor.id, name: vendor.value, currency: '', email: ''}));
+    }
+    return [];
+}
+
+/**
+ * Look up a single matching vendor by `externalID`, scoped to the active vendor-matching
+ * integration. Returns undefined when the ID isn't found in the active list (the inactive-vendor
+ * violation case — see `getViolationsOnyxData`).
+ */
+function getMatchingVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined): Vendor | undefined {
+    if (!vendorID) {
+        return undefined;
+    }
+    return getMatchingVendors(policy).find((vendor) => vendor.id === vendorID);
+}
+
+/**
+ * Resolve a stored vendor ID to a display vendor. Prefers the active vendor-matching integration
+ * (delegating to `getMatchingVendors`) so a freshly-selected vendor in the dual-connected state
+ * never gets overshadowed by a stale entry with the same ID on the inactive integration. Falls
+ * back to a permissive search across every connection's vendor data (QBO then Intacct) so
+ * historical lookups keep working after an admin switches the workspace's non-reimbursable export
+ * mode away from the vendor-matching mode — rendering a vendor name stored on a past transaction
+ * or modified-expense action must not regress to the raw external ID. Use `getMatchingVendorByID`
+ * instead when the caller is enforcing the active-integration scope (e.g. the inactive-vendor
+ * violation check).
+ */
+function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined): Vendor | undefined {
+    if (!policy || !vendorID) {
+        return undefined;
+    }
+    const activeMatch = getMatchingVendors(policy).find((vendor) => vendor.id === vendorID);
+    if (activeMatch) {
+        return activeMatch;
+    }
+    const qboVendor = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors?.find((vendor) => vendor.id === vendorID);
+    if (qboVendor) {
+        return qboVendor;
+    }
+    const intacctVendor = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.data?.vendors?.find((vendor) => vendor.id === vendorID);
+    if (intacctVendor) {
+        return {id: intacctVendor.id, name: intacctVendor.value, currency: '', email: ''};
+    }
+    return undefined;
 }
 
 function getValidConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
@@ -1933,24 +2272,47 @@ function isPolicyAccessible(policy: OnyxEntry<Policy>, currentUserLogin: string)
     );
 }
 
-function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Policy> | null) {
+function getGroupPaidPolicies(policies: OnyxCollection<Policy> | null) {
+    if (isEmptyObject(policies)) {
+        return CONST.EMPTY_ARRAY;
+    }
+    return Object.values(policies).filter((policy) => isPaidGroupPolicy(policy) && !policy?.isJoinRequestPending && shouldShowPolicy(policy, false, undefined));
+}
+
+function hasAnyPaidPolicy(policies: OnyxCollection<Policy> | null) {
+    return getGroupPaidPolicies(policies).length > 0;
+}
+
+/**
+ * Returns the group workspaces where the user can create a report: paid (Team/Corporate) workspaces,
+ * plus Submit workspaces when the SUBMIT_2026 beta is enabled. Submit workspaces are free but still
+ * support report creation, so they belong here even though they're excluded from
+ * `getGroupPaidPolicies`.
+ *
+ * @param isSubmit2026BetaEnabled - Prefer `isBetaEnabled(CONST.BETAS.SUBMIT_2026)` from `usePermissions()`, not raw betas from Onyx.
+ */
+function getGroupPoliciesWhereReportCanBeCreated(policies: OnyxCollection<Policy> | null, isSubmit2026BetaEnabled: boolean, currentUserLogin?: string) {
     if (isEmptyObject(policies)) {
         return CONST.EMPTY_ARRAY;
     }
     return Object.values(policies).filter(
-        (policy) => policy?.isPolicyExpenseChatEnabled && isPaidGroupPolicy(policy) && !policy?.isJoinRequestPending && shouldShowPolicy(policy, false, undefined),
+        (policy): policy is Policy =>
+            !!policy &&
+            !policy.isJoinRequestPending &&
+            (isPaidGroupPolicy(policy) || canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) &&
+            shouldShowPolicy(policy, false, currentUserLogin),
     );
 }
 
 /**
- * This method checks if the active policy has expense chat enabled and is a paid group policy.
+ * This method checks if the active policy is a paid group policy (Team/Corporate).
  * If true, it returns the active policy itself, else it returns the first policy from groupPoliciesWithChatEnabled.
  *
  * Further, if groupPoliciesWithChatEnabled is empty, then it returns undefined
  * and the user would be taken to the workspace selection page.
  */
 function getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled: Array<OnyxInputOrEntry<Policy>>, activePolicy?: OnyxInputOrEntry<Policy> | null): OnyxInputOrEntry<Policy> | undefined {
-    if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
+    if (activePolicy && isPaidGroupPolicy(activePolicy)) {
         return activePolicy;
     }
 
@@ -2102,6 +2464,11 @@ function isPreferredExporter(policy: Policy, currentUserLogin: string) {
     return exporters.some((exporter) => exporter && exporter === currentUserLogin);
 }
 
+/** Whether a workspace has been provisioned with a Spotnana entity. */
+function isWorkspaceProvisionedForTravel(travelSettings?: WorkspaceTravelSettings): boolean {
+    return !!(travelSettings?.spotnanaCompanyID ?? travelSettings?.associatedTravelDomainAccountID);
+}
+
 /**
  * Determines which travel step should be shown based on policy state
  */
@@ -2205,12 +2572,18 @@ export {
     getConnectedIntegration,
     getConnectedIntegrationNamesForPolicies,
     getConnectionExporters,
+    findVendorByID,
+    getMatchingVendorByID,
+    getMatchingVendors,
+    hasVendorFeature,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
+    getExcludedUsers,
     getMemberAccountIDsForWorkspace,
     getGuideAndAccountManagerInfo,
     getSoftExclusionsForGuideAndAccountManager,
+    getExpensifyTeamExclusions,
     filterGuideAndAccountManager,
     isMultiLevelTags,
     getPolicyBrickRoadIndicatorStatus,
@@ -2233,17 +2606,23 @@ export {
     shouldShowEmployeeListError,
     hasIntegrationAutoSync,
     hasPolicyCategoriesError,
+    hasPolicyRulesError,
     shouldShowPolicyError,
     shouldShowTaxRateError,
     isExpensifyTeam,
     shouldFilterExpensifyTeam,
+    createFilteredMemberCountSelector,
+    createInvoiceConfigurationTextSelector,
     isDeletedPolicyEmployee,
     isInstantSubmitEnabled,
     isDelayedSubmissionEnabled,
     getCorrectedAutoReportingFrequency,
     isPaidGroupPolicy,
     canEditWorkspaceSettings,
+    canMemberRead,
+    canMemberWrite,
     isGroupPolicy,
+    isGroupPolicyByType,
     isPendingDeletePolicy,
     isPolicyAdmin,
     isPolicyUser,
@@ -2257,6 +2636,7 @@ export {
     isPolicyMember,
     isPolicyPayer,
     arePaymentsEnabled,
+    hasApprovalFlow,
     isSubmitAndClose,
     isTaxTrackingEnabled,
     shouldShowPolicy,
@@ -2316,7 +2696,8 @@ export {
     getCurrentTaxID,
     areSettingsInErrorFields,
     settingsPendingAction,
-    getGroupPaidPoliciesWithExpenseChatEnabled,
+    getGroupPaidPolicies,
+    getGroupPoliciesWhereReportCanBeCreated,
     getDefaultChatEnabledPolicy,
     getForwardsToAccount,
     getSubmitToAccountID,
@@ -2352,6 +2733,7 @@ export {
     getPolicyEmployeeAccountIDs,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     getTravelStep,
+    isWorkspaceProvisionedForTravel,
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     isDefaultTagName,
     isTimeTrackingEnabled,
@@ -2360,13 +2742,13 @@ export {
     isPolicyTaxEnabled,
     sortPoliciesByName,
     isPolicyApprover,
+    tryNavigateToSubmitWorkspaceUpgrade,
+    canAccessSubmitWorkspaceFeatures,
     getRulesDocumentSourceURL,
-    getHRConnectionNames,
-    isGustoConnected,
-    isZenefitsConnected,
-    isHRIntegrationConnected,
     isSubmitPolicy,
-    isPolicyEditor,
+    isSubmitterApproveBlockedOnSubmitWorkspace,
+    hasAnyPaidPolicy,
+    isMergeHRCompleteSetupNeededSelector,
 };
 
-export type {MemberEmailsToAccountIDs};
+export type {MemberEmailsToAccountIDs, PolicyFeature, PolicyFeatureAccess};

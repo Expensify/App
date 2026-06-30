@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import Onyx from 'react-native-onyx';
-import {applySavedColumnMappings} from '@libs/actions/ImportSpreadsheet';
-import {buildColumnLayout, buildTransactionListFromSpreadsheet, getColumnIndexes} from '@libs/actions/ImportTransactions';
+import {applySavedColumnMappings, getImportFinalModalOnyxData} from '@libs/actions/ImportSpreadsheet';
+import importTransactionsFromCSV, {buildColumnLayout, buildTransactionListFromSpreadsheet, getColumnIndexes} from '@libs/actions/ImportTransactions';
+import * as API from '@libs/API';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ImportedSpreadsheet from '@src/types/onyx/ImportedSpreadsheet';
@@ -87,13 +88,35 @@ describe('ImportTransactions', () => {
         });
     });
 
+    describe('getImportFinalModalOnyxData', () => {
+        it('should build an imported spreadsheet update with the modal result ID and payload', () => {
+            const importFinalModal = {
+                titleKey: 'spreadsheet.importSuccessfulTitle' as const,
+                promptKey: 'spreadsheet.importTransactionsSuccessfulDescription' as const,
+                promptKeyParams: {transactions: 3},
+            };
+
+            expect(getImportFinalModalOnyxData('import-result-1', importFinalModal)).toEqual({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                value: {
+                    importFinalModalID: 'import-result-1',
+                    importFinalModal,
+                },
+            });
+        });
+    });
+
     describe('buildColumnLayout', () => {
         it('should build a basic layout with no column mappings', () => {
-            const spreadsheet = {
+            const spreadsheet: ImportedSpreadsheet = {
                 data: [],
                 columns: {},
                 containsHeader: true,
-            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
+                isImportingMultiLevelTags: false,
+                isImportingIndependentMultiLevelTags: false,
+                isGLAdjacent: false,
+            };
 
             const result = buildColumnLayout(spreadsheet, 'Test Card', 'USD', true, false);
 
@@ -129,7 +152,7 @@ describe('ImportTransactions', () => {
         });
 
         it('should build layout with column mappings and extract header names', () => {
-            const spreadsheet = {
+            const spreadsheet: ImportedSpreadsheet = {
                 data: [
                     ['Date', '2024-01-01', '2024-01-02'],
                     ['Merchant', 'Store A', 'Store B'],
@@ -143,7 +166,10 @@ describe('ImportTransactions', () => {
                     3: 'category',
                 },
                 containsHeader: true,
-            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
+                isImportingMultiLevelTags: false,
+                isImportingIndependentMultiLevelTags: false,
+                isGLAdjacent: false,
+            };
 
             const result = buildColumnLayout(spreadsheet, 'My Card', 'EUR', false, true);
 
@@ -168,7 +194,7 @@ describe('ImportTransactions', () => {
         });
 
         it('should handle missing headers when containsHeader is false', () => {
-            const spreadsheet = {
+            const spreadsheet: ImportedSpreadsheet = {
                 data: [
                     ['2024-01-01', '2024-01-02'],
                     ['Store A', 'Store B'],
@@ -180,7 +206,10 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: false,
-            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
+                isImportingMultiLevelTags: false,
+                isImportingIndependentMultiLevelTags: false,
+                isGLAdjacent: false,
+            };
 
             const result = buildColumnLayout(spreadsheet, 'Card', 'USD', true, false);
 
@@ -202,7 +231,7 @@ describe('ImportTransactions', () => {
         });
 
         it('should handle out of bounds column indexes gracefully', () => {
-            const spreadsheet = {
+            const spreadsheet: ImportedSpreadsheet = {
                 data: [
                     ['Date', '2024-01-01'],
                     ['Merchant', 'Store A'],
@@ -213,7 +242,10 @@ describe('ImportTransactions', () => {
                     10: 'amount', // Out of bounds
                 },
                 containsHeader: true,
-            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
+                isImportingMultiLevelTags: false,
+                isImportingIndependentMultiLevelTags: false,
+                isGLAdjacent: false,
+            };
 
             const result = buildColumnLayout(spreadsheet, 'Card', 'USD', true, false);
 
@@ -739,6 +771,59 @@ describe('ImportTransactions', () => {
             applySavedColumnMappings(spreadsheetData, savedLayout);
 
             expect(Onyx.merge).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('importTransactionsFromCSV', () => {
+        const CURRENT_USER_ACCOUNT_ID = 12345;
+        const validSpreadsheet = {
+            data: [
+                ['Date', '2024-01-15', '2024-01-20'],
+                ['Merchant', 'Coffee Shop', 'Restaurant'],
+                ['Amount', '5.50', '25.00'],
+            ],
+            columns: {
+                0: 'date',
+                1: 'merchant',
+                2: 'amount',
+            },
+            containsHeader: true,
+        } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
+
+        let writeSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+            writeSpy = jest.spyOn(API, 'write').mockRejectedValue(new Error('forced'));
+        });
+
+        afterEach(() => {
+            writeSpy.mockRestore();
+        });
+
+        it('returns the failed-import modal and skips the API call when no transactions are parsed', async () => {
+            const result = await importTransactionsFromCSV({...validSpreadsheet, data: []}, CURRENT_USER_ACCOUNT_ID);
+
+            expect(result).toEqual({titleKey: 'spreadsheet.importFailedTitle', promptKey: 'spreadsheet.invalidFileMessage'});
+            expect(writeSpy).not.toHaveBeenCalled();
+        });
+
+        it('calls API.write with an optimistic card when no existingCardID is passed', async () => {
+            await importTransactionsFromCSV(validSpreadsheet, CURRENT_USER_ACCOUNT_ID);
+
+            expect(writeSpy).toHaveBeenCalledTimes(1);
+            const [command, , onyxData] = writeSpy.mock.calls.at(0) as [string, unknown, {optimisticData: Array<{key: string}>}];
+            expect(command).toBe('ImportCSVTransactions');
+            expect(onyxData.optimisticData.some((entry) => entry.key === ONYXKEYS.CARD_LIST)).toBe(true);
+        });
+
+        it('reuses an existingCardID without queuing an optimistic card', async () => {
+            const existingCardID = 987654321;
+
+            await importTransactionsFromCSV(validSpreadsheet, CURRENT_USER_ACCOUNT_ID, existingCardID);
+
+            const [, params, onyxData] = writeSpy.mock.calls.at(0) as [string, {cardID: number}, {optimisticData: Array<{key: string}>}];
+            expect(params.cardID).toBe(existingCardID);
+            expect(onyxData.optimisticData.some((entry) => entry.key === ONYXKEYS.CARD_LIST)).toBe(false);
         });
     });
 });

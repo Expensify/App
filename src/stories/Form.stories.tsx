@@ -13,6 +13,7 @@ import Picker from '@components/Picker';
 import StateSelector from '@components/StateSelector';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useLocalize from '@hooks/useLocalize';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import {clearErrors, setDraftValues, setErrors, setIsLoading} from '@userActions/FormActions';
 import CONST from '@src/CONST';
@@ -63,6 +64,8 @@ const story: Meta<typeof FormProvider> = {
 };
 
 function Template(props: FormProviderProps & FormProviderOnyxProps) {
+    const {translate} = useLocalize();
+
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     setIsLoading(props.formID, !!props.formState?.isLoading);
     setDraftValues(props.formID, props.draftValues);
@@ -98,7 +101,7 @@ function Template(props: FormProviderProps & FormProviderOnyxProps) {
                 label="Street"
                 inputID="street"
                 containerStyles={defaultStyles.mt4}
-                hint="common.noPO"
+                hint={translate('common.noPO')}
             />
             <InputWrapper
                 InputComponent={DatePicker}

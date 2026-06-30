@@ -497,6 +497,16 @@ function updateXeroExportNonReimbursableAccount(
     API.write(WRITE_COMMANDS.UPDATE_XERO_EXPORT_NON_REIMBURSABLE_ACCOUNT, parameters, {optimisticData, failureData, successData});
 }
 
+function updateXeroTravelInvoicingPayableAccount(policyID: string, settingValue: string, oldSettingValue?: string) {
+    const {optimisticData, failureData, successData} = prepareXeroExportOptimisticData(policyID, CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT, settingValue, oldSettingValue);
+    const parameters: UpdateXeroGenericTypeParams = {
+        policyID,
+        settingValue,
+        idempotencyKey: String(CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_XERO_TRAVEL_INVOICING_PAYABLE_ACCOUNT, parameters, {optimisticData, failureData, successData});
+}
+
 function updateXeroSyncInvoiceCollectionsAccountID(
     policyID: string,
     invoiceCollectionsAccountID: Partial<Connections['xero']['config']['sync']['invoiceCollectionsAccountID']>,
@@ -588,6 +598,7 @@ export {
     updateXeroExportExporter,
     updateXeroExportBillDate,
     updateXeroExportNonReimbursableAccount,
+    updateXeroTravelInvoicingPayableAccount,
     updateXeroSyncInvoiceCollectionsAccountID,
     updateXeroSyncSyncReimbursedReports,
     updateXeroSyncReimbursementAccountID,

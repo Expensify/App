@@ -1,4 +1,4 @@
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchResultsContext} from '@components/Search/SearchContext';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import {withSnapshotReports, withSnapshotTransactions} from '@pages/Search/SearchEditMultiple/SearchEditMultipleUtils';
 import CONST from '@src/CONST';
@@ -11,7 +11,7 @@ import useOnyx from './useOnyx';
  * snapshot (e.g. after a hard refresh) are still resolved correctly.
  */
 function useSearchBulkEditPolicyID(): string | undefined {
-    const {currentSearchResults} = useSearchStateContext();
+    const {currentSearchResults} = useSearchResultsContext();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);

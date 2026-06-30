@@ -5,10 +5,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import searchOptions from '@libs/searchOptions';
 import type {Option} from '@libs/searchOptions';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -36,6 +38,8 @@ type CountrySelectorModalProps = {
 function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onClose, label, onBackdropPress}: CountrySelectorModalProps) {
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const initialSelectedValue = useInitialSelection(currentCountry || undefined, {isVisible});
+    const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
 
     const countries = useMemo(
         () =>
@@ -51,8 +55,8 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
             }),
         [translate, currentCountry],
     );
-
-    const searchResults = searchOptions(debouncedSearchValue, countries);
+    const orderedCountries = moveInitialSelectionToTop(countries, initialSelectedValues);
+    const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? countries : orderedCountries);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const styles = useThemeStyles();
@@ -89,9 +93,10 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
                 <SelectionList
                     data={searchResults}
                     textInputOptions={textInputOptions}
+                    searchValueForFocusSync={debouncedSearchValue}
                     onSelectRow={onCountrySelected}
                     ListItem={SingleSelectListItem}
-                    initiallyFocusedItemKey={currentCountry}
+                    initiallyFocusedItemKey={initialSelectedValue}
                     shouldSingleExecuteRowSelect
                     shouldStopPropagation
                 />

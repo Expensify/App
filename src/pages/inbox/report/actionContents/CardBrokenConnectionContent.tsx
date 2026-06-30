@@ -35,6 +35,4 @@ function CardBrokenConnectionContent({action}: CardBrokenConnectionContentProps)
     );
 }
 
-CardBrokenConnectionContent.displayName = 'CardBrokenConnectionContent';
-
 export default CardBrokenConnectionContent;

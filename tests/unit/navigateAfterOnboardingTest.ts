@@ -64,12 +64,12 @@ describe('navigateAfterOnboarding', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         const testSession = {email: 'realaccount@gmail.com'};
 
-        navigateAfterOnboarding(false, true, '', new Set(), undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, (testSession?.email ?? '').includes('+'));
+        navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, (testSession?.email ?? '').includes('+'));
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
     });
 
     it('should not navigate to the admin room report if onboardingAdminsChatReportID is not provided on larger screens', () => {
-        navigateAfterOnboarding(false, true, '', new Set(), undefined, undefined);
+        navigateAfterOnboarding(false, true, '', {}, undefined, undefined);
         expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(undefined));
     });
 
@@ -89,7 +89,7 @@ describe('navigateAfterOnboarding', () => {
         mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(false);
 
-        navigateAfterOnboarding(true, true, REPORT_ID, new Set(), ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+        navigateAfterOnboarding(true, true, REPORT_ID, {}, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
     });
 
@@ -98,7 +98,7 @@ describe('navigateAfterOnboarding', () => {
         mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(false);
 
-        navigateAfterOnboarding(true, true, '', new Set(), ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+        navigateAfterOnboarding(true, true, '', {}, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
         expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
     });
 
@@ -107,7 +107,7 @@ describe('navigateAfterOnboarding', () => {
         mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(false);
 
-        navigateAfterOnboarding(true, true, '', new Set(), ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+        navigateAfterOnboarding(true, true, '', {}, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
         expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
     });
 
@@ -117,18 +117,18 @@ describe('navigateAfterOnboarding', () => {
         mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(true);
 
-        navigateAfterOnboarding(true, true, '', new Set(), ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+        navigateAfterOnboarding(true, true, '', {}, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
     });
 
-    it('should pass archivedReportsIdSet when looking up last accessed report', () => {
-        const archivedReportsIdSet = new Set<string>(['report_1']);
+    it('should pass reportNameValuePairs when looking up last accessed report', () => {
+        const reportNameValuePairs = {[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID}`]: {private_isArchived: '2024-02-01 04:56:47.233'}};
         mockFindLastAccessedReport.mockReturnValue(undefined);
         mockShouldOpenOnAdminRoom.mockReturnValue(false);
 
-        navigateAfterOnboarding(true, true, '', archivedReportsIdSet, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+        navigateAfterOnboarding(true, true, '', reportNameValuePairs, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
 
-        expect(mockFindLastAccessedReport).toHaveBeenCalledWith(false, false, undefined, archivedReportsIdSet);
+        expect(mockFindLastAccessedReport).toHaveBeenCalledWith(false, false, undefined, reportNameValuePairs);
     });
 
     it('should navigate to Concierge room if user uses a test email', () => {
@@ -138,7 +138,13 @@ describe('navigateAfterOnboarding', () => {
         mockShouldOpenOnAdminRoom.mockReturnValue(true);
         const testSession = {email: 'test+account@gmail.com'};
 
-        navigateAfterOnboarding(true, true, '', new Set(), ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID, (testSession?.email ?? '').includes('+'));
+        navigateAfterOnboarding(true, true, '', {}, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID, (testSession?.email ?? '').includes('+'));
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
+    });
+
+    it('should navigate to the admin room when the inboxAdminsBespoke variant is assigned', () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, false, CONST.ONBOARDING_RHP_VARIANT.INBOX_ADMINS_BESPOKE);
+        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
     });
 });

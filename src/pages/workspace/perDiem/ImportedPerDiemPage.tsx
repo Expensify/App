@@ -2,10 +2,10 @@ import React, {useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
-import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCloseImportPage from '@hooks/useCloseImportPage';
 import {useCurrencyListState} from '@hooks/useCurrencyList';
+import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -59,6 +59,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const {setIsClosing} = useCloseImportPage();
+    const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
 
     const getColumnRoles = (): ColumnRole[] => {
         const roles = [];
@@ -104,7 +105,13 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
         return errors;
     };
 
-    const importRates = () => {
+    const closeImportPageAndModal = () => {
+        setIsClosing(true);
+        setIsImportingPerDiemRates(false);
+        Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID));
+    };
+
+    const importRates = async () => {
         setIsValidationEnabled(true);
         const errors = validate();
         if (Object.keys(errors).length > 0 || !perDiemCustomUnit?.customUnitID) {
@@ -131,7 +138,13 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
 
         if (perDiemUnits) {
             setIsImportingPerDiemRates(true);
-            importPerDiemRates(policyID, perDiemCustomUnit.customUnitID, perDiemUnits, rowsLength);
+            const importFinalModal = await importPerDiemRates(policyID, perDiemCustomUnit.customUnitID, perDiemUnits, rowsLength);
+            const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal);
+            if (!didShowImportFinalModal) {
+                setIsImportingPerDiemRates(false);
+                return;
+            }
+            closeImportPageAndModal();
         }
     };
 
@@ -143,12 +156,6 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
     if (!spreadsheetColumns) {
         return <NotFoundPage />;
     }
-
-    const closeImportPageAndModal = () => {
-        setIsClosing(true);
-        setIsImportingPerDiemRates(false);
-        Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID));
-    };
 
     return (
         <ScreenWrapper
@@ -168,11 +175,6 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
                 columnRoles={columnRoles}
                 isButtonLoading={isImportingPerDiemRates}
                 learnMoreLink={CONST.IMPORT_SPREADSHEET.CATEGORIES_ARTICLE_LINK}
-            />
-
-            <ImportSpreadsheetConfirmModal
-                isVisible={spreadsheet?.shouldFinalModalBeOpened}
-                closeImportPageAndModal={closeImportPageAndModal}
             />
         </ScreenWrapper>
     );

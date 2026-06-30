@@ -32,6 +32,12 @@ type TransactionViolationData = {
     /** Limit that the transaction violated */
     formattedLimit?: string;
 
+    /** Currency of the transaction */
+    currency?: string;
+
+    /** Limit amount that the transaction violated */
+    amount?: number;
+
     /** Percentage amount of conversion surcharge applied to the transaction */
     surcharge?: number;
 
@@ -106,6 +112,9 @@ type TransactionViolationData = {
 
     /** Card ID associated with the violation (used to determine if it's a personal or company card) */
     cardID?: number;
+
+    /** List of fields that failed to scan (e.g., ["merchant", "date", "amount"]) */
+    missingFields?: string[];
 };
 
 /** Model of a transaction violation */

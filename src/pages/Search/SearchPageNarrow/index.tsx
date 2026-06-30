@@ -4,7 +4,6 @@ import {StyleSheet, View} from 'react-native';
 import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import {useFullScreenBlockingViewActions} from '@components/FullScreenBlockingViewContextProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
@@ -13,17 +12,17 @@ import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
-import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchPageHeaderNarrow from '@components/Search/SearchPageHeader/SearchPageHeaderNarrow';
+import SearchSelectionFooter from '@components/Search/SearchSelectionFooter';
+import SearchWithNavigationDeferredMount from '@components/Search/SearchWithNavigationDeferredMount';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSearchLoadingState from '@hooks/useSearchLoadingState';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -52,12 +51,6 @@ type SearchPageNarrowProps = {
     metadata?: SearchResultsInfo;
     searchResults?: SearchResults;
     isMobileSelectionModeEnabled: boolean;
-    footerData: {
-        count: number | undefined;
-        total: number | undefined;
-        currency: string | undefined;
-    };
-    shouldShowFooter: boolean;
     onSortPressedCallback: () => void;
     /** Overlay rendered above Search content during expense-creation flows (SearchStaticList or null). */
     searchOverlayContent: React.ReactNode;
@@ -76,8 +69,6 @@ function SearchPageNarrow({
     searchResults,
     isMobileSelectionModeEnabled,
     metadata,
-    footerData,
-    shouldShowFooter,
     onSortPressedCallback,
     searchOverlayContent,
     onSearchContentReady,
@@ -86,13 +77,11 @@ function SearchPageNarrow({
 }: SearchPageNarrowProps) {
     const shouldShowLoadingSkeleton = useSearchLoadingState(queryJSON, searchResults);
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {clearSelectedTransactions} = useSearchActionsContext();
-    const {shouldUseLiveData} = useSearchStateContext();
-    const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
+    const {clearSelectedTransactions} = useSearchSelectionActions();
+    const {shouldUseLiveData} = useSearchResultsContext();
     const {isOffline} = useNetwork();
 
     const shouldShowLoadingBarForReports = useLoadingBarVisibility();
@@ -158,11 +147,6 @@ function SearchPageNarrow({
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
-    const shouldDisplayCancelSearch = shouldUseNarrowLayout && searchRouterListVisible;
-    const cancelSearchCallback = useCallback(() => {
-        setSearchRouterListVisible(false);
-    }, []);
-
     const handleSearchAction = useCallback((value: SearchParams | string) => {
         if (typeof value === 'string') {
             searchInServer(value);
@@ -170,17 +154,6 @@ function SearchPageNarrow({
             search(value)?.then((jsonCode) => setSearchRequestResponseStatusCode(Number(jsonCode ?? 0)));
         }
     }, []);
-
-    const {addRouteKey, removeRouteKey} = useFullScreenBlockingViewActions();
-    useEffect(() => {
-        if (!searchRouterListVisible) {
-            return;
-        }
-
-        addRouteKey(route.key);
-
-        return () => removeRouteKey(route.key);
-    }, [addRouteKey, removeRouteKey, route.key, searchRouterListVisible]);
 
     const navigation = useNavigation();
     // When pre-inserted behind the RHP (not focused), always start in static rendering
@@ -264,30 +237,21 @@ function SearchPageNarrow({
                 shouldEnableMaxHeight
                 offlineIndicatorStyle={styles.mtAuto}
                 shouldShowOfflineIndicator={!!searchResults}
-                bottomContent={!searchRouterListVisible && tabBarContent}
+                bottomContent={tabBarContent}
                 bottomContentStyle={styles.overflowVisible}
             >
                 <View style={[styles.flex1, styles.overflowHidden]}>
                     {!isMobileSelectionModeEnabled ? (
-                        <View style={[StyleUtils.getSearchPageNarrowHeaderStyles(), searchRouterListVisible && styles.flex1, styles.mh100]}>
+                        <View style={[StyleUtils.getSearchPageNarrowHeaderStyles(), styles.mh100]}>
                             <View style={[styles.zIndex10, styles.appBG]}>
                                 <SearchPageHeaderNarrow
                                     queryJSON={queryJSON}
                                     shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
                                     isMobileSelectionModeEnabled={false}
-                                    cancelSearch={shouldDisplayCancelSearch ? cancelSearchCallback : undefined}
                                 />
                             </View>
                             <View style={[styles.flex1]}>
-                                <Animated.View
-                                    style={[
-                                        topBarAnimatedStyle,
-                                        !searchRouterListVisible && styles.narrowSearchRouterInactiveStyle,
-                                        styles.flex1,
-                                        styles.appBG,
-                                        styles.searchTopBarZIndexStyle,
-                                    ]}
-                                >
+                                <Animated.View style={[topBarAnimatedStyle, styles.narrowSearchRouterInactiveStyle, styles.flex1, styles.appBG, styles.searchTopBarZIndexStyle]}>
                                     <PulsingView
                                         shouldPulse={!isHeaderInteractive}
                                         style={styles.flex1}
@@ -296,40 +260,24 @@ function SearchPageNarrow({
                                         <SearchTypeMenuSwitch
                                             showStatic={!isHeaderInteractive}
                                             queryJSON={queryJSON}
-                                            onTabPress={() => {
-                                                setSearchRouterListVisible(false);
-                                            }}
                                         />
-                                        <View style={[styles.flex1, styles.flexRow, styles.pt1]}>
+                                        <View style={[styles.flex1, styles.flexRow, styles.pt1, styles.mh5, styles.mb4, styles.gap3]}>
                                             <SearchPageInputSwitch
                                                 showStatic={!isHeaderInteractive}
                                                 queryJSON={queryJSON}
-                                                searchRouterListVisible={searchRouterListVisible}
-                                                hideSearchRouterList={() => {
-                                                    setSearchRouterListVisible(false);
-                                                }}
-                                                onSearchRouterFocus={() => {
-                                                    topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
-                                                    setSearchRouterListVisible(true);
-                                                }}
-                                                handleSearch={handleSearchAction}
-                                                skipSkeleton={useStaticRendering}
+                                                onFocus={() => topBarOffset.set(StyleUtils.searchHeaderDefaultOffset)}
                                             />
-                                            {!searchRouterListVisible && (
-                                                <SearchActionsBarSwitch
-                                                    showStatic={!isHeaderInteractive}
-                                                    queryJSON={queryJSON}
-                                                    searchResults={searchResults}
-                                                    onSort={onSortPressedCallback}
-                                                />
-                                            )}
-                                        </View>
-                                        {!searchRouterListVisible && (
-                                            <SearchFiltersBarSwitch
+                                            <SearchActionsBarSwitch
                                                 showStatic={!isHeaderInteractive}
                                                 queryJSON={queryJSON}
+                                                searchResults={searchResults}
+                                                onSort={onSortPressedCallback}
                                             />
-                                        )}
+                                        </View>
+                                        <SearchFiltersBarSwitch
+                                            showStatic={!isHeaderInteractive}
+                                            queryJSON={queryJSON}
+                                        />
                                     </PulsingView>
                                 </Animated.View>
                             </View>
@@ -351,87 +299,79 @@ function SearchPageNarrow({
                             />
                         </>
                     )}
-                    {!searchRouterListVisible && (
-                        <View style={[styles.flex1]}>
-                            {useStaticRendering && (
-                                <>
-                                    {isInteractive && (
-                                        <Search
-                                            searchResults={searchResults}
-                                            queryJSON={queryJSON}
-                                            key={queryJSON.hash}
-                                            contentContainerStyle={contentContainerStyle}
-                                            handleSearch={handleSearchAction}
-                                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                            onSearchListScroll={scrollHandler}
-                                            searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                                            onDestinationVisible={endSubmitNavigationSpans}
-                                            onContentReady={onSearchContentReady}
-                                            hasFilterBars={hasFilterBars}
-                                        />
-                                    )}
-                                    {isOverlayActive && !searchOverlayContent && <View onLayout={onSearchLayout} />}
-                                    {!!searchOverlayContent && (
-                                        <View
-                                            style={[StyleSheet.absoluteFill, styles.appBG]}
-                                            onLayout={onSearchLayout}
-                                        >
-                                            {searchOverlayContent}
-                                        </View>
-                                    )}
-                                </>
-                            )}
-                            {!useStaticRendering && (
-                                <>
-                                    {shouldShowLoadingSkeleton ? (
-                                        <SearchLoadingSkeleton
-                                            containerStyle={styles.searchListContentContainerStyles(hasFilterBars)}
-                                            reasonAttributes={{
-                                                context: 'SearchPage',
-                                                isOffline,
-                                                isDataLoaded,
-                                                isSearchLoading: !!searchResults?.search?.isLoading,
-                                                hasEmptyData: Array.isArray(searchResults?.data) && searchResults?.data.length === 0,
-                                                hasErrors: Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline,
-                                                hasPendingResponse: searchRequestResponseStatusCode === null,
-                                                shouldUseLiveData,
-                                            }}
-                                        />
-                                    ) : (
-                                        <Search
-                                            searchResults={searchResults}
-                                            queryJSON={queryJSON}
-                                            key={queryJSON.hash}
-                                            onSearchListScroll={scrollHandler}
-                                            contentContainerStyle={contentContainerStyle}
-                                            handleSearch={handleSearchAction}
-                                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                            searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                                            onDestinationVisible={endSubmitNavigationSpans}
-                                            onContentReady={onSearchContentReady}
-                                            hasFilterBars={hasFilterBars}
-                                        />
-                                    )}
-                                    {isOverlayActive && !searchOverlayContent && <View onLayout={onSearchLayout} />}
-                                    {!!searchOverlayContent && (
-                                        <View
-                                            style={[StyleSheet.absoluteFill, styles.appBG]}
-                                            onLayout={onSearchLayout}
-                                        >
-                                            {searchOverlayContent}
-                                        </View>
-                                    )}
-                                </>
-                            )}
-                        </View>
-                    )}
-                    {shouldShowFooter && !searchRouterListVisible && (
-                        <SearchPageFooter
-                            count={footerData.count}
-                            total={footerData.total}
-                            currency={footerData.currency}
-                        />
-                    )}
+                    <View style={[styles.flex1]}>
+                        {useStaticRendering && (
+                            <>
+                                {isInteractive && (
+                                    <Search
+                                        searchResults={searchResults}
+                                        queryJSON={queryJSON}
+                                        key={queryJSON.hash}
+                                        contentContainerStyle={contentContainerStyle}
+                                        handleSearch={handleSearchAction}
+                                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                        onSearchListScroll={scrollHandler}
+                                        searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                                        onDestinationVisible={endSubmitNavigationSpans}
+                                        onContentReady={onSearchContentReady}
+                                        hasFilterBars={hasFilterBars}
+                                    />
+                                )}
+                                {isOverlayActive && !searchOverlayContent && <View onLayout={onSearchLayout} />}
+                                {!!searchOverlayContent && (
+                                    <View
+                                        style={[StyleSheet.absoluteFill, styles.appBG]}
+                                        onLayout={onSearchLayout}
+                                    >
+                                        {searchOverlayContent}
+                                    </View>
+                                )}
+                            </>
+                        )}
+                        {!useStaticRendering && (
+                            <>
+                                {shouldShowLoadingSkeleton ? (
+                                    <SearchLoadingSkeleton
+                                        containerStyle={styles.searchListContentContainerStyles(hasFilterBars)}
+                                        reasonAttributes={{
+                                            context: 'SearchPage',
+                                            isOffline,
+                                            isDataLoaded,
+                                            isSearchLoading: !!searchResults?.search?.isLoading,
+                                            hasEmptyData: Array.isArray(searchResults?.data) && searchResults?.data.length === 0,
+                                            hasErrors: Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline,
+                                            hasPendingResponse: searchRequestResponseStatusCode === null,
+                                            shouldUseLiveData,
+                                        }}
+                                    />
+                                ) : (
+                                    <SearchWithNavigationDeferredMount
+                                        searchResults={searchResults}
+                                        queryJSON={queryJSON}
+                                        key={queryJSON.hash}
+                                        onSearchListScroll={scrollHandler}
+                                        contentContainerStyle={contentContainerStyle}
+                                        handleSearch={handleSearchAction}
+                                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                        searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                                        onDestinationVisible={endSubmitNavigationSpans}
+                                        onContentReady={onSearchContentReady}
+                                        hasFilterBars={hasFilterBars}
+                                    />
+                                )}
+                                {isOverlayActive && !searchOverlayContent && <View onLayout={onSearchLayout} />}
+                                {!!searchOverlayContent && (
+                                    <View
+                                        style={[StyleSheet.absoluteFill, styles.appBG]}
+                                        onLayout={onSearchLayout}
+                                    >
+                                        {searchOverlayContent}
+                                    </View>
+                                )}
+                            </>
+                        )}
+                    </View>
+                    <SearchSelectionFooter searchResults={searchResults} />
                 </View>
             </ScreenWrapper>
             {(!useStaticRendering || isHeaderInteractive) && (

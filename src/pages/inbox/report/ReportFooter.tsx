@@ -31,10 +31,15 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
+import EnableNotificationsBanner, {BANNER_COMPOSER_OVERLAP_PX} from './EnableNotificationsBanner';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
+import useShouldShowComposerForActiveEditDraft from './useShouldShowComposerForActiveEditDraft';
+import useShouldShowEnableNotificationsBanner from './useShouldShowEnableNotificationsBanner';
 
 const policyRoleSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => policy?.role;
+
+const composerOverlapStyle = {marginTop: -BANNER_COMPOSER_OVERLAP_PX};
 
 /**
  * Footer component that decides between the composer and
@@ -70,6 +75,7 @@ function ReportFooter() {
 
     const isUserPolicyAdmin = policyRole === CONST.POLICY.ROLE.ADMIN;
     const isArchivedRoom = isArchivedNonExpenseReport(report, isReportArchived);
+    const shouldShowEnableNotificationsBanner = useShouldShowEnableNotificationsBanner(report);
 
     const shouldShowComposerOptimistically = !isAnonymousUser && isPublicRoom(report) && !!isLoadingInitialReportActions;
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived) ?? shouldShowComposerOptimistically;
@@ -77,6 +83,7 @@ function ReportFooter() {
     const canWriteInReport = canWriteInReportUtil(report);
     const isSystemChat = isSystemChatUtil(report);
     const isAdminsOnlyPostingRoom = isAdminsOnlyPostingRoomUtil(report);
+    const shouldShowComposerForActiveEditDraft = useShouldShowComposerForActiveEditDraft();
 
     if (!isCurrentReportLoadedFromOnyx || !report || !reportIDFromRoute) {
         return null;
@@ -86,11 +93,21 @@ function ReportFooter() {
 
     // Happy path — user can compose
     if (!shouldHideComposer) {
+        const composer = (
+            <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                <ReportActionCompose reportID={reportIDFromRoute} />
+            </SwipeableView>
+        );
         return (
             <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
-                <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                    <ReportActionCompose reportID={reportIDFromRoute} />
-                </SwipeableView>
+                {shouldShowEnableNotificationsBanner ? (
+                    <>
+                        <EnableNotificationsBanner />
+                        <View style={[composerOverlapStyle, isComposerFullSize && styles.flex1]}>{composer}</View>
+                    </>
+                ) : (
+                    composer
+                )}
             </View>
         );
     }
@@ -151,12 +168,21 @@ function ReportFooter() {
         );
     }
 
-    // Admins-only room
+    // Admins-only room — keep the banner visible; mount the composer above it while editing on narrow screens.
     if (isAdminsOnlyPostingRoom && !isUserPolicyAdmin) {
+        const isEditingWithComposer = shouldShowComposerForActiveEditDraft;
+
         return (
-            <View style={[styles.chatFooter, styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
+            <View style={[styles.chatFooter, !isEditingWithComposer && styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
+                {isEditingWithComposer && (
+                    <View style={[isComposerFullSize ? styles.chatFooterFullCompose : undefined, styles.mb2]}>
+                        <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                            <ReportActionCompose.EditOnly reportID={reportIDFromRoute} />
+                        </SwipeableView>
+                    </View>
+                )}
                 <Banner
-                    containerStyles={[styles.chatFooterBanner]}
+                    containerStyles={[styles.chatFooterBanner, isEditingWithComposer && styles.mt2]}
                     text={translate('adminOnlyCanPost')}
                     icon={expensifyIcons.Lightbulb}
                     shouldShowIcon

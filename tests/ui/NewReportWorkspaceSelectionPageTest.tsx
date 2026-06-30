@@ -9,7 +9,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {createNewReport} from '@libs/actions/Report';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {NewReportWorkspaceSelectionNavigatorParamList} from '@libs/Navigation/types';
-import NewReportWorkspaceSelectionPage from '@pages/NewReportWorkspaceSelectionPage';
+import DynamicNewReportWorkspaceSelectionPage from '@pages/DynamicNewReportWorkspaceSelectionPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -62,8 +62,8 @@ function renderPage() {
                 <NavigationContainer>
                     <Stack.Navigator>
                         <Stack.Screen
-                            name={SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT}
-                            component={NewReportWorkspaceSelectionPage}
+                            name={SCREENS.NEW_REPORT_WORKSPACE_SELECTION.DYNAMIC_ROOT}
+                            component={DynamicNewReportWorkspaceSelectionPage}
                             initialParams={{}}
                         />
                     </Stack.Navigator>

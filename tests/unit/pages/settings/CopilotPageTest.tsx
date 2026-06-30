@@ -4,12 +4,20 @@ import CopilotPage from '@pages/settings/Copilot/CopilotPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const SESSION_EMAIL = 'me@example.com';
+const AGENT_SESSION_EMAIL = 'agent_42@expensify.ai';
+const OWNER_EMAIL = 'owner@example.com';
 
 const mockUseOnyx = jest.fn<unknown[], [string]>();
 
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
-    default: (key: string) => mockUseOnyx(key),
+    default: (key: string, options?: {selector?: (value: unknown) => unknown}) => {
+        const result = mockUseOnyx(key);
+        if (options?.selector) {
+            return [options.selector(result.at(0) ?? undefined)];
+        }
+        return result;
+    },
 }));
 
 jest.mock('@hooks/usePersonalDetailsByLogin', () => jest.fn(() => ({})));
@@ -56,7 +64,7 @@ jest.mock('@hooks/useWindowDimensions', () => jest.fn(() => ({windowWidth: 1280,
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyIllustrations: jest.fn(() => ({Copilots: 1, Members: 1})),
-    useMemoizedLazyExpensifyIcons: jest.fn(() => ({Pencil: 1, ThreeDots: 1, Trashcan: 1, UserPlus: 1})),
+    useMemoizedLazyExpensifyIcons: jest.fn(() => ({Pencil: 'icon-pencil', ThreeDots: 'icon-three-dots', Trashcan: 'icon-trashcan', UserPlus: 'icon-user-plus'})),
 }));
 
 jest.mock('@libs/actions/Delegate', () => ({
@@ -65,6 +73,7 @@ jest.mock('@libs/actions/Delegate', () => ({
     connect: jest.fn(),
     openSecuritySettingsPage: jest.fn(),
     removeDelegate: jest.fn(),
+    removeDelegator: jest.fn(),
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -126,13 +135,13 @@ describe('CopilotPage', () => {
         jest.clearAllMocks();
     });
 
-    function setOnyxAccount(account: Record<string, unknown> | undefined) {
+    function setOnyxAccount(account: Record<string, unknown> | undefined, overrides: {sessionEmail?: string} = {}) {
         mockUseOnyx.mockImplementation((key: string) => {
             if (key === ONYXKEYS.ACCOUNT) {
                 return [account];
             }
             if (key === ONYXKEYS.SESSION) {
-                return [{email: SESSION_EMAIL}];
+                return [{email: overrides.sessionEmail ?? SESSION_EMAIL}];
             }
             return [undefined];
         });
@@ -150,7 +159,7 @@ describe('CopilotPage', () => {
         expect(output).toContain('delegate.addCopilot');
     });
 
-    it('renders a delegator row with a Switch button when the user has delegators', () => {
+    it('renders a delegator row with a three-dot menu when the user has delegators', () => {
         setOnyxAccount({
             validated: true,
             delegatedAccess: {
@@ -163,7 +172,7 @@ describe('CopilotPage', () => {
         const output = JSON.stringify(toJSON());
 
         expect(output).toContain('boss@example.com');
-        expect(output).toContain('delegate.switch');
+        expect(output).toContain('icon-three-dots');
         expect(output).toContain('delegate.youCanAccessTheseAccounts');
         expect(output).not.toContain('delegate.membersCanAccessYourAccount');
     });
@@ -185,5 +194,27 @@ describe('CopilotPage', () => {
 
         expect(topIndex).toBeGreaterThanOrEqual(0);
         expect(bottomIndex).toBeGreaterThan(topIndex);
+    });
+
+    it('hides the three-dot menu for the acting-delegate row on an agent account but keeps it for other delegates', () => {
+        const twoDelegates = [
+            {email: OWNER_EMAIL, role: 'all'},
+            {email: 'other@example.com', role: 'submitter'},
+        ];
+
+        setOnyxAccount({validated: true, delegatedAccess: {delegators: [], delegates: twoDelegates, delegate: OWNER_EMAIL}}, {sessionEmail: SESSION_EMAIL});
+        const nonAgentOutput = JSON.stringify(render(<CopilotPage />).toJSON());
+        const nonAgentCount = nonAgentOutput.split('icon-three-dots').length - 1;
+        expect(nonAgentCount).toBeGreaterThan(0);
+        expect(nonAgentCount % 2).toBe(0);
+        const occurrencesPerRow = nonAgentCount / 2;
+
+        setOnyxAccount({validated: true, delegatedAccess: {delegators: [], delegates: twoDelegates, delegate: OWNER_EMAIL}}, {sessionEmail: AGENT_SESSION_EMAIL});
+        const agentOutput = JSON.stringify(render(<CopilotPage />).toJSON());
+        const agentCount = agentOutput.split('icon-three-dots').length - 1;
+
+        expect(agentOutput).toContain(OWNER_EMAIL);
+        expect(agentOutput).toContain('other@example.com');
+        expect(agentCount).toBe(occurrencesPerRow);
     });
 });

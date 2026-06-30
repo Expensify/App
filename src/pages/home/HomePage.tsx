@@ -16,14 +16,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AnnouncementSection from './AnnouncementSection';
-import AssignedCardsSection from './AssignedCardsSection';
 import DiscoverSection from './DiscoverSection';
 import ForYouSection from './ForYouSection';
 import FreeTrialSection from './FreeTrialSection';
 import GettingStartedSection from './GettingStartedSection';
+import RecentlyAddedSection from './RecentlyAddedSection';
 import SpendOverTimeSection from './SpendOverTimeSection';
 import TimeSensitiveSection from './TimeSensitiveSection';
 import UpcomingTravelSection from './UpcomingTravelSection';
+import YourSpendSection from './YourSpendSection';
 
 function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -72,24 +73,32 @@ function HomePage() {
                                     <GettingStartedSection />
                                     <ForYouSection />
                                     <UpcomingTravelSection />
-                                    <AssignedCardsSection />
+                                    <RecentlyAddedSection />
+                                    <YourSpendSection />
                                     <SpendOverTimeSection />
                                     <DiscoverSection />
                                     <AnnouncementSection />
                                 </>
                             ) : (
                                 <>
-                                    <View style={styles.homePageLeftColumn}>
+                                    <View
+                                        testID="homePageLeftColumn"
+                                        style={styles.homePageLeftColumn}
+                                    >
                                         <TimeSensitiveSection />
                                         <ForYouSection />
+                                        <RecentlyAddedSection />
                                         <SpendOverTimeSection />
-                                        <DiscoverSection />
                                     </View>
-                                    <View style={styles.homePageRightColumn}>
+                                    <View
+                                        testID="homePageRightColumn"
+                                        style={styles.homePageRightColumn}
+                                    >
                                         <FreeTrialSection />
                                         <GettingStartedSection />
                                         <UpcomingTravelSection />
-                                        <AssignedCardsSection />
+                                        <YourSpendSection />
+                                        <DiscoverSection />
                                         <AnnouncementSection />
                                     </View>
                                 </>

@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import type {ListRenderItemInfo} from 'react-native';
-import {FlatList, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -10,30 +9,30 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import FeedSelector from '@components/FeedSelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
-import SearchBar from '@components/SearchBar';
+import type {WorkspaceExpensifyCardTableRowData} from '@components/Tables/WorkspaceExpensifyCardsTable';
+import WorkspaceExpensifyCardsTable from '@components/Tables/WorkspaceExpensifyCardsTable';
 import Text from '@components/Text';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
-import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchResults from '@hooks/useSearchResults';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearIssueNewCardFormData, exportExpensifyCardListToCSV, setIssueNewCardStepAndData} from '@libs/actions/Card';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
-import {filterCardsByPersonalDetails, getCardsByCardholderName, getCardSettings, sortCardsByCardholderName} from '@libs/CardUtils';
+import {getCardsByCardholderName, getCardSettings, isCurrencySupportedForECards} from '@libs/CardUtils';
 import {getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -46,11 +45,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Card, WorkspaceCardsList} from '@src/types/onyx';
+import type {WorkspaceCardsList} from '@src/types/onyx';
 import EmptyCardView from './EmptyCardView';
-import WorkspaceCardListHeader from './WorkspaceCardListHeader';
-import WorkspaceCardListLabels from './WorkspaceCardListLabels';
-import WorkspaceCardListRow from './WorkspaceCardListRow';
 
 type WorkspaceExpensifyCardListPageProps = {
     /** Route from navigation */
@@ -66,9 +62,10 @@ type WorkspaceExpensifyCardListPageProps = {
 function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExpensifyCardListPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Export', 'Gear', 'Plus']);
     const {shouldUseNarrowLayout, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
-    const {translate, localeCompare} = useLocalize();
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['HandCard', 'ExpensifyCardImage']);
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const defaultFundID = useDefaultFundID(policyID);
@@ -76,6 +73,8 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [domains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const settings = getCardSettings(cardSettings);
     const {allFeeds: allAdminExpensifyCardFeeds} = useExpensifyCardFeedsForFeedSelector(policyID);
     const shouldShowSelector = allAdminExpensifyCardFeeds.length >= 1;
@@ -83,11 +82,11 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
-    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
-    const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
     const isBankAccountVerified = !cardOnWaitlist;
+    const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
     const {windowHeight} = useWindowDimensions();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+    const {canWrite: canWriteExpensifyCard, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
     const headerHeight = useEmptyViewHeaderHeight(shouldDisplayButtonsInSeparateLine, isBankAccountVerified);
     const [footerHeight, setFooterHeight] = useState(0);
     const cardFeedIcon = (
@@ -97,46 +96,62 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         />
     );
 
-    const settlementCurrency = useCurrencyForExpensifyCard({policyID});
+    const settlementCurrency = useCurrencyForExpensifyCard({policyID, fundID});
+    const shouldShowEuUkDisclaimer = isCurrencySupportedForECards(settlementCurrency);
     const allCards = useMemo(() => {
         const policyMembersAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList));
         return getCardsByCardholderName(cardsList, policyMembersAccountIDs);
     }, [cardsList, policy?.employeeList]);
 
     const isCardListEmpty = allCards.length === 0;
-    const filterCard = useCallback((card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails), [personalDetails]);
-    const sortCards = useCallback((cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare), [personalDetails, localeCompare]);
-    const [inputValue, setInputValue, filteredSortedCards] = useSearchResults(allCards, filterCard, sortCards);
-    const [selectedCardIDs, setSelectedCardIDs] = useState<number[]>([]);
-    const selectableCardIDs = filteredSortedCards.map((card) => card.cardID);
+    const [selectedCardKeys, setSelectedCardKeys] = useState<string[]>([]);
+    const selectableCardKeySet = useMemo(() => new Set(allCards.map((card) => String(card.cardID))), [allCards]);
+    const validatedSelectedCardKeys = useMemo(() => selectedCardKeys.filter((key) => selectableCardKeySet.has(key)), [selectedCardKeys, selectableCardKeySet]);
+    const selectedCardIDs = useMemo(() => validatedSelectedCardKeys.map((key) => Number(key)), [validatedSelectedCardKeys]);
 
-    const prunedSelectedCardIDs = selectedCardIDs.filter((id) => selectableCardIDs.includes(id));
-    if (prunedSelectedCardIDs.length !== selectedCardIDs.length) {
-        setSelectedCardIDs(prunedSelectedCardIDs);
-    }
-    const toggleCardSelection = (cardID: number) => {
-        setSelectedCardIDs((prev) => (prev.includes(cardID) ? prev.filter((id) => id !== cardID) : [...prev, cardID]));
-    };
-    const toggleSelectAll = () => {
-        if (selectableCardIDs.length === 0) {
-            return;
-        }
-        setSelectedCardIDs((prev) => {
-            if (prev.length > 0) {
-                return [];
-            }
-            return [...selectableCardIDs];
-        });
-    };
-    const isSelectAllChecked = selectedCardIDs.length > 0 && selectedCardIDs.length === selectableCardIDs.length;
-    const isSelectAllIndeterminate = selectedCardIDs.length > 0 && selectedCardIDs.length < selectableCardIDs.length;
+    const clearTableSelection = useCallback(() => {
+        setSelectedCardKeys((prevSelectedCardKeys) => (prevSelectedCardKeys.length > 0 ? [] : prevSelectedCardKeys));
+    }, []);
+
+    useCleanupSelectedOptions(clearTableSelection);
+
+    const cardRows = useMemo<WorkspaceExpensifyCardTableRowData[]>(
+        () =>
+            allCards.map((card) => {
+                const frozenByDisplayName = card.nameValuePairs?.frozen?.byAccountID
+                    ? getDisplayNameOrDefault(personalDetails?.[card.nameValuePairs.frozen.byAccountID], '', false) || undefined
+                    : undefined;
+
+                return {
+                    keyForList: String(card.cardID),
+                    cardID: card.cardID,
+                    card,
+                    lastFourPAN: card.lastFourPAN ?? '',
+                    name: card.nameValuePairs?.cardTitle ?? '',
+                    cardholder: personalDetails?.[card.accountID ?? CONST.DEFAULT_NUMBER_ID],
+                    limit: card.nameValuePairs?.unapprovedExpenseLimit ?? 0,
+                    currency: settlementCurrency,
+                    isVirtual: !!card.nameValuePairs?.isVirtual,
+                    limitType: card.nameValuePairs?.limitType,
+                    frozenByDisplayName,
+                    frozenByAccountID: card.nameValuePairs?.frozen?.byAccountID,
+                    frozenDate: card.nameValuePairs?.frozen?.date,
+                    errors: card.errors,
+                    pendingAction: card.pendingAction,
+                    action: () => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, card.cardID.toString())),
+                    onClose: () => clearDeletePaymentMethodError(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, card.cardID),
+                };
+            }),
+        [allCards, defaultFundID, personalDetails, policyID, settlementCurrency],
+    );
+
     const bulkExportOptions: Array<DropdownOption<typeof CONST.EXPENSIFY_CARD.BULK_ACTIONS.EXPORT_CSV>> = [
         {
             icon: icons.Export,
             text: translate('workspace.expensifyCard.exportAsCSV'),
             value: CONST.EXPENSIFY_CARD.BULK_ACTIONS.EXPORT_CSV,
             onSelected: () => {
-                const selectedCards = filteredSortedCards.filter((card) => selectedCardIDs.includes(card.cardID));
+                const selectedCards = cardRows.filter((row) => validatedSelectedCardKeys.includes(row.keyForList)).map((row) => row.card);
                 exportExpensifyCardListToCSV({
                     policyID,
                     cards: selectedCards,
@@ -149,6 +164,10 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     ];
 
     const handleIssueCardPress = () => {
+        if (!canWriteExpensifyCard) {
+            showReadOnlyModal();
+            return;
+        }
         clearIssueNewCardFormData();
         if (isAccountLocked) {
             showLockedAccountModal();
@@ -159,16 +178,18 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             return;
         }
         setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
     };
-    const secondaryActions = [
-        {
-            icon: icons.Gear,
-            text: translate('common.settings'),
-            onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID)),
-            value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
-        },
-    ];
+    const secondaryActions = canWriteExpensifyCard
+        ? [
+              {
+                  icon: icons.Gear,
+                  text: translate('common.settings'),
+                  onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID)),
+                  value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+              },
+          ]
+        : [];
     const getHeaderButtons = () => {
         const headerButtonsRowStyle = [
             styles.flexRow,
@@ -177,7 +198,9 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             shouldShowSelector && shouldDisplayButtonsInSeparateLine && styles.mt3,
         ];
 
-        if (selectedCardIDs.length > 0) {
+        const shouldShowBulkSelectionDropdown = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : selectedCardIDs.length > 0;
+
+        if (shouldShowBulkSelectionDropdown) {
             return (
                 <View style={headerButtonsRowStyle}>
                     <ButtonWithDropdownMenu<typeof CONST.EXPENSIFY_CARD.BULK_ACTIONS.EXPORT_CSV>
@@ -187,6 +210,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         options={bulkExportOptions}
                         isSplitButton={false}
                         shouldAlwaysShowDropdownMenu
+                        isDisabled={!selectedCardIDs.length}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE_EXPENSIFY_CARD.BULK_ACTIONS_DROPDOWN}
                         wrapperStyle={[!isInLandscapeMode && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.flexShrink1]}
                     />
@@ -203,117 +227,50 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         icon={icons.Plus}
                         text={translate('workspace.expensifyCard.issueCard')}
                         style={shouldDisplayButtonsInSeparateLine && styles.flex1}
+                        innerStyles={!canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined}
+                        hoverStyles={!canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
                     />
                 )}
-                <ButtonWithDropdownMenu
-                    success={false}
-                    onPress={() => {}}
-                    customText={translate('common.more')}
-                    options={secondaryActions}
-                    isSplitButton={false}
-                    shouldUseOptionIcon
-                    wrapperStyle={isCardListEmpty && !isInLandscapeMode ? styles.flexGrow1 : styles.flexGrow0}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.MORE_DROPDOWN}
-                />
-            </View>
-        );
-    };
-
-    const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
-    const shouldShowBulkSelection = filteredSortedCards.length > 0;
-
-    const renderItem = ({item, index}: ListRenderItemInfo<Card>) => {
-        const frozenByDisplayName = item.nameValuePairs?.frozen?.byAccountID
-            ? getDisplayNameOrDefault(personalDetails?.[item.nameValuePairs.frozen.byAccountID], '', false) || undefined
-            : undefined;
-
-        const isCardSelected = selectedCardIDs.includes(item.cardID);
-
-        return (
-            <OfflineWithFeedback
-                key={`${item.nameValuePairs?.cardTitle}_${index}`}
-                pendingAction={item.pendingAction}
-                errorRowStyles={styles.ph5}
-                errors={item.errors}
-                onClose={() => clearDeletePaymentMethodError(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, item.cardID)}
-            >
-                <PressableWithFeedback
-                    role={CONST.ROLE.BUTTON}
-                    style={[styles.mh5, styles.br3, styles.mb2, styles.highlightBG, shouldShowBulkSelection && isCardSelected && styles.activeComponentBG]}
-                    accessibilityLabel="row"
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE_EXPENSIFY_CARD.CARD_LIST_ROW}
-                    hoverStyle={[styles.hoveredComponentBG]}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, item.cardID.toString()))}
-                >
-                    {({hovered}) => (
-                        <WorkspaceCardListRow
-                            lastFourPAN={item.lastFourPAN ?? ''}
-                            cardholder={personalDetails?.[item.accountID ?? CONST.DEFAULT_NUMBER_ID]}
-                            limit={item.nameValuePairs?.unapprovedExpenseLimit ?? 0}
-                            name={item.nameValuePairs?.cardTitle ?? ''}
-                            frozenByDisplayName={frozenByDisplayName}
-                            frozenByAccountID={item.nameValuePairs?.frozen?.byAccountID}
-                            frozenDate={item.nameValuePairs?.frozen?.date}
-                            currency={settlementCurrency}
-                            isVirtual={!!item.nameValuePairs?.isVirtual}
-                            isHovered={hovered}
-                            limitType={item.nameValuePairs?.limitType}
-                            bulkSelection={
-                                shouldShowBulkSelection
-                                    ? {
-                                          isSelected: isCardSelected,
-                                          onToggle: () => toggleCardSelection(item.cardID),
-                                      }
-                                    : undefined
-                            }
-                        />
-                    )}
-                </PressableWithFeedback>
-            </OfflineWithFeedback>
-        );
-    };
-
-    const renderListHeader = (
-        <>
-            <View style={[styles.appBG, styles.flexShrink0, styles.flexGrow1]}>
-                <WorkspaceCardListLabels
-                    policyID={policyID}
-                    cardSettings={settings}
-                />
-                {allCards.length > CONST.SEARCH_ITEM_LIMIT && (
-                    <SearchBar
-                        label={translate('workspace.expensifyCard.findCard')}
-                        inputValue={inputValue}
-                        onChangeText={setInputValue}
-                        shouldShowEmptyState={isSearchEmpty}
-                        style={[styles.mb0, styles.mt5]}
+                {secondaryActions.length > 0 && (
+                    <ButtonWithDropdownMenu
+                        success={false}
+                        onPress={() => {}}
+                        customText={translate('common.more')}
+                        options={secondaryActions}
+                        isSplitButton={false}
+                        shouldUseOptionIcon
+                        wrapperStyle={isCardListEmpty && !isInLandscapeMode ? styles.flexGrow1 : styles.flexGrow0}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.MORE_DROPDOWN}
                     />
                 )}
             </View>
-            {!isSearchEmpty && (
-                <WorkspaceCardListHeader
-                    cardSettings={cardSettings}
-                    bulkSelection={
-                        shouldShowBulkSelection
-                            ? {
-                                  onSelectAll: toggleSelectAll,
-                                  isSelectAllChecked,
-                                  isSelectAllIndeterminate,
-                              }
-                            : undefined
-                    }
-                />
-            )}
-        </>
-    );
+        );
+    };
 
     const handleBackButtonPress = () => {
+        if (isMobileSelectionModeEnabled) {
+            clearTableSelection();
+            turnOffMobileSelectionMode();
+            return true;
+        }
+
         Navigation.goBack();
         return true;
     };
+    const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
+    const shouldShowHeaderButtons = (shouldUseNarrowLayout && isMobileSelectionModeEnabled) || selectedCardIDs.length > 0 || canWriteExpensifyCard || !isCardListEmpty;
 
     useAndroidBackButtonHandler(handleBackButtonPress);
+
+    const disclaimerFooter = (
+        <Text
+            style={[styles.textMicroSupporting, styles.p5, footerHeight === 0 && {opacity: 0}]}
+            onLayout={(event) => setFooterHeight(event.nativeEvent.layout.height)}
+        >
+            {translate(shouldShowEuUkDisclaimer ? 'workspace.expensifyCard.euUkDisclaimer' : 'workspace.expensifyCard.disclaimer')}
+        </Text>
+    );
 
     return (
         <ScreenWrapper
@@ -324,16 +281,16 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             testID="WorkspaceExpensifyCardListPage"
         >
             <HeaderWithBackButton
-                icon={illustrations.HandCard}
-                shouldUseHeadlineHeader
-                title={translate('workspace.common.expensifyCard')}
+                icon={!selectionModeHeader ? illustrations.HandCard : undefined}
+                shouldUseHeadlineHeader={!selectionModeHeader}
+                title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.expensifyCard')}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplayHelpButton
                 onBackButtonPress={handleBackButtonPress}
             >
-                {!shouldShowSelector && !shouldDisplayButtonsInSeparateLine && isBankAccountVerified && getHeaderButtons()}
+                {!shouldShowSelector && !shouldDisplayButtonsInSeparateLine && isBankAccountVerified && shouldShowHeaderButtons && getHeaderButtons()}
             </HeaderWithBackButton>
-            {!shouldShowSelector && shouldDisplayButtonsInSeparateLine && isBankAccountVerified && <View style={styles.ph5}>{getHeaderButtons()}</View>}
+            {!shouldShowSelector && shouldDisplayButtonsInSeparateLine && isBankAccountVerified && shouldShowHeaderButtons && <View style={styles.ph5}>{getHeaderButtons()}</View>}
             {shouldShowSelector && (
                 <View style={[styles.w100, styles.ph5, styles.pb3, (!shouldChangeLayout || isInLandscapeMode) && [styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]]}>
                     <FeedSelector
@@ -341,9 +298,9 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         onFeedSelect={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path))}
                         CardFeedIcon={cardFeedIcon}
                         feedName={translate('workspace.common.expensifyCard')}
-                        supportingText={getExpensifyCardFeedDescription(cardSettings, allPolicies)}
+                        supportingText={getExpensifyCardFeedDescription(cardSettings, allPolicies, domains, fundID, cardList)}
                     />
-                    {isBankAccountVerified && getHeaderButtons()}
+                    {isBankAccountVerified && (canWriteExpensifyCard || secondaryActions.length > 0 || !isCardListEmpty) && getHeaderButtons()}
                 </View>
             )}
             {isCardListEmpty ? (
@@ -355,31 +312,27 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                             buttonText: translate('workspace.expensifyCard.issueCard'),
                             buttonAction: handleIssueCardPress,
                             success: true,
+                            innerStyles: !canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined,
+                            hoverStyles: !canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined,
                         },
                     ]}
                 />
             ) : (
-                <ScrollView
-                    addBottomSafeAreaPadding
-                    showsVerticalScrollIndicator={false}
-                >
-                    <FlatList
-                        data={filteredSortedCards}
-                        renderItem={renderItem}
-                        ListHeaderComponent={renderListHeader}
-                        contentContainerStyle={[styles.flexGrow1, {minHeight: windowHeight - headerHeight + footerHeight}]}
-                        ListFooterComponent={
-                            <Text
-                                style={[styles.textMicroSupporting, styles.p5, footerHeight === 0 && {opacity: 0}]}
-                                onLayout={(event) => setFooterHeight(event.nativeEvent.layout.height)}
-                            >
-                                {translate(isUkEuCurrencySupported ? 'workspace.expensifyCard.euUkDisclaimer' : 'workspace.expensifyCard.disclaimer')}
-                            </Text>
-                        }
-                        ListFooterComponentStyle={[styles.flexGrow1, styles.justifyContentEnd]}
-                        keyboardShouldPersistTaps="handled"
+                <View style={styles.flex1}>
+                    <WorkspaceExpensifyCardsTable
+                        policyID={policyID}
+                        cards={cardRows}
+                        selectionEnabled={cardRows.length > 0}
+                        selectedKeys={validatedSelectedCardKeys}
+                        onRowSelectionChange={setSelectedCardKeys}
+                        cardSettings={cardSettings}
+                        cardSettingsBase={settings}
+                        personalDetails={personalDetails}
+                        listFooterComponent={disclaimerFooter}
+                        listFooterComponentStyle={[styles.flexGrow1, styles.justifyContentEnd]}
+                        listContentContainerStyle={[styles.flexGrow1, {minHeight: windowHeight - headerHeight + footerHeight}]}
                     />
-                </ScrollView>
+                </View>
             )}
         </ScreenWrapper>
     );

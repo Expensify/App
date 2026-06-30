@@ -10,10 +10,11 @@ import SearchActionsBarCreateButton from '@components/Search/SearchPageHeader/Se
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import {createNewReport} from '@libs/actions/Report';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
@@ -47,10 +48,9 @@ jest.mock('@hooks/usePopoverPosition', () => () => ({
     calculatePopoverPosition: jest.fn(() => Promise.resolve({horizontal: 0, vertical: 0})),
 }));
 
-jest.mock('@hooks/useHasEmptyReportsForPolicy', () => () => false);
-
+const mockOpenCreateReportConfirmation = jest.fn();
 jest.mock('@hooks/useCreateEmptyReportConfirmation', () => () => ({
-    openCreateReportConfirmation: jest.fn(),
+    openCreateReportConfirmation: mockOpenCreateReportConfirmation,
 }));
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => true);
@@ -195,7 +195,7 @@ describe('SearchActionsBarCreateButton', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then it navigates to workspace selection
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+        expect(mockNavigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.path));
     });
 
     it('should create report directly when a single default workspace exists', async () => {
@@ -265,6 +265,32 @@ describe('SearchActionsBarCreateButton', () => {
         expect(screen.getByText(translateLocal('report.newReport.createReport'))).toBeOnTheScreen();
     });
 
+    it('should call startMoneyRequest when "Create expense" is pressed', async () => {
+        mockUsePolicyForMovingExpenses.mockReturnValue({
+            policyForMovingExpensesID: MOCK_POLICY_ID,
+            policyForMovingExpenses: MOCK_POLICY,
+            shouldSelectPolicy: false,
+        });
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`, MOCK_POLICY);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        const createButton = screen.getByText(translateLocal('common.create'));
+        fireEvent.press(createButton);
+        await waitForBatchedUpdatesWithAct();
+
+        const createExpenseItem = screen.getByText(translateLocal('iou.createExpense'));
+        fireEvent.press(createExpenseItem, createMockPressEvent(createExpenseItem));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockInterceptAnonymousUser).toHaveBeenCalled();
+    });
+
     it('should navigate to workspace selector when owner billing is restricted and multiple workspaces exist', async () => {
         // Given the current user owns a workspace that is past due billing with an outstanding amount
         const pastDueGracePeriod = getUnixTime(subDays(new Date(), 3));
@@ -305,7 +331,83 @@ describe('SearchActionsBarCreateButton', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then it navigates to workspace selection since there are multiple workspaces and the default is restricted
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+        expect(mockNavigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.path));
+    });
+
+    it('should open confirmation modal when an empty report exists and confirmation is not dismissed', async () => {
+        mockUsePolicyForMovingExpenses.mockReturnValue({
+            policyForMovingExpensesID: MOCK_POLICY_ID,
+            policyForMovingExpenses: MOCK_POLICY,
+            shouldSelectPolicy: false,
+        });
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`, MOCK_POLICY);
+            await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, MOCK_POLICY_ID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}empty-report`, {
+                reportID: 'empty-report',
+                policyID: MOCK_POLICY_ID,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                total: 0,
+                nonReimbursableTotal: 0,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        const createButton = screen.getByText(translateLocal('common.create'));
+        fireEvent.press(createButton);
+        await waitForBatchedUpdatesWithAct();
+
+        const createReportItem = screen.getByText(translateLocal('report.newReport.createReport'));
+        fireEvent.press(createReportItem, createMockPressEvent(createReportItem));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockOpenCreateReportConfirmation).toHaveBeenCalled();
+        expect(mockCreateNewReport).not.toHaveBeenCalled();
+    });
+
+    it('should not open confirmation modal when confirmation has been dismissed', async () => {
+        mockUsePolicyForMovingExpenses.mockReturnValue({
+            policyForMovingExpensesID: MOCK_POLICY_ID,
+            policyForMovingExpenses: MOCK_POLICY,
+            shouldSelectPolicy: false,
+        });
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`, MOCK_POLICY);
+            await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, MOCK_POLICY_ID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}empty-report`, {
+                reportID: 'empty-report',
+                policyID: MOCK_POLICY_ID,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                total: 0,
+                nonReimbursableTotal: 0,
+            });
+            await Onyx.merge(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, true);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        const createButton = screen.getByText(translateLocal('common.create'));
+        fireEvent.press(createButton);
+        await waitForBatchedUpdatesWithAct();
+
+        const createReportItem = screen.getByText(translateLocal('report.newReport.createReport'));
+        fireEvent.press(createReportItem, createMockPressEvent(createReportItem));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockOpenCreateReportConfirmation).not.toHaveBeenCalled();
     });
 
     it('should navigate to restricted action page when owner billing is restricted and only one workspace exists', async () => {

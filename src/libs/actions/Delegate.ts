@@ -2,7 +2,12 @@ import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {AddDelegateParams as APIAddDelegateParams, RemoveDelegateParams as APIRemoveDelegateParams, UpdateDelegateRoleParams as APIUpdateDelegateRoleParams} from '@libs/API/parameters';
+import type {
+    AddDelegateParams as APIAddDelegateParams,
+    RemoveDelegateParams as APIRemoveDelegateParams,
+    RemoveDelegatorParams as APIRemoveDelegatorParams,
+    UpdateDelegateRoleParams as APIUpdateDelegateRoleParams,
+} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
@@ -79,7 +84,7 @@ type WithValidateCode = {
 
 type WithFieldName = {
     // Constrain to known keys to avoid misspells at call sites
-    fieldName: 'addDelegate' | 'updateDelegateRole'; // but string could work as well
+    fieldName: 'addDelegate' | 'updateDelegateRole' | 'connect' | 'removeDelegator' | 'removeDelegate';
 };
 
 type WithOldDotFlag = {
@@ -379,7 +384,7 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
         ];
     };
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -484,15 +489,6 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
         },
     ];
 
-    const optimisticResetActionCode = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: ONYXKEYS.VALIDATE_ACTION_CODE,
-        value: {
-            validateCodeSent: null,
-        },
-    };
-    optimisticData.push(optimisticResetActionCode);
-
     const parameters: APIAddDelegateParams = {delegateEmail: email, validateCode, role};
 
     API.write(WRITE_COMMANDS.ADD_DELEGATE, parameters, {optimisticData, successData, failureData});
@@ -570,8 +566,80 @@ function removeDelegate({email, delegatedAccess}: RemoveDelegateParams) {
     API.write(WRITE_COMMANDS.REMOVE_DELEGATE, parameters, {optimisticData, successData, failureData});
 }
 
+function removeDelegator({email, delegatedAccess}: RemoveDelegateParams) {
+    if (!email || !delegatedAccess?.delegators) {
+        return;
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                delegatedAccess: {
+                    errorFields: {
+                        removeDelegator: {
+                            [email]: null,
+                        },
+                    },
+                    delegators: delegatedAccess.delegators?.map((delegator) =>
+                        delegator.email === email
+                            ? {
+                                  ...delegator,
+                                  pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                                  pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                              }
+                            : delegator,
+                    ),
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                delegatedAccess: {
+                    delegators: delegatedAccess.delegators?.filter((delegator) => delegator.email !== email),
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                delegatedAccess: {
+                    errorFields: {
+                        removeDelegator: {
+                            [email]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('delegate.genericError'),
+                        },
+                    },
+                    delegators: delegatedAccess.delegators?.map((delegator) =>
+                        delegator.email === email
+                            ? {
+                                  ...delegator,
+                                  pendingAction: null,
+                                  pendingFields: undefined,
+                              }
+                            : delegator,
+                    ),
+                },
+            },
+        },
+    ];
+
+    const parameters: APIRemoveDelegatorParams = {delegatorEmail: email};
+
+    API.write(WRITE_COMMANDS.REMOVE_DELEGATOR, parameters, {optimisticData, successData, failureData});
+}
+
 function clearDelegateErrorsByField({email, fieldName, delegatedAccess}: ClearDelegateErrorsByFieldParams) {
-    if (!delegatedAccess?.delegates) {
+    if (!delegatedAccess) {
         return;
     }
 
@@ -704,6 +772,7 @@ export {
     isConnectedAsDelegate,
     updateDelegateRole,
     removeDelegate,
+    removeDelegator,
     openSecuritySettingsPage,
     clearOnyxForDelegateTransition,
 };

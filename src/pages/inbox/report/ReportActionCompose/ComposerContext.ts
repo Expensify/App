@@ -26,6 +26,7 @@ type ComposerText = string;
 
 // Warm — changes on interaction
 type ComposerState = {
+    reportID: string;
     isFocused: boolean;
     isMenuVisible: boolean;
     isFullComposerAvailable: boolean;
@@ -82,6 +83,7 @@ type ComposerMeta = {
     actionButtonRef: RefObject<View | HTMLDivElement | null>;
     isNextModalWillOpenRef: RefObject<boolean>;
     attachmentFileRef: RefObject<FileObject | FileObject[] | null>;
+    textRef: RefObject<string>;
 };
 
 const noop = () => {};
@@ -89,6 +91,7 @@ const noop = () => {};
 const ComposerTextContext = createContext<ComposerText>('');
 
 const defaultState: ComposerState = {
+    reportID: '',
     isFocused: false,
     isMenuVisible: false,
     isFullComposerAvailable: false,

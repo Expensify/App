@@ -44,7 +44,7 @@ function MoveUserBetweenGroupsPage({route}: MoveUserBetweenGroupsPageProps) {
     const [userSecurityGroup] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: securityGroupSelector,
     });
-    const [memberLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(accountID)});
+    const [memberLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(accountID)}, [accountID]);
 
     const currentGroupId = userSecurityGroup?.key.replace(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '');
 
