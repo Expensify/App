@@ -1,7 +1,7 @@
 import {FlashList} from '@shopify/flash-list';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
@@ -90,6 +90,8 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         addOfflineIndicatorBottomSafeAreaPadding: true,
         style: shouldUseNarrowTableLayout ? styles.pb20 : styles.pb4,
     });
+    const {minHeight: contentMinHeight} = StyleSheet.flatten(contentContainerStyle) ?? {};
+    const {paddingBottom: tableBodyBottomPadding} = StyleSheet.flatten(tableBodyContentContainerStyle) ?? {};
 
     // Determine the message based on what caused the empty result
     const getEmptyMessage = () => {
@@ -236,7 +238,15 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
                 onScroll={handleScroll}
                 stickyHeaderIndices={canRenderStickyHeader ? [stickyTableHeaderIndex] : stickyHeaderIndices}
                 scrollEventThrottle={scrollEventThrottle ?? 16}
-                contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flexGrow1, listContentContainerStyle, tableBodyContentContainerStyle, contentContainerStyle]}
+                contentContainerStyle={[
+                    filteredAndSortedData.length === 0 && styles.flexGrow1,
+                    listContentContainerStyle,
+                    tableBodyContentContainerStyle,
+                    contentContainerStyle,
+                    shouldUseNarrowTableLayout &&
+                        typeof contentMinHeight === 'number' &&
+                        typeof tableBodyBottomPadding === 'number' && {minHeight: contentMinHeight + tableBodyBottomPadding},
+                ]}
                 keyboardShouldPersistTaps="handled"
                 renderItem={renderListItem}
                 keyExtractor={keyExtractorForList}

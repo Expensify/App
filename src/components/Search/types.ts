@@ -284,18 +284,6 @@ type ReportFieldNegatedKey = `${typeof CONST.SEARCH.REPORT_FIELD.NOT_PREFIX}${st
 type ReportFieldDateKey = `${typeof CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX}${ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>}-${string}`;
 type ReportFieldKey = ReportFieldTextKey | ReportFieldDateKey | ReportFieldNegatedKey;
 
-type SearchBooleanFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE;
-
-type SearchTextFilterKeys =
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT
-    | ReportFieldTextKey;
-
 type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED
@@ -310,11 +298,6 @@ type SearchDateKey = `${SearchDateFilterKeys}${ValueOf<typeof CONST.SEARCH.DATE_
 
 type SearchAmountFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT;
 type SearchAmountValues = Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, string | undefined>;
-
-type SearchCurrencyFilterKeys =
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY;
 
 type SearchFilterKey =
     | SyntaxFilterKey
@@ -389,7 +372,6 @@ type SearchParams = {
     prevReportsLength?: number;
     shouldCalculateTotals: boolean;
     isLoading: boolean;
-    targetCurrency?: string;
 };
 
 type BankAccountMenuItem = {
@@ -451,7 +433,6 @@ export type {
     SelectedTransactions,
     SearchColumnType,
     SearchSortBy,
-    SearchBooleanFilterKeys,
     SearchDateFilterKeys,
     SearchDateKey,
     SearchAmountFilterKeys,
@@ -494,10 +475,8 @@ export type {
     SearchDatePreset,
     SearchWithdrawalType,
     SearchWithdrawalStatus,
-    SearchCurrencyFilterKeys,
     UserFriendlyValue,
     SelectedReports,
-    SearchTextFilterKeys,
     BankAccountMenuItem,
     SearchCustomColumnIds,
     GroupedItem,

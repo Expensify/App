@@ -147,6 +147,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             policy,
             currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: session?.email ?? '',
+            ownerLogin: submitterLogin,
             managerLogin,
             hasViolationsParam: hasViolations,
             isChangePolicyTrainingModalDismissed,
