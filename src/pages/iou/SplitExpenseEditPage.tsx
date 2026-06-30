@@ -201,7 +201,11 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
         isDistance && !isP2PRate && (!rates[currentRateID] || !rate || rawPolicyRate?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || rawPolicyRate?.enabled === false);
     const policyWithAvailableRates = effectivePolicy ?? policyForMovingExpenses;
     const hasAvailableEnabledRates = Object.keys(DistanceRequestUtils.getMileageRates(policyWithAvailableRates)).length > 0;
-    const isCustomUnitOutOfPolicy = isSelfDMSplit ? isRateBroken || (isDistance && isP2PRate && hasAvailableEnabledRates) : !rates[currentRateID] || (isDistance && !rate);
+    // `shouldSelectPolicy` covers the multi-workspace case where `policyForMovingExpenses` is undefined but
+    // selectable rates exist across workspaces — keep the P2P rate flagged out-of-policy
+    const isCustomUnitOutOfPolicy = isSelfDMSplit
+        ? isRateBroken || (isDistance && isP2PRate && (hasAvailableEnabledRates || shouldSelectPolicy))
+        : !rates[currentRateID] || (isDistance && !rate);
     const rateToDisplay = DistanceRequestUtils.getRateForExpenseDisplay(rateName, isCustomUnitOutOfPolicy, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
 
     const getErrorForField = (field: ViolationField) => {
