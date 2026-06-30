@@ -62,7 +62,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
         }),
         [illustrations.Abacus, illustrations.Binoculars, illustrations.CalculatorMoney, illustrations.ReceiptUpload, illustrations.PiggyBank],
     );
-    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
+    const {onboardingIsMediumOrLargerScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.PURPOSE);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -132,7 +132,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                         autoCreateTrackWorkspace(personalDetailsForm.firstName, personalDetailsForm.lastName ?? '', choice);
                         return;
                     }
-                    void completeOnboarding({
+                    completeOnboarding({
                         engagementChoice: choice,
                         onboardingMessage: onboardingMessages[choice],
                         firstName: personalDetailsForm.firstName,
@@ -146,7 +146,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                         adminsChatReport,
                     }).then(() => {
                         navigateAfterOnboardingWithMicrotaskQueue(
-                            isSmallScreenWidth,
+                            shouldUseNarrowLayout,
                             isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                             conciergeReportID,
                             reportNameValuePairs,
