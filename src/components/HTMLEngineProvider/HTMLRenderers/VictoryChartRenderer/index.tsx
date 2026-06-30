@@ -13,7 +13,7 @@ function VictoryChartRenderer(props: VictoryChartRendererProps) {
     const styles = useThemeStyles();
     const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'VictoryChartRenderer.SkiaWebLoading'};
 
-    // Skia/CanvasKit throws an uncatchable async error ("failed to create webgl context") when WebGL2 is unavailable.
+    // Skia/CanvasKit throws an async error ("failed to create webgl context") that escapes try/catch when WebGL2 is unavailable.
     // Precheck and degrade gracefully to the chart's reserved placeholder space instead of mounting Skia and crashing.
     if (!isWebGLAvailable()) {
         return <View style={styles.chartWebFallback} />;

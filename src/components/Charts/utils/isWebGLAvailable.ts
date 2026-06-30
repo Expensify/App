@@ -1,15 +1,12 @@
 /**
  * Detects whether the current browser can create a WebGL2 rendering context.
  *
- * Skia (CanvasKit) hard-throws `failed to create webgl context: err 0` from inside its asynchronous draw loop when no
- * WebGL2 context is available — hardware acceleration is disabled, the GPU is on the browser's blocklist, or the per-page
- * live-WebGL-context limit is exhausted. Because that throw happens on a requestAnimationFrame/setTimeout callback it
- * cannot be caught by a synchronous try/catch or a React error boundary, so it escapes as an unhandled error. We precheck
- * with this helper before mounting any Skia-backed chart and degrade gracefully when WebGL2 is unavailable.
+ * Skia (CanvasKit) hard-throws `failed to create webgl context: err 0` from inside its async draw loop when WebGL2 is
+ * unavailable (e.g. hardware acceleration disabled, the GPU is blocked, or the per-page live-context limit exhausted).
+ * That throw lands on a requestAnimationFrame/setTimeout callback, so no synchronous try/catch or React error boundary
+ * can catch it — checking for it first lets a Skia-backed chart degrade gracefully instead of crashing.
  *
- * The probe context is released immediately via the `WEBGL_lose_context` extension so the check itself does not consume
- * one of the browser's limited WebGL context slots, and the result is memoized because GPU capability does not change
- * within a session — the probe therefore runs at most once.
+ * The result is memoized because GPU capability does not change within a session.
  */
 let cachedResult: boolean | undefined;
 
