@@ -83,14 +83,14 @@ describe('useReportScrollManager', () => {
         }).not.toThrow();
     });
 
-    it('scrollToIndex calls through to the registered ref', () => {
+    it('scrollToIndex calls through to the registered ref and defaults to a non-animated (instant) scroll on native', () => {
         const {result} = renderManager();
         const {ref, methods} = buildMockListRef();
         act(() => result.current.registerListRef(ref));
 
         act(() => result.current.manager.scrollToIndex(5));
 
-        expect(methods.scrollToIndex).toHaveBeenCalledWith(expect.objectContaining({index: 5}));
+        expect(methods.scrollToIndex).toHaveBeenCalledWith({index: 5, animated: false});
     });
 
     it('scrollToOffset calls through to the registered ref', () => {

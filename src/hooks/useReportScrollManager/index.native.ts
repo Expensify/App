@@ -8,9 +8,10 @@ function useReportScrollManager(): ReportScrollManagerData {
 
     /**
      * Scroll to the provided index. `isEditing` is accepted for signature parity with the web
-     * implementation but is a no-op here, matching the previous native behavior.
+     * implementation but is a no-op here, matching the previous native behavior. `animated`
+     * defaults to `false` to match FlashList's default (the previous native call omitted it).
      */
-    const scrollToIndex = (index: number, {animated = true}: {isEditing?: boolean; animated?: boolean} = {}) => {
+    const scrollToIndex = (index: number, {animated = false}: {isEditing?: boolean; animated?: boolean} = {}) => {
         const listRef = getListRef();
         if (!listRef?.current) {
             return;
