@@ -360,7 +360,7 @@ describe('WorkspaceMembers', () => {
                 expect(screen.getByText(USER_OPTION)).toBeOnTheScreen();
             });
 
-            fireEvent.press(screen.getByTestId(`${CONST.SELECTION_BUTTON_TEST_ID}${USER_OPTION}`));
+            selectCheckboxByMemberName('Member');
             fireEvent.press(screen.getByTestId('WorkspaceMembersPage-header-dropdown-menu-button'));
             await waitForBatchedUpdatesWithAct();
 
@@ -403,7 +403,7 @@ describe('WorkspaceMembers', () => {
                 expect(screen.getByText(AUDITOR_OPTION)).toBeOnTheScreen();
             });
 
-            fireEvent.press(screen.getByTestId(`${CONST.SELECTION_BUTTON_TEST_ID}${AUDITOR_OPTION}`));
+            selectCheckboxByMemberName('Auditor');
             fireEvent.press(screen.getByTestId('WorkspaceMembersPage-header-dropdown-menu-button'));
             await waitForBatchedUpdatesWithAct();
 
