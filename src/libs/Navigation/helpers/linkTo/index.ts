@@ -202,8 +202,9 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
 
     // When something other than TAB_NAVIGATOR is on top of the stack and we're navigating
     // to TAB_NAVIGATOR, PUSH a new instance above (e.g., above RHP).
+    // Skip when forceReplace is set so the caller's explicit REPLACE intent is preserved.
     const currentTopRoute = currentState.routes[currentState.index];
-    if (currentTopRoute?.name !== NAVIGATORS.TAB_NAVIGATOR && typedPayload.name === NAVIGATORS.TAB_NAVIGATOR) {
+    if (!forceReplace && currentTopRoute?.name !== NAVIGATORS.TAB_NAVIGATOR && typedPayload.name === NAVIGATORS.TAB_NAVIGATOR) {
         (action as {type: string}).type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
     }
 

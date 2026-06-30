@@ -1,10 +1,10 @@
 import {StackActions} from '@react-navigation/native';
-import collapseOnboardingNestedStack from '@libs/Navigation/helpers/collapseOnboardingNestedStack';
+import resetOnboardingStackToRoot from '@libs/Navigation/helpers/resetOnboardingStackToRoot';
 import navigationRef from '@libs/Navigation/navigationRef';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-jest.mock('@libs/Navigation/helpers/collapseOnboardingNestedStack', () => jest.requireActual('@libs/Navigation/helpers/collapseOnboardingNestedStack/index.ts'));
+jest.mock('@libs/Navigation/helpers/resetOnboardingStackToRoot', () => jest.requireActual('@libs/Navigation/helpers/resetOnboardingStackToRoot/index.ts'));
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
     isReady: jest.fn(),
@@ -12,7 +12,7 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
     dispatch: jest.fn(),
 }));
 
-describe('collapseOnboardingNestedStack', () => {
+describe('resetOnboardingStackToRoot', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
@@ -20,7 +20,7 @@ describe('collapseOnboardingNestedStack', () => {
     it('should not dispatch when navigation is not ready', () => {
         jest.mocked(navigationRef.isReady).mockReturnValue(false);
 
-        collapseOnboardingNestedStack();
+        resetOnboardingStackToRoot();
 
         expect(navigationRef.dispatch).not.toHaveBeenCalled();
     });
@@ -32,7 +32,7 @@ describe('collapseOnboardingNestedStack', () => {
             routes: [{name: NAVIGATORS.TAB_NAVIGATOR, key: 'tab-key'}],
         } as ReturnType<typeof navigationRef.getRootState>);
 
-        collapseOnboardingNestedStack();
+        resetOnboardingStackToRoot();
 
         expect(navigationRef.dispatch).not.toHaveBeenCalled();
     });
@@ -55,7 +55,7 @@ describe('collapseOnboardingNestedStack', () => {
             ],
         } as ReturnType<typeof navigationRef.getRootState>);
 
-        collapseOnboardingNestedStack();
+        resetOnboardingStackToRoot();
 
         expect(navigationRef.dispatch).not.toHaveBeenCalled();
     });
@@ -82,7 +82,7 @@ describe('collapseOnboardingNestedStack', () => {
             ],
         } as ReturnType<typeof navigationRef.getRootState>);
 
-        collapseOnboardingNestedStack();
+        resetOnboardingStackToRoot();
 
         expect(navigationRef.dispatch).toHaveBeenCalledWith({
             ...StackActions.pop(2),
