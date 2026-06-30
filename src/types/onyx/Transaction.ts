@@ -609,6 +609,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the transaction was created from the FAB, including Global create button, FloatingCameraButton, QuickAction,... */
         isFromFloatingActionButton?: boolean;
 
+        /** Whether the transaction was created from a native home-screen shortcut (force touch). */
+        isFromNativeShortcut?: boolean;
+
         /** The transaction tax rate */
         taxRate?: string | undefined;
 

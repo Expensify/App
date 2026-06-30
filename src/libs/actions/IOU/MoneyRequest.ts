@@ -390,6 +390,10 @@ function createDraftTransaction(transaction: Transaction) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
 }
 
+function setNativeShortcutFlag(transactionID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {isFromNativeShortcut: true});
+}
+
 function clearMoneyRequest(transactionID: string, draftTransactionIDs: string[] | undefined, skipConfirmation = false) {
     const onyxData: Record<string, null | boolean> = {
         ...getRemoveDraftTransactionsByIDsData(draftTransactionIDs),
@@ -919,4 +923,5 @@ export {
     setMoneyRequestReimbursable,
     setMoneyRequestReportID,
     setLastSelectedDistanceRate,
+    setNativeShortcutFlag,
 };

@@ -12,6 +12,7 @@ const BASE_SNAPSHOT: SubmitNavigationSnapshot = {
     isReportTopmostSplit: false,
     isSearchTopmostFullScreen: false,
     isDestinationReportLoaded: false,
+    isFromNativeShortcut: false,
 };
 
 function snap(overrides: Partial<SubmitNavigationSnapshot>): SubmitNavigationSnapshot {

@@ -83,6 +83,9 @@ type SubmitExpenseOrchestratorProps = {
     /** Persisted flag on the transaction: flow originated from the floating action button. */
     isFromFloatingActionButtonOnTransaction: boolean;
 
+    /** Persisted flag on the transaction: flow originated from a native home-screen shortcut. */
+    isFromNativeShortcutOnTransaction: boolean;
+
     /** Render prop receiving onConfirm and isConfirming. */
     children: (props: SubmitExpenseOrchestratorRenderProps) => React.ReactNode;
 };
@@ -134,6 +137,7 @@ function SubmitExpenseOrchestrator({
     receiptFiles,
     isFromGlobalCreateOnTransaction,
     isFromFloatingActionButtonOnTransaction,
+    isFromNativeShortcutOnTransaction,
     children,
 }: SubmitExpenseOrchestratorProps) {
     const [destinationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
@@ -199,6 +203,7 @@ function SubmitExpenseOrchestrator({
             isReportTopmostSplit: isReportTopmostSplitNavigator(),
             isSearchTopmostFullScreen: isSearchTopmostFullScreenRoute(),
             isDestinationReportLoaded: !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, undefined, destinationReport)?.reportID,
+            isFromNativeShortcut: isFromNativeShortcutOnTransaction,
         };
     };
 
@@ -210,15 +215,20 @@ function SubmitExpenseOrchestrator({
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
         Navigation.clearFullscreenPreInsertedFlag();
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-        Navigation.dismissModal({
-            afterTransition: () => {
-                // shouldHandleNavigation defaults to true here (other fast paths pass false). The Search screen was
-                // pre-inserted before the modal opened, so the nav stack is already correct and createTransaction's
-                // post-create cleanup (navigateAfterExpenseCreate) finishes the flow.
-                createTransaction(locationPermissionGranted);
-                setIsConfirming(false);
-            },
-        });
+
+        const afterTransition = () => {
+            createTransaction(locationPermissionGranted, false);
+            setIsConfirming(false);
+        };
+
+        if (isFromNativeShortcutOnTransaction) {
+            // Native shortcuts may have a report pre-inserted, so replace it with the search route.
+            const searchType = iouType === CONST.IOU.TYPE.INVOICE ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
+            const searchRoute = ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: searchType})});
+            Navigation.revealRouteBeforeDismissingModal(searchRoute, {afterTransition});
+        } else {
+            Navigation.dismissModal({afterTransition});
+        }
     };
 
     const dismissAfterEnsuringDestinationReportIsPreInserted = (reportID: string | undefined, afterTransition: () => void) => {

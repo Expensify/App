@@ -427,6 +427,7 @@ function submitAmount({
                         draftTransactionIDs: draftTransactionIDsList,
                         transactionID: existingTransactionID ?? optimisticTransactionID,
                         isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+                        isFromNativeShortcut: !!transaction?.isFromNativeShortcut,
                         backToReport,
                         optimisticChatReportID,
                         linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction,

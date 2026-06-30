@@ -992,6 +992,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'participantsAutoAssigned':
         case 'isFromGlobalCreate':
         case 'isFromFloatingActionButton':
+        case 'isFromNativeShortcut':
         case 'hasEReceipt':
         case 'shouldShowOriginalAmount':
         case 'managedCard':
@@ -1115,6 +1116,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     transactionType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isFromGlobalCreate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isFromFloatingActionButton: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    isFromNativeShortcut: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     parentTransactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     reimbursable: CONST.RED_BRICK_ROAD_PENDING_ACTION,

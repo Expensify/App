@@ -206,6 +206,7 @@ function handleMoneyRequestStepDistanceNavigation({
 
     const distance = manualDistance ?? gpsDistance ?? odometerDistance;
     const transactionIsFromGlobalCreate = getIsFromGlobalCreate(transaction);
+    const transactionIsFromNativeShortcut = !!transaction?.isFromNativeShortcut;
     const transactionLinkedTrackedExpenseReportAction = transaction?.linkedTrackedExpenseReportAction;
 
     // If a reportID exists in the report object, it's because either:
@@ -324,6 +325,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             draftTransactionIDs,
                             transactionID: getExistingTransactionID(transactionLinkedTrackedExpenseReportAction) ?? optimisticTransactionID,
                             isFromGlobalCreate: transactionIsFromGlobalCreate,
+                            isFromNativeShortcut: transactionIsFromNativeShortcut,
                             backToReport,
                             optimisticChatReportID,
                             linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction,
@@ -400,6 +402,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         // createDistanceRequest writes under the existing draft transaction, so the cleanup target must mirror that id, not a fresh optimistic one.
                         transactionID: getExistingTransactionID(transactionLinkedTrackedExpenseReportAction) ?? transaction?.transactionID,
                         isFromGlobalCreate: transactionIsFromGlobalCreate,
+                        isFromNativeShortcut: transactionIsFromNativeShortcut,
                         backToReport,
                         optimisticChatReportID,
                         linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction,
