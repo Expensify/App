@@ -2,7 +2,7 @@ import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import type {Connection, OnyxEntry} from 'react-native-onyx';
 import {formatCurrentUserToAttendee} from '@libs/IOUUtils';
-import revokeOdometerImageUri from '@libs/OdometerImageUtils';
+import revokeOdometerImageUri from '@libs/OdometerUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';

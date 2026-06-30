@@ -46,6 +46,9 @@ type ParentNavigationSubtitleProps = {
     /** The status text of the expense report */
     statusText?: string;
 
+    /** Text to display in a tooltip shown on hover of the status badge */
+    statusTooltipText?: string;
+
     /** The style of the text */
     textStyles?: StyleProp<TextStyle>;
 
@@ -79,6 +82,7 @@ function ParentNavigationSubtitle({
     pressableStyles,
     openParentReportInCurrentTab = false,
     statusText,
+    statusTooltipText,
     textStyles,
     statusTextBackgroundColor,
     statusTextColor,
@@ -259,6 +263,7 @@ function ParentNavigationSubtitle({
                     backgroundColor={statusTextBackgroundColor}
                     textColor={statusTextColor}
                     badgeStyles={[styles.mr1, statusTextContainerStyles]}
+                    tooltipText={statusTooltipText}
                 />
             )}
             <Text
