@@ -36,8 +36,8 @@ function syncHistoryMock() {
 }
 
 /**
- * Automock leaves the default export's methods undefined, so this provides the methods the flow needs
- * and resolves any other `Navigation.*` the render path touches to a no-op jest.fn().
+ * Supplies the Navigation methods the flow drives with real behavior and resolves any other
+ * `Navigation.*` the render path touches to a no-op jest.fn() via the Proxy.
  *
  * `runAfterTransition` runs its callback immediately (no active navigation transition in jsdom).
  * `runAfterUpcomingTransition` captures the navigator's teardown callback so MODAL_CLOSED is driven

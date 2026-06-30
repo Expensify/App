@@ -17,7 +17,7 @@ jest.mock('@hooks/useInspectedMachine', () => require('tests/utils/mfa/realUi/je
 jest.mock('@components/MultifactorAuthentication/biometrics/useBiometrics', () => require('tests/utils/mfa/realUi/jestMocks').biometricsHookMock());
 // Browser/Android back-history wiring is a separate concern from the machine <-> UI contract.
 jest.mock('@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHistory', () => require('tests/utils/mfa/realUi/jestMocks').syncHistoryMock());
-// Navigation automock leaves methods undefined, so this supplies the methods the flow needs and no-ops the rest.
+// Supplies the Navigation methods the flow drives with real behavior; the Proxy no-ops the rest.
 jest.mock('@libs/Navigation/Navigation', () => require('tests/utils/mfa/realUi/jestMocks').navigationMock());
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;

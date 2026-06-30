@@ -1,3 +1,5 @@
+import type {UseBiometricsReturn} from '@components/MultifactorAuthentication/biometrics/shared/types';
+
 /**
  * Shared, mutable mock seam for the model-based MFA UI test. The jest.mock factories in `jestMocks`
  * read from these holders, and the harness / event executors drive them. Keeping the seam in one
@@ -29,14 +31,13 @@ const pendingModalClose = {
 };
 
 /**
- * Stands in for the native / WebAuthn biometrics hook. The flow only reads the credential fields
- * during `INIT` (captureCredentialsState). `authorize` is here for the scenarios that will later sign
- * a challenge through this seam.
+ * Stands in for the native / WebAuthn biometrics hook. Typed as the slice of `UseBiometricsReturn`
+ * the flow reads during `INIT` (captureCredentialsState), so renaming a field on the real hook fails
+ * the build here. New scenarios extend the Pick with the fields they exercise.
  */
-const biometricsMock = {
-    serverKnownCredentialIDs: [] as string[],
+const biometricsMock: Pick<UseBiometricsReturn, 'serverKnownCredentialIDs' | 'areLocalCredentialsKnownToServer'> = {
+    serverKnownCredentialIDs: [],
     areLocalCredentialsKnownToServer: () => Promise.resolve(false),
-    authorize: () => Promise.resolve(),
 };
 
 function resetMfaUiMocks() {
