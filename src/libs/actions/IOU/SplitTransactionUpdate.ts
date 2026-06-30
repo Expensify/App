@@ -765,8 +765,7 @@ function updateSplitTransactions({
                 const transactionThreadReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportKey}`];
                 const iouReportID = workspaceExpenseReportID ?? splitExpense?.reportID ?? transactionThreadReport?.parentReportID;
                 const transactionIOUReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
-                const isSelfDMPerDiemSplit = isSelfDMSplit && isPerDiemRequestTransactionUtils(originalTransaction);
-                const newTransactionReportID = isSelfDMPerDiemSplit ? CONST.REPORT.UNREPORTED_REPORT_ID : (workspaceExpenseReportID ?? splitExpense?.reportID);
+                const newTransactionReportID = isSelfDMSplit ? CONST.REPORT.UNREPORTED_REPORT_ID : (workspaceExpenseReportID ?? splitExpense?.reportID);
                 const {onyxData: moneyRequestParamsOnyxData, params} = getUpdateMoneyRequestParams({
                     transactionID: existingTransactionID,
                     transactionThreadReport,

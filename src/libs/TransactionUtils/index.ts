@@ -2733,6 +2733,15 @@ function isSplitChildTransaction(transaction: OnyxEntry<Transaction> | Transacti
     return transaction?.comment?.source === CONST.IOU.TYPE.SPLIT;
 }
 
+/**
+ * The original (container) transaction of a split lives in SPLIT_REPORT_ID while the split exists, so it's
+ * hidden and has no dismiss UI of its own. Used to decide whether a split failure error on the original
+ * should be cleared alongside the visible child's error.
+ */
+function isSplitContainerTransaction(transaction: OnyxEntry<Transaction> | Transaction): boolean {
+    return transaction?.reportID === CONST.REPORT.SPLIT_REPORT_ID;
+}
+
 function hasSplitExpenseInSelection(transactions: Transaction[]): boolean {
     return transactions.some(isSplitChildTransaction);
 }
@@ -3087,6 +3096,7 @@ export {
     isExpenseSplit,
     hasSplitExpenseInSelection,
     isSplitChildTransaction,
+    isSplitContainerTransaction,
     getAttendeesListDisplayString,
     isCorporateCardTransaction,
     isExpenseUnreported,

@@ -670,7 +670,7 @@ function updateSplitExpenseAmountField(
                 const isSplitP2PRate = splitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
                 // Prefer the split's own selected rate when it's a real enabled rate; otherwise fall back to
                 // the original-transaction rate (covers the P2P and deleted-rate cases).
-                const useSplitSelectedRate = !isSplitP2PRate && !!splitSelectedRate?.rate && splitSelectedRate.rate > 0;
+                const useSplitSelectedRate = !isSplitP2PRate && !!splitSelectedRate?.rate && splitSelectedRate.rate > 0 && splitSelectedRate.enabled !== false;
                 const rate = useSplitSelectedRate ? (splitSelectedRate?.rate ?? 0) : mileageRate.rate;
                 const unit = useSplitSelectedRate ? (splitSelectedRate?.unit ?? mileageRate.unit) : mileageRate.unit;
 
