@@ -20,16 +20,17 @@ function getStateToResetAfterLogout(rootState: NavigationState | undefined): Nav
         return {index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]};
     }
 
-    // ReportsSplit is shared between logged-in & logged-out; its params can carry stale auth.
-    const shouldClearParams = lastRoute.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
+    // TAB_NAVIGATOR hosts the public SignInPage at its root, reusing the authenticated tab navigator's route name.
+    // The carried-over tab subtree lives in both `state` and `params.state` (getRehydratedTabNavigatorStateAfterPush
+    // writes it under params), so both are cleared to reset the public route to a clean "/".
+    const isTabNavigator = lastRoute.name === NAVIGATORS.TAB_NAVIGATOR;
 
-    // TAB_NAVIGATOR hosts the public SignInPage at the root. Drop nested tab focus carried over from the
-    // authenticated session so the post-logout URL lands on "/" instead of a tab path like "/home".
-    const shouldClearNestedState = lastRoute.name === NAVIGATORS.TAB_NAVIGATOR;
+    // ReportsSplit is shared between logged-in & logged-out; its params can carry stale auth.
+    const shouldClearParams = isTabNavigator || lastRoute.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
     return {
         ...rootState,
         index: 0,
-        routes: [{...lastRoute, params: shouldClearParams ? undefined : lastRoute.params, state: shouldClearNestedState ? undefined : lastRoute.state}],
+        routes: [{...lastRoute, params: shouldClearParams ? undefined : lastRoute.params, state: isTabNavigator ? undefined : lastRoute.state}],
     };
 }
 

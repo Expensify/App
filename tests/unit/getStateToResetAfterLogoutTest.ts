@@ -58,12 +58,11 @@ describe('getStateToResetAfterLogout', () => {
         expect(result?.routes[0].params).toBeUndefined();
     });
 
-    it('preserves params for a normal non-shared route on logout', () => {
-        const params = {reportID: '123'};
-        const result = getStateToResetAfterLogout(buildRootState([{name: NAVIGATORS.TAB_NAVIGATOR, params}]));
+    it('clears params when logging out from TAB_NAVIGATOR (shared public/auth route; SignInPage must not inherit stale params)', () => {
+        const result = getStateToResetAfterLogout(buildRootState([{name: NAVIGATORS.TAB_NAVIGATOR, params: {reportID: '123'}}]));
 
         expect(result?.routes[0].name).toBe(NAVIGATORS.TAB_NAVIGATOR);
-        expect(result?.routes[0].params).toEqual(params);
+        expect(result?.routes[0].params).toBeUndefined();
     });
 
     it('drops the nested tab state when logging out from a TAB_NAVIGATOR tab, so the SignInPage lands on the root "/" (not "/home")', () => {
@@ -71,6 +70,24 @@ describe('getStateToResetAfterLogout', () => {
         const result = getStateToResetAfterLogout(buildRootState([{name: NAVIGATORS.TAB_NAVIGATOR, state: {index: 0, routes: [{key: 'home', name: SCREENS.HOME}]}}]));
 
         expect(result?.routes[0].name).toBe(NAVIGATORS.TAB_NAVIGATOR);
+        expect(result?.routes[0].state).toBeUndefined();
+    });
+
+    it('drops both route.state and params.state on TAB_NAVIGATOR logout (the real repro shape)', () => {
+        // Jumping across tabs populates the focused subtree in route.state and seeds it in params.state — both must go.
+        const result = getStateToResetAfterLogout(
+            buildRootState([
+                {
+                    name: NAVIGATORS.TAB_NAVIGATOR,
+                    params: {state: {index: 0, routes: [{name: SCREENS.HOME}]}},
+                    state: {index: 0, routes: [{key: 'home', name: SCREENS.HOME}]},
+                },
+            ]),
+        );
+
+        expect(result?.routes).toHaveLength(1);
+        expect(result?.routes[0].name).toBe(NAVIGATORS.TAB_NAVIGATOR);
+        expect(result?.routes[0].params).toBeUndefined();
         expect(result?.routes[0].state).toBeUndefined();
     });
 });
