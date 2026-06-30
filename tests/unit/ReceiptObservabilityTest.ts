@@ -122,6 +122,27 @@ describe('ReceiptObservability', () => {
             expect(logLines.filter((line) => line.params.event === 'snapshot')).toHaveLength(0);
         });
 
+        it.each([
+            WRITE_COMMANDS.SPLIT_BILL,
+            WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT,
+            WRITE_COMMANDS.COMPLETE_SPLIT_BILL,
+            WRITE_COMMANDS.SEND_MONEY_ELSEWHERE,
+            WRITE_COMMANDS.SEND_MONEY_WITH_WALLET,
+            WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE,
+            WRITE_COMMANDS.SHARE_TRACKED_EXPENSE,
+        ])('includes %s in the receipt-bearing set', (command) => {
+            // Given a queued request for a receipt-bearing command outside the original 4-command allow-list
+            getAllSpy.mockReturnValue([{command, data: {transactionID: '300', receipt: {source: 'file://300.png', receiptTraceId: 'trace-C'}}}]);
+
+            // When we snapshot the queue
+            logReceiptQueueSnapshot('background');
+
+            // Then a snapshot line is emitted for it (without the expansion the receipt would be silently dropped)
+            const snapshots = logLines.filter((line) => line.params.event === 'snapshot');
+            expect(snapshots).toHaveLength(1);
+            expect(snapshots.at(0)?.params).toMatchObject({command, transactionID: '300', receiptTraceId: 'trace-C'});
+        });
+
         it('includes the receipt promoted to the ongoing request slot', () => {
             // Given one receipt uploading in the ongoing slot and another still waiting in the queue
             getOngoingRequestSpy.mockReturnValue(receiptRequest('100', 'trace-A'));

@@ -12,7 +12,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
-import {logReceiptSubmitted} from '@libs/telemetry/ReceiptObservability';
 import {
     getReportOrDraftReport,
     isInvoiceRoom,
@@ -22,6 +21,7 @@ import {
 } from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
+import {logReceiptSubmitted} from '@libs/telemetry/ReceiptObservability';
 import {
     getCategoryTaxDetails,
     getDefaultTaxCode,

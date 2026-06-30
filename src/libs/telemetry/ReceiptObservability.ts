@@ -25,9 +25,22 @@ type ReceiptEnqueuedParams = {
 
 /**
  * Write commands whose request params carry a captured receipt. A pending request with one of these commands is a
- * receipt that has not yet reached the server.
+ * receipt that has not yet reached the server. Keep aligned with the durability slice's enumeration so the two
+ * features never disagree on which queued requests own a local receipt file.
  */
-const RECEIPT_BEARING_COMMANDS = new Set<string>([WRITE_COMMANDS.REQUEST_MONEY, WRITE_COMMANDS.TRACK_EXPENSE, WRITE_COMMANDS.START_SPLIT_BILL, WRITE_COMMANDS.REPLACE_RECEIPT]);
+const RECEIPT_BEARING_COMMANDS = new Set<string>([
+    WRITE_COMMANDS.REQUEST_MONEY,
+    WRITE_COMMANDS.TRACK_EXPENSE,
+    WRITE_COMMANDS.SPLIT_BILL,
+    WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT,
+    WRITE_COMMANDS.START_SPLIT_BILL,
+    WRITE_COMMANDS.COMPLETE_SPLIT_BILL,
+    WRITE_COMMANDS.REPLACE_RECEIPT,
+    WRITE_COMMANDS.SEND_MONEY_ELSEWHERE,
+    WRITE_COMMANDS.SEND_MONEY_WITH_WALLET,
+    WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE,
+    WRITE_COMMANDS.SHARE_TRACKED_EXPENSE,
+]);
 
 /** When each receipt was enqueued, keyed by transaction id, so a snapshot can report how long it has been waiting. */
 const enqueuedAtByTransactionID = new Map<string, number>();
@@ -159,4 +172,4 @@ function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger) {
 }
 
 export {mintAndStampReceiptTraceId, logReceiptCaptured, logReceiptSubmitted, logReceiptEnqueued, logReceiptQueueSnapshot, RECEIPT_BEARING_COMMANDS};
-export type {ReceiptSnapshotTrigger, ReceiptCaptureSource};
+export type {ReceiptCaptureSource};
