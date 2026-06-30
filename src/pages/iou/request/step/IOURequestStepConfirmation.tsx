@@ -909,6 +909,9 @@ function IOURequestStepConfirmation({
                             onFinish={closeParticipantPicker}
                             isVisible={isParticipantPickerVisible}
                             onClose={closeParticipantPicker}
+                            // Clicking the backdrop (outside the panel) should dismiss the whole expense creation RHP,
+                            // matching standard RHP behavior, not just close the stacked participant picker.
+                            onBackdropPress={() => Navigation.dismissModal()}
                         />
                     )}
                 </View>

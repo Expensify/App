@@ -30,7 +30,6 @@ export default function PersonalExpenseRulesTableRow({item, rowIndex, shouldUseN
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
-            skeletonReasonAttributes={{context: 'personalExpenseRulesTableRow'}}
             sentryLabel={CONST.SENTRY_LABEL.EXPENSE_RULES.TABLE_ROW}
             onPress={item.action}
             offlineWithFeedback={{
