@@ -2,7 +2,7 @@ import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
 import {View} from 'react-native';
 import Table from '@components/Table';
-import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
+import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableRenderRowProps} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,12 +20,6 @@ type CategoryRulesTableItem = TableData & {
     searchTokens: string[];
 };
 
-type CategoryRulesTableRenderRowProps<TItem extends CategoryRulesTableItem> = {
-    item: TItem;
-    rowIndex: number;
-    shouldUseNarrowTableLayout: boolean;
-};
-
 type WorkspaceCategoryRulesTableProps<TItem extends CategoryRulesTableItem> = {
     rulesData: TItem[];
     selectionEnabled: boolean;
@@ -37,7 +31,7 @@ type WorkspaceCategoryRulesTableProps<TItem extends CategoryRulesTableItem> = {
     typeColumnLabel: string;
     conditionColumnLabel: string;
     ruleColumnLabel: string;
-    renderRow: (props: CategoryRulesTableRenderRowProps<TItem>) => React.ReactElement;
+    renderRow: (props: TableRenderRowProps<TItem>) => React.ReactElement;
 };
 
 function WorkspaceCategoryRulesTable<TItem extends CategoryRulesTableItem>({
@@ -127,4 +121,3 @@ function WorkspaceCategoryRulesTable<TItem extends CategoryRulesTableItem>({
 }
 
 export default WorkspaceCategoryRulesTable;
-export type {CategoryRulesTableRenderRowProps};

@@ -1,5 +1,6 @@
 import React from 'react';
-import WorkspaceCategoryRulesTable, {type CategoryRulesTableRenderRowProps} from '@components/Tables/WorkspaceCategoryRulesTable';
+import type {TableRenderRowProps} from '@components/Table';
+import WorkspaceCategoryRulesTable from '@components/Tables/WorkspaceCategoryRulesTable';
 import useLocalize from '@hooks/useLocalize';
 import type {RequireFieldsTableItem} from '@libs/RequireFieldsRulesUtils';
 import WorkspaceRequireFieldsTableRow from './WorkspaceRequireFieldsTableRow';
@@ -15,7 +16,7 @@ type WorkspaceRequireFieldsTableProps = {
 function WorkspaceRequireFieldsTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, emptyStateContent}: WorkspaceRequireFieldsTableProps) {
     const {translate} = useLocalize();
 
-    const renderRow = ({item, rowIndex, shouldUseNarrowTableLayout}: CategoryRulesTableRenderRowProps<RequireFieldsTableItem>) => (
+    const renderRow = ({item, rowIndex, shouldUseNarrowTableLayout}: TableRenderRowProps<RequireFieldsTableItem>) => (
         <WorkspaceRequireFieldsTableRow
             key={item.ruleID}
             item={item}
