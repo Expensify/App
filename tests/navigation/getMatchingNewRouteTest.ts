@@ -165,6 +165,7 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/workspaces/p123/tags/settings')).toBe('/workspaces/p123/tags/tags-settings');
         expect(getMatchingNewRoute('/workspaces/p123/tags/new')).toBe('/workspaces/p123/tags/tag-create');
         expect(getMatchingNewRoute('/workspaces/p123/tag-list/0')).toBe('/workspaces/p123/tags/workspace-tag-list/0');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/import')).toBe('/workspaces/p123/tags/workspace-tags-import');
         expect(getMatchingNewRoute('/workspaces/p123/tags/imported')).toBe('/workspaces/p123/tags/workspace-tags-imported');
     });
 
@@ -172,6 +173,7 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/workspaces/p123/tags/settings?backTo=/home')).toBe('/workspaces/p123/tags/tags-settings?backTo=/home');
         expect(getMatchingNewRoute('/workspaces/p123/tags/new?backTo=/home')).toBe('/workspaces/p123/tags/tag-create?backTo=/home');
         expect(getMatchingNewRoute('/workspaces/p123/tag-list/0?backTo=/home')).toBe('/workspaces/p123/tags/workspace-tag-list/0?backTo=/home');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/import?backTo=/home')).toBe('/workspaces/p123/tags/workspace-tags-import?backTo=/home');
         expect(getMatchingNewRoute('/workspaces/p123/tags/imported?backTo=/home')).toBe('/workspaces/p123/tags/workspace-tags-imported?backTo=/home');
     });
 
@@ -179,6 +181,7 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/workspaces/p123/tags/tags-settings')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/p123/tags/tag-create')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/p123/tags/workspace-tag-list/0')).toBe('/workspaces/p123/tags/workspace-tag-list/0');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/workspace-tags-import')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/p123/tags/workspace-tags-imported')).toBe('/workspaces/p123/tags/workspace-tags-imported');
     });
 

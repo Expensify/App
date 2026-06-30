@@ -37,6 +37,7 @@ const oldRoutes: Record<string, string> = {
     '/workspaces/*/tag-list/*': '/workspaces/$1/tags/workspace-tag-list/$2',
     '/workspaces/*/tags/workspace-tags-imported': '/workspaces/$1/tags/workspace-tags-imported',
     '/workspaces/*/tags/imported': '/workspaces/$1/tags/workspace-tags-imported',
+    '/workspaces/*/tags/import': '/workspaces/$1/tags/workspace-tags-import',
     '/settings/*/categories/settings': '/settings/$1/categories/manage-settings',
     '/settings/*/categories/new': '/settings/$1/categories/category-create',
     '/workspaces/*/accounting/*/card-reconciliation/account': '/workspaces/$1/accounting/$2/card-reconciliation/account-reconciliation-settings',
