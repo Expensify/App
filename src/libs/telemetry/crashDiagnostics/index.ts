@@ -46,6 +46,10 @@ const LIVENESS_CHANNEL_NAME = 'crashDiagnosticsLiveness';
 // Number of most-recent samples inspected to decide whether the session was in the foreground near the end.
 const RECENT_SAMPLE_WINDOW = 4;
 
+// Peak-heap-usage cutoffs (as a percentage of the hard limit) used to bucket heap pressure for Sentry tagging.
+const HEAP_PRESSURE_HIGH_PCT = 80;
+const HEAP_PRESSURE_MID_PCT = 50;
+
 /** A point-in-time snapshot of memory/DOM/route state, captured on every heartbeat to reconstruct what was growing before a crash. */
 type HeapSample = {
     /** When the sample was taken, as epoch ms. */
@@ -302,10 +306,10 @@ function getHeapPressureBucket(record: SessionRecord): string {
         return 'unknown';
     }
     const pct = (record.peakUsedJSHeapSizeMB / limitMB) * 100;
-    if (pct >= 80) {
+    if (pct >= HEAP_PRESSURE_HIGH_PCT) {
         return 'high';
     }
-    if (pct >= 50) {
+    if (pct >= HEAP_PRESSURE_MID_PCT) {
         return 'mid';
     }
     return 'low';
@@ -332,8 +336,10 @@ function reportAbnormalExit(record: SessionRecord) {
     const lastSample = record.samples.at(-1);
     const durationMinutes = Math.round((record.lastHeartbeat - record.startedAt) / MS_PER_MINUTE);
     // A real renderer crash happens in the foreground; treat any visible sample in the recent window as
-    // "was in use" so background-only sessions can be filtered out in Sentry.
-    const wasForeground = record.samples.slice(-RECENT_SAMPLE_WINDOW).some((sample) => sample.visibility === 'visible');
+    // "was in use" so background-only sessions can be filtered out in Sentry. Also honor the live
+    // `lastVisibility`, which can be `visible` while every sample is still `hidden` when the tab was
+    // foregrounded and then crashed before the next heartbeat could record a visible sample.
+    const wasForeground = record.lastVisibility === 'visible' || record.samples.slice(-RECENT_SAMPLE_WINDOW).some((sample) => sample.visibility === 'visible');
     Sentry.captureEvent({
         message: 'Crash diagnostics: previous browser session ended abnormally (possible tab crash)',
         level: 'warning',
