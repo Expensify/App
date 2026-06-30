@@ -6322,6 +6322,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 one: 'Workspace-beheerder maken',
                 other: 'Workspace-beheerders maken',
             }),
+            makeGroupAdmin: () => ({
+                one: 'Admin maken',
+                other: 'Beheerders maken',
+            }),
             makeAuditor: () => ({
                 one: 'Auditeur maken',
                 other: 'Auditors aanmaken',

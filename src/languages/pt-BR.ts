@@ -6314,6 +6314,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 one: 'Tornar admin do workspace',
                 other: 'Tornar admins do workspace',
             }),
+            makeGroupAdmin: () => ({
+                one: 'Tornar admin',
+                other: 'Tornar admins',
+            }),
             makeAuditor: () => ({
                 one: 'Tornar auditor',
                 other: 'Tornar auditores',
