@@ -27,6 +27,7 @@ import DistanceMapSection from './MoneyRequestConfirmationListFooter/sections/Di
 import InvoiceSenderSection from './MoneyRequestConfirmationListFooter/sections/InvoiceSenderSection';
 import PerDiemSection from './MoneyRequestConfirmationListFooter/sections/PerDiemSection';
 import ReceiptSection from './MoneyRequestConfirmationListFooter/sections/ReceiptSection';
+import type {MeasurableInput} from './SelectionList/SelectionListWithSections/types';
 
 const noopSetShowMoreFields = () => {};
 
@@ -106,7 +107,10 @@ type MoneyRequestConfirmationListFooterProps = {
     /** Compact-mode controls (the footer derives `isCompactMode` itself) */
     compactControls?: CompactControls;
 
-    /** Triggers submit from inline inputs */
+    /** Scrolls the surface so an inline field's input is not hidden behind the keyboard when focused (new manual expense flow) */
+    scrollFocusedInputIntoView?: (input: MeasurableInput) => void;
+
+    /** Submits the whole expense (used by inline inputs to keep Enter-to-confirm on hardware-keyboard setups) */
     onSubmitForm?: () => void;
 };
 
@@ -136,6 +140,7 @@ function MoneyRequestConfirmationListFooter({
     toggleHandlers,
     receiptOptions,
     compactControls,
+    scrollFocusedInputIntoView,
     onSubmitForm,
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
@@ -167,6 +172,8 @@ function MoneyRequestConfirmationListFooter({
             isManualDistanceRequest={distanceFlags.isManualDistanceRequest}
             isOdometerDistanceRequest={distanceFlags.isOdometerDistanceRequest}
             isGPSDistanceRequest={distanceFlags.isGPSDistanceRequest}
+            scrollFocusedInputIntoView={scrollFocusedInputIntoView}
+            onSubmitForm={onSubmitForm}
         >
             <View style={isCompactMode ? styles.flex1 : undefined}>
                 <View>
@@ -208,7 +215,6 @@ function MoneyRequestConfirmationListFooter({
                     errorState={errorState}
                     toggleHandlers={toggleHandlers ?? {}}
                     compactState={{isCompactMode, setShowMoreFields}}
-                    onSubmitForm={onSubmitForm}
                 />
             </View>
         </ConfirmationFieldsProvider>
