@@ -455,7 +455,7 @@ describe('ConciergeDraftContext', () => {
         unmount();
     });
 
-    it('ignores stale draft chunks that arrive after a contentless completion', async () => {
+    it('ignores stale draft chunks that arrive after a content-free completion', async () => {
         const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
         const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
 
@@ -486,7 +486,7 @@ describe('ConciergeDraftContext', () => {
         unmount();
     });
 
-    it('ignores delayed lower-sequence chunks after an active body draft receives a contentless completion', async () => {
+    it('ignores delayed lower-sequence chunks after an active body draft receives a content-free completion', async () => {
         const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
         const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
 
@@ -523,7 +523,7 @@ describe('ConciergeDraftContext', () => {
         unmount();
     });
 
-    it('ignores delayed lower-sequence chunks after a batched contentless completion', async () => {
+    it('ignores delayed lower-sequence chunks after a batched content-free completion', async () => {
         const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
         const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
 
@@ -558,7 +558,7 @@ describe('ConciergeDraftContext', () => {
         unmount();
     });
 
-    it('reveals a matching persisted report action after a contentless completion', async () => {
+    it('reveals a matching persisted report action after a content-free completion', async () => {
         const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
         const {result, unmount} = renderHook(
             () => ({

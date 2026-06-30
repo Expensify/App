@@ -631,7 +631,7 @@ function isStalePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: Conci
     return isStalePusherDraftEventAgainstTarget(runtime, event, getNewestPusherDraftLifecycleEvent(runtime));
 }
 
-function rememberContentlessCompletedEvent(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent) {
+function rememberContentFreeCompletedEvent(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent) {
     const {completedPusherDraftEventRef, latestPusherDraftEventRef, terminalPusherDraftEventRef} = runtime;
 
     terminalPusherDraftEventRef.current = event;
@@ -681,7 +681,7 @@ function handlePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: Concie
                 tickPacing(runtime);
             }
         } else if (!event.finalRenderedHTML) {
-            rememberContentlessCompletedEvent(runtime, event);
+            rememberContentFreeCompletedEvent(runtime, event);
         } else {
             publishVisibleEvent(runtime, event, undefined, CONCIERGE_DRAFT_STATUS.COMPLETED);
         }
@@ -777,19 +777,19 @@ function handlePusherDraftEvents(runtime: PusherDraftPacingRuntime, eventData: C
 
         const previousVisibleSequence = runtime.visibleSequenceRef.current;
         handlePusherDraftEvent(runtime, firstVisibleEvent);
-        const didRememberContentlessCompletion = !!completedEvent && !completedEvent.bodyMarkdown && !completedEvent.finalRenderedHTML;
-        if (didRememberContentlessCompletion) {
+        const didRememberContentFreeCompletion = !!completedEvent && !completedEvent.bodyMarkdown && !completedEvent.finalRenderedHTML;
+        if (didRememberContentFreeCompletion) {
             terminalPusherDraftEventRef.current = completedEvent;
         }
         queuePusherDraftTargets(runtime, queuedTargetEvents);
 
         // publishVisibleEvent persists refs when it runs; otherwise persist the accepted target/queue state here.
-        if (didRememberContentlessCompletion || queuedTargetEvents.length > 0 || runtime.visibleSequenceRef.current === previousVisibleSequence) {
+        if (didRememberContentFreeCompletion || queuedTargetEvents.length > 0 || runtime.visibleSequenceRef.current === previousVisibleSequence) {
             cacheCurrentDraftWithPusherPaceState(runtime);
         }
     } else if (completedEvent) {
         if (!completedEvent.bodyMarkdown && !completedEvent.finalRenderedHTML && !latestPusherDraftEventRef.current?.bodyMarkdown) {
-            rememberContentlessCompletedEvent(runtime, completedEvent);
+            rememberContentFreeCompletedEvent(runtime, completedEvent);
             return;
         }
         if (finalRenderedHTMLEvent) {
