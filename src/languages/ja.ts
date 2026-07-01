@@ -9705,6 +9705,13 @@ ${reportName}`,
             chat: 'あらゆる経費でチャットして、疑問をすばやく解決しましょう',
         },
     },
+    submitPlanWelcomeModal: {
+        title: '無料で経費を精算',
+        description:
+            '無料のSubmitプランを利用して、経費をコード化し、レポートを作成して、上司に精算を申請しましょう。カテゴリやタグをカスタマイズし、走行距離を記録し、チームメンバーと共同作業ができます。',
+        confirmText: '無料プランを利用する',
+        dismissText: 'いいえ、結構です',
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>まずは<strong>こちらから！</strong></tooltip>',
         saveSearchTooltip: '<tooltip>保存済み検索の<strong>名前を変更</strong>しましょう！</tooltip>',

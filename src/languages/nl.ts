@@ -9806,6 +9806,13 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             chat: 'Chat over elke uitgave om vragen snel op te lossen',
         },
     },
+    submitPlanWelcomeModal: {
+        title: 'Krijg je geld terug, gratis',
+        description:
+            'Kies het gratis Submit-abonnement om je onkosten te coderen, rapporten op te bouwen en ze bij je manager in te dienen voor terugbetaling. Pas categorieën en tags aan, houd kilometers bij en werk samen met je teamgenoten.',
+        confirmText: 'Kies het gratis abonnement',
+        dismissText: 'Nee, bedankt',
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Begin <strong>hier!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Hernoem hier je opgeslagen zoekopdrachten</strong>!</tooltip>',

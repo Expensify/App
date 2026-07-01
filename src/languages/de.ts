@@ -9848,6 +9848,13 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             chat: 'Bei jeder Ausgabe chatten, um Fragen schnell zu klären',
         },
     },
+    submitPlanWelcomeModal: {
+        title: 'Lass dir Geld zurückerstatten – kostenlos',
+        description:
+            'Hol dir den kostenlosen Submit-Tarif, um deine Ausgaben zu kategorisieren, Berichte zu erstellen und sie deinem Manager zur Erstattung einzureichen. Passe Kategorien und Tags an, erfasse Kilometer und arbeite mit deinem Team zusammen.',
+        confirmText: 'Kostenlosen Tarif holen',
+        dismissText: 'Nein, danke',
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Beginne <strong>hier!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Benenne deine gespeicherten Suchen um</strong> – hier!</tooltip>',

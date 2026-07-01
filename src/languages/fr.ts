@@ -9880,6 +9880,13 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             chat: 'Discutez sur chaque dépense pour résoudre les questions rapidement',
         },
     },
+    submitPlanWelcomeModal: {
+        title: 'Faites-vous rembourser, gratuitement',
+        description:
+            'Obtenez le forfait Submit gratuit pour coder vos dépenses, créer des rapports et les soumettre à votre responsable pour remboursement. Personnalisez les catégories et les tags, suivez le kilométrage et collaborez avec vos collègues.',
+        confirmText: 'Obtenir le forfait gratuit',
+        dismissText: 'Non merci',
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Commencez <strong>ici&nbsp;!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Renommez vos recherches enregistrées</strong> ici !</tooltip>',

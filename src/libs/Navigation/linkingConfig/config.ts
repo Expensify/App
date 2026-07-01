@@ -50,6 +50,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT]: DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path,
             },
         },
+        [NAVIGATORS.SUBMIT_PLAN_MODAL_NAVIGATOR]: {
+            screens: {
+                [SCREENS.SUBMIT_PLAN_WELCOME_MODAL.DYNAMIC_ROOT]: DYNAMIC_ROUTES.SUBMIT_PLAN_WELCOME.path,
+            },
+        },
 
         [NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR]: {
             screens: {

@@ -9836,6 +9836,13 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             chat: 'Chatta su qualsiasi spesa per risolvere rapidamente i dubbi',
         },
     },
+    submitPlanWelcomeModal: {
+        title: 'Fatti rimborsare, gratis',
+        description:
+            'Ottieni il piano Submit gratuito per codificare le tue spese, creare report e inviarli al tuo manager per il rimborso. Personalizza categorie e tag, monitora i chilometri e collabora con i tuoi colleghi.',
+        confirmText: 'Ottieni il piano gratuito',
+        dismissText: 'No, grazie',
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Inizia <strong>qui!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Rinomina qui le ricerche salvate</strong>!</tooltip>',

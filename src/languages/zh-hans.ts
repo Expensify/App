@@ -9514,6 +9514,12 @@ ${reportName}`,
             chat: '在任意报销上聊天，快速解决问题',
         },
     },
+    submitPlanWelcomeModal: {
+        title: '免费获得报销',
+        description: '获取免费的 Submit 方案来为你的支出分类、创建报告并提交给经理进行报销。自定义类别和标签、记录里程，并与团队成员协作。',
+        confirmText: '获取免费方案',
+        dismissText: '不用了，谢谢',
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>从<strong>这里</strong>开始！</tooltip>',
         saveSearchTooltip: '<tooltip>在这里<strong>重命名已保存的搜索</strong>！</tooltip>',

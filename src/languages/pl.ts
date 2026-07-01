@@ -9787,6 +9787,13 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             chat: 'Czatuj przy każdym wydatku, aby szybko rozwiązać wątpliwości',
         },
     },
+    submitPlanWelcomeModal: {
+        title: 'Odzyskaj pieniądze, za darmo',
+        description:
+            'Wybierz darmowy plan Submit, aby kodować wydatki, tworzyć raporty i przesyłać je do menedżera w celu zwrotu kosztów. Dostosuj kategorie i tagi, śledź przebieg i współpracuj ze swoimi współpracownikami.',
+        confirmText: 'Wybierz darmowy plan',
+        dismissText: 'Nie, dziękuję',
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Rozpocznij <strong>tutaj!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Zmień nazwę zapisanych wyszukiwań</strong> tutaj!</tooltip>',

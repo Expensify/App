@@ -6,6 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
 import MigratedUserWelcomeModalGuard, {onSessionOrLoadingAppChanged} from './MigratedUserWelcomeModalGuard';
 import OnboardingGuard from './OnboardingGuard';
+import SubmitPlanWelcomeModalGuard, {onSessionOrLoadingAppChanged as onSessionOrLoadingAppChangedForSubmitPlanModal} from './SubmitPlanWelcomeModalGuard';
 import type {GuardContext, GuardResult, NavigationGuard} from './types';
 
 /**
@@ -20,6 +21,7 @@ Onyx.connectWithoutView({
     callback: (value) => {
         session = value;
         onSessionOrLoadingAppChanged(session, isLoadingApp);
+        onSessionOrLoadingAppChangedForSubmitPlanModal(session, isLoadingApp);
     },
 });
 
@@ -28,6 +30,7 @@ Onyx.connectWithoutView({
     callback: (value) => {
         isLoadingApp = value ?? true;
         onSessionOrLoadingAppChanged(session, isLoadingApp);
+        onSessionOrLoadingAppChangedForSubmitPlanModal(session, isLoadingApp);
     },
 });
 
@@ -103,5 +106,6 @@ function clearGuards(): void {
 
 registerGuard(OnboardingGuard);
 registerGuard(MigratedUserWelcomeModalGuard);
+registerGuard(SubmitPlanWelcomeModalGuard);
 
 export {registerGuard, createGuardContext, evaluateGuards, getRegisteredGuards, clearGuards};

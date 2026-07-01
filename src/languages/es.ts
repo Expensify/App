@@ -10003,6 +10003,13 @@ ${amount} para ${merchant} - ${date}`,
             chat: 'Chatea en tus gastos para resolver cualquier duda rápidamente.',
         },
     },
+    submitPlanWelcomeModal: {
+        title: 'Consigue que te reembolsen, gratis',
+        description:
+            'Obtén el plan Submit gratuito para codificar tus gastos, crear informes y enviarlos a tu gerente para su reembolso. Personaliza categorías y etiquetas, registra el kilometraje y colabora con tus compañeros de equipo.',
+        confirmText: 'Obtener el plan gratuito',
+        dismissText: 'No, gracias',
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>¡Comienza <strong>aquí</strong>!</tooltip>',
         saveSearchTooltip: '<tooltip><strong>Renombra tus búsquedas guardadas</strong> aquí</tooltip>',

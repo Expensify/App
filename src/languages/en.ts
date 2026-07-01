@@ -9924,6 +9924,13 @@ const translations = {
             chat: 'Chat on any expense to resolve questions quickly',
         },
     },
+    submitPlanWelcomeModal: {
+        title: 'Get paid back, for free',
+        description:
+            'Get the free Submit plan to code your expenses, build reports, and submit them to your manager for reimbursement. Customize categories and tags, track mileage, and collaborate with your teammates.',
+        confirmText: 'Get the free plan',
+        dismissText: 'No thanks',
+    },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668

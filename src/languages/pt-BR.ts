@@ -9791,6 +9791,13 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             chat: 'Converse em qualquer despesa para resolver dúvidas rapidamente',
         },
     },
+    submitPlanWelcomeModal: {
+        title: 'Seja reembolsado, de graça',
+        description:
+            'Escolha o plano Submit gratuito para codificar suas despesas, criar relatórios e enviá-los ao seu gerente para reembolso. Personalize categorias e tags, acompanhe a quilometragem e colabore com seus colegas de equipe.',
+        confirmText: 'Obter o plano gratuito',
+        dismissText: 'Não, obrigado',
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Comece <strong>aqui!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Renomeie suas buscas salvas</strong> aqui!</tooltip>',
