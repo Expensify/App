@@ -3,6 +3,7 @@ title: How your plan and subscription determine your bill
 description: Learn how your Expensify plan and subscription type work together to determine how your workspace is billed.
 keywords: [New Expensify, billing, plan, subscription type, Collect, Control, Annual, Pay-per-use]
 internalScope: Audience is all workspace members. Explains how plans and subscription types work together to determine billing. Does not define billing terms, compare plans, explain pricing, or describe how to manage billing settings.
+retrievalIntent: How plan and subscription type combine to determine billing.
 contentType: topic
 platform: new
 ---
