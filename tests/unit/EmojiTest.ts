@@ -152,6 +152,17 @@ describe('EmojiTest', () => {
         expect(EmojiUtils.replaceEmojis(text).cursorPosition).toBe(undefined);
     });
 
+    describe('convertEmojiShortcodesToUnicode', () => {
+        it('converts emoji shortcodes outside code ranges', () => {
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode('Hi :smile:')).toBe('Hi 😄');
+        });
+
+        it('preserves emoji shortcodes inside inline code and code fences', () => {
+            const text = 'Hi :smile: and `:wave:`\n```\n:joy:\n```';
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode(text)).toBe('Hi 😄 and `:wave:`\n```\n:joy:\n```');
+        });
+    });
+
     describe('code block handling', () => {
         it('should not replace emoji shortcode inside inline code block', () => {
             const text = '`:smile:`';

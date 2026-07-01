@@ -1,4 +1,5 @@
 import {useCallback, useEffect, useRef} from 'react';
+import {containsOnlyEmojis, convertEmojiShortcodesToUnicode} from '@libs/EmojiUtils';
 import {isStandaloneURL, toMarkdownLink} from '@libs/MarkdownLinkHelpers';
 import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
@@ -36,6 +37,53 @@ const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: num
         // Dispatch input event to trigger Markdown Input to parse the new text
         target.dispatchEvent(new Event('input', {bubbles: true}));
     }
+};
+
+const getEmojiFromImageAlt = (alt: string): string => {
+    // iOS Safari can paste emoji images as blob URLs with codepoint filenames in alt text.
+    const emojiHexCodepoints = alt.match(CONST.REGEX.EMOJI_IMAGE_ALT)?.at(1);
+
+    if (!emojiHexCodepoints) {
+        return '';
+    }
+
+    const codepoints = emojiHexCodepoints.split('-').map((codepoint) => Number.parseInt(codepoint, 16));
+
+    if (codepoints.some((codepoint) => Number.isNaN(codepoint) || codepoint > 0x10ffff)) {
+        return '';
+    }
+
+    const emoji = String.fromCodePoint(...codepoints);
+    return containsOnlyEmojis(emoji) ? emoji : '';
+};
+
+const isEmojiImage = (image: HTMLImageElement): boolean => {
+    const dataset = image.dataset;
+
+    return (
+        dataset.stringifyEmoji !== undefined || // For Slack
+        dataset.emoji !== undefined || // For gmail
+        dataset.stringifyType === 'emoji'
+    );
+};
+
+const getEmojiReplacementText = (image: HTMLImageElement): string => {
+    const emojiFromImageAlt = getEmojiFromImageAlt(image.alt);
+    if (emojiFromImageAlt) {
+        return emojiFromImageAlt;
+    }
+
+    // Slack can put shortcode text in emoji image alt text, e.g. ":tada:".
+    const emojiFromShortcode = convertEmojiShortcodesToUnicode(image.alt);
+    if (emojiFromShortcode !== image.alt) {
+        return emojiFromShortcode;
+    }
+
+    if (isEmojiImage(image)) {
+        return image.alt;
+    }
+
+    return '';
 };
 
 const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive = false, maxLength = CONST.MAX_COMMENT_LENGTH + 1) => {
@@ -118,7 +166,8 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
                 return;
             }
 
-            paste(clipboardText);
+            // Plain-text paste has no image metadata, so convert shortcodes before inserting.
+            paste(convertEmojiShortcodesToUnicode(clipboardText));
         },
         [paste],
     );
@@ -148,23 +197,27 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
                 const pastedHTML = event.clipboardData.getData(TEXT_HTML);
 
                 const domparser = new DOMParser();
-                const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
+                const htmlDocument = domparser.parseFromString(pastedHTML, TEXT_HTML);
+                const embeddedImages = Array.from(htmlDocument.images);
 
-                // Exclude parsing img tags in the HTML, as fetching the image via fetch triggers a connect-src Content-Security-Policy error.
-                if (embeddedImages.length > 0 && embeddedImages[0].src) {
-                    // If HTML has emoji, then treat this as plain text.
-                    if (embeddedImages[0].dataset?.stringifyType === 'emoji') {
-                        handlePastePlainText(event);
-                        return;
+                // Replace emoji images before parsing HTML so they do not become inaccessible markdown image URLs.
+                for (const image of embeddedImages) {
+                    const emojiText = getEmojiReplacementText(image);
+
+                    if (!emojiText) {
+                        continue;
                     }
+
+                    image.replaceWith(htmlDocument.createTextNode(emojiText));
                 }
+
                 // If HTML starts with <p dir="ltr">, it means that the text was copied from the markdown input from the native app
                 // and was saved to clipboard with additional styling, so we need to treat this as plain text to avoid adding unnecessary characters.
                 if (pastedHTML.startsWith('<p dir="ltr">')) {
                     handlePastePlainText(event);
                     return;
                 }
-                handlePastedHTML(pastedHTML);
+                handlePastedHTML(htmlDocument.body.innerHTML);
                 return;
             }
             handlePastePlainText(event);

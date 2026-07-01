@@ -33,6 +33,23 @@ const findEmojiByName = (name: string): Emoji => Emojis.emojiNameTable[name];
 
 const findEmojiByCode = (code: string): Emoji => Emojis.emojiCodeTableWithSkinTones[code];
 
+// Used for paste paths where shortcode text must be converted before the lazy emoji trie is ready.
+function convertEmojiShortcodesToUnicode(text: string): string {
+    if (!text.match(CONST.REGEX.EMOJI_NAME)) {
+        return text;
+    }
+
+    const codeRanges = getCodeRanges(text);
+
+    return text.replace(CONST.REGEX.EMOJI_NAME, (shortcode, position: number) => {
+        if (isPositionInsideCodeRanges(codeRanges, position)) {
+            return shortcode;
+        }
+
+        return Emojis.emojiNameTable[shortcode.slice(1, -1)]?.code ?? shortcode;
+    });
+}
+
 // 'code' = inline code, 'pre' = code fence content. Excludes 'codeblock' to avoid overlapping ranges.
 const CODE_RANGE_TYPES = new Set(['code', 'pre']);
 
@@ -938,6 +955,7 @@ export type {HeaderIndices, EmojiPickerList, EmojiPickerListItem};
 
 export {
     findEmojiByCode,
+    convertEmojiShortcodesToUnicode,
     getLocalizedEmojiName,
     getProcessedText,
     getHeaderEmojis,
