@@ -12,10 +12,10 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
-const mockHasAnyPaidPolicy = jest.fn<boolean, unknown[]>(() => false);
+const mockGetGroupPoliciesWhereReportCanBeCreated = jest.fn<unknown[], unknown[]>(() => []);
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtilsModule>('@libs/PolicyUtils'),
-    hasAnyPaidPolicy: (...args: unknown[]) => mockHasAnyPaidPolicy(...args),
+    getGroupPoliciesWhereReportCanBeCreated: (...args: unknown[]) => mockGetGroupPoliciesWhereReportCanBeCreated(...args),
 }));
 
 const mockNavigate = jest.fn();
@@ -30,7 +30,7 @@ const submitPlanWelcomeRoute = createDynamicRoute(DYNAMIC_ROUTES.SUBMIT_PLAN_WEL
 
 /** Enables all trigger conditions so the guard would redirect. */
 async function setUpEligibleUser() {
-    mockHasAnyPaidPolicy.mockReturnValue(false);
+    mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([]);
     await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
     await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.EMPLOYER});
     await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
@@ -62,8 +62,8 @@ describe('SubmitPlanWelcomeModalGuard', () => {
         onSessionOrLoadingAppChanged(undefined, true);
         resetSessionFlag();
         mockNavigate.mockClear();
-        mockHasAnyPaidPolicy.mockReset();
-        mockHasAnyPaidPolicy.mockReturnValue(false);
+        mockGetGroupPoliciesWhereReportCanBeCreated.mockReset();
+        mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([]);
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -101,9 +101,9 @@ describe('SubmitPlanWelcomeModalGuard', () => {
         expect(result.type).toBe('ALLOW');
     });
 
-    it('should allow when the user is on a paid workspace', async () => {
+    it('should allow when the user already belongs to a group/submit workspace', async () => {
         await setUpEligibleUser();
-        mockHasAnyPaidPolicy.mockReturnValue(true);
+        mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([{id: 'policy1'}]);
 
         const result = SubmitPlanWelcomeModalGuard.evaluate(mockState, mockAction, defaultContext);
         expect(result.type).toBe('ALLOW');
@@ -173,9 +173,9 @@ describe('SubmitPlanWelcomeModalGuard', () => {
             expect(mockNavigate).not.toHaveBeenCalled();
         });
 
-        it('should not navigate when the user is on a paid workspace', async () => {
+        it('should not navigate when the user already belongs to a group/submit workspace', async () => {
             await setUpEligibleUser();
-            mockHasAnyPaidPolicy.mockReturnValue(true);
+            mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([{id: 'policy1'}]);
             mockNavigate.mockClear();
 
             onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, false);

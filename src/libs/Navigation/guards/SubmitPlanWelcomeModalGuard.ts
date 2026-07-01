@@ -7,7 +7,7 @@ import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
-import {hasAnyPaidPolicy} from '@libs/PolicyUtils';
+import {getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -41,14 +41,21 @@ function resetSessionFlag() {
 /**
  * Returns true when the current user matches the "existing Get paid back intent" audience:
  * the SUBMIT_2026 beta is enabled, they picked the EMPLOYER onboarding intent, completed onboarding,
- * and are not an owner/member of any paid (Team/Corporate) workspace.
+ * haven't dismissed the modal, and don't already belong to any workspace where they can submit reports.
+ *
+ * The last check uses `getGroupPoliciesWhereReportCanBeCreated` (paid Team/Corporate AND free Submit
+ * workspaces) rather than only paid policies. This intentionally excludes users who just created a
+ * Submit workspace through the EMPLOYER onboarding flow, so the modal never collides with (or duplicates)
+ * that flow.
  */
 function shouldShowSubmitPlanWelcomeModal(): boolean {
+    const isSubmit2026BetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.SUBMIT_2026, betas, betaConfiguration);
+
     return (
-        Permissions.isBetaEnabled(CONST.BETAS.SUBMIT_2026, betas, betaConfiguration) &&
+        isSubmit2026BetaEnabled &&
         introSelected?.choice === CONST.ONBOARDING_CHOICES.EMPLOYER &&
         !!hasCompletedGuidedSetupFlow &&
-        !hasAnyPaidPolicy(policies) &&
+        getGroupPoliciesWhereReportCanBeCreated(policies, isSubmit2026BetaEnabled, session?.email).length === 0 &&
         !isProductTrainingElementDismissed(CONST.SUBMIT_PLAN_WELCOME_MODAL, dismissedProductTraining)
     );
 }
