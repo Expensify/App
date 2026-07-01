@@ -776,17 +776,6 @@ type SearchAdvancedFiltersForm = Form<
         Record<ReportFieldNegatedKey, string>
 >;
 
-export type {
-    SearchAdvancedFiltersForm,
-    SearchAdvancedFiltersKey,
-    HasFilterValue,
-    HasFilterValues,
-    IsFilterValue,
-    IsFilterValues,
-    ExpenseTypeValue,
-    ExpenseTypeValues,
-    ReceiptTypeValue,
-    ReceiptTypeValues,
-};
+export type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey, HasFilterValue, HasFilterValues, IsFilterValue, IsFilterValues, ExpenseTypeValue, ExpenseTypeValues, ReceiptTypeValue};
 export default FILTER_KEYS;
 export {DATE_FILTER_KEYS, ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS};

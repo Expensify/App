@@ -443,6 +443,9 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'welcomeMessage':
         case 'origin':
         case 'originalID':
+        case 'submitterUserID':
+        case 'submitterPayrollID':
+        case 'orderDealNumbers':
             return validateString(value);
         case 'hasOutstandingChildRequest':
         case 'hasOutstandingChildTask':
@@ -579,6 +582,9 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 type: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 policyID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                submitterUserID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                submitterPayrollID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                orderDealNumbers: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 avatarUrl: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 chatType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasOutstandingChildRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1210,13 +1216,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 email: 'string',
                 displayName: 'string',
                 avatarUrl: 'string',
-                accountID: 'number',
-                text: 'string',
-                login: 'string',
-                searchText: 'string',
-                selected: 'boolean',
-                iouType: CONST.IOU.TYPE,
-                reportID: 'string',
             });
         case 'modifiedWaypoints':
             return validateObject<ObjectElement<Transaction, 'modifiedWaypoints'>>(
@@ -1363,6 +1362,8 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 comment: 'string',
                 cardID: 'number',
                 missingFields: 'array',
+                startDate: 'string',
+                endDate: 'string',
             });
         case 'showInReview':
             return validateBoolean(value);

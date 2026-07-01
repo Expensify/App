@@ -102,6 +102,9 @@ type ParticipantSearchResultsProps = {
 
     /** Callback to handle restricted participant selection */
     onRestrictedParticipantSelected?: () => void;
+
+    /** Callback to dismiss the participant picker overlay before the referral banner navigates, so the referral RHP isn't covered */
+    onCloseParticipantPicker?: () => void;
 };
 
 function ParticipantSearchResults({
@@ -121,6 +124,7 @@ function ParticipantSearchResults({
     initiallySelectedReportID,
     shouldMoveSelectedToTop = false,
     onRestrictedParticipantSelected,
+    onCloseParticipantPicker,
 }: ParticipantSearchResultsProps) {
     const getParticipantOptionKey = (option: Partial<Participant>) => option.reportID ?? option.accountID?.toString() ?? option.login ?? option.phoneNumber ?? '';
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -433,6 +437,7 @@ function ParticipantSearchResults({
                 isDismissedReferralBanner={isDismissedReferralBanner}
                 onConfirmSelection={handleConfirmSelection}
                 onNewWorkspace={() => onFinish()}
+                onCloseParticipantPicker={onCloseParticipantPicker}
             />
         );
 
