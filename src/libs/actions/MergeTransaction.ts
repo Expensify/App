@@ -16,6 +16,7 @@ import {
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
 import type {MergeFieldKey, MergeTransactionUpdateValues} from '@libs/MergeTransactionUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getIOUActionForReportID, getReportAction, getTrackExpenseActionableWhisper} from '@libs/ReportActionsUtils';
@@ -31,7 +32,7 @@ import {
 import CONST from '@src/CONST';
 import {isDistanceRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {CardList, MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
 import {getPolicyTagsData} from './IOU';
 import {getCleanUpTransactionThreadReportOnyxData} from './IOU/DeleteMoneyRequest';
@@ -53,6 +54,32 @@ function setMergeTransactionKey(transactionID: string, values: MergeTransactionU
     Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, values as OnyxMergeInput<`${typeof ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${string}`>);
 }
 
+type MergeTransactionDynamicRoute = {
+    path: string;
+    getRoute: (isOnSearch?: boolean) => string;
+};
+
+function shouldAddIsOnSearchQueryToMergeTransactionRoute(isOnSearch?: boolean) {
+    const activeRoute = Navigation.getActiveRoute();
+    return !!(isOnSearch && !activeRoute.includes('isOnSearch=true'));
+}
+
+function getMergeTransactionDynamicRouteSuffix(dynamicRoute: MergeTransactionDynamicRoute, isOnSearch?: boolean) {
+    return shouldAddIsOnSearchQueryToMergeTransactionRoute(isOnSearch) ? dynamicRoute.getRoute(isOnSearch) : dynamicRoute.path;
+}
+
+function getMergeTransactionListRoute(transactionID: string, isOnSearch?: boolean) {
+    return createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_LIST.getRoute(transactionID, shouldAddIsOnSearchQueryToMergeTransactionRoute(isOnSearch)));
+}
+
+function navigateToMergeTransactionScreen(suffix: string, navigationTransactionID: string, isOnSearch?: boolean, isSelectingSourceTransaction?: boolean) {
+    if (isSelectingSourceTransaction) {
+        Navigation.navigate(createDynamicRoute(suffix));
+        return;
+    }
+    Navigation.navigate(createDynamicRoute(suffix, getMergeTransactionListRoute(navigationTransactionID, isOnSearch)));
+}
+
 function setupMergeTransactionDataAndNavigate(
     navigationTransactionID: string,
     transactions: Transaction[],
@@ -71,7 +98,7 @@ function setupMergeTransactionDataAndNavigate(
         const transaction = transactions.at(0);
         if (transaction) {
             setupMergeTransactionData(navigationTransactionID, {targetTransactionID: transaction.transactionID});
-            Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transaction.transactionID, Navigation.getActiveRoute(), isOnSearch));
+            Navigation.navigate(getMergeTransactionListRoute(transaction.transactionID, isOnSearch));
             return;
         }
     }
@@ -94,7 +121,7 @@ function setupMergeTransactionDataAndNavigate(
     }
     if (shouldNavigateToReceiptReview([targetTransaction, sourceTransaction])) {
         // Navigate to the receipt review page if both transactions have a receipt
-        Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(navigationTransactionID, Navigation.getActiveRoute(), isOnSearch));
+        navigateToMergeTransactionScreen(DYNAMIC_ROUTES.MERGE_TRANSACTION_RECEIPT.path, navigationTransactionID, isOnSearch, isSelectingSourceTransaction);
     } else {
         const receipt = targetTransaction.receipt?.receiptID ? targetTransaction.receipt : sourceTransaction.receipt;
         if (receipt) {
@@ -114,11 +141,11 @@ function setupMergeTransactionDataAndNavigate(
         if (!conflictFields.length) {
             // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
             setMergeTransactionKey(navigationTransactionID, mergeableData);
-            Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(navigationTransactionID, Navigation.getActiveRoute(), isOnSearch));
+            navigateToMergeTransactionScreen(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION.path, navigationTransactionID, isOnSearch, isSelectingSourceTransaction);
             return;
         }
 
-        Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(navigationTransactionID, Navigation.getActiveRoute(), isOnSearch));
+        navigateToMergeTransactionScreen(DYNAMIC_ROUTES.MERGE_TRANSACTION_DETAILS.path, navigationTransactionID, isOnSearch, isSelectingSourceTransaction);
     }
 }
 
@@ -708,4 +735,12 @@ function mergeTransactionRequest({
     API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData, successData});
 }
 
-export {areTransactionsEligibleForMerge, setupMergeTransactionData, setupMergeTransactionDataAndNavigate, setMergeTransactionKey, getTransactionsForMerging, mergeTransactionRequest};
+export {
+    areTransactionsEligibleForMerge,
+    getMergeTransactionDynamicRouteSuffix,
+    setupMergeTransactionData,
+    setupMergeTransactionDataAndNavigate,
+    setMergeTransactionKey,
+    getTransactionsForMerging,
+    mergeTransactionRequest,
+};
