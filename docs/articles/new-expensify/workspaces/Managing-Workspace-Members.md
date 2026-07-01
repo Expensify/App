@@ -11,6 +11,7 @@ A **Workspace member** is anyone added to a workspace with one of the following 
 
 - **Member** – Can submit and/or approve expenses.
 - **Admin** – Can manage members, roles, workflows, and settings.
+- **People Admin** – Can manage workspace membership and configure approval workflows. People Admins can add and remove Members and Auditors only, and cannot add or remove Admins or other scoped admin roles. They have read-only access to the workspace overview and edit access to Members and the Approvals section of Workflows. All other workspace editor pages are hidden.
 - **Auditor** – Can view and comment on reports and has read-only access to all workspace editor pages (such as Categories, Tags, Rules, Workflows, and Accounting). Auditors cannot change any workspace settings or take workflow actions such as approving, paying, or taking control.
 - **Card Admin** – Can manage the Expensify Card and Company cards, including issuing cards, setting limits, and assigning company cards. Has read-only access to Overview and Members, and all other workspace settings pages are hidden.
 
@@ -28,6 +29,8 @@ To invite someone to your workspace:
 6. Click **Invite**.
 
 **Tip:** You can also invite members under **Settings > Profile** by clicking **Share** to send the workspace’s URL or QR code.
+
+**Note:** Workspace Admins and People Admins can invite members. People Admins can only invite users as **Members** or **Auditors** — they cannot invite Admins or other scoped admin roles.
 
 ---
 
@@ -54,6 +57,8 @@ If no members match the selected filter, an empty state is displayed with the me
 
 If someone no longer needs access to your workspace, you can remove them individually or in bulk to keep your member list up to date.
 
+**Note:** Workspace Admins and People Admins can remove members. People Admins can only remove **Members** and **Auditors** — they cannot remove Admins or other scoped admin roles.
+
 ## Remove a Single Member
 
 1. Go to **Workspaces > [Workspace Name] > Members**.
@@ -77,6 +82,8 @@ If someone no longer needs access to your workspace, you can remove them individ
 2. Click the member’s name.
 3. In the right-hand panel, click **Roles**.
 4. Select the new role and confirm.
+
+**Note:** People Admins can change a member’s role between **Member** and **Auditor** only. Granting or removing the Admin role or any scoped admin role (such as Card Admin, People Admin, or Payments Admin) requires a Workspace Admin.
 
 ---
 
