@@ -3871,6 +3871,7 @@ const CONST = {
             MAKE_ADMIN: 'makeAdmin',
             MAKE_AUDITOR: 'makeAuditor',
             MAKE_CARD_ADMIN: 'makeCardAdmin',
+            MAKE_PEOPLE_ADMIN: 'makePeopleAdmin',
         },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',
@@ -4189,6 +4190,7 @@ const CONST = {
         NEW_RATE: 'New Rate',
         RATE_DECIMALS: 3,
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
+        UNSET_DISTANCE_RATE_ID: '-1',
         MILES_TO_KILOMETERS: 1.609344,
         KILOMETERS_TO_MILES: 0.621371,
         RATE_STATUS: {
@@ -6080,6 +6082,7 @@ const CONST = {
         CATEGORY_OUT_OF_POLICY: 'categoryOutOfPolicy',
         CONVERSION_SURCHARGE: 'conversionSurcharge',
         CUSTOM_UNIT_OUT_OF_POLICY: 'customUnitOutOfPolicy',
+        CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE: 'customUnitRateOutOfDateRange',
         DUPLICATED_TRANSACTION: 'duplicatedTransaction',
         FIELD_REQUIRED: 'fieldRequired',
         FUTURE_DATE: 'futureDate',
@@ -8643,6 +8646,12 @@ const CONST = {
         SECTION_VISIBLE_LIMIT: 5,
         ANNOUNCEMENTS: [
             {
+                title: 'Ask Concierge AI: charts, insights & more',
+                subtitle: 'Newsletter',
+                url: 'https://use.expensify.com/blog/ask-expensify-ai-anything',
+                publishedDate: '2026-06-30',
+            },
+            {
                 title: 'AI agents, Concierge upgrades, and smarter card controls',
                 subtitle: 'Product update',
                 url: 'https://use.expensify.com/blog/expensify-june-2026-product-update',
@@ -8653,12 +8662,6 @@ const CONST = {
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260608727624/en/Expensify-Launches-MCP-for-AI-powered-Expense-Management',
                 publishedDate: '2026-06-08',
-            },
-            {
-                title: 'Policy upload, card freeze, and bulk editing',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-may-2026-product-update',
-                publishedDate: '2026-05-22',
             },
         ],
     },

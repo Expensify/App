@@ -250,8 +250,18 @@ function getWaypointsHasUnsavedChanges(
     return haveWaypointAddressesChanged(committedWaypoints, currentWaypoints);
 }
 
+/**
+ * Determines whether the date field should be shown on the money request confirmation surface.
+ * This is the single source of truth shared by the confirmation footer (where the date field is rendered)
+ * and the confirmation-step validation (where a missing date is blocked), so the two never drift out of sync.
+ */
+function shouldShowConfirmationDate(shouldShowSmartScanFields: boolean, isDistanceRequest: boolean): boolean {
+    return shouldShowSmartScanFields || isDistanceRequest;
+}
+
 export {
     addLeadingZero,
+    shouldShowConfirmationDate,
     replaceAllDigits,
     stripCommaFromAmount,
     stripDecimalsFromAmount,
