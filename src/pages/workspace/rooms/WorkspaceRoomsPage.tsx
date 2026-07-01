@@ -18,6 +18,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {openPolicyRoomsPage} from '@libs/actions/Policy/Room';
+import {openReport} from '@libs/actions/Report';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -48,6 +49,8 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const reportAttributes = useReportAttributes();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const personalDetails = usePersonalDetails();
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const [policyReports] = useOnyx(
         ONYXKEYS.COLLECTION.REPORT,
@@ -68,8 +71,14 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
         name: getReportName(report, reportAttributes),
         memberCount: getParticipantsAccountIDsForDisplay(report, true, false, false, undefined, personalDetails).length,
         action: () => {
-            const targetRoute = isAdmin ? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.getRoute(report.reportID)) : ROUTES.REPORT_WITH_ID.getRoute(report.reportID);
-            Navigation.navigate(targetRoute);
+            if (isAdmin) {
+                // Admins open the details RHP directly instead of the room report, so the report is never fetched via ReportScreen.
+                // Fetch it here so the RHP has full data (participants, metadata) for Join, Invite and renaming.
+                openReport({reportID: report.reportID, introSelected, betas});
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.getRoute(report.reportID)));
+                return;
+            }
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
         },
     }));
 
