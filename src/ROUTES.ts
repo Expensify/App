@@ -4331,16 +4331,8 @@ function getFlagForReviewRuleAmountRoute(policyID: string, categoryName?: string
     return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT.getRoute(policyID);
 }
 
-function getFlagForReviewRuleExpenseLimitTypeRoute(policyID: string, categoryName?: string) {
-    if (categoryName) {
-        return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE_EDIT.getRoute(policyID, categoryName);
-    }
-
-    return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE.getRoute(policyID);
-}
-
 export default ROUTES;
-export {getFlagForReviewRuleAmountRoute, getFlagForReviewRuleCategoryRoute, getFlagForReviewRuleExpenseLimitTypeRoute, getRequireFieldsRuleCategoryRoute};
+export {getFlagForReviewRuleAmountRoute, getFlagForReviewRuleCategoryRoute, getRequireFieldsRuleCategoryRoute};
 
 type ReportAttachmentsRoute = typeof ROUTES.REPORT_ATTACHMENTS.route;
 type ReportAddAttachmentRoute = `r/${string}/attachment/add`;
