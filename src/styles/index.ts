@@ -3361,6 +3361,8 @@ const staticStyles = (theme: ThemeColors) =>
             maxWidth: variables.sideBarWidth,
             width: '100%',
             right: 0,
+            // Mirrors the `top: 20` inset of the top-positioned growlNotificationContainer, flipped to the
+            // bottom edge so both growl positions share the same 20px screen inset.
             bottom: 20,
             ...spacing.pl5,
             ...spacing.pr5,
@@ -3374,14 +3376,21 @@ const staticStyles = (theme: ThemeColors) =>
             flexDirection: 'row',
             justifyContent: 'space-between',
             boxShadow: `${theme.shadow}`,
-            // Spec: padding-left 16px, padding-top/right/bottom 8px, 12px gap between items.
-            // The 8px top/bottom padding + the 40px-tall Medium Link action button add up to the
-            // 56px growl height from the design.
+            ...spacing.gap3,
+        },
+
+        // Compact padding speced around the 40px-tall action button: padding-left 16px,
+        // top/right/bottom 8px (8 + 40 + 8 = 56px growl height from the design).
+        growlNotificationBoxWithAction: {
             ...spacing.pl4,
             ...spacing.pt2,
             ...spacing.pr2,
             ...spacing.pb2,
-            ...spacing.gap3,
+        },
+
+        // Roomier padding preserved for action-less growls (e.g. Onfido errors), matching the original p5.
+        growlNotificationBoxWithoutAction: {
+            ...spacing.p5,
         },
 
         growlNotificationText: {
@@ -3389,13 +3398,6 @@ const staticStyles = (theme: ThemeColors) =>
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             lineHeight: variables.fontSizeNormalHeight,
             color: theme.textReversed,
-        },
-
-        growlNotificationTextWithoutAction: {
-            width: '90%',
-        },
-
-        growlNotificationTextWithAction: {
             flex: 1,
             minWidth: 0,
         },

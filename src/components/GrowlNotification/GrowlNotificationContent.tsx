@@ -146,7 +146,7 @@ function GrowlNotificationContent({bodyText, type, duration, action, onDismissed
                     onPress={() => triggerDismiss()}
                 >
                     <GestureDetector gesture={flingGesture}>
-                        <View style={styles.growlNotificationBox}>
+                        <View style={[styles.growlNotificationBox, action ? styles.growlNotificationBoxWithAction : styles.growlNotificationBoxWithoutAction]}>
                             {type === CONST.GROWL.LOADING ? (
                                 <ActivityIndicator reasonAttributes={{context: 'GrowlNotification.Loading'}} />
                             ) : (
@@ -155,7 +155,7 @@ function GrowlNotificationContent({bodyText, type, duration, action, onDismissed
                                     fill={types[type].iconColor}
                                 />
                             )}
-                            <Text style={[styles.growlNotificationText, action ? styles.growlNotificationTextWithAction : styles.growlNotificationTextWithoutAction]}>{bodyText}</Text>
+                            <Text style={styles.growlNotificationText}>{bodyText}</Text>
                             {!!action && (
                                 <Button
                                     medium
