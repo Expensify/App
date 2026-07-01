@@ -325,7 +325,7 @@ function shouldUseTransactionDraft(action: IOUAction | undefined, type?: IOUType
     return action === CONST.IOU.ACTION.CREATE || type === CONST.IOU.TYPE.SPLIT_EXPENSE || isMovingTransactionFromTrackExpense(action);
 }
 
-function formatCurrentUserToAttendee(currentUser?: CurrentUserPersonalDetails, reportID?: string) {
+function formatCurrentUserToAttendee(currentUser?: CurrentUserPersonalDetails) {
     if (!currentUser) {
         return;
     }
@@ -338,13 +338,8 @@ function formatCurrentUserToAttendee(currentUser?: CurrentUserPersonalDetails, r
 
     const initialAttendee: Attendee = {
         email: login,
-        login,
         displayName,
         avatarUrl: SafeString(currentUser.avatar),
-        accountID: currentUser.accountID,
-        text: displayName,
-        selected: true,
-        reportID,
     };
 
     return [initialAttendee];
