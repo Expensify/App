@@ -5822,8 +5822,8 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: shouldShowReimbursableColumn,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: shouldShowBillableColumn,
               [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: shouldShowCommentsColumn,
-              [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: false,
           }
         : {
               [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,

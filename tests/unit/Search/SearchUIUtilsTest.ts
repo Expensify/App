@@ -9284,7 +9284,7 @@ describe('SearchUIUtils', () => {
                 convertedAmount: undefined,
             };
 
-            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL];
             const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
 
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
@@ -9303,11 +9303,12 @@ describe('SearchUIUtils', () => {
                 convertedAmount: 2500,
             };
 
-            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL];
             const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
 
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL);
+            expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)).toBeLessThan(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL));
         });
 
         test('Should show AMOUNT and TOTAL by default when transaction has a real conversion (currencies differ)', () => {
@@ -9326,6 +9327,7 @@ describe('SearchUIUtils', () => {
 
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL);
+            expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)).toBeLessThan(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL));
         });
 
         test('Should show selected columns regardless of whether any transaction has data for them', () => {
