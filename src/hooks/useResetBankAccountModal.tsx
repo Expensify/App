@@ -60,7 +60,7 @@ function useResetBankAccountModal({
     const achData = reimbursementAccount?.achData;
     const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
     const isInOpenState = achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
-    const bankAccountID = achData?.bankAccountID;
+    const bankAccountID = achData?.bankAccountID ?? policy?.achAccount?.bankAccountID;
     const bankShortName = `${achData?.addressName ?? ''} ${(achData?.accountNumber ?? '').slice(-4)}`;
 
     const lastPaymentMethodSelector = useCallback(
@@ -77,7 +77,7 @@ function useResetBankAccountModal({
 
     const handleConfirm = () => {
         if (isNonUSDWorkspace) {
-            resetNonUSDBankAccount(policyID, policy?.achAccount, achData?.bankAccountID, lastPaymentMethod, policy?.owner);
+            resetNonUSDBankAccount(policyID, policy?.achAccount, bankAccountID, lastPaymentMethod, policy?.owner);
 
             if (setShouldShowConnectedVerifiedBankAccount) {
                 setShouldShowConnectedVerifiedBankAccount(false);

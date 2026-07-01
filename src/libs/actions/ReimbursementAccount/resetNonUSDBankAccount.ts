@@ -34,9 +34,11 @@ function resetNonUSDBankAccount(
                               reimburser: reimburserEmail,
                               bankAccountID: null,
                               accountNumber: null,
+                              routingNumber: null,
                               addressName: null,
                               bankName: null,
                               state: null,
+                              sharees: null,
                           }
                         : null,
                 },
@@ -119,9 +121,11 @@ function resetNonUSDBankAccount(
                           reimburser: reimburserEmail,
                           bankAccountID: null,
                           accountNumber: null,
+                          routingNumber: null,
                           addressName: null,
                           bankName: null,
                           state: null,
+                          sharees: null,
                       }
                     : null,
             },
