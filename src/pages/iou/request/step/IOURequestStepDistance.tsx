@@ -187,9 +187,11 @@ function IOURequestStepDistance({
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => {
-            // The Manual tab holds the typed distance in `manualNumberFormRef` until Save — check it separately from waypoints, matching the save path.
-            const typedDistance = manualNumberFormRef.current?.getNumber();
-            const manualDistanceChanged = !!typedDistance && roundToTwoDecimalPlaces(parseFloat(typedDistance)) !== currentDistance;
+            // Manual distance sits in `manualNumberFormRef` until Save — gate on the mounted ref so a cleared (empty) value still counts as dirty against a committed distance.
+            const manualForm = manualNumberFormRef.current;
+            const typedDistance = manualForm?.getNumber();
+            const typedManualDistance = typedDistance ? roundToTwoDecimalPlaces(parseFloat(typedDistance)) : undefined;
+            const manualDistanceChanged = !!manualForm && typedManualDistance !== currentDistance;
             // Split edits skip the transaction backup, so their pre-edit route lives in `originalSplitTransactionDraft`.
             const committedWaypoints = isEditingSplit ? originalSplitTransactionDraft?.comment?.waypoints : transactionBackup?.comment?.waypoints;
             return manualDistanceChanged || getWaypointsHasUnsavedChanges(transaction, committedWaypoints, waypoints, isCreatingNewRequest);
