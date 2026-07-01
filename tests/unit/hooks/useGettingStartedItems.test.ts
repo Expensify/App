@@ -53,7 +53,8 @@ function buildPolicy(overrides: Partial<Policy> = {}): Policy {
 }
 
 async function setupTrackWorkspaceScenario(overrides: {policy?: Partial<Policy>; firstDayTrial?: string; lastDayTrial?: string; intentSource?: 'introSelected' | 'onboardingPurpose'} = {}) {
-    const policy = buildPolicy(overrides.policy);
+    // New workspaces enable Categories by default, so keep the categories step visible unless a test opts out.
+    const policy = buildPolicy({areCategoriesEnabled: true, ...overrides.policy});
     await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
 
     if (overrides.intentSource === 'onboardingPurpose') {
@@ -1124,6 +1125,84 @@ describe('useGettingStartedItems', () => {
 
                 const inviteAccountantItem = result.current.items.find((item) => item.key === 'inviteAccountant');
                 expect(inviteAccountantItem?.isComplete).toBe(true);
+            });
+        });
+
+        describe('link company card step', () => {
+            it('should insert linkCompanyCards between customizeCategories and inviteAccountant when company cards are enabled', async () => {
+                await setupTrackWorkspaceScenario({policy: {areCompanyCardsEnabled: true}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const keys = result.current.items.map((item) => item.key);
+                expect(keys).toEqual(['createWorkspace', 'customizeCategories', 'linkCompanyCards', 'inviteAccountant']);
+            });
+
+            it('should navigate to the workspace company cards route', async () => {
+                await setupTrackWorkspaceScenario({policy: {areCompanyCardsEnabled: true}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const companyCardsItem = result.current.items.find((item) => item.key === 'linkCompanyCards');
+                expect(companyCardsItem?.route).toBe(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(POLICY_ID));
+            });
+
+            it('should have isComplete=false when the workspace has no connected company card feed', async () => {
+                await setupTrackWorkspaceScenario({policy: {areCompanyCardsEnabled: true}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const companyCardsItem = result.current.items.find((item) => item.key === 'linkCompanyCards');
+                expect(companyCardsItem?.isComplete).toBe(false);
+            });
+
+            it('should have isComplete=true when the workspace has a connected company card feed', async () => {
+                const policyAccountID = 7777777;
+                const commercialFeed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${policyAccountID}`, {
+                    settings: {
+                        companyCards: {
+                            [commercialFeed]: {preferredPolicy: POLICY_ID, liabilityType: 'corporate'},
+                        },
+                    },
+                });
+                await setupTrackWorkspaceScenario({policy: {policyAccountID, areCompanyCardsEnabled: true}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+                await waitFor(() => expect(result.current.items.find((item) => item.key === 'linkCompanyCards')?.isComplete).toBe(true));
+            });
+        });
+
+        describe('feature toggles hide and show steps', () => {
+            it('should hide the customizeCategories step when Categories is disabled', async () => {
+                await setupTrackWorkspaceScenario({policy: {areCategoriesEnabled: false, areCompanyCardsEnabled: true}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const keys = result.current.items.map((item) => item.key);
+                expect(keys).toEqual(['createWorkspace', 'linkCompanyCards', 'inviteAccountant']);
+            });
+
+            it('should hide the linkCompanyCards step when Company cards is disabled', async () => {
+                await setupTrackWorkspaceScenario({policy: {areCategoriesEnabled: true, areCompanyCardsEnabled: false}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const keys = result.current.items.map((item) => item.key);
+                expect(keys).toEqual(['createWorkspace', 'customizeCategories', 'inviteAccountant']);
+            });
+
+            it('should preserve relative order and only collapse the hidden step when both features toggle', async () => {
+                await setupTrackWorkspaceScenario({policy: {areCategoriesEnabled: false, areCompanyCardsEnabled: false}});
+
+                const {result: bothDisabled} = renderHook(() => useGettingStartedItems());
+                expect(bothDisabled.current.items.map((item) => item.key)).toEqual(['createWorkspace', 'inviteAccountant']);
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areCategoriesEnabled: true, areCompanyCardsEnabled: true});
+                await waitForBatchedUpdates();
+
+                const {result: bothEnabled} = renderHook(() => useGettingStartedItems());
+                expect(bothEnabled.current.items.map((item) => item.key)).toEqual(['createWorkspace', 'customizeCategories', 'linkCompanyCards', 'inviteAccountant']);
             });
         });
     });

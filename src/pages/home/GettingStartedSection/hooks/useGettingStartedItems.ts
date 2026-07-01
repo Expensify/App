@@ -96,14 +96,25 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     });
 
     if (intent === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
-        items.push({
-            key: 'customizeCategories',
-            label: translate('homePage.gettingStartedSection.customizeCategories'),
-            isComplete: hasCustomCategories(policyCategories),
-            route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
-            isFeatureEnabled: policy.areCategoriesEnabled,
-            enableFeature: () => enablePolicyCategories({policy, categories: policyCategories ?? {}, tags: {}, reports: [], transactionsAndViolations: {}}, true, false),
-        });
+        // Categories and Company cards steps mirror their feature toggles: a step is only surfaced while its feature is
+        // enabled, so disabling either from the More features menu collapses the step and re-enabling adds it back.
+        if (policy.areCategoriesEnabled) {
+            items.push({
+                key: 'customizeCategories',
+                label: translate('homePage.gettingStartedSection.customizeCategories'),
+                isComplete: hasCustomCategories(policyCategories),
+                route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
+            });
+        }
+
+        if (policy.areCompanyCardsEnabled) {
+            items.push({
+                key: 'linkCompanyCards',
+                label: translate('homePage.gettingStartedSection.linkCompanyCards'),
+                isComplete: hasCompanyCardFeeds(allCardFeeds),
+                route: ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(activePolicyID),
+            });
+        }
 
         const activeMemberCount = Object.values(policy.employeeList ?? {}).filter((member) => member?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
         items.push({
