@@ -306,7 +306,7 @@ function getAvatarSubscriptIconContainerStyle(iconWidth = 16, iconHeight = 16): 
 /**
  * Helper method to return workspace avatar color styles
  */
-function getDefaultWorkspaceAvatarColor(text: string): ViewStyle {
+function getDefaultWorkspaceAvatarColor(text: string): SVGAvatarColorStyle {
     const colorHash = hashText(text.trim(), workspaceColorOptions.length);
     return workspaceColorOptions.at(colorHash) ?? DEFAULT_WORKSPACE_COLOR;
 }

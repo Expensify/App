@@ -1,6 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
+import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import CONST from '@src/CONST';
 import * as UserAvatarUtils from '@src/libs/UserAvatarUtils';
 
@@ -295,6 +296,29 @@ describe('UserAvatarUtils', () => {
         it('should prioritize avatarURL over accountID and email', () => {
             const name = UserAvatarUtils.getDefaultAvatarName({accountID: 1, accountEmail: 'test@example.com', avatarURL: 'https://example.com/default-avatar_20.png'});
             expect(name).toBe('default-avatar_20');
+        });
+    });
+
+    describe('optimizeAvatarSource', () => {
+        it('should return the bundled local SVG for a catalog avatar URL', () => {
+            const catalogAvatar = USER_AVATARS.entries['default-avatar_1'];
+            const result = UserAvatarUtils.optimizeAvatarSource(catalogAvatar.url);
+
+            expect(result).toBe(catalogAvatar.local);
+            expect(typeof result).toBe('function');
+        });
+
+        it('should return the original URL unchanged for a non-catalog (uploaded) URL', () => {
+            const uploadedURL = 'https://example.com/uploaded-avatar.png';
+            expect(UserAvatarUtils.optimizeAvatarSource(uploadedURL)).toBe(uploadedURL);
+        });
+
+        it('should return an SVG component source unchanged', () => {
+            expect(UserAvatarUtils.optimizeAvatarSource(defaultAvatars.Avatar1)).toBe(defaultAvatars.Avatar1);
+        });
+
+        it('should return undefined when no source is provided', () => {
+            expect(UserAvatarUtils.optimizeAvatarSource(undefined)).toBeUndefined();
         });
     });
 });
