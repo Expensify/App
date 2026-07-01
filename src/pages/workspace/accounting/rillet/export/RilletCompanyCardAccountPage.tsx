@@ -1,101 +1,74 @@
 import React from 'react';
 import {View} from 'react-native';
-import ConnectionLayout from '@components/ConnectionLayout';
+import type {ListItem} from '@components/SelectionList/types';
+import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearRilletErrorField, updateRilletEnableNewCategories, updateRilletFieldMapping, updateRilletSyncTaxRates} from '@libs/actions/connections/Rillet';
+import {clearRilletErrorField} from '@libs/actions/connections/Rillet';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
-import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
-import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+import type {RilletAccount} from '@src/types/onyx/Policy';
 
-function RilletImportPage({policy}: WithPolicyConnectionsProps) {
+type AccountListItem = ListItem & {
+    value: RilletAccount['id'];
+};
+
+function RilletCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
     const rilletConfig = policy?.connections?.rillet?.config;
     const rilletData = policy?.connections?.rillet?.data;
+    const companyCardAccount = rilletData?.accounts?.find((account) => account.code === rilletConfig?.export?.creditCardAccountCode);
+    const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.getRoute(policyID) : undefined;
+
+    const data: AccountListItem[] =
+        rilletData?.accounts?.map((accountItem) => ({
+            value: accountItem.id,
+            text: accountItem.name,
+            keyForList: accountItem.id,
+            isSelected: companyCardAccount?.id === accountItem.id,
+        })) ?? [];
+
+    const headerContent = (
+        <View>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.rillet.companyCardAccount.description')}</Text>
+        </View>
+    );
+
+    const selectDefaultVendor = (item: AccountListItem) => {
+        if (item.value !== companyCardAccount?.id && policyID) {
+            // updateRilletCreditCardAccount(policyID, item.value, companyCardAccount?.id);
+        }
+        Navigation.goBack(backPath);
+    };
 
     return (
-        <ConnectionLayout
-            displayName="RilletImportPage"
-            headerTitle="workspace.accounting.import"
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+        <SelectionScreen
             policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            contentContainerStyle={styles.pb2}
-            titleStyle={styles.ph5}
+            displayName="RilletCompanyCardAccountPage"
+            title="workspace.rillet.companyCardAccount.label"
+            data={data}
+            headerContent={headerContent}
+            onSelectRow={selectDefaultVendor}
+            shouldSingleExecuteRowSelect
+            initiallyFocusedOptionKey={companyCardAccount?.id}
+            onBackButtonPress={() => Navigation.goBack(backPath)}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.RILLET}
-        >
-            <ToggleSettingOptionRow
-                title={translate('workspace.accounting.accounts')}
-                subtitle={translate('workspace.rillet.accountTypesDescription')}
-                switchAccessibilityLabel={translate('workspace.accounting.accounts')}
-                shouldPlaceSubtitleBelowSwitch
-                wrapperStyle={[styles.mv3, styles.mh5]}
-                isActive
-                onToggle={() => {}}
-                disabled
-            />
-            <ToggleSettingOptionRow
-                title={translate('workspace.rillet.enableNewAccountsTitle')}
-                subtitle={translate('workspace.rillet.enableNewAccountsDescription')}
-                switchAccessibilityLabel={translate('workspace.rillet.enableNewAccountsTitle')}
-                shouldPlaceSubtitleBelowSwitch
-                wrapperStyle={[styles.mv3, styles.mh5]}
-                isActive={rilletConfig?.enableNewCategories ?? false}
-                onToggle={() => policyID && updateRilletEnableNewCategories(policyID, !rilletConfig?.enableNewCategories, rilletConfig?.enableNewCategories)}
-                pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES], rilletConfig?.pendingFields)}
-                errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES)}
-                onCloseError={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES)}
-            />
-            <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
-            <View style={[styles.mv3, styles.mh5]}>
-                <Text>{translate('workspace.rillet.dimensionsImport')}</Text>
-            </View>
-            {rilletData?.fields.map((field) => (
-                <ToggleSettingOptionRow
-                    key={field.id}
-                    title={field.name}
-                    switchAccessibilityLabel={field.name}
-                    shouldPlaceSubtitleBelowSwitch
-                    wrapperStyle={[styles.mv3, styles.mh5]}
-                    isActive={rilletConfig?.coding.fieldMappings[field.id] === CONST.RILLET_MAPPING_VALUE.TAG}
-                    onToggle={() =>
-                        policyID &&
-                        updateRilletFieldMapping(
-                            policyID,
-                            field.id,
-                            rilletConfig?.coding.fieldMappings[field.id] === CONST.RILLET_MAPPING_VALUE.TAG ? CONST.RILLET_MAPPING_VALUE.NONE : CONST.RILLET_MAPPING_VALUE.TAG,
-                            rilletConfig?.coding.fieldMappings[field.id],
-                        )
-                    }
-                    pendingAction={settingsPendingAction([`${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`], rilletConfig?.pendingFields)}
-                    errors={getLatestErrorField(rilletConfig ?? {}, `${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`)}
-                    onCloseError={() => policyID && clearRilletErrorField(policyID, `${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`)}
-                />
-            ))}
-            {!!rilletData?.taxRates.length && (
-                <>
-                    <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
-                    <ToggleSettingOptionRow
-                        title={translate('workspace.taxes.taxRates')}
-                        switchAccessibilityLabel={translate('workspace.taxes.taxRates')}
-                        shouldPlaceSubtitleBelowSwitch
-                        wrapperStyle={[styles.mv3, styles.mh5]}
-                        isActive={rilletConfig?.coding.syncTaxRates ?? false}
-                        onToggle={() => policyID && updateRilletSyncTaxRates(policyID, !rilletConfig?.coding.syncTaxRates, rilletConfig?.coding.syncTaxRates)}
-                        pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.SYNC_TAX_RATES], rilletConfig?.pendingFields)}
-                        errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.SYNC_TAX_RATES)}
-                        onCloseError={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.SYNC_TAX_RATES)}
-                    />
-                </>
-            )}
-        </ConnectionLayout>
+            pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE], rilletConfig?.pendingFields)}
+            errors={getLatestErrorField(rilletConfig, CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE)}
+        />
     );
 }
 
-export default withPolicyConnections(RilletImportPage);
+export default withPolicyConnections(RilletCompanyCardAccountPage);

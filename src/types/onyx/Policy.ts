@@ -2867,4 +2867,5 @@ export type {
     AgentRule,
     RilletExportDate,
     RilletVendor,
+    RilletAccount,
 };
