@@ -481,7 +481,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
             SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
-            SCREENS.TRAVEL.WORKSPACE_ADDRESS,
+            SCREENS.TRAVEL.DYNAMIC_WORKSPACE_ADDRESS,
             SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT,
         ],
         getRoute: (country = '') => `country?country=${country}`,
@@ -836,8 +836,8 @@ const DYNAMIC_ROUTES = {
             SCREENS.WORKSPACE.TRAVEL,
             SCREENS.SEARCH.ROOT,
             SCREENS.TRAVEL.DYNAMIC_DOMAIN_SELECTOR,
-            SCREENS.TRAVEL.WORKSPACE_ADDRESS,
-            SCREENS.TRAVEL.VERIFY_ACCOUNT,
+            SCREENS.TRAVEL.DYNAMIC_WORKSPACE_ADDRESS,
+            SCREENS.TRAVEL.DYNAMIC_VERIFY_ACCOUNT,
         ],
         getRoute: (domain: string, policyID?: string) => `terms/${domain}/accept${policyID ? `/${policyID}` : ''}`,
     },
@@ -851,9 +851,35 @@ const DYNAMIC_ROUTES = {
         getRoute: (policyID?: string) => getUrlWithParams('domain-selector', {policyID}),
         queryParams: ['policyID'],
     },
+    TRAVEL_WORKSPACE_ADDRESS: {
+        path: ':domain/workspace-address',
+        getRoute: (domain: string, policyID?: string) => getUrlWithParams(`${domain}/workspace-address`, {policyID}),
+        queryParams: ['policyID'],
+        entryScreens: [SCREENS.TRAVEL.DYNAMIC_DOMAIN_SELECTOR, SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT],
+    },
+    TRAVEL_VERIFY_ACCOUNT: {
+        path: 'travel-verify-account',
+        getRoute: (domain?: string, policyID?: string) => getUrlWithParams('travel-verify-account', {domain, policyID}),
+        queryParams: ['domain', 'policyID'],
+        entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT, SCREENS.TRAVEL.DYNAMIC_DOMAIN_SELECTOR, SCREENS.TRAVEL.DYNAMIC_WORKSPACE_ADDRESS],
+    },
     TRAVEL_UPGRADE: {
         path: 'travel-upgrade',
         entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT],
+    },
+    TRAVEL_WORKSPACE_CONFIRMATION: {
+        path: 'workspace-confirmation',
+        entryScreens: [SCREENS.TRAVEL.DYNAMIC_UPGRADE],
+    },
+    TRAVEL_TRIP_SUMMARY: {
+        path: 'trip/:transactionID',
+        getRoute: (transactionID: string) => `trip/${transactionID}` as const,
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+    },
+    TRAVEL_TRIP_DETAILS: {
+        path: 'trip/:transactionID/:pnr/:sequenceIndex',
+        getRoute: (transactionID: string, pnr: string, sequenceIndex: number) => `trip/${transactionID}/${pnr}/${sequenceIndex}` as const,
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
     },
     REPORT_CHANGE_APPROVER: {
         path: 'change-approver',
@@ -3358,41 +3384,6 @@ const ROUTES = {
         },
     },
     TRACK_TRAINING_MODAL: 'track-training',
-    TRAVEL_TRIP_SUMMARY: {
-        route: 'r/:reportID/trip/:transactionID',
-        getRoute: (reportID: string | undefined, transactionID: string | undefined, backTo?: string) => {
-            if (!reportID || !transactionID) {
-                Log.warn('Invalid reportID or transactionID is used to build the TRAVEL_TRIP_SUMMARY route');
-            }
-
-            return getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}`, backTo);
-        },
-    },
-    TRAVEL_TRIP_DETAILS: {
-        route: 'r/:reportID/trip/:transactionID/:pnr/:sequenceIndex',
-        getRoute: (reportID: string | undefined, transactionID: string | undefined, pnr: string | undefined, sequenceIndex: number, backTo?: string) => {
-            if (!reportID || !transactionID || !pnr) {
-                Log.warn('Invalid reportID, transactionID or pnr is used to build the TRAVEL_TRIP_DETAILS route');
-            }
-
-            return getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}/${pnr}/${sequenceIndex}`, backTo);
-        },
-    },
-    TRAVEL_WORKSPACE_CONFIRMATION: {
-        route: 'travel/upgrade/workspace/confirmation',
-
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`travel/upgrade/workspace/confirmation`, backTo),
-    },
-    TRAVEL_WORKSPACE_ADDRESS: {
-        route: 'travel/:domain/workspace-address',
-
-        getRoute: (domain: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/${domain}/workspace-address?${policyID ? `policyID=${policyID}` : ''}`, backTo),
-    },
-    TRAVEL_VERIFY_ACCOUNT: {
-        route: `travel/${VERIFY_ACCOUNT}`,
-
-        getRoute: (domain?: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(getUrlWithParams(`travel/${VERIFY_ACCOUNT}`, {domain, policyID}), backTo),
-    },
     ONBOARDING_ROOT: {
         route: 'onboarding',
 

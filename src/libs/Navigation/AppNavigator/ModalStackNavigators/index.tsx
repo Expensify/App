@@ -85,10 +85,10 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: {
         animation: Animations.NONE,
     },
-    [SCREENS.TRAVEL.VERIFY_ACCOUNT]: {
+    [SCREENS.TRAVEL.DYNAMIC_VERIFY_ACCOUNT]: {
         animationTypeForReplace: 'push',
     },
-    [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: {
+    [SCREENS.TRAVEL.DYNAMIC_WORKSPACE_ADDRESS]: {
         animationTypeForReplace: 'push',
     },
     [SCREENS.MULTIFACTOR_AUTHENTICATION.REVOKE]: {
@@ -229,14 +229,14 @@ const TravelModalStackNavigator = createModalStackNavigator<TravelNavigatorParam
     [SCREENS.TRAVEL.TRAVEL_DOT_LINK_WEB_VIEW]: () => require<ReactComponentModule>('../../../../pages/Travel/TravelDotLinkWebview').default,
     [SCREENS.TRAVEL.DYNAMIC_TCS]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicTravelTerms').default,
     [SCREENS.TRAVEL.DYNAMIC_UPGRADE]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicTravelUpgrade').default,
-    [SCREENS.TRAVEL.TRIP_SUMMARY]: () => require<ReactComponentModule>('../../../../pages/Travel/TripSummaryPage').default,
-    [SCREENS.TRAVEL.TRIP_DETAILS]: () => require<ReactComponentModule>('../../../../pages/Travel/TripDetailsPage').default,
+    [SCREENS.TRAVEL.DYNAMIC_TRIP_SUMMARY]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicTripSummaryPage').default,
+    [SCREENS.TRAVEL.DYNAMIC_TRIP_DETAILS]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicTripDetailsPage').default,
     [SCREENS.TRAVEL.DYNAMIC_DOMAIN_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicDomainSelectorPage').default,
     [SCREENS.TRAVEL.DYNAMIC_DOMAIN_PERMISSION_INFO]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicDomainPermissionInfoPage').default,
     [SCREENS.TRAVEL.DYNAMIC_PUBLIC_DOMAIN_ERROR]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicPublicDomainErrorPage').default,
-    [SCREENS.TRAVEL.WORKSPACE_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/Travel/WorkspaceConfirmationForTravelPage').default,
-    [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: () => require<ReactComponentModule>('../../../../pages/Travel/WorkspaceAddressForTravelPage').default,
-    [SCREENS.TRAVEL.VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/Travel/VerifyAccountPage').default,
+    [SCREENS.TRAVEL.DYNAMIC_WORKSPACE_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicWorkspaceConfirmationForTravelPage').default,
+    [SCREENS.TRAVEL.DYNAMIC_WORKSPACE_ADDRESS]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicWorkspaceAddressForTravelPage').default,
+    [SCREENS.TRAVEL.DYNAMIC_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicTravelVerifyAccountPage').default,
 });
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNavigatorParamList>({
