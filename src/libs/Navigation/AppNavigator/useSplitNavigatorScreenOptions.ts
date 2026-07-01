@@ -18,11 +18,14 @@ type SplitNavigatorScreenOptions = {
     centralScreen: PlatformStackNavigationOptions;
 };
 
-const commonScreenOptions: PlatformStackNavigationOptions = {
+const commonScreenOptions = (themeStyles: ReturnType<typeof useThemeStyles>): PlatformStackNavigationOptions => ({
     web: {
         cardOverlayEnabled: true,
     },
-};
+    native: {
+        contentStyle: themeStyles.appBG,
+    },
+});
 
 const useSplitNavigatorScreenOptions = () => {
     const themeStyles = useThemeStyles();
@@ -34,7 +37,7 @@ const useSplitNavigatorScreenOptions = () => {
 
     return {
         sidebarScreen: {
-            ...commonScreenOptions,
+            ...commonScreenOptions(themeStyles),
             title: CONFIG.SITE_TITLE,
             headerShown: false,
             animation: shouldUseNarrowLayout && !IS_MOBILE_SAFARI ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
@@ -51,7 +54,7 @@ const useSplitNavigatorScreenOptions = () => {
         },
 
         centralScreen: {
-            ...commonScreenOptions,
+            ...commonScreenOptions(themeStyles),
             ...hideKeyboardOnSwipe,
             headerShown: false,
             title: CONFIG.SITE_TITLE,
