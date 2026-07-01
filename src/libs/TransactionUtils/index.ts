@@ -1246,7 +1246,9 @@ function doesMoneyRequestDraftHaveUserInput(transaction: OnyxEntry<Transaction>)
     return Object.keys(getValidWaypoints(getWaypoints(transaction))).length > 0;
 }
 
-/** Returns the transaction's waypoints, preferring `modifiedWaypoints` when present. */
+/**
+ * Return the waypoints field from the transaction, return the modifiedWaypoints if present.
+ */
 function getWaypoints(transaction: OnyxEntry<Transaction>): WaypointCollection | undefined {
     return transaction?.modifiedWaypoints ?? transaction?.comment?.waypoints;
 }

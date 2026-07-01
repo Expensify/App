@@ -87,6 +87,10 @@ function useDiscardChangesConfirmation({
     };
 
     useBeforeRemove((e) => {
+        if (shouldNavigateBack.current) {
+            return;
+        }
+
         if (restoreState.current.phase === 'restoring') {
             // The `history.go(1)` restoring the browser entry can re-deliver a reset for the current state; swallow it without re-blocking
             e.preventDefault();
@@ -104,10 +108,6 @@ function useDiscardChangesConfirmation({
                 return;
             }
             closeModal();
-            return;
-        }
-
-        if (shouldNavigateBack.current) {
             return;
         }
 
