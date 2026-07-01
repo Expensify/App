@@ -92,7 +92,11 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const cardFeedIcon = (
         <CardFeedIcon
             isExpensifyCardFeed
-            iconProps={{height: variables.cardIconHeight, width: variables.cardIconWidth, additionalStyles: styles.cardIcon}}
+            iconProps={{
+                height: variables.cardIconHeight,
+                width: variables.cardIconWidth,
+                additionalStyles: styles.cardIcon,
+            }}
         />
     );
 
@@ -130,6 +134,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     name: card.nameValuePairs?.cardTitle ?? '',
                     cardholder: personalDetails?.[card.accountID ?? CONST.DEFAULT_NUMBER_ID],
                     limit: card.nameValuePairs?.unapprovedExpenseLimit ?? 0,
+                    remainingLimit: card.availableSpend ?? 0,
                     currency: settlementCurrency,
                     isVirtual: !!card.nameValuePairs?.isVirtual,
                     limitType: card.nameValuePairs?.limitType,
@@ -206,7 +211,9 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     <ButtonWithDropdownMenu<typeof CONST.EXPENSIFY_CARD.BULK_ACTIONS.EXPORT_CSV>
                         success
                         onPress={() => {}}
-                        customText={translate('workspace.common.selected', {count: selectedCardIDs.length})}
+                        customText={translate('workspace.common.selected', {
+                            count: selectedCardIDs.length,
+                        })}
                         options={bulkExportOptions}
                         isSplitButton={false}
                         shouldAlwaysShowDropdownMenu

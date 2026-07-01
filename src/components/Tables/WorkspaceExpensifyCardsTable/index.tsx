@@ -21,7 +21,7 @@ import type {ExpensifyCardSettingsBase} from '@src/types/onyx/ExpensifyCardSetti
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import WorkspaceExpensifyCardsTableRow from './WorkspaceExpensifyCardsTableRow';
 
-type WorkspaceExpensifyCardTableColumnKey = 'name' | 'type' | 'limitType' | 'lastFour' | 'limit' | 'actions';
+type WorkspaceExpensifyCardTableColumnKey = 'name' | 'type' | 'limitType' | 'lastFour' | 'limit' | 'remainingLimit' | 'actions';
 
 type WorkspaceExpensifyCardTableRowData = TableData & {
     cardID: number;
@@ -30,6 +30,7 @@ type WorkspaceExpensifyCardTableRowData = TableData & {
     name: string;
     cardholder?: PersonalDetails | null;
     limit: number;
+    remainingLimit: number;
     currency?: string;
     isVirtual: boolean;
     limitType: CardLimitType | undefined;
@@ -127,6 +128,14 @@ export default function WorkspaceExpensifyCardsTable({
             },
         },
         {
+            key: 'remainingLimit',
+            label: translate('workspace.expensifyCard.remainingLimit'),
+            sortable: true,
+            styling: {
+                containerStyles: [styles.justifyContentEnd],
+            },
+        },
+        {
             key: 'actions',
             label: '',
             sortable: false,
@@ -155,6 +164,10 @@ export default function WorkspaceExpensifyCardsTable({
 
         if (activeSorting.columnKey === 'limit') {
             return (item1.limit - item2.limit) * orderMultiplier;
+        }
+
+        if (activeSorting.columnKey === 'remainingLimit') {
+            return (item1.remainingLimit - item2.remainingLimit) * orderMultiplier;
         }
 
         const cardholderName1 = item1.cardholder?.displayName ?? item1.cardholder?.login ?? '';
