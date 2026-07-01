@@ -31,6 +31,7 @@ import {endSpan} from '@libs/telemetry/activeSpans';
 import {cancelTracking} from '@libs/telemetry/submitFollowUpAction';
 import {isScanRequest} from '@libs/TransactionUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {setNativeShortcutFlag} from '@userActions/IOU/MoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -187,6 +188,16 @@ function IOURequestStartPage({
         }
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
         // Tab switches change transactionRequestType but shouldn't re-trigger endSpan.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        // Native home-screen shortcuts bypass startMoneyRequest (which sets isFromFloatingActionButton),
+        // so if this is a global create without that flag, it must be a native shortcut.
+        if (!isFromGlobalCreate || transaction?.isFromFloatingActionButton) {
+            return;
+        }
+        setNativeShortcutFlag(route.params.transactionID);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

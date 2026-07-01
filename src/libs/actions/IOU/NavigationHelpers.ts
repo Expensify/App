@@ -18,10 +18,10 @@ function dismissModalAndOpenReportInInboxTab(reportID?: string, isInvoice?: bool
 
 /**
  * Marks a transaction for highlight on the Search page when the expense was created
- * from the global create button and the user is not on the Inbox tab.
+ * from the global create button and the user is not on the Inbox tab (or from a native shortcut regardless of tab).
  */
-function highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate: boolean | undefined, transactionID: string | undefined, dataType: SearchDataTypes) {
-    if (!isFromGlobalCreate || isReportTopmostSplitNavigator() || !transactionID) {
+function highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate: boolean | undefined, transactionID: string | undefined, dataType: SearchDataTypes, isFromNativeShortcut?: boolean) {
+    if (!isFromGlobalCreate || (isReportTopmostSplitNavigator() && !isFromNativeShortcut) || !transactionID) {
         return;
     }
     mergeTransactionIdsHighlightOnSearchRoute(dataType, {[transactionID]: true});
@@ -38,6 +38,7 @@ function handleNavigateAfterExpenseCreate({
     activeReportID,
     transactionID,
     isFromGlobalCreate,
+    isFromNativeShortcut,
     isInvoice,
     shouldAddPendingNewTransactionIDs = false,
     shouldNavigate = true,
@@ -45,12 +46,22 @@ function handleNavigateAfterExpenseCreate({
     activeReportID?: string;
     transactionID?: string;
     isFromGlobalCreate?: boolean;
+    isFromNativeShortcut?: boolean;
     isInvoice?: boolean;
     shouldAddPendingNewTransactionIDs?: boolean;
     shouldNavigate?: boolean;
 }) {
     const hasMultipleTransactions = Object.values(getAllTransactions()).filter((transaction) => transaction?.reportID === activeReportID).length > 0;
-    navigateAfterExpenseCreate({activeReportID, transactionID, isFromGlobalCreate, isInvoice, hasMultipleTransactions, shouldAddPendingNewTransactionIDs, shouldNavigate});
+    navigateAfterExpenseCreate({
+        activeReportID,
+        transactionID,
+        isFromGlobalCreate,
+        isFromNativeShortcut,
+        isInvoice,
+        hasMultipleTransactions,
+        shouldAddPendingNewTransactionIDs,
+        shouldNavigate,
+    });
 }
 
 export {dismissModalAndOpenReportInInboxTab, handleNavigateAfterExpenseCreate, highlightTransactionOnSearchRouteIfNeeded};

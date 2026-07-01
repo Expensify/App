@@ -166,6 +166,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         const lastOptimisticTransactionID = optimisticTransactionIDs.at(-1) ?? transactionID;
         const linkedTrackedExpenseReportAction = transaction?.linkedTrackedExpenseReportAction;
         const isFromGlobalCreate = getIsFromGlobalCreate(transaction);
+        const isFromNativeShortcut = !!transaction?.isFromNativeShortcut;
 
         const firstReceiptFile = files.at(0);
 
@@ -208,6 +209,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                         draftTransactionIDs,
                         transactionID: getExistingTransactionID(linkedTrackedExpenseReportAction) ?? lastOptimisticTransactionID,
                         isFromGlobalCreate,
+                        isFromNativeShortcut,
                         backToReport,
                         optimisticChatReportID: chatReportID,
                         linkedTrackedExpenseReportAction,
@@ -278,6 +280,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                         draftTransactionIDs,
                         transactionID: lastOptimisticTransactionID,
                         isFromGlobalCreate,
+                        isFromNativeShortcut,
                         backToReport,
                         optimisticChatReportID: chatReportID,
                         linkedTrackedExpenseReportAction,

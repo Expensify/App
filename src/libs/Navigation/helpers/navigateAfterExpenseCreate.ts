@@ -17,6 +17,7 @@ type NavigateAfterExpenseCreateParams = {
     activeReportID?: string;
     transactionID?: string;
     isFromGlobalCreate?: boolean;
+    isFromNativeShortcut?: boolean;
     isInvoice?: boolean;
     hasMultipleTransactions: boolean;
     shouldAddPendingNewTransactionIDs?: boolean;
@@ -42,6 +43,7 @@ function navigateAfterExpenseCreate({
     activeReportID,
     transactionID,
     isFromGlobalCreate,
+    isFromNativeShortcut,
     isInvoice,
     hasMultipleTransactions,
     shouldAddPendingNewTransactionIDs = false,
@@ -49,10 +51,11 @@ function navigateAfterExpenseCreate({
 }: NavigateAfterExpenseCreateParams) {
     const isUserOnInbox = isReportTopmostSplitNavigator();
 
-    // If the expense is not created from global create or is currently on the inbox tab,
+    // If the expense is not created from global create or is currently on the inbox tab
+    // (unless it's from a native shortcut, which should always go to Spend > Expenses),
     // we just need to dismiss the money request flow screens
     // and open the report chat containing the IOU report
-    if (!isFromGlobalCreate || isUserOnInbox || !transactionID) {
+    if (!isFromGlobalCreate || (isUserOnInbox && !isFromNativeShortcut) || !transactionID) {
         if (shouldNavigate) {
             dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions);
         }
