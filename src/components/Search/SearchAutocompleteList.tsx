@@ -53,6 +53,8 @@ type GetAdditionalSectionsCallback = (options: Options, sectionIndex: number) =>
 type SearchAutocompleteListProps = {
     /** Value of TextInput */
     autocompleteQueryValue: string;
+    /** Immediate (non-debounced) query from the input for UI-only behavior */
+    inputQueryValue?: string;
 
     /** Callback to trigger search action * */
     handleSearch: (value: string) => void;
@@ -142,6 +144,7 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
 
 function SearchAutocompleteList({
     autocompleteQueryValue,
+    inputQueryValue,
     handleSearch,
     searchQueryItems,
     getAdditionalSections,
@@ -173,6 +176,9 @@ function SearchAutocompleteList({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const allCards = personalAndWorkspaceCards ?? CONST.EMPTY_OBJECT;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const effectiveInputQueryValue = inputQueryValue ?? autocompleteQueryValue;
+    const isInputAheadOfDebounce = effectiveInputQueryValue !== autocompleteQueryValue;
+    const hasEffectiveInputQuery = effectiveInputQueryValue.trim() !== '';
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -248,7 +254,7 @@ function SearchAutocompleteList({
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
-    const prevQueryRef = useRef(autocompleteQueryValue);
+    const prevQueryRef = useRef(effectiveInputQueryValue);
     const innerListRef = useRef<SelectionListWithSectionsHandle | null>(null);
     const hasSetInitialFocusRef = useRef(false);
 
@@ -270,11 +276,11 @@ function SearchAutocompleteList({
             return;
         }
 
-        const queryChanged = prevQueryRef.current !== autocompleteQueryValue;
-        prevQueryRef.current = autocompleteQueryValue;
+        const queryChanged = prevQueryRef.current !== effectiveInputQueryValue;
+        prevQueryRef.current = effectiveInputQueryValue;
 
         if (queryChanged) {
-            if (autocompleteQueryValue === '') {
+            if (effectiveInputQueryValue === '') {
                 // When query is cleared, reset the initial focus guard so the initial focus
                 // effect can re-fire and correctly focus the first focusable item (skipping section headers).
                 hasSetInitialFocusRef.current = false;
@@ -284,7 +290,7 @@ function SearchAutocompleteList({
                 innerListRef.current?.updateAndScrollToFocusedIndex(0, true);
             }
         }
-    }, [autocompleteQueryValue, isInitialRender]);
+    }, [effectiveInputQueryValue, isInitialRender]);
 
     // Track external text input focus to prevent list items from stealing focus while typing
     useEffect(() => {
@@ -302,7 +308,7 @@ function SearchAutocompleteList({
 
         // Note: We can't easily subscribe to focus/blur events on the ref, so we update on query changes
         // which happen when the user types (meaning input is focused)
-    }, [textInputRef, autocompleteQueryValue]);
+    }, [textInputRef, effectiveInputQueryValue]);
 
     const autocompleteSuggestions = useAutocompleteSuggestions({
         autocompleteQueryValue,
@@ -374,8 +380,13 @@ function SearchAutocompleteList({
     ]);
 
     const recentReportsOptions = useMemo(() => {
-        if (autocompleteQueryValue.trim() === '') {
+        if (!hasEffectiveInputQuery) {
             return searchOptions.recentReports;
+        }
+
+        // User typed but debounce has not emitted yet; avoid showing stale results from the previous query.
+        if (isInputAheadOfDebounce) {
+            return [];
         }
 
         const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, autocompleteQueryValue, {
@@ -389,7 +400,7 @@ function SearchAutocompleteList({
         }
 
         return reportOptions.slice(0, 20);
-    }, [autocompleteQueryValue, searchOptions]);
+    }, [autocompleteQueryValue, hasEffectiveInputQuery, isInputAheadOfDebounce, searchOptions]);
 
     // Locked rank map (keyForList -> originalIndex) capturing the order of locally-known
     // results at the moment the query changes. Recomputed only when the query changes, so server
@@ -420,6 +431,9 @@ function SearchAutocompleteList({
         setFrozenLocalRank(buildRankMap(recentReportsOptions));
     }
 
+    // Debounce the server search so callers that don't already debounce upstream
+    // (e.g. the main Spend page header via useSearchPageInput) don't fire a request per keystroke.
+    // For SearchRouter the upstream value is already debounced, so this just adds a no-op coalescing layer.
     const debounceHandleSearch = useDebounce(() => {
         if (!handleSearch || !autocompleteQueryWithoutFilters) {
             return;
@@ -462,7 +476,7 @@ function SearchAutocompleteList({
             }
         }
 
-        if (!autocompleteQueryValue && recentSearchesData && recentSearchesData.length > 0) {
+        if (!hasEffectiveInputQuery && recentSearchesData && recentSearchesData.length > 0) {
             pushSection({title: translate('search.recentSearches'), data: recentSearchesData as AutocompleteListItem[], sectionIndex: sectionIndex++});
         }
 
@@ -495,7 +509,7 @@ function SearchAutocompleteList({
             />
         );
 
-        if (autocompleteQueryValue.trim() === '') {
+        if (!hasEffectiveInputQuery) {
             // Empty query: single "Recent chats" section
             if (!isLoadingOptions) {
                 pushSection({title: translate('search.recentChats'), data: nextStyledRecentReports, sectionIndex: sectionIndex++});
@@ -544,7 +558,7 @@ function SearchAutocompleteList({
             }
         }
 
-        if (autocompleteSuggestions.length > 0) {
+        if (!isInputAheadOfDebounce && autocompleteSuggestions.length > 0) {
             const autocompleteData: AutocompleteListItem[] = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey}) => {
                 return {
                     text: getAutocompleteDisplayText(filterKey, text),
@@ -562,7 +576,8 @@ function SearchAutocompleteList({
 
         return {sections: nextSections, styledRecentReports: nextStyledRecentReports, suggestionsCount: nextSuggestionsCount};
     }, [
-        autocompleteQueryValue,
+        hasEffectiveInputQuery,
+        isInputAheadOfDebounce,
         autocompleteSuggestions,
         expensifyIcons,
         frozenLocalRank,

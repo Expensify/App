@@ -1,5 +1,6 @@
 import {rand} from '@ngneat/falso';
 import type * as NativeNavigation from '@react-navigation/native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
@@ -8,6 +9,7 @@ import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy} from '@src/types/onyx';
+import type Login from '@src/types/onyx/Login';
 import type Report from '@src/types/onyx/Report';
 import {formatSectionsFromSearchTerm} from '../../src/libs/OptionsListUtils';
 import createCollection from '../utils/collections/createCollection';
@@ -19,6 +21,9 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORTS_COUNT = 5000;
 const PERSONAL_DETAILS_LIST_COUNT = 1000;
+// Larger dataset used specifically to measure the isSearchStringMatch RegExp optimization
+const LARGE_REPORTS_COUNT = 40000;
+const LARGE_PERSONAL_DETAILS_COUNT = 5000;
 const SEARCH_VALUE = 'Report';
 const COUNTRY_CODE = 1;
 
@@ -106,7 +111,7 @@ const ValidOptionsConfig = {
     sortedActions: undefined,
 };
 
-const loginList = {};
+const loginList: OnyxEntry<Login> = {};
 
 /* GetOption is the private function and is never called directly, we are testing the functions which call getOption with different params */
 describe('OptionsListUtils', () => {
@@ -287,6 +292,30 @@ describe('OptionsListUtils', () => {
                 isSearching: true,
             }),
         );
+    });
+
+    // This test directly measures the isSearchStringMatch hot path.
+    // A multi-word query forces one RegExp creation per word per item on main;
+    // on the PR branch RegExps are compiled once per call, so duration drops significantly.
+    test('[OptionsListUtils] filterAndOrderOptions with multi-word search on large dataset', async () => {
+        const largePersonalDetails = getMockedPersonalDetails(LARGE_PERSONAL_DETAILS_COUNT);
+        const largeReports = getMockedReports(LARGE_REPORTS_COUNT);
+        const largeOptionList = createOptionList(largePersonalDetails, EMPTY_PRIVATE_IS_ARCHIVED_MAP, largeReports, undefined);
+
+        const {options: formattedOptions} = getValidOptions(
+            {reports: largeOptionList.reports, personalDetails: largeOptionList.personalDetails},
+            allPolicies,
+            {},
+            loginList,
+            MOCK_CURRENT_USER_ACCOUNT_ID,
+            MOCK_CURRENT_USER_EMAIL,
+            undefined,
+            ValidOptionsConfig,
+        );
+
+        await measureFunction(() => {
+            filterAndOrderOptions(formattedOptions, 'Email Report Five', COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, largePersonalDetails);
+        });
     });
 
     test('[OptionsListUtils] getSearchOptions with isSearching is true', async () => {
