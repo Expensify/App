@@ -20,7 +20,7 @@ function useChartTypefaces(): ChartDefaultTypeface {
 }
 
 function useChartFontManager(): SkTypefaceFontProvider | null {
-    return useChartFontsContext().fontMgr;
+    return useChartFontsContext().fontManager;
 }
 
 export {ChartFontsContext, useChartFontManager, useChartTypefaces};
