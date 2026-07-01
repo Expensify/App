@@ -2748,6 +2748,7 @@ ${amount} para ${merchant} - ${date}`,
         defaultAgentName: (displayName: string) => `Agente de ${displayName}`,
         defaultPrompt:
             'Rechazar gastos por juegos de azar, películas u otras razones claramente no comerciales.\n\nRecordar al usuario que siempre incluya una imagen del recibo que muestre claramente la propina.\n\nAprobar el informe si es muy similar a informes anteriores del mismo usuario.\n\nRechazar informes con más de $500 en gastos de viaje.',
+        copilotNote: 'Este agente se añadirá como copiloto con acceso completo a tu cuenta, para que pueda actuar en tu nombre.',
     },
     editAgentPage: {
         title: 'Editar agente',

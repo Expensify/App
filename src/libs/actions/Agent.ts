@@ -92,8 +92,9 @@ function createAgent(
     ];
 
     write(
+        // Flag this as the user's personal agent; the backend makes personal agents a full co-pilot of the creator.
         WRITE_COMMANDS.CREATE_AGENT,
-        {firstName, prompt, customExpensifyAvatarID, file, policyID, optimisticAccountID: String(optimisticAccountID)},
+        {firstName, prompt, customExpensifyAvatarID, file, policyID, optimisticAccountID: String(optimisticAccountID), isPersonalAgent: true},
         {optimisticData, successData, failureData},
     );
 
