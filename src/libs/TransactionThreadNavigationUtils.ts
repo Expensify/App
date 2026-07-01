@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Beta, IntroSelected, Transaction} from '@src/types/onyx';
 import {createTransactionThreadReport} from './actions/Report';
-import {getIOUActionForReportID} from './ReportActionsUtils';
+import {getIOUActionForReportID, getThreadReportIDForTransaction} from './ReportActionsUtils';
 import {getReportOrDraftReport, isOneTransactionReport} from './ReportUtils';
 import {isExpenseUnreported} from './TransactionUtils';
 
@@ -41,10 +41,11 @@ function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescrip
     const {transaction, reportID, threadReportID} = expense;
     const isUnreported = isExpenseUnreported(transaction);
 
-    // Unreported (tracked) expenses live in the self-DM; their transaction thread (resolved from the
-    // snapshot) is the expense view to open, since report "0" does not exist.
+    // Unreported (tracked) expenses live in the self-DM; their transaction thread is the expense view to open, since
+    // report "0" does not exist. Prefer the snapshot-resolved thread, but fall back to local report actions so an
+    // optimistic (offline) expense — absent from the snapshot — still resolves to its real thread.
     if (isUnreported) {
-        return threadReportID ?? reportID;
+        return threadReportID ?? getThreadReportIDForTransaction(transaction.transactionID) ?? reportID;
     }
 
     const parentReport = getReportOrDraftReport(reportID);

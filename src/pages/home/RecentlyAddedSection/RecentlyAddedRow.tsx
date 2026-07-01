@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import ReceiptCell from '@components/TransactionItemRow/DataCells/ReceiptCell';
@@ -130,18 +131,33 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowRece
             </>
         );
 
+    // A pending-delete expense is on its way out, so its row must not navigate anywhere (offline it stays
+    // visible with strikethrough; online OfflineWithFeedback hides it entirely).
+    const isPendingDelete = expense.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
     return (
-        <PressableWithFeedback
-            testID={`recentlyAddedRow-${expense.transactionID}`}
-            accessibilityLabel={expense.merchant}
-            sentryLabel="RecentlyAddedRow"
-            onPress={onPress}
-            wrapperStyle={styles.w100}
-            hoverStyle={styles.hoveredComponentBG}
-            style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, styles.ph3, styles.w100, shouldShowSeparator && styles.borderBottom]}
-        >
-            {({hovered}) => renderRowContent(hovered)}
-        </PressableWithFeedback>
+        <OfflineWithFeedback pendingAction={expense.pendingAction}>
+            <PressableWithFeedback
+                testID={`recentlyAddedRow-${expense.transactionID}`}
+                accessibilityLabel={expense.merchant}
+                sentryLabel="RecentlyAddedRow"
+                onPress={isPendingDelete ? () => {} : onPress}
+                wrapperStyle={styles.w100}
+                hoverStyle={styles.hoveredComponentBG}
+                style={[
+                    styles.flexRow,
+                    styles.alignItemsCenter,
+                    styles.gap3,
+                    styles.pv3,
+                    styles.ph3,
+                    styles.w100,
+                    shouldShowSeparator && styles.borderBottom,
+                    isPendingDelete && styles.cursorDefault,
+                ]}
+            >
+                {({hovered}) => renderRowContent(hovered)}
+            </PressableWithFeedback>
+        </OfflineWithFeedback>
     );
 }
 
