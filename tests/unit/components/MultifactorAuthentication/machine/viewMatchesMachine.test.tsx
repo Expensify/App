@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return -- jest.mock factories delegate to require()'d helpers, which resolve as `any`. */
 import {screen} from '@testing-library/react-native';
-import createMfaTestModel from 'tests/utils/mfa/flowPaths';
-import getSettleableLeafStates, {toStateValue} from 'tests/utils/mfa/reachableStates';
+import getWalkedPaths from 'tests/utils/mfa/flowPaths';
+import getSettleableLeafStates from 'tests/utils/mfa/reachableStates';
+import {mfaEventExecutors, renderMfaUi} from 'tests/utils/mfa/realUi/harness';
 import {resetMfaUiMocks} from 'tests/utils/mfa/realUi/mocks';
-import {renderMfaUi} from 'tests/utils/mfa/realUi/renderModal';
-import mfaEventExecutors from 'tests/utils/mfa/realUi/userGestures';
 import waitForBatchedUpdatesWithAct from 'tests/utils/waitForBatchedUpdatesWithAct';
 import {matchesState} from 'xstate';
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
@@ -13,14 +12,15 @@ import CONST from '@src/CONST';
 
 // Forces a wide layout so the navigator renders the backdrop overlay the assertions use as the mounted marker.
 jest.mock('@hooks/useResponsiveLayout');
-// Replaces the dev-only Stately inspector wiring with the plain @xstate/react adapter the provider needs.
-jest.mock('@hooks/useInspectedMachine', () => require('tests/utils/mfa/realUi/jestMocks').inspectedMachineMock());
+// Drops the dev-only Stately inspector wiring, leaving the real useInspectedMachine to fall back to plain useMachine.
+// `inspect: undefined` is exactly what @libs/XStateInspector returns in a non-dev build.
+jest.mock('@libs/XStateInspector', () => ({__esModule: true, default: {inspect: undefined}}));
 // Native / WebAuthn biometrics are out of scope for the modal-lifecycle contract.
-jest.mock('@components/MultifactorAuthentication/biometrics/useBiometrics', () => require('tests/utils/mfa/realUi/jestMocks').biometricsHookMock());
+jest.mock('@components/MultifactorAuthentication/biometrics/useBiometrics', () => require('tests/utils/mfa/realUi/mocks').biometricsHookMock());
 // Browser/Android back-history wiring is a separate concern from the machine <-> UI contract.
-jest.mock('@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHistory', () => require('tests/utils/mfa/realUi/jestMocks').syncHistoryMock());
+jest.mock('@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHistory', () => require('tests/utils/mfa/realUi/mocks').syncHistoryMock());
 // Supplies the Navigation methods the flow drives with real behavior; the Proxy no-ops the rest.
-jest.mock('@libs/Navigation/Navigation', () => require('tests/utils/mfa/realUi/jestMocks').navigationMock());
+jest.mock('@libs/Navigation/Navigation', () => require('tests/utils/mfa/realUi/mocks').navigationMock());
 
 // The queryable markers each state asserts against. `OutcomeScreenBase` is the success or failure screen's
 // testID; the backdrop's `Close` label only renders while the MFA navigator is mounted.
@@ -29,10 +29,8 @@ const MODAL_OVERLAY_LABEL = 'Close';
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
-const testModel = createMfaTestModel();
-
-// The createTestModel-style config maps each event to a UI gesture and each state to a per-state assertion.
-// State keys are dot-path values matched with `matchesState`, so they can target any depth, such as the
+// The TestModel config maps each event to a UI gesture and each state to a per-state assertion. State
+// keys are dot-path values matched with `matchesState`, so they can target any depth, such as the
 // settled success leaf `open.outcome.success` rather than just the `open` parent.
 const testConfig = {
     events: mfaEventExecutors,
@@ -52,8 +50,17 @@ const testConfig = {
     },
 };
 
-// getSimplePaths reaches every state. The lifecycle paths add the MODAL_CLOSED teardown that simple paths skip.
-const walkedPaths = [...testModel.getSimplePaths(), ...testModel.getLifecyclePaths()];
+// getShortestPaths reaches every state. The lifecycle paths add the MODAL_CLOSED teardown that they skip.
+const walkedPaths = getWalkedPaths();
+
+// TestModel's own `path.description` embeds the full serialized event (scenario config, React nodes, INIT
+// payload). Name the test from the driven event TYPES only, dropping the synthetic `xstate.init` step
+// that the graph prepends (its runtime type is not part of the MfaEvent union, hence the widened param).
+const INIT_STEP_EVENT_TYPE = 'xstate.init';
+function describeDrivenEvents(steps: ReadonlyArray<{event: {type: string}}>): string {
+    const drivenEventTypes = steps.map((step) => step.event.type).filter((type) => type !== INIT_STEP_EVENT_TYPE);
+    return drivenEventTypes.length > 0 ? drivenEventTypes.join(' -> ') : '(initial state)';
+}
 
 describe('the real MFA modal follows the machine', () => {
     beforeEach(() => {
@@ -66,7 +73,7 @@ describe('the real MFA modal follows the machine', () => {
     });
 
     for (const path of walkedPaths) {
-        it(`reaches ${JSON.stringify(path.state.value)} via [${path.description}]`, async () => {
+        it(`reaches ${JSON.stringify(path.state.value)} via [${describeDrivenEvents(path.steps)}]`, async () => {
             renderMfaUi();
             await waitForBatchedUpdatesWithAct();
             await path.test(testConfig);
@@ -81,8 +88,8 @@ describe('the real MFA modal follows the machine', () => {
 describe('the UI walk reaches every settleable leaf', () => {
     const walkedLeafValues = walkedPaths.map((path) => path.state.value);
 
-    it.each(getSettleableLeafStates(mfaMachine.root))('walks the $description state', ({value}) => {
-        expect(walkedLeafValues.some((reached) => matchesState(value, reached))).toBe(true);
+    it.each(getSettleableLeafStates(mfaMachine.root))('walks the $description state', ({description}) => {
+        expect(walkedLeafValues.some((reached) => matchesState(description, reached))).toBe(true);
     });
 });
 
@@ -96,13 +103,13 @@ describe('the UI walk reaches every settleable leaf', () => {
 // entry would make the check pass on its own once the state later loses its `always` and becomes settleable.
 describe('the view config stays in sync with the machine state by state', () => {
     const settleableLeafStates = getSettleableLeafStates(mfaMachine.root);
-    const configuredStates = Object.keys(testConfig.states).map((stateValue) => ({description: stateValue, value: toStateValue(stateValue.split('.'))}));
+    const configuredStateKeys = Object.keys(testConfig.states);
 
-    it.each(settleableLeafStates)('asserts the reachable $description state', ({value}) => {
-        expect(configuredStates.some((configured) => matchesState(configured.value, value))).toBe(true);
+    it.each(settleableLeafStates)('asserts the reachable $description state', ({description}) => {
+        expect(configuredStateKeys.some((key) => matchesState(key, description))).toBe(true);
     });
 
-    it.each(configuredStates)('targets a real leaf with the $description key', ({value}) => {
-        expect(settleableLeafStates.some((leaf) => matchesState(value, leaf.value))).toBe(true);
+    it.each(configuredStateKeys.map((key) => ({key})))('targets a real leaf with the $key key', ({key}) => {
+        expect(settleableLeafStates.some((leaf) => matchesState(key, leaf.description))).toBe(true);
     });
 });

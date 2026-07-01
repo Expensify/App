@@ -1,108 +1,53 @@
 import {matchesState} from 'xstate';
-import type {SnapshotFrom} from 'xstate';
-import {getPathsFromEvents, getSimplePaths} from 'xstate/graph';
+import {getShortestPaths, TestModel} from 'xstate/graph';
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
 import type {MfaEvent} from '@components/MultifactorAuthentication/machine/types';
 import createInitEvent from './flowFixtures';
-import {toStateValue} from './reachableStates';
 
 /**
- * Wraps `xstate/graph`'s plain path generators in a small `createTestModel`-style harness. Each path
- * exposes `path.test({events, states})`, which replays the path through the real UI (drive the
- * matching event executor at each step, then run every matching state assertion).
+ * Wraps `mfaMachine` in `xstate/graph`'s public `TestModel`, so each generated path exposes
+ * `path.test({events, states})`: drive the matching gesture at each step, then run every matching state
+ * assertion.
  *
- * Why not the real `createTestModel`? Its constructor calls `validateMachine`, which throws "After
- * events on test machines are not supported", and `mfaMachine.closing` has an `after` (closeFallback)
- * transition. The plain generators have no such restriction.
+ * We build `new TestModel(...)` directly rather than calling `createTestModel(mfaMachine)`, because
+ * `createTestModel` runs `validateMachine`, which throws "After events on test machines are not
+ * supported", and `mfaMachine.closing` has an `after` (closeFallback) transition. The constructor skips
+ * that validation. `stateMatcher` routes a dot-path key such as `open.outcome.success` to the reached
+ * state; it is the one machine-aware option the constructor does not default for us.
  *
- * Paths are generated WITHOUT a pinned event list, so the graph synthesizes an event for every
- * transition the machine declares and auto-discovers new (sub)states as the chart grows. Each step's
- * `state` is the deepest settled configuration (e.g. `open.outcome.success`), so the `states` map
- * routes by `matchesState` and can assert at any depth. Transient routers such as `always` or
- * `initial` (for example `preparing` and `outcome`) are passed through and never become their own node.
+ * Coverage paths come from the STANDALONE `getShortestPaths(mfaMachine)`, which synthesizes a bare event
+ * for every transition the machine declares - including framework-internal `xstate.done.actor.*` /
+ * `xstate.error.actor.*` once invoked actors land - so a new state is walked with no edit here. We route
+ * that generator through `TestModel.getPaths` only to attach `.test()`. Pinning `events` on the model
+ * instead would cap the walk to a hand-listed set and silently drop those auto-discovered transitions.
+ *
+ * `path.test` drives one executor per step and SKIPS any step whose event has no executor. That is right
+ * for the synthetic `xstate.init` step, and it is the seam the actors slice grows into: framework events
+ * (`xstate.done.actor.*`, `xstate.error.actor.*`, `xstate.after.*`) are not gestures, so they will be
+ * driven by the real flow settling (e.g. the biometrics mock resolving) rather than an executor here -
+ * classify each consciously when it appears. An application event cannot slip through unnoticed: the
+ * `mfaEventExecutors satisfies Record<MfaEventType, ...>` in the harness makes a missing one a build error.
  */
 
-type MfaSnapshot = SnapshotFrom<typeof mfaMachine>;
-
-/** Performs the UI gesture that produces a machine event. It is an `events` map entry passed to `path.test`. */
-type MfaEventExecutor = () => void | Promise<void>;
-
-/** Asserts the UI when the walk reaches a matching state. It is a `states` map entry passed to `path.test`. */
-type MfaStateAssertion = (state: MfaSnapshot) => void | Promise<void>;
-
-type MfaPathTestConfig = {
-    events: Partial<Record<MfaEvent['type'], MfaEventExecutor>>;
-    /** Maps a dot-path state value (e.g. `open.outcome.success`) to its assertion, matched against each step with `matchesState`. */
-    states: Record<string, MfaStateAssertion>;
-};
-
-type RawPath = {
-    state: MfaSnapshot;
-    steps: ReadonlyArray<{state: MfaSnapshot; event: {type: string}}>;
-};
-
-type MfaTestPath = {
-    /** Holds the final-state snapshot, e.g. for `JSON.stringify(path.state.value)` test names. */
-    state: MfaSnapshot;
-    /** Names the driven event sequence, e.g. `INIT -> CLOSE_MODAL`. */
-    description: string;
-    /** Walks the path: for each step, runs the matching event executor then asserts every matching state. */
-    test: (config: MfaPathTestConfig) => Promise<void>;
-};
-
-// INIT carries the real scenario payload, while CLOSE_MODAL and MODAL_CLOSED are bare. These drive only
-// the explicit teardown sequence (getLifecyclePaths). Simple paths auto-discover events from the chart.
+// The explicit teardown sequence, NOT the coverage source (that is auto-discovered above), so it need not
+// list every event. INIT carries the real scenario payload; CLOSE_MODAL and MODAL_CLOSED are bare.
 const DRIVING_EVENTS: MfaEvent[] = [createInitEvent(), {type: 'CLOSE_MODAL'}, {type: 'MODAL_CLOSED'}];
-const INIT_STEP_EVENT_TYPE = 'xstate.init';
-const DELAYED_EVENT_PREFIX = 'xstate.after';
 
-// Delayed (`after`) transitions are timers, not gestures, so this drops any path that would need to fire one.
-// The closing -> closed teardown they cover is driven explicitly via MODAL_CLOSED in getLifecyclePaths.
-function isGestureDrivablePath(path: RawPath): boolean {
-    return path.steps.every((step) => !step.event.type.startsWith(DELAYED_EVENT_PREFIX));
+const mfaTestModel = new TestModel(mfaMachine, {
+    stateMatcher: (state, stateValue) => matchesState(stateValue, state.value),
+});
+
+/**
+ * `getShortestPaths` reaches every settleable leaf. `getPathsFromEvents` adds the full
+ * INIT -> CLOSE_MODAL -> MODAL_CLOSED teardown that the shortest path to `closed` skips, since `closed`
+ * is the initial state and is already reached at zero weight.
+ *
+ * `allowDuplicatePaths` keeps the shortest path to each leaf even when it is a prefix of a longer one
+ * (the path to `open.outcome.success` is a prefix of the path to `closing`). Without it, deduplication
+ * drops the shorter path, so a leaf would only ever be an intermediate step and never a path endpoint.
+ */
+function getWalkedPaths() {
+    return [...mfaTestModel.getPaths((logic) => getShortestPaths(logic), {allowDuplicatePaths: true}), ...mfaTestModel.getPathsFromEvents(DRIVING_EVENTS)];
 }
 
-async function assertMatchingStates(snapshot: MfaSnapshot, states: MfaPathTestConfig['states']): Promise<void> {
-    for (const [stateValue, assertState] of Object.entries(states)) {
-        if (matchesState(toStateValue(stateValue.split('.')), snapshot.value)) {
-            await assertState(snapshot);
-        }
-    }
-}
-
-function wrapPath(graphPath: RawPath): MfaTestPath {
-    const drivenEventTypes = graphPath.steps.map((step) => step.event.type).filter((type) => type !== INIT_STEP_EVENT_TYPE);
-
-    return {
-        state: graphPath.state,
-        description: drivenEventTypes.length > 0 ? drivenEventTypes.join(' -> ') : '(initial state)',
-        test: async ({events, states}) => {
-            const executorByEventType: Partial<Record<string, MfaEventExecutor>> = events;
-            for (const step of graphPath.steps) {
-                if (step.event.type !== INIT_STEP_EVENT_TYPE) {
-                    const executeEvent = executorByEventType[step.event.type];
-                    if (!executeEvent) {
-                        throw new Error(`No event executor provided for "${step.event.type}"`);
-                    }
-                    await executeEvent();
-                }
-                await assertMatchingStates(step.state, states);
-            }
-        },
-    };
-}
-
-function toTestPaths(rawPaths: RawPath[]): MfaTestPath[] {
-    return rawPaths.filter(isGestureDrivablePath).map(wrapPath);
-}
-
-function createMfaTestModel() {
-    return {
-        getSimplePaths: (): MfaTestPath[] => toTestPaths(getSimplePaths(mfaMachine)),
-        // Covers the full teardown sequence (... -> MODAL_CLOSED -> closed) that simple paths skip because it revisits `closed`.
-        getLifecyclePaths: (): MfaTestPath[] => toTestPaths(getPathsFromEvents(mfaMachine, DRIVING_EVENTS)),
-    };
-}
-
-export default createMfaTestModel;
-export type {MfaPathTestConfig, MfaTestPath};
+export default getWalkedPaths;

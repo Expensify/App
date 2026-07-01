@@ -1,9 +1,11 @@
 import type {UseBiometricsReturn} from '@components/MultifactorAuthentication/biometrics/shared/types';
 
 /**
- * Shared, mutable mock seam for the model-based MFA UI test. The jest.mock factories in `jestMocks`
- * read from these holders, and the harness / event executors drive them. Keeping the seam in one
- * module means the future "mock the backend responses" work has a single place to grow.
+ * Mutable mock seam plus jest.mock factory bodies for the model-based MFA UI test, kept out of the test
+ * file so it reads as mock registrations plus test logic. The harness and event executors drive the
+ * holders; each factory returns a ready-to-use mock module (`__esModule` + `default`) and is called from
+ * a `jest.mock(..., () => require('.../mocks').xMock())` factory. Keeping the seam in one module means the
+ * future "mock the backend responses" work has a single place to grow.
  */
 
 type CapturedCallback = () => void;
@@ -45,4 +47,48 @@ function resetMfaUiMocks() {
     biometricsMock.serverKnownCredentialIDs = [];
 }
 
-export {pendingModalClose, biometricsMock, resetMfaUiMocks};
+/** Native / WebAuthn biometrics are out of scope for the modal-lifecycle contract, so this returns the shared biometrics mock. */
+function biometricsHookMock() {
+    return {
+        __esModule: true,
+        default: () => biometricsMock,
+    };
+}
+
+/** Browser/Android back-history wiring is a separate concern from the machine <-> UI contract. */
+function syncHistoryMock() {
+    return {
+        __esModule: true,
+        default: () => {},
+    };
+}
+
+/**
+ * Reuses the repo's shared Navigation manual mock (every method already a no-op jest.fn()) and overrides
+ * only the two the flow drives with real behavior. Spreading the shared mock rather than a catch-all
+ * Proxy means a Navigation method the flow starts to depend on but that the shared mock does not stub
+ * surfaces as `undefined` (a loud failure) instead of a silent no-op.
+ *
+ * `runAfterTransition` runs its callback immediately (no active navigation transition in jsdom).
+ * `runAfterUpcomingTransition` captures the navigator's teardown callback so MODAL_CLOSED is driven
+ * from the event map, not a timer.
+ */
+function navigationMock() {
+    const sharedNavigationMock = jest.requireActual<{default: Record<string, unknown>}>('@libs/Navigation/__mocks__/Navigation').default;
+    return {
+        __esModule: true,
+        default: {
+            ...sharedNavigationMock,
+            runAfterTransition: (callback: () => void) => {
+                callback();
+                return {cancel: () => {}};
+            },
+            runAfterUpcomingTransition: (callback: () => void) => {
+                pendingModalClose.capture(callback);
+                return {cancel: () => pendingModalClose.clear()};
+            },
+        },
+    };
+}
+
+export {pendingModalClose, biometricsMock, resetMfaUiMocks, biometricsHookMock, syncHistoryMock, navigationMock};
