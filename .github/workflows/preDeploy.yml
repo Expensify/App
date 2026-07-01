@@ -57,11 +57,17 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ github.token }}
 
+      - name: Check if production release exists for last deploy checklist version
+        id: hasProductionRelease
+        uses: ./.github/actions/javascript/hasProductionRelease
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+
       - name: Check if merged pull request should trigger a deploy
         id: shouldDeploy
         run: |
           if gh api /orgs/Expensify/teams/mobile-deployers/memberships/${{ github.actor }} --silent; then
-            echo "SHOULD_DEPLOY=${{ (!fromJSON(steps.isDeployChecklistLocked.outputs.IS_LOCKED) && github.actor != 'OSBotify') }}" >> "$GITHUB_OUTPUT"
+            echo "SHOULD_DEPLOY=${{ (!fromJSON(steps.isDeployChecklistLocked.outputs.IS_LOCKED) && github.actor != 'OSBotify' && fromJSON(steps.hasProductionRelease.outputs.HAS_PRODUCTION_RELEASE)) }}" >> "$GITHUB_OUTPUT"
           else
             echo "SHOULD_DEPLOY=false" >> "$GITHUB_OUTPUT"
           fi

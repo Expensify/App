@@ -162,6 +162,55 @@ async function listForRepoWithRetry(params: Parameters<typeof GithubUtils.octoki
     throw lastError;
 }
 
+/**
+ * Returns the most recently closed StagingDeployCash deploy checklist, or null if none exist yet.
+ * Throws on unexpected API or parsing errors so callers can distinguish "no checklist" (safe to
+ * deploy) from "lookup failed" (should block the deploy to avoid bypassing the safety gate).
+ */
+async function getLastClosedDeployChecklist(): Promise<DeployChecklistData | null> {
+    // GitHub does not support sorting issues by closed_at, so paginate through all closed
+    // StagingDeployCash issues and pick the one with the latest closed_at timestamp.
+    let mostRecentlyClosedIssue: OctokitIssueItem | null = null;
+    let page = 1;
+
+    while (true) {
+        const data = await listForRepoWithRetry({
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            labels: CONST.LABELS.STAGING_DEPLOY,
+            state: 'closed',
+            sort: 'created',
+            direction: 'desc',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            per_page: 100,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            page,
+        });
+
+        if (!data.length) {
+            break;
+        }
+
+        for (const issue of data) {
+            if (!mostRecentlyClosedIssue || (issue.closed_at ?? '').localeCompare(mostRecentlyClosedIssue.closed_at ?? '') > 0) {
+                mostRecentlyClosedIssue = issue;
+            }
+        }
+
+        if (data.length < 100) {
+            break;
+        }
+
+        page += 1;
+    }
+
+    if (!mostRecentlyClosedIssue) {
+        return null;
+    }
+
+    return getDeployChecklistData(mostRecentlyClosedIssue);
+}
+
 async function getDeployChecklist(): Promise<DeployChecklistData> {
     const openIssues = await listForRepoWithRetry({
         owner: CONST.GITHUB_OWNER,
@@ -356,5 +405,5 @@ async function generateDeployChecklistBodyAndAssignees({
     return {issueBody, issueAssignees};
 }
 
-export {getDeployChecklist, getDeployChecklistData, generateDeployChecklistBodyAndAssignees, NoOpenDeployChecklistError, parseChecklistSection};
+export {getDeployChecklist, getLastClosedDeployChecklist, getDeployChecklistData, generateDeployChecklistBodyAndAssignees, NoOpenDeployChecklistError, parseChecklistSection};
 export type {ChecklistItem, DeployChecklistBody, DeployChecklistParams, DeployChecklistData};
