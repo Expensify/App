@@ -5855,6 +5855,13 @@ const CONST = {
         SMALL: 'small',
     },
 
+    ICON_SIZE: {
+        EXTRA_SMALL: 'extra-small',
+        SMALL: 'small',
+        MEDIUM: 'medium',
+        LARGE: 'large',
+    },
+
     NAVIGATION: {
         CUSTOM_HISTORY_ENTRY_SIDE_PANEL: 'CUSTOM_HISTORY-SIDE_PANEL',
         CUSTOM_HISTORY_ENTRY_MFA_MODAL_NAVIGATOR: 'CUSTOM_HISTORY-MFA_MODAL_NAVIGATOR',
