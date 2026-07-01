@@ -53,6 +53,7 @@ const WORKSPACE_MEMBER_FILTER_VALUES = {
     CARD_ADMINS: 'cardAdmins',
     EDITORS: 'editors',
     MEMBERS: 'members',
+    PAYMENTS_ADMINS: 'paymentsAdmins',
     PEOPLE_ADMINS: 'peopleAdmins',
 } as const;
 
@@ -228,6 +229,11 @@ export default function WorkspaceMembersTable({
             return true;
         }
 
+        const isPaymentsAdmin = item.role === CONST.POLICY.ROLE.PAYMENTS_ADMIN;
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.PAYMENTS_ADMINS) && isPaymentsAdmin) {
+            return true;
+        }
+
         const isEditor = item.role === CONST.POLICY.ROLE.EDITOR;
         if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.EDITORS) && isEditor) {
             return true;
@@ -261,6 +267,11 @@ export default function WorkspaceMembersTable({
         filterConfig.role.options.push({
             label: translate('workspace.people.peopleAdmins'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.PEOPLE_ADMINS,
+        });
+
+        filterConfig.role.options.push({
+            label: translate('workspace.people.paymentsAdmins'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.PAYMENTS_ADMINS,
         });
 
         filterConfig.role.options.push({
