@@ -55,9 +55,7 @@ function SearchAdvancedFiltersPopup({queryJSON, editingSavedView, closeOverlay}:
     // the saved view unchanged. The draft starts from the view's filters (the active search is the view while editing).
     const [draftValues, setDraftValues] = useState<Partial<SearchAdvancedFiltersForm>>(searchAdvancedFiltersForm ?? {});
     const displayValues = isEditingSavedView ? draftValues : searchAdvancedFiltersForm;
-    const onFilterChange = isEditingSavedView
-        ? (values: Partial<SearchAdvancedFiltersForm>) => setDraftValues((prev) => getUpdatedFilterFormValues(prev, values))
-        : updateFilterQueryParams;
+    const onFilterChange = isEditingSavedView ? (values: Partial<SearchAdvancedFiltersForm>) => setDraftValues((prev) => getUpdatedFilterFormValues(prev, values)) : updateFilterQueryParams;
 
     const draftQueryJSON = isEditingSavedView ? buildSearchQueryJSON(buildFilterQueryString(draftValues)) : undefined;
     // Only show the footer once the draft is saveable (changed from the view and not already another saved view).
