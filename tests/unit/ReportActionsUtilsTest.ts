@@ -2228,6 +2228,56 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(false);
         });
 
+        it('should return false for MARKED_REIMBURSED with stale flags when the report has a sibling IOU PAY action', async () => {
+            // Given a MARKED_REIMBURSED action with stale write-time flags (no isNewDot, shouldShow not false)
+            const reportID = 'reportWithPaySibling';
+            const markedReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'Marked as reimbursed'}],
+                originalMessage: {},
+            };
+            // And the report also contains a sibling IOU PAY action
+            const payAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: '2',
+                reportID,
+                created: '2025-01-01 00:00:01',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUReportID: reportID, amount: 100, currency: CONST.CURRENCY.USD},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+                [payAction.reportActionID]: payAction,
+            });
+
+            // Then the MARKED_REIMBURSED action should NOT be visible (the IOU PAY action represents the same event)
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(markedReimbursedAction, markedReimbursedAction.reportActionID, true);
+            expect(actual).toBe(false);
+        });
+
+        it('should return true for MARKED_REIMBURSED when the report has no sibling IOU PAY action', async () => {
+            // Given a MARKED_REIMBURSED action (e.g. created by an ABA/paycheck/non-instant-submit path) with no IOU PAY twin
+            const reportID = 'reportWithoutPaySibling';
+            const markedReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'Marked as reimbursed'}],
+                originalMessage: {},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+            });
+
+            // Then the MARKED_REIMBURSED action should remain visible (there is no IOU PAY action to fall back on)
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(markedReimbursedAction, markedReimbursedAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
+
         it('should return true for TAKE_CONTROL when automaticAction is false', () => {
             const reportAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,

@@ -1300,6 +1300,14 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         if (originalMessage?.isNewDot || reportAction.shouldShow === false) {
             return false;
         }
+        // The isNewDot/shouldShow flags are baked at write time and can be stale when a MARKED_REIMBURSED
+        // action is created outside a NewDot request (e.g. a background job), which lets the redundant row
+        // leak through alongside the IOU PAY action. Since NewDot shows the IOU PAY action instead, hide
+        // MARKED_REIMBURSED whenever the report already contains a sibling IOU PAY action. Scoped to
+        // MARKED_REIMBURSED so REIMBURSED behavior is unchanged.
+        if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED) && hasSiblingPayReportAction(reportAction)) {
+            return false;
+        }
     }
 
     if (!isVisiblePreviewOrMoneyRequest(reportAction)) {
@@ -1781,6 +1789,22 @@ function isTrackExpenseAction(reportAction: OnyxEntry<ReportAction | OptimisticI
 
 function isPayAction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
+}
+
+/**
+ * Determines whether the report a MARKED_REIMBURSED action belongs to already contains a sibling IOU
+ * PAY action. NewDot renders the IOU PAY action in place of MARKED_REIMBURSED, so when both exist on
+ * the same report the MARKED_REIMBURSED row is a redundant duplicate and should be hidden. We derive
+ * this locally instead of trusting the write-time `isNewDot`/`shouldShow` flags, which can be stale
+ * when the action was created outside a NewDot request (e.g. a background job), leaving the duplicate
+ * visible (see Expensify/Expensify#636674).
+ */
+function hasSiblingPayReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
+    const reportID = reportAction?.reportID;
+    if (!reportID) {
+        return false;
+    }
+    return Object.values(getAllReportActions(reportID)).some((action) => isPayAction(action));
 }
 
 function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
