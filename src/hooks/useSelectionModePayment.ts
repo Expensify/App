@@ -283,7 +283,6 @@ function useSelectionModePayment({
             currentEmail: email ?? '',
             hasViolations,
             isASAPSubmitBetaEnabled,
-            isUserValidated,
             confirmApproval,
             iouReport: moneyRequestReport,
             iouReportNextStep: nextStep,
