@@ -2,6 +2,7 @@ import {render} from '@testing-library/react-native';
 import React from 'react';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import UserPill from '@components/UserPill';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import Navigation from '@libs/Navigation/Navigation';
@@ -18,13 +19,18 @@ jest.mock(
         ({children}: {children: React.ReactNode}) =>
             children,
 );
-jest.mock(
-    '@components/Section',
-    () =>
-        ({children}: {children: React.ReactNode}) =>
-            children,
-);
+jest.mock('@components/Section', () => {
+    const ReactModule = jest.requireActual<typeof React>('react');
+    return ({children, renderSubtitle}: {children: React.ReactNode; renderSubtitle?: () => React.ReactNode}) =>
+        ReactModule.createElement(ReactModule.Fragment, null, renderSubtitle ? renderSubtitle() : null, children);
+});
 jest.mock('@components/Text', () => jest.fn(() => null));
+jest.mock('@components/UserPill', () => jest.fn(() => null));
+
+let mockPersonalDetails: Record<string, unknown> = {};
+jest.mock('@components/OnyxListItemProvider', () => ({
+    usePersonalDetails: () => mockPersonalDetails,
+}));
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: jest.fn(() => ({Plus: null})),
@@ -61,12 +67,13 @@ const mockedUsePolicy = jest.mocked(usePolicy);
 const mockedUseNetwork = jest.mocked(useNetwork);
 const mockedMenuItemWithTopDescription = jest.mocked(MenuItemWithTopDescription);
 const mockedMenuItem = jest.mocked(MenuItem);
+const mockedUserPill = jest.mocked(UserPill);
 const mockedNavigate = jest.mocked(Navigation.navigate);
 
 const POLICY_ID = 'POLICY_ID_1';
 
-function setPolicyAgentRules(agentRules: Record<string, unknown> | undefined) {
-    (mockedUsePolicy as jest.Mock).mockReturnValue({rules: {agentRules}});
+function setPolicyAgentRules(agentRules: Record<string, unknown> | undefined, ruleBotAccountID?: number) {
+    (mockedUsePolicy as jest.Mock).mockReturnValue({rules: {agentRules}, ruleBotAccountID});
 }
 
 function getRuleTitles(): string[] {
@@ -78,6 +85,7 @@ const mockKeyboardEvent = new KeyboardEvent('keydown');
 describe('AgentRulesSection', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockPersonalDetails = {};
         mockedUseNetwork.mockReturnValue({isOffline: false} as ReturnType<typeof useNetwork>);
     });
 
@@ -289,6 +297,61 @@ describe('AgentRulesSection', () => {
 
             expect(showReadOnlyModal).toHaveBeenCalledTimes(1);
             expect(mockedNavigate).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('RuleBot enforcement row', () => {
+        const rule = {r1: {ruleID: 'r1', prompt: 'p', title: 'T', created: '2026-01-01 00:00:00'}};
+        const RULE_BOT_ACCOUNT_ID = 777;
+
+        it('renders the RuleBot pill with the agent stored on the policy', () => {
+            mockPersonalDetails = {
+                [RULE_BOT_ACCOUNT_ID]: {accountID: RULE_BOT_ACCOUNT_ID, displayName: 'RuleBot', login: 'agent_777@expensify.ai', avatar: 'https://example.com/rulebot.png'},
+            };
+            setPolicyAgentRules(rule, RULE_BOT_ACCOUNT_ID);
+
+            render(
+                <AgentRulesSection
+                    policyID={POLICY_ID}
+                    canWriteRules
+                    showReadOnlyModal={jest.fn()}
+                />,
+            );
+
+            expect(mockedUserPill).toHaveBeenCalledTimes(1);
+            expect(mockedUserPill.mock.calls.at(0)?.at(0)).toEqual(
+                expect.objectContaining({accountID: RULE_BOT_ACCOUNT_ID, displayName: 'RuleBot', email: 'agent_777@expensify.ai', avatar: 'https://example.com/rulebot.png'}),
+            );
+        });
+
+        it('falls back to the localized RuleBot name when personal details are missing', () => {
+            mockPersonalDetails = {};
+            setPolicyAgentRules(rule, RULE_BOT_ACCOUNT_ID);
+
+            render(
+                <AgentRulesSection
+                    policyID={POLICY_ID}
+                    canWriteRules
+                    showReadOnlyModal={jest.fn()}
+                />,
+            );
+
+            expect(mockedUserPill).toHaveBeenCalledTimes(1);
+            expect(mockedUserPill.mock.calls.at(0)?.at(0)?.displayName).toBe('workspace.rules.agentRules.ruleBotName');
+        });
+
+        it('does not render the RuleBot pill when no RuleBot is provisioned', () => {
+            setPolicyAgentRules(rule);
+
+            render(
+                <AgentRulesSection
+                    policyID={POLICY_ID}
+                    canWriteRules
+                    showReadOnlyModal={jest.fn()}
+                />,
+            );
+
+            expect(mockedUserPill).not.toHaveBeenCalled();
         });
     });
 });

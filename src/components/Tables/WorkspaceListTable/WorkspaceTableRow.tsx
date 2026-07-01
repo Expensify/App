@@ -108,7 +108,6 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
-            skeletonReasonAttributes={{context: 'WorkspaceRow'}}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.ROW}
             onPress={item.action}
             offlineWithFeedback={{
