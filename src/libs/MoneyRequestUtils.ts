@@ -6,7 +6,7 @@ import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
 import {isInvoiceReport, isIOUReport} from './ReportUtils';
 import StringUtils from './StringUtils';
-import {doesMoneyRequestDraftHaveUserInput, hasUnsavedMoneyRequestInput, haveWaypointAddressesChanged, isExpenseUnreported} from './TransactionUtils';
+import {doesMoneyRequestDraftHaveUserInput, haveWaypointAddressesChanged, isExpenseUnreported} from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
 
 /**
@@ -216,27 +216,24 @@ type AmountHasUnsavedChangesParams = {
 };
 
 /**
- * Whether the amount step has unsaved input. Emptiness is judged on the raw string so a typed "0" still counts, the
- * change is compared in backend units so formatting-only differences like "5" vs "5.00" aren't flagged, and a currency
- * change counts on its own.
+ * Whether the amount step has unsaved input. Emptiness is judged on the raw string (so a typed "0" counts) and the
+ * change in backend units (so "5" vs "5.00" isn't a false positive); a currency change counts on its own.
  */
 function getAmountHasUnsavedChanges({typedAmount, committedAmount, isCreateEntry, selectedCurrency, originalCurrency}: AmountHasUnsavedChangesParams): boolean {
+    const currencyChanged = selectedCurrency !== originalCurrency;
+    if (isCreateEntry) {
+        return typedAmount !== '' || currencyChanged;
+    }
     const typedAmountInBackendUnits = typedAmount ? convertToBackendAmount(Number.parseFloat(typedAmount)) : 0;
-    return hasUnsavedMoneyRequestInput(typedAmountInBackendUnits, committedAmount, typedAmount === '', isCreateEntry) || selectedCurrency !== originalCurrency;
+    return typedAmountInBackendUnits !== committedAmount || currencyChanged;
 }
 
-/**
- * Whether a raw-string money-request step (hours, manual distance) has unsaved input: the typed value is non-empty on
- * the create entry, or differs from the committed value when editing.
- */
+/** Whether a raw-string money-request step (hours, manual distance) has unsaved input. */
 function getStringFieldHasUnsavedChanges(typedValue: string, committedValue: string, isCreateEntry: boolean): boolean {
-    return hasUnsavedMoneyRequestInput(typedValue, committedValue, typedValue === '', isCreateEntry);
+    return isCreateEntry ? typedValue !== '' : typedValue !== committedValue;
 }
 
-/**
- * Whether the distance (map) step has unsaved waypoints: on the create entry any entered waypoint counts, otherwise
- * it's whether the waypoint addresses changed from the committed ones.
- */
+/** Whether the distance (map) step has unsaved waypoints. */
 function getWaypointsHasUnsavedChanges(
     transaction: OnyxEntry<Transaction>,
     committedWaypoints: WaypointCollection | undefined,

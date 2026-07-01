@@ -75,7 +75,7 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
 
     const isDirty = selectedBotAvatar !== initialBotAvatar || imageData.uri !== '';
 
-    const {notifySaving} = useDiscardChangesConfirmation({
+    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => isDirty,
     });
 
@@ -122,7 +122,7 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
         if (!isDirty) {
             return;
         }
-        notifySaving();
+        suppressDiscardPrompt();
 
         if (imageData.file) {
             if (onSave) {

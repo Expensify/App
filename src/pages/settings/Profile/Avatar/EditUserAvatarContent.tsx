@@ -39,7 +39,7 @@ function EditUserAvatarContent() {
 
     const isDirty = imageData.uri !== '' || !!selected;
 
-    const {notifySaving} = useDiscardChangesConfirmation({
+    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => isDirty,
     });
 
@@ -64,7 +64,7 @@ function EditUserAvatarContent() {
     };
 
     const onPress = () => {
-        notifySaving();
+        suppressDiscardPrompt();
 
         if (imageData.file) {
             updateAvatar(imageData.file, {
@@ -95,7 +95,7 @@ function EditUserAvatarContent() {
             return;
         }
         if (!selected || !avatarCaptureRef.current) {
-            notifySaving(false);
+            suppressDiscardPrompt(false);
             return;
         }
         avatarCaptureRef.current
@@ -111,7 +111,7 @@ function EditUserAvatarContent() {
                 Navigation.dismissModal();
             })
             .catch(() => {
-                notifySaving(false);
+                suppressDiscardPrompt(false);
             });
     };
 

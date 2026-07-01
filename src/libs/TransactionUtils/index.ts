@@ -1241,32 +1241,12 @@ function hasDisplayableMCC(mcc: number | string | null | undefined): boolean {
     return getMCCForDisplay(mcc) !== '';
 }
 
-/**
- * Return the waypoints field from the transaction, return the modifiedWaypoints if present.
- */
-/**
- * Whether a draft holds tab-entered input that is lost when the flow is abandoned (drafts are not restored on the next open).
- * Covers fields that persist to the draft as they are entered (waypoints). Forward-navigation fields that persist only on
- * "Next" (amount, hours) live in the live input until then, so they use {@link hasUnsavedMoneyRequestInput} instead.
- */
+/** Whether the draft holds tab-entered input (waypoints) that is lost when the flow is abandoned. */
 function doesMoneyRequestDraftHaveUserInput(transaction: OnyxEntry<Transaction>): boolean {
     return Object.keys(getValidWaypoints(getWaypoints(transaction))).length > 0;
 }
 
-/**
- * Whether a money-request step's value is unsaved.
- *
- * On the **create entry** (leaving discards the draft) any input counts, so it's unsaved whenever the current value
- * isn't empty; otherwise only a change counts, so it's unsaved when the current value differs from the committed one.
- *
- * `isCurrentValueEmpty` is supplied by the caller because emptiness can live in a different space than the equality
- * check: an amount is compared in backend units (where a typed "0" and an empty field both read as 0), but its
- * emptiness must be judged on the raw input string ("0" is input, "" is not).
- */
-function hasUnsavedMoneyRequestInput<T>(currentValue: T, committedValue: T, isCurrentValueEmpty: boolean, isCreateEntry: boolean): boolean {
-    return isCreateEntry ? !isCurrentValueEmpty : currentValue !== committedValue;
-}
-
+/** Returns the transaction's waypoints, preferring `modifiedWaypoints` when present. */
 function getWaypoints(transaction: OnyxEntry<Transaction>): WaypointCollection | undefined {
     return transaction?.modifiedWaypoints ?? transaction?.comment?.waypoints;
 }
@@ -3123,7 +3103,6 @@ export {
     didReceiptScanSucceed,
     getValidWaypoints,
     doesMoneyRequestDraftHaveUserInput,
-    hasUnsavedMoneyRequestInput,
     haveWaypointAddressesChanged,
     isDistanceRequest,
     isMapDistanceRequest,

@@ -81,7 +81,7 @@ function IOURequestStepHours({
         moneyRequestTimeInputRef.current?.updateNumber(`${transaction?.comment?.units?.count ?? ''}`);
     }, [selectedTab, transaction?.comment?.units?.count]);
 
-    const {notifySaving} = useDiscardChangesConfirmation({
+    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => {
             const typedCount = moneyRequestTimeInputRef.current?.getNumber() ?? '';
             return getStringFieldHasUnsavedChanges(typedCount, `${transaction?.comment?.units?.count ?? ''}`, isEmbeddedInStartPage);
@@ -114,7 +114,7 @@ function IOURequestStepHours({
             return;
         }
 
-        notifySaving();
+        suppressDiscardPrompt();
         setMoneyRequestAmount(transactionID, computeTimeAmount(rate, count), currency);
         setMoneyRequestMerchant(transactionID, formatTimeMerchant(count, rate, currency, translate, convertToDisplayString), isTransactionDraft);
         setMoneyRequestTimeCount(transactionID, count, isTransactionDraft);
@@ -183,7 +183,7 @@ function IOURequestStepHours({
                         style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
                         onPress={() => {
                             if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
-                                notifySaving();
+                                suppressDiscardPrompt();
                                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                                 return;
                             }

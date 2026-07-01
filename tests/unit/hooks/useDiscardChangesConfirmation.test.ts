@@ -282,13 +282,13 @@ describe('useDiscardChangesConfirmation (web)', () => {
         it('suppresses the prompt while a save is in progress, and re-arms when notified it ended', () => {
             const {result} = renderDiscardHook(() => true);
 
-            act(() => result.current.notifySaving());
+            act(() => result.current.suppressDiscardPrompt());
             const duringSave = invokeBeforeRemove('RESET');
 
             expect(duringSave.defaultPrevented).toBe(false);
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
 
-            act(() => result.current.notifySaving(false));
+            act(() => result.current.suppressDiscardPrompt(false));
             const afterSave = invokeBeforeRemove('RESET');
 
             expect(afterSave.defaultPrevented).toBe(true);

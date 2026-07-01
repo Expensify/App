@@ -157,7 +157,7 @@ function IOURequestStepDistance({
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, currentTransaction);
 
-    const {notifySaving} = useDiscardChangesConfirmation({
+    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => getWaypointsHasUnsavedChanges(transaction, transactionBackup?.comment?.waypoints, waypoints, isCreatingNewRequest),
     });
 
@@ -496,7 +496,7 @@ function IOURequestStepDistance({
             return;
         }
 
-        notifySaving();
+        suppressDiscardPrompt();
         navigateToNextStep();
     }, [
         duplicateWaypointsError,
@@ -508,7 +508,7 @@ function IOURequestStepDistance({
         isCreatingNewRequest,
         navigateToNextStep,
         navigateBackAfterSave,
-        notifySaving,
+        suppressDiscardPrompt,
         isEditingSplit,
         originalSplitTransactionDraft,
         transactionBackup,
