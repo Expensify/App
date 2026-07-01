@@ -24,6 +24,7 @@ export type {default as ConnectPolicyToAccountingIntegrationParams} from './Conn
 export type {default as ConnectPolicyToGustoParams} from './ConnectPolicyToGustoParams';
 export type {default as ConnectPolicyToMergeParams} from './ConnectPolicyToMergeParams';
 export type {default as ConnectPolicyToZenefitsParams} from './ConnectPolicyToZenefitsParams';
+export type {default as ConnectPolicyToRilletParams} from './ConnectPolicyToRilletParams';
 export type {default as OpenPolicyProfilePageParams} from './OpenPolicyProfilePageParams';
 export type {default as OpenPolicyInitialPageParams} from './OpenPolicyInitialPageParams';
 export type {default as SyncPolicyToGustoParams} from './SyncPolicyToGustoParams';
@@ -33,6 +34,10 @@ export type {default as SyncPolicyToFinancialForceParams} from './SyncPolicyToFi
 export type {default as SyncPolicyToQuickbooksOnlineParams} from './SyncPolicyToQuickbooksOnlineParams';
 export type {default as SyncPolicyToXeroParams} from './SyncPolicyToXeroParams';
 export type {default as SyncPolicyToNetSuiteParams} from './SyncPolicyToNetSuiteParams';
+export type {default as SyncPolicyToRilletParams} from './SyncPolicyToRilletParams';
+export type {default as UpdateRilletSubsidiaryParams} from './UpdateRilletSubsidiaryParams';
+export type {default as UpdateRilletGenericTypeParams} from './UpdateRilletGenericTypeParams';
+export type {default as UpdateRilletFieldMappingParams} from './UpdateRilletFieldMappingParams';
 export type {default as UpdateNetSuiteAccountingMethodParams} from './UpdateNetSuiteAccountingMethodParams';
 export type {default as UpdateQuickbooksOnlineAccountingMethodParams} from './UpdateQuickbooksOnlineAccountingMethodParams';
 export type {default as UpdateXeroAccountingMethodParams} from './UpdateXeroAccountingMethodParams';

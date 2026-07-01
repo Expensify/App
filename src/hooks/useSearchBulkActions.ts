@@ -436,6 +436,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'IntacctSquare',
         'QBDSquare',
         'CertiniaSquare',
+        'RilletSquare',
         'GustoSquare',
         'Pencil',
         'Workflows',
