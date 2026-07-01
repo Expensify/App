@@ -1,125 +1,215 @@
+# Expensify HelpDot Topic Article Guidelines
+
+## Purpose
+
+Topic articles explain how an area of Expensify works.
+
+They help customers understand concepts before they perform related tasks.
+
+Topic articles answer questions such as:
+
+- How does billing work?
+- What is a Workspace?
+- How do approvals work?
+- How do reimbursements work?
+- How do subscription plans work?
+
+The goal of a Topic article is customer understanding.
+
 ---
-title: [Natural, searchable topic title]
-description: Learn about [topic], including who it affects, where you'll find it, how it works, and what happens when it occurs.
-keywords: [[primary topic], [feature name], [related search phrases]]
-internalScope: Audience is [target audience]. Covers [single concept or feature]. Does not cover [related tasks or adjacent concepts].
+
+# 1. Core Principles
+
+Every Topic article must:
+
+- Explain one product concept or product area.
+- Match a specific customer question.
+- Use exact product terminology.
+- Follow the official naming conventions.
+- Be optimized for semantic retrieval.
+- Be concise, organized, and easy to scan.
+
+If multiple unrelated concepts are required, create multiple articles.
+
 ---
 
-<!--
-This template is for TOPIC articles.
+# 2. Scope Rules
 
-PURPOSE
+Topic articles must:
 
-Topic articles explain a single concept, feature, state, or behavior.
-They answer questions like:
+- Explain how a product area works.
+- Build understanding before explaining workflows.
+- Focus on the concepts customers need most.
+- Explain common scenarios before exceptions.
+- Define important terminology when helpful.
 
-- What is this?
-- Why does this happen?
-- Who is affected?
-- Where do I find it?
-- What do the different states mean?
-- What happens next?
+Topic articles may:
 
-Topic articles provide understanding, not step-by-step instructions.
+- Summarize related workflows.
+- Briefly explain high-level behavior.
+- Link to Task articles for procedural instructions.
 
-If the primary goal is completing a workflow, use the Task template instead.
+Topic articles must not:
 
-TITLE GUIDELINES
+- Become step-by-step instructions.
+- Explain every setting or configuration option.
+- Attempt to document every edge case.
+- Become a navigation hub.
+- Cover multiple unrelated concepts.
 
-Choose a title that naturally describes the topic.
+If the primary goal is completing a workflow, create a Task article instead.
 
-Titles may:
-- Be a concise noun phrase.
-- Begin with an explanatory verb such as "Understand" or "Learn about" when it improves clarity.
+---
 
-Prefer the wording that feels most natural for the subject.
+# 3. Editorial Principles
 
-Good examples:
-- Billing and subscriptions
-- Billing issues
-- Annual subscriptions
-- Billing owners
-- Understand approval workflows
+Good Topic articles help customers understand the product—not document every implementation detail.
+
+When writing:
+
+- Start by answering the customer's question.
+- Explain the concept before discussing the interface.
+- Build understanding from foundational ideas to supporting details.
+- Focus on customer-facing behavior rather than implementation.
+- Prioritize common situations before exceptions.
+- Remove unnecessary detail.
 
 Avoid:
+
+- step-by-step procedures
+- exhaustive UI descriptions
+- documenting every configuration option
+- implementation details customers don't need
+- lengthy discussions of rare edge cases
+
+If a sentence doesn't improve customer understanding, remove it.
+
+---
+
+# 4. Metadata Requirements
+
+Every Topic article must include:
+
+```yaml
+---
+title: Clear concept-based title using the feature name
+description: Short summary of the concept
+keywords: [primary concept, feature name, related search terms]
+internalScope: Audience is [target role]. Covers [concept]. Does not cover [excluded workflows or concepts].
+contentType: topic
+platform: [platform value]
+---
+```
+
+Metadata should reflect realistic customer search behavior.
+
+---
+
+# 5. Heading Requirements
+
+Topic headings should answer customer questions about the concept.
+
+Prefer headings beginning with:
+
+- How
+- What
+- Who
+- When
+- Why
+
+Examples:
+
+- How billing works
+- What determines your subscription cost
+- Who manages subscription billing
+- When you're charged
+- Why billing problems occur
+
+Avoid:
+
 - Overview
-- General information
-- How [feature] works (unless "how it works" is the actual topic)
--->
+- Introduction
+- Notes
+- Setup
+- Procedure-based headings
+- Generic noun-only headings
 
-# [Must match the title exactly]
-
-Briefly explain:
-
-* What the topic is.
-* Why someone would encounter it.
-* Why it matters.
-* Any important platform or availability limitations.
-
-Keep this concise and focused on understanding.
+Each heading should communicate one distinct idea.
 
 ---
 
-## Who is affected by [topic]
+# 6. Organization Requirements
 
-Explain:
+Organize information from foundational concepts to supporting details.
 
-* Who can see it.
-* Who can use it.
-* Who can manage it.
-* Any role or permission requirements.
+A typical progression is:
 
-If applicable, explain who cannot access or interact with it.
+1. Explain the overall concept.
+2. Describe the major components.
+3. Explain how they relate.
+4. Explain common customer scenarios.
+5. Explain important exceptions only when they affect customer understanding.
 
----
+Don't force every article into this structure if another organization is clearer.
 
-## Where to find [topic]
-
-Explain where someone encounters this feature, message, setting, or behavior.
-
-Examples:
-
-* Where alerts appear.
-* Where settings are located.
-* Where information is displayed.
-* When the feature becomes visible.
-
-If there are multiple locations, explain each briefly.
+Good organization is more important than rigid consistency.
 
 ---
 
-## What [topic] means
+# 7. Retrieval Optimization
 
-Explain the different states, messages, behaviors, or variations someone may encounter.
+Topic articles should:
 
-Use bullet lists when appropriate.
+- Target one customer understanding question.
+- Include realistic customer search phrases.
+- Use exact feature names.
+- Reinforce important terminology naturally throughout the article.
 
-Focus on helping the reader interpret what they're seeing—not how to resolve it.
+Topic articles should not:
 
----
+- Cover multiple product areas.
+- Mix unrelated concepts.
+- Expand into procedural documentation.
 
-## What happens after [topic] occurs
+The article should clearly answer:
 
-Explain the resulting system behavior.
+> "How does this work?"
 
-Examples:
-
-* What remains visible.
-* What changes automatically.
-* What requires action.
-* When the state returns to normal.
-
-Keep this focused on outcomes rather than procedures.
+within the first two paragraphs.
 
 ---
 
-## Related articles
+# 8. Cross-Linking
 
-Link only to workflows or deeper concepts that naturally extend this topic.
+Cross-links should primarily point to:
 
-Examples:
+- Task articles
+- Closely related Topic articles
+- Required prerequisite concepts
 
-* Learn how to [complete related task].
-* Learn more about [related concept].
+Avoid excessive linking.
 
-Limit related articles to essential next steps.
+If numerous links seem necessary, the article scope is probably too broad.
+
+Prefer a short **Related articles** section instead of frequent inline links.
+
+---
+
+# 9. Validation Checklist
+
+Before publishing, confirm:
+
+- `contentType` is `topic`.
+- One primary concept is covered.
+- The introduction immediately explains the concept.
+- Headings answer meaningful customer questions.
+- Concepts are explained before interface details.
+- Common scenarios receive the most attention.
+- Important terminology is used consistently.
+- UI terminology matches the product.
+- Metadata reflects customer search intent.
+- Cross-links are minimal and purposeful.
+- Every paragraph teaches something useful.
+- Unnecessary implementation details have been removed.
+- The article improves customer understanding.
+- The finished article reads like it was written by an experienced Expensify support agent.
