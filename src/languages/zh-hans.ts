@@ -1029,6 +1029,8 @@ const translations: TranslationDeepObject<typeof en> = {
             connectAccountingDefault: '连接会计系统',
             customizeCategories: '自定义会计类别',
             linkCompanyCards: '关联公司卡',
+            issueExpensifyCards: '发放 Expensify 卡',
+            issueExpensifyCardsSubtitle: '自定义控制并简化支出',
             setupRules: '设置消费规则',
             inviteAccountant: '邀请你的会计',
         },

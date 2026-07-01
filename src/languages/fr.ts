@@ -1062,6 +1062,8 @@ const translations: TranslationDeepObject<typeof en> = {
             connectAccountingDefault: 'Connecter à la comptabilité',
             customizeCategories: 'Personnaliser les catégories comptables',
             linkCompanyCards: 'Lier des cartes d’entreprise',
+            issueExpensifyCards: 'Émettre des cartes Expensify',
+            issueExpensifyCardsSubtitle: 'Personnalisez les contrôles et simplifiez les dépenses',
             setupRules: 'Configurer les règles de dépense',
             inviteAccountant: 'Inviter votre comptable',
         },

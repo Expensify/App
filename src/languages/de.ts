@@ -1046,6 +1046,8 @@ const translations: TranslationDeepObject<typeof en> = {
             connectAccountingDefault: 'Mit Buchhaltung verbinden',
             customizeCategories: 'Buchhaltungskategorien anpassen',
             linkCompanyCards: 'Firmenkarten verknüpfen',
+            issueExpensifyCards: 'Expensify-Karten ausgeben',
+            issueExpensifyCardsSubtitle: 'Kontrollen anpassen und Ausgaben optimieren',
             setupRules: 'Ausgabelimits einrichten',
             inviteAccountant: 'Lade deine:n Steuerberater:in ein',
         },

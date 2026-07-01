@@ -1019,6 +1019,8 @@ const translations: TranslationDeepObject<typeof en> = {
             customizeCategories: 'Personalizar categorías contables',
             inviteAccountant: 'Invita a tu contador',
             linkCompanyCards: 'Vincular tarjetas corporativas',
+            issueExpensifyCards: 'Emitir tarjetas Expensify',
+            issueExpensifyCardsSubtitle: 'Personaliza los controles y agiliza el gasto',
             setupRules: 'Configurar reglas de gasto',
         },
         upcomingTravel: 'Próximos viajes',

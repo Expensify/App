@@ -3,8 +3,9 @@ import useLocalize from '@hooks/useLocalize';
 import useOnboardingIntent from '@hooks/useOnboardingIntent';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {enablePolicyCategories} from '@libs/actions/Policy/Category';
-import {hasCompanyCardFeeds} from '@libs/CardUtils';
+import {hasCompanyCardFeeds, hasIssuedExpensifyCard} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     arePolicyRulesEnabled,
@@ -17,7 +18,7 @@ import {
     isPolicyAdmin,
 } from '@libs/PolicyUtils';
 import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/utils/isWithinGettingStartedPeriod';
-import {enableCompanyCards, enablePolicyConnections} from '@userActions/Policy/Policy';
+import {enableCompanyCards, enableExpensifyCard, enablePolicyConnections} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -28,6 +29,7 @@ const MIN_MEMBERS_FOR_ACCOUNTANT_INVITED = 2;
 type GettingStartedItem = {
     key: string;
     label: string;
+    subtitle?: string;
     isComplete: boolean;
     route: Route;
     isFeatureEnabled?: boolean;
@@ -57,6 +59,8 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${activePolicyID}`);
     const [allCardFeeds] = useCardFeeds(activePolicyID);
+    const workspaceAccountID = useWorkspaceAccountID(activePolicyID);
+    const [allWorkspaceCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy);
 
     const emptyResult: UseGettingStartedItemsResult = {shouldShowSection: false, items: []};
@@ -145,14 +149,30 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         });
     }
 
-    items.push({
-        key: 'linkCompanyCards',
-        label: translate('homePage.gettingStartedSection.linkCompanyCards'),
-        isComplete: hasCompanyCardFeeds(allCardFeeds),
-        route: ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(activePolicyID),
-        isFeatureEnabled: policy.areCompanyCardsEnabled,
-        enableFeature: () => enableCompanyCards(activePolicyID, true, false),
-    });
+    // The two card features are independent: each shows its own getting-started step only when that feature was enabled during
+    // onboarding. Both enabled shows both steps, only one enabled shows that one, and neither enabled shows no card step.
+    if (policy.areCompanyCardsEnabled) {
+        items.push({
+            key: 'linkCompanyCards',
+            label: translate('homePage.gettingStartedSection.linkCompanyCards'),
+            isComplete: hasCompanyCardFeeds(allCardFeeds),
+            route: ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(activePolicyID),
+            isFeatureEnabled: policy.areCompanyCardsEnabled,
+            enableFeature: () => enableCompanyCards(activePolicyID, true, false),
+        });
+    }
+
+    if (policy.areExpensifyCardsEnabled) {
+        items.push({
+            key: 'issueExpensifyCards',
+            label: translate('homePage.gettingStartedSection.issueExpensifyCards'),
+            subtitle: translate('homePage.gettingStartedSection.issueExpensifyCardsSubtitle'),
+            isComplete: hasIssuedExpensifyCard(workspaceAccountID, allWorkspaceCards),
+            route: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(activePolicyID),
+            isFeatureEnabled: policy.areExpensifyCardsEnabled,
+            enableFeature: () => enableExpensifyCard(activePolicyID, true, false),
+        });
+    }
 
     if (arePolicyRulesEnabled(policy, policyCategories)) {
         items.push({
