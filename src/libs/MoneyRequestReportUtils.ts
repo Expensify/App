@@ -19,7 +19,7 @@ import {
     isOneTransactionReport,
     isReportTransactionThread,
 } from './ReportUtils';
-import {getReimbursable, isTransactionPendingDelete} from './TransactionUtils';
+import {getReimbursable, getSupersededPendingCardTransactionIDs, isTransactionPendingDelete} from './TransactionUtils';
 
 function isBillableEnabledOnPolicy(policy: Policy | OnyxEntry<Policy> | undefined): boolean {
     return !!policy && isPaidGroupPolicy(policy) && policy.disabledFields?.defaultBillable !== true;
@@ -86,7 +86,7 @@ function getReportIDForTransaction(transactionItem: TransactionListItemType, IOU
  * Filters all available transactions and returns the ones that belong to not removed action and not removed parent action.
  */
 function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>, reportActions: ReportAction[], isOffline = false, includeOrphanedTransactions = false) {
-    return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
+    const nonDeletedTransactions = Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
         if (!transaction) {
             return false;
         }
@@ -104,6 +104,14 @@ function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>,
         }
         return !isDeletedParentAction(action) && (reportActions.length === 0 || !isDeletedAction(action));
     });
+
+    // Hide a pending Expensify Card auth once its posted counterpart from the same auth chain is present, so a stale
+    // pending row left in local Onyx after settlement does not render as a duplicate alongside the posted row.
+    const supersededPendingCardTransactionIDs = getSupersededPendingCardTransactionIDs(nonDeletedTransactions);
+    if (supersededPendingCardTransactionIDs.size === 0) {
+        return nonDeletedTransactions;
+    }
+    return nonDeletedTransactions.filter((transaction) => !supersededPendingCardTransactionIDs.has(transaction.transactionID));
 }
 
 /**

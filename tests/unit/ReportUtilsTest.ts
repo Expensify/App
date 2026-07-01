@@ -308,6 +308,7 @@ const computeReportName = (
         currentUserAccountID: currentUserID,
         currentUserLogin: currentUserEmail,
         conciergeReportID,
+        isTrackIntentUser: false,
     });
 const participantsPersonalDetails: PersonalDetailsList = {
     '1': {
@@ -6701,6 +6702,59 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
+        });
+
+        it('should return DEFAULT for an empty concierge chat identified solely via the conciergeReportID param', async () => {
+            const conciergeReportID = 'concierge-report-param-456';
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: conciergeReportID,
+            };
+
+            // Ensure the deprecated Onyx.connect fallback is empty so only the explicit param can mark this as the concierge chat
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, null);
+            await waitForBatchedUpdates();
+
+            expect(
+                reasonForReportToBeInOptionList({
+                    report,
+                    chatReport: mockedChatReport,
+                    currentReportId: '',
+                    isInFocusMode: false,
+                    betas: [CONST.BETAS.DEFAULT_ROOMS],
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: true,
+                    draftComment: '',
+                    isReportArchived: undefined,
+                    conciergeReportID,
+                }),
+            ).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
+        });
+
+        it('should hide an empty concierge chat when the conciergeReportID param does not match the report', async () => {
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: 'concierge-report-param-789',
+            };
+
+            // Clear the deprecated Onyx.connect fallback so the non-matching param is the only source considered
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, null);
+            await waitForBatchedUpdates();
+
+            expect(
+                reasonForReportToBeInOptionList({
+                    report,
+                    chatReport: mockedChatReport,
+                    currentReportId: '',
+                    isInFocusMode: false,
+                    betas: [CONST.BETAS.DEFAULT_ROOMS],
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: true,
+                    draftComment: '',
+                    isReportArchived: undefined,
+                    conciergeReportID: 'some-other-report-id',
+                }),
+            ).toBeNull();
         });
 
         it('should return false when the users email is domain-based and the includeDomainEmail is false', () => {
@@ -17741,6 +17795,31 @@ describe('ReportUtils', () => {
             expect(result).toBe('Project A');
         });
 
+        it('should return tag GL code for TAG_GL_CODE column', () => {
+            const transaction = createMockTransaction({tag: 'Engineering:Roadshow'});
+            const policyTagLists = {
+                Department: {
+                    name: 'Department',
+                    orderWeight: 0,
+                    required: false,
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true, 'GL Code': '1234'},
+                    },
+                },
+                Project: {
+                    name: 'Project',
+                    orderWeight: 1,
+                    required: false,
+                    tags: {
+                        Roadshow: {name: 'Roadshow', enabled: true, 'GL Code': '5678'},
+                    },
+                },
+            };
+
+            expect(getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE, mockReport, mockPolicy, undefined, policyTagLists)).toBe('1234, 5678');
+            expect(getTransactionSortValue(transaction, CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE, mockReport, mockPolicy, undefined, policyTagLists)).toBe('1234, 5678');
+        });
+
         it('should return 1 for billable and 0 for non-billable', () => {
             const billable = createMockTransaction({billable: true});
             const nonBillable = createMockTransaction({billable: false});
@@ -17811,6 +17890,7 @@ describe('ReportUtils', () => {
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.TAG)).toBe(true);
+            expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)).toBe(true);

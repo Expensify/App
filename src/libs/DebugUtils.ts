@@ -1216,13 +1216,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 email: 'string',
                 displayName: 'string',
                 avatarUrl: 'string',
-                accountID: 'number',
-                text: 'string',
-                login: 'string',
-                searchText: 'string',
-                selected: 'boolean',
-                iouType: CONST.IOU.TYPE,
-                reportID: 'string',
             });
         case 'modifiedWaypoints':
             return validateObject<ObjectElement<Transaction, 'modifiedWaypoints'>>(
@@ -1369,6 +1362,8 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 comment: 'string',
                 cardID: 'number',
                 missingFields: 'array',
+                startDate: 'string',
+                endDate: 'string',
             });
         case 'showInReview':
             return validateBoolean(value);
@@ -1433,6 +1428,7 @@ function getReasonForShowingRowInLHN({
     draftComment,
     currentUserLogin,
     currentUserAccountID,
+    conciergeReportID,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
@@ -1444,6 +1440,7 @@ function getReasonForShowingRowInLHN({
     draftComment: string | undefined;
     currentUserLogin?: string;
     currentUserAccountID?: number;
+    conciergeReportID?: string;
 }): TranslationPaths | null {
     if (!report) {
         return null;
@@ -1463,6 +1460,7 @@ function getReasonForShowingRowInLHN({
         draftComment,
         currentUserLogin,
         currentUserAccountID,
+        conciergeReportID,
     });
 
     if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {
