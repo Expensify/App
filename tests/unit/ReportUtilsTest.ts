@@ -101,6 +101,7 @@ import {
     getOriginalReportID,
     getOutstandingChildRequest,
     getParentNavigationSubtitle,
+    getParsedComment,
     getParticipantsList,
     getPolicyExpenseChat,
     getPolicyIDsWithEmptyReportsForAccount,
@@ -128,6 +129,7 @@ import {
     hasReceiptError,
     hasSmartscanError,
     hasVisibleReportFieldViolations,
+    isActionCreator,
     isAdminOwnerApproverOrReportOwner,
     isAllowedToApproveExpenseReport,
     isArchivedNonExpenseReport,
@@ -135,11 +137,13 @@ import {
     isChatUsedForOnboarding,
     isClosedExpenseReportWithNoExpenses,
     isConciergeChatReport,
+    isCurrentUserSubmitter,
     isDeprecatedGroupDM,
     isHarvestCreatedExpenseReport,
     isMoneyRequestReportEligibleForMerge,
     isPayer,
     isReportIneligibleForMoveExpenses,
+    isReportManager,
     isReportOutstanding,
     isReportPendingDelete,
     isRootGroupChat,
@@ -149,6 +153,7 @@ import {
     isWorkspaceMemberLeavingWorkspaceRoom,
     parseReportActionHtmlToText,
     parseReportRouteParams,
+    populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
     pushTransactionAutoSelectionsOnyxData,
     pushTransactionViolationsOnyxData,
@@ -9974,6 +9979,86 @@ describe('ReportUtils', () => {
             const result = canUserPerformWriteAction(policyAnnounceRoom, false);
 
             expect(result).toBe(true);
+        });
+    });
+
+    describe('getParsedComment', () => {
+        beforeEach(async () => {
+            // Given the current session uses a public-domain email (so the deprecated fallback domain would be empty) and ragnar@vikings.net is a known login
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: 'publicuser@gmail.com', accountID: currentUserAccountID},
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
+            });
+            await waitForBatchedUpdates();
+        });
+        afterEach(async () => {
+            // Restore the session so other tests are unaffected
+            await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await waitForBatchedUpdates();
+        });
+        it('expands a short mention using the explicitly passed currentUserEmail private domain', () => {
+            // When a short mention is parsed with an explicit private-domain currentUserEmail param
+            const result = getParsedComment('@ragnar', undefined, undefined, undefined, currentUserEmail);
+
+            // Then the short mention is expanded to the full login using the passed email's domain (not the empty session domain)
+            expect(result).toContain('ragnar@vikings.net');
+        });
+        it('does not expand a short mention when the passed currentUserEmail is a public domain', () => {
+            // When a short mention is parsed with an explicit public-domain currentUserEmail param
+            const result = getParsedComment('@ragnar', undefined, undefined, undefined, 'someone@gmail.com');
+
+            // Then the short mention is not expanded because public domains have no mention domain
+            expect(result).not.toContain('ragnar@vikings.net');
+        });
+    });
+
+    describe('populateOptimisticReportFormula', () => {
+        it('resolves {user:email} from the explicitly passed currentUserEmail param', () => {
+            // Given an optimistic report and an explicit currentUserEmail param
+            const report = {...createRandomReport(70001), reportName: 'Test report', total: 0, currency: CONST.CURRENCY.USD};
+
+            // When the {user:email} formula is populated
+            const result = populateOptimisticReportFormula('{user:email}', report, undefined, false, 'passed@example.com');
+
+            // Then it uses the passed email rather than the session email
+            expect(result).toBe('passed@example.com');
+        });
+        it('resolves {user:email|frontPart} from the explicitly passed currentUserEmail param', () => {
+            // Given an optimistic report and an explicit currentUserEmail param
+            const report = {...createRandomReport(70002), reportName: 'Test report', total: 0, currency: CONST.CURRENCY.USD};
+
+            // When the {user:email|frontPart} formula is populated
+            const result = populateOptimisticReportFormula('{user:email|frontPart}', report, undefined, false, 'passed@example.com');
+
+            // Then it uses the front part of the passed email
+            expect(result).toBe('passed');
+        });
+    });
+
+    describe('current user account ID predicates', () => {
+        it('isReportManager uses the explicitly passed currentUserAccountID', () => {
+            // Given a report managed by account 999
+            const report: Report = {...createRandomReport(70010), managerID: 999};
+
+            // Then passing the matching accountID returns true and a different one returns false
+            expect(isReportManager(report, 999)).toBe(true);
+            expect(isReportManager(report, 1000)).toBe(false);
+        });
+        it('isCurrentUserSubmitter uses the explicitly passed currentUserAccountID', () => {
+            // Given a report owned by account 999
+            const report: Report = {...createRandomReport(70011), ownerAccountID: 999};
+
+            // Then passing the matching accountID returns true and a different one returns false
+            expect(isCurrentUserSubmitter(report, 999)).toBe(true);
+            expect(isCurrentUserSubmitter(report, 1000)).toBe(false);
+        });
+        it('isActionCreator uses the explicitly passed currentUserAccountID', () => {
+            // Given a report action authored by account 999
+            const reportAction = {...createRandomReportAction(70012), actorAccountID: 999};
+
+            // Then passing the matching accountID returns true and a different one returns false
+            expect(isActionCreator(reportAction, 999)).toBe(true);
+            expect(isActionCreator(reportAction, 1000)).toBe(false);
         });
     });
 
