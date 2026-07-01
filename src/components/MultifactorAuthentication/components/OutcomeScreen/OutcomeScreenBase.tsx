@@ -105,6 +105,7 @@ function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, ti
                         style={styles.flex1}
                         onPress={onClose}
                         text={translate('common.buttonConfirm')}
+                        testID="MultifactorAuthenticationOutcomeConfirmButton"
                     />
                 </View>
             </View>

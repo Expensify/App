@@ -8,7 +8,7 @@ import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine
 describe('every MFA modal state is reachable', () => {
     const reachableSnapshots = getShortestPaths(mfaMachine).map((path) => path.state);
 
-    it.each(getSettleableLeafStates(mfaMachine))('reaches the $description state', ({value}) => {
+    it.each(getSettleableLeafStates(mfaMachine.root))('reaches the $description state', ({value}) => {
         expect(reachableSnapshots.some((snapshot) => matchesState(value, snapshot.value))).toBe(true);
     });
 });

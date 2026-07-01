@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return -- jest.mock factories delegate to require()'d helpers, which resolve as `any`. */
+import {screen} from '@testing-library/react-native';
 import createMfaTestModel from 'tests/utils/mfa/flowPaths';
 import getSettleableLeafStates, {toStateValue} from 'tests/utils/mfa/reachableStates';
 import {resetMfaUiMocks} from 'tests/utils/mfa/realUi/mocks';
-import {flushMfaUi, isModalOverlayMounted, isOutcomeScreenVisible, renderMfaUi} from 'tests/utils/mfa/realUi/renderModal';
+import {renderMfaUi} from 'tests/utils/mfa/realUi/renderModal';
 import mfaEventExecutors from 'tests/utils/mfa/realUi/userGestures';
+import waitForBatchedUpdatesWithAct from 'tests/utils/waitForBatchedUpdatesWithAct';
 import {matchesState} from 'xstate';
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
 import {resetMfaNavigation} from '@components/MultifactorAuthentication/mfaNavigation';
@@ -20,6 +22,11 @@ jest.mock('@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHis
 // Supplies the Navigation methods the flow drives with real behavior; the Proxy no-ops the rest.
 jest.mock('@libs/Navigation/Navigation', () => require('tests/utils/mfa/realUi/jestMocks').navigationMock());
 
+// The queryable markers each state asserts against. `OutcomeScreenBase` is the success or failure screen's
+// testID; the backdrop's `Close` label only renders while the MFA navigator is mounted.
+const OUTCOME_SCREEN_TEST_ID = 'OutcomeScreenBase';
+const MODAL_OVERLAY_LABEL = 'Close';
+
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
 const testModel = createMfaTestModel();
@@ -31,16 +38,16 @@ const testConfig = {
     events: mfaEventExecutors,
     states: {
         [MFA_STATE.CLOSED]: () => {
-            expect(isModalOverlayMounted()).toBe(false);
-            expect(isOutcomeScreenVisible()).toBe(false);
+            expect(screen.queryAllByLabelText(MODAL_OVERLAY_LABEL)).toHaveLength(0);
+            expect(screen.queryAllByTestId(OUTCOME_SCREEN_TEST_ID)).toHaveLength(0);
         },
         [`${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`]: () => {
-            expect(isModalOverlayMounted()).toBe(true);
-            expect(isOutcomeScreenVisible()).toBe(true);
+            expect(screen.queryAllByLabelText(MODAL_OVERLAY_LABEL)).not.toHaveLength(0);
+            expect(screen.queryAllByTestId(OUTCOME_SCREEN_TEST_ID)).not.toHaveLength(0);
         },
         [MFA_STATE.CLOSING]: () => {
-            expect(isModalOverlayMounted()).toBe(true);
-            expect(isOutcomeScreenVisible()).toBe(false);
+            expect(screen.queryAllByLabelText(MODAL_OVERLAY_LABEL)).not.toHaveLength(0);
+            expect(screen.queryAllByTestId(OUTCOME_SCREEN_TEST_ID)).toHaveLength(0);
         },
     },
 };
@@ -61,7 +68,7 @@ describe('the real MFA modal follows the machine', () => {
     for (const path of walkedPaths) {
         it(`reaches ${JSON.stringify(path.state.value)} via [${path.description}]`, async () => {
             renderMfaUi();
-            await flushMfaUi();
+            await waitForBatchedUpdatesWithAct();
             await path.test(testConfig);
         });
     }
@@ -74,7 +81,7 @@ describe('the real MFA modal follows the machine', () => {
 describe('the UI walk reaches every settleable leaf', () => {
     const walkedLeafValues = walkedPaths.map((path) => path.state.value);
 
-    it.each(getSettleableLeafStates(mfaMachine))('walks the $description state', ({value}) => {
+    it.each(getSettleableLeafStates(mfaMachine.root))('walks the $description state', ({value}) => {
         expect(walkedLeafValues.some((reached) => matchesState(value, reached))).toBe(true);
     });
 });
@@ -88,7 +95,7 @@ describe('the UI walk reaches every settleable leaf', () => {
 // `Record<leaf, ...>` would then need an empty assertion for every pass-through state, and that empty
 // entry would make the check pass on its own once the state later loses its `always` and becomes settleable.
 describe('the view config stays in sync with the machine state by state', () => {
-    const settleableLeafStates = getSettleableLeafStates(mfaMachine);
+    const settleableLeafStates = getSettleableLeafStates(mfaMachine.root);
     const configuredStates = Object.keys(testConfig.states).map((stateValue) => ({description: stateValue, value: toStateValue(stateValue.split('.'))}));
 
     it.each(settleableLeafStates)('asserts the reachable $description state', ({value}) => {
