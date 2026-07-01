@@ -1296,11 +1296,12 @@ function downloadTagsCSV(policyID: string, onDownloadFailed: () => void, transla
     fileDownload(translate, ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_TAGS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
-function downloadMultiLevelTagsCSV(policyID: string, onDownloadFailed: () => void, hasDependentTags: boolean, translate: LocalizedTranslate) {
+function downloadMultiLevelTagsCSV(policyID: string, onDownloadFailed: () => void, hasDependentTags: boolean, includeGLCodes: boolean, translate: LocalizedTranslate) {
     const command = hasDependentTags ? WRITE_COMMANDS.EXPORT_MULTI_LEVEL_DEPENDENT_TAGS_CSV : WRITE_COMMANDS.EXPORT_MULTI_LEVEL_INDEPENDENT_TAGS_CSV;
 
     const finalParameters = enhanceParameters(command, {
         policyID,
+        includeGLCodes,
     });
     const fileName = 'MultiLevelTags.csv';
 
