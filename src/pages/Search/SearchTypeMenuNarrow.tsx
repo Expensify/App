@@ -77,7 +77,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const {isOffline} = useNetwork();
     const navigation = useNavigation();
     const {translate, localeCompare} = useLocalize();
-    const {currentSearchKey} = useSearchQueryContext();
+    const {currentSearchKey, currentSavedSearchKey} = useSearchQueryContext();
     const {typeMenuSections, activeKey: activeTypeMenuKey} = useSearchTypeMenuSections({
         hash: queryJSON?.hash,
         similarSearchHash: queryJSON?.similarSearchHash,
@@ -85,6 +85,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         sortOrder: queryJSON?.sortOrder,
         type: queryJSON?.type,
         searchKey: currentSearchKey,
+        hasActiveSavedSearch: !!currentSavedSearchKey,
     });
     const personalDetails = usePersonalDetails();
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
@@ -148,7 +149,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         'CheckCircle',
     ]);
 
-    const queryMap = new Map<string, {query: string; name?: string; searchKey?: SearchKey}>();
+    const queryMap = new Map<string, {query: string; name?: string; searchKey?: SearchKey; savedSearchKey?: string}>();
     const tabItems: TabSelectorBaseItem[] = [];
     const savedSearchesPopoverMenuItems: Record<string, PopoverMenuItem[]> = {};
     let activeKey = '';
@@ -162,7 +163,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
                   const title = item.name === item.query ? (savedSearchTitles.get(item.query) ?? item.name) : item.name;
 
-                  queryMap.set(key, {query: item.query ?? '', name: item.name});
+                  queryMap.set(key, {query: item.query ?? '', name: item.name, savedSearchKey: key});
                   const itemHash = Number(key);
                   savedSearchesPopoverMenuItems[key] = getOverflowMenu(expensifyIcons, title, itemHash, item.query, translate, showDeleteModal, true, () => setSavedSearchToModifyKey(null), {
                       onShare: () => {
@@ -172,7 +173,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                       isCopied: copiedHash === itemHash,
                   });
 
-                  if (Number(key) === queryJSON?.hash) {
+                  if (key === currentSavedSearchKey || Number(key) === queryJSON?.hash) {
                       activeKey = key;
                   }
 
@@ -234,7 +235,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         navigation.dispatch({
             type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,
             payload: {
-                params: {q: query, name: searchData.name, rawQuery: undefined, searchKey: searchData.searchKey},
+                params: {q: query, name: searchData.name, rawQuery: undefined, searchKey: searchData.searchKey, savedSearchKey: searchData.savedSearchKey},
             },
         });
     };

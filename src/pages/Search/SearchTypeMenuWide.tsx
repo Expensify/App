@@ -126,8 +126,16 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
     const {isOffline} = useNetwork();
     const {singleExecution} = useSingleExecution();
     const {clearSelectedTransactions} = useSearchSelectionActions();
-    const {currentSearchKey} = useSearchQueryContext();
-    const {typeMenuSections, activeItemIndex} = useSearchTypeMenuSections({hash, similarSearchHash, sortBy, sortOrder, type, searchKey: currentSearchKey});
+    const {currentSearchKey, currentSavedSearchKey} = useSearchQueryContext();
+    const {typeMenuSections, activeItemIndex} = useSearchTypeMenuSections({
+        hash,
+        similarSearchHash,
+        sortBy,
+        sortOrder,
+        type,
+        searchKey: currentSearchKey,
+        hasActiveSavedSearch: !!currentSavedSearchKey,
+    });
     const {isVisuallyCollapsed} = useSearchSidebarCollapse();
     const [isSearchDataLoaded, isSearchDataLoadedResult] = useOnyx(ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED);
     const [suggestedSearchOverrides] = useOnyx(ONYXKEYS.SEARCH_SUGGESTED_OVERRIDES);

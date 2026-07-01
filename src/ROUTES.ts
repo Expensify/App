@@ -946,10 +946,23 @@ const ROUTES = {
     SEARCH_ROUTER: 'search-router',
     SEARCH_ROOT: {
         route: 'search',
-        getRoute: ({query, rawQuery, name, searchKey}: {query: SearchQueryString; rawQuery?: SearchQueryString; name?: string; searchKey?: string}) => {
+        getRoute: ({
+            query,
+            rawQuery,
+            name,
+            searchKey,
+            savedSearchKey,
+        }: {
+            query: SearchQueryString;
+            rawQuery?: SearchQueryString;
+            name?: string;
+            searchKey?: string;
+            savedSearchKey?: string;
+        }) => {
             const rawQuerySegment = rawQuery ? `&rawQuery=${encodeURIComponent(rawQuery)}` : '';
             const searchKeySegment = searchKey ? `&searchKey=${searchKey}` : '';
-            return `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}${rawQuerySegment}${searchKeySegment}` as const;
+            const savedSearchKeySegment = savedSearchKey ? `&savedSearchKey=${savedSearchKey}` : '';
+            return `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}${rawQuerySegment}${searchKeySegment}${savedSearchKeySegment}` as const;
         },
     },
     SEARCH_ROOT_VERIFY_ACCOUNT: `search/${VERIFY_ACCOUNT}`,

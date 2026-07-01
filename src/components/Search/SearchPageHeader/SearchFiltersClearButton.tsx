@@ -10,17 +10,14 @@ import CONST from '@src/CONST';
 
 type SearchFiltersClearButtonProps = {
     onPress: () => void;
-
-    /** On a suggested search the action resets to its defaults rather than clearing all filters */
-    isReset?: boolean;
 };
 
-function SearchFiltersClearButton({onPress, isReset = false}: SearchFiltersClearButtonProps) {
+function SearchFiltersClearButton({onPress}: SearchFiltersClearButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close', 'RotateLeft']);
-    const label = translate(isReset ? 'common.reset' : 'common.clear');
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['RotateLeft']);
+    const label = translate('common.reset');
 
     return (
         <PressableWithFeedback
@@ -31,7 +28,7 @@ function SearchFiltersClearButton({onPress, isReset = false}: SearchFiltersClear
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.CLEAR_FILTERS_BUTTON}
         >
             <Icon
-                src={isReset ? expensifyIcons.RotateLeft : expensifyIcons.Close}
+                src={expensifyIcons.RotateLeft}
                 fill={theme.icon}
                 extraSmall
             />

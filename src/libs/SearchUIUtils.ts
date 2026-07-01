@@ -5581,6 +5581,30 @@ function getSuggestedSearchKeyForQuery(queryJSON: SearchQueryJSON | undefined, s
     return bestKey;
 }
 
+/**
+ * Returns the key (hash) of the saved search the query belongs to, using the same containment rules as
+ * suggested searches. This keeps a saved search anchored to its identity after its filters are adjusted.
+ */
+function getSavedSearchKeyForQuery(queryJSON: SearchQueryJSON | undefined, savedSearches: OnyxEntry<OnyxTypes.SaveSearch>): string | undefined {
+    let bestKey: string | undefined;
+    let bestScore = -1;
+    for (const [key, item] of Object.entries(savedSearches ?? {})) {
+        if (item?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+        const savedJSON = buildSearchQueryJSON(item.query);
+        if (!doesQueryMatchSuggestedSearch(queryJSON, savedJSON)) {
+            continue;
+        }
+        const score = savedJSON?.flatFilters.length ?? 0;
+        if (score > bestScore) {
+            bestScore = score;
+            bestKey = key;
+        }
+    }
+    return bestKey;
+}
+
 function getSingleSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, translate: LocalizedTranslate) {
     if (filterKey === FILTER_KEYS.BILLABLE || filterKey === FILTER_KEYS.REIMBURSABLE) {
         return Object.values(CONST.SEARCH.BOOLEAN).map((value) => ({value, text: translate(`common.${value}`)}));
@@ -6518,6 +6542,7 @@ export {
     getSuggestedSearchMandatoryFilterKeys,
     doesQueryMatchSuggestedSearch,
     getSuggestedSearchKeyForQuery,
+    getSavedSearchKeyForQuery,
     isAmountFilterKey,
     isDateFilterKey,
     getSingleSelectFilterOptions,

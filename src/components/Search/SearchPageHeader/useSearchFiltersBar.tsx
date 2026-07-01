@@ -15,7 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 import {close} from '@libs/actions/Modal';
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAdvancedFiltersToReset} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, getAdvancedFiltersToReset} from '@libs/SearchQueryUtils';
 import {FILTER_VIEW_MAP, getSuggestedSearchMandatoryFilterKeys, isAmountFilterKey, isDateFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
@@ -40,11 +40,8 @@ type UseSearchFiltersBarResult = {
     shouldShowFiltersBarLoading: boolean;
     clearFilters: () => void;
 
-    /** Whether to render the clear/reset button. On a suggested search it only shows once the user deviates from its defaults */
+    /** Whether to render the reset button. On a suggested search it only shows once the user deviates from its defaults */
     shouldShowClearButton: boolean;
-
-    /** When on a suggested search, the clear action resets to its defaults rather than clearing everything */
-    isResettingToSuggestedSearch: boolean;
 };
 
 type FilterPopupProps = {
@@ -135,10 +132,14 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     const {isOffline} = useNetwork();
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {shouldShowFiltersBarLoading, currentSearchResults} = useSearchResultsContext();
-    const {currentSearchKey, suggestedSearches} = useSearchQueryContext();
+    const {currentSearchKey, suggestedSearches, currentSavedSearchQuery} = useSearchQueryContext();
     const {setFilterQueryParams, updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
+    // The "defaults" for the active named search — a suggested search's canned query, or a saved search's stored
+    // query — drive which pills are locked, when the reset button shows, and what reset reverts to.
     const suggestedSearch = currentSearchKey ? suggestedSearches[currentSearchKey] : undefined;
-    const mandatoryFilterKeys = getSuggestedSearchMandatoryFilterKeys(suggestedSearch?.searchQueryJSON);
+    const defaultsQueryString = suggestedSearch?.searchQuery ?? currentSavedSearchQuery;
+    const defaultsQueryJSON = suggestedSearch?.searchQueryJSON ?? (currentSavedSearchQuery ? buildSearchQueryJSON(currentSavedSearchQuery) : undefined);
+    const mandatoryFilterKeys = getSuggestedSearchMandatoryFilterKeys(defaultsQueryJSON);
     const filters = mapFiltersFormToLabelValueList<FilterItem>(
         searchAdvancedFiltersForm,
         queryJSON.policyID,
@@ -199,11 +200,15 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
         }),
     );
 
+    // Default (mandatory) filter pills render first, followed by any custom filters the user added, so pill
+    // placement stays predictable as filters are added and removed.
+    const orderedFilters = [...filters.filter((filter) => mandatoryFilterKeys.has(filter.key)), ...filters.filter((filter) => !mandatoryFilterKeys.has(filter.key))];
+
     const clearFilters = () => {
-        // On a suggested search, resetting restores its canned filters (keeping its mandatory ones) rather
-        // than clearing everything. setParams preserves the searchKey, so identity is retained.
-        if (suggestedSearch) {
-            Navigation.setParams({q: suggestedSearch.searchQuery, rawQuery: undefined});
+        // On a suggested or saved search, resetting restores its defining filters (keeping its mandatory ones)
+        // rather than clearing everything. setParams preserves the searchKey/savedSearchKey, so identity is kept.
+        if (defaultsQueryString) {
+            Navigation.setParams({q: defaultsQueryString, rawQuery: undefined});
             setSearchContext(false);
             return;
         }
@@ -211,18 +216,17 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
         setSearchContext(false);
     };
 
-    // On a suggested search, only surface the reset action once the query deviates from its canned defaults
-    // (added/changed filters, columns, or sort). Other searches keep the standard "clear when filters exist".
-    const hasChangesFromSuggestedSearch = !!suggestedSearch && queryJSON.hash !== suggestedSearch.searchQueryJSON?.hash;
-    const shouldShowClearButton = suggestedSearch ? hasChangesFromSuggestedSearch : filters.length > 0;
+    // On a suggested or saved search, only surface the reset action once the query deviates from its defaults
+    // (added/changed filters, columns, or sort). Other searches keep the standard "reset when filters exist".
+    const hasChangesFromDefaults = !!defaultsQueryJSON && queryJSON.hash !== defaultsQueryJSON.hash;
+    const shouldShowClearButton = defaultsQueryJSON ? hasChangesFromDefaults : orderedFilters.length > 0;
 
     return {
-        filters,
+        filters: orderedFilters,
         hasErrors: Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline,
         shouldShowFiltersBarLoading,
         clearFilters,
         shouldShowClearButton,
-        isResettingToSuggestedSearch: !!suggestedSearch,
     };
 }
 
