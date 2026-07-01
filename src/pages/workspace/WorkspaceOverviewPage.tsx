@@ -20,7 +20,6 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Section from '@components/Section';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
-import useCardFeeds from '@hooks/useCardFeeds';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -29,25 +28,18 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useOutstandingBalanceGuard from '@hooks/useOutstandingBalanceGuard';
-import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import usePrevious from '@hooks/usePrevious';
-import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldBlockCurrencyChange from '@hooks/useShouldBlockCurrencyChange';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {close} from '@libs/actions/Modal';
 import {clearInviteDraft, clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {
-    calculateBillNewDot,
     clearAvatarErrors,
-    clearDeleteWorkspaceError,
     clearPolicyErrorField,
     deletePolicyRulesDocument,
-    deleteWorkspace,
     deleteWorkspaceAvatar,
     leaveWorkspace,
     openPolicyProfilePage,
@@ -55,37 +47,28 @@ import {
     updatePolicyRulesDocument,
     updateWorkspaceAvatar,
 } from '@libs/actions/Policy/Policy';
-import {filterInactiveCards, getCardSettings} from '@libs/CardUtils';
-import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
+import {getCardSettings} from '@libs/CardUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {
-    canEditWorkspaceSettings,
-    getRulesDocumentSourceURL,
-    getUserFriendlyWorkspaceType,
-    goBackFromInvalidPolicy,
-    isPendingDeletePolicy,
-    isPolicyOwner,
-    shouldBlockWorkspaceDeletionForInvoicifyUser,
-} from '@libs/PolicyUtils';
+import {canEditWorkspaceSettings, getRulesDocumentSourceURL, getUserFriendlyWorkspaceType, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyOwner} from '@libs/PolicyUtils';
 import {formatAddressToString} from '@libs/ReportActionsUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import StringUtils from '@libs/StringUtils';
-import {isSubscriptionTypeOfInvoicing, shouldCalculateBillNewDot} from '@libs/SubscriptionUtils';
 import {getLeaveWorkspaceConfirmationPrompt} from '@libs/WorkspacesSettingsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {accountIDToLoginSelector} from '@src/selectors/PersonalDetails';
-import {ownerPoliciesSelector} from '@src/selectors/Policy';
-import {reimbursementAccountErrorSelector} from '@src/selectors/ReimbursementAccount';
+import {canDowngradeSelector} from '@src/selectors/Account';
+import {createOwnedPaidPoliciesCountsSelector} from '@src/selectors/Policy';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import DeleteWorkspaceFlow from './deleteWorkspace/DeleteWorkspaceFlow';
 import type {WithPolicyProps} from './withPolicy';
 import withPolicy from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
@@ -97,7 +80,7 @@ const rulesDocumentMenuPositionStyle = {top: variables.spacing2, right: variable
 
 function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: WorkspaceOverviewPageProps) {
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -109,11 +92,20 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const routePolicyID = route.params.policyID;
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
-    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [isComingFromGlobalReimbursementsFlow] = useOnyx(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW);
-    const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID);
-    const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: reimbursementAccountErrorSelector});
-    const {showConfirmModal, closeModal} = useConfirmModal();
+    const {showConfirmModal} = useConfirmModal();
+    const [isDeleteWorkspaceFlowVisible, setIsDeleteWorkspaceFlowVisible] = useState(false);
+
+    // Primitive-valued subscriptions configuring the Delete menu item (popover behavior and the loading spinner)
+    // before a deletion starts. The deletion itself is handled by DeleteWorkspaceFlow, mounted on demand below.
+    const [canDowngrade] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canDowngradeSelector});
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [isLoadingBill] = useOnyx(ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE);
+    const [ownedPaidPoliciesCounts] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createOwnedPaidPoliciesCountsSelector(currentUserPersonalDetails.accountID)}, [
+        currentUserPersonalDetails.accountID,
+    ]);
+    const shouldCalculateBillNewDot = !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
+    const wouldBlockDeletion = (amountOwed ?? 0) > 0 && ownedPaidPoliciesCounts?.active === 1;
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
@@ -131,23 +123,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const currencySymbol = getCurrencySymbol(outputCurrency) ?? '';
     const formattedCurrency = !isEmptyObject(policy) ? `${outputCurrency} - ${currencySymbol}` : '';
 
-    // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
-    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const [cardFeeds, , defaultCardFeeds] = useCardFeeds(policyID);
-    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-    const [lastSelectedExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
-        selector: filterInactiveCards,
-    });
-    const hasCardFeedOrExpensifyCard =
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList) || ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.policyAccountID);
-
-    const hasExpensifyCard = !!policy?.areExpensifyCardsEnabled && !isEmptyObject(cardsList);
-
     const formattedAddress = !isEmptyObject(policy) && !isEmptyObject(policy.address) ? formatAddressToString(policy.address) : '';
-
-    const {reportsToArchive, transactionViolations} = useTransactionViolationOfWorkspace(policyID);
 
     const onPressCurrency = () => {
         if (!policyID) {
@@ -200,7 +176,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const shouldShowAddress = !readOnly || !!formattedAddress;
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
-    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [pendingRulesDocumentFile, setPendingRulesDocumentFile] = useState<FileObject | undefined>();
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
@@ -254,21 +229,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const shouldShowRulesDocumentSubSection = isPolicyAdmin || hasRulesDocument;
 
     const personalDetails = usePersonalDetails();
-    const [accountIDToLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: accountIDToLoginSelector(reportsToArchive)});
-    const privateSubscription = usePrivateSubscription();
-    const accountID = currentUserPersonalDetails?.accountID;
-
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const ownerPolicies = ownerPoliciesSelector(policies, accountID);
-    const activeOwnerPoliciesCount = ownerPolicies.filter((p) => !isPendingDeletePolicy(p)).length;
-    const {shouldBlockDeletion, wouldBlockDeletion, outstandingBalanceModal} = useOutstandingBalanceGuard(activeOwnerPoliciesCount);
 
     const isFocused = useIsFocused();
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = usePrevious(isPendingDelete);
-    const prevIsPendingDeleteRef = useRef(isPendingDelete);
-    const isErrorModalShowingRef = useRef(false);
-    const policyLastErrorMessage = getLatestErrorMessage(policy);
 
     const mentionReportContextValue = useMemo(() => ({policyID, currentReportID: undefined, exactlyMatch: true}), [policyID]);
 
@@ -279,10 +243,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         openPolicyProfilePage(routePolicyID);
     }, [policyDraftID, isFocused, routePolicyID]);
 
-    const {isOffline} = useNetwork({onReconnect: fetchPolicyData});
-
-    const subscriptionType = privateSubscription?.type;
-    const canDowngrade = account?.canDowngrade;
+    useNetwork({onReconnect: fetchPolicyData});
 
     // We have the same focus effect in the WorkspaceInitialPage, this way we can get the policy data in narrow
     // as well as in the wide layout when looking at policy settings.
@@ -309,65 +270,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         [expensifyIcons.FallbackWorkspaceAvatar, policy?.avatarURL, policyID, policyName, styles.alignSelfCenter, styles.avatarXLarge],
     );
 
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-
-    const hasDeleteWorkspaceExpensifyCardsError = !!hasExpensifyCard && !!isOffline;
-
-    const confirmDelete = () => {
-        if (!policyID || !policyName) {
-            return;
-        }
-
-        deleteWorkspace({
-            policies,
-            policyID,
-            activePolicyID,
-            policyName,
-            lastAccessedWorkspacePolicyID,
-            policyCardFeeds: defaultCardFeeds,
-            lastSelectedFeed,
-            lastSelectedExpensifyCardFeed,
-            reportsToArchive,
-            transactionViolations,
-            reimbursementAccountError,
-            lastUsedPaymentMethods: lastPaymentMethod,
-            localeCompare,
-            personalPolicyID,
-            hasDeleteWorkspaceExpensifyCardsError,
-            currentUserAccountID: accountID,
-            accountIDToLogin: accountIDToLogin ?? {},
-        });
-        if (isOffline) {
-            closeModal();
-
-            if (hasDeleteWorkspaceExpensifyCardsError) {
-                return;
-            }
-
-            goBackFromInvalidPolicy();
-        }
-    };
-
-    const continueDeleteWorkspace = () => {
-        showConfirmModal({
-            title: translate('workspace.common.delete'),
-            prompt: hasCardFeedOrExpensifyCard ? translate('workspace.common.deleteWithCardsConfirmation') : translate('workspace.common.deleteConfirmation'),
-            confirmText: translate('common.delete'),
-            cancelText: translate('common.cancel'),
-            danger: true,
-            isConfirmLoading: isPendingDelete,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-
-            confirmDelete();
-        });
-    };
-
-    const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} =
-        usePayAndDowngrade(continueDeleteWorkspace);
-
     const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
 
     const handleLeaveWorkspace = () => {
@@ -379,86 +281,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         goBackFromInvalidPolicy();
     };
 
-    const hideDeleteWorkspaceErrorModal = () => {
-        clearDeleteWorkspaceError(policyID);
-    };
-
     useEffect(() => {
         if (isLoadingBill) {
             return;
         }
         dropdownMenuRef.current?.setIsMenuVisible(false);
     }, [isLoadingBill]);
-
-    useEffect(() => {
-        const prevIsPendingDeleteValue = prevIsPendingDeleteRef.current;
-        prevIsPendingDeleteRef.current = isPendingDelete;
-
-        if (isOffline && policyLastErrorMessage && hasExpensifyCard) {
-            if (isErrorModalShowingRef.current) {
-                return;
-            }
-            isErrorModalShowingRef.current = true;
-            showConfirmModal({
-                title: translate('workspace.common.delete'),
-                prompt: policyLastErrorMessage,
-                confirmText: translate('common.buttonConfirm'),
-                shouldShowCancelButton: false,
-                success: false,
-            }).then(() => {
-                isErrorModalShowingRef.current = false;
-                hideDeleteWorkspaceErrorModal();
-            });
-            return;
-        }
-
-        if (!prevIsPendingDeleteValue || isPendingDelete || !policyID) {
-            return;
-        }
-
-        closeModal();
-
-        if (!policyLastErrorMessage) {
-            if (!(isOffline && hasExpensifyCard)) {
-                goBackFromInvalidPolicy();
-            }
-            return;
-        }
-
-        if (!isFocused || isErrorModalShowingRef.current) {
-            return;
-        }
-        isErrorModalShowingRef.current = true;
-        showConfirmModal({
-            title: translate('workspace.common.delete'),
-            prompt: policyLastErrorMessage,
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-            success: false,
-        }).then(() => {
-            isErrorModalShowingRef.current = false;
-            hideDeleteWorkspaceErrorModal();
-        });
-    }, [isOffline, hideDeleteWorkspaceErrorModal, showConfirmModal, translate, policyLastErrorMessage, isPendingDelete, isFocused, policyID, closeModal, hasExpensifyCard]);
-
-    const onDeleteWorkspace = () => {
-        if (shouldBlockWorkspaceDeletionForInvoicifyUser(isSubscriptionTypeOfInvoicing(subscriptionType), ownerPolicies, policyID)) {
-            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.getRoute(Navigation.getActiveRoute()));
-            return;
-        }
-
-        if (shouldBlockDeletion()) {
-            return;
-        }
-
-        if (shouldCalculateBillNewDot(currentUserPersonalDetails.accountID, canDowngrade, policies)) {
-            setIsDeletingPaidWorkspace(true);
-            calculateBillNewDot();
-            return;
-        }
-
-        continueDeleteWorkspace();
-    };
 
     const handleBackButtonPress = () => {
         if (isComingFromGlobalReimbursementsFlow) {
@@ -554,10 +382,17 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 value: 'delete',
                 text: translate('common.delete'),
                 icon: expensifyIcons.Trashcan,
-                onSelected: onDeleteWorkspace,
+                onSelected: () => {
+                    if (isLoadingBill) {
+                        return;
+                    }
+
+                    // All the pre-deletion checks and the confirmation modal are handled by DeleteWorkspaceFlow, which mounts when this is set.
+                    setIsDeleteWorkspaceFlowVisible(true);
+                },
                 disabled: isLoadingBill,
                 shouldShowLoadingSpinnerIcon: isLoadingBill,
-                shouldCloseModalOnSelect: !shouldCalculateBillNewDot(currentUserPersonalDetails.accountID, account?.canDowngrade, policies) || wouldBlockDeletion,
+                shouldCloseModalOnSelect: !shouldCalculateBillNewDot || wouldBlockDeletion,
             });
         }
         const isCurrentUserAdmin = policy?.employeeList?.[currentUserPersonalDetails?.login ?? '']?.role === CONST.POLICY.ROLE.ADMIN;
@@ -616,7 +451,14 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const modals = (
         <>
-            {outstandingBalanceModal}
+            {isDeleteWorkspaceFlowVisible && !!policyID && (
+                <DeleteWorkspaceFlow
+                    key={policyID}
+                    policyID={policyID}
+                    onDismiss={() => setIsDeleteWorkspaceFlowVisible(false)}
+                    onDeleteComplete={goBackFromInvalidPolicy}
+                />
+            )}
             {!!pendingRulesDocumentFile && (
                 <PDFThumbnail
                     style={styles.invisiblePDF}

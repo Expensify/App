@@ -103,7 +103,7 @@ describe('useMarkAsRead', () => {
 
         act(() => result.current.completeSkippedMarkAsRead());
 
-        expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, false);
+        expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, true);
     });
 
     it('does not complete a mark-as-read when none was skipped', () => {

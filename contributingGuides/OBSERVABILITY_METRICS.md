@@ -42,7 +42,7 @@ This document lists all implemented telemetry metrics in the Expensify App.
 - Technical: Report actions list rendered (onLayout event)
   - Report data loaded from Onyx (reportID, type, chatType)
   - Report actions list layout complete (we are waiting for the first page data render, so if there is any data in the Onyx, we'll not wait for the API)
-  - Called in [`src/pages/home/report/ReportActionsView.tsx`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/pages/home/report/ReportActionsView.tsx#L272) and [`src/components/MoneyRequestReportActionsList.tsx`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/components/MoneyRequestReportActionsList.tsx#L649)
+  - Called in the list body `src/pages/inbox/report/ReportActionsList.tsx`
 **Span ID**: `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`
 **Attributes**: `is_transaction_thread`, `is_one_transaction_report`, `report_type`, `chat_type`
 

@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react-native';
+import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
@@ -184,11 +184,10 @@ describe('AgentsPage', () => {
             },
         });
 
-        const {toJSON} = render(<AgentsPage />);
-        const output = JSON.stringify(toJSON());
+        render(<AgentsPage />);
 
-        expect(output).toContain('Test Agent');
-        expect(output).not.toContain('agentsPage.emptyAgents.title');
+        expect(screen.getByText('Test Agent')).toBeOnTheScreen();
+        expect(screen.queryByText('agentsPage.emptyAgents.title')).not.toBeOnTheScreen();
     });
 
     it('excludes agents whose personal details are missing from the list', () => {

@@ -3,6 +3,15 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {filterOutDeprecatedReportActions, getLinkedTransactionID, getSortedReportActions, isActionOfType} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+
+/**
+ * Scopes VISIBLE_REPORT_ACTIONS to one report, pre-wrapped in the `{[reportID]: slice}` shape
+ * `isReportActionVisible` expects. Built here (not inline in the hook) so the consumer has no computed-key
+ * literal, which the React Compiler won't memoize; `useOnyx` returns a stable ref while the slice is unchanged.
+ */
+const reportVisibleActionsSelector = (reportID: string | undefined) => (data: VisibleReportActionsDerivedValue | undefined) =>
+    reportID && data?.[reportID] ? {[reportID]: data[reportID]} : undefined;
 
 function getParentReportActionSelector(parentReportActions: OnyxEntry<ReportActions>, parentReportActionID?: string): OnyxEntry<ReportAction> {
     if (!parentReportActions || !parentReportActionID) {
@@ -83,4 +92,4 @@ function getReceiptScanFailedIOUActionDataSelector(
     };
 }
 
-export {getParentReportActionSelector, getLastClosedReportAction, getReportActionByIDSelector, getReceiptScanFailedIOUActionDataSelector};
+export {getParentReportActionSelector, getLastClosedReportAction, getReportActionByIDSelector, getReceiptScanFailedIOUActionDataSelector, reportVisibleActionsSelector};

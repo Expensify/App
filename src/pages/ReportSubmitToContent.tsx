@@ -12,12 +12,15 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {search} from '@libs/actions/Search';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -33,6 +36,7 @@ import {submitReport} from '@userActions/IOU/ReportWorkflow';
 import {searchUserInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -65,7 +69,12 @@ function ReportSubmitToContent({
     canSubmitRef,
 }: ReportSubmitToContentProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate, localeCompare} = useLocalize();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const isInLandscapeMode = useIsInLandscapeMode();
+    const isBottomDockedInLandscape = isSmallScreenWidth && isInLandscapeMode;
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -74,6 +83,7 @@ function ReportSubmitToContent({
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)}, [report?.ownerAccountID]);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
@@ -286,6 +296,7 @@ function ReportSubmitToContent({
             amountOwed,
             ownerBillingGracePeriodEnd,
             delegateEmail,
+            submitterLogin,
             managerEmail: trimmed,
             managerAccountID: resolvedManagerAccountID,
             onSubmitted: () => {
@@ -299,8 +310,8 @@ function ReportSubmitToContent({
                         isLoading: !!currentSearchResults?.search?.isLoading,
                     });
                 }
-                onDismiss();
                 onSubmitSuccess?.();
+                onDismiss();
                 if (shouldDismissRHPAfterSubmit) {
                     Navigation.dismissToPreviousRHP();
                 }
@@ -321,6 +332,7 @@ function ReportSubmitToContent({
         amountOwed,
         ownerBillingGracePeriodEnd,
         delegateEmail,
+        submitterLogin,
         currentSearchQueryJSON,
         isOffline,
         currentSearchKey,
@@ -389,6 +401,15 @@ function ReportSubmitToContent({
         [handleSubmit, translate],
     );
 
+    const containerStyle = useMemo(() => {
+        const baseStyle = [styles.w100, styles.flex1, styles.pt3, styles.pb3];
+        if (isBottomDockedInLandscape) {
+            return baseStyle;
+        }
+
+        return [...baseStyle, StyleUtils.getMinimumHeight(CONST.POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT)];
+    }, [StyleUtils, isBottomDockedInLandscape, styles.flex1, styles.pb3, styles.pt3, styles.w100]);
+
     if (shouldShowNotFoundView) {
         return (
             <View style={[styles.ph5, styles.pv4]}>
@@ -398,7 +419,7 @@ function ReportSubmitToContent({
     }
 
     return (
-        <View style={[styles.w100, styles.flex1, styles.pt3, styles.pb3, {minHeight: CONST.POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT}]}>
+        <View style={containerStyle}>
             <SelectionList
                 data={submitToSelectionData}
                 ListItem={InviteMemberListItem}
