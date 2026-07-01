@@ -224,6 +224,7 @@ function addSubscriptionPaymentCard(
         currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
     },
     fundList: OnyxEntry<FundList>,
+    source?: string,
 ) {
     const {cardNumber, cardYear, cardMonth, cardCVV, addressName, addressZip, currency} = cardData;
 
@@ -264,7 +265,7 @@ function addSubscriptionPaymentCard(
     ];
 
     if (CONST.SCA_CURRENCIES.has(currency)) {
-        addPaymentCardSCA(parameters, {optimisticData, successData, failureData});
+        addPaymentCardSCA(parameters, {optimisticData, successData, failureData}, source);
     } else {
         API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
             optimisticData,
@@ -280,11 +281,36 @@ function addSubscriptionPaymentCard(
 }
 
 /**
+ * Builds the `successData` entry that records which screen initiated a 3DS verification request, so only that
+ * screen's mounted useNavigateToCardAuthenticationOnLink hook reacts to the resulting link by navigating. Returning
+ * it as `successData` makes the source land in the same Onyx flush as that response's link, so it stays tied to the
+ * exact response that produced the link even when two 3DS requests are in flight. Callers pass their own `route.name`;
+ * passing nothing (e.g. the card-authentication screen re-verifying its own iframe in place) records no source and
+ * leaves the active one untouched.
+ */
+function getVerify3dsSubscriptionSourceData(source?: string): Array<OnyxUpdate<typeof ONYXKEYS.VERIFY_3DS_SUBSCRIPTION_SOURCE>> {
+    if (!source) {
+        return [];
+    }
+    return [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.VERIFY_3DS_SUBSCRIPTION_SOURCE,
+            value: source,
+        },
+    ];
+}
+
+/**
  * Calls the API to add a new SCA (GBP or EUR) card.
  * Updates verify3dsSubscription Onyx key with a new authentication link for 3DS.
  */
-function addPaymentCardSCA(params: AddPaymentCardParams, onyxData: OnyxData<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM> = {}) {
-    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD_SCA, params, onyxData);
+function addPaymentCardSCA(params: AddPaymentCardParams, onyxData: OnyxData<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM> = {}, source?: string) {
+    prepareCardAuthentication(source);
+    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD_SCA, params, {
+        ...onyxData,
+        successData: [...(onyxData.successData ?? []), ...getVerify3dsSubscriptionSourceData(source)],
+    });
 }
 
 /**
@@ -305,22 +331,62 @@ function clearPaymentCardFormErrorAndSubmit() {
         [INPUT_IDS.ACCEPT_TERMS]: '',
         [INPUT_IDS.CURRENCY]: CONST.PAYMENT_CARD_CURRENCY.USD,
     });
+    // The currency picker writes its selection to the form draft, which FormProvider hydrates the currency field from.
+    // This reset runs whenever an add-card flow opens/closes, so dropping the draft currency lets each attempt default
+    // through usePreferredCurrency rather than reusing a currency picked then abandoned in an earlier attempt.
+    Onyx.merge(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM_DRAFT, {[INPUT_IDS.CURRENCY]: null});
 }
 
 /**
- * Clear 3ds flow - when verification will be finished
- *
+ * Clear the 3DS link so reopening the flow (even with an identical backend link) counts as a change.
  */
 function clearPaymentCard3dsVerification() {
     Onyx.set(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, '');
 }
 
 /**
+ * Begin a NEW 3DS attempt: drop any stale link so the backend's next link (even an identical one) registers as a
+ * change and reopens the challenge. No-ops without a source — the in-place finalize/re-verify case, which must leave
+ * the active link untouched. The screen that initiated the attempt is recorded separately via
+ * getVerify3dsSubscriptionSourceData in the request's successData, so the source stays tied to that response's link.
+ */
+function prepareCardAuthentication(source?: string) {
+    if (!source) {
+        return;
+    }
+    clearPaymentCard3dsVerification();
+}
+
+/**
  * Properly updates the nvp_privateStripeCustomerID onyx data for 3DS payment
  *
  */
-function verifySetupIntent(accountID: number, isVerifying = true) {
-    API.write(WRITE_COMMANDS.VERIFY_SETUP_INTENT, {accountID, isVerifying});
+function verifySetupIntent(accountID: number, isVerifying = true, source?: string) {
+    prepareCardAuthentication(source);
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.SUBSCRIPTION_VERIFY_SETUP_INTENT_PENDING>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SUBSCRIPTION_VERIFY_SETUP_INTENT_PENDING,
+            value: true,
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.SUBSCRIPTION_VERIFY_SETUP_INTENT_PENDING | typeof ONYXKEYS.VERIFY_3DS_SUBSCRIPTION_SOURCE>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SUBSCRIPTION_VERIFY_SETUP_INTENT_PENDING,
+            value: false,
+        },
+        ...getVerify3dsSubscriptionSourceData(source),
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.SUBSCRIPTION_VERIFY_SETUP_INTENT_PENDING>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SUBSCRIPTION_VERIFY_SETUP_INTENT_PENDING,
+            value: false,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.VERIFY_SETUP_INTENT, {accountID, isVerifying}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -328,7 +394,7 @@ function verifySetupIntent(accountID: number, isVerifying = true) {
  *
  */
 function setPaymentMethodCurrency(currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>) {
-    Onyx.merge(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {
+    Onyx.merge(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM_DRAFT, {
         [INPUT_IDS.CURRENCY]: currency,
     });
 }
@@ -618,9 +684,10 @@ export {
     clearAddPaymentMethodError,
     clearWalletError,
     setPaymentMethodCurrency,
-    clearPaymentCard3dsVerification,
     clearWalletTermsError,
     verifySetupIntent,
     addPaymentCardSCA,
+    prepareCardAuthentication,
+    getVerify3dsSubscriptionSourceData,
     setInvoicingTransferBankAccount,
 };

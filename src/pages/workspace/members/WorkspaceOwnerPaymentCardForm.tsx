@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -27,6 +28,7 @@ type WorkspaceOwnerPaymentCardFormProps = {
 };
 
 function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormProps) {
+    const route = useRoute();
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -72,9 +74,9 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
                 addressZip: values.addressZipCode,
                 currency: values.currency,
             };
-            addBillingCardAndRequestPolicyOwnerChange(policyID, currentUserAccountID, currentUserEmail, cardData);
+            addBillingCardAndRequestPolicyOwnerChange(policyID, currentUserAccountID, currentUserEmail, cardData, route.name);
         },
-        [currentUserAccountID, currentUserEmail, policyID],
+        [currentUserAccountID, currentUserEmail, policyID, route.name],
     );
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
 

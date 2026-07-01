@@ -87,16 +87,18 @@ const mockSetPaymentMethodCurrency = jest.mocked(setPaymentMethodCurrency);
 const mockGoBack = jest.mocked(Navigation.goBack);
 
 /**
- * The page reads three Onyx keys in order: the CHANGE_BILLING_CURRENCY form draft, the in-flight
- * ADD_PAYMENT_CARD form, and the fund list (for the billing card fallback).
+ * The selector is shared by two flows and scopes its read/write to the active one (via backPath):
+ * the change-billing flow uses the CHANGE_BILLING_CURRENCY draft, every other entry point (add
+ * payment card / workspace owner change) uses the ADD_PAYMENT_CARD draft. The fund list provides
+ * the billing-card fallback used by usePreferredCurrency when the active draft is empty.
  */
-const mockOnyx = (formDraftCurrency?: string, addCardCurrency?: string, billingCardCurrency?: string) => {
+const mockOnyx = (formDraftCurrency?: string, addCardDraftCurrency?: string, billingCardCurrency?: string) => {
     mockUseOnyx.mockImplementation((key: string) => {
         if (key === ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM_DRAFT) {
             return [formDraftCurrency ? {currency: formDraftCurrency} : undefined, {status: 'loaded'}] as ReturnType<typeof useOnyx>;
         }
-        if (key === ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM) {
-            return [addCardCurrency ? {currency: addCardCurrency} : undefined, {status: 'loaded'}] as ReturnType<typeof useOnyx>;
+        if (key === ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM_DRAFT) {
+            return [addCardDraftCurrency ? {currency: addCardDraftCurrency} : undefined, {status: 'loaded'}] as ReturnType<typeof useOnyx>;
         }
         if (key === ONYXKEYS.FUND_LIST) {
             return [billingCardCurrency ? {card1: {accountData: {additionalData: {isBillingCard: true}, currency: billingCardCurrency}}} : undefined, {status: 'loaded'}] as ReturnType<
@@ -144,7 +146,17 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
         expect(selected.at(0)?.value).toBe('AUD');
     });
 
-    it('falls back to the add-payment-card form currency when the draft is empty', () => {
+    it('ignores the add-payment-card draft in the change-billing flow and falls back to the billing card currency', () => {
+        // Change-billing flow (default back path); a leftover add-card pick (NZD) must not leak into this flow's selection.
+        mockOnyx(undefined, 'NZD', 'GBP');
+
+        render(<DynamicPaymentCardCurrencySelectorPage />);
+
+        expect(capturedData.find((option) => option.isSelected)?.value).toBe('GBP');
+    });
+
+    it('selects the add-payment-card draft currency in the add payment card flow', () => {
+        mockUseDynamicBackPath.mockReturnValue('settings/subscription/add-payment-card');
         mockOnyx(undefined, 'NZD');
 
         render(<DynamicPaymentCardCurrencySelectorPage />);
@@ -152,15 +164,31 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
         expect(capturedData.find((option) => option.isSelected)?.value).toBe('NZD');
     });
 
-    it('falls back to the billing card currency when both the draft and the add-card form are empty', () => {
-        mockOnyx(undefined, undefined, 'GBP');
+    it('clamps a EUR preferred currency to USD in the add payment card flow when the beta is disabled', () => {
+        mockUseDynamicBackPath.mockReturnValue('settings/subscription/add-payment-card');
+        // No add-card draft, so usePreferredCurrency resolves to the billing card currency (EUR).
+        mockOnyx(undefined, undefined, 'EUR');
 
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
-        expect(capturedData.find((option) => option.isSelected)?.value).toBe('GBP');
+        const currencies = capturedData.map((option) => option.value);
+        expect(currencies).not.toContain('EUR');
+        expect(capturedData.find((option) => option.isSelected)?.value).toBe('USD');
     });
 
-    it('writes the chosen currency to both flows and navigates back on select', () => {
+    it('does not clamp a EUR preferred currency in the change-billing flow (keeps the existing card currency)', () => {
+        // Default back path is change-billing; preferred currency resolves to the existing EUR card.
+        mockOnyx(undefined, undefined, 'EUR');
+
+        render(<DynamicPaymentCardCurrencySelectorPage />);
+
+        // EUR is still filtered out of the options when the beta is off, but the current value is NOT clamped to USD
+        // (unlike the add-card flow), so USD must not be pre-selected.
+        expect(capturedData.find((option) => option.value === 'USD')?.isSelected).toBe(false);
+        expect(capturedData.find((option) => option.isSelected)).toBeUndefined();
+    });
+
+    it('writes only the change-billing draft (not the add-card draft) on select in the change-billing flow', () => {
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
         const aud = capturedData.find((option) => option.value === 'AUD');
@@ -169,8 +197,23 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
         capturedOnSelectRow?.(aud!);
 
         expect(mockSetDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM, {currency: 'AUD'});
-        expect(mockSetPaymentMethodCurrency).toHaveBeenCalledWith('AUD');
+        expect(mockSetPaymentMethodCurrency).not.toHaveBeenCalled();
         expect(mockGoBack).toHaveBeenCalledWith('settings/subscription/change-billing-currency');
+    });
+
+    it('writes only the add-card draft (not the change-billing draft) on select in the add payment card flow', () => {
+        mockUseDynamicBackPath.mockReturnValue('settings/subscription/add-payment-card');
+
+        render(<DynamicPaymentCardCurrencySelectorPage />);
+
+        const aud = capturedData.find((option) => option.value === 'AUD');
+        expect(aud).toBeDefined();
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        capturedOnSelectRow?.(aud!);
+
+        expect(mockSetPaymentMethodCurrency).toHaveBeenCalledWith('AUD');
+        expect(mockSetDraftValues).not.toHaveBeenCalled();
+        expect(mockGoBack).toHaveBeenCalledWith('settings/subscription/add-payment-card');
     });
 
     it('shows the currency note when opened from a flow that does not already display it (e.g. add payment card)', () => {

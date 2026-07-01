@@ -16,6 +16,7 @@ import TextLink from '@components/TextLink';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNavigateToCardAuthenticationOnLink from '@hooks/useNavigateToCardAuthenticationOnLink';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import usePrevious from '@hooks/usePrevious';
@@ -27,7 +28,6 @@ import {getMCardNumberString, getMonthFromExpirationDateString, getYearFromExpir
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
-import CardAuthenticationModal from '@pages/settings/Subscription/CardAuthenticationModal';
 import {addSubscriptionPaymentCard, clearPaymentCardFormErrorAndSubmit} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -71,6 +71,8 @@ function AddPaymentCard() {
                   upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
               });
 
+    useNavigateToCardAuthenticationOnLink();
+
     useEffect(() => {
         clearPaymentCardFormErrorAndSubmit();
 
@@ -90,9 +92,9 @@ function AddPaymentCard() {
                 addressZip: values.addressZipCode,
                 currency: values.currency ?? CONST.PAYMENT_CARD_CURRENCY.USD,
             };
-            addSubscriptionPaymentCard(accountID ?? CONST.DEFAULT_NUMBER_ID, cardData, fundList);
+            addSubscriptionPaymentCard(accountID ?? CONST.DEFAULT_NUMBER_ID, cardData, fundList, route.name);
         },
-        [accountID, fundList],
+        [accountID, fundList, route.name],
     );
 
     const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
@@ -146,7 +148,6 @@ function AddPaymentCard() {
                             }
                         />
                     </View>
-                    <CardAuthenticationModal headerTitle={translate('subscription.authenticatePaymentCard')} />
                 </DelegateNoAccessWrapper>
             </FullPageNotFoundView>
         </ScreenWrapper>

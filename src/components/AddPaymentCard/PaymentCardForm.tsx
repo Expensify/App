@@ -15,6 +15,8 @@ import StateSelector from '@components/StateSelector';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors, isValidAddress, isValidDebitCard, isValidExpirationDate, isValidLegalName, isValidPaymentZipCode, isValidSecurityCode} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
@@ -124,6 +126,11 @@ function PaymentCardForm({
 }: PaymentCardFormProps) {
     const styles = useThemeStyles();
     const [data, metadata] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
+    const preferredCurrency = usePreferredCurrency();
+    const {isBetaEnabled} = usePermissions();
+    // EUR is only a selectable billing currency behind CONST.BETAS.EUR_BILLING; without it, default to a currency the
+    // selector actually offers so a EUR-locale user can't silently submit a EUR card and get pushed onto the SCA/3DS path.
+    const defaultCurrency = preferredCurrency === CONST.PAYMENT_CARD_CURRENCY.EUR && !isBetaEnabled(CONST.BETAS.EUR_BILLING) ? CONST.PAYMENT_CARD_CURRENCY.USD : preferredCurrency;
 
     const {translate} = useLocalize();
     const route = useRoute();
@@ -355,7 +362,7 @@ function PaymentCardForm({
                 {!!showCurrencyField && (
                     <View style={[styles.mt4, styles.mhn5]}>
                         <InputWrapper
-                            value={data?.currency ?? CONST.PAYMENT_CARD_CURRENCY.USD}
+                            defaultValue={defaultCurrency}
                             InputComponent={CurrencySelector}
                             inputID={INPUT_IDS.CURRENCY}
                         />

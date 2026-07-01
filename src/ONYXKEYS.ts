@@ -564,6 +564,9 @@ const ONYXKEYS = {
     /** Stores iframe link to verify 3DS flow for subscription */
     VERIFY_3DS_SUBSCRIPTION: 'verify3dsSubscription',
 
+    /** Screen name that initiated the current 3DS verification, so only that screen reacts to the link by navigating */
+    VERIFY_3DS_SUBSCRIPTION_SOURCE: 'verify3dsSubscriptionSource',
+
     /** Holds the checks used while transferring the ownership of the workspace */
     POLICY_OWNERSHIP_CHANGE_CHECKS: 'policyOwnershipChangeChecks',
 
@@ -577,6 +580,9 @@ const ONYXKEYS = {
 
     /** Indicates whether ClearOutstandingBalance is pending */
     SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING: 'subscriptionRetryBillingStatusPending',
+
+    /** Indicates whether a VerifySetupIntent request is in flight (gates the Authenticate payment button) */
+    SUBSCRIPTION_VERIFY_SETUP_INTENT_PENDING: 'subscriptionVerifySetupIntentPending',
 
     /** Stores info during review duplicates flow */
     REVIEW_DUPLICATES: 'reviewDuplicates',
@@ -1554,6 +1560,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: Record<string, string>;
     [ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE]: string[];
     [ONYXKEYS.VERIFY_3DS_SUBSCRIPTION]: string;
+    [ONYXKEYS.VERIFY_3DS_SUBSCRIPTION_SOURCE]: string;
     [ONYXKEYS.PREFERRED_THEME]: ValueOf<typeof CONST.THEME>;
     [ONYXKEYS.SIGN_IN_HIGH_CONTRAST_INTENT]: boolean;
     [ONYXKEYS.MAPBOX_ACCESS_TOKEN]: OnyxTypes.MapboxAccessToken;
@@ -1593,6 +1600,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED]: boolean;
     [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: boolean;
     [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING]: boolean;
+    [ONYXKEYS.SUBSCRIPTION_VERIFY_SETUP_INTENT_PENDING]: boolean;
     [ONYXKEYS.NVP_TRAVEL_SETTINGS]: OnyxTypes.TravelSettings;
     [ONYXKEYS.REVIEW_DUPLICATES]: OnyxTypes.ReviewDuplicates;
     [ONYXKEYS.ADD_NEW_COMPANY_CARD]: OnyxTypes.AddNewCompanyCardFeed;
