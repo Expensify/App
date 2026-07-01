@@ -227,16 +227,23 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
     // Let us ensure a valid value before updating the total amount.
     iouReportUpdate.total = iouReportUpdate.total ?? 0;
     iouReportUpdate.unheldTotal = iouReportUpdate.unheldTotal ?? 0;
+    // IOU reports have no non-reimbursable transactions, so reimbursableTotal mirrors total optimistically.
+    iouReportUpdate.reimbursableTotal = iouReportUpdate.reimbursableTotal ?? iouReportUpdate.total;
+    iouReportUpdate.unheldReimbursableTotal = iouReportUpdate.unheldReimbursableTotal ?? iouReportUpdate.unheldTotal;
 
     if (actorAccountID === iouReport.ownerAccountID) {
         iouReportUpdate.total += isDeleting ? -amount : amount;
+        iouReportUpdate.reimbursableTotal += isDeleting ? -amount : amount;
         if (!isOnHold) {
             iouReportUpdate.unheldTotal += isDeleting ? -unHeldAmount : unHeldAmount;
+            iouReportUpdate.unheldReimbursableTotal += isDeleting ? -unHeldAmount : unHeldAmount;
         }
     } else {
         iouReportUpdate.total += isDeleting ? amount : -amount;
+        iouReportUpdate.reimbursableTotal += isDeleting ? amount : -amount;
         if (!isOnHold) {
             iouReportUpdate.unheldTotal += isDeleting ? unHeldAmount : -unHeldAmount;
+            iouReportUpdate.unheldReimbursableTotal += isDeleting ? unHeldAmount : -unHeldAmount;
         }
     }
 
@@ -246,6 +253,8 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
         iouReportUpdate.managerID = iouReport.ownerAccountID;
         iouReportUpdate.total = -iouReportUpdate.total;
         iouReportUpdate.unheldTotal = -iouReportUpdate.unheldTotal;
+        iouReportUpdate.reimbursableTotal = -iouReportUpdate.reimbursableTotal;
+        iouReportUpdate.unheldReimbursableTotal = -iouReportUpdate.unheldReimbursableTotal;
     }
 
     return iouReportUpdate;
