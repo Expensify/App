@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import {clearSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import {getIsOffline} from '@libs/NetworkState';
+import type {getPendingReceiptRequests as GetPendingReceiptRequests, saveReceiptsToGallery as SaveReceiptsToGallery} from '@libs/savePendingReceiptsToGallery';
 import CONFIG from '@src/CONFIG';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,6 +43,33 @@ Onyx.connectWithoutView({
         currentCredentialsValidateCode = credentials?.validateCode;
     },
 });
+
+/**
+ * Copies queued receipts to the gallery before `Onyx.clear()` wipes the queue records. The save module and
+ * logger are required lazily, not imported: they pull in the Network layer, and a static import here would
+ * recreate the circular dependency this file is split from Session to avoid. Any throw is swallowed.
+ */
+function saveUnsentReceiptsBeforeClear(): Promise<void> {
+    try {
+        const {getPendingReceiptRequests, saveReceiptsToGallery} =
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- lazy require breaks the circular dependency with the Network layer documented above
+            require('@libs/savePendingReceiptsToGallery') as {getPendingReceiptRequests: typeof GetPendingReceiptRequests; saveReceiptsToGallery: typeof SaveReceiptsToGallery};
+        const pendingReceipts = getPendingReceiptRequests();
+        if (pendingReceipts.length === 0) {
+            return Promise.resolve();
+        }
+
+        return saveReceiptsToGallery(pendingReceipts)
+            .then(({savedCount, failedCount}) => {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- lazy require breaks the circular dependency with the Network layer documented above
+                const {default: log} = require('@libs/Log') as {default: {info: (message: string, includeData?: boolean, parameters?: Record<string, unknown>) => void}};
+                log.info('[Receipt] Saved pending receipts to gallery before sign-out', false, {savedCount, failedCount});
+            })
+            .catch(() => undefined);
+    } catch {
+        return Promise.resolve();
+    }
+}
 
 function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {
     // Under certain conditions, there are key-values we'd like to keep in storage even when a user is logged out.
@@ -89,26 +117,28 @@ function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?:
         Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: true});
     }
 
-    return Onyx.clear(keysToPreserve).then(() => {
-        if (CONFIG.IS_HYBRID_APP) {
-            resetSignInFlow();
-            HybridAppModule.signOutFromOldDot();
-        }
+    return saveUnsentReceiptsBeforeClear().then(() =>
+        Onyx.clear(keysToPreserve).then(() => {
+            if (CONFIG.IS_HYBRID_APP) {
+                resetSignInFlow();
+                HybridAppModule.signOutFromOldDot();
+            }
 
-        // When logging out from imported state, reset shouldForceOffline to false and clear the imported state flag
-        // so the user can log back in
-        if (currentIsUsingImportedState) {
-            Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: false});
-            Onyx.merge(ONYXKEYS.IS_USING_IMPORTED_STATE, false);
-        }
+            // When logging out from imported state, reset shouldForceOffline to false and clear the imported state flag
+            // so the user can log back in
+            if (currentIsUsingImportedState) {
+                Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+                Onyx.merge(ONYXKEYS.IS_USING_IMPORTED_STATE, false);
+            }
 
-        if (!errorMessage) {
-            return;
-        }
+            if (!errorMessage) {
+                return;
+            }
 
-        // `Onyx.clear` reinitializes the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`
-        Onyx.merge(ONYXKEYS.SESSION, {errors: getMicroSecondOnyxErrorWithMessage(errorMessage)});
-    });
+            // `Onyx.clear` reinitializes the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`
+            Onyx.merge(ONYXKEYS.SESSION, {errors: getMicroSecondOnyxErrorWithMessage(errorMessage)});
+        }),
+    );
 }
 
 /**

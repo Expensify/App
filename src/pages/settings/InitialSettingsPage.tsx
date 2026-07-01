@@ -41,9 +41,11 @@ import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
+import getPlatform from '@libs/getPlatform';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPendingReceiptRequests} from '@libs/savePendingReceiptsToGallery';
 import {useIsAgentAccount} from '@libs/SessionUtils';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -222,16 +224,45 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         });
     };
 
+    const showSaveReceiptsModal = (pendingReceiptCount: number) => {
+        return showConfirmModal({
+            title: translate('initialSettingsPage.saveReceiptsConfirmation.title'),
+            prompt: translate('initialSettingsPage.saveReceiptsConfirmation.prompt', {count: pendingReceiptCount}),
+            confirmText: translate('initialSettingsPage.saveReceiptsConfirmation.confirm'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+        });
+    };
+
     const signOut = async (shouldForceSignout = false) => {
-        if ((!network.isOffline && !isTrackingGPS) || shouldForceSignout) {
+        if (shouldForceSignout) {
             return signOutAndRedirectToSignIn();
         }
 
-        // When offline, warn the user that any actions they took while offline will be lost if they sign out
-        const result = await showSignOutModal();
-        if (result.action !== ModalActions.CONFIRM) {
-            return;
+        // Saving pending receipts to the gallery on sign-out is native-only, so only warn about them there.
+        const platform = getPlatform();
+        const isNativePlatform = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
+        const pendingReceiptCount = isNativePlatform ? getPendingReceiptRequests().length : 0;
+        const shouldWarnBeforeSignOut = network.isOffline || isTrackingGPS;
+
+        if (!shouldWarnBeforeSignOut && pendingReceiptCount === 0) {
+            return signOutAndRedirectToSignIn();
         }
+
+        if (shouldWarnBeforeSignOut) {
+            const result = await showSignOutModal();
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+        }
+
+        if (pendingReceiptCount > 0) {
+            const result = await showSaveReceiptsModal(pendingReceiptCount);
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+        }
+
         if (isTrackingGPS) {
             stopGpsTripNotification();
             stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) => console.error('[GPS distance request] Failed to stop location tracking', error));
