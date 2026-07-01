@@ -210,4 +210,10 @@ type DistanceExpenseType =
     | typeof CONST.IOU.REQUEST_TYPE.DISTANCE_GPS
     | typeof CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
 
-export type {Participant, Split, Attendee, Accountant, SplitExpense, DistanceExpenseType};
+/**
+ * Raw value of the lastDistanceExpenseType NVP. The backend stores 'map' for map distance expenses,
+ * and accounts that predate the explicit map value may still have an empty string.
+ */
+type LastDistanceExpenseTypeNVP = DistanceExpenseType | typeof CONST.IOU.LAST_DISTANCE_EXPENSE_TYPE_NVP_MAP | '';
+
+export type {Participant, Split, Attendee, Accountant, SplitExpense, DistanceExpenseType, LastDistanceExpenseTypeNVP};

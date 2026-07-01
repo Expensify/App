@@ -3637,6 +3637,8 @@ const CONST = {
             START: 'start',
             END: 'end',
         },
+        // Value the backend stores in the lastDistanceExpenseType NVP for map distance expenses
+        LAST_DISTANCE_EXPENSE_TYPE_NVP_MAP: 'map',
 
         REPORT_ACTION_TYPE: {
             PAY: 'pay',

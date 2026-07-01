@@ -8,7 +8,7 @@ import type {TransactionThreadNavigationDescriptor} from './libs/TransactionThre
 import type * as FormTypes from './types/form';
 import type * as OnyxTypes from './types/onyx';
 import type DefaultP2PMileageRate from './types/onyx/DefaultP2PMileageRate';
-import type {Attendee, DistanceExpenseType, Participant} from './types/onyx/IOU';
+import type {Attendee, LastDistanceExpenseTypeNVP, Participant} from './types/onyx/IOU';
 import type Onboarding from './types/onyx/Onboarding';
 import type {AnyOnyxUpdate} from './types/onyx/Request';
 import type {SavedCSVColumnLayoutList} from './types/onyx/SavedCSVColumnLayout';
@@ -1674,7 +1674,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.HYBRID_APP]: OnyxTypes.HybridApp;
     [ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS]: Record<string, OnyxTypes.ExportTemplate>;
     [ONYXKEYS.NVP_EXPENSE_RULES]: OnyxTypes.ExpenseRule[];
-    [ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE]: DistanceExpenseType;
+    [ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE]: LastDistanceExpenseTypeNVP;
     [ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY]: string;
     [ONYXKEYS.NVP_REPORT_LAYOUT_OPTION]: string;
     [ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS]: string[];

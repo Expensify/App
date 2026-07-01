@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLastDistanceExpenseType from '@hooks/useLastDistanceExpenseType';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -31,7 +32,7 @@ function SearchMoneyRequestReportEmptyState({report, policy, onLayout}: {report:
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'Plus']);
-    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
+    const lastDistanceExpenseType = useLastDistanceExpenseType();
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const reportId = report.reportID;
     const isReportArchived = isArchivedReport(reportNameValuePairs);
