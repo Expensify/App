@@ -28,9 +28,10 @@ function TagSelector({value = [], policyID, selectionListTextInputStyle, selecti
             uniqueTagNames.add(tag);
         }
     } else {
+        const selectedTagKeys = new Set(policyID.value?.map((id) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${id}`));
         const selectedPoliciesTagLists = Object.keys(allPolicyTagLists ?? {})
             .filter((key) => {
-                const isSelected = policyID.value?.map((id) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${id}`)?.includes(key);
+                const isSelected = selectedTagKeys.has(key);
                 return policyID.isNegated ? !isSelected : isSelected;
             })
             .map((key) => getTagNamesFromTagsLists(allPolicyTagLists?.[key] ?? {}))

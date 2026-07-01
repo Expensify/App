@@ -53,9 +53,10 @@ function CategorySelector({value = [], policyID, selectionListTextInputStyle, se
             uniqueCategoryNames.add(category.name);
         }
     } else {
+        const selectedCategoryKeys = new Set(policyID.value?.map((id) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${id}`));
         const selectedPoliciesCategories: PolicyCategory[] = Object.keys(allPolicyCategories ?? {})
             .filter((key) => {
-                const isSelected = policyID.value?.map((id) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${id}`)?.includes(key);
+                const isSelected = selectedCategoryKeys.has(key);
                 return policyID.isNegated ? !isSelected : isSelected;
             })
             .map((key) => Object.values(allPolicyCategories?.[key] ?? {}))
