@@ -1148,13 +1148,8 @@ function getReportOwnerAsAttendee(creatorDetails: OnyxEntry<PersonalDetails>): A
     const creatorDisplayName = creatorDetails?.displayName ?? creatorLogin;
     return {
         email: creatorLogin,
-        login: creatorLogin,
         displayName: creatorDisplayName,
-        accountID: creatorDetails?.accountID,
-        text: creatorDisplayName,
-        searchText: creatorDisplayName,
         avatarUrl: (creatorDetails?.avatarThumbnail ?? creatorDetails?.avatar ?? '') as string,
-        selected: true,
     };
 }
 
@@ -1204,7 +1199,7 @@ function getAttendees(transaction: OnyxInputOrEntry<Transaction>, reportOwnerAsA
  * Strips the SMS domain so phone-login attendees render the same as in the rendered pills.
  */
 function getAttendeesListDisplayString(attendees: Attendee[], localeCompare?: LocaleContextProps['localeCompare']): string {
-    const getName = (a: Attendee) => Str.removeSMSDomain(a.displayName ?? a.login ?? '');
+    const getName = (a: Attendee) => Str.removeSMSDomain(a.displayName ?? a.email ?? '');
     const ordered = localeCompare
         ? // Lowercase to match sortAlphabetically (the pill sort) so joined string and pill order never disagree on case.
           [...attendees].sort((a, b) => localeCompare(getName(a).toLowerCase(), getName(b).toLowerCase()))
@@ -2277,7 +2272,11 @@ function getDistanceRateTaxUpdates(
     customUnitRateID: string,
     distanceUnit?: Unit,
 ): {taxAmount: number; taxCode: string; taxValue: string | undefined} {
-    const taxCode = getDefaultTaxCode(policy, transaction, undefined, customUnitRateID) ?? '';
+    const policyCustomUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction, undefined, customUnitRateID) ?? '';
+    // We use || instead of ?? because taxRateExternalID may be an empty string, which should also trigger the fallback to the default tax code.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const taxCode = policyCustomUnitRate?.attributes?.taxRateExternalID || defaultTaxCode;
     const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(transaction, distanceUnit ?? transaction?.comment?.customUnit?.distanceUnit));
     const taxValue = taxCode ? getTaxValue(policy, transaction, taxCode) : undefined;
     const mileageRates = DistanceRequestUtils.getMileageRates(policy);

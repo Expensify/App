@@ -1,10 +1,25 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import useLifecycleActions from '@hooks/useLifecycleActions';
+import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPopover';
 import useSelectionModeReportActions from '@hooks/useSelectionModeReportActions';
+import {submitReport} from '@libs/actions/IOU/ReportWorkflow';
+import {isSubmitPolicy} from '@libs/PolicyUtils';
+import {
+    getNextApproverAccountID,
+    hasHeldExpensesFromTransactions,
+    hasOnlyHeldExpenses,
+    hasUpdatedTotal,
+    isAllowedToApproveExpenseReport,
+    isInvoiceReport,
+    isReportOwner,
+} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, Report, Transaction} from '@src/types/onyx';
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomTransaction from '../../utils/collections/transaction';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -107,14 +122,19 @@ jest.mock('@hooks/usePaymentOptions', () => ({
 const mockLifecycleHandleSubmitReport = jest.fn();
 const mockLifecycleConfirmApproval = jest.fn();
 
-jest.mock('@hooks/useLifecycleActions', () => ({
-    __esModule: true,
-    default: jest.fn(() => ({
+function mockLifecycleActionsReturn(overrides?: {shouldBlockSubmit?: boolean; isBlockSubmitDueToPreventSelfApproval?: boolean}) {
+    return {
+        actions: {},
         confirmApproval: mockLifecycleConfirmApproval,
         handleSubmitReport: mockLifecycleHandleSubmitReport,
-        shouldBlockSubmit: false,
-        isBlockSubmitDueToPreventSelfApproval: false,
-    })),
+        shouldBlockSubmit: overrides?.shouldBlockSubmit ?? false,
+        isBlockSubmitDueToPreventSelfApproval: overrides?.isBlockSubmitDueToPreventSelfApproval ?? false,
+    };
+}
+
+jest.mock('@hooks/useLifecycleActions', () => ({
+    __esModule: true,
+    default: jest.fn(() => mockLifecycleActionsReturn()),
 }));
 
 const mockConfirmPayment = jest.fn();
@@ -250,6 +270,8 @@ jest.mock('@libs/actions/Search', () => ({
 jest.mock('@libs/PolicyUtils', () => ({
     __esModule: true,
     hasDynamicExternalWorkflow: jest.fn(() => false),
+    getPolicyByCustomUnitID: jest.fn(() => undefined),
+    isSubmitPolicy: jest.fn(() => false),
     sortPoliciesByName: jest.fn(() => []),
 }));
 
@@ -285,26 +307,38 @@ jest.mock('@userActions/Transaction', () => ({
     markPendingRTERTransactionsAsCash: jest.fn(),
 }));
 
-const ReportUtils = require('@libs/ReportUtils') as Record<string, jest.Mock>;
+const mockOpenReportSubmitToPopover = jest.fn<void, [ReportSubmitToPopoverOpenOptions | undefined]>();
 
-const DelegateProvider = require('@components/DelegateNoAccessModalProvider') as Record<string, jest.Mock>;
+jest.mock('@components/ReportSubmitToPopoverAnchor', () => ({
+    __esModule: true,
+    ReportSubmitToPopoverAnchor: ({children}: {children: React.ReactNode}) => children,
+    ReportSubmitToPopoverHost: ({children}: {children: React.ReactNode}) => children,
+    ReportSubmitToPopoverRoot: ({children}: {children: React.ReactNode}) => children,
+    ReportSubmitToPopoverMeasurableAnchor: ({children}: {children: React.ReactNode}) => children,
+    useOpenReportSubmitToPopover: () => mockOpenReportSubmitToPopover,
+}));
 
-const LockedProvider = require('@components/LockedAccountModalProvider') as Record<string, jest.Mock>;
+const mockedIsSubmitPolicy = jest.mocked(isSubmitPolicy);
+
+function isSubmitPolicyType(policy: OnyxInputOrEntry<Policy>): boolean {
+    return policy?.type === CONST.POLICY.TYPE.SUBMIT;
+}
 
 function resetMocksToDefaults() {
-    ReportUtils.hasHeldExpensesFromTransactions.mockReturnValue(false);
-    ReportUtils.hasOnlyHeldExpenses.mockReturnValue(false);
-    ReportUtils.isReportOwner.mockReturnValue(false);
-    ReportUtils.getNextApproverAccountID.mockReturnValue(0);
-    ReportUtils.isInvoiceReport.mockReturnValue(false);
-    ReportUtils.hasUpdatedTotal.mockReturnValue(true);
-    ReportUtils.isAllowedToApproveExpenseReport.mockReturnValue(true);
+    mockedIsSubmitPolicy.mockReturnValue(false);
+    jest.mocked(hasHeldExpensesFromTransactions).mockReturnValue(false);
+    jest.mocked(hasOnlyHeldExpenses).mockReturnValue(false);
+    jest.mocked(isReportOwner).mockReturnValue(false);
+    jest.mocked(getNextApproverAccountID).mockReturnValue(0);
+    jest.mocked(isInvoiceReport).mockReturnValue(false);
+    jest.mocked(hasUpdatedTotal).mockReturnValue(true);
+    jest.mocked(isAllowedToApproveExpenseReport).mockReturnValue(true);
 
-    DelegateProvider.useDelegateNoAccessState.mockReturnValue({isDelegateAccessRestricted: false});
-    DelegateProvider.useDelegateNoAccessActions.mockReturnValue({showDelegateNoAccessModal: jest.fn()});
+    jest.mocked(useDelegateNoAccessState).mockReturnValue({isDelegateAccessRestricted: false, isActingAsDelegate: false});
+    jest.mocked(useDelegateNoAccessActions).mockReturnValue({showDelegateNoAccessModal: jest.fn()});
 
-    LockedProvider.useLockedAccountState.mockReturnValue({isAccountLocked: false});
-    LockedProvider.useLockedAccountActions.mockReturnValue({showLockedAccountModal: jest.fn()});
+    jest.mocked(useLockedAccountState).mockReturnValue({isAccountLocked: false});
+    jest.mocked(useLockedAccountActions).mockReturnValue({showLockedAccountModal: jest.fn()});
 }
 
 function buildReport(overrides: Partial<Report> = {}): Report {
@@ -535,6 +569,58 @@ describe('useSelectionModeReportActions', () => {
                 expect(mockLifecycleHandleSubmitReport).toHaveBeenCalledWith(true);
             });
         });
+
+        it('delegates submit-to popover flow to useLifecycleActions when a single selected transaction belongs to a submit policy', async () => {
+            mockPrimaryAction = CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
+            mockedIsSubmitPolicy.mockImplementation(isSubmitPolicyType);
+
+            const submitPolicy = buildPolicy({type: CONST.POLICY.TYPE.SUBMIT});
+            const transactions = [buildTransaction(1), buildTransaction(2)];
+            const {result} = renderSelectionModeHook({
+                policy: submitPolicy,
+                transactions,
+                selectedTransactionIDs: ['1'],
+            });
+
+            expect(result.current.hasSelectedTransactionsOnSubmitPolicy).toBe(true);
+            expect(result.current.shouldBlockSubmit).toBe(false);
+
+            const submitAction = result.current.selectionModeReportLevelActions.find((a) => a.value === CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
+            submitAction?.onSelected?.();
+
+            await waitFor(() => {
+                expect(mockLifecycleHandleSubmitReport).toHaveBeenCalledWith(true);
+            });
+            expect(jest.mocked(submitReport)).not.toHaveBeenCalled();
+        });
+
+        it('does not submit when multiple selected transactions belong to a submit policy', () => {
+            mockPrimaryAction = CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
+            mockedIsSubmitPolicy.mockImplementation(isSubmitPolicyType);
+
+            const submitPolicy = buildPolicy({type: CONST.POLICY.TYPE.SUBMIT});
+            const {result} = renderSelectionModeHook({policy: submitPolicy});
+
+            expect(result.current.hasSelectedTransactionsOnSubmitPolicy).toBe(true);
+            expect(result.current.shouldBlockSubmit).toBe(true);
+
+            const submitAction = result.current.selectionModeReportLevelActions.find((a) => a.value === CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
+            expect(submitAction).toBeUndefined();
+            expect(mockLifecycleHandleSubmitReport).not.toHaveBeenCalled();
+            expect(jest.mocked(submitReport)).not.toHaveBeenCalled();
+        });
+
+        it('returns false for hasSelectedTransactionsOnSubmitPolicy when no selected transactions are on a submit policy', () => {
+            mockPrimaryAction = CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
+            mockedIsSubmitPolicy.mockReturnValue(false);
+
+            const {result} = renderSelectionModeHook({
+                policy: buildPolicy({type: CONST.POLICY.TYPE.TEAM}),
+            });
+
+            expect(result.current.hasSelectedTransactionsOnSubmitPolicy).toBe(false);
+            expect(result.current.shouldBlockSubmit).toBe(false);
+        });
     });
 
     describe('Approve action callback', () => {
@@ -572,13 +658,7 @@ describe('useSelectionModeReportActions', () => {
     describe('handleSubmitReport guards', () => {
         it('hides Submit action when shouldBlockSubmit is true (from useLifecycleActions)', () => {
             mockPrimaryAction = CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
-            const useLifecycleActionsMock = require('@hooks/useLifecycleActions') as {default: jest.Mock};
-            useLifecycleActionsMock.default.mockReturnValue({
-                confirmApproval: mockLifecycleConfirmApproval,
-                handleSubmitReport: mockLifecycleHandleSubmitReport,
-                shouldBlockSubmit: true,
-                isBlockSubmitDueToPreventSelfApproval: true,
-            });
+            jest.mocked(useLifecycleActions).mockReturnValue(mockLifecycleActionsReturn({shouldBlockSubmit: true, isBlockSubmitDueToPreventSelfApproval: true}));
 
             const {result} = renderSelectionModeHook();
 
@@ -586,12 +666,7 @@ describe('useSelectionModeReportActions', () => {
             const submitAction = result.current.selectionModeReportLevelActions.find((a) => a.value === CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
             expect(submitAction).toBeUndefined();
 
-            useLifecycleActionsMock.default.mockReturnValue({
-                confirmApproval: mockLifecycleConfirmApproval,
-                handleSubmitReport: mockLifecycleHandleSubmitReport,
-                shouldBlockSubmit: false,
-                isBlockSubmitDueToPreventSelfApproval: false,
-            });
+            jest.mocked(useLifecycleActions).mockReturnValue(mockLifecycleActionsReturn());
         });
     });
 
@@ -647,6 +722,69 @@ describe('useSelectionModeReportActions', () => {
         it('returns false by default', () => {
             const {result} = renderSelectionModeHook();
             expect(result.current.shouldBlockSubmit).toBe(false);
+        });
+
+        it('returns true when multiple selected transactions belong to a submit policy', () => {
+            mockedIsSubmitPolicy.mockImplementation(isSubmitPolicyType);
+
+            const {result} = renderSelectionModeHook({
+                policy: buildPolicy({type: CONST.POLICY.TYPE.SUBMIT}),
+                transactions: [buildTransaction(1), buildTransaction(2)],
+                selectedTransactionIDs: ['1', '2'],
+            });
+
+            expect(result.current.hasSelectedTransactionsOnSubmitPolicy).toBe(true);
+            expect(result.current.shouldBlockSubmit).toBe(true);
+        });
+
+        it('returns false when only one selected transaction belongs to a submit policy', () => {
+            mockedIsSubmitPolicy.mockImplementation(isSubmitPolicyType);
+
+            const {result} = renderSelectionModeHook({
+                policy: buildPolicy({type: CONST.POLICY.TYPE.SUBMIT}),
+                transactions: [buildTransaction(1), buildTransaction(2)],
+                selectedTransactionIDs: ['1'],
+            });
+
+            expect(result.current.hasSelectedTransactionsOnSubmitPolicy).toBe(true);
+            expect(result.current.shouldBlockSubmit).toBe(false);
+        });
+
+        it('returns false when multiple selected transactions are not on a submit policy', () => {
+            mockedIsSubmitPolicy.mockReturnValue(false);
+
+            const {result} = renderSelectionModeHook({
+                policy: buildPolicy({type: CONST.POLICY.TYPE.TEAM}),
+                transactions: [buildTransaction(1), buildTransaction(2)],
+                selectedTransactionIDs: ['1', '2'],
+            });
+
+            expect(result.current.hasSelectedTransactionsOnSubmitPolicy).toBe(false);
+            expect(result.current.shouldBlockSubmit).toBe(false);
+        });
+    });
+
+    describe('hasSelectedTransactionsOnSubmitPolicy', () => {
+        it('returns true when any selected transaction is on a submit policy', () => {
+            mockedIsSubmitPolicy.mockImplementation(isSubmitPolicyType);
+
+            const {result} = renderSelectionModeHook({
+                policy: buildPolicy({type: CONST.POLICY.TYPE.SUBMIT}),
+                selectedTransactionIDs: ['1'],
+            });
+
+            expect(result.current.hasSelectedTransactionsOnSubmitPolicy).toBe(true);
+        });
+
+        it('returns false when no transactions are selected', () => {
+            mockedIsSubmitPolicy.mockImplementation(isSubmitPolicyType);
+
+            const {result} = renderSelectionModeHook({
+                policy: buildPolicy({type: CONST.POLICY.TYPE.SUBMIT}),
+                selectedTransactionIDs: [],
+            });
+
+            expect(result.current.hasSelectedTransactionsOnSubmitPolicy).toBe(false);
         });
     });
 
