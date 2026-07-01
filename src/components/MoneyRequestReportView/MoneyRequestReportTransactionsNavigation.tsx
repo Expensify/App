@@ -31,8 +31,7 @@ type MoneyRequestReportRHPNavigationButtonsProps = {
     shouldDisplayNarrowVersion?: boolean;
 };
 
-const parentReportActionIDsSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => {
-    const parentActions = new Map<string, OnyxTypes.ReportAction>();
+const collectParentReportActions = (reportActions: OnyxEntry<OnyxTypes.ReportActions>, parentActions: Map<string, OnyxTypes.ReportAction>) => {
     for (const action of Object.values(reportActions ?? {})) {
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         if (!transactionID) {
@@ -40,7 +39,6 @@ const parentReportActionIDsSelector = (reportActions: OnyxEntry<OnyxTypes.Report
         }
         parentActions.set(transactionID, action);
     }
-    return parentActions;
 };
 
 function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromReviewDuplicates, shouldDisplayNarrowVersion}: MoneyRequestReportRHPNavigationButtonsProps) {
@@ -95,23 +93,26 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
 
     const parentReportActionsSelector = useCallback(
         (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
-            let reportActions = {};
+            // Build the transactionID -> IOU action map in a single pass. We deliberately avoid merging the
+            // report actions into one intermediate object (repeated spreads are O(n²) and, with a snapshot,
+            // would copy every report's actions), since this selector re-runs on any report-action change.
+            const parentActions = new Map<string, OnyxTypes.ReportAction>();
             // Reported transactions keep their IOU action on their own report (reportActions_<reportID>).
             for (const transaction of [currentTransaction, prevTransaction, nextTransaction]) {
                 const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}` as const;
-                reportActions = {...reportActions, ...(allReportActions?.[key] ?? (snapshot?.data?.[key] as OnyxTypes.ReportActions | undefined))};
+                collectParentReportActions(allReportActions?.[key] ?? (snapshot?.data?.[key] as OnyxTypes.ReportActions | undefined), parentActions);
             }
             // Unreported transactions (reportID '0') keep their IOU action on a different report (e.g. a self-DM),
-            // so it isn't under reportActions_0. Merge every report's actions from the search snapshot so the action
+            // so it isn't under reportActions_0. Scan every report's actions from the search snapshot so the action
             // (and its childReportID thread) can still be located by IOUTransactionID.
             if (snapshot?.data) {
                 for (const [key, reportActionsForReport] of Object.entries(snapshot.data)) {
                     if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
-                        reportActions = {...reportActions, ...(reportActionsForReport as OnyxTypes.ReportActions)};
+                        collectParentReportActions(reportActionsForReport as OnyxTypes.ReportActions, parentActions);
                     }
                 }
             }
-            return parentReportActionIDsSelector(reportActions);
+            return parentActions;
         },
         [currentTransaction, nextTransaction, prevTransaction, snapshot],
     );
