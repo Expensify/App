@@ -58,7 +58,7 @@ import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
-import {getAllReports, getMoneyRequestPolicyTags, getPolicyTagsData} from './index';
+import {getAllReports, getPolicyTagsData} from './index';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {getMoneyRequestInformation, getReportPreviewAction} from './MoneyRequestBuilder';
 import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams} from './MoneyRequestBuilder';
@@ -73,6 +73,7 @@ type UpdateSplitTransactionsParams = {
     allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
     allReportNameValuePairsList: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
     allSnapshots?: OnyxCollection<OnyxTypes.SearchResults>;
+    allPolicyTags: OnyxCollection<OnyxTypes.PolicyTagLists>;
     transactionData: {
         reportID: string;
         originalTransactionID: string;
@@ -93,7 +94,6 @@ type UpdateSplitTransactionsParams = {
     iouReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isFromSplitExpensesFlow?: boolean;
-    policyTags: OnyxTypes.PolicyTagLists;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     transactionReport: OnyxEntry<OnyxTypes.Report>;
     expenseReport: OnyxEntry<OnyxTypes.Report>;
@@ -106,6 +106,7 @@ function updateSplitTransactions({
     allReportActionsList,
     allReportNameValuePairsList,
     allSnapshots,
+    allPolicyTags,
     transactionData,
     searchContext,
     policyCategories,
@@ -121,7 +122,6 @@ function updateSplitTransactions({
     iouReportNextStep,
     isFromSplitExpensesFlow,
     betas,
-    policyTags,
     personalDetails,
     transactionReport,
     expenseReport: expenseReportFromParams,
@@ -180,6 +180,7 @@ function updateSplitTransactions({
               }
             : undefined;
     const participants = fallbackPolicyParticipant ? [fallbackPolicyParticipant] : autoParticipants;
+
     let fallbackPolicyParentChatReport = expenseReportParentChat;
     if (!fallbackPolicyParentChatReport && chatReport && isPolicyExpenseChatReportUtil(chatReport)) {
         fallbackPolicyParentChatReport = chatReport;
@@ -193,6 +194,9 @@ function updateSplitTransactions({
             ownerAccountID: expenseReport?.ownerAccountID,
         } as OnyxTypes.Report;
     }
+
+    const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${expenseReport?.policyID}`] ?? {};
+
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
     const allChildTransactions = getChildTransactions(allTransactionsList, originalTransactionID, false);
@@ -643,6 +647,13 @@ function updateSplitTransactions({
         const parsedComment = getParsedComment(Parser.htmlToMarkdown(transactionParams.comment ?? ''));
         transactionParams.comment = parsedComment;
 
+        const splitExpenseIOUReportPolicyID = splitExpense.reportID
+            ? (allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpense.reportID}`]?.policyID ??
+              fallbackPolicyParentChatReport?.policyID ??
+              allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${participants.at(0)?.reportID}`]?.policyID)
+            : undefined;
+        const policyTagList = splitExpense.reportID ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${splitExpenseIOUReportPolicyID}`] ?? {}) : undefined;
+
         // For selfDM, use UNREPORTED_REPORT_ID for moneyRequestReportID.
         // For confirmed workspace transactions, use splitTransaction.reportID directly because
         // splitExpense.reportID may be set to selfDMReportID for navigation purposes.
@@ -664,10 +675,7 @@ function updateSplitTransactions({
         } = getMoneyRequestInformation({
             participantParams,
             parentChatReport,
-            policyParams: {
-                ...policyParams,
-                policyTagList: getMoneyRequestPolicyTags({moneyRequestReportID: splitExpense?.reportID, parentChatReport, participant: participantParams.participant}),
-            },
+            policyParams: {...policyParams, policyTagList},
             transactionParams,
             moneyRequestReportID: moneyRequestReportIDForSplit,
             existingTransaction,
