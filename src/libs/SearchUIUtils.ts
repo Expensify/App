@@ -4032,7 +4032,7 @@ function getSortedTransactionData(
         }
 
         // When both rows are empty for the sorted column, keep their existing order via the stable sort so that a column
-        // with only empty values is a no-op and sorts identically for asc and desc (see issue #94893).
+        // with only empty values is a no-op and sorts identically for asc and desc.
         if (isEmptyValue(aValue) && isEmptyValue(bValue)) {
             return 0;
         }
