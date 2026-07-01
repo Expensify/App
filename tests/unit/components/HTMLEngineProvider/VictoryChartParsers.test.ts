@@ -6,6 +6,7 @@ import parseVictoryPieNode from "@components/HTMLEngineProvider/HTMLRenderers/Vi
 import parseVictorySeriesNode from "@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/victorySeriesParser";
 import type { ProcessNodeResult } from "@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types";
 import adjustHorizontalChartPadding from "@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/adjustHorizontalChartPadding";
+import adjustVerticalChartPadding from "@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/adjustVerticalChartPadding";
 
 function createNode(
   tagName: string,
@@ -14,6 +15,13 @@ function createNode(
 ): TNode {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal mock that only exposes the fields victory chart parsers read
   return { tagName, attributes, children } as unknown as TNode;
+}
+
+function createMockAxisFont(fontSize = 11) {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- padding helpers only call getSize on axis fonts
+  return { getSize: () => fontSize } as NonNullable<
+    ProcessNodeResult["yAxis"]
+  >[number]["font"];
 }
 
 function createHorizontalChartContext(): ProcessNodeResult {
@@ -219,10 +227,9 @@ describe("adjustHorizontalChartPadding", () => {
       xAxis: undefined,
       yAxis: [
         {
-          tickCount: 2,
           tickValues: [0, 1],
           labelOffset: 24,
-          font: {} as NonNullable<ProcessNodeResult["yAxis"]>[number]["font"],
+          font: createMockAxisFont(),
         },
       ],
       domain: undefined,
@@ -234,6 +241,54 @@ describe("adjustHorizontalChartPadding", () => {
       legendItems: [],
     });
 
-    expect(padding).toMatchObject({ left: 24 });
+    expect(padding).toMatchObject({ left: 24, bottom: 25 });
+  });
+});
+
+describe("adjustVerticalChartPadding", () => {
+  it("trims excess bottom padding for vertical charts with built-in category labels", () => {
+    const padding = adjustVerticalChartPadding({
+      data: {},
+      xKey: "x",
+      yKeys: ["y"],
+      xAxis: {
+        tickValues: [1, 2, 3],
+        labelOffset: 16,
+        font: createMockAxisFont(),
+      },
+      yAxis: undefined,
+      domain: undefined,
+      domainPadding: undefined,
+      padding: { left: 96, top: 92, bottom: 108, right: 32 },
+      isHorizontal: false,
+      categories: undefined,
+      labelItems: [],
+      legendItems: [],
+    });
+
+    expect(padding).toMatchObject({ bottom: 35 });
+  });
+
+  it("keeps bottom padding when a legend is present", () => {
+    const padding = adjustVerticalChartPadding({
+      data: {},
+      xKey: "x",
+      yKeys: ["y"],
+      xAxis: {
+        tickValues: [1, 2, 3],
+        labelOffset: 16,
+        font: createMockAxisFont(),
+      },
+      yAxis: undefined,
+      domain: undefined,
+      domainPadding: undefined,
+      padding: { left: 96, top: 92, bottom: 108, right: 32 },
+      isHorizontal: false,
+      categories: undefined,
+      labelItems: [],
+      legendItems: [{ x: 0, y: 0, entries: [] }],
+    });
+
+    expect(padding).toMatchObject({ bottom: 108 });
   });
 });

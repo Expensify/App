@@ -46,7 +46,9 @@ function parseVictoryAxisNode(
   }
   const resolvedTickCount =
     tickCount ??
-    (isHorizontal && isCategoryAxis ? (tickValues?.length ?? 0) : 0);
+    (isHorizontal && isCategoryAxis && tickValues?.length
+      ? tickValues.length
+      : 0);
 
   const formatLabel = (label: string | number) => {
     if (!tickFormat) {
