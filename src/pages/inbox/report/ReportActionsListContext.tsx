@@ -47,6 +47,7 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
         transactionThreadReport,
         isReportArchived,
         isReportTransactionThread,
+        shouldBeAlignedToTop,
         isLoadingInitialReportActions,
         hasOnceLoadedReportActions,
         isLoadingApp,
@@ -70,7 +71,7 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
     // if the oldest unread report action is not available yet. Only applies during the *first* load
     // for this report: after `hasOnceLoadedReportActions` is set, a later "mark as unread" must not
     // bring back this loading gate (we are not re-opening the report from a cold cache).
-    const isUnreadMessagePageLoadingInitially = !reportActionIDFromRoute && isReportUnread && !oldestUnreadReportAction && !hasOnceLoadedReportActions;
+    const isUnreadMessagePageLoadingInitially = !shouldBeAlignedToTop && !reportActionIDFromRoute && isReportUnread && !oldestUnreadReportAction && !hasOnceLoadedReportActions;
 
     // Once all the above conditions are met, we can consider the report ready.
     const isReportLoading = isInitiallyLoadingReport || isUnreadMessagePageLoadingInitially;

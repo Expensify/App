@@ -9,8 +9,8 @@ import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlight
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {isReportPreviewAction, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
-import {getReportLastVisibleActionCreated, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {isReportPreviewAction} from '@libs/ReportActionsUtils';
+import {getReportLastVisibleActionCreated, shouldReportAlignToTop} from '@libs/ReportUtils';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import useReportActionsNewActionLiveTail from '@pages/inbox/report/useReportActionsNewActionLiveTail';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
@@ -152,15 +152,20 @@ function useReportActionsScroll({
     const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = Object.fromEntries(sortedVisibleReportActions.map((action) => [action.reportActionID, action]));
     const prevSortedVisibleReportActionsObjects = usePrevious(sortedVisibleReportActionsObjects);
 
-    const isTransactionThreadReport = isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction);
-    const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
-    const shouldBeAlignedToTop = isTransactionThreadReport || isMoneyRequestOrInvoiceReport;
-    const initialScrollActionID = linkedReportActionID ?? unreadMarkerReportActionID;
-    // The CREATED-action case is intentionally excluded here; its scroll behavior is handled by shouldFocusToTopOnMount logic instead.
-    const initialScrollKey =
-        initialScrollActionID && !(shouldBeAlignedToTop && sortedVisibleReportActionsObjects[initialScrollActionID]?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED)
-            ? initialScrollActionID
-            : undefined;
+    const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
+
+    // When the report is aligned to the top, only the linked action should drive the initial scroll position and the unread marker must be ignored.
+    // Otherwise, prefer the linked action and fall back to the unread marker.
+    let initialScrollKey = linkedReportActionID;
+    if (!shouldBeAlignedToTop && linkedReportActionID === undefined && unreadMarkerReportActionID) {
+        initialScrollKey = unreadMarkerReportActionID;
+    }
+
+    // The CREATED action is the top anchor of an aligned-to-top report; scrolling to it is handled by shouldFocusToTopOnMount instead.
+    if (shouldBeAlignedToTop && initialScrollKey && sortedVisibleReportActionsObjects[initialScrollKey]?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        initialScrollKey = undefined;
+    }
+
     const shouldFocusToTopOnMount = shouldBeAlignedToTop && !initialScrollKey;
     const [shouldAutoscrollToBottom, setShouldAutoscrollToBottom] = useState(shouldFocusToTopOnMount);
 
@@ -176,6 +181,7 @@ function useReportActionsScroll({
                 scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
             },
             actionBadgeTargetIndex,
+            shouldBeAlignedToTop,
         });
 
     const {isScrollToBottomEnabled, setIsScrollToBottomEnabled, completeLiveTailPruneAfterScrollToBottom} = useReportActionsNewActionLiveTail({
