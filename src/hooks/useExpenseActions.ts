@@ -60,8 +60,11 @@ import useGetIOUReportFromReportAction from './useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
+import useParentReportAction from './useParentReportAction';
 import usePermissions from './usePermissions';
 import useReportIsArchived from './useReportIsArchived';
+import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
+import useSplitEffectivePolicy from './useSplitEffectivePolicy';
 import useTheme from './useTheme';
 import useThrottledButtonState from './useThrottledButtonState';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
@@ -96,6 +99,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
     // Report data
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const parentReportAction = useParentReportAction(moneyRequestReport);
+    const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
 
@@ -113,6 +118,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     }
 
     const currentTransaction = transactions.at(0);
+    const splitEffectivePolicy = useSplitEffectivePolicy(moneyRequestReport, undefined, currentTransaction);
+    const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
@@ -295,7 +302,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 if (transactions.length !== 1) {
                     return;
                 }
-                initSplitExpense(currentTransaction, policy, moneyRequestReport, accountID, {isProduction});
+                initSplitExpense(currentTransaction, moneyRequestReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, {isProduction});
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.MERGE]: {
@@ -566,6 +573,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                             setTimeout(() => {
                                 deleteAppReport({
                                     report: moneyRequestReport,
+                                    reportActions: moneyRequestReportActions,
+                                    parentReportAction,
                                     selfDMReport,
                                     currentUserEmailParam: email ?? '',
                                     currentUserAccountIDParam: accountID,

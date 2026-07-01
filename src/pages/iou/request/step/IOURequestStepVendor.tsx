@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateMoneyRequestVendor} from '@libs/actions/IOU/UpdateMoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {getQBOVendors, hasVendorFeature} from '@libs/PolicyUtils';
+import {getMatchingVendors, hasVendorFeature} from '@libs/PolicyUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -60,7 +60,7 @@ function IOURequestStepVendor({
     // Vendor is scoped to non-reimbursable expenses on a policy expense chat; block deep-link / stale-open access if the transaction is reimbursable or is an invoice (invoices are non-reimbursable but don't route through the QBO CC vendor-matching flow).
     const isReimbursable = !!transaction?.reimbursable;
     const isInvoice = iouType === CONST.IOU.TYPE.INVOICE;
-    const vendors = getQBOVendors(policy);
+    const vendors = getMatchingVendors(policy);
     const currentVendorID = transaction?.comment?.vendor?.externalID;
 
     const trimmedSearch = searchValue.trim().toLowerCase();
@@ -75,19 +75,19 @@ function IOURequestStepVendor({
         }));
 
     // When a vendor is currently set, offer a "None" row so the user can clear a stale (e.g. removed-from-QBO) vendor without picking a replacement, which resolves an inactiveVendor violation. Hidden during search to keep results clean.
-    const data: VendorListItem[] =
-        !currentVendorID || trimmedSearch
-            ? vendorRows
-            : [
-                  {
-                      value: '',
-                      text: translate('common.none'),
-                      keyForList: 'clear-vendor',
-                      isSelected: false,
-                      searchText: '',
-                  },
-                  ...vendorRows,
-              ];
+    const shouldShowNoneRow = !!currentVendorID && !trimmedSearch;
+    const data: VendorListItem[] = shouldShowNoneRow
+        ? [
+              {
+                  value: '',
+                  text: translate('common.none'),
+                  keyForList: 'clear-vendor',
+                  isSelected: false,
+                  searchText: '',
+              },
+              ...vendorRows,
+          ]
+        : vendorRows;
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction) || !isFeatureAvailable || isReimbursable || isInvoice;
 
@@ -142,7 +142,7 @@ function IOURequestStepVendor({
                     onChangeText: setSearchValue,
                     headerMessage,
                 }}
-                initiallyFocusedItemKey={data.find((item) => item.isSelected)?.keyForList}
+                initiallyFocusedItemKey={shouldShowNoneRow ? undefined : data.find((item) => item.isSelected)?.keyForList}
                 ListItem={SingleSelectListItem}
                 shouldShowLoadingPlaceholder={!policy}
                 listEmptyContent={listEmptyContent}

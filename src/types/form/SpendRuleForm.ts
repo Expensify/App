@@ -20,6 +20,7 @@ type SpendRuleForm = Form<
         [INPUT_IDS.MERCHANT_NAMES]: string[];
         [INPUT_IDS.MERCHANT_MATCH_TYPES]: Array<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>;
         [INPUT_IDS.CATEGORIES]: SpendRuleCategory[];
+        [INPUT_IDS.CURRENCIES]: string[];
         [INPUT_IDS.MAX_AMOUNT]: string;
     }
 >;

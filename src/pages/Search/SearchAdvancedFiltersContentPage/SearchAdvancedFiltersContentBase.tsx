@@ -39,7 +39,7 @@ function SearchAdvancedFiltersContentBase() {
     const validFilterKey = isFilterKeyValid(filterKey) ? filterKey : undefined;
 
     const goBack = () => {
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
     return (
@@ -71,7 +71,14 @@ function SearchAdvancedFiltersContentBase() {
                                     ReportField: ReportFieldFilterContentPageWrapper,
                                 }}
                                 onChange={(newValues) => {
-                                    setDraftFilters(newValues);
+                                    const updatedValues = {...newValues};
+                                    const selectedReceiptTypes = newValues.receiptType;
+                                    // A positive receipt-type selection drops those values from the negated filter so the query can't emit both receiptType and -receiptType for the same value
+                                    if (selectedReceiptTypes !== undefined) {
+                                        const remainingNegatedReceiptTypes = currentDraftFilters?.receiptTypeNot?.filter((receiptType) => !selectedReceiptTypes.includes(receiptType));
+                                        updatedValues.receiptTypeNot = remainingNegatedReceiptTypes?.length ? remainingNegatedReceiptTypes : undefined;
+                                    }
+                                    setDraftFilters(updatedValues);
                                     goBack();
                                 }}
                             />

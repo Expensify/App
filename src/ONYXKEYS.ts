@@ -4,6 +4,7 @@ import type {OnboardingAccounting} from './CONST';
 import type {TranslationPaths} from './languages/types';
 import type {OnboardingCompanySize} from './libs/actions/Welcome/OnboardingFlow';
 import type Platform from './libs/getPlatform/types';
+import type {TransactionThreadNavigationDescriptor} from './libs/TransactionThreadNavigationUtils';
 import type * as FormTypes from './types/form';
 import type * as OnyxTypes from './types/onyx';
 import type DefaultP2PMileageRate from './types/onyx/DefaultP2PMileageRate';
@@ -303,7 +304,11 @@ const ONYXKEYS = {
     /**  The NVP containing the target url to navigate to when deleting a transaction */
     NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL: 'nvp_deleteTransactionNavigateBackURL',
 
-    /** A timestamp of when the last full reconnect should have been done */
+    /**
+     * Cutoff time for a full reconnect. If this client's last full reconnect
+     * (LAST_FULL_RECONNECT_TIME) is older than this value, the app fetches all of its data again.
+     * The server sets this value; the client only reads it.
+     */
     NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE: 'nvp_reconnectAppIfFullReconnectBefore',
 
     /** User's first policy creation date */
@@ -357,6 +362,9 @@ const ONYXKEYS = {
 
     /** Object containing Onfido SDK Token + applicantID */
     RAM_ONLY_WALLET_ONFIDO: 'walletOnfido',
+
+    /** Stores information whether wallet data is stale */
+    RAM_ONLY_HAS_FRESH_WALLET_DATA: 'hasFreshWalletData',
 
     /** Stores information about additional details form entry */
     WALLET_ADDITIONAL_DETAILS: 'walletAdditionalDetails',
@@ -722,6 +730,9 @@ const ONYXKEYS = {
     /** List of transaction IDs used when navigating to prev/next transaction when viewing it in RHP */
     TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS: 'transactionThreadNavigationTransactionIDs',
 
+    /** Optional map of transactionID -> sibling descriptor for prev/next navigation in snapshot-backed flows (e.g. Home "Recently added"), where siblings may be absent from the main Onyx collections. When set, navigation resolves (and lazily creates) each sibling's thread on demand from its descriptor. */
+    TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS: 'transactionThreadNavigationThreadReportIDs',
+
     REPORT_NAVIGATION_LAST_SEARCH_QUERY: 'ReportNavigationLastSearchQuery',
 
     /** Timestamp of the last login on iOS */
@@ -971,8 +982,6 @@ const ONYXKEYS = {
         POLICY_DISTANCE_RATE_NAME_EDIT_FORM_DRAFT: 'policyDistanceRateNameEditFormDraft',
         CLOSE_ACCOUNT_FORM: 'closeAccount',
         CLOSE_ACCOUNT_FORM_DRAFT: 'closeAccountDraft',
-        PROFILE_SETTINGS_FORM: 'profileSettingsForm',
-        PROFILE_SETTINGS_FORM_DRAFT: 'profileSettingsFormDraft',
         DISPLAY_NAME_FORM: 'displayNameForm',
         DISPLAY_NAME_FORM_DRAFT: 'displayNameFormDraft',
         ONBOARDING_PERSONAL_DETAILS_FORM: 'onboardingPersonalDetailsForm',
@@ -993,8 +1002,6 @@ const ONYXKEYS = {
         INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT: 'internationalBankAccountFormDraft',
         NEW_ROOM_FORM: 'newRoomForm',
         NEW_ROOM_FORM_DRAFT: 'newRoomFormDraft',
-        ROOM_SETTINGS_FORM: 'roomSettingsForm',
-        ROOM_SETTINGS_FORM_DRAFT: 'roomSettingsFormDraft',
         NEW_TASK_FORM: 'newTaskForm',
         NEW_TASK_FORM_DRAFT: 'newTaskFormDraft',
         EDIT_TASK_FORM: 'editTaskForm',
@@ -1003,8 +1010,6 @@ const ONYXKEYS = {
         MONEY_REQUEST_DESCRIPTION_FORM_DRAFT: 'moneyRequestDescriptionFormDraft',
         MONEY_REQUEST_MERCHANT_FORM: 'moneyRequestMerchantForm',
         MONEY_REQUEST_MERCHANT_FORM_DRAFT: 'moneyRequestMerchantFormDraft',
-        MONEY_REQUEST_AMOUNT_FORM: 'moneyRequestAmountForm',
-        MONEY_REQUEST_AMOUNT_FORM_DRAFT: 'moneyRequestAmountFormDraft',
         MONEY_REQUEST_DATE_FORM: 'moneyRequestCreatedForm',
         MONEY_REQUEST_DATE_FORM_DRAFT: 'moneyRequestCreatedFormDraft',
         MONEY_REQUEST_HOLD_FORM: 'moneyHoldReasonForm',
@@ -1025,8 +1030,6 @@ const ONYXKEYS = {
         WAYPOINT_FORM_DRAFT: 'waypointFormDraft',
         SETTINGS_STATUS_SET_FORM: 'settingsStatusSetForm',
         SETTINGS_STATUS_SET_FORM_DRAFT: 'settingsStatusSetFormDraft',
-        SETTINGS_STATUS_SET_CLEAR_AFTER_FORM: 'settingsStatusSetClearAfterForm',
-        SETTINGS_STATUS_SET_CLEAR_AFTER_FORM_DRAFT: 'settingsStatusSetClearAfterFormDraft',
         SETTINGS_STATUS_CLEAR_DATE_FORM: 'settingsStatusClearDateForm',
         SETTINGS_STATUS_CLEAR_DATE_FORM_DRAFT: 'settingsStatusClearDateFormDraft',
         CHANGE_BILLING_CURRENCY_FORM: 'billingCurrencyForm',
@@ -1085,8 +1088,6 @@ const ONYXKEYS = {
         ADD_NEW_CARD_FEED_FORM_DRAFT: 'addNewCardFeedDraft',
         COMPANY_CARD_LAYOUT_NAME_FORM: 'companyCardLayoutNameForm',
         COMPANY_CARD_LAYOUT_NAME_FORM_DRAFT: 'companyCardLayoutNameFormDraft',
-        ASSIGN_CARD_FORM: 'assignCard',
-        ASSIGN_CARD_FORM_DRAFT: 'assignCardDraft',
         EDIT_EXPENSIFY_CARD_NAME_FORM: 'editExpensifyCardName',
         EDIT_EXPENSIFY_CARD_NAME_DRAFT_FORM: 'editExpensifyCardNameDraft',
         EDIT_EXPENSIFY_CARD_LIMIT_FORM: 'editExpensifyCardLimit',
@@ -1131,6 +1132,8 @@ const ONYXKEYS = {
         RULES_REQUIRED_RECEIPT_AMOUNT_FORM_DRAFT: 'rulesRequiredReceiptAmountFormDraft',
         RULES_REQUIRED_ITEMIZED_RECEIPT_AMOUNT_FORM: 'rulesRequiredItemizedReceiptAmountForm',
         RULES_REQUIRED_ITEMIZED_RECEIPT_AMOUNT_FORM_DRAFT: 'rulesRequiredItemizedReceiptAmountFormDraft',
+        RULES_REQUIRE_RECEIPTS_FORM: 'rulesRequireReceiptsForm',
+        RULES_REQUIRE_RECEIPTS_FORM_DRAFT: 'rulesRequireReceiptsFormDraft',
         RULES_MAX_EXPENSE_AMOUNT_FORM: 'rulesMaxExpenseAmountForm',
         RULES_MAX_EXPENSE_AMOUNT_FORM_DRAFT: 'rulesMaxExpenseAmountFormDraft',
         RULES_MAX_EXPENSE_AGE_FORM: 'rulesMaxExpenseAgeForm',
@@ -1194,10 +1197,8 @@ const ONYXKEYS = {
         NON_PERSONAL_AND_WORKSPACE_CARD_LIST: 'nonPersonalAndWorkspaceCardList',
         PERSONAL_AND_WORKSPACE_CARD_LIST: 'personalAndWorkspaceCardList',
         CARD_FEED_ERRORS: 'cardFeedErrors',
-        TODOS: 'todos',
         RAM_ONLY_SORTED_REPORT_ACTIONS: 'sortedReportActions',
-        OPEN_AND_SUBMITTED_REPORTS_BY_POLICY_ID: 'openAndSubmittedReportsByPolicyID',
-        FLAGGED_EXPENSES: 'flaggedExpenses',
+        LOGIN_TO_ACCOUNT_ID_MAP: 'loginToAccountIDMap',
     },
 
     /** Stores HybridApp specific state required to interoperate with OldDot */
@@ -1222,7 +1223,6 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WORKSPACE_CATEGORY_DESCRIPTION_HINT_FORM]: FormTypes.WorkspaceCategoryDescriptionHintForm;
     [ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER_FORM]: FormTypes.WorkspaceCategoryFlagAmountsOverForm;
     [ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM]: FormTypes.CloseAccountForm;
-    [ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM]: FormTypes.ProfileSettingsForm;
     [ONYXKEYS.FORMS.DISPLAY_NAME_FORM]: FormTypes.DisplayNameForm;
     [ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM]: FormTypes.DisplayNameForm;
     [ONYXKEYS.FORMS.ROOM_NAME_FORM]: FormTypes.RoomNameForm;
@@ -1232,7 +1232,6 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.HOME_ADDRESS_FORM]: FormTypes.HomeAddressForm;
     [ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM]: FormTypes.PersonalDetailsForm;
     [ONYXKEYS.FORMS.NEW_ROOM_FORM]: FormTypes.NewRoomForm;
-    [ONYXKEYS.FORMS.ROOM_SETTINGS_FORM]: FormTypes.RoomSettingsForm;
     [ONYXKEYS.FORMS.NEW_TASK_FORM]: FormTypes.NewTaskForm;
     [ONYXKEYS.FORMS.EDIT_TASK_FORM]: FormTypes.EditTaskForm;
     [ONYXKEYS.FORMS.DISABLE_AUTO_RENEW_SURVEY_FORM]: FormTypes.FeedbackSurveyForm;
@@ -1240,7 +1239,6 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM]: FormTypes.ExitSurveyResponseForm;
     [ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM]: FormTypes.MoneyRequestDescriptionForm;
     [ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM]: FormTypes.MoneyRequestMerchantForm;
-    [ONYXKEYS.FORMS.MONEY_REQUEST_AMOUNT_FORM]: FormTypes.MoneyRequestAmountForm;
     [ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM]: FormTypes.MoneyRequestDateForm;
     [ONYXKEYS.FORMS.MONEY_REQUEST_TIME_FORM]: FormTypes.MoneyRequestTimeForm;
     [ONYXKEYS.FORMS.MONEY_REQUEST_SUBRATE_FORM]: FormTypes.MoneyRequestSubrateForm;
@@ -1253,7 +1251,6 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM]: FormTypes.SettingsStatusSetForm;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM]: FormTypes.SettingsStatusClearDateForm;
     [ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM]: FormTypes.ChangeBillingCurrencyForm;
-    [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_CLEAR_AFTER_FORM]: FormTypes.SettingsStatusSetClearAfterForm;
     [ONYXKEYS.FORMS.PRIVATE_NOTES_FORM]: FormTypes.PrivateNotesForm;
     [ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM]: FormTypes.IKnowTeacherForm;
     [ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM]: FormTypes.IntroSchoolPrincipalForm;
@@ -1286,7 +1283,6 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM]: FormTypes.IssueNewExpensifyCardForm;
     [ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM]: FormTypes.AddNewCardFeedForm;
     [ONYXKEYS.FORMS.COMPANY_CARD_LAYOUT_NAME_FORM]: FormTypes.CompanyCardLayoutNameForm;
-    [ONYXKEYS.FORMS.ASSIGN_CARD_FORM]: FormTypes.AssignCardForm;
     [ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM]: FormTypes.EditExpensifyCardNameForm;
     [ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM]: FormTypes.EditExpensifyCardLimitForm;
     [ONYXKEYS.FORMS.EDIT_TRAVEL_INVOICING_MONTHLY_LIMIT_FORM]: FormTypes.EditTravelInvoicingMonthlyLimitForm;
@@ -1306,6 +1302,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM]: FormTypes.RulesAutoPayReportsUnderModalForm;
     [ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM]: FormTypes.RulesRequiredReceiptAmountForm;
     [ONYXKEYS.FORMS.RULES_REQUIRED_ITEMIZED_RECEIPT_AMOUNT_FORM]: FormTypes.RulesRequiredItemizedReceiptAmountForm;
+    [ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM]: FormTypes.RulesRequireReceiptsForm;
     [ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AMOUNT_FORM]: FormTypes.RulesMaxExpenseAmountForm;
     [ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AGE_FORM]: FormTypes.RulesMaxExpenseAgeForm;
     [ONYXKEYS.FORMS.RULES_CUSTOM_FORM]: FormTypes.RulesCustomForm;
@@ -1523,6 +1520,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_PRIVATE_BILLING_STATUS]: OnyxTypes.BillingStatus;
     [ONYXKEYS.USER_WALLET]: OnyxTypes.UserWallet;
     [ONYXKEYS.RAM_ONLY_WALLET_ONFIDO]: OnyxTypes.WalletOnfido;
+    [ONYXKEYS.RAM_ONLY_HAS_FRESH_WALLET_DATA]: boolean;
     [ONYXKEYS.WALLET_ADDITIONAL_DETAILS]: OnyxTypes.WalletAdditionalDetails;
     [ONYXKEYS.WALLET_TERMS]: OnyxTypes.WalletTerms;
     [ONYXKEYS.BANK_ACCOUNT_LIST]: OnyxTypes.BankAccountList;
@@ -1662,6 +1660,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY]: OnyxTypes.LastSearchParams;
     [ONYXKEYS.NVP_LAST_ANDROID_LOGIN]: string;
     [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS]: string[];
+    [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS]: Record<string, TransactionThreadNavigationDescriptor>;
     [ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES]: OnyxTypes.ExportTemplate[];
     [ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION]: OnboardingAccounting;
     [ONYXKEYS.HYBRID_APP]: OnyxTypes.HybridApp;
@@ -1686,10 +1685,8 @@ type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST]: OnyxTypes.NonPersonalAndWorkspaceCardListDerivedValue;
     [ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST]: OnyxTypes.PersonalAndWorkspaceCardListDerivedValue;
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: OnyxTypes.CardFeedErrorsDerivedValue;
-    [ONYXKEYS.DERIVED.TODOS]: OnyxTypes.TodosDerivedValue;
     [ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS]: OnyxTypes.SortedReportActionsDerivedValue;
-    [ONYXKEYS.DERIVED.OPEN_AND_SUBMITTED_REPORTS_BY_POLICY_ID]: OnyxTypes.OpenAndSubmittedReportsByPolicyIDDerivedValue;
-    [ONYXKEYS.DERIVED.FLAGGED_EXPENSES]: OnyxTypes.FlaggedExpensesDerivedValue;
+    [ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP]: OnyxTypes.LoginToAccountIDMapDerivedValue;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping & OnyxDerivedValuesMapping;

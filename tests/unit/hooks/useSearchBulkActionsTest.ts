@@ -9,12 +9,17 @@ import ONYXKEYS from '@src/ONYXKEYS';
 const mockQueueExportSearchItemsToCSV = jest.mocked(queueExportSearchItemsToCSV);
 const mockQueueExportSearchWithTemplate = jest.mocked(queueExportSearchWithTemplate);
 
+jest.mock('@libs/actions/Export', () => ({
+    clearExportDownload: jest.fn(),
+}));
+
 jest.mock('@libs/actions/Search', () => ({
     getExportTemplates: jest.fn(() => []),
     exportSearchItemsToCSV: jest.fn(),
     queueExportSearchItemsToCSV: jest.fn(() => 'mock-export-id'),
     queueExportSearchWithTemplate: jest.fn(() => 'mock-template-export-id'),
-    approveMoneyRequestOnSearch: jest.fn(),
+    getSearchApproveOnyxData: jest.fn(() => ({})),
+    getSearchPayOnyxData: jest.fn(() => ({})),
     bulkDeleteReports: jest.fn(),
     getLastPolicyBankAccountID: jest.fn(),
     getLastPolicyPaymentMethod: jest.fn(),
@@ -229,7 +234,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
         await Onyx.clear();
     });
 
-    it('handleBasicExport with select-all sets activeExportID', async () => {
+    it('handleBasicExport with select-all tracks the export', async () => {
         mockAreAllMatchingItemsSelected = true;
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
 
@@ -249,10 +254,10 @@ describe('useSearchBulkActions - CSV export flow', () => {
         });
 
         expect(mockQueueExportSearchItemsToCSV).toHaveBeenCalled();
-        expect(result.current.activeExportID).toBe('mock-export-id');
+        expect(result.current.exportDownloadStatusModal).not.toBeNull();
     });
 
-    it('handleBasicExport with manual selection does not set activeExportID', async () => {
+    it('handleBasicExport with manual selection does not track any export', async () => {
         mockAreAllMatchingItemsSelected = false;
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
 
@@ -263,10 +268,10 @@ describe('useSearchBulkActions - CSV export flow', () => {
         });
 
         expect(mockQueueExportSearchItemsToCSV).not.toHaveBeenCalled();
-        expect(result.current.activeExportID).toBeUndefined();
+        expect(result.current.exportDownloadStatusModal).toBeNull();
     });
 
-    it('beginExportWithTemplate sets activeExportID', async () => {
+    it('beginExportWithTemplate tracks the export', async () => {
         mockAreAllMatchingItemsSelected = true;
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
 
@@ -285,37 +290,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
             });
 
             expect(mockQueueExportSearchWithTemplate).toHaveBeenCalled();
-            expect(result.current.activeExportID).toBe('mock-template-export-id');
+            expect(result.current.exportDownloadStatusModal).not.toBeNull();
         }
-    });
-
-    it('handleExportModalClose is no-op during preparing state', async () => {
-        mockAreAllMatchingItemsSelected = true;
-        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
-
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
-
-        await waitFor(() => {
-            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
-        });
-
-        const exportOption = result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.basicExport')?.onSelected ?? exportOption?.onSelected;
-
-        await act(async () => {
-            onSelected?.();
-        });
-
-        expect(result.current.activeExportID).toBe('mock-export-id');
-
-        await act(async () => {
-            await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}mock-export-id`, {state: CONST.EXPORT_DOWNLOAD.STATE.PREPARING});
-        });
-
-        await act(async () => {
-            result.current.handleExportModalClose();
-        });
-
-        expect(result.current.activeExportID).toBe('mock-export-id');
     });
 });

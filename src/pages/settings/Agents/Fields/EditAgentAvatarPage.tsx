@@ -1,4 +1,4 @@
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Avatar from '@components/Avatar';
@@ -73,11 +73,10 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
     const [isAvatarCropModalOpen, setIsAvatarCropModalOpen] = useState(false);
     const [errorData, setErrorData] = useState<{validationError: TranslationPaths | null; phraseParam: Record<string, unknown>}>({validationError: null, phraseParam: {}});
 
-    const isSavingRef = useRef(false);
     const isDirty = selectedBotAvatar !== initialBotAvatar || imageData.uri !== '';
 
-    useDiscardChangesConfirmation({
-        getHasUnsavedChanges: () => !isSavingRef.current && isDirty,
+    const {notifySaving} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => isDirty,
     });
 
     let previewSource: AvatarSource = personalDetails?.avatar ?? '';
@@ -123,7 +122,7 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
         if (!isDirty) {
             return;
         }
-        isSavingRef.current = true;
+        notifySaving();
 
         if (imageData.file) {
             if (onSave) {

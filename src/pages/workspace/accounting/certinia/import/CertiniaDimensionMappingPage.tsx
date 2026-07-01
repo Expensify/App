@@ -86,6 +86,7 @@ function CertiniaDimensionMappingPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="CertiniaDimensionMappingPage"
             data={inputSectionData}
+            shouldBeBlocked={!!config?.hasPSA}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.CERTINIA}
             onSelectRow={(selection: SelectorType) => updateMapping(selection as MappingListItem)}
             initiallyFocusedOptionKey={inputSectionData.find((option) => option.isSelected)?.keyForList}

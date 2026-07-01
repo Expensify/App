@@ -1,7 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
@@ -21,6 +20,7 @@ import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {getIOURequestPolicyID} from '@userActions/IOU/MoneyRequest';
 import {addSubrate, removeSubrate, updateSubrate} from '@userActions/IOU/PerDiem';
@@ -239,8 +239,17 @@ function IOURequestStepSubrate({
                             items={validOptions}
                             onValueChange={(value) => {
                                 setSubrateValue(value as string);
-                                InteractionManager.runAfterInteractions(() => {
-                                    textInputRef.current?.focus();
+
+                                // Focus the Quantity input after the ValuePicker modal closes.
+                                // TransitionTracker's callback fires synchronously inside Reanimated's animation
+                                // callback (outside React's event handler), so React flushes state updates async
+                                // via MessageChannel. requestIdleCallback ensures focus() runs after React commits
+                                // and the modal's FocusTrap (web) deactivates, preventing focus from being stolen.
+                                TransitionTracker.runAfterTransitions({
+                                    callback: () => {
+                                        requestIdleCallback(() => textInputRef.current?.focus());
+                                    },
+                                    waitForUpcomingTransition: true,
                                 });
                             }}
                         />
