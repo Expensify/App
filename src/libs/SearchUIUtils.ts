@@ -1032,9 +1032,8 @@ function getSuggestedSearches(
 /**
  * Determines if the current user is eligible for the approve suggestion on a given policy.
  */
-function isEligibleForApproveSuggestion(approvalMode: string | undefined, isApprover: boolean, isSubmittedToTarget: boolean, isSubmitWorkspace = false): boolean {
-    // Submit workspaces always surface approval to the approver regardless of approvalMode, mirroring `isApproveAction`.
-    const isApprovalEnabled = isSubmitWorkspace || (approvalMode ? approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false);
+function isEligibleForApproveSuggestion(approvalMode: string | undefined, isApprover: boolean, isSubmittedToTarget: boolean): boolean {
+    const isApprovalEnabled = approvalMode ? approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
     return isApprovalEnabled && (isApprover || isSubmittedToTarget);
 }
 
@@ -1075,7 +1074,6 @@ function getSuggestedSearchesVisibility(
         const isPaidPolicy = isPaidGroupPolicy(policy);
         // Submit workspaces qualify for the same submitter/insights surface as paid group workspaces.
         const isGroupPolicyEligible = isGroupPolicy(policy);
-        const isSubmitWorkspace = isGroupPolicyEligible && !isPaidPolicy;
         const isPayer = isPolicyPayer(policy, currentUserEmail);
         const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
         const isAuditor = policy.role === CONST.POLICY.ROLE.AUDITOR;
@@ -1096,7 +1094,7 @@ function getSuggestedSearchesVisibility(
 
         const isEligibleForSubmitSuggestion = isGroupPolicyEligible;
         const isEligibleForPaySuggestion = isPaidPolicy && isPayer;
-        const isPolicyEligibleForApproveSuggestion = isGroupPolicyEligible && isEligibleForApproveSuggestion(policy.approvalMode, isUserApprover, isSubmittedTo, isSubmitWorkspace);
+        const isPolicyEligibleForApproveSuggestion = isGroupPolicyEligible && isEligibleForApproveSuggestion(policy.approvalMode, isUserApprover, isSubmittedTo);
         const isEligibleForExportSuggestion = isExporter && !hasExportError;
         const isEligibleForStatementsSuggestion = isPaidPolicy && (hasCardFeed || !!defaultExpensifyCard);
         const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isApprovalEnabled && isPaymentEnabled;
