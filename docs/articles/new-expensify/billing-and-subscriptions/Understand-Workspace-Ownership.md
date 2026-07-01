@@ -58,12 +58,12 @@ A workspace can have multiple Workspace Admins, but only one workspace owner. Wh
 
 Any Workspace Admin can transfer billing ownership to themselves if they need to assume responsibility for a workspace's subscription.
 
-To learn more, see [Take Over Workspace Ownership](Take-over-billing-ownership.md).
+To learn more, see Take Over Workspace Ownership.
 
 ---
 
 ## Related articles
 
-- [Understand billing terms and definitions](Understand-Billing-Terms-and-Definitions.md)
-- [How Billing, Plans, and Subscriptions Work](How-Billing-Plans-and-Subscriptions-Work.md)
+- Understand billing terms and definitions.
+- How Billing, Plans, and Subscriptions Work.
 
