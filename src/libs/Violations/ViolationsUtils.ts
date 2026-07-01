@@ -205,13 +205,13 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
         let hasInvalidTag = false;
         for (let i = 0; i < policyTagKeys.length; i++) {
             const selectedTag = selectedTags.at(i);
-            const tags = policyTagList[policyTagKeys[i]].tags;
-            const listHasEnabledTags = hasEnabledTags(tags);
-            if (!listHasEnabledTags) {
+            // Only a filled level can be out of policy; empty levels are covered by someTagLevelsRequired above.
+            if (!selectedTag) {
                 continue;
             }
-            const isTagInPolicy = !!selectedTag && !!tags[selectedTag]?.enabled;
-            if (!isTagInPolicy && selectedTag) {
+            const tags = policyTagList[policyTagKeys[i]].tags;
+            const isTagInPolicy = !!tags[selectedTag]?.enabled;
+            if (!isTagInPolicy) {
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
                     type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -221,6 +221,10 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
                     },
                 });
                 hasInvalidTag = true;
+                // The backend emits a single tagOutOfPolicy for the whole multi-level tag (labeled with the first
+                // out-of-policy level), so stop here to match it - flagging every level would flash extra errors on
+                // the other level rows that vanish once the backend response syncs.
+                break;
             }
         }
         if (!hasInvalidTag) {
@@ -335,7 +339,8 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
                 return !taxCode;
             }
             const matchingTaxRate = policyTaxRates[taxCode];
-            if (!matchingTaxRate) {
+            // A disabled rate still has a key and value, but it is no longer valid, so the violation isn't fixed.
+            if (!matchingTaxRate || matchingTaxRate.isDisabled) {
                 return false;
             }
             // If taxValue is provided, check that it matches the policy tax rate. If taxValue is not provided, just check that the tax code exists in the policy.
@@ -447,8 +452,9 @@ const ViolationsUtils = {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'missingCategory'});
             }
 
-            // Add 'missingCategory' violation if category is required and not set
-            if (!hasMissingCategoryViolation && policyRequiresCategories && !categoryKey && !isSelfDM) {
+            // Add 'missingCategory' violation when categories are required and none is set. isCategoryMissing also
+            // covers the 'Uncategorized'/'none' sentinel, mirroring the categoryOutOfPolicy check above.
+            if (!hasMissingCategoryViolation && !!policy.requiresCategory && isCategoryMissing(categoryKey) && !isSelfDM) {
                 newTransactionViolations.push({name: 'missingCategory', type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
             }
         } else if (transactionViolations.some((violation) => violation.name === 'missingCategory')) {
@@ -528,7 +534,10 @@ const ViolationsUtils = {
         const isPerDiemRequest = TransactionUtils.isPerDiemRequest(updatedTransaction);
         const isTimeRequest = TransactionUtils.isTimeRequest(updatedTransaction);
         const isPolicyTrackTaxEnabled = isTaxTrackingEnabled(true, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
-        const isTaxInPolicy = Object.keys(policy.taxRates?.taxes ?? {}).some((key) => key === updatedTransaction.taxCode);
+        // A disabled tax rate keeps its key (just `isDisabled: true`) but isn't valid, so it stays out of policy. A
+        // key-only check would treat it as in-policy and drop the violation on any unrelated recompute (e.g. tag delete).
+        const taxRate = updatedTransaction.taxCode ? policy.taxRates?.taxes?.[updatedTransaction.taxCode] : undefined;
+        const isTaxRateValid = !!taxRate && !taxRate.isDisabled;
 
         const amount = hasValidModifiedAmount(updatedTransaction) ? Number(updatedTransaction.modifiedAmount) : updatedTransaction.amount;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -743,7 +752,7 @@ const ViolationsUtils = {
 
         // When tax tracking is enabled, only a non-empty tax code that isn't a current policy rate is out of policy.
         // A transaction with no tax code (e.g. its tax was deleted) must not be flagged.
-        const shouldAddTaxOutOfPolicy = !isTimeRequest && !isPerDiemRequest && (isPolicyTrackTaxEnabled ? !!updatedTransaction.taxCode && !isTaxInPolicy : hasTransactionTaxData);
+        const shouldAddTaxOutOfPolicy = !isTimeRequest && !isPerDiemRequest && (isPolicyTrackTaxEnabled ? !!updatedTransaction.taxCode && !isTaxRateValid : hasTransactionTaxData);
 
         if (!hasTaxOutOfPolicyViolation && shouldAddTaxOutOfPolicy) {
             newTransactionViolations.push({name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
