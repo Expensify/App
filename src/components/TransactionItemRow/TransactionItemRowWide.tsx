@@ -124,6 +124,7 @@ function TransactionItemRowWide({
     const theme = useTheme();
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
+    const isTransactionScanning = isScanning(transactionItem);
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
     const reportPolicyID = report?.policyID ?? transactionItem.report?.policyID;
     const effectivePolicyID = isExpenseUnreported(transactionItem) ? policyForMovingExpensesID : reportPolicyID;
@@ -202,6 +203,7 @@ function TransactionItemRowWide({
                         <DateCell
                             canEdit={canEditDate}
                             date={createdAt}
+                            isScanning={isTransactionScanning}
                             onSave={onEditDate}
                             showTooltip={shouldShowTooltip}
                             isLargeScreenWidth
@@ -461,7 +463,7 @@ function TransactionItemRowWide({
                             <AmountCell
                                 total={totalPerAttendee ?? 0}
                                 currency={getCurrency(transactionItem)}
-                                isScanning={isScanning(transactionItem)}
+                                isScanning={isTransactionScanning}
                             />
                         )}
                     </View>

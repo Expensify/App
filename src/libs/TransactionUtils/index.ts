@@ -1523,6 +1523,19 @@ function isScanning(transaction: OnyxEntry<Transaction>): boolean {
     return isPartialTransaction(transaction) && hasReceipt(transaction);
 }
 
+/**
+ * Comparator that pins transactions with an in-progress scan above the rest, regardless of sort column or direction.
+ * Returns 0 when both or neither transaction is scanning, deferring to the caller's column comparison.
+ */
+function compareScanningPriority(a: OnyxEntry<Transaction>, b: OnyxEntry<Transaction>): number {
+    const aIsScanning = isScanning(a);
+    const bIsScanning = isScanning(b);
+    if (aIsScanning === bIsScanning) {
+        return 0;
+    }
+    return aIsScanning ? -1 : 1;
+}
+
 function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_READY || transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCANNING;
 }
@@ -3174,6 +3187,7 @@ export {
     isPartialTransaction,
     isScanningTransaction,
     isScanning,
+    compareScanningPriority,
     isCategoryBeingAnalyzed,
     getOriginalTransactionWithSplitInfo,
     shouldRedirectDeleteToSplitExpenseEdit,

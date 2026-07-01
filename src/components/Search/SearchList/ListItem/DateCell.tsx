@@ -3,6 +3,7 @@ import DatePickerModal from '@components/DatePicker/DatePickerModal';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {EditableCell, usePopoverEditState} from '@components/TransactionItemRow/EditableCell';
 import type {EditableProps} from '@components/TransactionItemRow/EditableCell/types';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
@@ -13,19 +14,26 @@ type DateCellProps = {
     showTooltip: boolean;
     isLargeScreenWidth: boolean;
     suffixText?: string;
+    /** Renders the scanning label in place of the date while the receipt scan is in progress */
+    isScanning?: boolean;
 } & EditableProps<string>;
 
-function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, canEdit, onSave}: DateCellProps) {
+function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, isScanning, canEdit, onSave}: DateCellProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const {isInNarrowPaneModal} = useResponsiveLayout();
+    // A scanning receipt has no real date yet, so its date cell must not be editable until the scan completes.
+    const canEditDate = canEdit && !isScanning;
     const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
-        canEdit,
+        canEdit: canEditDate,
         value: date,
         onSave,
     });
 
-    const formattedDate = DateUtils.formatWithUTCTimeZone(date, DateUtils.doesDateBelongToAPastYear(date) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-    const displayText = suffixText ? `${formattedDate} • ${suffixText}` : formattedDate;
+    const datePart = isScanning
+        ? translate('iou.receiptStatusTitle')
+        : DateUtils.formatWithUTCTimeZone(date, DateUtils.doesDateBelongToAPastYear(date) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+    const displayText = suffixText ? `${datePart} • ${suffixText}` : datePart;
 
     const displayContent = (
         <TextWithTooltip
@@ -37,7 +45,7 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, canEdit, o
 
     return (
         <EditableCell
-            canEdit={canEdit}
+            canEdit={canEditDate}
             isEditing={isEditing}
             onStartEditing={startEditing}
             anchorRef={anchorRef}

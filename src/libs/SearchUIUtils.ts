@@ -184,6 +184,7 @@ import {
 import StringUtils from './StringUtils';
 import {getIOUPayerAndReceiver} from './TransactionPreviewUtils';
 import {
+    compareScanningPriority,
     getAmount,
     getAttendees,
     getCategory,
@@ -3860,7 +3861,9 @@ function getTransactionTagGLCodeSortValue(transaction: TransactionListItemType, 
 
 /**
  * @private
- * Sorts transaction sections based on a specified column and sort order.
+ * Sorts transaction sections based on a specified column and sort order. Transactions with an in-progress
+ * receipt scan are always pinned to the top, regardless of the selected column or direction, so the user
+ * can track the scan's progress; the column comparison only orders the remaining (non-scanning) rows.
  */
 function getSortedTransactionData(
     data: TransactionListItemType[],
@@ -3871,170 +3874,113 @@ function getSortedTransactionData(
     options?: SortSectionsOptions,
 ) {
     if (!sortBy || !sortOrder) {
-        return data;
-    }
-
-    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.REPORT_ID || sortBy === CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID) {
-        return data.sort((a, b) => {
-            const aValue = a.reportID;
-            const bValue = b.reportID;
-            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare, true);
-        });
-    }
-
-    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO) {
-        return data.sort((a, b) => {
-            const aValue = `${!!a.exported}`;
-            const bValue = `${!!b.exported}`;
-            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
-        });
-    }
-
-    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID || sortBy === CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID || sortBy === CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS) {
-        return data.sort((a, b) => {
-            const aValue = getReportCustomColumnValue(sortBy, a.report);
-            const bValue = getReportCustomColumnValue(sortBy, b.report);
-            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
-        });
+        return data.sort(compareScanningPriority);
     }
 
     const sortingProperty =
         sortBy === CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE || sortBy === CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE ? undefined : transactionColumnNamesToSortingProperty[sortBy];
 
-    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME) {
-        return data.sort((a, b) => {
+    const compareColumn = (a: TransactionListItemType, b: TransactionListItemType): number => {
+        if (
+            sortBy === CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID ||
+            sortBy === CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID ||
+            sortBy === CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS
+        ) {
+            return compareValues(getReportCustomColumnValue(sortBy, a.report), getReportCustomColumnValue(sortBy, b.report), sortOrder, sortBy, localeCompare);
+        }
+
+        if (sortBy === CONST.SEARCH.TABLE_COLUMNS.REPORT_ID || sortBy === CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID) {
+            return compareValues(a.reportID, b.reportID, sortOrder, sortBy, localeCompare, true);
+        }
+
+        if (sortBy === CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO) {
+            return compareValues(`${!!a.exported}`, `${!!b.exported}`, sortOrder, sortBy, localeCompare);
+        }
+
+        if (sortBy === CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME) {
             const aIsUnreported = a.report?.type !== CONST.REPORT.TYPE.EXPENSE && a.report?.type !== CONST.REPORT.TYPE.INVOICE;
             const bIsUnreported = b.report?.type !== CONST.REPORT.TYPE.EXPENSE && b.report?.type !== CONST.REPORT.TYPE.INVOICE;
-
             const aValue = !aIsUnreported ? getPolicyName({report: a.report, policy: a.policy}) : '';
             const bValue = !bIsUnreported ? getPolicyName({report: b.report, policy: b.policy}) : '';
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
-        });
-    }
+        }
 
-    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.TITLE) {
-        return data.sort((a, b) => {
-            const aValue = a.report?.reportName ?? '';
-            const bValue = b.report?.reportName ?? '';
-            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
-        });
-    }
+        if (sortBy === CONST.SEARCH.TABLE_COLUMNS.TITLE) {
+            return compareValues(a.report?.reportName ?? '', b.report?.reportName ?? '', sortOrder, sortBy, localeCompare);
+        }
 
-    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.CARD) {
-        return data.sort((a, b) => {
+        if (sortBy === CONST.SEARCH.TABLE_COLUMNS.CARD) {
             const aValue = a.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : (a.cardName ?? '');
             const bValue = b.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : (b.cardName ?? '');
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
-        });
-    }
+        }
 
-    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.STATUS) {
-        return data.sort((a, b) => {
-            const aReport = a.report;
-            const bReport = b.report;
-
-            const aValue = getReportStatusTranslation({stateNum: aReport?.stateNum, statusNum: aReport?.statusNum, translate});
-            const bValue = getReportStatusTranslation({stateNum: bReport?.stateNum, statusNum: bReport?.statusNum, translate});
+        if (sortBy === CONST.SEARCH.TABLE_COLUMNS.STATUS) {
+            const aValue = getReportStatusTranslation({stateNum: a.report?.stateNum, statusNum: a.report?.statusNum, translate});
+            const bValue = getReportStatusTranslation({stateNum: b.report?.stateNum, statusNum: b.report?.statusNum, translate});
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
-        });
-    }
+        }
 
-    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE) {
-        return data.sort((a, b) => {
-            const aExchangeRate = getExchangeRate(a);
-            const bExchangeRate = getExchangeRate(b);
-            return compareValues(aExchangeRate, bExchangeRate, sortOrder, sortBy, localeCompare, true);
-        });
-    }
+        if (sortBy === CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE) {
+            return compareValues(getExchangeRate(a), getExchangeRate(b), sortOrder, sortBy, localeCompare, true);
+        }
 
-    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.TAX_RATE) {
-        return data.sort((a, b) => {
-            const aValue = getTaxName(a.policy, a);
-            const bValue = getTaxName(b.policy, b);
-            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
-        });
-    }
+        if (sortBy === CONST.SEARCH.TABLE_COLUMNS.TAX_RATE) {
+            return compareValues(getTaxName(a.policy, a), getTaxName(b.policy, b), sortOrder, sortBy, localeCompare);
+        }
 
-    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT) {
-        return data.sort((a, b) => {
+        if (sortBy === CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT) {
             const aValue = getOriginalAmountForDisplay(a, a.report?.type === CONST.REPORT.TYPE.EXPENSE);
             const bValue = getOriginalAmountForDisplay(b, b.report?.type === CONST.REPORT.TYPE.EXPENSE);
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare, true);
-        });
-    }
+        }
 
-    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.MCC) {
-        return data.sort((a, b) => {
-            const aValue = getMCCForDisplay(a.mcc);
-            const bValue = getMCCForDisplay(b.mcc);
-            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
-        });
-    }
+        if (sortBy === CONST.SEARCH.TABLE_COLUMNS.MCC) {
+            return compareValues(getMCCForDisplay(a.mcc), getMCCForDisplay(b.mcc), sortOrder, sortBy, localeCompare);
+        }
 
-    if (sortBy === CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE) {
-        return data.sort((a, b) => {
-            const aValue = getTransactionCategoryGLCodeSortValue(a, options);
-            const bValue = getTransactionCategoryGLCodeSortValue(b, options);
-            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
-        });
-    }
+        if (sortBy === CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE) {
+            return compareValues(getTransactionCategoryGLCodeSortValue(a, options), getTransactionCategoryGLCodeSortValue(b, options), sortOrder, sortBy, localeCompare);
+        }
 
-    if (sortBy === CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE) {
-        return data.sort((a, b) => {
-            const aValue = getTransactionTagGLCodeSortValue(a, options);
-            const bValue = getTransactionTagGLCodeSortValue(b, options);
-            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
-        });
-    }
+        if (sortBy === CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE) {
+            return compareValues(getTransactionTagGLCodeSortValue(a, options), getTransactionTagGLCodeSortValue(b, options), sortOrder, sortBy, localeCompare);
+        }
 
-    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.ATTENDEES) {
-        return data.sort((a, b) => {
-            const aValue = convertAttendeesToArray(a.comment?.attendees).length;
-            const bValue = convertAttendeesToArray(b.comment?.attendees).length;
-            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
-        });
-    }
+        if (sortBy === CONST.SEARCH.TABLE_COLUMNS.ATTENDEES) {
+            return compareValues(convertAttendeesToArray(a.comment?.attendees).length, convertAttendeesToArray(b.comment?.attendees).length, sortOrder, sortBy, localeCompare);
+        }
 
-    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE) {
-        const getTotalPerAttendee = (t: TransactionListItemType) => {
-            const attendeesCount = convertAttendeesToArray(t.comment?.attendees).length;
-            if (!attendeesCount) {
-                return 0;
-            }
-            const totalAmount = getAmount(t, t.report?.type === CONST.REPORT.TYPE.EXPENSE);
-            return totalAmount / attendeesCount;
-        };
+        if (sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE) {
+            const getTotalPerAttendee = (t: TransactionListItemType) => {
+                const attendeesCount = convertAttendeesToArray(t.comment?.attendees).length;
+                if (!attendeesCount) {
+                    return 0;
+                }
+                return getAmount(t, t.report?.type === CONST.REPORT.TYPE.EXPENSE) / attendeesCount;
+            };
+            return compareValues(getTotalPerAttendee(a), getTotalPerAttendee(b), sortOrder, sortBy, localeCompare);
+        }
 
-        return data.sort((a, b) => {
-            const aValue = getTotalPerAttendee(a);
-            const bValue = getTotalPerAttendee(b);
-            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
-        });
-    }
+        if (!sortingProperty) {
+            return 0;
+        }
 
-    if (!sortingProperty) {
-        return data;
-    }
-
-    return data.sort((a, b) => {
-        const aValue = getTransactionSortValue(a, sortingProperty);
-        const bValue = getTransactionSortValue(b, sortingProperty);
-
-        const primaryComparison = compareValues(aValue, bValue, sortOrder, sortingProperty, localeCompare);
-
+        const primaryComparison = compareValues(getTransactionSortValue(a, sortingProperty), getTransactionSortValue(b, sortingProperty), sortOrder, sortingProperty, localeCompare);
         if (primaryComparison !== 0) {
             return primaryComparison;
         }
 
         // If we have a tie in the primary comparison, we add a tie breaker on date and/or transactionID as a last resort to make the sort deterministic
         const createdComparison = compareValues(a.created, b.created, sortOrder, 'created', localeCompare);
-
         if (createdComparison !== 0) {
             return createdComparison;
         }
 
         return compareValues(a.transactionID, b.transactionID, sortOrder, 'transactionID', localeCompare);
-    });
+    };
+
+    return data.sort((a, b) => compareScanningPriority(a, b) || compareColumn(a, b));
 }
 
 function getSortedTaskData(data: TaskListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchSortBy, sortOrder?: SortOrder) {
