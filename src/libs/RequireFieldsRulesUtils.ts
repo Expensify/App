@@ -15,9 +15,6 @@ import {
     removePolicyCategoryReceiptsRequired,
     setPolicyCategoryAttendeesRequired,
     setPolicyCategoryDescriptionRequired,
-    setPolicyCategoryItemizedReceiptsRequired,
-    setPolicyCategoryReceiptsAndItemizedReceiptRequired,
-    setPolicyCategoryReceiptsRequired,
 } from './actions/Policy/Category';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {isPendingDeleteOrUpdate} from './PolicyRulesUtils';
@@ -41,14 +38,6 @@ function getRequireFieldsRuleNavigationRoute(policyID: string, categoryName: str
 
 function hasExplicitReceiptThreshold(value: number | null | undefined): value is number {
     return value !== null && value !== undefined && value !== CONST.DISABLED_MAX_EXPENSE_VALUE;
-}
-
-function isNeverReceiptRequired(value: number | null | undefined): boolean {
-    return value === CONST.DISABLED_MAX_EXPENSE_VALUE;
-}
-
-function hasCustomNonZeroReceiptThreshold(value: number | null | undefined): boolean {
-    return hasExplicitReceiptThreshold(value) && value !== 0;
 }
 
 function hasCategoryReceiptOverride(value: number | null | undefined): boolean {
@@ -129,46 +118,6 @@ function saveRequireFieldsRule(policyData: PolicyData, form: RequireFieldsRuleFo
 
     if (effectiveForm.requireAttendees !== initialForm.requireAttendees) {
         setPolicyCategoryAttendeesRequired(policyData.policy.id, categoryName, !!effectiveForm.requireAttendees, policyCategories);
-    }
-
-    const shouldRequireReceipt = !!effectiveForm[INPUT_IDS.REQUIRE_RECEIPT];
-    const shouldRequireItemizedReceipt = !!effectiveForm[INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT];
-    const hadReceipt = isRequireFieldEnabled(category, INPUT_IDS.REQUIRE_RECEIPT);
-    const hadItemizedReceipt = isRequireFieldEnabled(category, INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT);
-    const hadNeverReceipt = isNeverReceiptRequired(category?.maxAmountNoReceipt);
-    const hadNeverItemizedReceipt = isNeverReceiptRequired(category?.maxAmountNoItemizedReceipt);
-    const skipReceiptSave = hasCustomNonZeroReceiptThreshold(category?.maxAmountNoReceipt);
-    const skipItemizedSave = hasCustomNonZeroReceiptThreshold(category?.maxAmountNoItemizedReceipt);
-
-    if (!skipReceiptSave && !skipItemizedSave && shouldRequireItemizedReceipt && !shouldRequireReceipt && !hadReceipt && !hadNeverReceipt) {
-        setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData, categoryName, 0, 0);
-    } else {
-        if (!skipReceiptSave && (form[INPUT_IDS.REQUIRE_RECEIPT] !== undefined || form[INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT] !== undefined)) {
-            if (shouldRequireReceipt !== hadReceipt || (shouldRequireReceipt && hadNeverReceipt)) {
-                if (shouldRequireReceipt) {
-                    setPolicyCategoryReceiptsRequired(policyData, categoryName, 0);
-                } else {
-                    removePolicyCategoryReceiptsRequired(policyData, categoryName);
-                    if (hadItemizedReceipt || hadNeverItemizedReceipt) {
-                        removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
-                    }
-                }
-            }
-        }
-
-        if (!skipItemizedSave && form[INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT] !== undefined) {
-            if (shouldRequireItemizedReceipt !== hadItemizedReceipt || (shouldRequireItemizedReceipt && hadNeverItemizedReceipt)) {
-                if (shouldRequireItemizedReceipt) {
-                    if (shouldRequireReceipt || hadReceipt || category?.maxAmountNoReceipt === 0) {
-                        setPolicyCategoryItemizedReceiptsRequired(policyData, categoryName, 0);
-                    } else {
-                        setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData, categoryName, 0, 0);
-                    }
-                } else {
-                    removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
-                }
-            }
-        }
     }
 }
 
@@ -362,15 +311,5 @@ function getRequireFieldsTableData({
     return rules.sort((a, b) => localeCompare(a.conditionText, b.conditionText));
 }
 
-export {
-    categoryHasLegacyReceiptRules,
-    deleteRequireFieldsRule,
-    getEffectiveRequireFieldsRuleForm,
-    getRequireFieldsFormFromCategory,
-    getRequireFieldsRuleDescription,
-    getRequireFieldsTableData,
-    hasCustomNonZeroReceiptThreshold,
-    isNeverReceiptRequired,
-    saveRequireFieldsRule,
-};
+export {categoryHasLegacyReceiptRules, deleteRequireFieldsRule, getEffectiveRequireFieldsRuleForm, getRequireFieldsFormFromCategory, getRequireFieldsTableData, saveRequireFieldsRule};
 export type {RequireFieldsTableItem};
