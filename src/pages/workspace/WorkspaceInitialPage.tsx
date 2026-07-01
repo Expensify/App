@@ -2,6 +2,7 @@ import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigationState} from
 import {emailSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -31,9 +32,11 @@ import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/acti
 import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {isAnyHRConnected, isMergeHRCompleteSetupNeeded} from '@libs/HRUtils';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
+import WorkspaceCreationReveal from '@libs/Navigation/helpers/WorkspaceCreationReveal';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
+    arePolicyRulesEnabled,
     canMemberRead,
     canPolicyAccessFeature,
     shouldShowPolicy as checkIfShouldShowPolicy,
@@ -188,7 +191,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         [CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]: (policy?.isHREnabled === true || isAnyHRConnected(policy)) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED),
         [CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]: policy?.areExpensifyCardsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,
-        [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: policy?.areRulesEnabled,
+        [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: arePolicyRulesEnabled(policy, policyCategories),
         [CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]: policy?.areInvoicesEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]: policy?.arePerDiemRatesEnabled && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED),
         [CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]: policy?.receiptPartners?.enabled ?? false,
@@ -475,6 +478,21 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         });
     }, [canAccessRoute, shouldShowNotFoundPage]);
 
+    // When this page is revealed from under the RHP during workspace creation (#90985), the RHP
+    // slide-out is held until the page has painted. Signal readiness from the first non-empty layout
+    // of the actual content (not the navigator container, which lays out at full height before this
+    // lazy page mounts) and defer one frame so paint completes before the RHP slides away.
+    // notifyRevealUnderRHPReady is a no-op unless a reveal is pending, so this costs nothing on
+    // normal navigation.
+    const hasReportedRevealReadinessRef = useRef(false);
+    const handleRevealContentLayout = (event: LayoutChangeEvent) => {
+        if (hasReportedRevealReadinessRef.current || event.nativeEvent.layout.height === 0) {
+            return;
+        }
+        hasReportedRevealReadinessRef.current = true;
+        requestAnimationFrame(() => WorkspaceCreationReveal.notifyRevealUnderRHPReady());
+    };
+
     return (
         <ScreenWrapper
             testID="WorkspaceInitialPage"
@@ -508,7 +526,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                         shouldHideOnDelete={false}
                         shouldShowErrorMessages={false}
                     >
-                        <View style={[styles.pb4, styles.mh3, styles.mt3]}>
+                        <View
+                            style={[styles.pb4, styles.mh3, styles.mt3]}
+                            onLayout={handleRevealContentLayout}
+                        >
                             {/*
                                 Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
                                 In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
