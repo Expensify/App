@@ -255,6 +255,13 @@ function extractKeyFromPropertyNode(node: ts.PropertyAssignment | ts.MethodDecla
 }
 
 /**
+ * Returns true when a property assignment's value is an arrow or function expression.
+ */
+function isFunctionInitializer(initializer: ts.Expression | undefined): initializer is ts.ArrowFunction | ts.FunctionExpression {
+    return !!initializer && (ts.isArrowFunction(initializer) || ts.isFunctionExpression(initializer));
+}
+
+/**
  * Build a dot-notation path from a node by traversing up the AST to find property assignments.
  * Useful for building paths like "common.save" from a string literal node.
  */
@@ -268,7 +275,13 @@ function buildDotNotationPath(node: ts.Node, rootNode?: ts.Node): string | null 
         if (ts.isPropertyAssignment(current)) {
             const key = extractKeyFromPropertyNode(current);
             if (key) {
-                pathParts.unshift(key);
+                if (isFunctionInitializer(current.initializer)) {
+                    // Collapse to the outermost function-valued property so plural keys stay a single translatable unit
+                    pathParts.length = 0;
+                    pathParts.unshift(key);
+                } else {
+                    pathParts.unshift(key);
+                }
             }
         }
         current = current.parent;
