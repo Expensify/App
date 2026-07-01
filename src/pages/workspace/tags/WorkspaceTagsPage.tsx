@@ -66,6 +66,7 @@ import {
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
+import {hasAnyTagGLCode as hasAnyTagGLCodeUtils} from '@libs/TagUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {close} from '@userActions/Modal';
@@ -251,6 +252,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         [canWriteTags, policyData, showReadOnlyModal],
     );
     const shouldShowGLCodeColumn = isControlPolicyWithWideLayout && !isMultiLevelTags && Object.values(policyTagLists?.at(0)?.tags ?? {}).some((tag) => !!tag['GL Code']);
+
+    // Whether any tag across the multi-level lists has a GL Code, so the export only includes GL Code columns when they exist
+    const hasAnyTagGLCode = useMemo(() => hasAnyTagGLCodeUtils(policyTagLists), [policyTagLists]);
 
     const showAllTagsDisabledWarning = useCallback(() => {
         showConfirmModal({
@@ -517,6 +521,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                     setIsDownloadFailureModalVisible(true);
                                 },
                                 hasDependentTags,
+                                hasAnyTagGLCode,
                                 translate,
                             );
                         } else {
@@ -545,6 +550,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         isMultiLevelTags,
         policyID,
         hasDependentTags,
+        hasAnyTagGLCode,
         expensifyIcons,
         showConfirmModal,
         canWriteTags,

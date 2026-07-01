@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
 import CONST from '@src/CONST';
+import type {PolicyTagList} from '@src/types/onyx/PolicyTag';
 
 /**
  * Checks if a tag value is missing/empty
@@ -28,4 +29,11 @@ function getDecodedTagName(tagName: string): string {
     return Str.htmlDecode(tagName);
 }
 
-export {isTagMissing, trimTag, getDecodedTagName};
+/**
+ * Checks whether any tag across the multi-level tag lists has a GL Code, so the export only includes GL Code columns when they exist.
+ */
+function hasAnyTagGLCode(policyTagLists: PolicyTagList[]): boolean {
+    return policyTagLists.some((tagList) => Object.values(tagList.tags ?? {}).some((tag) => !!tag['GL Code']));
+}
+
+export {isTagMissing, trimTag, getDecodedTagName, hasAnyTagGLCode};

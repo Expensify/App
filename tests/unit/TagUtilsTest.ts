@@ -1,5 +1,19 @@
-import {getDecodedTagName, isTagMissing, trimTag} from '@libs/TagUtils';
+import {getDecodedTagName, hasAnyTagGLCode, isTagMissing, trimTag} from '@libs/TagUtils';
 import CONST from '@src/CONST';
+import type {PolicyTag, PolicyTagList, PolicyTags} from '@src/types/onyx/PolicyTag';
+
+function buildTagList(name: string, tags: PolicyTags): PolicyTagList {
+    return {name, required: false, orderWeight: 0, tags};
+}
+
+function buildTag(name: string, glCode?: string): PolicyTag {
+    return {
+        name,
+        enabled: true,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        ...(glCode === undefined ? {} : {'GL Code': glCode}),
+    };
+}
 
 describe('TagUtils', () => {
     describe('isTagMissing', () => {
@@ -85,6 +99,34 @@ describe('TagUtils', () => {
         it('decodes other common HTML entities', () => {
             expect(getDecodedTagName('a &lt; b &gt; c')).toBe('a < b > c');
             expect(getDecodedTagName('&quot;hello&quot;')).toBe('"hello"');
+        });
+    });
+
+    describe('hasAnyTagGLCode', () => {
+        it('returns false when no tag has a GL Code', () => {
+            const tagLists = [
+                buildTagList('Region', {California: buildTag('California'), Texas: buildTag('Texas')}),
+                buildTagList('City', {SanFrancisco: buildTag('San Francisco'), Austin: buildTag('Austin')}),
+            ];
+            expect(hasAnyTagGLCode(tagLists)).toBe(false);
+        });
+
+        it('returns true when at least one tag has a non-empty GL Code', () => {
+            const tagLists = [
+                buildTagList('Region', {California: buildTag('California'), Texas: buildTag('Texas', '4000')}),
+                buildTagList('City', {SanFrancisco: buildTag('San Francisco')}),
+            ];
+            expect(hasAnyTagGLCode(tagLists)).toBe(true);
+        });
+
+        it('ignores empty-string GL Codes', () => {
+            const tagLists = [buildTagList('Region', {California: buildTag('California', ''), Texas: buildTag('Texas', '')})];
+            expect(hasAnyTagGLCode(tagLists)).toBe(false);
+        });
+
+        it('returns false for empty or tag-less lists', () => {
+            expect(hasAnyTagGLCode([])).toBe(false);
+            expect(hasAnyTagGLCode([buildTagList('Region', {})])).toBe(false);
         });
     });
 });
