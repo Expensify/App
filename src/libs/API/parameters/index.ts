@@ -556,3 +556,4 @@ export type {default as SendExportFileFromConciergeParams} from './SendExportFil
 export type {default as ClearExportDownloadParams} from './ClearExportDownloadParams';
 export type {default as UpgradeSubmitParams} from './UpgradeSubmitParams';
 export type {default as UploadUserKYBDocsParams} from './UploadUserKYBDocsParams';
+export type {default as JoinReportViaSecureLinkParams} from './JoinReportViaSecureLinkParams';

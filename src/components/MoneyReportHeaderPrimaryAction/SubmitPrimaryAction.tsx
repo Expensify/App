@@ -1,13 +1,18 @@
 import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
+import type {ValueOf} from 'type-fest';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsContext';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import {ReportSubmitToPopoverAnchor, useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -20,9 +25,10 @@ import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {hasDynamicExternalWorkflow, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
+import {isSubmitViaPDFAction} from '@libs/ReportPrimaryActionUtils';
 import {hasViolations as hasViolationsReportUtils, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
-import {submitReport} from '@userActions/IOU/ReportWorkflow';
+import {setPreferredReportSubmissionMethod, submitReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,6 +42,8 @@ const ANCHOR_ALIGNMENT = {
 type SubmitPrimaryActionProps = {
     reportID: string | undefined;
 };
+
+type SubmissionMethod = ValueOf<typeof CONST.REPORT.SUBMISSION_METHOD>;
 
 function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
     const {startSubmittingAnimation} = usePaymentAnimationsContext();
@@ -59,6 +67,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
     const {isBetaEnabled} = usePermissions();
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
+    const {openPDFDownload} = useMoneyReportHeaderModals();
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
@@ -70,6 +79,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [preferredSubmissionMethod] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_PREFERRED_REPORT_SUBMISSION_METHOD}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
@@ -103,11 +113,17 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
         isTrackIntentUser,
     });
 
+    // Submit via PDF is only offered for Submit workspaces (behind the SUBMIT_2026 beta) when the submitter submits to
+    // themselves, since that's the flow where the backend generates the report PDF.
+    const canSubmitViaPDF = !!moneyRequestReport && isBetaEnabled(CONST.BETAS.SUBMIT_2026) && isSubmitViaPDFAction(moneyRequestReport, accountID, submitterLogin, policy);
+
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
 
-    const handleSubmit = () => {
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'Document']);
+
+    const handleSubmit = (shouldExportToPDF = false) => {
         if (!moneyRequestReport || shouldBlockSubmit) {
             return;
         }
@@ -118,7 +134,13 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
         }
 
         confirmPendingRTERAndProceed(() => {
-            if (isSubmitPolicy(policy) && reportID) {
+            if (shouldExportToPDF) {
+                // Open the PDF download modal before submitting so it can show progress and auto-download once the
+                // backend writes the generated filename into the PDF-filename NVP.
+                openPDFDownload();
+            } else if (isSubmitPolicy(policy) && reportID) {
+                // On a Submit workspace, vanilla Submit prompts for the approver's email via the submit-to popover,
+                // which runs the submit itself once an approver is chosen.
                 openReportSubmitToPopover();
                 return;
             }
@@ -136,6 +158,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
                 onSubmitted: startSubmittingAnimation,
                 ownerBillingGracePeriodEnd,
                 delegateEmail,
+                shouldExportToPDF,
                 submitterLogin,
             });
             if (currentSearchQueryJSON && !isOffline) {
@@ -151,12 +174,51 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
         });
     };
 
+    if (canSubmitViaPDF) {
+        const submitOptions: Array<DropdownOption<SubmissionMethod>> = [
+            {
+                value: CONST.REPORT.SUBMISSION_METHOD.SUBMIT,
+                text: translate('common.submit'),
+                icon: expensifyIcons.Send,
+                onSelected: () => {
+                    setPreferredReportSubmissionMethod(moneyRequestReport?.policyID, CONST.REPORT.SUBMISSION_METHOD.SUBMIT);
+                    handleSubmit();
+                },
+            },
+            {
+                value: CONST.REPORT.SUBMISSION_METHOD.SUBMIT_VIA_PDF,
+                text: translate('common.submitViaPDF'),
+                icon: expensifyIcons.Document,
+                onSelected: () => {
+                    setPreferredReportSubmissionMethod(moneyRequestReport?.policyID, CONST.REPORT.SUBMISSION_METHOD.SUBMIT_VIA_PDF);
+                    handleSubmit(true);
+                },
+            },
+        ];
+        const defaultSelectedIndex = preferredSubmissionMethod === CONST.REPORT.SUBMISSION_METHOD.SUBMIT_VIA_PDF ? 1 : 0;
+
+        return (
+            <ButtonWithDropdownMenu<SubmissionMethod>
+                success
+                shouldAlwaysShowDropdownMenu
+                pressOnEnter
+                isDisabled={shouldBlockSubmit}
+                options={submitOptions}
+                defaultSelectedIndex={defaultSelectedIndex}
+                onPress={(event, value) => {
+                    setPreferredReportSubmissionMethod(moneyRequestReport?.policyID, value);
+                    handleSubmit(value === CONST.REPORT.SUBMISSION_METHOD.SUBMIT_VIA_PDF);
+                }}
+            />
+        );
+    }
+
     return (
         <AnimatedSubmitButton
             success
             text={shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit')}
             isMarkAsDone={shouldUseMarkAsDoneCopy}
-            onPress={handleSubmit}
+            onPress={() => handleSubmit()}
             isSubmittingAnimationRunning={isSubmittingAnimationRunning}
             onAnimationFinish={stopAnimation}
             isDisabled={shouldBlockSubmit}

@@ -550,6 +550,22 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     return '';
 }
 
+/**
+ * Whether the "Submit via PDF" option should be offered alongside the Submit primary action.
+ *
+ * This is only available on Submit workspaces when the submitter submits the report to themselves (no separate
+ * approver), because that is the flow where the backend generates the report PDF for the submitter. The caller is
+ * responsible for additionally gating this on the SUBMIT_2026 beta and on Submit already being the primary action.
+ */
+function isSubmitViaPDFAction(report: Report, currentUserAccountID: number, ownerLogin: string | undefined, policy?: Policy): boolean {
+    if (!isSubmitPolicy(policy)) {
+        return false;
+    }
+
+    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin);
+    return isCurrentUserSubmitter(report) && report.ownerAccountID === currentUserAccountID && submitToAccountID === report.ownerAccountID;
+}
+
 function isMarkAsCashActionForTransaction(currentUserLogin: string, parentReport: Report, violations: TransactionViolation[], policy?: Policy): boolean {
     const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(violations);
 
@@ -620,4 +636,5 @@ export {
     getAllExpensesToHoldIfApplicable,
     isReviewDuplicatesAction,
     isMarkAsCashActionForTransaction,
+    isSubmitViaPDFAction,
 };

@@ -13,7 +13,7 @@ import useReportTransactionsCollection from '@hooks/useReportTransactionsCollect
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackNavigationProp, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
 import {getFilteredReportActionsForReportView, getIOUActionForReportID, getOneTransactionThreadReportID, isCreatedAction} from '@libs/ReportActionsUtils';
@@ -32,6 +32,7 @@ import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from 
 import {
     clearStaleDMRecoveryTargetByTargetReportID,
     createTransactionThreadReport,
+    joinReportViaSecureLink,
     openReport,
     readNewestAction,
     setViewingPublicRoomReportID,
@@ -72,8 +73,10 @@ function ReportFetchHandler() {
     const route = useRoute<ReportScreenRoute>();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const reportActionIDFromRoute = route?.params?.reportActionID;
+    // Only the main report route carries a Submit-via-PDF secure access key.
+    const secureKeyFromRoute = route.name === SCREENS.REPORT ? route.params?.secureKey : undefined;
 
-    const navigation = useNavigation();
+    const navigation = useNavigation<PlatformStackNavigationProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const {isOffline} = useNetwork();
@@ -84,6 +87,7 @@ function ReportFetchHandler() {
     const prevIsAnonymousUser = useRef(false);
     const hasCreatedLegacyThreadRef = useRef(false);
     const didSubscribeToReportLeavingEvents = useRef(false);
+    const hasJoinedViaSecureLinkRef = useRef(false);
 
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportOnyx?.chatReportID}`);
@@ -219,6 +223,22 @@ function ReportFetchHandler() {
         }
         navigation.setParams({reportActionID: ''});
     }, [transactionThreadReportID, route?.params?.reportActionID, linkedAction, reportID, navigation, report, childReport]);
+
+    // When an approver opens a Submit-via-PDF secure access link (/r/:reportID?secureKey=...), validate it once they're
+    // signed in. On success the backend shares the report and sets them as manager; on failure the ReportNotFoundGuard
+    // shows the standard 404. Drop the key from the URL afterwards so it isn't reused or left in history.
+    useEffect(() => {
+        if (!secureKeyFromRoute || !reportIDFromRoute || isAnonymousUser || hasJoinedViaSecureLinkRef.current) {
+            return;
+        }
+        hasJoinedViaSecureLinkRef.current = true;
+        joinReportViaSecureLink(reportIDFromRoute, secureKeyFromRoute);
+        navigation.setParams({secureKey: undefined});
+    }, [secureKeyFromRoute, reportIDFromRoute, isAnonymousUser, navigation]);
+
+    useEffect(() => {
+        hasJoinedViaSecureLinkRef.current = false;
+    }, [reportIDFromRoute]);
 
     useEffect(() => {
         if (!isAnonymousUser) {

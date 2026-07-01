@@ -455,6 +455,7 @@ const translations = {
         validate: 'Validate',
         downloadAsPDF: 'Download as PDF',
         downloadAsCSV: 'Download as CSV',
+        submitViaPDF: 'Submit via PDF',
         print: 'Print',
         help: 'Help',
         collapsed: 'Collapsed',
