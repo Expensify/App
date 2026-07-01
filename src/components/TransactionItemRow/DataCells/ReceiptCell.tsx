@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ViewStyle} from 'react-native';
 import ReceiptImage from '@components/ReceiptImage';
@@ -40,11 +40,16 @@ function ReceiptCell({
     // ReceiptPreview handles its own visibility via debounced state, so keeping it
     // mounted avoids re-creating the portal and reloading images on subsequent hovers.
     const [shouldMountPreview, setShouldMountPreview] = useState(false);
+    const cellRef = useRef<View>(null);
+    // The preview is a document.body portal, so it needs the hovered cell's window position to
+    // anchor itself beside the row instead of sitting fixed in the upper-left corner.
+    const [previewAnchor, setPreviewAnchor] = useState<{top: number; left: number; width: number; height: number}>();
 
     const handleMouseEnter = () => {
         if (!shouldMountPreview) {
             setShouldMountPreview(true);
         }
+        cellRef.current?.measureInWindow((left, top, width, height) => setPreviewAnchor({left, top, width, height}));
         bind.onMouseEnter();
     };
 
@@ -63,6 +68,7 @@ function ReceiptCell({
 
     return (
         <View
+            ref={cellRef}
             style={[
                 StyleUtils.getWidthAndHeightStyle(isLargeScreenWidth ? variables.w28 : variables.h36, isLargeScreenWidth ? variables.h32 : variables.w40),
                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall),
@@ -97,6 +103,7 @@ function ReceiptCell({
                     hovered={hovered && shouldShowPreview}
                     isEReceipt={!!isEReceipt}
                     transactionItem={transactionItem}
+                    anchorPosition={previewAnchor}
                 />
             )}
         </View>

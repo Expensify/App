@@ -111,6 +111,8 @@ export default {
     receiptPaneRHPMaxWidth: 465,
     receiptPreviewMaxWidth: 440,
     receiptPreviewMaxHeight: 440,
+    receiptPreviewWidth: 380,
+    widgetHeaderTitleLineHeight: 20,
     homePageLeftColumnMaxWidth: 680,
     homePageRightColumnMaxWidth: 488,
     minScanTooltipWidth: 320,
