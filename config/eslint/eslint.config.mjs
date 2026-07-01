@@ -498,7 +498,6 @@ const config = defineConfig([
             // files — they defensively handle nullish/non-array inputs that
             // TypeScript would otherwise catch at compile time.
             'lodash/import-scope': 'off',
-            'no-use-before-define': 'off',
         },
     },
 
