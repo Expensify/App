@@ -511,6 +511,7 @@ const translations: TranslationDeepObject<typeof en> = {
         restrictions: '限制',
         tagGLCode: '标记总账代码',
         off: '关',
+        apiKey: 'API 密钥',
     },
     socials: {
         podcast: '在播客上关注我们',
@@ -5325,6 +5326,15 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 }
             },
         },
+        rillet: {
+            rilletSetup: 'Rillet 设置',
+            enterCredentials: '输入你的 Rillet API 密钥',
+            howToFindAPIKey: '<strong>查找您的 API 密钥。</strong><ol><li>登录 Rillet</li><li>前往“账号”->“设置”</li><li>复制下面的 API 密钥</li></ol>',
+            subsidiary: '子公司',
+            subsidiarySelectDescription: '请选择要从中导入数据的 Rillet 子公司。',
+            noSubsidiariesFound: '未找到子公司',
+            noSubsidiariesFoundDescription: '请在 Rillet 中添加一个子公司，然后再次同步连接',
+        },
         type: {
             free: '免费',
             control: '控制',
@@ -6263,6 +6273,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            rillet: 'Rillet',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6280,6 +6291,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         return 'NetSuite';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
+                    case CONST.POLICY.CONNECTIONS.NAME.RILLET:
+                        return 'Rillet';
                     default: {
                         return '';
                     }
@@ -6503,6 +6516,12 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                             return '正在导入维度';
                         case 'financialForceMarkAsReimbursed':
                             return '正在将报告标记为已报销';
+                        case 'rilletSyncTitle':
+                            return '正在同步 Rillet 数据';
+                        case 'rilletSyncConnection':
+                            return '正在初始化与 Rillet 的连接';
+                        case 'rilletSyncImportData':
+                            return '正在加载数据';
                         default: {
                             return `缺少以下阶段的翻译：${stage}`;
                         }
@@ -6760,6 +6779,12 @@ ${reportName}`,
                 description: `通过 Expensify 与 Certinia 的集成，享受自动同步，减少手动录入。将费用编码维度与税务同步与您的 Certinia 配置对齐，以获得更清晰的财务可见性。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>我们的 Certinia 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                title: 'Rillet',
+                description: `通过 Expensify 与 Rillet 的集成，享受自动同步，减少手动录入。将费用编码维度与税务同步与您的 Rillet 配置对齐，以获得更清晰的财务可见性。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>我们的 Rillet 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: '高级审批',

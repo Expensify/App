@@ -40,6 +40,7 @@ function ExportedToSelector({value = [], policyIDs = [], selectionListTextInputS
         'IntacctSquare',
         'QBDSquare',
         'CertiniaSquare',
+        'RilletSquare',
         'GustoSquare',
         'Table',
         'TablePencil',

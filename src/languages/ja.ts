@@ -515,6 +515,7 @@ const translations: TranslationDeepObject<typeof en> = {
         restrictions: '制限',
         tagGLCode: 'GL コードにタグを付ける',
         off: 'オフ',
+        apiKey: 'API キー',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
@@ -5430,6 +5431,16 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 }
             },
         },
+        rillet: {
+            rilletSetup: 'Rillet のセットアップ',
+            enterCredentials: 'Rillet の API キーを入力してください',
+            howToFindAPIKey:
+                '<strong>API キーの確認方法</strong><ol><li>Rillet にログインします</li><li>［Account］→［Settings］に移動します</li><li>以下の API キーをコピーします</li></ol>',
+            subsidiary: '子会社',
+            subsidiarySelectDescription: 'データをインポートしたい Rillet 内の子会社を選択してください。',
+            noSubsidiariesFound: '子会社が見つかりません',
+            noSubsidiariesFoundDescription: 'Rillet に子会社を追加して、もう一度接続を同期してください',
+        },
         type: {
             free: '無料',
             control: 'コントロール',
@@ -6386,6 +6397,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            rillet: 'Rillet',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6403,6 +6415,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                         return 'NetSuite';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
+                    case CONST.POLICY.CONNECTIONS.NAME.RILLET:
+                        return 'Rillet';
                     default: {
                         return '';
                     }
@@ -6628,6 +6642,12 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                             return 'ディメンションをインポート中';
                         case 'financialForceMarkAsReimbursed':
                             return 'レポートを払い戻し済みにマーク中';
+                        case 'rilletSyncTitle':
+                            return 'Rillet データを同期しています';
+                        case 'rilletSyncConnection':
+                            return 'Rillet への接続を初期化しています';
+                        case 'rilletSyncImportData':
+                            return 'データを読み込んでいます';
                         default: {
                             return `ステージの翻訳が見つかりません: ${stage}`;
                         }
@@ -6891,6 +6911,12 @@ ${reportName}`,
                 description: `Expensify と Certinia の連携で自動同期を活用し、手入力を減らしましょう。経費のコーディングディメンションと税務同期を Certinia の設定に合わせて、財務の可視性を高めます。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Certinia 連携は Control プランでのみご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からご利用いただけます。</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                title: 'Rillet',
+                description: `Expensify と Rillet の連携で自動同期を活用し、手入力を減らしましょう。経費のコーディングディメンションと税務同期を Rillet の設定に合わせて、財務の可視性を高めます。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Rillet 連携は Control プランでのみご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からご利用いただけます。</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: '高度な承認',
