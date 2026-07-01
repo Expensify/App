@@ -1,13 +1,13 @@
 ---
-title: Understand billing ownership
-description: Learn how billing ownership works in New Expensify, including who pays for a workspace, who can manage subscriptions, and how billing ownership differs from workspace administration.
-keywords: [billing owner, workspace admin, subscription owner, billing permissions, workspace billing]
-internalScope: Audience is workspace billing owners and workspace admins. Explains billing ownership, permissions, and responsibilities. Does not include transfer or management procedures.
+title: Understand Workspace Billing Ownership
+description: Learn how workspace ownership works in New Expensify, including who pays for a workspace, who can manage subscriptions, and how workspace ownership differs from workspace administration.
+keywords: [billing owner, workspace admin, subscription owner, billing permissions, workspace billing, workspace owner]
+internalScope: Audience is billing Owners and workspace admins. Explains billing ownership, permissions, and responsibilities. Does not include transfer or management procedures.
 contentType: topic
 platform: new
 ---
 
-# Understand billing ownership
+# Understand Workspace Billing Ownership
 
 Every paid workspace has an Owner. The Oener is responsible for paying the workspace's subscription and is the only person who can manage billing-related settings like plans and sunscriptions. 
 
