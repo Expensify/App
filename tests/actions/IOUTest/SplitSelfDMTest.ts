@@ -173,6 +173,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID: selfDMReport.reportID,
@@ -260,6 +261,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID: selfDMReport.reportID,
@@ -367,6 +369,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             allSnapshots,
             transactionData: {
@@ -461,6 +464,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID: selfDMReport.reportID,
@@ -520,6 +524,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID: selfDMReport.reportID,
@@ -610,6 +615,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID: selfDMReport.reportID,
