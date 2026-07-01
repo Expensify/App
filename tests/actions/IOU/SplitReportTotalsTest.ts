@@ -876,9 +876,10 @@ describe('actions/IOU', () => {
             expect(addPendingNewTransactionIDs).not.toHaveBeenCalled();
         });
 
-        it('skips registration when splitting from the Search/Spend page', async () => {
+        it('registers the search-route highlight (not report metadata) when splitting from the Search/Spend page', async () => {
             // Given the user is on the Search (Spend > Expenses) page, where the expense report is never opened
             jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
+            const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute');
             const params = buildBaseParams({
                 transactionData: {
                     reportID: EXPENSE_REPORT_ID,
@@ -895,9 +896,50 @@ describe('actions/IOU', () => {
             updateSplitTransactionsFromSplitExpensesFlow(params);
             await waitForBatchedUpdates();
 
-            // Then nothing is registered — the report is never mounted, so the flags would never be cleared
-            // and would incorrectly highlight rows when the report is later opened from the Inbox.
+            // Then the report-metadata highlight is skipped — the report is never mounted, so those flags would
+            // never be cleared and would incorrectly highlight rows when the report is later opened from the Inbox.
             expect(addPendingNewTransactionIDs).not.toHaveBeenCalled();
+
+            // And instead the new IDs are registered on the search-route highlight, keyed by the current search type.
+            // This mechanism highlights optimistically without a server re-search, so it works offline too.
+            expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledWith(
+                'expense',
+                Object.fromEntries([
+                    ['new-tx-1', true],
+                    ['new-tx-2', true],
+                ]),
+            );
+
+            spyOnMergeTransactionIdsHighlightOnSearchRoute.mockRestore();
+        });
+
+        it('skips the search-route highlight during a reverse split from the Search/Spend page', async () => {
+            // Given the user is on the Search page and this is a reverse split (1 expense, existing child present)
+            jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
+            const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute');
+            const existingChildTx = {
+                transactionID: 'child-tx-1',
+                reportID: EXPENSE_REPORT_ID,
+                comment: {originalTransactionID: ORIGINAL_TX_ID, source: CONST.IOU.TYPE.SPLIT},
+            };
+            const params = buildBaseParams({
+                allTransactionsList: {[`${ONYXKEYS.COLLECTION.TRANSACTION}child-tx-1`]: existingChildTx},
+                transactionData: {
+                    reportID: EXPENSE_REPORT_ID,
+                    originalTransactionID: ORIGINAL_TX_ID,
+                    splitExpenses: [{transactionID: 'new-merged-tx', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 1000, created: '2024-01-01'}],
+                    splitExpensesTotal: 1000,
+                },
+            });
+
+            // When saving the reverse split
+            updateSplitTransactionsFromSplitExpensesFlow(params);
+            await waitForBatchedUpdates();
+
+            // Then nothing is highlighted — reverse splits create no new transactions
+            expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).not.toHaveBeenCalled();
+
+            spyOnMergeTransactionIdsHighlightOnSearchRoute.mockRestore();
         });
     });
 });

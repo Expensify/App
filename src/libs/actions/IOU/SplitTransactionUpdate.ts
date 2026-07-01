@@ -41,9 +41,11 @@ import {
     navigateBackOnDeleteTransaction,
     updateOptimisticParentReportAction,
 } from '@libs/ReportUtils';
+import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {isTracking, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {getChildTransactions, isDistanceRequest as isDistanceRequestTransactionUtils, isOnHold, isPerDiemRequest as isPerDiemRequestTransactionUtils} from '@libs/TransactionUtils';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
+import {mergeTransactionIdsHighlightOnSearchRoute} from '@userActions/Transaction';
 import {removeDraftSplitTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -1902,6 +1904,28 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     const targetReportID = params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
 
     if (isSearchPageTopmostFullScreenRoute || !params.transactionReport?.parentReportID) {
+        // Register newly created split transaction IDs so they briefly highlight on the Search/Spend page.
+        // The Search page reads TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE, which highlights matching rows
+        // optimistically without waiting for a server re-search. Unlike the auto-detect path in
+        // useSearchHighlightAndScroll (skipped while offline), this makes the highlight work offline too.
+        // Reverse splits create no new transactions, and existing children are already in the list, so both are skipped.
+        if (isSearchPageTopmostFullScreenRoute && !isReverseSplitOperation) {
+            const currentSearchType = getCurrentSearchQueryJSON()?.type;
+            if (currentSearchType) {
+                const existingChildTransactionIDs = new Set(allChildTransactions.map((tx) => tx?.transactionID).filter(Boolean));
+                const newTransactionIDsToHighlight: Record<string, boolean> = {};
+                for (const splitExpense of splitExpenses) {
+                    if (!splitExpense.transactionID || existingChildTransactionIDs.has(splitExpense.transactionID)) {
+                        continue;
+                    }
+                    newTransactionIDsToHighlight[splitExpense.transactionID] = true;
+                }
+                if (!isEmptyObject(newTransactionIDsToHighlight)) {
+                    mergeTransactionIdsHighlightOnSearchRoute(currentSearchType, newTransactionIDsToHighlight);
+                }
+            }
+        }
+
         if (!isSelfDMSplit) {
             Navigation.navigateBackToLastSuperWideRHPScreen();
         }
