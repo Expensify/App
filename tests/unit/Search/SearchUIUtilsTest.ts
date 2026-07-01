@@ -5463,8 +5463,9 @@ describe('SearchUIUtils', () => {
         const TEST_QUERY_HASH = 99999;
         const expenseType: typeof CONST.SEARCH.DATA_TYPES.EXPENSE = CONST.SEARCH.DATA_TYPES.EXPENSE;
 
-        function makeExpenseQueryJSON(status: string | string[]) {
+        function makeExpenseQueryJSON(status: string | string[], isNegated = false) {
             const statusValues = Array.isArray(status) ? status : [status];
+            const operator = isNegated ? CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO : CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
             return {
                 type: expenseType,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
@@ -5474,7 +5475,7 @@ describe('SearchUIUtils', () => {
                 flatFilters: [
                     {
                         key: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
-                        filters: statusValues.map((value) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value})),
+                        filters: statusValues.map((value) => ({operator, value})),
                     },
                 ],
                 inputQuery: 'type:expense' as const,
@@ -5570,6 +5571,31 @@ describe('SearchUIUtils', () => {
                 const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
                 const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(CONST.SEARCH.STATUS.EXPENSE.ALL)});
                 expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
+            });
+
+            it('should include transactions when negated status excludes a different status than the report state', () => {
+                // Report is OUTSTANDING but we negate DRAFTS, so OUTSTANDING is not excluded and the transaction is shown.
+                const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
+                const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(CONST.SEARCH.STATUS.EXPENSE.DRAFTS, true)});
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
+            });
+
+            it('should include transactions when negated status array excludes statuses other than the report state', () => {
+                // Report is OUTSTANDING and we negate DRAFTS + APPROVED, so OUTSTANDING is not excluded and the transaction is shown.
+                const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
+                const [sections] = callGetTransactionsSections(data, {
+                    queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.APPROVED], true),
+                });
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
+            });
+
+            it('should exclude transactions when negated status excludes every status matching the report (including ALL)', () => {
+                // Report is OUTSTANDING and we negate both OUTSTANDING and ALL, so no non-excluded predicate matches and the transaction is hidden.
+                const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
+                const [sections] = callGetTransactionsSections(data, {
+                    queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING, CONST.SEARCH.STATUS.EXPENSE.ALL], true),
+                });
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(false);
             });
 
             it('should include UNREPORTED transactions when there is no associated report', () => {
@@ -5807,6 +5833,31 @@ describe('SearchUIUtils', () => {
                 const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, type: CONST.REPORT.TYPE.EXPENSE});
                 const [sections] = callGetReportSections(data, {
                     queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING, CONST.SEARCH.STATUS.EXPENSE.PAID]),
+                });
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(false);
+            });
+
+            it('should include report when negated status excludes a different status than the report state', () => {
+                // Report is OUTSTANDING but we negate DRAFTS, so OUTSTANDING is not excluded and the report is shown.
+                const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, type: CONST.REPORT.TYPE.EXPENSE});
+                const [sections] = callGetReportSections(data, {queryJSON: makeExpenseQueryJSON(CONST.SEARCH.STATUS.EXPENSE.DRAFTS, true)});
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(true);
+            });
+
+            it('should include report when negated status array excludes statuses other than the report state', () => {
+                // Report is OUTSTANDING and we negate DRAFTS + APPROVED, so OUTSTANDING is not excluded and the report is shown.
+                const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, type: CONST.REPORT.TYPE.EXPENSE});
+                const [sections] = callGetReportSections(data, {
+                    queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.APPROVED], true),
+                });
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(true);
+            });
+
+            it('should exclude report when negated status excludes every status matching the report (including ALL)', () => {
+                // Report is OUTSTANDING and we negate both OUTSTANDING and ALL, so no non-excluded predicate matches and the report is hidden.
+                const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, type: CONST.REPORT.TYPE.EXPENSE});
+                const [sections] = callGetReportSections(data, {
+                    queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING, CONST.SEARCH.STATUS.EXPENSE.ALL], true),
                 });
                 expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(false);
             });
@@ -7600,6 +7651,61 @@ describe('SearchUIUtils', () => {
             expect(approveItem).toBeDefined();
             expect(payItem).toBeDefined();
             expect(exportItem).toBeDefined();
+        });
+    });
+
+    describe('Test isSearchDataLoaded', () => {
+        const queryJSON = buildSearchQueryJSON('type:expense');
+
+        function makeSearchResults(overrides: Partial<OnyxTypes.SearchResults> = {}): OnyxTypes.SearchResults {
+            return {
+                data: {personalDetailsList: {}},
+                search: {
+                    hasMoreResults: false,
+                    hasResults: true,
+                    offset: 0,
+                    hash: queryJSON?.hash ?? 0,
+                    isLoading: false,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                },
+                ...overrides,
+            };
+        }
+
+        it('should return true when data is present and search type and hash match the query', () => {
+            expect(SearchUIUtils.isSearchDataLoaded(makeSearchResults(), queryJSON)).toBe(true);
+        });
+
+        it('should return true when data is absent but errors are present and type and hash match', () => {
+            const results = makeSearchResults({data: undefined, errors: {error: 'Something went wrong'}});
+            expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(true);
+        });
+
+        it('should return false when both data and errors are absent', () => {
+            const results = makeSearchResults({data: undefined, errors: undefined});
+            expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(false);
+        });
+
+        it('should return false when the search type does not match the query type', () => {
+            const results = makeSearchResults({
+                search: {hasMoreResults: false, hasResults: true, offset: 0, hash: queryJSON?.hash ?? 0, isLoading: false, type: CONST.SEARCH.DATA_TYPES.CHAT},
+            });
+            expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(false);
+        });
+
+        it('should return false when the search hash does not match the query hash', () => {
+            const results = makeSearchResults({
+                search: {hasMoreResults: false, hasResults: true, offset: 0, hash: (queryJSON?.hash ?? 0) + 1, isLoading: false, type: CONST.SEARCH.DATA_TYPES.EXPENSE},
+            });
+            expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(false);
+        });
+
+        it('should return false when searchResults is undefined', () => {
+            expect(SearchUIUtils.isSearchDataLoaded(undefined, queryJSON)).toBe(false);
+        });
+
+        it('should return false when queryJSON is undefined but searchResults has a concrete type and hash', () => {
+            expect(SearchUIUtils.isSearchDataLoaded(makeSearchResults(), undefined)).toBe(false);
         });
     });
 
