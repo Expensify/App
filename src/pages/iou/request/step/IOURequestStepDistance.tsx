@@ -157,17 +157,6 @@ function IOURequestStepDistance({
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, currentTransaction);
 
-    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
-        // Split edits skip the transaction backup, so their pre-edit route lives in `originalSplitTransactionDraft`.
-        getHasUnsavedChanges: () =>
-            getWaypointsHasUnsavedChanges(
-                transaction,
-                isEditingSplit ? originalSplitTransactionDraft?.comment?.waypoints : transactionBackup?.comment?.waypoints,
-                waypoints,
-                isCreatingNewRequest,
-            ),
-    });
-
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     // Manual distance editing state
@@ -195,6 +184,17 @@ function IOURequestStepDistance({
         () => (distanceInMeters > 0 ? roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, distanceUnit)) : undefined),
         [distanceInMeters, distanceUnit],
     );
+
+    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => {
+            // The Manual tab holds the typed distance in `manualNumberFormRef` until Save — check it separately from waypoints, matching the save path.
+            const typedDistance = manualNumberFormRef.current?.getNumber();
+            const manualDistanceChanged = !!typedDistance && roundToTwoDecimalPlaces(parseFloat(typedDistance)) !== currentDistance;
+            // Split edits skip the transaction backup, so their pre-edit route lives in `originalSplitTransactionDraft`.
+            const committedWaypoints = isEditingSplit ? originalSplitTransactionDraft?.comment?.waypoints : transactionBackup?.comment?.waypoints;
+            return manualDistanceChanged || getWaypointsHasUnsavedChanges(transaction, committedWaypoints, waypoints, isCreatingNewRequest);
+        },
+    });
 
     // Track whether the user has typed in the manual tab so route re-fetches don't clobber in-progress
     // input. Editing waypoints clears this (in the effect below) — a recalculated route supersedes a
