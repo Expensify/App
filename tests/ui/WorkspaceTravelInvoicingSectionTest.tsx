@@ -6,6 +6,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {SWITCH_LOCK_ICON_TEST_ID} from '@components/Switch';
 import {payTravelInvoicingSpend} from '@libs/actions/TravelInvoicing';
 import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import WorkspaceTravelInvoicingSection from '@pages/workspace/travel/WorkspaceTravelInvoicingSection';
@@ -502,6 +503,52 @@ describe('WorkspaceTravelInvoicingSection', () => {
 
             // No queued message
             expect(screen.queryByText(/Payment of .* is queued/)).toBeNull();
+        });
+    });
+
+    describe('Lock icon (outstanding balance)', () => {
+        const cardSettingsKey = getTravelInvoicingCardSettingsKey(WORKSPACE_ACCOUNT_ID);
+
+        it('shows the toggle lock icon when there is an outstanding travel balance', async () => {
+            // Given a configured workspace with an unpaid travel balance
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+                await Onyx.merge(cardSettingsKey, {
+                    TRAVEL_US: {
+                        isEnabled: true,
+                        paymentBankAccountID: 12345,
+                        currentBalance: 5000,
+                    },
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderWorkspaceTravelInvoicingSection();
+            await waitForBatchedUpdatesWithAct();
+
+            // The lock stays on the toggle since the feature can't be turned off until the balance is paid
+            expect(screen.getByTestId(SWITCH_LOCK_ICON_TEST_ID, {includeHiddenElements: true})).toBeTruthy();
+        });
+
+        it('does not show the toggle lock icon when the balance is paid', async () => {
+            // Given a configured workspace with no outstanding balance and no pending settlement
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+                await Onyx.merge(cardSettingsKey, {
+                    TRAVEL_US: {
+                        isEnabled: true,
+                        paymentBankAccountID: 12345,
+                        currentBalance: 0,
+                        pendingSettlementAmount: 0,
+                    },
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderWorkspaceTravelInvoicingSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId(SWITCH_LOCK_ICON_TEST_ID, {includeHiddenElements: true})).toBeNull();
         });
     });
 
