@@ -23,6 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
 import type * as OnyxTypes from '@src/types/onyx';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 type MoneyRequestReportRHPNavigationButtonsProps = {
@@ -31,13 +32,14 @@ type MoneyRequestReportRHPNavigationButtonsProps = {
     shouldDisplayNarrowVersion?: boolean;
 };
 
-const collectParentReportActions = (reportActions: OnyxEntry<OnyxTypes.ReportActions>, parentActions: Map<string, OnyxTypes.ReportAction>) => {
+const collectParentReportActions = (reportActions: OnyxEntry<OnyxTypes.ReportActions>, parentActions: Record<string, OnyxTypes.ReportAction>) => {
     for (const action of Object.values(reportActions ?? {})) {
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         if (!transactionID) {
             continue;
         }
-        parentActions.set(transactionID, action);
+        // eslint-disable-next-line no-param-reassign
+        parentActions[transactionID] = action;
     }
 };
 
@@ -96,7 +98,8 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             // Build the transactionID -> IOU action map in a single pass. We deliberately avoid merging the
             // report actions into one intermediate object (repeated spreads are O(n²) and, with a snapshot,
             // would copy every report's actions), since this selector re-runs on any report-action change.
-            const parentActions = new Map<string, OnyxTypes.ReportAction>();
+            // We return a plain object (not a Map) because useOnyx's deepEqual is very slow for Maps.
+            const parentActions: Record<string, OnyxTypes.ReportAction> = {};
             // Reported transactions keep their IOU action on their own report (reportActions_<reportID>).
             for (const transaction of [currentTransaction, prevTransaction, nextTransaction]) {
                 const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}` as const;
@@ -117,7 +120,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         [currentTransaction, nextTransaction, prevTransaction, snapshot],
     );
 
-    const [parentReportActions = new Map<string, OnyxTypes.ReportAction>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+    const [parentReportActions = getEmptyObject<Record<string, OnyxTypes.ReportAction>>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         selector: parentReportActionsSelector,
     });
 
@@ -127,8 +130,8 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         }
 
         return {
-            prevParentReportAction: prevTransactionID ? parentReportActions.get(prevTransactionID) : undefined,
-            nextParentReportAction: nextTransactionID ? parentReportActions.get(nextTransactionID) : undefined,
+            prevParentReportAction: prevTransactionID ? parentReportActions[prevTransactionID] : undefined,
+            nextParentReportAction: nextTransactionID ? parentReportActions[nextTransactionID] : undefined,
         };
     }, [nextTransactionID, parentReportActions, prevTransactionID, transactionIDsList]);
 
