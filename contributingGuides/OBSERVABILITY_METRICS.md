@@ -139,7 +139,7 @@ This document lists all implemented telemetry metrics in the Expensify App.
 **Start**: Workspace chat selected in the Share Extension participants selector (`src/components/Share/ShareTabParticipantsSelector.tsx`, `onParticipantsAdded`)
 **End**:
 - User sees: Confirm-details screen
-- Technical: `SubmitDetailsPage` mounted (`src/pages/Share/SubmitDetailsPage.tsx`)
+- Technical: Confirm-details container layout complete (onLayout event)
 **Attributes**: `report_id`, `route_from`
 **Notes**: Scoped to the submit flow only (route `SHARE_SUBMIT_DETAILS`); the shared selector's track/share flow (`SHARE_DETAILS`) is not instrumented. Abandoned attempts (user backs out before the screen renders) are canceled on unmount and tagged `canceled`.
 

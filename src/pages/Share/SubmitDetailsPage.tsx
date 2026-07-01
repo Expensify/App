@@ -127,10 +127,11 @@ function SubmitDetailsPage({
     const fileType = shouldUsePreValidatedFile ? (validFilesToUpload?.type ?? CONST.RECEIPT_ALLOWED_FILE_TYPES.JPEG) : (currentAttachment?.mimeType ?? '');
     const [hasOnlyPersonalPolicies = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesUtil});
 
-    const endOpenSubmitFlowSpan = useCallback(() => {
+    const endOpenSubmitFlowSpan = () => {
         endSpan(CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW);
-    }, []);
+    };
 
+    // Cancel the still-open span if the user leaves before the confirm container's onLayout ends it, so an abandoned attempt is not recorded as a never-ending span.
     useEffect(
         () => () => {
             cancelSpan(CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW);

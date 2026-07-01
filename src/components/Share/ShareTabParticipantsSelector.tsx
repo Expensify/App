@@ -23,6 +23,7 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
 
     const isSubmitFlow = detailsPageRouteObject === ROUTES.SHARE_SUBMIT_DETAILS;
 
+    // This span belongs to the submit flow, so the share flow instance must not cancel a span it never started. For the submit flow this cancels an attempt that closes before SubmitDetailsPage mounts to end the span, so it is
     useEffect(
         () => () => {
             if (!isSubmitFlow) {
