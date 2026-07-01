@@ -1,4 +1,4 @@
-import React, {useImperativeHandle, useMemo, useState} from 'react';
+import React, {useImperativeHandle, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
@@ -178,7 +178,7 @@ function ExpenseGroupedSearchView({
     // Wide web layouts split each group into a sticky header row plus an expandable children-container row.
     // Computed here (not from the shared hook) because the split list feeds back into the hook as `listData`.
     const shouldSplit = !!groupBy && isLargeScreenWidth && getPlatform() === CONST.PLATFORM.WEB;
-    const {listData, stickyHeaderIndices, childrenContainerIndices} = useMemo(() => buildSplitGroupData(data, shouldSplit), [data, shouldSplit]);
+    const {listData, stickyHeaderIndices, childrenContainerIndices} = buildSplitGroupData(data, shouldSplit);
 
     const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => new Set());
     const onToggleGroup = (key: string) =>
@@ -217,7 +217,7 @@ function ExpenseGroupedSearchView({
         scrollToListIndex,
     } = useSearchListViewState({data, listData, isMobileSelectionModeEnabled, onSelectRow});
 
-    const newTransactionIDByItemKey = useMemo(() => buildNewTransactionIDMap(data, newTransactions, groupBy), [data, newTransactions, groupBy]);
+    const newTransactionIDByItemKey = buildNewTransactionIDMap(data, newTransactions, groupBy);
 
     // Selection is tracked per child transaction (plus empty groups), so flatten each group's transactions.
     const groupItems = data.filter(isTransactionGroupListItemType);
