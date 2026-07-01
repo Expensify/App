@@ -90,6 +90,8 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.MONEY_REQUEST.CREATE,
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
         ],
     },
     TWO_FACTOR_AUTH_VERIFY_ACCOUNT: {
@@ -951,23 +953,13 @@ const ROUTES = {
             return `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}${rawQuerySegment}` as const;
         },
     },
-    SEARCH_ROOT_VERIFY_ACCOUNT: `search/${VERIFY_ACCOUNT}`,
     SEARCH_SAVE: 'search/save',
     SEARCH_SAVED_SEARCH_RENAME: {
         route: 'search/saved-search/rename',
         getRoute: ({name, jsonQuery}: {name: string; jsonQuery: SearchQueryString}) => `search/saved-search/rename?name=${name}&q=${encodeURIComponent(jsonQuery)}` as const,
     },
     SEARCH_COLUMNS: 'search/columns',
-    SEARCH_ADVANCED_FILTERS: {
-        route: 'search/filters/:filterKey?/:subPage?',
-        getRoute: (filterKey?: SearchFilterKey | UserFriendlyKey, subPage?: string) => {
-            const baseRoute = `search/filters/${filterKey ?? ''}` as const;
-            if (!subPage || !filterKey) {
-                return baseRoute;
-            }
-            return `${baseRoute}/${subPage}` as const;
-        },
-    },
+    SEARCH_ADVANCED_FILTERS: 'search/filters',
     SEARCH_ADVANCED_FILTERS_CONTENT: {
         route: 'search/filters/:filterKey',
         getRoute: (filterKey: SearchFilterKey | UserFriendlyKey) => `search/filters/${filterKey}` as const,
@@ -1636,11 +1628,6 @@ const ROUTES = {
             return `${action as string}/${iouType as string}/start/${transactionID}/${reportID}` as const;
         },
     },
-    MONEY_REQUEST_CREATE_VERIFY_ACCOUNT: {
-        route: `:action/:iouType/start/:transactionID/:reportID/${VERIFY_ACCOUNT}`,
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string) =>
-            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/${VERIFY_ACCOUNT}` as const,
-    },
     MONEY_REQUEST_STEP_SEND_FROM: {
         route: 'create/:iouType/from/:transactionID/:reportID',
 
@@ -1664,11 +1651,6 @@ const ROUTES = {
 
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/confirmation/${transactionID}/${reportID}${optionalRoutePart}` as const, backTo);
         },
-    },
-    MONEY_REQUEST_STEP_CONFIRMATION_VERIFY_ACCOUNT: {
-        route: `:action/:iouType/confirmation/:transactionID/:reportID/${VERIFY_ACCOUNT}`,
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string) =>
-            `${action as string}/${iouType as string}/confirmation/${transactionID}/${reportID}/${VERIFY_ACCOUNT}` as const,
     },
     MONEY_REQUEST_STEP_AMOUNT: {
         route: ':action/:iouType/amount/:transactionID/:reportID/:reportActionID?/:pageIndex?/:backToReport?',
@@ -2197,6 +2179,10 @@ const ROUTES = {
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/export/travel-invoicing/payable-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/export/travel-invoicing/payable-account` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_SETUP: {
+        route: 'workspaces/:policyID/accounting/quickbooks-online/setup',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/setup` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_CONFIGURATION: {
         route: 'workspaces/:policyID/accounting/netsuite/export/travel-invoicing',
@@ -3495,6 +3481,10 @@ const ROUTES = {
             const url = getUrlWithBackToParam(`merge/${transactionID}/confirmation` as const, backTo);
             return isOnSearch ? (`${url}&isOnSearch=true` as const) : url;
         },
+    },
+    POLICY_ACCOUNTING_XERO_SETUP: {
+        route: 'workspaces/:policyID/accounting/xero/setup',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/xero/setup` as const,
     },
     POLICY_ACCOUNTING_XERO_IMPORT: {
         route: 'workspaces/:policyID/accounting/xero/import',

@@ -48,15 +48,13 @@ import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type {
     CardFeedErrorsDerivedValue,
-    FlaggedExpensesDerivedValue,
+    LoginToAccountIDMapDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     ReportAttributesDerivedValue,
     ReportTransactionsAndViolationsDerivedValue,
     SortedReportActionsDerivedValue,
-    TodoMetadata,
-    TodosDerivedValue,
     VisibleReportActionsDerivedValue,
 } from './DerivedValues';
 import type DeviceBiometrics from './DeviceBiometrics';
@@ -401,9 +399,7 @@ export type {
     NonPersonalAndWorkspaceCardListDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
-    TodosDerivedValue,
-    TodoMetadata,
-    FlaggedExpensesDerivedValue,
+    LoginToAccountIDMapDerivedValue,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     VacationDelegate,
