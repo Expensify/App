@@ -388,7 +388,7 @@ describe('getWaypointsHasUnsavedChanges (distance map)', () => {
     };
     const waypointsB: WaypointCollection = {
         waypoint0: {address: 'Q Mall, Doha', lat: 25.3272762, lng: 51.4659325},
-        waypoint1: {address: 'West Walk - Salwa Road, Doha', lat: 25.2510416, lng: 51.4699357},
+        waypoint1: {address: 'West Bay, Doha', lat: 25.2510416, lng: 51.4699357},
     };
 
     describe('create entry (any entered waypoint counts)', () => {
