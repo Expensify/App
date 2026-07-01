@@ -2,7 +2,16 @@ import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import {write} from '@libs/API';
-import type {ConnectPolicyToRilletParams, UpdateRilletFieldMappingParams, UpdateRilletGenericTypeParams, UpdateRilletSubsidiaryParams} from '@libs/API/parameters';
+import type {
+    ConnectPolicyToRilletParams,
+    UpdateRilletCreditCardAccountParams,
+    UpdateRilletDefaultVendorParams,
+    UpdateRilletExportDateParams,
+    UpdateRilletExporterParams,
+    UpdateRilletFieldMappingParams,
+    UpdateRilletGenericTypeParams,
+    UpdateRilletSubsidiaryParams,
+} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
@@ -384,4 +393,51 @@ function updateRilletFieldMapping(
     write(WRITE_COMMANDS.UPDATE_RILLET_FIELD_MAPPING, parameters, onyxData);
 }
 
-export {connectToRillet, clearRilletErrorField, updateRilletSubsidiary, updateRilletEnableNewCategories, updateRilletSyncTaxRates, updateRilletFieldMapping};
+function updateRilletExporter(policyID: string, email: RilletExport['exporter'], oldEmail?: RilletExport['exporter']) {
+    const onyxData = prepareRilletExportOptimisticData(policyID, CONST.RILLET_CONFIG.EXPORTER, email, oldEmail ?? null);
+    const parameters: UpdateRilletExporterParams = {
+        policyID,
+        email,
+    };
+    write(WRITE_COMMANDS.UPDATE_RILLET_EXPORTER, parameters, onyxData);
+}
+
+function updateRilletExportDate(policyID: string, value: RilletExport['exportDate'], oldValue?: RilletExport['exportDate']) {
+    const onyxData = prepareRilletExportOptimisticData(policyID, CONST.RILLET_CONFIG.EXPORT_DATE, value, oldValue ?? null);
+    const parameters: UpdateRilletExportDateParams = {
+        policyID,
+        value,
+    };
+    write(WRITE_COMMANDS.UPDATE_RILLET_EXPORT_DATE, parameters, onyxData);
+}
+
+function updateRilletDefaultVendor(policyID: string, vendorID: RilletExport['defaultVendorID'], oldVendorID?: RilletExport['defaultVendorID']) {
+    const onyxData = prepareRilletExportOptimisticData(policyID, CONST.RILLET_CONFIG.DEFAULT_VENDORID, vendorID, oldVendorID ?? null);
+    const parameters: UpdateRilletDefaultVendorParams = {
+        policyID,
+        vendorID,
+    };
+    write(WRITE_COMMANDS.UPDATE_RILLET_DEFAULT_VENDOR, parameters, onyxData);
+}
+
+function updateRilletCreditCardAccount(policyID: string, creditCardAccountID: RilletExport['creditCardAccountCode'], oldCreditCardAccountID?: RilletExport['creditCardAccountCode']) {
+    const onyxData = prepareRilletExportOptimisticData(policyID, CONST.RILLET_CONFIG.DEFAULT_VENDORID, creditCardAccountID, oldCreditCardAccountID ?? null);
+    const parameters: UpdateRilletCreditCardAccountParams = {
+        policyID,
+        creditCardAccountID,
+    };
+    write(WRITE_COMMANDS.UPDATE_RILLET_CREDIT_CARD_ACCOUNT, parameters, onyxData);
+}
+
+export {
+    connectToRillet,
+    clearRilletErrorField,
+    updateRilletSubsidiary,
+    updateRilletEnableNewCategories,
+    updateRilletSyncTaxRates,
+    updateRilletFieldMapping,
+    updateRilletExporter,
+    updateRilletExportDate,
+    updateRilletDefaultVendor,
+    updateRilletCreditCardAccount,
+};
