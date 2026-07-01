@@ -1,6 +1,6 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
     AddDelegateParams as APIAddDelegateParams,
@@ -21,12 +21,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Delegate, DelegatedAccess, DelegateRole} from '@src/types/onyx/Account';
 import type Credentials from '@src/types/onyx/Credentials';
-import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import {openApp} from './App';
 import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
-import updateSessionUser from './Session/updateSessionUser';
 
 const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.NVP_TRY_FOCUS_MODE,
@@ -275,7 +273,9 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    errorFields: {disconnect: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('delegate.genericError')},
+                    errorFields: {
+                        disconnect: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('delegate.genericError'),
+                    },
                 },
             },
         },
@@ -285,63 +285,41 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.DISCONNECT_AS_DELEGATE, {}, {optimisticData, successData, failureData})
         .then((response) => {
+            const restoreToStashed = () =>
+                restoreDelegateSession({
+                    authToken: stashedSession?.authToken,
+                    encryptedAuthToken: stashedSession?.encryptedAuthToken,
+                    accountID: stashedSession?.accountID,
+                    email: stashedSession?.email,
+                    stashedCredentials,
+                    stashedSession,
+                    creationDate: stashedSession?.creationDate,
+                });
+
             if (!response?.authToken || !response?.encryptedAuthToken) {
                 Log.alert('[Delegate] No auth token returned while disconnecting as a delegate');
-                restoreDelegateSession(stashedSession ?? {});
-                return;
+                return restoreToStashed();
             }
 
             if (!response?.requesterID || !response?.requesterEmail) {
                 Log.alert('[Delegate] No requester data returned while disconnecting as a delegate');
-                restoreDelegateSession(stashedSession ?? {});
-                return;
+                return restoreToStashed();
             }
 
             clearPreservedSearchNavigatorStates();
 
             const requesterEmail = response.requesterEmail;
             const authToken = response.authToken;
-            return SequentialQueue.waitForIdle()
-                .then(() => {
-                    return Promise.all([
-                        Onyx.set(ONYXKEYS.SESSION, {
-                            ...stashedSession,
-                            accountID: response.requesterID,
-                            email: requesterEmail,
-                            authToken,
-                            encryptedAuthToken: response.encryptedAuthToken,
-                        }),
-                        Onyx.merge(ONYXKEYS.ACCOUNT, {
-                            primaryLogin: requesterEmail,
-                        }),
-                    ]);
-                })
-                .then(() => {
-                    NetworkStore.setAuthToken(response?.authToken ?? null);
-                    Pusher.disconnect();
-                    return clearOnyxForDelegateTransition();
-                })
-                .then(() => {
-                    Onyx.set(ONYXKEYS.CREDENTIALS, {
-                        ...stashedCredentials,
-                        accountID: response.requesterID,
-                    });
-                    Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
-                    Onyx.set(ONYXKEYS.STASHED_SESSION, {});
-                    openApp()
-                        .then(() => requestPusherReinitialize({accountID: response.requesterID, email: requesterEmail}))
-                        .then(() => {
-                            if (!CONFIG.IS_HYBRID_APP) {
-                                return;
-                            }
-                            HybridAppModule.switchAccount({
-                                newDotCurrentAccountEmail: requesterEmail,
-                                authToken,
-                                policyID: '',
-                                accountID: '',
-                            });
-                        });
-                });
+            return SequentialQueue.waitForIdle().then(() =>
+                restoreDelegateSession({
+                    authToken,
+                    encryptedAuthToken: response.encryptedAuthToken,
+                    accountID: response.requesterID,
+                    email: requesterEmail,
+                    stashedCredentials,
+                    stashedSession,
+                }),
+            );
         })
         .catch((error) => {
             Log.alert('[Delegate] Error disconnecting as a delegate', {error});
@@ -352,7 +330,14 @@ function clearDelegatorErrors({delegatedAccess}: ClearDelegatorErrorsParams) {
     if (!delegatedAccess?.delegators) {
         return;
     }
-    Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegators: delegatedAccess.delegators.map((delegator) => ({...delegator, errorFields: undefined}))}});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {
+        delegatedAccess: {
+            delegators: delegatedAccess.delegators.map((delegator) => ({
+                ...delegator,
+                errorFields: undefined,
+            })),
+        },
+    });
 }
 
 function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegateParams) {
@@ -371,7 +356,10 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
                         : {
                               ...delegate,
                               isLoading: true,
-                              pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                              pendingFields: {
+                                  email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                                  role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                              },
                               pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                           },
                 ) ?? []
@@ -384,7 +372,10 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
                 email,
                 role,
                 isLoading: true,
-                pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                pendingFields: {
+                    email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
         ];
@@ -476,7 +467,10 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
                 email,
                 role,
                 isLoading: false,
-                pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                pendingFields: {
+                    email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
         ];
@@ -495,9 +489,17 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
         },
     ];
 
-    const parameters: APIAddDelegateParams = {delegateEmail: email, validateCode, role};
+    const parameters: APIAddDelegateParams = {
+        delegateEmail: email,
+        validateCode,
+        role,
+    };
 
-    API.write(WRITE_COMMANDS.ADD_DELEGATE, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.ADD_DELEGATE, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
 function removeDelegate({email, delegatedAccess}: RemoveDelegateParams) {
@@ -521,7 +523,10 @@ function removeDelegate({email, delegatedAccess}: RemoveDelegateParams) {
                             ? {
                                   ...delegate,
                                   pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                                  pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                                  pendingFields: {
+                                      email: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                                      role: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                                  },
                               }
                             : delegate,
                     ),
@@ -569,7 +574,11 @@ function removeDelegate({email, delegatedAccess}: RemoveDelegateParams) {
 
     const parameters: APIRemoveDelegateParams = {delegateEmail: email};
 
-    API.write(WRITE_COMMANDS.REMOVE_DELEGATE, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.REMOVE_DELEGATE, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
 function removeDelegator({email, delegatedAccess}: RemoveDelegateParams) {
@@ -593,7 +602,10 @@ function removeDelegator({email, delegatedAccess}: RemoveDelegateParams) {
                             ? {
                                   ...delegator,
                                   pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                                  pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                                  pendingFields: {
+                                      email: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                                      role: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                                  },
                               }
                             : delegator,
                     ),
@@ -641,7 +653,11 @@ function removeDelegator({email, delegatedAccess}: RemoveDelegateParams) {
 
     const parameters: APIRemoveDelegatorParams = {delegatorEmail: email};
 
-    API.write(WRITE_COMMANDS.REMOVE_DELEGATOR, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.REMOVE_DELEGATOR, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
 function clearDelegateErrorsByField({email, fieldName, delegatedAccess}: ClearDelegateErrorsByFieldParams) {
@@ -687,7 +703,9 @@ function updateDelegateRole({email, role, validateCode, delegatedAccess}: Update
                                   ...delegate,
                                   isLoading: true,
                                   pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                  pendingFields: {role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                  pendingFields: {
+                                      role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                  },
                               }
                             : delegate,
                     ),
@@ -746,21 +764,95 @@ function updateDelegateRole({email, role, validateCode, delegatedAccess}: Update
         },
     ];
 
-    const parameters: APIUpdateDelegateRoleParams = {delegateEmail: email, validateCode, role};
+    const parameters: APIUpdateDelegateRoleParams = {
+        delegateEmail: email,
+        validateCode,
+        role,
+    };
 
-    API.write(WRITE_COMMANDS.UPDATE_DELEGATE_ROLE, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_DELEGATE_ROLE, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
-function restoreDelegateSession<TKey extends OnyxKey>(authenticateResponse: Response<TKey>) {
-    clearOnyxForDelegateTransition().then(() => {
-        updateSessionAuthTokens(authenticateResponse?.authToken, authenticateResponse?.encryptedAuthToken);
-        updateSessionUser(authenticateResponse?.accountID, authenticateResponse?.email);
+/**
+ * Parameters used to restore the delegate's (copilot's) own original account when delegate mode ends - either
+ * an explicit "disconnect as delegate" or a reauth triggered by an expired delegate token (see `Reauthentication.ts`).
+ */
+type RestoreDelegateSessionParams = {
+    /** Restored auth token for the original user's session */
+    authToken?: string;
 
-        NetworkStore.setAuthToken(authenticateResponse.authToken ?? null);
-        NetworkStore.setIsAuthenticating(false);
+    /** Restored encrypted auth token for the original user's session */
+    encryptedAuthToken?: string;
 
-        openApp();
-    });
+    /** The original user's account ID being restored */
+    accountID?: number;
+
+    /** The original user's email being restored */
+    email?: string;
+
+    /** The original user's credentials stashed on delegate entry (CREDENTIALS are wiped when connecting as a delegate), used to rebuild the session */
+    stashedCredentials?: Credentials;
+
+    /** The original user's session stashed on delegate entry; written back first because SESSION is preserved across `clearOnyxForDelegateTransition` via `KEYS_TO_PRESERVE_DELEGATE_ACCESS` */
+    stashedSession?: Session;
+
+    /** Session creation date to restore so the rebuilt session keeps the correct timestamp */
+    creationDate?: number;
+};
+
+function restoreDelegateSession({authToken, encryptedAuthToken, accountID, email, stashedCredentials, stashedSession, creationDate = new Date().getTime()}: RestoreDelegateSessionParams) {
+    // Write SESSION before the clear: SESSION is in KEYS_TO_PRESERVE_DELEGATE_ACCESS, so clearing
+    // preserves the value at clear time. If we cleared first, an interrupted flow would leave
+    // SESSION holding the prior delegate-restricted auth token. See Expensify/App#80073.
+    return (
+        Onyx.set(ONYXKEYS.SESSION, {
+            ...(stashedSession ?? {}),
+            accountID,
+            email,
+            authToken,
+            encryptedAuthToken,
+            creationDate,
+        })
+            .then(() => {
+                NetworkStore.setAuthToken(authToken ?? null);
+                // Disconnect Pusher before the transition so it cannot keep pushing updates for the delegate
+                // account; it is reinitialized for the restored account after `openApp()`. See Expensify/App#93265.
+                Pusher.disconnect();
+                return clearOnyxForDelegateTransition();
+            })
+            .then(() => {
+                Onyx.set(ONYXKEYS.CREDENTIALS, {
+                    ...(stashedCredentials ?? {}),
+                    accountID,
+                });
+                Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
+                Onyx.set(ONYXKEYS.STASHED_SESSION, {});
+
+                NetworkStore.setIsAuthenticating(false);
+
+                return openApp();
+            })
+            // Reinitialize Pusher for the restored account so realtime updates resume on the correct session.
+            .then(() => requestPusherReinitialize({accountID, email}))
+            .then(() => {
+                // Keep OldDot in sync with NewDot. Without this, OD remains on the delegate session
+                // after a reauth-driven restoration (e.g. expired delegate token, invalidateAuthToken),
+                // causing the two halves of HybridApp to disagree about which account is active.
+                if (!CONFIG.IS_HYBRID_APP || !email || !authToken) {
+                    return;
+                }
+                HybridAppModule.switchAccount({
+                    newDotCurrentAccountEmail: email,
+                    authToken,
+                    policyID: '',
+                    accountID: '',
+                });
+            })
+    );
 }
 
 function openSecuritySettingsPage() {
