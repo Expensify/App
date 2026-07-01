@@ -87,4 +87,3 @@ function WidgetHeaderMenu({menuItems, accessibilityLabel, testID, sentryLabel}: 
 }
 
 export default WidgetHeaderMenu;
-export type {WidgetHeaderMenuProps};

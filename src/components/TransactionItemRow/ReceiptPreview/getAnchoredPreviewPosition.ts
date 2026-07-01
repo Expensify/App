@@ -39,8 +39,9 @@ function getAnchoredPreviewPosition(anchorPosition: AnchorPosition | undefined, 
     }
 
     // Align the preview's bottom edge with the thumbnail's bottom (bottom-left corner sits at the thumbnail's
-    // right side), then clamp to the top margin so a preview taller than the space above the row stays on-screen.
-    const thumbnailBottom = anchorPosition.top + anchorPosition.height;
+    // right side). Cap the thumbnail bottom to the viewport so a row scrolled partially off the bottom doesn't
+    // push the preview below the screen, then clamp to the top margin so a tall preview stays on-screen.
+    const thumbnailBottom = Math.min(anchorPosition.top + anchorPosition.height, windowHeight - RECEIPT_PREVIEW_EDGE_MARGIN);
     const top = Math.max(RECEIPT_PREVIEW_EDGE_MARGIN, thumbnailBottom - previewHeight);
 
     return {left, top};

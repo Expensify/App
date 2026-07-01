@@ -3896,9 +3896,11 @@ const staticStyles = (theme: ThemeColors) =>
 
         widgetHeaderMenuButtonWrapper: {
             // The 40px ghost button overflows the header instead of growing it: these negative margins shrink its
-            // vertical footprint to the title line-height so every card header keeps the same height.
+            // vertical footprint to the title line-height so every card header keeps the same height. The matching
+            // negative right margin keeps the icon's spacing to the card's right edge equal to its top spacing.
             marginTop: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
             marginBottom: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
+            marginRight: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
         },
 
         widgetItemSubtitle: {

@@ -64,13 +64,24 @@ describe('getAnchoredPreviewPosition', () => {
 
     it('keeps a measured preview on-screen for a row near the bottom by growing upward', () => {
         const previewHeight = 600;
-        const anchor = {top: WINDOW_HEIGHT - 80, left: 120, width: 68, height: 64};
+        const anchor = {top: WINDOW_HEIGHT - 200, left: 120, width: 68, height: 64};
 
         const top = getAnchoredPreviewPosition(anchor, WINDOW_WIDTH, WINDOW_HEIGHT, previewHeight)?.top ?? 0;
         const thumbnailBottom = anchor.top + anchor.height;
 
         expect(top).toBe(thumbnailBottom - previewHeight);
         expect(top).toBeGreaterThanOrEqual(RECEIPT_PREVIEW_EDGE_MARGIN);
+        expect(top + previewHeight).toBeLessThanOrEqual(WINDOW_HEIGHT);
+    });
+
+    it('caps the preview to the viewport when the hovered row is scrolled partially off the bottom', () => {
+        const previewHeight = 200;
+        // measureInWindow can report a bottom below the viewport for a row clipped by a scroll container.
+        const anchor = {top: WINDOW_HEIGHT - 20, left: 120, width: 68, height: 64};
+
+        const top = getAnchoredPreviewPosition(anchor, WINDOW_WIDTH, WINDOW_HEIGHT, previewHeight)?.top ?? 0;
+
+        expect(top).toBe(WINDOW_HEIGHT - RECEIPT_PREVIEW_EDGE_MARGIN - previewHeight);
         expect(top + previewHeight).toBeLessThanOrEqual(WINDOW_HEIGHT);
     });
 
