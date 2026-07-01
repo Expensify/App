@@ -9934,5 +9934,21 @@ ${reportName}`,
         negativeButton: 'そうでもありません',
     },
     monthPickerPage: {month: '月', selectMonth: '月を選択してください'},
+    aiFeaturesPromoModal: {
+        subtitle: 'はじめての Concierge AI',
+        confirmText: '始めましょう！',
+        spendAnalysis: {
+            title: 'インタラクティブな支出分析',
+            description: `<muted-text>Concierge は毎月の支出インサイトを提示し、すべての数値の内訳を詳しく確認できるようにします。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">詳しく見る</a>。</muted-text>`,
+        },
+        expenseAssistant: {
+            title: '新しい経費アシスタントをご紹介します',
+            description: `<muted-text>アプリ内やメール、テキストメッセージでConciergeとチャットして、経費を作成・更新できます。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">詳しく見る</a>。</muted-text>`,
+        },
+        customAgents: {
+            title: '独自のエージェントを作成する',
+            description: `<muted-text>設定したルールに基づいて経費を確認、承認、振り分けるカスタムエージェントを作成できます。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">さらに詳しく</a>。</muted-text>`,
+        },
+    },
 };
 export default translations;

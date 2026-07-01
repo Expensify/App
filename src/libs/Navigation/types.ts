@@ -2951,6 +2951,10 @@ type MigratedUserModalNavigatorParamList = {
     [SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT]: undefined;
 };
 
+type AIFeaturesPromoModalNavigatorParamList = {
+    [SCREENS.AI_FEATURES_PROMO_MODAL.DYNAMIC_ROOT]: undefined;
+};
+
 type TestDriveDemoNavigatorParamList = {
     [SCREENS.TEST_DRIVE_DEMO.ROOT]: undefined;
 };
@@ -3121,6 +3125,7 @@ type AuthScreensParamList = SharedScreensParamList &
         [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: NavigatorScreenParams<OnboardingModalNavigatorParamList>;
         [NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR]: NavigatorScreenParams<FeatureTrainingNavigatorParamList>;
         [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: NavigatorScreenParams<MigratedUserModalNavigatorParamList>;
+        [NAVIGATORS.AI_FEATURES_PROMO_MODAL_NAVIGATOR]: NavigatorScreenParams<AIFeaturesPromoModalNavigatorParamList>;
         [NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR]: NavigatorScreenParams<TestDriveDemoNavigatorParamList>;
         [SCREENS.CONNECTION_COMPLETE]: undefined;
         [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
@@ -3397,6 +3402,7 @@ export type {
     WorkspaceSplitNavigatorParamList,
     WorkspaceNavigatorParamList,
     MigratedUserModalNavigatorParamList,
+    AIFeaturesPromoModalNavigatorParamList,
     WorkspaceConfirmationNavigatorParamList,
     WorkspaceDuplicateNavigatorParamList,
     PolicyCopySettingsNavigatorParamList,

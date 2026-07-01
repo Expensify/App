@@ -9741,5 +9741,21 @@ ${reportName}`,
     },
     proactiveAppReview: {title: '喜欢全新的 Expensify 吗？', description: '请告诉我们，这样我们就能帮助您让报销体验变得更好。', positiveButton: '太棒了！', negativeButton: '不太是'},
     monthPickerPage: {month: '月份', selectMonth: '请选择月份'},
+    aiFeaturesPromoModal: {
+        subtitle: 'Concierge AI 新手指南',
+        confirmText: '出发吧！',
+        spendAnalysis: {
+            title: '交互式支出分析',
+            description: `<muted-text>Concierge 会提供每月支出洞察，并让你深入查看每个数字背后的详细信息。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">了解详情</a>。</muted-text>`,
+        },
+        expenseAssistant: {
+            title: '认识你的全新报销助手',
+            description: `<muted-text>在应用内或通过电子邮件、短信与 Concierge 聊天来创建和更新报销。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">了解更多</a>。</muted-text>`,
+        },
+        customAgents: {
+            title: '构建你自己的代理',
+            description: `<muted-text>创建自定义代理，根据你设置的规则审核、批准和分配报销。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">了解更多</a>。</muted-text>`,
+        },
+    },
 };
 export default translations;

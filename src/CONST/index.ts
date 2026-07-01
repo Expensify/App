@@ -7106,6 +7106,7 @@ const CONST = {
         SCREENS.SAML_SIGN_IN,
         SCREENS.VALIDATE_LOGIN,
         SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT,
+        SCREENS.AI_FEATURES_PROMO_MODAL.DYNAMIC_ROOT,
         SCREENS.MONEY_REQUEST.STEP_SCAN,
         SCREENS.DOMAIN.MEMBERS_MOVE_TO_GROUP,
         ...Object.values(SCREENS.MULTIFACTOR_AUTHENTICATION),
@@ -7629,6 +7630,14 @@ const CONST = {
     },
 
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
+
+    AI_FEATURES_PROMO_MODAL: 'aiFeaturesPromoModal',
+
+    AI_FEATURES_PROMO_LEARN_MORE_URLS: {
+        SPEND_ANALYSIS: 'https://help.expensify.com/articles/new-expensify/concierge-ai/How-Concierge-Analyzes-Spend',
+        EXPENSE_ASSISTANT: 'https://help.expensify.com/articles/new-expensify/concierge-ai/Expense-Assistant',
+        BUILD_AGENTS: 'https://help.expensify.com/articles/new-expensify/ai-agents/Create-Agent-Rules',
+    },
 
     BASE_LIST_ITEM_TEST_ID: 'base-list-item-',
     SELECTION_BUTTON_TEST_ID: 'selection-button-',
@@ -8610,6 +8619,14 @@ const CONST = {
             MEMBERS: {
                 ROW: 'DomainMembers-Row',
             },
+        },
+        FEATURE_TRAINING: {
+            CLOSE_BUTTON: 'FeatureTraining-CloseButton',
+            BACK_BUTTON: 'FeatureTraining-BackButton',
+        },
+        AI_FEATURES_PROMO_MODAL: {
+            CONFIRM_BUTTON: 'AIFeaturesPromoModal-ConfirmButton',
+            HELP_BUTTON: 'AIFeaturesPromoModal-HelpButton',
         },
     },
 
