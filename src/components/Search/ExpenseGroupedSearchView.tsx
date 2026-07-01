@@ -24,7 +24,7 @@ import TransactionGroupListItem from './SearchList/ListItem/TransactionGroupList
 import {isGroupChildrenContainerItem, isGroupHeaderItem} from './SearchList/ListItem/types';
 import type {SearchListItem} from './SearchList/ListItem/types';
 import SearchListViewLayout from './SearchListViewLayout';
-import type {SearchColumnType, SearchQueryJSON} from './types';
+import type {SearchColumnType, SearchQueryJSON, SelectedTransactions} from './types';
 
 /** Imperative handle the router uses for highlight-driven scrolling (mirrors SearchList's handle). */
 type SearchListHandle = {
@@ -97,7 +97,7 @@ const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ??
 
 const isRowDeleted = (item: SearchListItem) => item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-const isRowSelected = (key: string | undefined, selectedTransactions: Record<string, {isSelected?: boolean}>) => !!(key && selectedTransactions[key]?.isSelected);
+const isRowSelected = (key: string | undefined, selectedTransactions: SelectedTransactions) => !!(key && selectedTransactions[key]?.isSelected);
 
 /**
  * On wide web layouts each group is split into a sticky header row plus a children-container row, so the
