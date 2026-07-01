@@ -1,4 +1,5 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -21,14 +22,16 @@ import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
-import {getGroupChatName} from '@libs/ReportNameUtils';
-import {getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
+import {getReportName} from '@libs/ReportNameUtils';
+import {getParticipantsAccountIDsForDisplay, isGroupChat, isMoneyRequestReport, isOpenExpenseReport} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
+import reportByIDsSelector from '@src/selectors/Attributes';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
+import getInvitedEmailsToAccountIDs from './InviteReportParticipantsPageUtils';
 
 type DynamicReportParticipantsInvitePageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps;
 
@@ -40,7 +43,13 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+    const reportID = report.reportID;
+    const reportAttributesSelector = useMemo(() => reportByIDsSelector([reportID]), [reportID]);
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: reportAttributesSelector,
+    });
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path);
+    const shouldShowInvitePage = isGroupChat(report) || (isMoneyRequestReport(report) && isOpenExpenseReport(report));
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers: Record<string, boolean> = {
@@ -108,7 +117,7 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
         toggleSelection(option);
     };
 
-    const reportName = getGroupChatName(formatPhoneNumber, undefined, true, report);
+    const reportName = StringUtils.lineBreaksToSpaces(getReportName(report, reportAttributes));
 
     const goBack = () => {
         Navigation.goBack(backPath);
@@ -118,18 +127,17 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
         if (selectedOptions.length === 0) {
             return;
         }
-        const invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs = {};
-        for (const option of selectedOptions) {
-            const login = option.login ?? '';
-            const accountID = option.accountID;
-            if (!login.toLowerCase().trim() || !accountID) {
-                continue;
-            }
-            invitedEmailsToAccountIDs[login] = accountID;
+        const invitedEmailsToAccountIDs = getInvitedEmailsToAccountIDs(selectedOptions);
+        if (Object.keys(invitedEmailsToAccountIDs).length === 0) {
+            return;
         }
         inviteToGroupChat(report, invitedEmailsToAccountIDs, personalDetailsList, formatPhoneNumber);
         goBack();
     };
+
+    if (!shouldShowInvitePage) {
+        return <FullPageNotFoundView shouldShow />;
+    }
 
     const getHeaderMessageText = () => {
         if (sections.length > 0) {

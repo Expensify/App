@@ -49,6 +49,7 @@ import {
     isGroupChatAdmin,
     isGroupChat as isGroupChatUtils,
     isMoneyRequestReport,
+    isOpenExpenseReport,
     isPolicyExpenseChat,
     isSelfDM,
     isTaskReport,
@@ -92,6 +93,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     const currentUserAccountID = Number(session?.accountID);
     const isCurrentUserAdmin = isGroupChatAdmin(report, currentUserAccountID);
     const isGroupChat = isGroupChatUtils(report);
+    const shouldShowInviteButton = isGroupChat || (isMoneyRequestReport(report) && isOpenExpenseReport(report));
     const isCurrentUserGroupChatAdmin = isGroupChat && isCurrentUserAdmin;
     const isFocused = useIsFocused();
     const {isOffline} = useNetwork();
@@ -111,6 +113,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     };
 
     const [selectedMembers, setSelectedMembers] = useFilteredSelection(personalDetailsParticipants, filterParticipants);
+    const shouldShowBulkActionsDropdown = isGroupChat && (isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0);
     const firstSelectedMember = selectedMembers?.at(0);
     const [firstSelectedMemberDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(firstSelectedMember)});
 
@@ -316,7 +319,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
             ? translate('common.members')
             : translate('common.details');
 
-    const memberNotFoundMessage = isGroupChat
+    const memberNotFoundMessage = shouldShowInviteButton
         ? `${translate('roomMembersPage.memberNotFound')} ${translate('roomMembersPage.useInviteButton')}`
         : translate('roomMembersPage.memberNotFound');
 
@@ -344,9 +347,9 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                     subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, reportAttributes))}
                 />
                 <View style={[styles.pl5, styles.pr5]}>
-                    {isGroupChat && (
+                    {shouldShowInviteButton && (
                         <View style={styles.w100}>
-                            {(isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0) ? (
+                            {shouldShowBulkActionsDropdown ? (
                                 <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                                     shouldAlwaysShowDropdownMenu
                                     pressOnEnter
@@ -371,7 +374,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                         </View>
                     )}
                 </View>
-                <View style={[styles.w100, isGroupChat ? styles.mt3 : styles.mt0, styles.flex1]}>
+                <View style={[styles.w100, shouldShowInviteButton ? styles.mt3 : styles.mt0, styles.flex1]}>
                     <SelectionListWithModal
                         data={participants}
                         ref={selectionListRef}

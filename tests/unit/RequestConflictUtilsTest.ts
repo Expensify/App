@@ -45,6 +45,34 @@ describe('RequestConflictUtils', () => {
         expect(result).toEqual({conflictAction: {type: 'replace', index: 2}});
     });
 
+    it.each([
+        ['push when accountIDList differs', {emailList: '', accountIDList: '483'}, {emailList: '', accountIDList: ''}, {type: 'noAction'}],
+        ['replace when accountIDList matches', {emailList: '', accountIDList: '483'}, {emailList: '', accountIDList: '483'}, {type: 'replace', index: 0}],
+        ['replace when optional participant lists are empty', {}, {emailList: '', accountIDList: ''}, {type: 'replace', index: 0}],
+    ])('resolveOpenReportDuplicationConflictAction should %s', (_description, queuedData, nextData, expectedConflictAction) => {
+        const reportID = '8071514414018373';
+
+        // Given an existing OpenReport request
+        const persistedRequests = [
+            {
+                command: WRITE_COMMANDS.OPEN_REPORT,
+                data: {
+                    reportID,
+                    ...queuedData,
+                },
+            },
+        ];
+
+        // When another OpenReport is queued for the same report
+        const result = resolveOpenReportDuplicationConflictAction(persistedRequests, {
+            reportID,
+            ...nextData,
+        });
+
+        // Then the request should only replace when participant identifiers match
+        expect(result).toEqual({conflictAction: expectedConflictAction});
+    });
+
     it('resolveCommentDeletionConflicts should return push when no special comments are found', () => {
         const persistedRequests = [{command: 'OpenReport'}, {command: 'AddComment', data: {reportActionID: 2}}, {command: 'CloseAccount'}];
         const reportActionID = '1';
@@ -201,6 +229,18 @@ describe('RequestConflictUtils', () => {
             const persistedRequests = [{command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1'}}];
             const result = resolveOpenReportDuplicationConflictAction(persistedRequests, {reportID: '1', accountIDList: '10,20'} as never);
             expect(result).toEqual({conflictAction: {type: 'replace', index: 0}});
+        });
+
+        it('should return noAction when queued request has participants but new follow-up request has empty participant strings', () => {
+            const persistedRequests = [{command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1', accountIDList: '483'}}];
+            const result = resolveOpenReportDuplicationConflictAction(persistedRequests, {reportID: '1', emailList: '', accountIDList: ''} as never);
+            expect(result).toEqual({conflictAction: {type: 'noAction'}});
+        });
+
+        it('should push when accountIDList genuinely differs (distinct active lists)', () => {
+            const persistedRequests = [{command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1', accountIDList: '483'}}];
+            const result = resolveOpenReportDuplicationConflictAction(persistedRequests, {reportID: '1', accountIDList: '484'} as never);
+            expect(result).toEqual({conflictAction: {type: 'push'}});
         });
     });
 
