@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import useReportAttributes from '@hooks/useReportAttributes';
+import useReportAttributes, {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
@@ -114,5 +114,72 @@ describe('useReportAttributes', () => {
 
         expect(Object.keys(result.current ?? {})).toHaveLength(1);
         expect(result.current?.[REPORT_ID_3]?.reportName).toBe('Report 3');
+    });
+});
+
+describe('useDerivedReportNameByReportID', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+    });
+
+    beforeEach(async () => {
+        await Onyx.clear();
+    });
+
+    it('should return undefined when the derived value is not set', async () => {
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useDerivedReportNameByReportID(REPORT_ID_1));
+
+        expect(result.current).toBeUndefined();
+    });
+
+    it("should return the report's name for a matching reportID", async () => {
+        await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, createDerivedValue(MOCK_REPORTS));
+
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useDerivedReportNameByReportID(REPORT_ID_1));
+
+        expect(result.current).toBe('Report 1');
+    });
+
+    it('should return undefined when the reportID is undefined', async () => {
+        await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, createDerivedValue(MOCK_REPORTS));
+
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useDerivedReportNameByReportID(undefined));
+
+        expect(result.current).toBeUndefined();
+    });
+
+    it('should return undefined when the reportID does not exist in the derived value', async () => {
+        await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, createDerivedValue(MOCK_REPORTS));
+
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useDerivedReportNameByReportID('nonExistentReportID'));
+
+        expect(result.current).toBeUndefined();
+    });
+
+    it("should update when that report's name changes", async () => {
+        await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, createDerivedValue(MOCK_REPORTS));
+
+        await waitForBatchedUpdates();
+
+        const {result, rerender} = renderHook(() => useDerivedReportNameByReportID(REPORT_ID_1));
+
+        expect(result.current).toBe('Report 1');
+
+        await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, createDerivedValue({[REPORT_ID_1]: createMockReport({reportName: 'Renamed Report 1'})}));
+
+        await waitForBatchedUpdates();
+        rerender(undefined);
+
+        expect(result.current).toBe('Renamed Report 1');
     });
 });
