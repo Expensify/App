@@ -8520,6 +8520,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Zapłać',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Eksportuj',
             },
+            merchant: {equalTo: 'Równe', contains: 'Zawiera'},
         },
         display: {
             label: 'Wyświetl',

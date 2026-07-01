@@ -8387,6 +8387,7 @@ ${amount} para ${merchant} - ${date}`,
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exportar',
             },
             reportField: (name, value) => `${name} es ${value}`,
+            merchant: {equalTo: 'Igual a', contains: 'Contiene'},
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',

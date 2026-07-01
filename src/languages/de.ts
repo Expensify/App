@@ -8571,6 +8571,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Bezahlen',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Export',
             },
+            merchant: {equalTo: 'Gleich wie', contains: 'Enthält'},
         },
         display: {
             label: 'Anzeige',

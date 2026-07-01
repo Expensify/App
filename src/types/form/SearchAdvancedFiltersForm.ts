@@ -101,6 +101,7 @@ const FILTER_KEYS = {
 
     MERCHANT_NOT: 'merchantNot',
     MERCHANT: 'merchant',
+    MERCHANT_OPERATOR: 'merchantOperator',
 
     DESCRIPTION_NOT: 'descriptionNot',
     DESCRIPTION: 'description',
@@ -208,6 +209,7 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.RECEIPT_TYPE_NOT,
         FILTER_KEYS.MERCHANT,
         FILTER_KEYS.MERCHANT_NOT,
+        FILTER_KEYS.MERCHANT_OPERATOR,
         FILTER_KEYS.DATE_ON,
         FILTER_KEYS.DATE_NOT,
         FILTER_KEYS.DATE_AFTER,
@@ -383,6 +385,7 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.POLICY_ID,
         FILTER_KEYS.MERCHANT,
         FILTER_KEYS.MERCHANT_NOT,
+        FILTER_KEYS.MERCHANT_OPERATOR,
         FILTER_KEYS.DATE_ON,
         FILTER_KEYS.DATE_NOT,
         FILTER_KEYS.DATE_AFTER,
@@ -477,6 +480,7 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.POLICY_ID,
         FILTER_KEYS.MERCHANT,
         FILTER_KEYS.MERCHANT_NOT,
+        FILTER_KEYS.MERCHANT_OPERATOR,
         FILTER_KEYS.DATE_ON,
         FILTER_KEYS.DATE_NOT,
         FILTER_KEYS.DATE_AFTER,
@@ -603,6 +607,7 @@ type IsFilterValues = IsFilterValue[];
 type BooleanValue = ValueOf<typeof CONST.SEARCH.BOOLEAN>;
 type ExpenseTypeValue = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 type ExpenseTypeValues = ExpenseTypeValue[];
+type MerchantMatchType = typeof CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO | typeof CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
 type ReceiptTypeValue = ValueOf<typeof CONST.SEARCH.RECEIPT_TYPE>;
 type ReceiptTypeValues = ReceiptTypeValue[];
 
@@ -684,6 +689,7 @@ type SearchAdvancedFiltersForm = Form<
 
         [FILTER_KEYS.MERCHANT]: string;
         [FILTER_KEYS.MERCHANT_NOT]: string;
+        [FILTER_KEYS.MERCHANT_OPERATOR]: MerchantMatchType;
 
         [FILTER_KEYS.DESCRIPTION]: string;
         [FILTER_KEYS.DESCRIPTION_NOT]: string;
@@ -776,6 +782,18 @@ type SearchAdvancedFiltersForm = Form<
         Record<ReportFieldNegatedKey, string>
 >;
 
-export type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey, HasFilterValue, HasFilterValues, IsFilterValue, IsFilterValues, ExpenseTypeValue, ExpenseTypeValues, ReceiptTypeValue};
+export type {
+    SearchAdvancedFiltersForm,
+    SearchAdvancedFiltersKey,
+    HasFilterValue,
+    HasFilterValues,
+    IsFilterValue,
+    IsFilterValues,
+    ExpenseTypeValue,
+    ExpenseTypeValues,
+    MerchantMatchType,
+    ReceiptTypeValue,
+    ReceiptTypeValues,
+};
 export default FILTER_KEYS;
 export {DATE_FILTER_KEYS, ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS};

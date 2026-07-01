@@ -432,6 +432,19 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense policyID:67890 merchant:Amazon description:Electronics laptop category:electronics,gadgets');
         });
 
+        test('builds contains merchant query when merchant operator is contains', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                merchant: 'Amazon',
+                merchantOperator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense merchant*:Amazon');
+        });
+
         test('currencies and categories', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
@@ -1066,6 +1079,40 @@ describe('SearchQueryUtils', () => {
     });
 
     describe('buildFilterFormValuesFromQuery', () => {
+        test('restores exact merchant operator from query', () => {
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense merchant:Uber');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+
+            expect(result).toEqual({
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                merchant: 'Uber',
+                merchantOperator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+            });
+        });
+
+        test('restores contains merchant operator from query', () => {
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense merchant*:Uber');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+
+            expect(result).toEqual({
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                merchant: 'Uber',
+                merchantOperator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
+            });
+        });
+
         test('category filter includes empty values', () => {
             const policyID = generatePolicyID();
             const queryString = 'sortBy:date sortOrder:desc type:expense category:none,Uncategorized,Maintenance';
@@ -3251,8 +3298,22 @@ describe('SearchQueryUtils', () => {
     }
 
     describe('applyContainsOperatorToTextFields', () => {
-        it('should transform merchant eq to contains', () => {
+        it('should preserve merchant eq as exact match', () => {
             const queryJSON = buildSearchQueryJSON('type:expense merchant:coffee');
+            if (!queryJSON?.filters) {
+                throw new Error('Expected filters to be defined');
+            }
+            const transformed = applyContainsOperatorToTextFields(queryJSON.filters);
+            const merchantNode = findNode(transformed, 'merchant');
+            if (!merchantNode) {
+                throw new Error('Expected merchant node to be found in AST');
+            }
+            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+            expect(merchantNode.right).toBe('coffee');
+        });
+
+        it('should preserve merchant contains operator', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense merchant*:coffee');
             if (!queryJSON?.filters) {
                 throw new Error('Expected filters to be defined');
             }
@@ -3304,7 +3365,7 @@ describe('SearchQueryUtils', () => {
             expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO);
         });
 
-        it('should transform merchant but not category in a compound query', () => {
+        it('should not transform merchant or category in a compound query', () => {
             const queryJSON = buildSearchQueryJSON('type:expense merchant:coffee category:travel');
             if (!queryJSON?.filters) {
                 throw new Error('Expected filters to be defined');
@@ -3315,7 +3376,7 @@ describe('SearchQueryUtils', () => {
             if (!merchantNode) {
                 throw new Error('Expected merchant node to be found in AST');
             }
-            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
 
             const categoryNode = findNode(transformed, 'category');
             if (!categoryNode) {
@@ -3326,8 +3387,21 @@ describe('SearchQueryUtils', () => {
     });
 
     describe('serializeQueryJSONForBackend', () => {
-        it('should apply contains to merchant in AST filters', () => {
+        it('should preserve exact merchant operator in AST filters', () => {
             const queryJSON = buildSearchQueryJSON('type:expense merchant:coffee');
+            if (!queryJSON) {
+                throw new Error('Expected queryJSON to be defined');
+            }
+            const serialized = JSON.parse(serializeQueryJSONForBackend(queryJSON)) as {filters: ASTNode};
+            const merchantNode = findNode(serialized.filters, 'merchant');
+            if (!merchantNode) {
+                throw new Error('Expected merchant node to be found in AST');
+            }
+            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+        });
+
+        it('should preserve contains merchant operator in AST filters', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense merchant*:coffee');
             if (!queryJSON) {
                 throw new Error('Expected queryJSON to be defined');
             }
@@ -3339,8 +3413,34 @@ describe('SearchQueryUtils', () => {
             expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
         });
 
-        it('should apply contains to merchant in rawFilterList', () => {
+        it('should preserve group drill-down merchant exact match', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense merchant:I');
+            if (!queryJSON) {
+                throw new Error('Expected queryJSON to be defined');
+            }
+            const serialized = JSON.parse(serializeQueryJSONForBackend(queryJSON)) as {filters: ASTNode};
+            const merchantNode = findNode(serialized.filters, 'merchant');
+            if (!merchantNode) {
+                throw new Error('Expected merchant node to be found in AST');
+            }
+            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+            expect(merchantNode.right).toBe('I');
+        });
+
+        it('should preserve exact merchant operator in rawFilterList', () => {
             const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'coffee'}];
+            const serialized = JSON.parse(serializeQueryJSONForBackend({filters: undefined, rawFilterList})) as {rawFilterList: typeof rawFilterList};
+            expect(serialized.rawFilterList.at(0)?.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+        });
+
+        it('should preserve contains merchant operator in rawFilterList', () => {
+            const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS, value: 'coffee'}];
+            const serialized = JSON.parse(serializeQueryJSONForBackend({filters: undefined, rawFilterList})) as {rawFilterList: typeof rawFilterList};
+            expect(serialized.rawFilterList.at(0)?.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+        });
+
+        it('should apply contains to description in rawFilterList', () => {
+            const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'coffee'}];
             const serialized = JSON.parse(serializeQueryJSONForBackend({filters: undefined, rawFilterList})) as {rawFilterList: typeof rawFilterList};
             expect(serialized.rawFilterList.at(0)?.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
         });
