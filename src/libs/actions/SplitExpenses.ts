@@ -53,6 +53,7 @@ function initSplitExpense(
     selfDMReportID: string | undefined,
     // When set, the caller's workspace is billing-restricted: redirect to RESTRICTED_ACTION instead of opening the split flow
     restrictedActionPolicyID: string | undefined,
+    personalPolicyOutputCurrency?: string,
     {navigateToEditSplitExpense = false, isProduction = false}: {navigateToEditSplitExpense?: boolean; isProduction?: boolean} = {},
 ): void {
     if (!transaction) {
@@ -148,7 +149,7 @@ function initSplitExpense(
     if (isDistanceRequest(transaction)) {
         // Use the caller-resolved `effectivePolicy` (from `useSplitEffectivePolicy`) for the mileage rate so
         // distance calculations stay in sync with the split edit screens; raw `policy` drives only the billing guard.
-        const mileageRate = resolveSplitMileageRate({transaction, policy: effectivePolicy ?? undefined, isSelfDMSplit: isSelfDMReport});
+        const mileageRate = resolveSplitMileageRate({transaction, policy: effectivePolicy ?? undefined, isSelfDMSplit: isSelfDMReport, personalPolicyOutputCurrency});
         const {rate, unit, currency} = mileageRate;
 
         if (rate && rate > 0 && transaction?.comment?.customUnit) {
