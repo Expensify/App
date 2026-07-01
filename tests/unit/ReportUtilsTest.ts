@@ -16151,6 +16151,8 @@ describe('ReportUtils', () => {
                 currentUserAccountID,
                 currentUserEmail,
                 currentUserLocalCurrency: '',
+                filteredPoliciesCount: 0,
+                firstPolicyID: undefined,
             });
 
             expect(Navigation.navigate).not.toHaveBeenCalled();
@@ -16192,6 +16194,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should navigate to the restricted action page
@@ -16229,6 +16233,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should navigate to the restricted action page
@@ -16270,6 +16276,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should navigate to the category step
@@ -16313,6 +16321,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 1,
+                    firstPolicyID: ownPolicy.id,
                 });
 
                 // Then it should automatically pick the available policy and navigate to the category step
@@ -16343,6 +16353,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should navigate to the upgrade page because no policies were found to categorize with
@@ -16394,6 +16406,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 2,
+                    firstPolicyID: policy1.id,
                 });
 
                 // Then it should navigate to the upgrade page because it's ambiguous which policy to use
@@ -16441,6 +16455,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should log a warning and not navigate
@@ -16488,6 +16504,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should NOT navigate to restricted action page, but to category step
@@ -16527,10 +16545,125 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should navigate to restricted action page
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
+            });
+
+            it('should use policies param to determine filtered policies count instead of Onyx-connected policiesArray', async () => {
+                // Given a transaction and a policy passed via policies param (not set in Onyx)
+                const transaction = createRandomTransaction(7);
+                const policyFromParam = {
+                    ...createRandomPolicy(108),
+                    ownerAccountID: currentUserAccountID,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    pendingAction: null,
+                };
+                const policyExpenseReport = {
+                    ...createPolicyExpenseChat(4),
+                    policyID: policyFromParam.id,
+                    ownerAccountID: currentUserAccountID,
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${1}`, {});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseReport.reportID}`, policyExpenseReport);
+
+                // When we pass the policy via policies param with no activePolicy
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    reportID: '1',
+                    actionName: CONST.IOU.ACTION.CATEGORIZE,
+                    reportActionID: '1',
+                    introSelected: undefined,
+                    draftTransactionIDs: [],
+                    activePolicy: undefined,
+                    userBillingGracePeriodEnds: undefined,
+                    amountOwed: 0,
+                    transaction,
+                    currentUserAccountID,
+                    currentUserEmail,
+                    currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 1,
+                    firstPolicyID: policyFromParam.id,
+                });
+
+                // Then it should pick the policy from the policies param and navigate to the category step
+                expect(Navigation.navigate).toHaveBeenCalledWith(
+                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
+                );
+            });
+
+            it('should navigate to participant selector when policies param has policies and action is SUBMIT', async () => {
+                // Given a transaction and a policy passed via policies param
+                const transaction = createRandomTransaction(8);
+                const policyFromParam = {
+                    ...createRandomPolicy(109),
+                    ownerAccountID: currentUserAccountID,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    pendingAction: null,
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${1}`, {});
+
+                // When we call with SUBMIT action and policies containing a valid policy
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    reportID: '1',
+                    actionName: CONST.IOU.ACTION.SUBMIT,
+                    reportActionID: '1',
+                    introSelected: undefined,
+                    draftTransactionIDs: [],
+                    activePolicy: undefined,
+                    userBillingGracePeriodEnds: undefined,
+                    amountOwed: 0,
+                    transaction,
+                    currentUserAccountID,
+                    currentUserEmail,
+                    currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 1,
+                    firstPolicyID: policyFromParam.id,
+                });
+
+                // Then it should navigate to the participant selector step
+                expect(Navigation.navigate).toHaveBeenCalledWith(
+                    ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transaction.transactionID, '1', undefined, CONST.IOU.ACTION.SUBMIT),
+                );
+            });
+
+            it('should navigate to create workspace screen when policies param is empty and action is not SUBMIT', async () => {
+                // Given a transaction and empty policies
+                const transaction = createRandomTransaction(9);
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${1}`, {});
+
+                // When we call with a non-SUBMIT, non-CATEGORIZE, non-SHARE action and empty policies
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    reportID: '1',
+                    actionName: CONST.IOU.ACTION.SUBMIT,
+                    reportActionID: '1',
+                    introSelected: undefined,
+                    draftTransactionIDs: [],
+                    activePolicy: undefined,
+                    userBillingGracePeriodEnds: undefined,
+                    amountOwed: 0,
+                    transaction,
+                    currentUserAccountID,
+                    currentUserEmail,
+                    currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
+                });
+
+                // Then it should still navigate to participant selector since action is SUBMIT (SUBMIT always goes to participants)
+                expect(Navigation.navigate).toHaveBeenCalledWith(
+                    ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transaction.transactionID, '1', undefined, CONST.IOU.ACTION.SUBMIT),
+                );
             });
         });
     });
