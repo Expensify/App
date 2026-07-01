@@ -9,6 +9,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -24,7 +25,14 @@ import {clearDraftRequireFieldsRule, setDraftRequireFieldsRule, updateDraftRequi
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
-import {categoryHasLegacyReceiptRules, getEffectiveRequireFieldsRuleForm, getRequireFieldsFormFromCategory, saveRequireFieldsRule} from '@libs/RequireFieldsRulesUtils';
+import {
+    getEffectiveRequireFieldsRuleForm,
+    getRequireFieldsFormFromCategory,
+    getRequireFieldsRuleDescription,
+    hasCustomNonZeroReceiptThreshold,
+    isNeverReceiptRequired,
+    saveRequireFieldsRule,
+} from '@libs/RequireFieldsRulesUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
@@ -55,8 +63,14 @@ function getValidationError(
     const isAttendeeFieldApplicable = isAttendeeTrackingEnabled(policy);
     const hasDescription = !!effectiveForm[INPUT_IDS.REQUIRE_DESCRIPTION];
     const hasAttendees = isAttendeeFieldApplicable && !!effectiveForm[INPUT_IDS.REQUIRE_ATTENDEES];
+    const hasReceipt = !!effectiveForm[INPUT_IDS.REQUIRE_RECEIPT];
+    const hasItemizedReceipt = !!effectiveForm[INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT];
+    const hasNeverReceipt = isNeverReceiptRequired(category?.maxAmountNoReceipt);
+    const hasNeverItemizedReceipt = isNeverReceiptRequired(category?.maxAmountNoItemizedReceipt);
+    const hasCustomReceipt = hasCustomNonZeroReceiptThreshold(category?.maxAmountNoReceipt);
+    const hasCustomItemizedReceipt = hasCustomNonZeroReceiptThreshold(category?.maxAmountNoItemizedReceipt);
 
-    if (!hasDescription && !hasAttendees && !categoryHasLegacyReceiptRules(category)) {
+    if (!hasDescription && !hasAttendees && !hasReceipt && !hasItemizedReceipt && !hasNeverReceipt && !hasNeverItemizedReceipt && !hasCustomReceipt && !hasCustomItemizedReceipt) {
         return translate('workspace.rules.requireFieldsRule.confirmErrorField');
     }
 
@@ -69,12 +83,14 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
     const StyleUtils = useStyleUtils();
     const policyData = usePolicyData(policyID);
     const {policy} = policyData;
+    const {convertToDisplayString} = useCurrencyListActions();
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const isAttendeeFieldApplicable = isAttendeeTrackingEnabled(policy);
     const icons = useMemoizedLazyExpensifyIcons(['Folder']);
     const isEditing = !!categoryName;
+    const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const [form] = useOnyx(ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -130,6 +146,8 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
 
     const fieldToggles: Array<{key: RequireFieldsRuleToggleFieldKey; label: string; isVisible: boolean}> = [
         {key: INPUT_IDS.REQUIRE_DESCRIPTION, label: translate('common.description'), isVisible: true},
+        {key: INPUT_IDS.REQUIRE_RECEIPT, label: translate('common.receipt'), isVisible: true},
+        {key: INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT, label: translate('workspace.rules.requireFieldsRule.itemizedReceipt'), isVisible: true},
         {key: INPUT_IDS.REQUIRE_ATTENDEES, label: translate('iou.attendees'), isVisible: isAttendeeFieldApplicable},
     ];
 
@@ -166,6 +184,48 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
         }
 
         handleSave();
+    };
+
+    const renderReceiptField = (fieldKey: typeof INPUT_IDS.REQUIRE_RECEIPT | typeof INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT, label: string) => {
+        const categoryAmount = fieldKey === INPUT_IDS.REQUIRE_RECEIPT ? selectedCategory?.maxAmountNoReceipt : selectedCategory?.maxAmountNoItemizedReceipt;
+        const ruleType = fieldKey === INPUT_IDS.REQUIRE_RECEIPT ? CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_RECEIPTS_OVER : CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ITEMIZED_RECEIPTS_OVER;
+
+        if (hasCustomNonZeroReceiptThreshold(categoryAmount)) {
+            return (
+                <MenuItemWithTopDescription
+                    key={fieldKey}
+                    description={label}
+                    title={getRequireFieldsRuleDescription(translate, ruleType, categoryAmount ?? undefined, convertToDisplayString, policyCurrency)}
+                    interactive={false}
+                />
+            );
+        }
+
+        const isChecked = !!effectiveForm?.[fieldKey];
+        const toggleField = () => handleToggleField(fieldKey, !isChecked);
+
+        return (
+            <MenuItem
+                key={fieldKey}
+                title={label}
+                onPress={toggleField}
+                disabled={!canWriteRules}
+                interactive={canWriteRules}
+                shouldShowRightComponent
+                rightComponent={
+                    <View style={[styles.pointerEventsAuto, StyleUtils.getMenuItemIconStyle(true), styles.alignItemsEnd]}>
+                        <Checkbox
+                            isChecked={isChecked}
+                            onPress={toggleField}
+                            accessibilityLabel={label}
+                            accessible={false}
+                            disabled={!canWriteRules}
+                        />
+                    </View>
+                }
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_FIELD_TOGGLE}
+            />
+        );
     };
 
     if (isEditing && categoryName && !category) {
@@ -226,6 +286,10 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
                     {fieldToggles
                         .filter((field) => field.isVisible)
                         .map((field) => {
+                            if (field.key === INPUT_IDS.REQUIRE_RECEIPT || field.key === INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT) {
+                                return renderReceiptField(field.key, field.label);
+                            }
+
                             const isChecked = !!effectiveForm?.[field.key];
                             const toggleField = () => handleToggleField(field.key, !isChecked);
 

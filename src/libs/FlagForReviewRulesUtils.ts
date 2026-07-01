@@ -61,6 +61,21 @@ function getFlagForReviewFormFromCategory(
     };
 }
 
+function getEffectiveFlagForReviewRuleForm(
+    category: PolicyCategory | undefined,
+    form: Partial<FlagForReviewRuleForm>,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    policyCurrency: string,
+): FlagForReviewRuleForm {
+    const categoryForm = getFlagForReviewFormFromCategory(category, getCurrencyDecimals, policyCurrency);
+
+    return {
+        [INPUT_IDS.CATEGORY]: form[INPUT_IDS.CATEGORY] ?? categoryForm[INPUT_IDS.CATEGORY] ?? '',
+        [INPUT_IDS.MAX_EXPENSE_AMOUNT]: form[INPUT_IDS.MAX_EXPENSE_AMOUNT] ?? categoryForm[INPUT_IDS.MAX_EXPENSE_AMOUNT] ?? '',
+        [INPUT_IDS.EXPENSE_LIMIT_TYPE]: form[INPUT_IDS.EXPENSE_LIMIT_TYPE] ?? categoryForm[INPUT_IDS.EXPENSE_LIMIT_TYPE] ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE,
+    };
+}
+
 function saveFlagForReviewRule(policyID: string, policyCategories: PolicyCategories | undefined, form: FlagForReviewRuleForm) {
     const categoryName = form[INPUT_IDS.CATEGORY];
     if (!categoryName) {
@@ -150,5 +165,5 @@ function getFlagForReviewTableData({
     return rules;
 }
 
-export {deleteFlagForReviewRule, getFlagForReviewFormFromCategory, getFlagForReviewRuleAmountError, getFlagForReviewTableData, saveFlagForReviewRule};
+export {deleteFlagForReviewRule, getEffectiveFlagForReviewRuleForm, getFlagForReviewFormFromCategory, getFlagForReviewRuleAmountError, getFlagForReviewTableData, saveFlagForReviewRule};
 export type {FlagForReviewTableItem};

@@ -7,7 +7,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import {updateDraftFlagForReviewRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {getFlagForReviewFormFromCategory} from '@libs/FlagForReviewRulesUtils';
+import {getEffectiveFlagForReviewRuleForm} from '@libs/FlagForReviewRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
@@ -46,8 +46,12 @@ function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForRevi
 
     const onSave = (value?: string) => {
         const selectedCategory = value ? policyCategories?.[value] : undefined;
+        const draftForm = {
+            ...form,
+            [INPUT_IDS.CATEGORY]: value,
+        };
 
-        updateDraftFlagForReviewRule(selectedCategory ? getFlagForReviewFormFromCategory(selectedCategory, getCurrencyDecimals, policyCurrency) : {[INPUT_IDS.CATEGORY]: value});
+        updateDraftFlagForReviewRule(selectedCategory ? getEffectiveFlagForReviewRuleForm(selectedCategory, draftForm, getCurrencyDecimals, policyCurrency) : draftForm);
     };
 
     return (
