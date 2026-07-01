@@ -1,6 +1,7 @@
 import React, {useRef, useState} from 'react';
 import type {ImageResizeMode, ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import EReceiptStaticThumbnail from '@components/EReceiptStaticThumbnail';
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
 import type {IconSize} from '@components/EReceiptThumbnail';
 import EReceiptWithSizeCalculation from '@components/EReceiptWithSizeCalculation';
@@ -193,6 +194,14 @@ function ReceiptImage({
     }
 
     if (isEReceipt && !isPerDiemRequest) {
+        if (shouldUseThumbnailImage && transactionItem) {
+            return (
+                <EReceiptStaticThumbnail
+                    transactionItem={transactionItem}
+                    style={style}
+                />
+            );
+        }
         return (
             <EReceiptWithSizeCalculation
                 transactionID={transactionID}

@@ -13,21 +13,19 @@ type ListFilterWrapperProps = {
     hasHeader?: boolean;
     isSearchable?: boolean;
     extraHeight?: number;
-    shouldUseFixedPopoverHeight?: boolean;
 };
 
-function ListFilterView({children, itemCount, itemHeight, hasTitle = true, hasHeader, isSearchable, extraHeight, shouldUseFixedPopoverHeight}: ListFilterWrapperProps) {
+function ListFilterView({children, itemCount, itemHeight, hasTitle = true, hasHeader, isSearchable, extraHeight}: ListFilterWrapperProps) {
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
-    const heightItemCount = shouldUseFixedPopoverHeight ? Number.MAX_SAFE_INTEGER : itemCount || 1;
 
     return (
         <View
             style={[
                 styles.getSelectionListPopoverHeight({
-                    itemCount: heightItemCount,
+                    itemCount: itemCount || 1,
                     itemHeight,
                     windowHeight,
                     isInLandscapeMode,

@@ -9,6 +9,7 @@ package com.margelo.nitro.utils
 
 import androidx.annotation.Keep
 import com.facebook.proguard.annotations.DoNotStrip
+import java.util.Objects
 
 
 /**
@@ -22,6 +23,18 @@ data class StringHolder(
   val value: String
 ) {
   /* primary constructor */
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (other !is StringHolder) return false
+    return Objects.deepEquals(this.value, other.value)
+  }
+
+  override fun hashCode(): Int {
+    return arrayOf(
+      value
+    ).contentDeepHashCode()
+  }
 
   companion object {
     /**

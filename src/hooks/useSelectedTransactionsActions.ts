@@ -74,7 +74,7 @@ function useSelectedTransactionsActions({
     onExportFailed?: () => void;
     onExportOffline?: () => void;
     policy?: Policy;
-    beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
+    beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], exportName: string, policyID?: string) => void;
     isOnSearch?: boolean;
     onDeleteSelected?: (handleDeleteTransactions: () => void, handleDeleteTransactionsWithNavigation: (backToRoute?: Route) => void) => void | Promise<void>;
 }) {
@@ -415,7 +415,7 @@ function useSelectedTransactionsActions({
                     text: template.name,
                     icon: isStandardTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
                     description: template.description,
-                    onSelected: () => beginExportWithTemplate(template.templateName, template.type, selectedTransactionIDs, template.policyID),
+                    onSelected: () => beginExportWithTemplate(template.templateName, template.type, selectedTransactionIDs, template.name, template.policyID),
                 });
             }
             return exportOptions;
