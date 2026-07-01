@@ -1,3 +1,4 @@
+// cspell:ignore Élodie José
 import {renderHook} from '@testing-library/react-native';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
@@ -28,6 +29,12 @@ describe('UserAvatarUtils', () => {
             const {result: avatars} = renderHook(() => useDefaultAvatars());
             const avatar = UserAvatarUtils.getAvatar({avatarSource: CONST.CONCIERGE_ICON_URL, accountID: CONST.ACCOUNT_ID.CONCIERGE, defaultAvatars: avatars.current});
             expect(avatar).toBeDefined();
+        });
+
+        it('should resolve the Notifications icon URL to the local Notifications avatar regardless of accountID', () => {
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const avatar = UserAvatarUtils.getAvatar({avatarSource: CONST.NOTIFICATIONS_ICON_URL, accountID: 999, defaultAvatars: avatars.current});
+            expect(avatar).toBe(avatars.current.NotificationsAvatar);
         });
 
         it('should return default avatar SVG for default avatar URL', () => {
@@ -70,6 +77,11 @@ describe('UserAvatarUtils', () => {
             expect(url).toBe(CONST.CONCIERGE_ICON_URL);
         });
 
+        it('should return Notifications icon URL for the Notifications account by accountID or email', () => {
+            expect(UserAvatarUtils.getDefaultAvatarURL({accountID: CONST.ACCOUNT_ID.NOTIFICATIONS})).toBe(CONST.NOTIFICATIONS_ICON_URL);
+            expect(UserAvatarUtils.getDefaultAvatarURL({accountID: 999, accountEmail: CONST.EMAIL.NOTIFICATIONS})).toBe(CONST.NOTIFICATIONS_ICON_URL);
+        });
+
         it('should return default avatar URL for regular account', () => {
             const url = UserAvatarUtils.getDefaultAvatarURL({accountID: 1});
             expect(url).toContain('default-avatar_');
@@ -98,12 +110,13 @@ describe('UserAvatarUtils', () => {
             expect(url1).toBe(url25); // Same modulo result
         });
 
-        it('should use accountEmail hash instead of accountID when email is provided', () => {
+        it('should return a letter avatar from the email when an email is provided', () => {
             const urlByID = UserAvatarUtils.getDefaultAvatarURL({accountID: 10});
             const urlByEmail = UserAvatarUtils.getDefaultAvatarURL({accountID: 10, accountEmail: 'john.doe@example.com'});
 
             expect(urlByID).toContain('default-avatar_');
-            expect(urlByEmail).toContain('default-avatar_');
+            expect(urlByEmail).toContain('generated/letter/');
+            expect(urlByEmail).toContain('/J.png');
             expect(urlByID).not.toBe(urlByEmail);
         });
 
@@ -136,12 +149,20 @@ describe('UserAvatarUtils', () => {
             expect(UserAvatarUtils.isDefaultAvatar(CONST.CONCIERGE_ICON_URL_2021)).toBe(true);
         });
 
+        it('should return true for the Notifications icon URL', () => {
+            expect(UserAvatarUtils.isDefaultAvatar(CONST.NOTIFICATIONS_ICON_URL)).toBe(true);
+        });
+
         it('should return false for custom avatar URLs', () => {
             expect(UserAvatarUtils.isDefaultAvatar('https://example.com/custom-avatar.png')).toBe(false);
         });
 
         it('should return false for undefined', () => {
             expect(UserAvatarUtils.isDefaultAvatar(undefined)).toBe(false);
+        });
+
+        it('should return false for a generated letter-avatar URL so getAvatarURL passes it through instead of recomputing', () => {
+            expect(UserAvatarUtils.isDefaultAvatar(`${CONST.CLOUDFRONT_URL}/images/avatars/generated/letter/v1/blue100/DL.png`)).toBe(false);
         });
     });
 
@@ -187,6 +208,18 @@ describe('UserAvatarUtils', () => {
 
         it('should return false for empty string', () => {
             expect(UserAvatarUtils.isLetterAvatar('')).toBe(false);
+        });
+    });
+
+    describe('isGeneratedLetterAvatarURL', () => {
+        it('should return true for a backend-generated letter-avatar URL so the edit flow treats it as a default', () => {
+            expect(UserAvatarUtils.isGeneratedLetterAvatarURL(`${CONST.CLOUDFRONT_URL}/images/avatars/generated/letter/v1/blue100/DL.png`)).toBe(true);
+        });
+
+        it('should return false for uploaded photos and other avatar URLs', () => {
+            expect(UserAvatarUtils.isGeneratedLetterAvatarURL('https://example.com/custom-avatar.png')).toBe(false);
+            expect(UserAvatarUtils.isGeneratedLetterAvatarURL(`${CONST.CLOUDFRONT_URL}/images/avatars/default-avatar_5.png`)).toBe(false);
+            expect(UserAvatarUtils.isGeneratedLetterAvatarURL(undefined)).toBe(false);
         });
     });
 
@@ -295,6 +328,56 @@ describe('UserAvatarUtils', () => {
         it('should prioritize avatarURL over accountID and email', () => {
             const name = UserAvatarUtils.getDefaultAvatarName({accountID: 1, accountEmail: 'test@example.com', avatarURL: 'https://example.com/default-avatar_20.png'});
             expect(name).toBe('default-avatar_20');
+        });
+    });
+
+    describe('getLetterAvatarURL (golden parity)', () => {
+        // Frozen golden cases shared with the Auth and Web getLetterAvatarURL tests. All three
+        // implementations must produce these exact URLs. Colors come from md5(login) % palette size.
+        const BASE = `${CONST.CLOUDFRONT_URL}/images/avatars/generated/letter/v1`;
+        const cases = [
+            {accountID: 42, firstName: 'Dave', lastName: 'Lee', login: 'dave@example.com', expected: `${BASE}/blue100/DL.png`},
+            {accountID: 42, firstName: 'Dave', lastName: '', login: 'dave@example.com', expected: `${BASE}/blue100/D.png`},
+            {accountID: 42, firstName: '', lastName: '', login: 'hiiii@example.com', expected: `${BASE}/blue400/H.png`},
+            {accountID: 7, firstName: '', lastName: '', login: '+15551234567@expensify.sms', expected: ''},
+            {accountID: CONST.ACCOUNT_ID.CONCIERGE, firstName: 'Concierge', lastName: '', login: 'concierge@expensify.com', expected: ''},
+            {accountID: CONST.ACCOUNT_ID.NOTIFICATIONS, firstName: 'Notifications', lastName: '', login: 'notifications@expensify.com', expected: ''},
+            // System accounts are recognized by login too, so a non-system accountID (e.g. dev DB IDs) still gets no letter avatar.
+            {accountID: 999, firstName: '', lastName: '', login: 'concierge@expensify.com', expected: ''},
+            {accountID: 999, firstName: '', lastName: '', login: 'notifications@expensify.com', expected: ''},
+        ];
+
+        it.each(cases)('builds the canonical URL for $login ($firstName/$lastName)', ({accountID, firstName, lastName, login, expected}) => {
+            expect(UserAvatarUtils.getLetterAvatarURL(accountID, firstName, lastName, login)).toBe(expected);
+        });
+
+        it('falls back instead of using a later ASCII letter when the name starts with a non-ASCII character', () => {
+            // "Élodie" must not become "L" and a leading CJK name must not become "A".
+            expect(UserAvatarUtils.getLetterAvatarURL(42, 'Élodie', '', '')).toBe('');
+            expect(UserAvatarUtils.getLetterAvatarURL(42, '李Ann', '', '')).toBe('');
+            // An ASCII first letter still wins even when later characters are non-ASCII.
+            expect(UserAvatarUtils.getLetterAvatarURL(42, 'José', '', 'dave@example.com')).toBe(`${BASE}/blue100/J.png`);
+        });
+
+        it('derives the initial and color from the merge-stripped login', () => {
+            const merged = UserAvatarUtils.getLetterAvatarURL(42, '', '', 'MERGED_0@real@example.com');
+            const stripped = UserAvatarUtils.getLetterAvatarURL(42, '', '', 'real@example.com');
+            expect(merged).toBe(stripped);
+            expect(merged.endsWith('/R.png')).toBe(true);
+        });
+
+        it('derives color from the login so it stays stable across an optimistic accountID change', () => {
+            const optimistic = UserAvatarUtils.getLetterAvatarURL(1, '', '', 'consistent@example.com');
+            const real = UserAvatarUtils.getLetterAvatarURL(999, '', '', 'consistent@example.com');
+            expect(optimistic).toBe(real);
+            expect(optimistic).toBe(`${BASE}/pink400/C.png`);
+        });
+
+        it('round-trips through parseLetterAvatarURL', () => {
+            const url = UserAvatarUtils.getLetterAvatarURL(42, 'Dave', 'Lee', 'dave@example.com');
+            const parsed = UserAvatarUtils.parseLetterAvatarURL(url);
+            expect(parsed?.initials).toBe('DL');
+            expect(parsed?.colors).toEqual(UserAvatarUtils.getLetterAvatarScheme('blue100'));
         });
     });
 });

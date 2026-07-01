@@ -421,6 +421,8 @@ const CONST = {
     DEFAULT_GROUP_AVATAR_COUNT: 18,
     DEFAULT_AVATAR_COUNT: 24,
 
+    GENERATED_LETTER_AVATAR_PATH: '/images/avatars/generated/letter/',
+
     DISPLAY_NAME: {
         // This value is consistent with the BE display name max length limit.
         MAX_LENGTH: 100,
@@ -1250,6 +1252,7 @@ const CONST = {
     CLOUDFRONT_DOMAIN_REGEX: /^https:\/\/\w+\.cloudfront\.net/i,
     CONCIERGE_ICON_URL_2021: `${CLOUDFRONT_URL}/images/icons/concierge_2021.png`,
     CONCIERGE_ICON_URL: `${CLOUDFRONT_URL}/images/icons/concierge_2022.png`,
+    NOTIFICATIONS_ICON_URL: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
     COMPANY_CARD_PLAID: `${CLOUDFRONT_URL}/images/plaid/`,
     // The version below must stay in sync with the `@lottiefiles/dotlottie-web` version pinned in package-lock.json.
     DOTLOTTIE_WASM_URL: 'https://cdn.expensify.com/cdn.jsdelivr.net/npm/@lottiefiles/dotlottie-web@0.44.0/dist/dotlottie-player.wasm',
