@@ -100,6 +100,36 @@ describe('Session', () => {
         redirectToSignInSpy.mockRestore();
     });
 
+    test('setIsAuthenticatingWithShortLivedToken(true) makes reauthenticate abort (blocks the SAML resume race)', async () => {
+        let isAuthenticatingWithShortLivedToken: OnyxEntry<boolean>;
+        Onyx.connect({
+            key: ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
+            callback: (val) => (isAuthenticatingWithShortLivedToken = val),
+        });
+
+        // Given the SAML sign-in flow set the guard before opening the in-app browser
+        SessionUtil.setIsAuthenticatingWithShortLivedToken(true);
+        await waitForBatchedUpdates();
+        expect(isAuthenticatingWithShortLivedToken).toBe(true);
+
+        const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+        // When the app resumes and reconnectApp's 407 triggers reauthenticate
+        const result = await reauthenticate('TestCommand');
+        await waitForBatchedUpdates();
+
+        // Then reauthenticate aborts without redirecting to sign in, so the SAML callback can complete
+        expect(result).toBe(false);
+        expect(redirectToSignInSpy).not.toHaveBeenCalled();
+
+        // When the browser is cancelled/fails, the guard is cleared so future reauthentication isn't blocked
+        SessionUtil.setIsAuthenticatingWithShortLivedToken(false);
+        await waitForBatchedUpdates();
+        expect(isAuthenticatingWithShortLivedToken).toBe(false);
+
+        redirectToSignInSpy.mockRestore();
+    });
+
     test('reauthenticate proceeds even when a legacy session.isAuthenticatingWithShortLivedToken=true is persisted (recovers stuck users)', async () => {
         // Given a session in Onyx that still carries the legacy stuck flag from before the RAM-only migration.
         // The Session type no longer declares the field, so cast to write the legacy shape.
