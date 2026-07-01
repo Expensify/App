@@ -7,6 +7,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import {search} from '@libs/actions/Search';
 import {getSections} from '@libs/SearchUIUtils';
 import {mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
@@ -39,6 +40,7 @@ function GroupChildrenContent({
     const isScreenFocused = useIsFocused();
     const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
+    const reportAttributesDerivedValue = useReportAttributes();
 
     const groupItem = item;
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
@@ -69,6 +71,7 @@ function GroupChildrenContent({
             cardFeeds,
             conciergeReportID,
             convertToDisplayString,
+            reportAttributesDerivedValue,
         }) as [TransactionListItemType[], number, boolean];
         return sectionData.map((transactionItem) => ({
             ...transactionItem,
@@ -87,6 +90,7 @@ function GroupChildrenContent({
         cardFeeds,
         conciergeReportID,
         convertToDisplayString,
+        reportAttributesDerivedValue,
         selectedTransactionIDsSet,
     ]);
 

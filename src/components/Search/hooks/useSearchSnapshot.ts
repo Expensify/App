@@ -268,6 +268,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
                 cardFeeds,
                 conciergeReportID,
                 convertToDisplayString,
+                reportAttributesDerivedValue: undefined,
             });
             return {
                 ...item,

@@ -39,7 +39,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
-import useReportAttributes from '@hooks/useReportAttributes';
+import useReportAttributes, {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -216,6 +216,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
+    const reportAttributes = useReportAttributes();
+    const derivedParentReportName = useDerivedReportNameByReportID(report?.parentReportID);
     const isPolicyAdmin = useMemo(() => isPolicyAdminUtil(policy), [policy]);
     const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtil(report?.policyID, policy), [report?.policyID, policy]);
     const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtil(report), [report]);
@@ -243,7 +245,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isArchivedRoom = useMemo(() => isArchivedNonExpenseReport(report, isReportArchived), [report, isReportArchived]);
     const shouldDisableRename = useMemo(() => shouldDisableRenameUtil(report, isReportArchived), [report, isReportArchived]);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, isParentReportArchived);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, derivedParentReportName, isParentReportArchived);
     const base62ReportID = getBase62ReportID(Number(report.reportID));
     const ancestors = useAncestors(report);
 
@@ -343,7 +345,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     } else if (caseID === CASES.DEFAULT) {
         deleteMenuItemTitle = translate('common.delete');
     }
-    const reportAttributes = useReportAttributes();
     const isWorkspaceChat = useMemo(() => isWorkspaceChatUtil(report?.chatType ?? ''), [report?.chatType]);
 
     useEffect(() => {

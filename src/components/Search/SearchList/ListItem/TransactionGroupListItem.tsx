@@ -20,6 +20,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
@@ -140,6 +141,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const isActionLoadingSet = useActionLoadingReportIDs();
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const reportAttributesDerivedValue = useReportAttributes();
 
     let transactions: TransactionListItemType[];
     if (isExpenseReportType) {
@@ -159,6 +161,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             cardFeeds,
             conciergeReportID,
             convertToDisplayString,
+            reportAttributesDerivedValue,
         }) as [TransactionListItemType[], number, boolean];
         transactions = sectionData.map((transactionItem) => ({
             ...transactionItem,

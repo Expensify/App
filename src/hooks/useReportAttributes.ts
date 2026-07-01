@@ -1,4 +1,7 @@
+import {reportNameSelector} from '@selectors/ReportAttributes';
+import type {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 
 /**
@@ -20,12 +23,26 @@ function useReportAttributes() {
  * when that specific report's attributes change — not on every global report change.
  */
 function useReportAttributesByID(reportID: string | undefined) {
-    const reportAttributesByIDSelector = (value: {reports?: Record<string, unknown>} | undefined) => (reportID ? value?.reports?.[reportID] : undefined);
+    const reportAttributesByIDSelector = (value: OnyxEntry<ReportAttributesDerivedValue>) => (reportID ? value?.reports?.[reportID] : undefined);
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
         selector: reportAttributesByIDSelector,
     });
     return reportAttributes;
 }
 
+/**
+ * Returns a single report's name using a selector.
+ *
+ * Use this when a component only needs one report's name: the selector output is a primitive string, so its
+ * comparison is trivial and the component re-renders only when that specific report's name changes — not on
+ * every global report attribute change.
+ */
+function useDerivedReportNameByReportID(reportID: string | undefined) {
+    const [reportName] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: (value: OnyxEntry<ReportAttributesDerivedValue>) => reportNameSelector(value, reportID),
+    });
+    return reportName;
+}
+
 export default useReportAttributes;
-export {useReportAttributesByID};
+export {useReportAttributesByID, useDerivedReportNameByReportID};
