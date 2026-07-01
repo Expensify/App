@@ -11,6 +11,7 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isAnyHRReadOnlyWorkflowMode} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -40,6 +41,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const formRef = useRef<ScrollView>(null);
     const canWriteApprovals = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
+    const {isLoading, startWithLoading} = usePressLoading();
 
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !canWriteApprovals || isPendingDeletePolicy(policy) || isAnyHRReadOnlyWorkflowMode(policy);
 
@@ -52,9 +54,11 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
             return;
         }
 
-        createApprovalWorkflowAction({approvalWorkflow, policy, addExpenseApprovalsTaskReport});
-        Navigation.dismissModal();
-    }, [approvalWorkflow, policy, addExpenseApprovalsTaskReport]);
+        startWithLoading(() => {
+            createApprovalWorkflowAction({approvalWorkflow, policy, addExpenseApprovalsTaskReport});
+            Navigation.dismissModal();
+        });
+    }, [approvalWorkflow, policy, addExpenseApprovalsTaskReport, startWithLoading]);
 
     const submitButtonContainerStyles = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.mb5, styles.mh5]});
 
@@ -97,6 +101,8 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
                                 buttonText={translate('workflowsCreateApprovalsPage.submitButton')}
                                 containerStyles={submitButtonContainerStyles}
                                 enabledWhenOffline
+                                shouldShowLoadingImmediatelyOnPress={false}
+                                isLoading={isLoading}
                             />
                         </>
                     )}

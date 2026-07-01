@@ -1,3 +1,5 @@
+import {NavigationContainer} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
 import {act, render} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -7,6 +9,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import WorkspaceWorkflowsApprovalsEditPage from '@pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsEditPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
@@ -77,14 +80,24 @@ const mockRoute = {
     },
 };
 
+const Stack = createStackNavigator();
+
 const renderEditPage = () =>
     render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <WorkspaceWorkflowsApprovalsEditPage
-                // @ts-expect-error - route type from navigator
-                route={mockRoute}
-            />
-        </ComposeProviders>,
+        <NavigationContainer>
+            <Stack.Navigator>
+                <Stack.Screen name={SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT}>
+                    {() => (
+                        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                            <WorkspaceWorkflowsApprovalsEditPage
+                                // @ts-expect-error - route type from navigator
+                                route={mockRoute}
+                            />
+                        </ComposeProviders>
+                    )}
+                </Stack.Screen>
+            </Stack.Navigator>
+        </NavigationContainer>,
     );
 
 describe('WorkspaceWorkflowsApprovalsEditPage', () => {

@@ -10,6 +10,7 @@ import type {Section} from '@components/SelectionList/SelectionListWithSections/
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchUserInServer} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -51,6 +52,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
 
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const didInvite = useRef<boolean>(false);
+    const {isLoading, startWithLoading} = usePressLoading();
 
     const domainName = domainEmail ? Str.extractEmailDomain(domainEmail) : undefined;
 
@@ -82,8 +84,11 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
         }
         didInvite.current = true;
 
-        addAdminToDomain(domainAccountID, selectedOption.accountID, selectedOption.login, domainName, !!selectedOption.isOptimisticPersonalDetail);
-        Navigation.dismissModal();
+        const {accountID, login, isOptimisticPersonalDetail} = selectedOption;
+        startWithLoading(() => {
+            addAdminToDomain(domainAccountID, accountID, login, domainName, !!isOptimisticPersonalDetail);
+            Navigation.dismissModal();
+        });
     };
 
     const sections: Sections[] = [];
@@ -118,6 +123,8 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
             isDisabled={selectedOptions.length === 0}
             isAlertVisible={false}
             buttonText={translate('common.invite')}
+            shouldShowLoadingImmediatelyOnPress={false}
+            isLoading={isLoading}
             onSubmit={inviteUser}
             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             enabledWhenOffline

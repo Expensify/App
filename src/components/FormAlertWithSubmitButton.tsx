@@ -2,6 +2,7 @@ import type {Ref} from 'react';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
@@ -24,6 +25,14 @@ type FormAlertWithSubmitButtonProps = WithSentryLabel & {
 
     /** Is the button in a loading state */
     isLoading?: boolean;
+
+    /**
+     * Controls the submit button's optimistic loading state on press.
+     *
+     * Shows the spinner the moment the button is pressed, ahead of `onSubmit` and any consumer-driven `isLoading`. Defaults to true.
+     * Set it to false when the consumer drives the press loading itself, for example through `usePressLoading`, or when `onSubmit` only changes local state.
+     */
+    shouldShowLoadingImmediatelyOnPress?: boolean;
 
     /** Callback fired when the "fix the errors" link is pressed */
     onFixTheErrorsLinkPressed?: () => void;
@@ -85,7 +94,7 @@ function FormAlertWithSubmitButton({
     isDisabled = false,
     isMessageHtml = false,
     containerStyles,
-    isLoading = false,
+    isLoading: isOnyxLoading = false,
     onFixTheErrorsLinkPressed = () => {},
     enabledWhenOffline = false,
     disablePressOnEnter = false,
@@ -103,10 +112,21 @@ function FormAlertWithSubmitButton({
     shouldBlendOpacity = false,
     addButtonBottomPadding = true,
     shouldPreventDefaultFocusOnPress = false,
+    shouldShowLoadingImmediatelyOnPress = true,
     sentryLabel,
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
     const style = [!shouldRenderFooterAboveSubmit && footerContent && addButtonBottomPadding ? styles.mb3 : {}, buttonStyles];
+
+    const {isLoading, startWithLoading} = usePressLoading({isLoading: isOnyxLoading});
+
+    const submit = () => {
+        if (!shouldShowLoadingImmediatelyOnPress) {
+            onSubmit();
+            return;
+        }
+        startWithLoading(onSubmit);
+    };
 
     // Disable pressOnEnter for Android Native to avoid issues with the Samsung keyboard,
     // where pressing Enter saves the form instead of adding a new line in multiline input.
@@ -148,7 +168,7 @@ function FormAlertWithSubmitButton({
                             enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                             text={buttonText}
                             style={style}
-                            onPress={onSubmit}
+                            onPress={submit}
                             isDisabled={isDisabled}
                             isLoading={isLoading}
                             danger={isSubmitActionDangerous}

@@ -1,3 +1,5 @@
+import {NavigationContainer} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
 import {render, screen} from '@testing-library/react-native';
 import type {ViewProps} from 'react-native';
 import type ReactNative from 'react-native';
@@ -12,6 +14,7 @@ import {VolumeContextProvider} from '@components/VideoPlayerContexts/VolumeConte
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 
 const CONFIRM_TEXT = 'Start';
 
@@ -28,6 +31,18 @@ jest.mock('@components/ImageSVG', () => {
     return (props: ViewProps) => <View {...props} />;
 });
 
+const Stack = createStackNavigator();
+
+function withNavigation(ui: React.ReactElement): React.ReactElement {
+    return (
+        <NavigationContainer>
+            <Stack.Navigator>
+                <Stack.Screen name={SCREENS.FEATURE_TRAINING_ROOT}>{() => ui}</Stack.Screen>
+            </Stack.Navigator>
+        </NavigationContainer>
+    );
+}
+
 describe('FeatureTrainingModal', () => {
     beforeAll(() => {
         Onyx.init({
@@ -37,12 +52,14 @@ describe('FeatureTrainingModal', () => {
     describe('renderIllustration', () => {
         it('renders video', () => {
             render(
-                <ComposeProviders components={[OnyxListItemProvider, PlaybackContextProvider, FullScreenContextProvider, VolumeContextProvider, VideoPopoverMenuContextProvider]}>
-                    <FeatureTrainingModal
-                        confirmText={CONFIRM_TEXT}
-                        videoURL={CONST.FEATURE_TRAINING['track-expenses'].VIDEO_URL}
-                    />
-                </ComposeProviders>,
+                withNavigation(
+                    <ComposeProviders components={[OnyxListItemProvider, PlaybackContextProvider, FullScreenContextProvider, VolumeContextProvider, VideoPopoverMenuContextProvider]}>
+                        <FeatureTrainingModal
+                            confirmText={CONFIRM_TEXT}
+                            videoURL={CONST.FEATURE_TRAINING['track-expenses'].VIDEO_URL}
+                        />
+                    </ComposeProviders>,
+                ),
             );
 
             expect(screen.getByTestId(CONST.VIDEO_PLAYER_TEST_ID)).toBeOnTheScreen();
@@ -58,11 +75,11 @@ describe('FeatureTrainingModal', () => {
                 );
             }
 
-            render(<Component />);
+            render(withNavigation(<Component />));
             expect(screen.getByTestId(CONST.IMAGE_SVG_TEST_ID)).toBeOnTheScreen();
         });
         it('renders animation', () => {
-            render(<FeatureTrainingModal confirmText={CONFIRM_TEXT} />);
+            render(withNavigation(<FeatureTrainingModal confirmText={CONFIRM_TEXT} />));
 
             expect(screen.getByTestId(CONST.LOTTIE_VIEW_TEST_ID)).toBeOnTheScreen();
         });
