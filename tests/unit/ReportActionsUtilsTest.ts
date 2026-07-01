@@ -5576,6 +5576,18 @@ describe('ReportActionsUtils', () => {
                 }),
             ).toEqual(['unread-newer', 1]);
         });
+
+        it("clears the marker entirely when the only unread action is the current user's own new message", () => {
+            const ownNew = makeAction({reportActionID: 'own-new', actorAccountID: currentUserAccountID});
+            const olderRead = makeAction({reportActionID: 'older-read', created: '2023-01-01 09:00:00.000'});
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions: [ownNew, olderRead],
+                    prevSortedVisibleReportActionsObjects: {},
+                }),
+            ).toEqual([null, -1]);
+        });
     });
 
     describe('getIntegrationSyncFailedMessage', () => {

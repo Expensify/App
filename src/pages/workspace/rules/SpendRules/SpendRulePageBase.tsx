@@ -15,7 +15,6 @@ import useCanWriteCardSpendRules from '@hooks/useCanWriteCardSpendRules';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
-import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -68,7 +67,6 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const policy = usePolicy(policyID);
-    const {isDevelopment} = useEnvironment();
 
     const {showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const canWriteSpendRules = useCanWriteCardSpendRules(policyID);
@@ -120,6 +118,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
 
     const openMaxAmountCurrencyMismatchModal = () => {
         showConfirmModal({
+            id: 'spend-rule-max-amount-currency-mismatch-modal',
             title: translate('workspace.rules.spendRules.maxAmountCurrencyMismatchTitle'),
             prompt: translate('workspace.rules.spendRules.maxAmountCurrencyMismatchPrompt'),
             confirmText: translate('workspace.rules.spendRules.reviewSelectedCards'),
@@ -135,6 +134,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
 
     const openCurrenciesCurrencyMismatchModal = () => {
         showConfirmModal({
+            id: 'spend-rule-currencies-currency-mismatch-modal',
             title: translate('workspace.rules.spendRules.currenciesCurrencyMismatchTitle'),
             prompt: translate('workspace.rules.spendRules.currenciesCurrencyMismatchPrompt'),
             confirmText: translate('workspace.rules.spendRules.reviewSelectedCards'),
@@ -392,15 +392,13 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         icon: isRulesRevampEnabled ? icons.CoinsButton : undefined,
     });
 
-    const currenciesMenuItem = isDevelopment
-        ? renderEditableMenuItem({
-              description: translate('workspace.rules.spendRules.permittedCurrencies'),
-              title: currenciesMenuTitle,
-              onPress: chooseCurrencies,
-              sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.CURRENCY_SELECTOR,
-              icon: isRulesRevampEnabled ? icons.MoneyCircle : undefined,
-          })
-        : null;
+    const currenciesMenuItem = renderEditableMenuItem({
+        description: translate('workspace.rules.spendRules.permittedCurrencies'),
+        title: currenciesMenuTitle,
+        onPress: chooseCurrencies,
+        sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.CURRENCY_SELECTOR,
+        icon: isRulesRevampEnabled ? icons.MoneyCircle : undefined,
+    });
 
     const revampFormContent = (
         <>

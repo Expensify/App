@@ -1,8 +1,8 @@
-import reportByIDsSelector, {reportNameSelector} from '@selectors/Attributes';
+import reportByIDsSelector, {reportNameSelector} from '@selectors/ReportAttributes';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 
-describe('AttributesSelector', () => {
+describe('ReportAttributesSelector', () => {
     describe('reportByIDsSelector', () => {
         const reportID = '1';
         const reportAttributes: ReportAttributes = {
