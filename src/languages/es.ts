@@ -1627,6 +1627,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectedNextStep: 'Este informe fue rechazado. Esperando a que corrijas los problemas y lo vuelvas a enviar manualmente.',
             selectMemberError: 'Selecciona un miembro al que devolver este informe.',
             couldNotReject: 'No se pudo rechazar el informe. Por favor, inténtalo de nuevo.',
+            couldNotRejectExpense: 'No se pudo rechazar el gasto.',
         },
         moveExpenses: 'Mover a informe',
         moveExpensesError: 'No puedes mover gastos per diem a informes de otros espacios de trabajo, porque las tarifas de dietas pueden diferir entre espacios de trabajo.',

@@ -1606,6 +1606,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectedNextStep: '此报表已被拒绝。等待你修复问题并手动重新提交。',
             selectMemberError: '选择一位成员将此报表退回给 TA。',
             couldNotReject: '无法拒绝该报表。请重试。',
+            couldNotRejectExpense: '无法拒绝该报销。',
         },
         moveExpenses: '移动到报告',
         moveExpensesError: '您无法将每日津贴报销移动到其他工作区的报表中，因为不同工作区的每日津贴标准可能不同。',

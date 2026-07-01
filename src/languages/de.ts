@@ -1662,6 +1662,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectedNextStep: 'Dieser Bericht wurde abgelehnt. Wir warten darauf, dass Sie die Probleme beheben und ihn manuell erneut einreichen.',
             selectMemberError: 'Wählen Sie ein Mitglied aus, an das dieser Bericht zurückgewiesen werden soll.',
             couldNotReject: 'Der Bericht konnte nicht abgelehnt werden. Bitte versuchen Sie es erneut.',
+            couldNotRejectExpense: 'Die Ausgabe konnte nicht abgelehnt werden.',
         },
         moveExpenses: 'Zum Bericht verschieben',
         moveExpensesError: 'Sie können Pauschalspesen nicht in Berichte anderer Arbeitsbereiche verschieben, da die Pauschalsätze je nach Arbeitsbereich unterschiedlich sein können.',
