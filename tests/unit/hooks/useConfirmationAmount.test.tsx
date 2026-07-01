@@ -83,7 +83,7 @@ describe('useConfirmationAmount', () => {
     });
 
     it('divides amount by attendee count for per-attendee total', () => {
-        const {result} = renderHook(() => useConfirmationAmount({...baseParams, iouAttendees: [{accountID: 1}, {accountID: 2}, {accountID: 3}, {accountID: 4}] as Params['iouAttendees']}), {
+        const {result} = renderHook(() => useConfirmationAmount({...baseParams, iouAttendees: [{}, {}, {}, {}] as Params['iouAttendees']}), {
             wrapper: Wrapper,
         });
         // 100 / 4 = 25

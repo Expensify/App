@@ -14,7 +14,9 @@ import {isReceiptError} from '@libs/ErrorUtils';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {
+    arePolicyRulesEnabled,
     getDistanceRateCustomUnitRate,
     getMatchingVendorByID,
     getPerDiemRateCustomUnitRate,
@@ -22,6 +24,7 @@ import {
     hasVendorFeature,
     isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy,
     isDefaultTagName,
+    isMatchingVendorListLoaded,
     isTaxTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {isCurrentUserSubmitter} from '@libs/ReportUtils';
@@ -476,14 +479,19 @@ const ViolationsUtils = {
                 if (hasInactiveVendorViolation) {
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
                 }
-            } else if (transactionVendorID) {
+            } else if (transactionVendorID && isMatchingVendorListLoaded(policy)) {
+                // Only mutate INACTIVE_VENDOR once the active integration's vendor list has actually
+                // hydrated. While `policy.connections.*.data.vendors` is still `undefined`,
+                // `getMatchingVendorByID` returns `undefined` for every ID — pushing the violation
+                // would persist a false positive in Onyx, and rejecting it would strip a legitimate
+                // one. Leave the existing violation state untouched until the list arrives.
                 const matchedVendor = getMatchingVendorByID(policy, transactionVendorID);
                 if (!matchedVendor && !hasInactiveVendorViolation) {
                     newTransactionViolations.push({name: CONST.VIOLATIONS.INACTIVE_VENDOR, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
                 } else if (matchedVendor && hasInactiveVendorViolation) {
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
                 }
-            } else if (hasInactiveVendorViolation) {
+            } else if (!transactionVendorID && hasInactiveVendorViolation) {
                 // Vendor was cleared while the feature is still active — drop the now-stale violation.
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
             }
@@ -585,33 +593,28 @@ const ViolationsUtils = {
         const shouldCategoryShowOverLimitViolation =
             canCalculateAmountViolations && !isInvoiceTransaction && typeof categoryOverLimit === 'number' && expenseAmount > categoryOverLimit && isControlPolicy;
         const shouldShowMissingComment =
-            !isInvoiceTransaction && policyCategories?.[categoryName ?? '']?.areCommentsRequired && !updatedTransaction.comment?.comment && isControlPolicy && policy?.areRulesEnabled;
+            !isInvoiceTransaction &&
+            policyCategories?.[categoryName ?? '']?.areCommentsRequired &&
+            !updatedTransaction.comment?.comment &&
+            isControlPolicy &&
+            arePolicyRulesEnabled(policy, policyCategories);
         const rawAttendees = updatedTransaction.modifiedAttendees ?? updatedTransaction.comment?.attendees;
         const attendees = convertAttendeesToArray(rawAttendees);
         const isAttendeeTrackingEnabled = isAttendeeTrackingEnabledForPolicy(policy);
         // Filter out the owner/creator when checking attendance count - expense is valid if at least one non-owner attendee is present
-        const ownerAccountID = iouReport?.ownerAccountID;
-        // Calculate attendees minus owner. When ownerAccountID is known, filter by accountID.
-        // When ownerAccountID is undefined (offline split where iouReport is unavailable),
-        // fallback to using login/email to identify the owner (similar to AttendeeUtils approach).
         let attendeesMinusOwnerCount: number;
-        if (ownerAccountID !== undefined) {
-            // Normal case: filter by accountID
-            attendeesMinusOwnerCount = attendees.filter((a) => a?.accountID !== ownerAccountID).length;
+        // Prefer the actual report owner's login; fall back to the current user when the report is unavailable (e.g. an offline-created expense)
+        const ownerLogin = getLoginByAccountID(iouReport?.ownerAccountID) ?? getCurrentUserEmail();
+        if (ownerLogin) {
+            // Filter by login or email to identify owner
+            attendeesMinusOwnerCount = attendees.filter((a) => {
+                const attendeeIdentifier = a?.email;
+                return attendeeIdentifier !== ownerLogin;
+            }).length;
         } else {
-            // Offline scenario: ownerAccountID unavailable, use login/email as fallback
-            const currentUserEmail = getCurrentUserEmail();
-            if (currentUserEmail) {
-                // Filter by login or email to identify owner
-                attendeesMinusOwnerCount = attendees.filter((a) => {
-                    const attendeeIdentifier = a?.login ?? a?.email;
-                    return attendeeIdentifier !== currentUserEmail;
-                }).length;
-            } else {
-                // Can't identify owner at all - if there are attendees, assume owner is one of them
-                // This means we need at least 2 attendees to have a non-owner attendee
-                attendeesMinusOwnerCount = Math.max(0, attendees.length - 1);
-            }
+            // Can't identify owner at all - if there are attendees, assume owner is one of them
+            // This means we need at least 2 attendees to have a non-owner attendee
+            attendeesMinusOwnerCount = Math.max(0, attendees.length - 1);
         }
 
         const shouldShowMissingAttendees =
