@@ -95,7 +95,7 @@ For additional control:
 - **Invite Employees & Set Approvals** – Imports employees and sets workflow
 - **Auto Create Employees/Vendors** – Automatically creates a NetSuite record if one doesn’t exist
 - **Enable Newly Imported Categories** – Activates newly synced Expense Categories
-- **Sync Consolidated Travel Billing Settlements** – If Expensify Travel's Consolidated Travel Billing feature is enabled, turn on this toggle to continuously reconcile Consolidated Travel Billing settlements through NetSuite. When enabled, select a **Reconciliation account** to match your Consolidated Travel Billing settlement account.
+- **Sync Consolidated Travel Billing Settlements** – If Expensify Travel's Consolidated Travel Billing feature is enabled, turn on this toggle to continuously reconcile settlements through NetSuite. When enabled, select a **Reconciliation account** to match your settlement account.
 - **Approval Levels** – Set approval levels for:
   - Expense Reports
   - Vendor Bills

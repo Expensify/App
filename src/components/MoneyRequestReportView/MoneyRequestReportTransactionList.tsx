@@ -206,6 +206,7 @@ function MoneyRequestReportTransactionList({
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
+    const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
 
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
 
@@ -378,15 +379,15 @@ function MoneyRequestReportTransactionList({
                 }
             }
             return compareValues(
-                getTransactionSortValue(a, sortBy, report, policy, policyCategories),
-                getTransactionSortValue(b, sortBy, report, policy, policyCategories),
+                getTransactionSortValue(a, sortBy, report, policy, policyCategories, policyTagLists),
+                getTransactionSortValue(b, sortBy, report, policy, policyCategories, policyTagLists),
                 sortOrder,
                 sortBy,
                 localeCompare,
                 true,
             );
         },
-        [rbrTransactionIDs, sortBy, sortOrder, report, policy, policyCategories, localeCompare],
+        [rbrTransactionIDs, sortBy, sortOrder, report, policy, policyCategories, policyTagLists, localeCompare],
     );
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
@@ -411,6 +412,7 @@ function MoneyRequestReportTransactionList({
         return getColumnsToShow({
             currentAccountID: currentUserDetails?.accountID,
             data: transactions,
+            report,
             visibleColumns: (isExpenseReportViewFromIOUReport ? [] : (reportDetailsColumns ?? [])) as SearchCustomColumnIds[],
             isExpenseReportView: true,
             isExpenseReportViewFromIOUReport,
@@ -419,19 +421,8 @@ function MoneyRequestReportTransactionList({
             shouldShowReimbursableColumn: hasNonReimbursableTransactions(transactions),
             reportCurrency: report?.currency,
             isPolicyTaxEnabled: isTaxEnabled,
-            policyCategories,
         });
-    }, [
-        transactions,
-        currentUserDetails?.accountID,
-        isExpenseReportViewFromIOUReport,
-        shouldShowBillableColumn,
-        shouldShowCommentsColumn,
-        reportDetailsColumns,
-        report?.currency,
-        isTaxEnabled,
-        policyCategories,
-    ]);
+    }, [transactions, currentUserDetails?.accountID, isExpenseReportViewFromIOUReport, shouldShowBillableColumn, shouldShowCommentsColumn, reportDetailsColumns, report, isTaxEnabled]);
 
     const {windowWidth, windowHeight} = useWindowDimensions();
     const minTableWidth = getTableMinWidth(columnsToShow);
@@ -720,6 +711,7 @@ function MoneyRequestReportTransactionList({
             report={report}
             policy={policy}
             policyCategories={policyCategories}
+            policyTagLists={policyTagLists}
             isSelectionModeEnabled={isMobileSelectionModeEnabled}
             toggleTransaction={toggleTransaction}
             isSelected={isTransactionSelected(transaction.transactionID)}
