@@ -3,6 +3,7 @@ title: Cancel an Annual Subscription
 description: Learn how a workspace Owner can request to cancel an Annual subscription, when the request is approved, and how billing continues on Pay-per-use.
 keywords: [New Expensify, cancel subscription, cancel annual subscription, switch to pay-per-use, downgrade annual, end subscription, stop subscription, billing owner, cancellation request, workspace owner]
 internalScope: Audience is workspace Owners. Covers how to request cancellation of an Annual subscription so the workspace continues on Pay-per-use. Does not cover the differences between subscription types or how to change a plan.
+retrievalIntent: How to request ending an Annual subscription and continue on Pay-per-use.
 contentType: task
 platform: new
 ---
