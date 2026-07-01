@@ -1,4 +1,4 @@
-import {useIsFocused} from '@react-navigation/native';
+import {findFocusedRoute, useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -20,6 +20,7 @@ import Clipboard from '@libs/Clipboard';
 import getPlatform from '@libs/getPlatform';
 import localFileDownload from '@libs/localFileDownload';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {toggleTwoFactorAuth} from '@userActions/Session';
@@ -27,6 +28,7 @@ import {quitAndNavigateBack, setCodesAreCopied} from '@userActions/TwoFactorAuth
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
@@ -44,6 +46,12 @@ function DynamicTwoFactorAuthPage() {
     const isFocused = useIsFocused();
 
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path);
+
+    // Determine whether the 2FA flow was entered from Settings > Security or from a non-settings flow
+    // (e.g. the bank account or Xero 2FA requirement), so we can return the user to the right place once 2FA is enabled.
+    const baseState = getStateFromPath(backPath);
+    const focusedRoute = baseState ? findFocusedRoute(baseState) : undefined;
+    const isSecuritySettingsFlow = focusedRoute?.name === SCREENS.SETTINGS.SECURITY;
 
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
@@ -72,7 +80,14 @@ function DynamicTwoFactorAuthPage() {
 
         if (isFocused && is2FAEnabled) {
             Navigation.isNavigationReady().then(() => {
-                Navigation.navigate(ROUTES.SETTINGS_2FA_ENABLED, {forceReplace: true});
+                // For the Settings > Security entry, land on the Enabled page. For non-settings entries return to the
+                // originating flow instead, so on web the browser Back button from the success page doesn't divert the
+                // user to Settings (the recovery-codes page now stays in history because Download codes uses PUSH).
+                if (isSecuritySettingsFlow) {
+                    Navigation.navigate(ROUTES.SETTINGS_2FA_ENABLED, {forceReplace: true});
+                    return;
+                }
+                Navigation.navigate(backPath, {forceReplace: true});
             });
             return;
         }
@@ -185,7 +200,7 @@ function DynamicTwoFactorAuthPage() {
                                 setError('');
                                 setCodesAreCopied();
                                 announceStatus(translate('fileDownload.success.title'));
-                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY.path, backPath), {forceReplace: true});
+                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY.path, backPath), {forceReplace: !isWeb});
                             }}
                         />
                     )}
