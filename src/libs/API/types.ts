@@ -186,6 +186,7 @@ const WRITE_COMMANDS = {
     CREATE_POLICY_TAG: 'CreatePolicyTag',
     RENAME_POLICY_TAG: 'RenamePolicyTag',
     SET_WORKSPACE_REQUIRES_CATEGORY: 'SetWorkspaceRequiresCategory',
+    SET_POLICY_SHOW_CATEGORY_GL_CODES: 'SetPolicyShowCategoryGLCodes',
     UPDATE_POLICY_CATEGORY_PAYROLL_CODE: 'UpdatePolicyCategoryPayrollCode',
     UPDATE_POLICY_CATEGORY_GL_CODE: 'UpdatePolicyCategoryGLCode',
     DELETE_WORKSPACE_CATEGORIES: 'DeleteWorkspaceCategories',
@@ -803,6 +804,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.EXPORT_REPORTS_TO_PDF]: Parameters.ExportReportsToPDFParams;
     [WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY]: Parameters.RenameWorkspaceCategoriesParams;
     [WRITE_COMMANDS.SET_WORKSPACE_REQUIRES_CATEGORY]: Parameters.SetWorkspaceRequiresCategoryParams;
+    [WRITE_COMMANDS.SET_POLICY_SHOW_CATEGORY_GL_CODES]: Parameters.SetPolicyShowCategoryGLCodesParams;
     [WRITE_COMMANDS.DELETE_WORKSPACE_CATEGORIES]: Parameters.DeleteWorkspaceCategoriesParams;
     [WRITE_COMMANDS.UPDATE_POLICY_CATEGORY_PAYROLL_CODE]: Parameters.UpdatePolicyCategoryPayrollCodeParams;
     [WRITE_COMMANDS.UPDATE_POLICY_CATEGORY_GL_CODE]: Parameters.UpdatePolicyCategoryGLCodeParams;

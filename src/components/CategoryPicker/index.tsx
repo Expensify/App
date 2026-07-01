@@ -45,6 +45,7 @@ const getSelectedOptions = (selectedCategory?: string): Category[] => {
 function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeAreaPadding = false}: CategoryPickerProps) {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
+    const [shouldShowGLCode] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: (policy) => !!policy?.showCategoryGLCodes && !!policy?.glCodes});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
@@ -65,6 +66,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
         localeCompare,
         recentlyUsedCategories: validPolicyRecentlyUsedCategories,
         translate,
+        shouldShowGLCode,
     });
 
     const categoryData = sections?.at(0)?.data ?? [];
