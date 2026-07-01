@@ -1,8 +1,12 @@
+import type {KeyboardEvent as ReactKeyboardEvent} from 'react';
 import React, {useMemo, useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
+import ConnectionStatusBadge from '@components/ConnectionStatusBadge';
+import ConnectionStatusMessage from '@components/ConnectionStatusMessage';
+import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -28,6 +32,18 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+type ConnectionStatusDetails = {
+    statusText: string;
+    statusTone?: 'default' | 'success' | 'danger';
+    tooltipText?: string;
+    message?: string;
+    actionText?: string;
+    onActionPress?: (e: GestureResponderEvent | ReactKeyboardEvent | undefined) => void;
+    isActionDisabled?: boolean;
+    linkText?: string;
+    onLinkPress?: (e: GestureResponderEvent | ReactKeyboardEvent) => void;
+};
+
 type PaymentMethodItem = PaymentMethod & {
     key?: string;
     title?: string;
@@ -50,6 +66,7 @@ type PaymentMethodItem = PaymentMethod & {
     isCardFrozen?: boolean;
     /** Whether the personal bank account is missing required personal info (name, address, phone) */
     isMissingPersonalInfo?: boolean;
+    connectionStatus?: ConnectionStatusDetails;
 } & BankIcon;
 
 type PaymentMethodListItemProps = {
@@ -99,11 +116,28 @@ function dismissError(item: PaymentMethodItem) {
 }
 
 function isAccountInSetupState(account: PaymentMethodItem) {
-    return !!(account.accountData && 'state' in account.accountData && isBankAccountPartiallySetup(account.accountData.state));
+    return isBankAccountPartiallySetup(getBankAccountState(account.accountData));
 }
 
 function isBusinessBankAccountLocked(account: PaymentMethodItem) {
-    return account.accountData && 'state' in account.accountData && account.accountData.state === CONST.BANK_ACCOUNT.STATE.LOCKED && account.accountData.allowDebit;
+    return getBankAccountState(account.accountData) === CONST.BANK_ACCOUNT.STATE.LOCKED && hasBankAccountAllowDebit(account.accountData);
+}
+
+function getBankAccountState(accountData: PaymentMethodItem['accountData']): string | undefined {
+    if (typeof accountData !== 'object' || accountData === null) {
+        return undefined;
+    }
+
+    const state = (accountData as Record<string, unknown>).state;
+    return typeof state === 'string' ? state : undefined;
+}
+
+function hasBankAccountAllowDebit(accountData: PaymentMethodItem['accountData']): boolean {
+    if (typeof accountData !== 'object' || accountData === null) {
+        return false;
+    }
+
+    return !!(accountData as Record<string, unknown>).allowDebit;
 }
 
 function isAccountNeedingAction(account: PaymentMethodItem) {
@@ -145,8 +179,10 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         }
     };
 
-    let badgeText;
-    if (isInLockedState) {
+    let badgeText: string | undefined;
+    if (item.connectionStatus) {
+        badgeText = undefined;
+    } else if (isInLockedState) {
         badgeText = translate('common.locked');
     } else if (isNeedingAction) {
         badgeText = translate('common.review');
@@ -154,13 +190,22 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         badgeText = translate('paymentMethodList.defaultPaymentMethod');
     }
 
-    let badgeIcon;
-    if (isInLockedState) {
+    let badgeIcon: IconAsset | undefined;
+    if (!item.connectionStatus && isInLockedState) {
         badgeIcon = icons.DotIndicator;
     }
 
     // Card state pills (below title, next to description)
     const descriptionAddon = useMemo(() => {
+        if (item.connectionStatus) {
+            return (
+                <ConnectionStatusBadge
+                    text={item.connectionStatus.statusText}
+                    tone={item.connectionStatus.statusTone}
+                    tooltipText={item.connectionStatus.tooltipText}
+                />
+            );
+        }
         if (isNeedingAction && shouldShowDefaultBadge) {
             return (
                 <Badge
@@ -191,7 +236,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
             );
         }
         return undefined;
-    }, [isNeedingAction, shouldShowDefaultBadge, item.isCardFrozen, item.isInactive, icons.FreezeCard, styles.ml0, styles.mr1, translate]);
+    }, [isNeedingAction, shouldShowDefaultBadge, item.connectionStatus, item.isCardFrozen, item.isInactive, icons.FreezeCard, styles.ml0, styles.mr1, translate]);
 
     return (
         <OfflineWithFeedback
@@ -199,50 +244,71 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
             pendingAction={item.pendingAction}
             errors={item.errors}
             errorRowStyles={styles.paymentMethodErrorRow}
-            shouldShowErrorMessages={!!item.errors}
+            shouldShowErrorMessages={!!item.errors && !item.connectionStatus?.message}
         >
-            <MenuItem
-                onPress={handleRowPress}
-                title={item.title}
-                description={item.description}
-                descriptionAddon={descriptionAddon}
-                icon={item.icon}
-                plaidUrl={item.plaidUrl}
-                disabled={item.disabled}
-                iconType={item.plaidUrl ? CONST.ICON_TYPE_PLAID : CONST.ICON_TYPE_ICON}
-                displayInDefaultIconColor={!item.iconFill}
-                iconHeight={item.iconHeight ?? item.iconSize}
-                iconWidth={item.iconWidth ?? item.iconSize}
-                iconStyles={item.iconStyles}
-                iconFill={item.iconFill}
-                badgeText={badgeText}
-                badgeIcon={badgeIcon}
-                isBadgeSuccess={isNeedingAction ? true : undefined}
-                isBadgeError={isInLockedState}
-                wrapperStyle={[styles.paymentMethod, listItemStyle]}
-                iconRight={isNeedingAction ? undefined : item.iconRight}
-                shouldShowRightIcon={!showThreeDotsMenu && item.shouldShowRightIcon}
-                shouldShowRightComponent={showThreeDotsMenu}
-                rightComponent={
-                    showThreeDotsMenu ? (
-                        <View style={styles.alignSelfCenter}>
-                            <ThreeDotsMenu
-                                shouldSelfPosition
-                                onIconPress={item.onThreeDotsMenuPress ?? item.onPress}
-                                menuItems={threeDotsMenuItems}
-                                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                                shouldOverlay
-                                isNested
-                                threeDotsMenuRef={threeDotsMenuRef}
-                                disabled={item.disabled}
-                            />
-                        </View>
-                    ) : undefined
-                }
-                interactive={item.interactive}
-                brickRoadIndicator={item.brickRoadIndicator}
-                success={item.isMethodActive}
-            />
+            <Hoverable>
+                {(isHovered) => (
+                    <View style={[isHovered && styles.hoveredComponentBG]}>
+                        <MenuItem
+                            onPress={handleRowPress}
+                            title={item.title}
+                            description={item.description}
+                            descriptionAddon={descriptionAddon}
+                            icon={item.icon}
+                            plaidUrl={item.plaidUrl}
+                            disabled={item.disabled}
+                            iconType={item.plaidUrl ? CONST.ICON_TYPE_PLAID : CONST.ICON_TYPE_ICON}
+                            displayInDefaultIconColor={!item.iconFill}
+                            iconHeight={item.iconHeight ?? item.iconSize}
+                            iconWidth={item.iconWidth ?? item.iconSize}
+                            iconStyles={item.iconStyles}
+                            iconFill={item.iconFill}
+                            badgeText={badgeText}
+                            badgeIcon={badgeIcon}
+                            isBadgeSuccess={!item.connectionStatus && isNeedingAction ? true : undefined}
+                            isBadgeError={!item.connectionStatus && isInLockedState}
+                            wrapperStyle={[styles.paymentMethod, listItemStyle]}
+                            iconRight={isNeedingAction ? undefined : item.iconRight}
+                            shouldShowRightIcon={!showThreeDotsMenu && item.shouldShowRightIcon}
+                            shouldShowRightComponent={showThreeDotsMenu}
+                            rightComponent={
+                                showThreeDotsMenu ? (
+                                    <View style={styles.alignSelfCenter}>
+                                        <ThreeDotsMenu
+                                            shouldSelfPosition
+                                            onIconPress={item.onThreeDotsMenuPress ?? item.onPress}
+                                            menuItems={threeDotsMenuItems}
+                                            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                                            shouldOverlay
+                                            isNested
+                                            threeDotsMenuRef={threeDotsMenuRef}
+                                            disabled={item.disabled}
+                                        />
+                                    </View>
+                                ) : undefined
+                            }
+                            interactive={item.interactive}
+                            shouldRemoveBackground
+                            shouldRemoveHoverBackground
+                            brickRoadIndicator={item.connectionStatus?.message ? undefined : item.brickRoadIndicator}
+                            success={item.isMethodActive}
+                        />
+                        {!!item.connectionStatus?.message && (
+                            <View style={styles.mb2}>
+                                <ConnectionStatusMessage
+                                    message={item.connectionStatus?.message}
+                                    actionText={item.connectionStatus?.actionText}
+                                    onActionPress={item.connectionStatus?.onActionPress ? () => item.connectionStatus?.onActionPress?.(undefined) : undefined}
+                                    isActionDisabled={item.connectionStatus?.isActionDisabled}
+                                    statusTone={item.connectionStatus?.statusTone}
+                                    linkText={item.connectionStatus?.linkText}
+                                    onLinkPress={item.connectionStatus?.onLinkPress}
+                                />
+                            </View>
+                        )}
+                    </View>
+                )}
+            </Hoverable>
             {isChaseAccountConnectedViaPlaid && (
                 <View style={[styles.pb3, shouldUseNarrowLayout ? styles.pl5 : styles.pl8]}>
                     <PressableWithFeedback

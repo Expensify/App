@@ -1,6 +1,8 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
@@ -8,6 +10,16 @@ import type {ACHData} from '@src/types/onyx/ReimbursementAccount';
 
 /** Responses of the additional KYB verification checks, hinting at which documents the user still needs to upload */
 type KYBVerificationResponses = NonNullable<ACHData['verifications']>['externalApiResponses'];
+
+type BankAccountConnectionStatus = {
+    labelKey: TranslationPaths;
+    tone: 'default' | 'success' | 'danger';
+    messageKey?: TranslationPaths;
+    actionKey?: TranslationPaths;
+    requiresUnlockHandler?: boolean;
+    tooltipKey?: TranslationPaths;
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+};
 
 function getDefaultCompanyWebsite(session: OnyxEntry<OnyxTypes.Session>, account: OnyxEntry<OnyxTypes.Account>, shouldShowPublicDomain = false): string {
     return account?.isFromPublicDomain && !shouldShowPublicDomain ? '' : `https://www.${Str.extractEmailDomain(session?.email ?? '')}`;
@@ -35,6 +47,42 @@ function isBankAccountPartiallySetup(state: string | undefined) {
     return state === CONST.BANK_ACCOUNT.STATE.SETUP || state === CONST.BANK_ACCOUNT.STATE.VERIFYING || state === CONST.BANK_ACCOUNT.STATE.PENDING;
 }
 
+function getBankAccountConnectionStatus(state: string | undefined): BankAccountConnectionStatus | undefined {
+    switch (state) {
+        case CONST.BANK_ACCOUNT.STATE.OPEN:
+            return {labelKey: 'walletPage.bankAccountStatus.active', tone: 'success'};
+        case CONST.BANK_ACCOUNT.STATE.SETUP:
+        case undefined:
+            return {
+                labelKey: 'walletPage.bankAccountStatus.incomplete',
+                messageKey: 'walletPage.bankAccountStatus.finishAddingBankAccount',
+                actionKey: 'walletPage.bankAccountStatus.finish',
+                tone: 'danger',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            };
+        case CONST.BANK_ACCOUNT.STATE.PENDING:
+            return {
+                labelKey: 'walletPage.bankAccountStatus.pending',
+                messageKey: 'walletPage.bankAccountStatus.confirmTestTransactions',
+                actionKey: 'common.confirm',
+                tone: 'danger',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            };
+        case CONST.BANK_ACCOUNT.STATE.VERIFYING:
+            return {labelKey: 'walletPage.bankAccountStatus.verifying', tooltipKey: 'walletPage.bankAccountStatus.reviewingDocumentation', tone: 'default'};
+        case CONST.BANK_ACCOUNT.STATE.LOCKED:
+            return {
+                labelKey: 'common.locked',
+                messageKey: 'walletPage.bankAccountStatus.accountRequiresAttention',
+                actionKey: 'walletPage.bankAccountStatus.unlock',
+                requiresUnlockHandler: true,
+                tone: 'danger',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            };
+        default:
+            return undefined;
+    }
+}
 /**
  * A BUSINESS account in a state that has actually been usable for paying expenses (anything other than SETUP / VERIFYING / PENDING).
  * Used by the search picker, the autocomplete suggestions, and the advanced-filter visibility gate so all three surfaces accept and count the same set of accounts.
@@ -199,6 +247,7 @@ export {
     getBankAccountSearchLabel,
     isFilterableBankAccount,
     getDefaultCompanyWebsite,
+    getBankAccountConnectionStatus,
     getRequiredKYBDocuments,
     getLastFourDigits,
     hasPartiallySetupBankAccount,
@@ -211,4 +260,4 @@ export {
     getCompletedStepsForBankAccount,
     PERSONAL_INFO_STEP,
 };
-export type {KYBVerificationResponses};
+export type {BankAccountConnectionStatus, KYBVerificationResponses};

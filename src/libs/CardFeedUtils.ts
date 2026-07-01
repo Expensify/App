@@ -27,7 +27,7 @@ import {
     isPersonalCard,
 } from './CardUtils';
 import type {CompanyCardFeedIcons} from './CardUtils';
-import {getDescriptionForPolicyDomainCard} from './PolicyUtils';
+import {getDescriptionForPolicyDomainCard, getPolicyIDFromDomainName} from './PolicyUtils';
 import type {OptionData} from './ReportUtils';
 
 type CardFilterItem = Partial<OptionData> & AdditionalCardProps & {isCardFeed?: boolean; correspondingCards?: string[]; cardFeedKey: string; plaidUrl?: string; keyForList: string};
@@ -222,7 +222,7 @@ function getWorkspaceCardFeedData(
     }
     const {domainName, bank, cardName} = representativeCard;
     const isBankRepeating = repeatingBanks.includes(bank);
-    const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1] ?? '';
+    const policyID = getPolicyIDFromDomainName(domainName) ?? '';
     const correspondingPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID?.toUpperCase()}`];
     const cardFeedLabel = isBankRepeating ? correspondingPolicy?.name : undefined;
     const isPlaid = !!getPlaidInstitutionId(bank);

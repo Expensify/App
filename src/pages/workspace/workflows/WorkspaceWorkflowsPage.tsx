@@ -4,6 +4,9 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
+import ConnectionStatusBadge from '@components/ConnectionStatusBadge';
+import ConnectionStatusMessage from '@components/ConnectionStatusMessage';
+import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {BankName} from '@components/Icon/BankIconsUtils';
@@ -44,7 +47,7 @@ import {
     setWorkspaceReimbursement,
 } from '@libs/actions/Policy/Policy';
 import {clearApprovalWorkflow, selectApprovalWorkflowForEdit, setApprovalWorkflow} from '@libs/actions/Workflow';
-import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import {getBankAccountConnectionStatus, isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import {getAllCardsForWorkspace, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {getConnectedHRProvider, getHRFinalApprover, isAnyHRConnected, isAnyHRReadOnlyWorkflowMode, isHRAdvancedMode} from '@libs/HRUtils';
@@ -385,7 +388,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const hasReimburserError = !!policy?.errorFields?.reimburser;
         const hasApprovalError = !!policy?.errorFields?.approvalMode;
         const hasDelayedSubmissionError = !!(policy?.errorFields?.autoReporting ?? policy?.errorFields?.autoReportingFrequency);
-
         const getBadgeText = (accountState: string | undefined) => {
             switch (accountState) {
                 case CONST.BANK_ACCOUNT.STATE.SETUP:
@@ -396,6 +398,19 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     return undefined;
             }
         };
+        const bankConnectionStatus = canAccessSubmit2026Features ? getBankAccountConnectionStatus(state) : undefined;
+        const bankConnectionBrickRoadIndicator = bankConnectionStatus?.brickRoadIndicator ?? (hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined);
+        const bankConnectionStatusAddon = bankConnectionStatus ? (
+            <ConnectionStatusBadge
+                text={translate(bankConnectionStatus.labelKey)}
+                tone={bankConnectionStatus.tone}
+                tooltipText={bankConnectionStatus.tooltipKey ? translate(bankConnectionStatus.tooltipKey) : undefined}
+            />
+        ) : undefined;
+        const bankConnectionMessage = bankConnectionStatus?.messageKey ? translate(bankConnectionStatus.messageKey) : undefined;
+        const bankConnectionActionText = bankConnectionStatus?.actionKey ? translate(bankConnectionStatus.actionKey) : undefined;
+        const bankBadgeIcon = !canAccessSubmit2026Features && (isAccountInSetupState || (isBusinessBankAccountLocked && isPolicyAdmin)) ? expensifyIcons.DotIndicator : undefined;
+        const canInteractWithBankAccountRow = canWritePayments && !isOffline && isPolicyAdmin;
 
         const updateWorkspaceCurrencyPrompt = (
             <View style={[styles.renderHTML, styles.flexRow]}>
@@ -409,6 +424,30 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 return promptConfigureApprovalsInHR;
             }
             return undefined;
+        };
+
+        const handleBankAccountPress = () => {
+            if (isAccountLocked) {
+                showLockedAccountModal();
+                return;
+            }
+            // User who is reimburser can initiate unlocking process
+            if (state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID && isUserReimburser) {
+                pressLockedBankAccount(bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID);
+                navigateToConciergeChat(conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+                return;
+            }
+
+            // User who is not reimburser can't initiate unlocking process but can connect new account
+            if (state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID && !isUserReimburser) {
+                // If user has existing accounts and no bank account setup in progress we should show screen to choose an existing account
+                if (hasValidExistingAccounts && !shouldShowContinueModal) {
+                    Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(route.params.policyID));
+                    return;
+                }
+            }
+
+            navigateToBankAccountRoute({policyID: route.params.policyID, backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID)});
         };
 
         return [
@@ -643,55 +682,50 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 <View style={[styles.sectionMenuItemTopDescription, styles.mt5, styles.pb1, styles.pt1]}>
                                     <Text style={[styles.textLabelSupportingNormal, styles.colorMuted]}>{translate('workflowsPayerPage.paymentAccount')}</Text>
                                 </View>
-                                <MenuItem
-                                    title={bankTitle}
-                                    description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, accountData, translate)}
-                                    onPress={
-                                        canWritePayments
-                                            ? () => {
-                                                  if (isAccountLocked) {
-                                                      showLockedAccountModal();
-                                                      return;
-                                                  }
-                                                  // User who is reimburser can initiate unlocking process
-                                                  if (state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID && isUserReimburser) {
-                                                      pressLockedBankAccount(bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID);
-                                                      navigateToConciergeChat(conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed, betas);
-                                                      return;
-                                                  }
-
-                                                  // User who is not reimburser can't initiate unlocking process but can connect new account
-                                                  if (state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID && !isUserReimburser) {
-                                                      // If user has existing accounts and no bank account setup in progress we should show screen to choose an existing account
-                                                      if (hasValidExistingAccounts && !shouldShowContinueModal) {
-                                                          Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(route.params.policyID));
-                                                          return;
-                                                      }
-                                                  }
-
-                                                  navigateToBankAccountRoute({policyID: route.params.policyID, backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID)});
-                                              }
-                                            : undefined
-                                    }
-                                    displayInDefaultIconColor
-                                    icon={bankIcon.icon}
-                                    iconHeight={bankIcon.iconHeight ?? bankIcon.iconSize}
-                                    iconWidth={bankIcon.iconWidth ?? bankIcon.iconSize}
-                                    iconStyles={bankIcon.iconStyles}
-                                    titleStyle={isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined}
-                                    descriptionTextStyle={isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined}
-                                    disabled={isOffline || !isPolicyAdmin}
-                                    badgeText={getBadgeText(accountData?.state)}
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT}
-                                    badgeIcon={isAccountInSetupState || (isBusinessBankAccountLocked && isPolicyAdmin) ? expensifyIcons.DotIndicator : undefined}
-                                    isBadgeSuccess={isAccountInSetupState}
-                                    isBadgeError={isBusinessBankAccountLocked && isPolicyAdmin}
-                                    shouldShowRightIcon={canWritePayments}
-                                    interactive={canWritePayments}
-                                    shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
-                                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                                    brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                />
+                                <Hoverable>
+                                    {(isHovered) => (
+                                        <View style={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3, isHovered && styles.hoveredComponentBG]}>
+                                            <MenuItem
+                                                title={bankTitle}
+                                                description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, accountData, translate)}
+                                                onPress={canInteractWithBankAccountRow ? handleBankAccountPress : undefined}
+                                                displayInDefaultIconColor
+                                                icon={bankIcon.icon}
+                                                iconHeight={bankIcon.iconHeight ?? bankIcon.iconSize}
+                                                iconWidth={bankIcon.iconWidth ?? bankIcon.iconSize}
+                                                iconStyles={bankIcon.iconStyles}
+                                                titleStyle={isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined}
+                                                descriptionTextStyle={isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined}
+                                                disabled={isOffline || !isPolicyAdmin}
+                                                badgeText={canAccessSubmit2026Features ? undefined : getBadgeText(accountData?.state)}
+                                                badgeIcon={bankBadgeIcon}
+                                                isBadgeSuccess={canAccessSubmit2026Features ? undefined : isAccountInSetupState}
+                                                isBadgeError={isBusinessBankAccountLocked && isPolicyAdmin}
+                                                descriptionAddon={bankConnectionStatusAddon}
+                                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT}
+                                                shouldShowRightIcon={canWritePayments}
+                                                interactive={canWritePayments}
+                                                shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
+                                                shouldRemoveBackground
+                                                shouldRemoveHoverBackground
+                                                wrapperStyle={styles.ph0}
+                                                brickRoadIndicator={canAccessSubmit2026Features && bankConnectionMessage ? undefined : bankConnectionBrickRoadIndicator}
+                                            />
+                                            {!!canAccessSubmit2026Features && !!bankConnectionMessage && (
+                                                <View style={styles.mb2}>
+                                                    <ConnectionStatusMessage
+                                                        message={bankConnectionMessage}
+                                                        actionText={bankConnectionActionText}
+                                                        onActionPress={canInteractWithBankAccountRow ? handleBankAccountPress : undefined}
+                                                        isActionDisabled={!canInteractWithBankAccountRow}
+                                                        statusTone="danger"
+                                                        shouldIncludeHorizontalPadding={false}
+                                                    />
+                                                </View>
+                                            )}
+                                        </View>
+                                    )}
+                                </Hoverable>
                             </OfflineWithFeedback>
                         ) : (
                             canWritePayments && (
@@ -794,9 +828,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         promptConfigureApprovalsInHR,
         isDEWEnabled,
         shouldUseNarrowLayout,
+        expensifyIcons.DotIndicator,
         expensifyIcons.Info,
         expensifyIcons.Plus,
-        expensifyIcons.DotIndicator,
         theme.textSupporting,
         accountManagerReportID,
         filteredApprovalWorkflows.length,

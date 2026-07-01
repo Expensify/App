@@ -18,9 +18,11 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
+import {getBankAccountConnectionStatus, isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
+import type {BankAccountConnectionStatus} from '@libs/BankAccountUtils';
 import {
     getAssignedCardSortKey,
     getCardFeedIcon,
@@ -40,7 +42,7 @@ import {
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
-import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
+import {getDescriptionForPolicyDomainCard, getPolicyIDFromDomainName, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getTravelInvoicingCard, isTravelCVVEligible} from '@libs/TravelInvoicingUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
@@ -147,6 +149,15 @@ function isPaymentMethodActive(actionPaymentMethodType: string, activePaymentMet
     return paymentMethod.accountType === actionPaymentMethodType && paymentMethod.methodID === activePaymentMethodID;
 }
 
+function getBankAccountState(accountData: PaymentMethod['accountData']): string | undefined {
+    if (typeof accountData !== 'object' || accountData === null) {
+        return undefined;
+    }
+
+    const state = (accountData as Record<string, unknown>).state;
+    return typeof state === 'string' ? state : undefined;
+}
+
 function keyExtractor(item: PaymentMethod | string) {
     if (typeof item === 'string') {
         return item;
@@ -180,8 +191,9 @@ function PaymentMethodList({
     onThreeDotsMenuPress,
 }: PaymentMethodListProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, datetimeToRelative} = useLocalize();
     const {isOffline} = useNetwork();
+    const {isBetaEnabled} = usePermissions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'ThreeDots', 'LuggageWithLines']);
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
@@ -209,6 +221,28 @@ function PaymentMethodList({
 
     const {shouldShowRbrForFeedNameWithDomainID} = useCardFeedErrors();
     const shouldShowListFooterComponent = shouldShowAddBankAccount;
+    const shouldShowConnectionStatus = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
+
+    const appendCardLastSync = (description: string | undefined, lastSyncText: string) => [description, lastSyncText].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `);
+
+    const mapBankStatusToRowStatus = (
+        status: BankAccountConnectionStatus,
+        onActionPress: (e: GestureResponderEvent | KeyboardEvent | undefined) => void,
+        onUnlockPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void,
+    ): PaymentMethodItem['connectionStatus'] => ({
+        statusText: translate(status.labelKey),
+        statusTone: status.tone,
+        tooltipText: status.tooltipKey ? translate(status.tooltipKey) : undefined,
+        message: status.messageKey ? translate(status.messageKey) : undefined,
+        actionText: status.actionKey ? translate(status.actionKey) : undefined,
+        onActionPress: () => {
+            if (status.requiresUnlockHandler) {
+                (onUnlockPress ?? onActionPress)(undefined);
+                return;
+            }
+            onActionPress(undefined);
+        },
+    });
 
     const computeFilteredPaymentMethods = (): Array<PaymentMethodItem | string> => {
         if (shouldShowAssignedCards) {
@@ -225,164 +259,342 @@ function PaymentMethodList({
             const assignedCardsSorted = lodashSortBy(assignedCards, getAssignedCardSortKey);
             const companyCardsGrouped: PaymentMethodItem[] = [];
             const personalCardsGrouped: PaymentMethodItem[] = [];
-            for (const card of assignedCardsSorted) {
-                const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                const isUserPersonalCard = isPersonalCard(card);
-                const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
-                const assignedCardsGrouped = isUserPersonalCard ? personalCardsGrouped : companyCardsGrouped;
+            if (shouldShowConnectionStatus) {
+                for (const card of assignedCardsSorted) {
+                    const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                    const isUserPersonalCard = isPersonalCard(card);
+                    const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
+                    const assignedCardsGrouped = isUserPersonalCard ? personalCardsGrouped : companyCardsGrouped;
+                    const policyIDForCard = getPolicyIDFromDomainName(card.domainName);
+                    const policyForCard = policyIDForCard ? policiesForAssignedCards?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDForCard.toUpperCase()}`] : undefined;
+                    const isAdminForCardPolicy = isPolicyAdmin(policyForCard);
 
-                let icon;
-                if (isUserPersonalCard && isCSVCard) {
-                    icon = getCardFeedIcon(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV, illustrations, companyCardFeedIcons);
-                } else {
-                    icon = getCardFeedIcon(card.bank, illustrations, companyCardFeedIcons);
-                }
-
-                let shouldShowRBR = false;
-                if (card.fundID) {
-                    const feedNameWithDomainID = getCardFeedWithDomainID(card.bank, card.fundID);
-                    shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feedNameWithDomainID];
-                } else if (card.bank !== CONST.PERSONAL_CARDS.BANK_NAME.CSV) {
-                    // Don't show red dot for CSV imported cards without fundID
-                    shouldShowRBR = true;
-                }
-
-                let brickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
-                if (!card.errors) {
-                    if (shouldShowRBR) {
-                        brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-                    } else if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL) {
-                        brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-                    } else if (isExpensifyCard(card) && isExpensifyCardPendingAction(card, privatePersonalDetails)) {
-                        brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
-                    }
-                }
-
-                if (isUserPersonalCard && (!isEmptyObject(card.errors) || isCardConnectionBroken(card))) {
-                    brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-                }
-
-                if (!isExpensifyCard(card)) {
-                    const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
-                    const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
-                    const isCSVImportCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD;
-                    let cardTitle = isCSVImportCard ? (card.nameValuePairs?.cardTitle ?? card.cardName) : maskCardNumber(card.cardName, card.bank);
-                    const pressHandler = onPress as CardPressHandler;
-                    let cardDescription;
-                    if (isUserPersonalCard) {
-                        cardTitle = customCardNames?.[card.cardID] ?? cardTitle;
-                        cardDescription = lastFourPAN;
-                    } else if (lastFourPAN) {
-                        cardDescription = `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards)}`;
+                    let icon;
+                    if (isUserPersonalCard && isCSVCard) {
+                        icon = getCardFeedIcon(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV, illustrations, companyCardFeedIcons);
                     } else {
-                        cardDescription = getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards);
+                        icon = getCardFeedIcon(card.bank, illustrations, companyCardFeedIcons);
                     }
-                    // Personal cards (including CSV imported) navigate to the personal card details page
-                    // Company cards use the pressHandler callback (for 3-dot menu behavior)
-                    const cardOnPress = isUserPersonalCard
-                        ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(card.cardID)))
-                        : (e: GestureResponderEvent | KeyboardEvent | undefined) =>
-                              pressHandler({
-                                  event: e,
-                                  cardData: card,
-                                  icon: {
-                                      icon,
-                                      iconStyles: [styles.cardIcon],
-                                      iconWidth: variables.cardIconWidth,
-                                      iconHeight: variables.cardIconHeight,
-                                  },
-                                  cardID: card.cardID,
-                              });
 
+                    let shouldShowRBR = false;
+                    if (card.fundID) {
+                        const feedNameWithDomainID = getCardFeedWithDomainID(card.bank, card.fundID);
+                        shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feedNameWithDomainID];
+                    } else if (card.bank !== CONST.PERSONAL_CARDS.BANK_NAME.CSV) {
+                        // Don't show red dot for CSV imported cards without fundID
+                        shouldShowRBR = true;
+                    }
+
+                    let brickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
+                    if (!card.errors) {
+                        if (shouldShowRBR) {
+                            brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                        } else if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL) {
+                            brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                        } else if (isExpensifyCard(card) && isExpensifyCardPendingAction(card, privatePersonalDetails)) {
+                            brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+                        }
+                    }
+
+                    if (isUserPersonalCard && (!isEmptyObject(card.errors) || isCardConnectionBroken(card))) {
+                        brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                    }
+
+                    const isCardBroken = isCardConnectionBroken(card);
+                    const isCardInactiveState = isCardInactive(card);
+                    const shouldShowCardConnectionMessage = isCardBroken || shouldShowRBR || isCardInactiveState;
+                    const cardLastSyncText = card.lastScrape ? translate('walletPage.cardLastSynced', datetimeToRelative(card.lastScrape)) : translate('walletPage.cardNeverSynced');
+                    let cardStatusTone: NonNullable<PaymentMethodItem['connectionStatus']>['statusTone'] = 'success';
+                    if (shouldShowCardConnectionMessage) {
+                        cardStatusTone = 'danger';
+                    } else if (isCardInactiveState) {
+                        cardStatusTone = 'default';
+                    }
+                    let cardConnectionMessage: string | undefined;
+                    if (shouldShowCardConnectionMessage) {
+                        let messageKey: 'walletPage.cardStatus.fixConnectionIn' | 'walletPage.cardStatus.fixConnection' | 'walletPage.cardStatus.askAdminToFixConnection';
+                        if (!isUserPersonalCard && isAdminForCardPolicy) {
+                            messageKey = 'walletPage.cardStatus.fixConnectionIn';
+                        } else if (isUserPersonalCard) {
+                            messageKey = 'walletPage.cardStatus.fixConnection';
+                        } else {
+                            messageKey = 'walletPage.cardStatus.askAdminToFixConnection';
+                        }
+                        cardConnectionMessage = translate(messageKey);
+                    }
+                    const cardConnectionStatus: PaymentMethodItem['connectionStatus'] = {
+                        statusText: translate(isCardInactiveState ? 'walletPage.cardStatus.inactive' : 'walletPage.cardStatus.active'),
+                        statusTone: cardStatusTone,
+                        message: cardConnectionMessage,
+                        actionText: isUserPersonalCard && shouldShowCardConnectionMessage ? translate('common.actionBadge.fix') : undefined,
+                        onActionPress:
+                            isUserPersonalCard && shouldShowCardConnectionMessage
+                                ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION.getRoute(String(card.cardID)))
+                                : undefined,
+                        linkText: !isUserPersonalCard && isAdminForCardPolicy && shouldShowCardConnectionMessage ? translate('walletPage.cardStatus.companyCardsLink') : undefined,
+                        onLinkPress:
+                            !isUserPersonalCard && isAdminForCardPolicy && policyIDForCard && shouldShowCardConnectionMessage
+                                ? () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyIDForCard))
+                                : undefined,
+                    };
+
+                    if (!isExpensifyCard(card)) {
+                        const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
+                        const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
+                        const isCSVImportCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD;
+                        let cardTitle = isCSVImportCard ? (card.nameValuePairs?.cardTitle ?? card.cardName) : maskCardNumber(card.cardName, card.bank);
+                        const pressHandler = onPress as CardPressHandler;
+                        let cardDescription;
+                        if (isUserPersonalCard) {
+                            cardTitle = customCardNames?.[card.cardID] ?? cardTitle;
+                            cardDescription = lastFourPAN;
+                        } else if (lastFourPAN) {
+                            cardDescription = `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards)}`;
+                        } else {
+                            cardDescription = getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards);
+                        }
+                        // Personal cards (including CSV imported) navigate to the personal card details page
+                        // Company cards use the pressHandler callback (for 3-dot menu behavior)
+                        const cardOnPress = isUserPersonalCard
+                            ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(card.cardID)))
+                            : (e: GestureResponderEvent | KeyboardEvent | undefined) =>
+                                  pressHandler({
+                                      event: e,
+                                      cardData: card,
+                                      icon: {
+                                          icon,
+                                          iconStyles: [styles.cardIcon],
+                                          iconWidth: variables.cardIconWidth,
+                                          iconHeight: variables.cardIconHeight,
+                                      },
+                                      cardID: card.cardID,
+                                  });
+
+                        assignedCardsGrouped.push({
+                            key: card.cardID.toString(),
+                            plaidUrl,
+                            title: cardTitle,
+                            description: appendCardLastSync(isCSVImportCard ? translate('cardPage.csvCardDescription') : cardDescription, cardLastSyncText),
+                            connectionStatus: cardConnectionStatus,
+                            interactive: !isDisabled,
+                            disabled: isDisabled,
+                            shouldShowRightIcon,
+                            shouldShowThreeDotsMenu: !isUserPersonalCard,
+                            errors: undefined,
+                            canDismissError: false,
+                            pendingAction: card.pendingAction,
+                            brickRoadIndicator,
+                            icon,
+                            iconStyles: [styles.cardIcon],
+                            iconWidth: variables.cardIconWidth,
+                            iconHeight: variables.cardIconHeight,
+                            isMethodActive: activePaymentMethodID === card.cardID,
+                            isInactive: isCardInactive(card),
+                            onPress: cardOnPress,
+                        });
+                        continue;
+                    }
+
+                    // Travel cards are handled by the dedicated travelCardGrouped section below
+                    if (isTravelCard(card)) {
+                        continue;
+                    }
+
+                    const pressHandler = onPress as CardPressHandler;
+                    // The card shouldn't be grouped or its domain group doesn't exist yet
+                    // Do not group assigned cards by domain. Each card needs its own status, last sync, and RBR state.
+                    const cardDescription =
+                        card?.nameValuePairs?.issuedBy && card?.lastFourPAN
+                            ? `${card?.lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards)}`
+                            : getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards);
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
-                        plaidUrl,
-                        title: cardTitle,
-                        description: isCSVImportCard ? translate('cardPage.csvCardDescription') : cardDescription,
+                        title: card?.nameValuePairs?.cardTitle ?? card.bank,
+                        description: appendCardLastSync(cardDescription, cardLastSyncText),
+                        connectionStatus: cardConnectionStatus,
+                        onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(card.cardID))),
+                        onThreeDotsMenuPress: (e: GestureResponderEvent | KeyboardEvent | undefined) =>
+                            pressHandler({
+                                event: e,
+                                cardData: card,
+                                icon: {
+                                    icon,
+                                    iconStyles: [styles.cardIcon],
+                                    iconWidth: variables.cardIconWidth,
+                                    iconHeight: variables.cardIconHeight,
+                                },
+                                cardID: card.cardID,
+                            }),
+                        cardID: card.cardID,
+                        shouldShowRightIcon: true,
                         interactive: !isDisabled,
                         disabled: isDisabled,
-                        shouldShowRightIcon,
-                        shouldShowThreeDotsMenu: !isUserPersonalCard,
-                        errors: isUserPersonalCard ? undefined : card.errors,
-                        canDismissError: false,
+                        errors: undefined,
+                        canDismissError: true,
                         pendingAction: card.pendingAction,
                         brickRoadIndicator,
                         icon,
                         iconStyles: [styles.cardIcon],
                         iconWidth: variables.cardIconWidth,
                         iconHeight: variables.cardIconHeight,
-                        isMethodActive: activePaymentMethodID === card.cardID,
                         isInactive: isCardInactive(card),
-                        onPress: cardOnPress,
+                        isCardFrozen: isCardFrozen(card),
                     });
-                    continue;
                 }
+            } else {
+                for (const card of assignedCardsSorted) {
+                    const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                    const isUserPersonalCard = isPersonalCard(card);
+                    const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
+                    const assignedCardsGrouped = isUserPersonalCard ? personalCardsGrouped : companyCardsGrouped;
 
-                const isAdminIssuedVirtualCard = !!card?.nameValuePairs?.issuedBy && !!card?.nameValuePairs?.isVirtual;
+                    let icon;
+                    if (isUserPersonalCard && isCSVCard) {
+                        icon = getCardFeedIcon(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV, illustrations, companyCardFeedIcons);
+                    } else {
+                        icon = getCardFeedIcon(card.bank, illustrations, companyCardFeedIcons);
+                    }
 
-                // Travel cards are handled by the dedicated travelCardGrouped section below
-                if (isTravelCard(card)) {
-                    continue;
-                }
+                    let shouldShowRBR = false;
+                    if (card.fundID) {
+                        const feedNameWithDomainID = getCardFeedWithDomainID(card.bank, card.fundID);
+                        shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feedNameWithDomainID];
+                    } else if (card.bank !== CONST.PERSONAL_CARDS.BANK_NAME.CSV) {
+                        // Don't show red dot for CSV imported cards without fundID
+                        shouldShowRBR = true;
+                    }
 
-                // The card should be grouped to a specific domain and such domain already exists in a assignedCardsGrouped
-                if (assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.description === card.domainName) && !isAdminIssuedVirtualCard) {
-                    const domainGroupIndex = assignedCardsGrouped.findIndex((item) => item.isGroupedCardDomain && item.description === card.domainName);
-                    const assignedCardsGroupedItem = assignedCardsGrouped.at(domainGroupIndex);
-                    if (domainGroupIndex >= 0 && assignedCardsGroupedItem) {
-                        assignedCardsGroupedItem.errors = {...assignedCardsGrouped.at(domainGroupIndex)?.errors, ...card.errors};
-                        if (
-                            card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN ||
-                            card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL ||
-                            Object.keys(assignedCardsGroupedItem.errors).length > 0
-                        ) {
-                            assignedCardsGroupedItem.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                    let brickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
+                    if (!card.errors) {
+                        if (shouldShowRBR) {
+                            brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                        } else if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL) {
+                            brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                        } else if (isExpensifyCard(card) && isExpensifyCardPendingAction(card, privatePersonalDetails)) {
+                            brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
                         }
                     }
-                    continue;
+
+                    if (isUserPersonalCard && (!isEmptyObject(card.errors) || isCardConnectionBroken(card))) {
+                        brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                    }
+
+                    if (!isExpensifyCard(card)) {
+                        const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
+                        const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
+                        const isCSVImportCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD;
+                        let cardTitle = isCSVImportCard ? (card.nameValuePairs?.cardTitle ?? card.cardName) : maskCardNumber(card.cardName, card.bank);
+                        const pressHandler = onPress as CardPressHandler;
+                        let cardDescription;
+                        if (isUserPersonalCard) {
+                            cardTitle = customCardNames?.[card.cardID] ?? cardTitle;
+                            cardDescription = lastFourPAN;
+                        } else if (lastFourPAN) {
+                            cardDescription = `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards)}`;
+                        } else {
+                            cardDescription = getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards);
+                        }
+                        // Personal cards (including CSV imported) navigate to the personal card details page
+                        // Company cards use the pressHandler callback (for 3-dot menu behavior)
+                        const cardOnPress = isUserPersonalCard
+                            ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(card.cardID)))
+                            : (e: GestureResponderEvent | KeyboardEvent | undefined) =>
+                                  pressHandler({
+                                      event: e,
+                                      cardData: card,
+                                      icon: {
+                                          icon,
+                                          iconStyles: [styles.cardIcon],
+                                          iconWidth: variables.cardIconWidth,
+                                          iconHeight: variables.cardIconHeight,
+                                      },
+                                      cardID: card.cardID,
+                                  });
+
+                        assignedCardsGrouped.push({
+                            key: card.cardID.toString(),
+                            plaidUrl,
+                            title: cardTitle,
+                            description: isCSVImportCard ? translate('cardPage.csvCardDescription') : cardDescription,
+                            interactive: !isDisabled,
+                            disabled: isDisabled,
+                            shouldShowRightIcon,
+                            shouldShowThreeDotsMenu: !isUserPersonalCard,
+                            errors: isUserPersonalCard ? undefined : card.errors,
+                            canDismissError: false,
+                            pendingAction: card.pendingAction,
+                            brickRoadIndicator,
+                            icon,
+                            iconStyles: [styles.cardIcon],
+                            iconWidth: variables.cardIconWidth,
+                            iconHeight: variables.cardIconHeight,
+                            isMethodActive: activePaymentMethodID === card.cardID,
+                            isInactive: isCardInactive(card),
+                            onPress: cardOnPress,
+                        });
+                        continue;
+                    }
+
+                    const isAdminIssuedVirtualCard = !!card?.nameValuePairs?.issuedBy && !!card?.nameValuePairs?.isVirtual;
+                    if (isTravelCard(card)) {
+                        continue;
+                    }
+                    if (assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.description === card.domainName) && !isAdminIssuedVirtualCard) {
+                        const domainGroupIndex = assignedCardsGrouped.findIndex((item) => item.isGroupedCardDomain && item.description === card.domainName);
+                        const assignedCardsGroupedItem = assignedCardsGrouped.at(domainGroupIndex);
+                        if (domainGroupIndex >= 0 && assignedCardsGroupedItem) {
+                            assignedCardsGroupedItem.errors = {...assignedCardsGrouped.at(domainGroupIndex)?.errors, ...card.errors};
+                            if (
+                                card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN ||
+                                card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL ||
+                                Object.keys(assignedCardsGroupedItem.errors).length > 0
+                            ) {
+                                assignedCardsGroupedItem.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                            }
+                        }
+                        continue;
+                    }
+
+                    const pressHandler = onPress as CardPressHandler;
+                    const cardDescription =
+                        card?.nameValuePairs?.issuedBy && card?.lastFourPAN
+                            ? `${card?.lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards)}`
+                            : getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards);
+                    assignedCardsGrouped.push({
+                        key: card.cardID.toString(),
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        title: card?.nameValuePairs?.cardTitle || card.bank,
+                        description: cardDescription,
+                        onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(card.cardID))),
+                        onThreeDotsMenuPress: (e: GestureResponderEvent | KeyboardEvent | undefined) =>
+                            pressHandler({
+                                event: e,
+                                cardData: card,
+                                icon: {
+                                    icon,
+                                    iconStyles: [styles.cardIcon],
+                                    iconWidth: variables.cardIconWidth,
+                                    iconHeight: variables.cardIconHeight,
+                                },
+                                cardID: card.cardID,
+                            }),
+                        cardID: card.cardID,
+                        isGroupedCardDomain: !isAdminIssuedVirtualCard,
+                        shouldShowRightIcon: true,
+                        interactive: !isDisabled,
+                        disabled: isDisabled,
+                        errors: card.errors,
+                        canDismissError: true,
+                        pendingAction: card.pendingAction,
+                        brickRoadIndicator,
+                        icon,
+                        iconStyles: [styles.cardIcon],
+                        iconWidth: variables.cardIconWidth,
+                        iconHeight: variables.cardIconHeight,
+                        isInactive: isCardInactive(card),
+                        isCardFrozen: isCardFrozen(card),
+                    });
                 }
-
-                const pressHandler = onPress as CardPressHandler;
-
-                // The card shouldn't be grouped or it's domain group doesn't exist yet
-                const cardDescription =
-                    card?.nameValuePairs?.issuedBy && card?.lastFourPAN
-                        ? `${card?.lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards)}`
-                        : getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards);
-                assignedCardsGrouped.push({
-                    key: card.cardID.toString(),
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    title: card?.nameValuePairs?.cardTitle || card.bank,
-                    description: cardDescription,
-                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(card.cardID))),
-                    onThreeDotsMenuPress: (e: GestureResponderEvent | KeyboardEvent | undefined) =>
-                        pressHandler({
-                            event: e,
-                            cardData: card,
-                            icon: {
-                                icon,
-                                iconStyles: [styles.cardIcon],
-                                iconWidth: variables.cardIconWidth,
-                                iconHeight: variables.cardIconHeight,
-                            },
-                            cardID: card.cardID,
-                        }),
-                    cardID: card.cardID,
-                    isGroupedCardDomain: !isAdminIssuedVirtualCard,
-                    shouldShowRightIcon: true,
-                    interactive: !isDisabled,
-                    disabled: isDisabled,
-                    errors: card.errors,
-                    canDismissError: true,
-                    pendingAction: card.pendingAction,
-                    brickRoadIndicator,
-                    icon,
-                    iconStyles: [styles.cardIcon],
-                    iconWidth: variables.cardIconWidth,
-                    iconHeight: variables.cardIconHeight,
-                    isInactive: isCardInactive(card),
-                    isCardFrozen: isCardFrozen(card),
-                });
             }
 
             const travelCardGrouped: PaymentMethodItem[] = [];
@@ -434,7 +646,8 @@ function PaymentMethodList({
         if (excludeStates?.length) {
             combinedPaymentMethods = combinedPaymentMethods.filter((paymentMethod) => {
                 const account = paymentMethod as BankAccount;
-                return !excludeStates.includes(account.accountData?.state as ValueOf<typeof CONST.BANK_ACCOUNT.STATE>);
+                const bankAccountState = getBankAccountState(account.accountData) as ValueOf<typeof CONST.BANK_ACCOUNT.STATE> | undefined;
+                return !bankAccountState || !excludeStates.includes(bankAccountState);
             });
         }
 
@@ -455,29 +668,35 @@ function PaymentMethodList({
                 methodID: paymentMethod.methodID,
                 description: paymentMethod.description,
             };
+            const existingBrickRoadIndicator = (paymentMethod as Partial<PaymentMethodItem>).brickRoadIndicator;
             const isMissingPersonalInfo = isPersonalBankAccountMissingInfo(paymentMethod.accountData);
+            const bankConnectionStatus = shouldShowConnectionStatus && !isMissingPersonalInfo ? getBankAccountConnectionStatus(getBankAccountState(paymentMethod.accountData)) : undefined;
+            const paymentMethodPress = (e: GestureResponderEvent | KeyboardEvent | undefined) =>
+                pressHandler({
+                    event: e,
+                    ...paymentMethodData,
+                });
+            const paymentMethodThreeDotsPress =
+                onThreeDotsMenuPress &&
+                ((e: GestureResponderEvent | KeyboardEvent | undefined) =>
+                    onThreeDotsMenuPress({
+                        event: e,
+                        ...paymentMethodData,
+                    }));
 
             return {
                 ...paymentMethod,
                 title: paymentMethod.title?.includes(CONST.MASKED_PAN_PREFIX) ? paymentMethod.accountData?.additionalData?.bankName : paymentMethod.title,
-                onPress: (e: GestureResponderEvent) =>
-                    pressHandler({
-                        event: e,
-                        ...paymentMethodData,
-                    }),
-                onThreeDotsMenuPress: onThreeDotsMenuPress
-                    ? (e: GestureResponderEvent) =>
-                          onThreeDotsMenuPress({
-                              event: e,
-                              ...paymentMethodData,
-                          })
-                    : undefined,
+                onPress: paymentMethodPress,
+                onThreeDotsMenuPress: paymentMethodThreeDotsPress,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 isMethodActive,
                 iconRight: itemIconRight ?? expensifyIcons.ThreeDots,
                 shouldShowRightIcon,
                 canDismissError: true,
                 isMissingPersonalInfo,
+                brickRoadIndicator: shouldShowConnectionStatus ? bankConnectionStatus?.brickRoadIndicator : existingBrickRoadIndicator,
+                connectionStatus: bankConnectionStatus ? mapBankStatusToRowStatus(bankConnectionStatus, paymentMethodPress, paymentMethodThreeDotsPress) : undefined,
             };
         });
         return combinedPaymentMethods;

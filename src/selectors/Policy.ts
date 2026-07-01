@@ -2,7 +2,7 @@ import escapeRegExp from 'lodash/escapeRegExp';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
-import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getOwnedPaidPolicies, getPolicyIDFromDomainName, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
@@ -152,7 +152,7 @@ const createAllPolicyReportFieldsSelector = (policies: OnyxCollection<Policy>, l
 const createPoliciesForDomainCardsSelector = (domainNames: string[]) => {
     const policyIDs = new Set(
         domainNames
-            .map((domainName) => domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1])
+            .map(getPolicyIDFromDomainName)
             .filter((policyID): policyID is string => !!policyID)
             .map((policyID) => policyID.toUpperCase()),
     );
