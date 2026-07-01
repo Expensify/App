@@ -5,15 +5,16 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import UserPills from '@components/UserPills';
 import useAttendees from '@hooks/useAttendees';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {enrichAndSortAttendees} from '@libs/AttendeeUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAttendeesListDisplayString} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {attendeeSliceSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
@@ -32,12 +33,13 @@ function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, a
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const personalDetailsList = usePersonalDetails();
+    const [loginToAccountIDMap] = useOnyx(ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP);
     const shouldDisplayAttendeesError = formError === 'violations.missingAttendees';
 
     const attendeeSlice = useTransactionSelector(transactionID, attendeeSliceSelector);
 
     const rawIouAttendees = useAttendees(attendeeSlice as OnyxEntry<OnyxTypes.Transaction>);
-    const iouAttendees = enrichAndSortAttendees(rawIouAttendees, personalDetailsList, localeCompare);
+    const iouAttendees = enrichAndSortAttendees(rawIouAttendees, loginToAccountIDMap, personalDetailsList, localeCompare);
 
     return (
         <MenuItemWithTopDescription
@@ -53,9 +55,9 @@ function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, a
                     <UserPills
                         users={iouAttendees.map((a) => ({
                             avatar: a?.avatarUrl,
-                            displayName: a?.displayName ?? a?.login ?? a?.email ?? '',
+                            displayName: a?.displayName ?? a?.email ?? '',
                             accountID: a?.accountID,
-                            email: a?.email ?? a?.login,
+                            email: a?.email,
                         }))}
                         maxVisible={isReadOnly ? iouAttendees.length : undefined}
                     />
@@ -68,7 +70,7 @@ function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, a
                     return;
                 }
 
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(action, iouType, transactionID, reportID)));
+                Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
             }}
             interactive={!isReadOnly}
             brickRoadIndicator={shouldDisplayAttendeesError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}

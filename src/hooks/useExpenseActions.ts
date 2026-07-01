@@ -60,6 +60,7 @@ import useGetIOUReportFromReportAction from './useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
+import useParentReportAction from './useParentReportAction';
 import usePermissions from './usePermissions';
 import useReportIsArchived from './useReportIsArchived';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
@@ -98,6 +99,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
     // Report data
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const parentReportAction = useParentReportAction(moneyRequestReport);
+    const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
 
@@ -573,6 +576,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                             setTimeout(() => {
                                 deleteAppReport({
                                     report: moneyRequestReport,
+                                    reportActions: moneyRequestReportActions,
+                                    parentReportAction,
                                     selfDMReport,
                                     currentUserEmailParam: email ?? '',
                                     currentUserAccountIDParam: accountID,

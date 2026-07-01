@@ -197,6 +197,15 @@ function cleanFileName(fileName: string): string {
     return fileName.replaceAll(/[^a-zA-Z0-9\-._]/g, '_');
 }
 
+/**
+ * Builds a standardized export filename: `expensify_<exportName>_<uniqueID>.<extension>`.
+ * The export name is sanitized and the whole name is lowercased so it is safe and consistent
+ * to use as a filename, and the unique id keeps filenames distinct without relying on a timestamp.
+ */
+function getExportFileName(exportName: string, uniqueID: string, extension = 'csv'): string {
+    return `expensify_${cleanFileName(exportName)}_${uniqueID}.${extension}`.toLowerCase();
+}
+
 function appendTimeToFileName(fileName: string): string {
     const file = splitExtensionFromFileName(fileName);
 
@@ -926,6 +935,7 @@ export {
     getFileName,
     getFileType,
     cleanFileName,
+    getExportFileName,
     appendTimeToFileName,
     ANDROID_SAFE_FILE_NAME_LENGTH,
     truncateFileNameToSafeLengthOnAndroid,
