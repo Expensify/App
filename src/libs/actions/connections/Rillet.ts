@@ -261,6 +261,81 @@ function prepareRilletFieldMappingOptimisticData(
     return {optimisticData, successData, failureData};
 }
 
+function prepareRilletExportOptimisticData<TSettingName extends keyof Connections['rillet']['config']['export']>(
+    policyID: string,
+    settingName: TSettingName,
+    settingValue: Partial<Connections['rillet']['config']['export'][TSettingName]>,
+    oldSettingValue: Partial<Connections['rillet']['config']['export'][TSettingName]> | null,
+) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    rillet: {
+                        config: {
+                            export: {
+                                [settingName]: settingValue ?? null,
+                            },
+                            pendingFields: {
+                                [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [settingName]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    rillet: {
+                        config: {
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    rillet: {
+                        config: {
+                            export: {
+                                [settingName]: oldSettingValue ?? null,
+                            },
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    return {optimisticData, successData, failureData};
+}
+
 function updateRilletSubsidiary(policyID: string, subsidiaryID: Connections['rillet']['config']['subsidiaryID'], oldSubsidiaryID?: Connections['rillet']['config']['subsidiaryID']) {
     const onyxData = prepareRilletOptimisticData(policyID, CONST.RILLET_CONFIG.SUBSIDIARY_ID, subsidiaryID, oldSubsidiaryID ?? null);
     const params: UpdateRilletSubsidiaryParams = {
