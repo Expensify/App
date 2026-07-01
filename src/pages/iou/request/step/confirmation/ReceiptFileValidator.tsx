@@ -84,6 +84,9 @@ function ReceiptFileValidator({
 
                 const onSuccess = (file: File) => {
                     const receipt: Receipt = file;
+                    // Rebuilding the receipt from disk makes a fresh File without the trace id stamped at capture, so copy
+                    // it back from the saved draft. This keeps the capture, submit, and enqueue logs tied to one receipt.
+                    receipt.receiptTraceId = item.receipt?.receiptTraceId;
                     if (item?.receipt?.isTestReceipt) {
                         receipt.isTestReceipt = true;
                         receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE;
