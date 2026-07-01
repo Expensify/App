@@ -29,6 +29,7 @@ import {
     isControlPolicy,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
 } from '@libs/PolicyUtils';
+import {hasAnyTagGLCode as hasAnyTagGLCodeUtils} from '@libs/TagUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
@@ -70,6 +71,9 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
         return Object.values(singleLevelTags).some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     }, [isMultiLevelTags, policyTagLists]);
 
+    // Whether any tag across the multi-level lists has a GL Code, so the export only includes GL Code columns when they exist
+    const hasAnyTagGLCode = hasAnyTagGLCodeUtils(policyTagLists);
+
     const overrideMultiTagPrompt = useMemo(
         () => (
             <Text>
@@ -87,6 +91,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                                         });
                                     },
                                     hasDependentTags,
+                                    hasAnyTagGLCode,
                                     translate,
                                 );
                             } else {
@@ -108,7 +113,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                 </>
             </Text>
         ),
-        [translate, isMultiLevelTags, policyID, hasDependentTags],
+        [translate, isMultiLevelTags, policyID, hasDependentTags, hasAnyTagGLCode],
     );
 
     const switchSingleToMultiLevelTagPrompt = useMemo(
@@ -127,6 +132,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                                     });
                                 },
                                 hasDependentTags,
+                                hasAnyTagGLCode,
                                 translate,
                             );
                         } else {
@@ -149,7 +155,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                 {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt6')}
             </Text>
         ),
-        [translate, policyID, hasDependentTags, isMultiLevelTags],
+        [translate, policyID, hasDependentTags, isMultiLevelTags, hasAnyTagGLCode],
     );
 
     const startMultiLevelTagImportFlow = useCallback(async () => {
