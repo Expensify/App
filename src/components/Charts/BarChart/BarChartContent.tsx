@@ -65,7 +65,7 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
 
     const horizontalChartData = data.map((point, index) => ({
         x: point.total,
-        y: index,
+        y: data.length - 1 - index,
     }));
 
     const categoryIndices = data.map((_, index) => index);
@@ -217,6 +217,27 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
         cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',
     }));
 
+    const renderHorizontalBar = (point: PointsArray[number], chartBounds: ChartBounds, barCount: number, dataIndex: number) => {
+        const barColor = useSingleColor ? defaultBarColor : VictoryTheme.colors.getColor(dataIndex);
+
+        return (
+            <Bar
+                key={`horizontal-bar-${data.at(dataIndex)?.label ?? dataIndex}`}
+                points={[point]}
+                chartBounds={chartBounds}
+                color={barColor}
+                barCount={barCount}
+                innerPadding={BAR_INNER_PADDING}
+                roundedCorners={{
+                    topLeft: 8,
+                    topRight: 8,
+                    bottomLeft: 8,
+                    bottomRight: 8,
+                }}
+            />
+        );
+    };
+
     const renderVerticalBar = (point: PointsArray[number], chartBounds: ChartBounds, barCount: number) => {
         const dataIndex = point.xValue as number;
         const dataPoint = data.at(dataIndex);
@@ -291,7 +312,7 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
             <>
                 <ChartYAxisLabels
                     yTicks={categoryIndices}
-                    labels={truncatedCategoryLabels}
+                    labels={[...truncatedCategoryLabels].reverse()}
                     yScale={args.yScale}
                     chartBounds={args.chartBounds}
                     fontSize={variables.iconSizeExtraSmall}
@@ -304,7 +325,7 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
                     regularLabelMaxWidth={Infinity}
                     firstLabelMaxWidth={Infinity}
                     lastLabelMaxWidth={Infinity}
-                    ellipsisWidth={measureTextWidth('...', fontManager, variables.iconSizeExtraSmall)}
+                    ellipsisWidth={ellipsisWidth}
                     labelRotation={0}
                     labelSkipInterval={1}
                     fontSize={variables.iconSizeExtraSmall}
@@ -365,14 +386,13 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
         return null;
     }
 
-    if (isHorizontalLayout) {
-        const horizontalChartBody = (
-            <GestureDetector gesture={customGestures}>
-                <Animated.View
-                    onLayout={handleLayout}
-                    style={[styles.chartContent, horizontalChartStyle, cursorStyle]}
-                >
-                    {chartWidth > 0 && (
+    const chartLayoutStyle = isHorizontalLayout ? horizontalChartStyle : verticalChartStyle;
+
+    const chartBody = (
+        <GestureDetector gesture={customGestures}>
+            <Animated.View style={[chartLayoutStyle, cursorStyle]}>
+                {chartWidth > 0 &&
+                    (isHorizontalLayout ? (
                         <CartesianChart
                             xKey="x"
                             yKeys={['y']}
@@ -400,94 +420,53 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
                             frame={{lineWidth: 0}}
                             data={horizontalChartData}
                         >
-                            {({points, chartBounds}) => (
-                                <BarGroup
-                                    chartBounds={chartBounds}
-                                    withinGroupPadding={BAR_INNER_PADDING}
-                                    isHorizontal
-                                    roundedCorners={{topRight: 8, bottomRight: 8}}
-                                >
-                                    {useSingleColor
-                                        ? [
-                                              <BarGroup.Bar
-                                                  key="horizontal-bars-single-color"
-                                                  points={points.y}
-                                                  color={defaultBarColor}
-                                              />,
-                                          ]
-                                        : points.y.map((point, index) => (
-                                              <BarGroup.Bar
-                                                  key={`horizontal-bar-${data.at(index)?.label ?? index}`}
-                                                  points={[point]}
-                                                  color={VictoryTheme.colors.getColor(index)}
-                                              />
-                                          ))}
-                                </BarGroup>
-                            )}
+                            {({points, chartBounds}) =>
+                                useSingleColor ? (
+                                    <BarGroup
+                                        chartBounds={chartBounds}
+                                        withinGroupPadding={BAR_INNER_PADDING}
+                                        isHorizontal
+                                        roundedCorners={{topRight: 8, bottomRight: 8}}
+                                    >
+                                        <BarGroup.Bar
+                                            key="horizontal-bars-single-color"
+                                            points={points.y}
+                                            color={defaultBarColor}
+                                        />
+                                    </BarGroup>
+                                ) : (
+                                    points.y.map((point, index) => renderHorizontalBar(point, chartBounds, points.y.length, index))
+                                )
+                            }
                         </CartesianChart>
-                    )}
-                    <ChartTooltipLayer
-                        matchedIndex={matchedIndex}
-                        isTooltipActive={isTooltipActive}
-                        data={data}
-                        formatValue={formatValue}
-                        chartWidth={chartWidth}
-                        initialTooltipPosition={initialTooltipPosition}
-                        placement={tooltipPlacement}
-                    />
-                </Animated.View>
-            </GestureDetector>
-        );
-
-        if (!needsHorizontalScroll) {
-            return horizontalChartBody;
-        }
-
-        return (
-            <ScrollView
-                style={styles.chartHorizontalScroll}
-                nestedScrollEnabled
-                showsVerticalScrollIndicator
-            >
-                {horizontalChartBody}
-            </ScrollView>
-        );
-    }
-
-    return (
-        <GestureDetector gesture={customGestures}>
-            <Animated.View
-                onLayout={handleLayout}
-                style={[styles.chartContent, verticalChartStyle, cursorStyle]}
-            >
-                {chartWidth > 0 && (
-                    <CartesianChart
-                        xKey="x"
-                        padding={verticalChartPadding}
-                        yKeys={['y']}
-                        domainPadding={domainPadding}
-                        onChartBoundsChange={handleVerticalChartBoundsChange}
-                        onScaleChange={handleVerticalScaleChange}
-                        renderOutside={renderVerticalOutside}
-                        xAxis={{
-                            tickCount: data.length,
-                            lineWidth: VictoryTheme.axis.xLineWidth,
-                        }}
-                        yAxis={[
-                            {
-                                tickCount: VictoryTheme.axis.tickCount,
-                                lineWidth: VictoryTheme.axis.yLineWidth,
-                                lineColor: theme.border,
-                                labelOffset: VictoryTheme.axis.labelGap,
-                                domain: yAxisDomain,
-                            },
-                        ]}
-                        frame={{lineWidth: 0}}
-                        data={verticalChartData}
-                    >
-                        {({points, chartBounds}) => points.y.map((point) => renderVerticalBar(point, chartBounds, points.y.length))}
-                    </CartesianChart>
-                )}
+                    ) : (
+                        <CartesianChart
+                            xKey="x"
+                            padding={verticalChartPadding}
+                            yKeys={['y']}
+                            domainPadding={domainPadding}
+                            onChartBoundsChange={handleVerticalChartBoundsChange}
+                            onScaleChange={handleVerticalScaleChange}
+                            renderOutside={renderVerticalOutside}
+                            xAxis={{
+                                tickCount: data.length,
+                                lineWidth: VictoryTheme.axis.xLineWidth,
+                            }}
+                            yAxis={[
+                                {
+                                    tickCount: VictoryTheme.axis.tickCount,
+                                    lineWidth: VictoryTheme.axis.yLineWidth,
+                                    lineColor: theme.border,
+                                    labelOffset: VictoryTheme.axis.labelGap,
+                                    domain: yAxisDomain,
+                                },
+                            ]}
+                            frame={{lineWidth: 0}}
+                            data={verticalChartData}
+                        >
+                            {({points, chartBounds}) => points.y.map((point) => renderVerticalBar(point, chartBounds, points.y.length))}
+                        </CartesianChart>
+                    ))}
                 <ChartTooltipLayer
                     matchedIndex={matchedIndex}
                     isTooltipActive={isTooltipActive}
@@ -495,10 +474,34 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
                     formatValue={formatValue}
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}
+                    {...(isHorizontalLayout ? {placement: tooltipPlacement} : {})}
                 />
             </Animated.View>
         </GestureDetector>
     );
+
+    const measuredChart = (
+        <View
+            onLayout={handleLayout}
+            collapsable={false}
+        >
+            {chartBody}
+        </View>
+    );
+
+    if (isHorizontalLayout && needsHorizontalScroll) {
+        return (
+            <ScrollView
+                style={styles.chartHorizontalScroll}
+                nestedScrollEnabled
+                showsVerticalScrollIndicator
+            >
+                {measuredChart}
+            </ScrollView>
+        );
+    }
+
+    return measuredChart;
 }
 
 function BarChartContent(props: BarChartProps) {
