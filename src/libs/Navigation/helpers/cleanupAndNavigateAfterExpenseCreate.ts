@@ -29,7 +29,7 @@ function cleanupAndNavigateAfterExpenseCreate({
     linkedTrackedExpenseReportAction,
     action,
 }: CleanupAndNavigateAfterExpenseCreateParams) {
-    cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction});
+    cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction, waitForUpcomingTransition: true});
 
     const finalActiveReportID = backToReport ?? report?.reportID ?? optimisticChatReportID;
     const finalActiveReport = finalActiveReportID === report?.reportID ? report : getReportOrDraftReport(finalActiveReportID);
