@@ -224,39 +224,86 @@ async function run(): Promise<IssuesCreateResponse | void> {
         const previousChecklistData = getDeployChecklistData(previousChecklist);
         const currentChecklistData: DeployChecklistData | undefined = shouldCreateNewDeployChecklist ? undefined : getDeployChecklistData(mostRecentChecklist);
 
-        // Find PRs merged between the previous checklist's tag and the new staging tag
-        const {mergedPRs: mergedPREntries, submoduleUpdates} = await GitUtils.getMergedPRsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST.APP_REPO);
-        const mergedPRs = mergedPREntries.map((pr) => pr.prNumber).sort((a, b) => a - b);
+        // Find PRs merged between the previous checklist's tag and the new staging tag.
+        // baseCommitDate is the committer date of the commit that previousChecklistData.tag points to.
+        const {mergedPRs: mergedPREntries, submoduleUpdates, baseCommitDate} = await GitUtils.getMergedPRsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST.APP_REPO);
 
         const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));
         const previousMobileExpensifyPRNumbers = new Set(previousChecklistData.PRListMobileExpensify.map((pr) => pr.number));
+
         core.startGroup('Filtering PRs:');
         core.info('mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out');
+
+        // When a PR is cherry-picked to staging and deployed to production, its cherry-pick commit
+        // lands on the staging branch before the previous staging tag.  After the production deploy,
+        // staging is synced from production/main, which brings the *original* merge commit into the
+        // staging branch history for the first time.  That original commit then appears in the
+        // compareCommits range for the new checklist — but it predates the previous staging tag,
+        // so its commit date is earlier than baseCommitDate.
+        //
+        // We use this as the filter signal: any PR whose commit date is before the previous staging
+        // tag's commit date was already deployed to production via cherry-pick and must be excluded.
+        const staleEntries = baseCommitDate ? mergedPREntries.filter((pr) => pr.date < baseCommitDate) : [];
+        if (staleEntries.length > 0) {
+            core.info(
+                `⚠️⚠️ Filtered out ${staleEntries.length} PR(s) whose commit date predates the previous staging tag ` +
+                    `(already deployed to production via cherry-pick): ${staleEntries.map((pr) => pr.prNumber).join(', ')} ⚠️⚠️`,
+            );
+        }
+        const staleEntryPRNumbers = new Set(staleEntries.map((pr) => pr.prNumber));
+
+        // Keep only PRs that are genuinely new to this cycle:
+        //   1. Not on the previous checklist (caught previously-deployed normal PRs and some cherry-picks)
+        //   2. Not stale (original merge commits whose date predates the previous staging tag,
+        //      brought in by a post-deploy sync after a cherry-pick deployment)
+        const freshPREntries = mergedPREntries.filter((pr) => !previousPRNumbers.has(pr.prNumber) && !staleEntryPRNumbers.has(pr.prNumber));
+        const mergedPRs = freshPREntries.map((pr) => pr.prNumber).sort((a, b) => a - b);
+
         core.info(`Found ${previousPRNumbers.size} PRs in the previous checklist:`);
         core.info(JSON.stringify(Array.from(previousPRNumbers)));
-        const newPRNumbers = mergedPRs.filter((prNum) => !previousPRNumbers.has(prNum));
+        const newPRNumbers = mergedPRs;
         core.info(`Found ${newPRNumbers.length} PRs deployed since the previous checklist:`);
         core.info(JSON.stringify(newPRNumbers));
 
-        const removedPRs = mergedPRs.filter((prNum) => previousPRNumbers.has(prNum));
-        if (removedPRs.length > 0) {
-            core.info(`⚠️⚠️ Filtered out the following cherry-picked PRs that were released with the previous checklist: ${removedPRs.join(', ')} ⚠️⚠️`);
+        const removedByPreviousChecklist = mergedPREntries.filter((pr) => previousPRNumbers.has(pr.prNumber) && !staleEntryPRNumbers.has(pr.prNumber));
+        if (removedByPreviousChecklist.length > 0) {
+            core.info(
+                `⚠️⚠️ Filtered out the following cherry-picked PRs that were released with the previous checklist: ${removedByPreviousChecklist.map((pr) => pr.prNumber).join(', ')} ⚠️⚠️`,
+            );
         }
         core.endGroup();
         console.info(`[api] Checklist PRs: ${newPRNumbers.join(', ')}`);
 
-        // Fetch Mobile-Expensify PRs (with dates for chronological grouping by submodule update)
+        // Fetch Mobile-Expensify PRs (with dates for chronological grouping by submodule update).
+        // The same cherry-pick staleness filter that applies to App PRs applies here: any
+        // Mobile-Expensify PR whose commit date predates the Mobile-Expensify base tag's commit
+        // date was already deployed via cherry-pick and should not appear in the new checklist.
         let mergedMobileExpensifyPREntries: MergedPR[] = [];
         try {
-            const {mergedPRs: allMobileExpensifyPREntries} = await GitUtils.getMergedPRsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST.MOBILE_EXPENSIFY_REPO);
-            mergedMobileExpensifyPREntries = allMobileExpensifyPREntries.filter((pr) => !previousMobileExpensifyPRNumbers.has(pr.prNumber));
+            const {mergedPRs: allMobileExpensifyPREntries, baseCommitDate: mobileBaseCommitDate} = await GitUtils.getMergedPRsDeployedBetween(
+                previousChecklistData.tag,
+                newStagingTag,
+                CONST.MOBILE_EXPENSIFY_REPO,
+            );
+
+            // Identify stale Mobile-Expensify entries (same logic as for App PRs above).
+            const staleMobileEntries = mobileBaseCommitDate ? allMobileExpensifyPREntries.filter((pr) => pr.date < mobileBaseCommitDate) : [];
+            if (staleMobileEntries.length > 0) {
+                core.info(
+                    `⚠️⚠️ Filtered out ${staleMobileEntries.length} Mobile-Expensify PR(s) whose commit date predates the previous staging tag ` +
+                        `(already deployed to production via cherry-pick): ${staleMobileEntries.map((pr) => pr.prNumber).join(', ')} ⚠️⚠️`,
+                );
+            }
+            const staleMobilePRNumbers = new Set(staleMobileEntries.map((pr) => pr.prNumber));
+
+            mergedMobileExpensifyPREntries = allMobileExpensifyPREntries.filter((pr) => !previousMobileExpensifyPRNumbers.has(pr.prNumber) && !staleMobilePRNumbers.has(pr.prNumber));
 
             const allCount = allMobileExpensifyPREntries.length;
             const newCount = mergedMobileExpensifyPREntries.length;
             console.info(`Found ${allCount} total Mobile-Expensify PRs, ${newCount} new ones after filtering:`);
             console.info(`Mobile-Expensify PRs: ${mergedMobileExpensifyPREntries.map((pr) => pr.prNumber).join(', ')}`);
 
-            const removedMobileExpensifyPRs = allMobileExpensifyPREntries.filter((pr) => previousMobileExpensifyPRNumbers.has(pr.prNumber));
+            const removedMobileExpensifyPRs = allMobileExpensifyPREntries.filter((pr) => previousMobileExpensifyPRNumbers.has(pr.prNumber) && !staleMobilePRNumbers.has(pr.prNumber));
             if (removedMobileExpensifyPRs.length > 0) {
                 core.info(
                     `⚠️⚠️ Filtered out the following cherry-picked Mobile-Expensify PRs that were released with the previous checklist: ${removedMobileExpensifyPRs.map((pr) => pr.prNumber).join(', ')} ⚠️⚠️`,
@@ -272,10 +319,27 @@ async function run(): Promise<IssuesCreateResponse | void> {
             }
         }
 
-        const chronologicalPREntries = mergedPREntries.filter((pr) => !previousPRNumbers.has(pr.prNumber)).sort((a, b) => a.date.localeCompare(b.date));
+        // freshPREntries was already filtered to exclude both previous-checklist PRs and
+        // stale cherry-picked entries, so we just need to sort it for the chronological view.
+        const chronologicalPREntries = freshPREntries.sort((a, b) => a.date.localeCompare(b.date));
+
+        // Apply the same staleness filter to Mobile-Expensify submodule update commits.
+        // A submodule bump that predates the previous staging tag was cherry-picked to staging
+        // and deployed to production in a prior cycle; its commit re-enters the range via the
+        // post-deploy sync exactly like stale PR commits do.  Passing it to buildChronologicalSection
+        // unchanged would render an already-deployed submodule update in the new checklist.
+        const freshSubmoduleUpdates = baseCommitDate ? submoduleUpdates.filter((update) => update.date >= baseCommitDate) : submoduleUpdates;
+        const staleSubmoduleUpdates = submoduleUpdates.filter((update) => !freshSubmoduleUpdates.includes(update));
+        if (staleSubmoduleUpdates.length > 0) {
+            core.info(
+                `⚠️⚠️ Filtered out ${staleSubmoduleUpdates.length} submodule update(s) whose commit date predates the previous staging tag ` +
+                    `(already deployed to production via cherry-pick): ${staleSubmoduleUpdates.map((u) => u.version).join(', ')} ⚠️⚠️`,
+            );
+        }
+
         const chronologicalSection = await buildChronologicalSection({
             chronologicalPREntries,
-            submoduleUpdates,
+            submoduleUpdates: freshSubmoduleUpdates,
             mergedMobileExpensifyPREntries,
         });
 
