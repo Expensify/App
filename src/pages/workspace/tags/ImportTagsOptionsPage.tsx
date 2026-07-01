@@ -72,7 +72,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
     }, [isMultiLevelTags, policyTagLists]);
 
     // Whether any tag across the multi-level lists has a GL Code, so the export only includes GL Code columns when they exist
-    const hasAnyTagGLCode = useMemo(() => hasAnyTagGLCodeUtils(policyTagLists), [policyTagLists]);
+    const hasAnyTagGLCode = hasAnyTagGLCodeUtils(policyTagLists);
 
     const overrideMultiTagPrompt = useMemo(
         () => (

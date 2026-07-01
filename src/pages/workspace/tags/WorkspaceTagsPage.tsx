@@ -254,7 +254,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const shouldShowGLCodeColumn = isControlPolicyWithWideLayout && !isMultiLevelTags && Object.values(policyTagLists?.at(0)?.tags ?? {}).some((tag) => !!tag['GL Code']);
 
     // Whether any tag across the multi-level lists has a GL Code, so the export only includes GL Code columns when they exist
-    const hasAnyTagGLCode = useMemo(() => hasAnyTagGLCodeUtils(policyTagLists), [policyTagLists]);
+    const hasAnyTagGLCode = hasAnyTagGLCodeUtils(policyTagLists);
 
     const showAllTagsDisabledWarning = useCallback(() => {
         showConfirmModal({
