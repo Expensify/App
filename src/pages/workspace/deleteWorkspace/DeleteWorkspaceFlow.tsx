@@ -1,6 +1,8 @@
 import {useIsFocused} from '@react-navigation/native';
-import {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
+import {View} from 'react-native';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import RenderHTML from '@components/RenderHTML';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
@@ -8,16 +10,19 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingBalanceGuard from '@hooks/useOutstandingBalanceGuard';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
+import usePrevious from '@hooks/usePrevious';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
 import {calculateBillNewDot, deleteWorkspace, dismissWorkspaceError} from '@libs/actions/Policy/Policy';
 import {filterInactiveCards} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPendingDeletePolicy, shouldBlockWorkspaceDeletionForInvoicifyUser} from '@libs/PolicyUtils';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {canDowngradeSelector} from '@src/selectors/Account';
 import {accountIDToLoginSelector} from '@src/selectors/PersonalDetails';
 import {createOwnedPaidPoliciesCountsSelector} from '@src/selectors/Policy';
@@ -31,6 +36,9 @@ type DeleteWorkspaceFlowProps = {
 
     /** Called when the flow is finished or abandoned, so the parent can unmount this component */
     onDismiss: () => void;
+
+    /** Called when the workspace has been deleted (optimistically while offline, or after a successful online delete) */
+    onDeleteComplete?: () => void;
 };
 
 /**
@@ -41,8 +49,9 @@ type DeleteWorkspaceFlowProps = {
  * On mount (once the data is ready) it runs the pre-deletion checks (Invoicify block, outstanding balance,
  * bill calculation for the last paid workspace) and then shows the delete confirmation modal.
  */
-function DeleteWorkspaceFlow({policyID, onDismiss}: DeleteWorkspaceFlowProps) {
+function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWorkspaceFlowProps) {
     const {translate, localeCompare} = useLocalize();
+    const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {showConfirmModal, closeModal} = useConfirmModal();
@@ -90,16 +99,73 @@ function DeleteWorkspaceFlow({policyID, onDismiss}: DeleteWorkspaceFlowProps) {
         !isEmptyObject(cardsList) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.policyAccountID);
-    const hasExpensifyCard = !!policy?.areExpensifyCardsEnabled && !isEmptyObject(cardsList);
-    const hasDeleteWorkspaceExpensifyCardsError = !!hasExpensifyCard && !!isOffline;
+    const hasExpensifyCardsEnabledOnWorkspace = !!policy?.areExpensifyCardsEnabled && !!policy?.policyAccountID;
+    const hasDeleteWorkspaceExpensifyCardsError = !!hasExpensifyCardsEnabledOnWorkspace && !isEmptyObject(cardsList) && !!isOffline;
 
     const policyLatestErrorMessage = getLatestErrorMessage(policy);
     const isPendingDelete = isPendingDeletePolicy(policy);
-    const prevIsPendingDeleteRef = useRef(isPendingDelete);
-    const isErrorModalShowingRef = useRef(false);
+    const prevIsPendingDelete = usePrevious(isPendingDelete);
 
     const shouldCalculateBillNewDot = !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
     const {shouldBlockDeletion, outstandingBalanceModal} = useOutstandingBalanceGuard(ownedPaidPoliciesCounts?.active ?? 0, onDismiss);
+
+    const hideDeleteWorkspaceErrorModal = useCallback(() => {
+        dismissWorkspaceError(policyID, policy?.pendingAction);
+    }, [policyID, policy?.pendingAction]);
+
+    const dismissDeleteWorkspaceFlow = useCallback(() => {
+        hideDeleteWorkspaceErrorModal();
+        onDismiss();
+    }, [hideDeleteWorkspaceErrorModal, onDismiss]);
+
+    const showDeleteWorkspaceErrorModal = useCallback(() => {
+        if (!isFocused) {
+            dismissDeleteWorkspaceFlow();
+            return;
+        }
+
+        showConfirmModal({
+            title: translate('workspace.common.delete'),
+            prompt: (
+                <View style={[styles.renderHTML, styles.flexRow]}>
+                    <RenderHTML
+                        html={translate('workspace.common.deleteOpenExpensifyCardsError')}
+                        onConciergeLinkPress={() => {
+                            closeModal();
+                            dismissDeleteWorkspaceFlow();
+                        }}
+                    />
+                </View>
+            ),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+            success: false,
+            shouldHandleNavigationBack: false,
+        }).then(() => {
+            dismissDeleteWorkspaceFlow();
+        });
+    }, [closeModal, dismissDeleteWorkspaceFlow, isFocused, showConfirmModal, styles.flexRow, styles.renderHTML, translate]);
+
+    const showGenericDeleteWorkspaceErrorModal = useCallback(
+        (errorMessage: string) => {
+            if (!isFocused) {
+                dismissDeleteWorkspaceFlow();
+                return;
+            }
+
+            showConfirmModal({
+                title: translate('workspace.common.delete'),
+                prompt: errorMessage,
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+                success: false,
+                shouldHandleNavigationBack: false,
+            }).then(() => {
+                dismissDeleteWorkspaceFlow();
+            });
+        },
+        [dismissDeleteWorkspaceFlow, isFocused, showConfirmModal, translate],
+    );
 
     // Always invoked after a re-render (from the start effect below for normal deletes, or from usePayAndDowngrade for billed deletes),
     // so the workspace being deleted and its derived data are read from the latest state.
@@ -112,7 +178,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss}: DeleteWorkspaceFlowProps) {
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             danger: true,
-            isConfirmLoading: isPendingDelete,
+            ...(hasDeleteWorkspaceExpensifyCardsError ? {} : {isConfirmLoading: isPendingDelete}),
         }).then((result) => {
             if (!policyName || result.action !== ModalActions.CONFIRM) {
                 onDismiss();
@@ -138,11 +204,13 @@ function DeleteWorkspaceFlow({policyID, onDismiss}: DeleteWorkspaceFlowProps) {
                 currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 accountIDToLogin: accountIDToLogin ?? {},
             });
-            if (isOffline) {
+
+            if (hasDeleteWorkspaceExpensifyCardsError) {
+                showDeleteWorkspaceErrorModal();
+            } else if (isOffline) {
                 closeModal();
-                if (!hasDeleteWorkspaceExpensifyCardsError) {
-                    onDismiss();
-                }
+                onDeleteComplete?.();
+                onDismiss();
             }
         });
     };
@@ -158,7 +226,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss}: DeleteWorkspaceFlowProps) {
         hasStartedRef.current = true;
 
         if (shouldBlockWorkspaceDeletionForInvoicifyUser(isSubscriptionTypeOfInvoicing(privateSubscription?.type), policies, policyID, session?.accountID)) {
-            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.getRoute(Navigation.getActiveRoute()));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SUBSCRIPTION_DOWNGRADE_BLOCKED.path));
             onDismiss();
             return;
         }
@@ -177,55 +245,41 @@ function DeleteWorkspaceFlow({policyID, onDismiss}: DeleteWorkspaceFlowProps) {
         continueDeleteWorkspace();
     });
 
-    const hideDeleteWorkspaceErrorModal = () => {
-        if (policy) {
-            dismissWorkspaceError(policy.id, policy.pendingAction);
-        }
-        onDismiss();
-    };
-
-    const showErrorModal = () => {
-        if (isErrorModalShowingRef.current) {
-            return;
-        }
-        isErrorModalShowingRef.current = true;
-        showConfirmModal({
-            title: translate('workspace.common.delete'),
-            prompt: policyLatestErrorMessage,
-            confirmText: translate('common.buttonConfirm'),
-            cancelText: translate('common.cancel'),
-            success: false,
-            shouldShowCancelButton: false,
-        }).then(() => {
-            isErrorModalShowingRef.current = false;
-            hideDeleteWorkspaceErrorModal();
-        });
-    };
-
     useEffect(() => {
-        const prevIsPendingDelete = prevIsPendingDeleteRef.current;
-        prevIsPendingDeleteRef.current = isPendingDelete;
-
-        // Handle showing error modal when offline and error occurs
-        if (isOffline && policyLatestErrorMessage) {
-            showErrorModal();
+        if (isOffline) {
             return;
         }
 
         if (!prevIsPendingDelete || isPendingDelete) {
             return;
         }
+
         closeModal();
-        if (!isFocused || !policyLatestErrorMessage) {
-            // The deletion either succeeded or there is no error modal to show, so the flow is finished.
-            if (!isErrorModalShowingRef.current) {
-                onDismiss();
-            }
+
+        if (policyLatestErrorMessage && hasExpensifyCardsEnabledOnWorkspace) {
+            showDeleteWorkspaceErrorModal();
             return;
         }
 
-        showErrorModal();
-    }, [isOffline, hideDeleteWorkspaceErrorModal, showConfirmModal, translate, policyLatestErrorMessage, isPendingDelete, isFocused, closeModal, onDismiss, showErrorModal]);
+        if (policyLatestErrorMessage) {
+            showGenericDeleteWorkspaceErrorModal(policyLatestErrorMessage);
+            return;
+        }
+
+        onDeleteComplete?.();
+        onDismiss();
+    }, [
+        isOffline,
+        isPendingDelete,
+        prevIsPendingDelete,
+        policyLatestErrorMessage,
+        hasExpensifyCardsEnabledOnWorkspace,
+        closeModal,
+        onDeleteComplete,
+        onDismiss,
+        showDeleteWorkspaceErrorModal,
+        showGenericDeleteWorkspaceErrorModal,
+    ]);
 
     return outstandingBalanceModal;
 }
