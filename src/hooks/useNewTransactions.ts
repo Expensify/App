@@ -2,8 +2,10 @@ import {useEffect, useMemo, useRef} from 'react';
 import {deletePendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransactions';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import usePrevious from './usePrevious';
+
+// Stable empty result so a "nothing new" return keeps a constant reference (no consumer re-render).
+const EMPTY_TRANSACTIONS: Transaction[] = [];
 
 /**
  * This hook returns new transactions that have been added since the last transactions update.
@@ -27,35 +29,49 @@ function useNewTransactions(
     const skipFirstTransactionsChange = useRef(!hasOnceLoadedReportActions);
 
     const newTransactions = useMemo(() => {
-        // If isFocused is not passed (=undefined) we will not return empty.
         if (isFocused === false) {
-            return CONST.EMPTY_ARRAY as unknown as Transaction[];
+            return EMPTY_TRANSACTIONS;
         }
 
-        if (transactions === undefined || prevTransactions === undefined || transactions.length <= prevTransactions.length) {
-            // When a transaction is submitted from another report (e.g., Self DM → workspace), it is
-            // already in the transactions list by the time this component mounts.
-            // So we use pendingNewTransactionIDs from report metadata to identify these transactions on first load.
-            if (isFocused && reportID && !isEmptyObject(pendingNewTransactionIDs) && transactions?.length) {
-                const pendingSet = new Set(Object.keys(pendingNewTransactionIDs));
-                const pendingTransactions = transactions.filter(({transactionID}) => pendingSet.has(transactionID) && pendingNewTransactionIDs[transactionID]);
-                return pendingTransactions;
+        // Rail-flagged adds survive the remount the diff can't see. Built only when focused; truthy-only so an all-cleared tombstone rail falls through to the diff.
+        const railSet = new Set<string>();
+        let railTransactions: Transaction[] = EMPTY_TRANSACTIONS;
+        if (isFocused && reportID && transactions?.length && pendingNewTransactionIDs) {
+            for (const id of Object.keys(pendingNewTransactionIDs)) {
+                if (pendingNewTransactionIDs[id]) {
+                    railSet.add(id);
+                }
             }
-            return CONST.EMPTY_ARRAY as unknown as Transaction[];
+            if (railSet.size) {
+                railTransactions = transactions.filter(({transactionID}) => railSet.has(transactionID));
+            }
         }
-        if (skipFirstTransactionsChange.current) {
-            skipFirstTransactionsChange.current = false;
-            return CONST.EMPTY_ARRAY as unknown as Transaction[];
-        }
-        return transactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
 
-        // We don't need to recalculate on change of prevTransactions or pendingNewTransactionIDs as it will make the value
+        // Diff-detected adds: render-to-render growth the rail never flagged (e.g. a Pusher add).
+        let diffTransactions: Transaction[] = [];
+        if (transactions !== undefined && prevTransactions !== undefined && transactions.length > prevTransactions.length) {
+            if (skipFirstTransactionsChange.current) {
+                skipFirstTransactionsChange.current = false;
+            } else {
+                diffTransactions = transactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
+            }
+        }
+
+        // Union, rail first so newTransactions[0] (the scroll target) stays stable across a later add.
+        if (!railTransactions.length) {
+            return diffTransactions.length ? diffTransactions : EMPTY_TRANSACTIONS;
+        }
+        const extraDiff = diffTransactions.filter(({transactionID}) => !railSet.has(transactionID));
+        return extraDiff.length ? [...railTransactions, ...extraDiff] : railTransactions;
+
+        // We don't need to recalculate on change of prevTransactions as it will make the value
         // disappear quickly which will break the scroll and highlight on slower devices like mobile app.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [transactions, reportID, isFocused]);
+    }, [transactions, reportID, isFocused, pendingNewTransactionIDs]);
 
     useEffect(() => {
-        if (!pendingNewTransactionIDs) {
+        // Only the focused consumer clears the rail — else an unfocused diff could clear the flag before the focused view of the same key consumes it.
+        if (isFocused === false || !pendingNewTransactionIDs) {
             return;
         }
         const pendingSet = new Set(Object.keys(pendingNewTransactionIDs));
@@ -71,7 +87,7 @@ function useNewTransactions(
                 pendingTransactions.map((transaction) => transaction.transactionID),
             );
         }, CONST.PENDING_TRANSACTION_DELETION_DELAY);
-    }, [pendingNewTransactionIDs, newTransactions, reportID]);
+    }, [isFocused, pendingNewTransactionIDs, newTransactions, reportID]);
 
     // In case when we have loaded the report, but there were no transactions in it, then we need to explicitly set skipFirstTransactionsChange to false, as it will be not set in the useMemo above.
     useEffect(() => {
