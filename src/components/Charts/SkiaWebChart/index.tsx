@@ -56,8 +56,7 @@ function SkiaWebChart<TProps extends object>({getComponent, componentProps, reas
     // while a fresh chart still re-checks capability instead of trusting a stale session-wide result.
     const [isSupported] = useState(() => isSkiaWebSupported());
 
-    // The device can't give CanvasKit a usable WebGL surface. Show the empty state instead of mounting
-    // Skia (which would crash) or a loading spinner that never resolves.
+    // If unsupported, the device can't give CanvasKit a usable WebGL surface.
     if (!isSupported) {
         return <ChartUnavailable />;
     }

@@ -3,8 +3,7 @@
  *
  * CanvasKit (loaded by `WithSkiaWeb`) reads `.rangeMin` off `gl.getShaderPrecisionFormat()` without a
  * null check, so on GPUs where that call returns `null` it throws an uncaught
- * `TypeError: Cannot read properties of null (reading 'rangeMin')` during its async GL init. Running
- * the same call up front lets callers skip Skia there.
+ * `TypeError: Cannot read properties of null (reading 'rangeMin')` during its async GL init.
  *
  * The probe reuses a single long-lived WebGL context instead of creating a throwaway one on every
  * chart mount. Creating and discarding a context per mount churns WebGL contexts, and on
