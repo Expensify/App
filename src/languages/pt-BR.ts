@@ -6766,7 +6766,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 optionFixedDistanceTitle: 'Excluir uma distância fixa por solicitação',
                 optionFixedDistanceHelp: 'Remova a mesma distância de deslocamento de cada reembolso. Ideal para membros que enviam um reembolso por dia de trabalho.',
                 distanceLabel: 'Distância',
-                errors: {distanceMustBePositive: 'A distância deve ser um número inteiro positivo.'},
+                errors: {distanceMustBePositive: 'A distância deve ser um número inteiro positivo.', distanceTooLarge: 'A distância é muito grande.'},
             },
             distance: 'Distância',
             centrallyManage: 'Gerencie tarifas centralmente, acompanhe em milhas ou quilômetros e defina uma categoria padrão.',

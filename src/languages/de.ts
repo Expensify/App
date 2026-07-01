@@ -6806,7 +6806,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 optionFixedDistanceTitle: 'Eine feste Entfernung pro Antrag ausschließen',
                 optionFixedDistanceHelp: 'Ziehen Sie die gleiche Pendelstrecke von jeder Abrechnung ab. Am besten für Mitglieder geeignet, die eine Abrechnung pro Arbeitstag einreichen.',
                 distanceLabel: 'Entfernung',
-                errors: {distanceMustBePositive: 'Die Entfernung muss eine positive ganze Zahl sein.'},
+                errors: {distanceMustBePositive: 'Die Entfernung muss eine positive ganze Zahl sein.', distanceTooLarge: 'Die Entfernung ist zu groß.'},
             },
             distance: 'Entfernung',
             centrallyManage: 'Tarife zentral verwalten, in Meilen oder Kilometern nachverfolgen und eine Standardkategorie festlegen.',

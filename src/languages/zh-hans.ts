@@ -6591,7 +6591,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 optionFixedDistanceTitle: '为每笔报销排除固定距离',
                 optionFixedDistanceHelp: '从每笔报销中扣除相同的通勤距离。最适合每个工作日提交一笔报销的成员使用。',
                 distanceLabel: '距离',
-                errors: {distanceMustBePositive: '距离必须是一个正整数。'},
+                errors: {distanceMustBePositive: '距离必须是一个正整数。', distanceTooLarge: '距离过大。'},
             },
             distance: '距离',
             centrallyManage: '集中管理费率，以英里或公里跟踪，并设置默认类别。',

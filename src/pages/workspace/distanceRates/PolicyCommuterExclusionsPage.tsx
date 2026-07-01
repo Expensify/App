@@ -96,6 +96,11 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
             return;
         }
 
+        if (numeric > CONST.POLICY.COMMUTER_EXCLUSION_MAX_DISTANCE) {
+            setInlineError(translate('workspace.distanceRates.commuterExclusions.errors.distanceTooLarge'));
+            return;
+        }
+
         const isSameDistance = existingMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE && existingCommuterExclusions?.fixedDistance === numeric;
         const isSameUnit = existingCommuterExclusions?.fixedDistanceUnit === workspaceUnit;
         if (isSameDistance && isSameUnit) {

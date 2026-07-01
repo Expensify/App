@@ -6718,7 +6718,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 optionFixedDistanceTitle: '申請ごとに一定距離を除外します',
                 optionFixedDistanceHelp: '各申請から同じ通勤距離を差し引きます。1勤務日につき1件の申請を行うメンバーに最適です。',
                 distanceLabel: '距離',
-                errors: {distanceMustBePositive: '距離は正の整数で入力してください。'},
+                errors: {distanceMustBePositive: '距離は正の整数で入力してください。', distanceTooLarge: '距離が大きすぎます。'},
             },
             distance: '距離',
             centrallyManage: '料金を一元管理し、マイルまたはキロメートルで追跡し、デフォルトのカテゴリを設定できます。',

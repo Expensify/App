@@ -6954,6 +6954,7 @@ const translations = {
                 distanceLabel: 'Distance',
                 errors: {
                     distanceMustBePositive: 'Distance must be a positive whole number.',
+                    distanceTooLarge: 'Distance is too large.',
                 },
             },
             distance: 'Distance',

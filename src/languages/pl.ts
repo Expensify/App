@@ -6765,7 +6765,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 optionFixedDistanceTitle: 'Wyklucz stały dystans na każde rozliczenie',
                 optionFixedDistanceHelp: 'Odejmij tę samą odległość dojazdu od każdego rozliczenia. Najlepsze dla osób, które składają jedno rozliczenie na każdy dzień pracy.',
                 distanceLabel: 'Dystans',
-                errors: {distanceMustBePositive: 'Dystans musi być dodatnią liczbą całkowitą.'},
+                errors: {distanceMustBePositive: 'Dystans musi być dodatnią liczbą całkowitą.', distanceTooLarge: 'Odległość jest zbyt duża.'},
             },
             distance: 'Dystans',
             centrallyManage: 'Centralnie zarządzaj stawkami, śledź w milach lub kilometrach i ustaw domyślną kategorię.',
