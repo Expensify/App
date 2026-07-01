@@ -8575,6 +8575,10 @@ const translations = {
             undelete: 'Undelete',
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
+        expensifyCardStatementPDF: {
+            title: 'Download Statement PDF',
+            oneFeedAtATime: 'Please pick one Expensify Card feed at a time.',
+        },
         filtersHeader: 'Filters',
         filters: {
             date: {
@@ -9915,6 +9919,7 @@ const translations = {
             `# ${name} invited you to test drive Expensify\nHey! I just got us *3 months free* to test drive Expensify, the fastest way to do expenses.\n\nHere’s a *test receipt* to show you how it works:`,
     },
     export: {
+        downloadStatementPDF: 'Download statement PDF',
         basicExport: 'Basic export',
         currentView: 'Current view',
         reportLevelExport: 'All Data - report level',

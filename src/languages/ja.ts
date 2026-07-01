@@ -8373,6 +8373,10 @@ ${reportName}`,
             undelete: '削除を取り消す',
             duplicateReport: ({count}: {count: number}) => `${count === 1 ? 'レポート' : 'レポート'} を複製`,
         },
+        expensifyCardStatementPDF: {
+            title: '明細書PDFをダウンロード',
+            oneFeedAtATime: 'Expensify Cardのフィードは一度に1つだけ選択してください。',
+        },
         filtersHeader: 'フィルター',
         filters: {
             date: {
@@ -9702,6 +9706,7 @@ ${reportName}`,
 使い方がわかるように、こちらが*テスト用レシート*です。`,
     },
     export: {
+        downloadStatementPDF: '明細書をPDFでダウンロード',
         basicExport: '基本エクスポート',
         reportLevelExport: 'すべてのデータ - レポートレベル',
         expenseLevelExport: 'すべてのデータ - 経費レベル',

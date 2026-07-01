@@ -121,6 +121,9 @@ type Response<TKey extends OnyxKey> = {
 
     /** Transactions pending 3DS review returned from GetTransactionsPending3DSReview */
     transactionsPending3DSReview?: TransactionsPending3DSReview;
+
+    /** Cache key returned from GetExpensifyCardStatementPDF */
+    statementKey?: string;
 };
 
 export default Response;

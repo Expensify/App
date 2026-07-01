@@ -8302,6 +8302,10 @@ ${amount} para ${merchant} - ${date}`,
             undelete: 'Restaurar',
             noOptionsAvailable: 'No hay opciones disponibles para el grupo de gastos seleccionado.',
         },
+        expensifyCardStatementPDF: {
+            title: 'Descargar extracto en PDF',
+            oneFeedAtATime: 'Selecciona un feed de Expensify Card a la vez.',
+        },
         filtersHeader: 'Filtros',
         filters: {
             date: {
@@ -9992,6 +9996,7 @@ ${amount} para ${merchant} - ${date}`,
             `# ${name} te invitó a probar Expensify\n\n¡Hola! Acabo de conseguirnos *3 meses gratis* para probar Expensify, la forma más rápida de gestionar gastos.\n\nAquí tienes un *recibo de prueba* para mostrarte cómo funciona:`,
     },
     export: {
+        downloadStatementPDF: 'Descargar PDF del extracto',
         basicExport: 'Exportar básico',
         reportLevelExport: 'Todos los datos - a nivel de informe',
         expenseLevelExport: 'Todos los datos - a nivel de gasto',

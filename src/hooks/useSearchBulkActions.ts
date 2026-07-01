@@ -11,6 +11,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useOpenSearchReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {BulkPaySelectionData, PaymentData, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
+import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
 import {exportReportsToPDF} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
@@ -39,6 +40,8 @@ import {
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
+import {getExpensifyCardStatementParamsFromFeed, getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUtils';
+import type {ExpensifyCardStatementParams} from '@libs/ExpensifyCardStatementUtils';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -391,6 +394,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isPdfModalVisible, setIsPdfModalVisible] = useState(false);
     const [pdfReportID, setPdfReportID] = useState<string | undefined>(undefined);
+    const [isExpensifyCardStatementPDFModalVisible, setIsExpensifyCardStatementPDFModalVisible] = useState(false);
+    const [expensifyCardStatementPDFParams, setExpensifyCardStatementPDFParams] = useState<ExpensifyCardStatementParams | undefined>(undefined);
+    const [isExpensifyCardStatementMultiFeedAlertVisible, setIsExpensifyCardStatementMultiFeedAlertVisible] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const openSearchReportSubmitToPopover = useOpenSearchReportSubmitToPopover();
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
@@ -437,6 +443,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'GustoSquare',
         'Pencil',
         'Workflows',
+        'Document',
     ]);
 
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
@@ -546,6 +553,79 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const {status, hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
+    const expensifyCardStatementSelection = useMemo(
+        () => getExpensifyCardStatementSelection(queryJSON, selectedTransactions, searchResults?.data),
+        [queryJSON, searchResults?.data, selectedTransactions],
+    );
+
+    // PopoverMenu snapshots its items, so onSelected can run detached from the current render. Read the
+    // latest selection from a ref so the request reflects what is selected now, not what was when the menu
+    // was built.
+    const expensifyCardStatementSelectionRef = useRef(expensifyCardStatementSelection);
+    expensifyCardStatementSelectionRef.current = expensifyCardStatementSelection;
+
+    // Identifies the most recent statement export. A request's failure handler only acts while it is still
+    // the latest, so an older export that the user has since replaced cannot close the newer one's modal.
+    const expensifyCardStatementRequestIDRef = useRef(0);
+
+    const exportExpensifyCardStatementPDF = useCallback(() => {
+        if (isOffline) {
+            setIsOfflineModalVisible(true);
+            return;
+        }
+
+        const selection = expensifyCardStatementSelectionRef.current;
+        if (!selection) {
+            return;
+        }
+
+        if (selection.hasMultipleFeeds) {
+            setIsExpensifyCardStatementMultiFeedAlertVisible(true);
+            return;
+        }
+
+        const feed = selection.feeds.at(0);
+        if (!feed) {
+            return;
+        }
+
+        const statementParams = getExpensifyCardStatementParamsFromFeed(feed);
+        const {entryIDs} = statementParams;
+        const requestID = ++expensifyCardStatementRequestIDRef.current;
+
+        // Only surface the failure while this is still the latest export. If the user started another one in
+        // the meantime, this older request must not close the newer modal.
+        const showStatementError = () => {
+            if (requestID !== expensifyCardStatementRequestIDRef.current) {
+                return;
+            }
+            setIsExpensifyCardStatementPDFModalVisible(false);
+            setExpensifyCardStatementPDFParams(undefined);
+            setIsDownloadErrorModalVisible(true);
+        };
+
+        setExpensifyCardStatementPDFParams(statementParams);
+        setIsExpensifyCardStatementPDFModalVisible(true);
+        getExpensifyCardStatementPDF(statementParams.policyID, statementParams.feedCountry, entryIDs)
+            ?.then((response) => {
+                const statementKey = response?.statementKey;
+                if (typeof statementKey !== 'string' || statementKey.length === 0) {
+                    // Without a statementKey the modal can never resolve to a downloadable file, so surface the error
+                    // instead of leaving it stuck on the loading state.
+                    showStatementError();
+                    return;
+                }
+
+                // Sync the modal to the server's cache key, but only while this is still the latest export. The
+                // entryIDs alone are not enough: a cancel + re-scope + re-export of the same settlement can produce
+                // a stale earlier response with matching entryIDs but a different scope, so gate on the request id.
+                if (requestID !== expensifyCardStatementRequestIDRef.current) {
+                    return;
+                }
+                setExpensifyCardStatementPDFParams((currentParams) => (currentParams ? {...currentParams, statementKey} : currentParams));
+            })
+            .catch(showStatementError);
+    }, [isOffline]);
     const firstTransactionID = selectedTransactionsKeys.at(0);
     const firstTransaction =
         (firstTransactionID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransactionID}`] : undefined) ??
@@ -1915,6 +1995,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
+        // A standalone bulk action (not nested under Export). "Select all matching" only loads the visible
+        // rows, so we would export an incomplete set of settlements while the UI claims everything is selected;
+        // the statement has no whole-query export path (unlike CSV/templates), so require an explicit selection.
+        if (expensifyCardStatementSelection && !areAllMatchingItemsSelected) {
+            options.push({
+                icon: expensifyIcons.Document,
+                text: translate('export.downloadStatementPDF'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_STATEMENT_PDF,
+                onSelected: exportExpensifyCardStatementPDF,
+                shouldCloseModalOnSelect: true,
+            });
+        }
+
         const shouldShowHoldOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canHold);
 
         if (shouldShowHoldOption) {
@@ -2196,6 +2289,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         transactions,
         isBetaEnabled,
         defaultExpensePolicy,
+        expensifyCardStatementSelection,
+        exportExpensifyCardStatementPDF,
         personalDetails,
         selfDMReportID,
         splitEffectivePolicy,
@@ -2227,6 +2322,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         setPdfReportID(undefined);
         clearSelectedTransactions();
     }, [clearSelectedTransactions]);
+
+    const handleExpensifyCardStatementPDFModalHide = useCallback(() => {
+        setExpensifyCardStatementPDFParams(undefined);
+    }, []);
+
+    const handleExpensifyCardStatementMultiFeedAlertClose = useCallback(() => {
+        setIsExpensifyCardStatementMultiFeedAlertVisible(false);
+    }, []);
 
     const dismissModalAndUpdateUseHold = useCallback(() => {
         setIsHoldEducationalModalVisible(false);
@@ -2267,6 +2370,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         setIsPdfModalVisible,
         pdfReportID,
         handlePdfModalHide,
+        isExpensifyCardStatementPDFModalVisible,
+        setIsExpensifyCardStatementPDFModalVisible,
+        expensifyCardStatementPDFParams,
+        handleExpensifyCardStatementPDFModalHide,
+        isExpensifyCardStatementMultiFeedAlertVisible,
+        handleExpensifyCardStatementMultiFeedAlertClose,
         exportDownloadStatusModal,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,

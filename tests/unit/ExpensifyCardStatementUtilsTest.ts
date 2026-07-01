@@ -1,0 +1,266 @@
+import {getExpensifyCardStatementParamsFromFeed, getExpensifyCardStatementSelection, isExpensifyCardStatementSearch} from '@libs/ExpensifyCardStatementUtils';
+import type {SearchQueryJSON, SelectedTransactions} from '@src/components/Search/types';
+import CONST from '@src/CONST';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
+import {makeSearchData, makeSelectedTransaction, makeSettlementGroup, makeSettlementSelection} from '../utils/ExpensifyCardStatementTestUtils';
+
+// Mirrors how production turns a selection into download params (useSearchBulkActions.exportExpensifyCardStatementPDF):
+// the export is only offered for a single feed, otherwise the multi-feed alert is shown instead.
+function getStatementParamsForExport(queryJSON: SearchQueryJSON, selectedTransactions: SelectedTransactions, searchData: SearchResultDataType) {
+    const selection = getExpensifyCardStatementSelection(queryJSON, selectedTransactions, searchData);
+    const feed = selection && !selection.hasMultipleFeeds ? selection.feeds.at(0) : undefined;
+    return feed ? getExpensifyCardStatementParamsFromFeed(feed) : undefined;
+}
+
+// Default statement view: no workspace filter, so the statement is the whole (unscoped) settlement.
+const expensifyCardStatementQueryJSON: SearchQueryJSON = {
+    inputQuery: 'type:expense withdrawal-type:expensify-card withdrawn>=2026-05-01 withdrawn<=2026-05-31 groupBy:withdrawal-id',
+    hash: 67890,
+    recentSearchHash: 67890,
+    similarSearchHash: 67890,
+    flatFilters: [
+        {
+            key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
+            filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD}],
+        },
+    ],
+    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+    sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN,
+    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+    groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+    view: CONST.SEARCH.VIEW.TABLE,
+    filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: 'type', right: 'expense'},
+};
+
+// Workspace-filtered view: a single policyID: filter scopes the statement to that workspace.
+const scopedQueryJSON: SearchQueryJSON = {
+    ...expensifyCardStatementQueryJSON,
+    inputQuery: 'type:expense policyID:policy1 withdrawal-type:expensify-card withdrawn>=2026-05-01 withdrawn<=2026-05-31 groupBy:withdrawal-id',
+    flatFilters: [
+        ...expensifyCardStatementQueryJSON.flatFilters,
+        {
+            key: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+            filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'policy1'}],
+        },
+    ],
+    policyID: ['policy1'],
+};
+
+describe('ExpensifyCardStatementUtils', () => {
+    it('identifies Expensify Card withdrawal-group searches', () => {
+        expect(isExpensifyCardStatementSearch(expensifyCardStatementQueryJSON)).toBe(true);
+        expect(isExpensifyCardStatementSearch({...expensifyCardStatementQueryJSON, groupBy: undefined})).toBe(false);
+    });
+
+    it('requires a positive, exclusive expensify-card withdrawal-type filter', () => {
+        // Negated (NOT expensify-card) can show non-card withdrawal groups.
+        const negated: SearchQueryJSON = {
+            ...expensifyCardStatementQueryJSON,
+            flatFilters: [
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD}]},
+            ],
+        };
+        expect(isExpensifyCardStatementSearch(negated)).toBe(false);
+
+        // Mixed with another withdrawal type can show reimbursement groups too.
+        const mixed: SearchQueryJSON = {
+            ...expensifyCardStatementQueryJSON,
+            flatFilters: [
+                {
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
+                    filters: [
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT},
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD},
+                    ],
+                },
+            ],
+        };
+        expect(isExpensifyCardStatementSearch(mixed)).toBe(false);
+    });
+
+    it('hides the export when the search is filtered to multiple workspaces', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions = makeSettlementSelection(groupKey, 2);
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
+        // policyID:A,B scopes the search to a subset of workspaces, which can't be honored as a statement scope.
+        const multiPolicyQueryJSON: SearchQueryJSON = {...scopedQueryJSON, policyID: ['policy1', 'policy2']};
+
+        expect(getExpensifyCardStatementSelection(multiPolicyQueryJSON, selectedTransactions, searchData)).toBeUndefined();
+    });
+
+    it('returns undefined when no selected transaction maps to a settlement group', () => {
+        // A plain transaction key (not group_-prefixed) can't resolve to a settlement.
+        const selectedTransactions: SelectedTransactions = {
+            txn123: makeSelectedTransaction(),
+        };
+
+        expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, {})).toBeUndefined();
+    });
+
+    it('includes a settlement selected directly by its row (collapsed, no loaded transactions)', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        // A collapsed row stores the group key itself, not individual transactions.
+        const selectedTransactions: SelectedTransactions = {[groupKey]: makeSelectedTransaction({reportID: undefined})};
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
+
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
+    });
+
+    it('includes a settlement even when not all of its transactions are loaded or selected', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        // Only 1 of the settlement's 2 transactions is selected; the PDF still covers the whole settlement.
+        const selectedTransactions = makeSettlementSelection(groupKey, 1);
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
+
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
+    });
+
+    it('scopes the statement to the workspace when a single policyID filter is applied', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions = makeSettlementSelection(groupKey, 2);
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
+
+        const selection = getExpensifyCardStatementSelection(scopedQueryJSON, selectedTransactions, searchData);
+        expect(selection?.hasMultipleFeeds).toBe(false);
+        expect(selection?.feeds).toEqual([{policyID: 'policy1', feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
+
+        const params = getStatementParamsForExport(scopedQueryJSON, selectedTransactions, searchData);
+        expect(params).toEqual({
+            policyID: 'policy1',
+            feedCountry: 'US',
+            entryIDs: [123],
+        });
+    });
+
+    it('exports the whole settlement unscoped when no workspace filter is applied', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions = makeSettlementSelection(groupKey, 2);
+        // The settlement maps to a single workspace, but with no policyID filter we still export it unscoped.
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2, policyID: 'policy1'})});
+
+        const params = getStatementParamsForExport(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        expect(params).toEqual({policyID: undefined, feedCountry: 'US', entryIDs: [123]});
+    });
+
+    it('exports a cross-workspace settlement (no policyID) as the whole settlement', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions = makeSettlementSelection(groupKey, 1);
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, policyID: undefined})});
+
+        // A settlement that spans workspaces has no single policyID, so it is exported unscoped (no policyID sent).
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        expect(selection?.hasMultipleFeeds).toBe(false);
+        expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
+
+        const params = getStatementParamsForExport(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        expect(params).toEqual({policyID: undefined, feedCountry: 'US', entryIDs: [123]});
+    });
+
+    it('groups same-feed settlements together even when they belong to different workspaces', () => {
+        const firstGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const secondGroupKey = `${CONST.SEARCH.GROUP_PREFIX}456`;
+        const selectedTransactions: SelectedTransactions = {
+            ...makeSettlementSelection(firstGroupKey, 1),
+            ...makeSettlementSelection(secondGroupKey, 1),
+        };
+        const searchData = makeSearchData({
+            [firstGroupKey]: makeSettlementGroup({entryID: 123, policyID: 'policy1'}),
+            [secondGroupKey]: makeSettlementGroup({entryID: 456, policyID: undefined}),
+        });
+
+        // Both settlements are the same feed (US), so they group into one exportable feed.
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        expect(selection?.hasMultipleFeeds).toBe(false);
+        expect(selection?.feeds.at(0)?.entryIDs).toEqual([123, 456]);
+    });
+
+    it('flags multiple feeds when settlements belong to different feeds (different fundID, same program)', () => {
+        const firstGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const secondGroupKey = `${CONST.SEARCH.GROUP_PREFIX}456`;
+        const selectedTransactions: SelectedTransactions = {
+            ...makeSettlementSelection(firstGroupKey, 1),
+            ...makeSettlementSelection(secondGroupKey, 1),
+        };
+        // Same program (US) but different feeds (fundID 1 vs 2), e.g. two workspaces each provisioned their own feed.
+        const searchData = makeSearchData({
+            [firstGroupKey]: makeSettlementGroup({entryID: 123, feedCountry: 'US', fundID: 1}),
+            [secondGroupKey]: makeSettlementGroup({entryID: 456, feedCountry: 'US', fundID: 2}),
+        });
+
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        expect(selection?.hasMultipleFeeds).toBe(true);
+        expect(getStatementParamsForExport(expensifyCardStatementQueryJSON, selectedTransactions, searchData)).toBeUndefined();
+    });
+
+    it('hides the export when a transaction-narrowing filter is active', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions = makeSettlementSelection(groupKey, 2);
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
+        const narrowedQueryJSON: SearchQueryJSON = {
+            ...expensifyCardStatementQueryJSON,
+            flatFilters: [
+                ...expensifyCardStatementQueryJSON.flatFilters,
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'Starbucks'}]},
+            ],
+        };
+
+        expect(getExpensifyCardStatementSelection(narrowedQueryJSON, selectedTransactions, searchData)).toBeUndefined();
+    });
+
+    it('hides the export when a non-all expense status narrows the rows', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions = makeSettlementSelection(groupKey, 2);
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
+        // status:unreported narrows which expenses are shown, so the PDF would not match the on-screen rows.
+        const narrowedStatusQueryJSON: SearchQueryJSON = {...expensifyCardStatementQueryJSON, status: CONST.SEARCH.STATUS.EXPENSE.UNREPORTED};
+
+        expect(getExpensifyCardStatementSelection(narrowedStatusQueryJSON, selectedTransactions, searchData)).toBeUndefined();
+    });
+
+    it('keeps the export when only statement-scope filters are active', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions = makeSettlementSelection(groupKey, 2);
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
+        const scopeFilteredQueryJSON: SearchQueryJSON = {
+            ...scopedQueryJSON,
+            flatFilters: [
+                ...scopedQueryJSON.flatFilters,
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, value: '2026-05-01'}]},
+            ],
+        };
+
+        const selection = getExpensifyCardStatementSelection(scopeFilteredQueryJSON, selectedTransactions, searchData);
+        expect(selection?.feeds).toEqual([{policyID: 'policy1', feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
+    });
+
+    it('includes failed settlements in the selection (the statement labels their status)', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions = makeSettlementSelection(groupKey, 1);
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, state: 5})});
+
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
+    });
+
+    it('includes pending settlements in the selection', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions = makeSettlementSelection(groupKey, 1);
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, state: 0})});
+
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
+    });
+
+    it('includes settlements that are settled pending batch processing (state 9)', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions = makeSettlementSelection(groupKey, 1);
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, state: 9})});
+
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        expect(selection?.hasMultipleFeeds).toBe(false);
+        expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
+    });
+});

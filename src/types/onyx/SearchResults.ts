@@ -174,6 +174,15 @@ type SearchWithdrawalIDGroup = {
 
     /** Settlement state (5/6/7=failed, 8=cleared, others=pending) */
     state: number;
+
+    /** Workspace ID for the grouped settlement */
+    policyID?: string;
+
+    /** Expensify Card program for the grouped settlement */
+    feedCountry?: string;
+
+    /** The feed the settlement belongs to; absent when it spans more than one feed */
+    fundID?: number;
 };
 
 /** Model of category grouped search result */

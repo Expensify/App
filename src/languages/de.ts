@@ -8485,6 +8485,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             undelete: 'Wiederherstellen',
             duplicateReport: ({count}: {count: number}) => `Duplikat ${count === 1 ? 'Bericht' : 'Berichte'}`,
         },
+        expensifyCardStatementPDF: {
+            title: 'Kontoauszug als PDF herunterladen',
+            oneFeedAtATime: 'Bitte wählen Sie jeweils nur einen Expensify Card-Feed aus.',
+        },
         filtersHeader: 'Filter',
         filters: {
             date: {
@@ -9839,6 +9843,7 @@ Hey! Ich habe gerade für uns *3 kostenlose Monate* bekommen, um Expensify zu te
 Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
     },
     export: {
+        downloadStatementPDF: 'Kontoauszug als PDF herunterladen',
         basicExport: 'Standardexport',
         reportLevelExport: 'Alle Daten – Berichtsebene',
         expenseLevelExport: 'Alle Daten – Ausgabenebene',
