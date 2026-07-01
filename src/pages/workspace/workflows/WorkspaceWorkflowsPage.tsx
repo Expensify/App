@@ -1,8 +1,7 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import Icon from '@components/Icon';
@@ -13,6 +12,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
@@ -107,6 +107,37 @@ function WorkflowNoResultsView({message, shouldShow, searchValue}: {message: str
     );
 }
 
+// Bordered "Load more" card matching the workflow rows: the whole card is the tap target and gets the row-hover state.
+function WorkflowsLoadMoreCard({count, onPress}: {count: number; onPress: () => void}) {
+    const styles = useThemeStyles();
+    const theme = useTheme();
+    const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['CircularArrowBackwards']);
+    const label = translate('workflowsPage.loadMoreWorkflows', {count});
+
+    return (
+        <PressableWithFeedback
+            accessibilityLabel={label}
+            role={CONST.ROLE.BUTTON}
+            onPress={onPress}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.LOAD_MORE_APPROVALS}
+            hoverStyle={styles.hoveredComponentBG}
+            style={[styles.border, shouldUseNarrowLayout ? styles.ph3 : styles.ph4, styles.pv3, styles.mt6, styles.mbn3, styles.alignItemsCenter, styles.justifyContentCenter]}
+        >
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.minHeightComponentSizeSmall]}>
+                <Icon
+                    src={expensifyIcons.CircularArrowBackwards}
+                    fill={theme.textSupporting}
+                    extraSmall
+                    additionalStyles={styles.mr1}
+                />
+                <Text style={[styles.buttonSmallText, styles.textSupporting]}>{label}</Text>
+            </View>
+        </PressableWithFeedback>
+    );
+}
+
 function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.workflows');
     const {translate, localeCompare} = useLocalize();
@@ -192,9 +223,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {showLockedAccountModal} = useLockedAccountActions();
 
     useEffect(() => {
-        InteractionManager.runAfterInteractions(() => {
-            fetchData();
-        });
+        fetchData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -294,6 +323,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     };
 
     const [workflowSearchInput, setWorkflowSearchInput, searchFilteredWorkflows] = useSearchResults(filteredApprovalWorkflows, filterWorkflow);
+    const [isWorkflowListExpanded, setIsWorkflowListExpanded] = useState(false);
 
     useEffect(() => {
         if (filteredApprovalWorkflows.length > CONST.SEARCH_BAR_THRESHOLD) {
@@ -301,6 +331,22 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         }
         setWorkflowSearchInput('');
     }, [filteredApprovalWorkflows.length, setWorkflowSearchInput]);
+
+    // Collapse back to the paginated view once the list shrinks to a single batch, so a later regrowth above the batch shows "Load more" again.
+    // Adjusting during render (vs. an effect) is React's recommended pattern for resetting state when data changes and avoids a cascading re-render.
+    if (isWorkflowListExpanded && searchFilteredWorkflows.length <= CONST.WORKFLOW_APPROVALS_INITIAL_BATCH) {
+        setIsWorkflowListExpanded(false);
+    }
+
+    // Searching reveals every match, so pagination is bypassed while a query is active. Pressing "Load more" reveals all remaining workflows at once.
+    // Trim before deciding so a whitespace-only input doesn't drop pagination while searchFilteredWorkflows is still unfiltered.
+    const isSearchingWorkflows = workflowSearchInput.trim().length > 0;
+    // Memoize so a stable reference reaches the optionItems memo below; otherwise the slice() allocates a new array each render and defeats it.
+    const displayedWorkflows = useMemo(
+        () => (isWorkflowListExpanded || isSearchingWorkflows ? searchFilteredWorkflows : searchFilteredWorkflows.slice(0, CONST.WORKFLOW_APPROVALS_INITIAL_BATCH)),
+        [isWorkflowListExpanded, isSearchingWorkflows, searchFilteredWorkflows],
+    );
+    const hiddenWorkflowsCount = searchFilteredWorkflows.length - displayedWorkflows.length;
 
     const isDEWEnabled = hasDynamicExternalWorkflow(policy);
     const isHRConnected = isAnyHRConnected(policy);
@@ -473,7 +519,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                             shouldShow={searchFilteredWorkflows.length === 0 && workflowSearchInput.length > 0}
                             searchValue={workflowSearchInput}
                         />
-                        {searchFilteredWorkflows.map((workflow) => {
+                        {displayedWorkflows.map((workflow) => {
                             const firstApproverEmail = workflow.approvers.at(0)?.email ?? '';
 
                             return (
@@ -514,6 +560,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 </OfflineWithFeedback>
                             );
                         })}
+                        {hiddenWorkflowsCount > 0 && (
+                            <WorkflowsLoadMoreCard
+                                count={hiddenWorkflowsCount}
+                                onPress={() => setIsWorkflowListExpanded(true)}
+                            />
+                        )}
                         {!shouldBlockApprovalWorkflowEditing && canWriteApprovals && (
                             <MenuItem
                                 title={translate('workflowsPage.addApprovalButton')}
@@ -750,7 +802,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         filteredApprovalWorkflows.length,
         workflowSearchInput,
         setWorkflowSearchInput,
-        searchFilteredWorkflows,
+        searchFilteredWorkflows.length,
+        displayedWorkflows,
+        hiddenWorkflowsCount,
         addApprovalAction,
         isOffline,
         isPolicyAdmin,

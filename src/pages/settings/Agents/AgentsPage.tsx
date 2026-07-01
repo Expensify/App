@@ -143,23 +143,23 @@ function AgentsPage() {
             </HeaderWithBackButton>
             {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{newAgentButton}</View>}
             {hasAgents ? (
-                <>
-                    <View style={[styles.renderHTML, styles.ph5, styles.pb3, styles.pt3]}>
-                        <RenderHTML html={translate('agentsPage.subtitle')} />
-                    </View>
-                    <FlatList
-                        data={agentItems}
-                        renderItem={renderItem}
-                        keyExtractor={keyExtractor}
-                    />
-                </>
+                <FlatList
+                    data={agentItems}
+                    renderItem={renderItem}
+                    keyExtractor={keyExtractor}
+                    ListHeaderComponent={
+                        <View style={[styles.renderHTML, styles.ph5, styles.pb3, styles.pt3]}>
+                            <RenderHTML html={translate('agentsPage.subtitle')} />
+                        </View>
+                    }
+                />
             ) : (
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                     <GenericEmptyStateComponent
                         headerMedia={illustrations.TvScreenRobot}
                         title={translate('agentsPage.emptyAgents.title')}
                         subtitleText={
-                            <View style={[styles.renderHTML, styles.agentsPageEmptyStateSubtitle]}>
+                            <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter, !shouldUseNarrowLayout && styles.agentsPageEmptyStateSubtitle]}>
                                 <RenderHTML html={translate('agentsPage.emptyAgents.subtitle')} />
                             </View>
                         }

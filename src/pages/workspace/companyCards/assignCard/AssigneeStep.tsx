@@ -21,7 +21,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {filterGuideAndAccountManager, getGuideAndAccountManagerInfo, getIneligibleInvitees, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import {canMemberWrite, filterGuideAndAccountManager, getGuideAndAccountManagerInfo, getIneligibleInvitees, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -48,8 +48,10 @@ function AssigneeStep({route}: AssigneeStepProps) {
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const canInviteMembers = canMemberWrite(policy, session?.email ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS);
 
     const ineligibleInvites = getIneligibleInvitees(policy?.employeeList);
     const excludedUsers: Record<string, boolean> = {};
@@ -65,10 +67,10 @@ function AssigneeStep({route}: AssigneeStepProps) {
 
     const {searchTerm, setSearchTerm, debouncedSearchTerm, availableOptions, areOptionsInitialized} = usePersonalDetailSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
-        includeUserToInvite: true,
+        includeUserToInvite: canInviteMembers,
         excludeLogins: excludedUsers,
         excludeFromSuggestionsOnly: softExclusions,
-        includeRecentReports: true,
+        includeRecentReports: canInviteMembers,
         shouldInitialize: didScreenTransitionEnd,
     });
 
@@ -110,6 +112,9 @@ function AssigneeStep({route}: AssigneeStepProps) {
         }
 
         if (!policy?.employeeList?.[assignee?.login ?? '']) {
+            if (!canInviteMembers) {
+                return;
+            }
             setAssignCardStepAndData({
                 cardToAssign: {
                     invitingMemberEmail: assignee?.login ?? '',
@@ -185,13 +190,15 @@ function AssigneeStep({route}: AssigneeStepProps) {
         const filteredMembers = filterGuideAndAccountManager(membersDetails, assignedGuideEmail, accountManagerLogin);
         const filteredOptions = tokenizedSearch(filteredMembers, searchValueForOptions, (option) => [option.text ?? '', option.alternateText ?? '']);
 
-        const options = [
-            ...filteredOptions,
-            ...availableOptions.selectedOptions,
-            ...availableOptions.recentOptions,
-            ...availableOptions.personalDetails,
-            ...(availableOptions.userToInvite ? [availableOptions.userToInvite] : []),
-        ];
+        const options = canInviteMembers
+            ? [
+                  ...filteredOptions,
+                  ...availableOptions.selectedOptions,
+                  ...availableOptions.recentOptions,
+                  ...availableOptions.personalDetails,
+                  ...(availableOptions.userToInvite ? [availableOptions.userToInvite] : []),
+              ]
+            : filteredOptions;
 
         assignees = options.map((option) => ({
             ...option,
@@ -202,8 +209,12 @@ function AssigneeStep({route}: AssigneeStepProps) {
     }
 
     useEffect(() => {
+        if (!canInviteMembers) {
+            return;
+        }
+
         searchUserInServer(debouncedSearchTerm);
-    }, [debouncedSearchTerm]);
+    }, [canInviteMembers, debouncedSearchTerm]);
 
     const searchValue = debouncedSearchTerm.trim().toLowerCase();
     const headerMessage = (() => {
@@ -245,7 +256,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
                     textInputOptions={textInputOptions}
                     initiallyFocusedItemKey={assignCard?.cardToAssign?.email}
                     shouldShowLoadingPlaceholder={!areOptionsInitialized}
-                    isLoadingNewOptions={!!isSearchingForReports}
+                    isLoadingNewOptions={canInviteMembers && !!isSearchingForReports}
                     disableMaintainingScrollPosition
                     shouldUpdateFocusedIndex
                     addBottomSafeAreaPadding

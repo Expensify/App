@@ -7,11 +7,12 @@ import type {MarkReportPaymentReceivedParams, PayInvoiceParams, PayMoneyRequestP
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getAllReportActions, getReportActionHtml, getReportActionText, isCreatedAction} from '@libs/ReportActionsUtils';
+import {getAllReportActions, getElsewherePaymentReportActionMessage, getReportActionHtml, getReportActionText, isCreatedAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticIOUReportAction,
@@ -59,6 +60,7 @@ type PayInvoiceArgs = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean | undefined;
     defaultWorkspaceName: string;
+    chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
 };
@@ -109,6 +111,7 @@ type PayMoneyRequestFunctionParams = {
     shouldPlaySuccessSound?: boolean;
     // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
+    chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
 };
 
 function mergeAdditionalPayOnyxData<
@@ -152,6 +155,7 @@ function getPayMoneyRequestParams({
     defaultWorkspaceName,
     currentUserLocalCurrency,
     delegateAccountID,
+    chatReportActions,
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -175,6 +179,7 @@ function getPayMoneyRequestParams({
     currentUserLocalCurrency: string | undefined;
     // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
+    chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
 }): PayMoneyRequestData {
     // TODO: https://github.com/Expensify/App/issues/66512
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -270,7 +275,7 @@ function getPayMoneyRequestParams({
     // In some instances, the report preview action might not be available to the payer (only whispered to the requestor)
     // hence we need to make the updates to the action safely.
     let optimisticReportPreviewAction = null;
-    const reportPreviewAction = getReportPreviewAction(chatReport.reportID, iouReport?.reportID);
+    const reportPreviewAction = getReportPreviewAction(chatReport.reportID, iouReport?.reportID, chatReportActions);
     if (reportPreviewAction) {
         optimisticReportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, true);
     }
@@ -798,6 +803,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         additionalOnyxData,
         shouldPlaySuccessSound = true,
         delegateAccountID,
+        chatReportActions,
     } = params;
     const policyForBillingRestriction = chatReportPolicy ?? (policy?.id === chatReport.policyID ? policy : undefined);
     if (
@@ -831,6 +837,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         isSelfTourViewed,
         bankAccountID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
         delegateAccountID,
+        chatReportActions,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
@@ -852,6 +859,7 @@ function markReportPaymentReceived(
     iouReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
     currentUserAccountID: number,
     currentUserEmail: string,
+    chatReportActions: OnyxEntry<OnyxTypes.ReportActions>,
 ) {
     if (!chatReport || !iouReport) {
         return;
@@ -871,9 +879,18 @@ function markReportPaymentReceived(
         paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
         iouReportID: iouReport.reportID,
         isSettlingUp: true,
+        isSubmitterMarkedPaymentReceived: true,
     });
 
-    const reportPreviewAction = getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+    // buildOptimisticIOUReportAction formats the action's `message` as "paid ... elsewhere", so override it with
+    // the "received payment" copy here. Keeping the action's message in sync fixes the optimistic chat/report
+    // preview, which derives lastMessageText/lastMessageHtml from this action.
+    // translateLocal is used because this runs outside a React component where the useLocalize hook is unavailable.
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const receivedPaymentMessage = getElsewherePaymentReportActionMessage(translateLocal, optimisticIOUReportAction.originalMessage);
+    optimisticIOUReportAction.message = [{html: receivedPaymentMessage, text: receivedPaymentMessage, isEdited: false, type: CONST.REPORT.MESSAGE.TYPE.COMMENT}];
+
+    const reportPreviewAction = getReportPreviewAction(chatReport.reportID, iouReport.reportID, chatReportActions);
     const optimisticReportPreviewAction = reportPreviewAction ? updateReportPreview(iouReport, reportPreviewAction, true) : null;
     const optimisticNextStepDeprecated =
         // buildOptimisticNextStep is used in parallel
@@ -1033,6 +1050,7 @@ function payInvoice({
     betas,
     isSelfTourViewed,
     defaultWorkspaceName,
+    chatReportActions,
     additionalOnyxData,
     shouldPlaySuccessSound = true,
 }: PayInvoiceArgs) {
@@ -1069,6 +1087,7 @@ function payInvoice({
         betas,
         isSelfTourViewed,
         defaultWorkspaceName,
+        chatReportActions,
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
@@ -1132,5 +1151,5 @@ function savePreferredPaymentMethod(
     });
 }
 
-export {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
+export {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, mergeAdditionalPayOnyxData, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
 export type {AdditionalPayOnyxData};

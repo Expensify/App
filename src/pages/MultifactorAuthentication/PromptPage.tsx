@@ -7,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LoadingIndicator from '@components/LoadingIndicator';
 import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState, usePromptContent} from '@components/MultifactorAuthentication/Context';
 import MultifactorAuthenticationPromptContent from '@components/MultifactorAuthentication/PromptContent';
+import useMFACancelOnEscape from '@components/MultifactorAuthentication/useMFACancelOnEscape';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -28,16 +29,11 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
     const {accountID} = useCurrentUserPersonalDetails();
 
     const {illustration, title, subtitle, shouldDisplayConfirmButton} = usePromptContent(route.params.promptType);
+    const interceptFocusTrapEscape = useMFACancelOnEscape();
 
     const onConfirm = () => {
         markHasAcceptedSoftPrompt(accountID);
         dispatch({type: 'SET_SOFT_PROMPT_APPROVED', payload: true});
-    };
-
-    // Escape opens the cancel confirmation; returning false keeps the trap active.
-    const interceptFocusTrapEscape = () => {
-        requestCancel();
-        return false;
     };
 
     return (

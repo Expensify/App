@@ -1,7 +1,8 @@
 import * as Sentry from '@sentry/react-native';
+import type {AUTHENTICATION_COMMAND} from '@libs/API/types';
 import CONST from '@src/CONST';
 
-type AuthenticationFunction = 'Authenticate' | 'reauthenticate';
+type AuthenticationFunction = typeof AUTHENTICATION_COMMAND | 'reauthenticate';
 type AuthenticationErrorType = 'missing_params' | 'network_retry' | 'auth_failure' | 'unexpected_error';
 
 type AuthenticationErrorContext = {
