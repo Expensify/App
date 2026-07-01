@@ -191,9 +191,9 @@ function prepareRilletCodingOptimisticData<TSettingName extends keyof RilletCodi
 
 function prepareRilletFieldMappingOptimisticData(
     policyID: string,
-    fieldID: keyof RilletCoding['fieldMappings'],
-    mapping: ValueOf<RilletCoding['fieldMappings']>,
-    oldMapping: ValueOf<RilletCoding['fieldMappings']> | null,
+    fieldID: keyof NonNullable<RilletCoding['fieldMappings']>,
+    mapping: ValueOf<NonNullable<RilletCoding['fieldMappings']>>,
+    oldMapping: ValueOf<NonNullable<RilletCoding['fieldMappings']>> | null,
 ) {
     const fieldOfflineFeedbackKey = `${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${fieldID}`;
 
@@ -380,9 +380,9 @@ function updateRilletSyncTaxRates(policyID: string, syncTaxRates: RilletCoding['
 
 function updateRilletFieldMapping(
     policyID: string,
-    fieldID: keyof RilletCoding['fieldMappings'],
-    mapping: ValueOf<RilletCoding['fieldMappings']>,
-    oldMapping?: ValueOf<RilletCoding['fieldMappings']>,
+    fieldID: keyof NonNullable<RilletCoding['fieldMappings']>,
+    mapping: ValueOf<NonNullable<RilletCoding['fieldMappings']>>,
+    oldMapping?: ValueOf<NonNullable<RilletCoding['fieldMappings']>>,
 ) {
     const onyxData = prepareRilletFieldMappingOptimisticData(policyID, fieldID, mapping, oldMapping ?? null);
     const parameters: UpdateRilletFieldMappingParams = {
