@@ -8,14 +8,11 @@ import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {useTableContext} from './TableContext';
@@ -33,23 +30,14 @@ type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible'> & {
     /** The index of the row in the table */
     rowIndex: number;
 
-    /** Whether or not the table row is loading */
-    isLoading?: boolean;
-
-    /** Whether or not the row should animate in highlighted */
-    shouldAnimateInHighlight?: boolean;
-
-    /** The loading component to render within the table row when the row is loading */
-    LoadingComponent?: React.ComponentType;
-
-    /** The reason attributes if the table row is loading */
-    skeletonReasonAttributes: SkeletonSpanReasonAttributes;
-
     /** Attributes for when the client is offline and there is an error related to the table row */
     offlineWithFeedback?: OfflineWithFeedbackProps;
 
     /** Custom element to render in place of the selection checkbox (e.g. a lock icon for non-selectable rows) */
     checkboxReplacementElement?: React.ReactNode;
+
+    /** Optional content rendered below the row grid */
+    rowFooter?: React.ReactNode;
 };
 
 export default function TableRow({
@@ -59,37 +47,34 @@ export default function TableRow({
     disabled,
     sentryLabel,
     interactive,
-    isLoading,
-    shouldAnimateInHighlight,
-    skeletonReasonAttributes,
-    LoadingComponent,
     onPress,
     offlineWithFeedback,
     checkboxReplacementElement,
+    rowFooter,
     ...props
 }: TableRowProps) {
-    useSkeletonSpan('TableRowSkeleton', skeletonReasonAttributes);
-
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
+    const shouldEnableMobileSelectionLongPress = shouldUseNarrowLayout && !isInNarrowPaneModal;
     const {processedData, columns, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, isMobileSelectionEnabled} = useTableContext();
 
     const item = processedData.at(rowIndex);
     const rowCount = processedData.length;
-    const isFirstRow = rowIndex === 0;
-    const isLastRow = rowIndex === rowCount - 1;
-    const isDisabled = !!disabled || !!isLoading;
     const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr'));
     const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !shouldUseNarrowLayout);
+
+    const isDisabled = !!disabled;
+    const isFirstRow = rowIndex === 0;
+    const isLastRow = rowIndex === rowCount - 1;
 
     if (selectionEnabled && isSelectionCheckboxVisible) {
         gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);
     }
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        shouldHighlight: !!shouldAnimateInHighlight,
+        shouldHighlight: !!item?.shouldAnimateInHighlight,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.transparent,
     });
@@ -111,11 +96,10 @@ export default function TableRow({
     const tableRowContentContainerStyles = [
         styles.flex1,
         styles.gap3,
-        shouldUseNarrowTableLayout ? styles.ph4 : styles.ph3,
-        shouldUseNarrowTableLayout && !isLoading && styles.pv4,
-        !shouldUseNarrowTableLayout && !isLoading && styles.pv2,
         animatedHighlightStyle,
         isLastRow && styles.tableBottomRadius,
+        shouldUseNarrowTableLayout ? styles.ph4 : styles.ph3,
+        shouldUseNarrowTableLayout ? styles.pv4 : styles.pv2,
     ];
 
     const tableRowContentStyles = [
@@ -161,20 +145,22 @@ export default function TableRow({
             return;
         }
 
-        if (shouldUseNarrowLayout && isMobileSelectionEnabled && selectionEnabled) {
-            if (item.disabled) {
-                return;
-            }
-
-            handleCheckboxPress(event);
+        if (!shouldUseNarrowLayout || !isMobileSelectionEnabled || !selectionEnabled) {
+            onPress?.();
             return;
         }
 
-        onPress?.();
+        if (item.disabled) {
+            return;
+        }
+
+        if (!item.isSelectionDisabled) {
+            handleCheckboxPress(event);
+        }
     };
 
     const handleRowLongPress = () => {
-        if (isDisabled || item.disabled || !selectionEnabled || isMobileSelectionEnabled || !shouldUseNarrowLayout || !interactive) {
+        if (isDisabled || item.disabled || !selectionEnabled || isMobileSelectionEnabled || !shouldEnableMobileSelectionLongPress || !interactive || item.isSelectionDisabled) {
             return;
         }
 
@@ -221,34 +207,23 @@ export default function TableRow({
             >
                 {(state) => (
                     <Animated.View style={tableRowContentContainerStyles}>
-                        {!!isLoading && LoadingComponent ? (
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
-                                <SkeletonViewContentLoader
-                                    width="100%"
-                                    backgroundColor={theme.skeletonLHNIn}
-                                    foregroundColor={theme.skeletonLHNOut}
-                                    height={variables.tableSkeletonHeight}
-                                >
-                                    <LoadingComponent />
-                                </SkeletonViewContentLoader>
-                            </View>
-                        ) : (
-                            <View style={tableRowContentStyles}>
-                                {!!isSelectionCheckboxVisible &&
-                                    (checkboxReplacementElement ?? (
-                                        <Checkbox
-                                            shouldStopMouseDownPropagation
-                                            containerStyle={styles.m0}
-                                            style={styles.flex1}
-                                            disabled={item.disabled}
-                                            isChecked={!!item.selected}
-                                            accessibilityLabel={translate('common.select')}
-                                            onPress={(event) => handleCheckboxPress(event)}
-                                        />
-                                    ))}
-                                {renderChildren(state)}
-                            </View>
-                        )}
+                        <View style={tableRowContentStyles}>
+                            {!!isSelectionCheckboxVisible &&
+                                (checkboxReplacementElement ?? (
+                                    <Checkbox
+                                        shouldStopMouseDownPropagation
+                                        containerStyle={styles.m0}
+                                        style={styles.flex1}
+                                        isChecked={!!item.selected}
+                                        disabled={!!item.disabled || !!item.isSelectionDisabled}
+                                        accessibilityLabel={translate('common.select')}
+                                        onPress={(event) => handleCheckboxPress(event)}
+                                    />
+                                ))}
+                            {renderChildren(state)}
+                        </View>
+
+                        {rowFooter}
 
                         {!!offlineWithFeedback?.errors && (
                             <ErrorMessageRow

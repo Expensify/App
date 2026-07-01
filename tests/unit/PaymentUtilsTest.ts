@@ -1,5 +1,4 @@
 import type {BankAccountMenuItem} from '@components/Search/types';
-import {setPersonalBankAccountContinueKYCOnSuccess} from '@libs/actions/BankAccounts';
 import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePaymentType, getBusinessBankAccountOptions, selectPaymentType} from '@libs/PaymentUtils';
@@ -21,10 +20,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 
 jest.mock('@libs/SubscriptionUtils', () => ({
     shouldRestrictUserBillableActions: jest.fn(),
-}));
-
-jest.mock('@libs/actions/BankAccounts', () => ({
-    setPersonalBankAccountContinueKYCOnSuccess: jest.fn(),
 }));
 
 jest.mock('@libs/actions/IOU/ReportWorkflow', () => ({
@@ -192,8 +187,12 @@ describe('PaymentUtils', () => {
 
             selectPaymentType(params);
 
-            expect(mockTriggerKYCFlow).toHaveBeenCalledWith({event: undefined, iouPaymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY, policy: testPolicy});
-            expect(setPersonalBankAccountContinueKYCOnSuccess).toHaveBeenCalledWith(ROUTES.ENABLE_PAYMENTS);
+            expect(mockTriggerKYCFlow).toHaveBeenCalledWith({
+                event: undefined,
+                iouPaymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                policy: testPolicy,
+                personalBankAccountOnSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS,
+            });
         });
 
         it('should call confirmApproval when payment type is APPROVE and confirmApproval is provided', () => {
@@ -213,7 +212,6 @@ describe('PaymentUtils', () => {
             expect(approveMoneyRequest).toHaveBeenCalledWith({
                 expenseReport: params.iouReport,
                 expenseReportPolicy: params.expenseReportPolicy,
-                policy: params.policy,
                 currentUserAccountIDParam: params.currentAccountID,
                 currentUserEmailParam: params.currentEmail,
                 hasViolations: params.hasViolations,
@@ -236,7 +234,6 @@ describe('PaymentUtils', () => {
             expect(approveMoneyRequest).toHaveBeenCalledWith({
                 expenseReport: params.iouReport,
                 expenseReportPolicy: params.expenseReportPolicy,
-                policy: params.policy,
                 currentUserAccountIDParam: params.currentAccountID,
                 currentUserEmailParam: params.currentEmail,
                 hasViolations: params.hasViolations,

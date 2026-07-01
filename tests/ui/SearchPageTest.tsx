@@ -133,7 +133,7 @@ describe('SearchPageNarrow', () => {
 
         expect(screen.getByTestId('SearchPageNarrow')).toBeTruthy();
 
-        const searchAutocompleteInput = screen.getByTestId('search-autocomplete-text-input', {includeHiddenElements: true});
-        expect(searchAutocompleteInput).toBeTruthy();
+        const searchInput = screen.getByPlaceholderText('Search for something...', {includeHiddenElements: true});
+        expect(searchInput).toBeTruthy();
     });
 });
