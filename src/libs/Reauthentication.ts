@@ -42,7 +42,6 @@ Onyx.connectWithoutView({
 
         Sentry.setUser({
             id: value?.accountID,
-            email: value?.email,
         });
     },
 });
