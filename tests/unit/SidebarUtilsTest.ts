@@ -1103,6 +1103,115 @@ describe('SidebarUtils', () => {
             expect(result).toBeDefined();
             expect(typeof result.shouldDisplay).toBe('boolean');
         });
+
+        describe('anonymous user public room (#92672)', () => {
+            const PUBLIC_ROOM_ID = '92672';
+            const OTHER_FOCUSED_REPORT_ID = '92673';
+
+            // The room has no notification preference for the current user, so `isHiddenForCurrentUser`
+            // treats it as `hidden` - exactly the state an anonymous user lands in for a public room.
+            const buildPublicRoom = (visibility: Report['visibility']): Report => ({
+                reportID: PUBLIC_ROOM_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                visibility,
+                reportName: '#public-room',
+                policyID: '1',
+                lastMessageText: 'hello',
+                lastVisibleActionCreated: DateUtils.getDBTime(),
+                participants: {},
+            });
+
+            it('keeps a hidden public room in the LHN when it is not the focused report', async () => {
+                const report = buildPublicRoom(CONST.REPORT.VISIBILITY.PUBLIC);
+                const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${PUBLIC_ROOM_ID}` as const;
+                const reports: OnyxCollection<Report> = {[reportKey]: report};
+
+                await act(async () => {
+                    await Onyx.multiSet({
+                        [ONYXKEYS.SESSION]: {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS},
+                        [reportKey]: report,
+                    });
+                });
+                await waitForBatchedUpdates();
+
+                const result = SidebarUtils.shouldDisplayReportInLHN({
+                    report,
+                    reports,
+                    currentReportId: OTHER_FOCUSED_REPORT_ID,
+                    isInFocusMode: false,
+                    betas: [],
+                    transactionViolations: {},
+                    draftComment: undefined,
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                });
+
+                expect(result.shouldDisplay).toBe(true);
+            });
+
+            it('drops the same hidden public room for an authenticated (non-anonymous) user', async () => {
+                const report = buildPublicRoom(CONST.REPORT.VISIBILITY.PUBLIC);
+                const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${PUBLIC_ROOM_ID}` as const;
+                const reports: OnyxCollection<Report> = {[reportKey]: report};
+
+                await act(async () => {
+                    await Onyx.multiSet({
+                        [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_LOGIN},
+                        [reportKey]: report,
+                    });
+                });
+                await waitForBatchedUpdates();
+
+                const result = SidebarUtils.shouldDisplayReportInLHN({
+                    report,
+                    reports,
+                    currentReportId: OTHER_FOCUSED_REPORT_ID,
+                    isInFocusMode: false,
+                    betas: [],
+                    transactionViolations: {},
+                    draftComment: undefined,
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                });
+
+                expect(result.shouldDisplay).toBe(false);
+            });
+
+            it('does not apply the override to a non-public hidden room for an anonymous user', async () => {
+                const report = buildPublicRoom(undefined);
+                const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${PUBLIC_ROOM_ID}` as const;
+                const reports: OnyxCollection<Report> = {[reportKey]: report};
+
+                await act(async () => {
+                    await Onyx.multiSet({
+                        [ONYXKEYS.SESSION]: {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS},
+                        [reportKey]: report,
+                    });
+                });
+                await waitForBatchedUpdates();
+
+                const result = SidebarUtils.shouldDisplayReportInLHN({
+                    report,
+                    reports,
+                    currentReportId: OTHER_FOCUSED_REPORT_ID,
+                    isInFocusMode: false,
+                    betas: [],
+                    transactionViolations: {},
+                    draftComment: undefined,
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                });
+
+                expect(result.shouldDisplay).toBe(false);
+            });
+        });
     });
 
     describe('getWelcomeMessage', () => {

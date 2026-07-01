@@ -1,4 +1,4 @@
-import {useEffect, useRef} from 'react';
+import {useCallback, useEffect, useRef} from 'react';
 import type {NativeEventSubscription} from 'react-native';
 import {Linking} from 'react-native';
 import CONST from './CONST';
@@ -6,8 +6,9 @@ import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useOnyx from './hooks/useOnyx';
 import {openReportFromDeepLink} from './libs/actions/Link';
 import * as Report from './libs/actions/Report';
-import {hasAuthToken} from './libs/actions/Session';
+import {hasAuthToken, isAnonymousUser} from './libs/actions/Session';
 import Log from './libs/Log';
+import {getReportIDFromLink} from './libs/ReportUtils';
 import {endSpan} from './libs/telemetry/activeSpans';
 import ONYXKEYS from './ONYXKEYS';
 import type {Route} from './ROUTES';
@@ -27,14 +28,28 @@ type DeepLinkHandlerProps = {
 function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     const linkingChangeListener = useRef<NativeEventSubscription | null>(null);
     const initialUrlProcessed = useRef(false);
+    const pendingPublicRoomReportID = useRef('');
+    const hasRefetchedPublicRoom = useRef(false);
 
     const [allReports, allReportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
     const [conciergeReportID, conciergeReportIDMetadata] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected, introSelectedMetadata] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed, isSelfTourViewedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas, betasMetadata] = useOnyx(ONYXKEYS.BETAS);
     const isAuthenticated = useIsAuthenticated();
+
+    // An anonymous deep link into a public room needs to be re-fetched after OpenApp settles (see the effect
+    // below). Track the pending reportID so both the initial-URL and the url-change paths stay in sync.
+    const trackPendingPublicRoomFromDeepLink = useCallback((url: string, isCurrentlyAuthenticated: boolean) => {
+        const deepLinkReportID = getReportIDFromLink(url);
+        if (!deepLinkReportID || isCurrentlyAuthenticated) {
+            return;
+        }
+        pendingPublicRoomReportID.current = deepLinkReportID;
+        hasRefetchedPublicRoom.current = false;
+    }, []);
 
     useEffect(() => {
         if (isLoadingOnyxValue(allReportsMetadata, sessionMetadata, conciergeReportIDMetadata, introSelectedMetadata, isSelfTourViewedMetadata, betasMetadata)) {
@@ -86,6 +101,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                         Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url});
                     }
                     openReportFromDeepLink(url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas);
+                    trackPendingPublicRoomFromDeepLink(url, isCurrentlyAuthenticated);
                 } else {
                     Report.doneCheckingPublicRoom();
                 }
@@ -113,6 +129,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             }
             const isCurrentlyAuthenticated = hasAuthToken();
             openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas);
+            trackPendingPublicRoomFromDeepLink(state.url, isCurrentlyAuthenticated);
         });
 
         return () => {
@@ -145,6 +162,27 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
 
         Report.doneCheckingPublicRoom();
     }, [isAuthenticated]);
+
+    // An anonymous user opening a public room via a cold deep link loads the room (OpenReport), but the
+    // OpenApp that follows anonymous session creation drops it from Onyx, so it never reaches the LHN.
+    // Once OpenApp settles, re-fetch the room if it went missing so it shows up in the LHN. See #92672.
+    useEffect(() => {
+        const reportID = pendingPublicRoomReportID.current;
+        if (!reportID || isLoadingApp || !isAnonymousUser()) {
+            return;
+        }
+        // The room made it into Onyx, so the cold-start race is over - stop tracking it.
+        if (allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
+            pendingPublicRoomReportID.current = '';
+            hasRefetchedPublicRoom.current = false;
+            return;
+        }
+        if (hasRefetchedPublicRoom.current) {
+            return;
+        }
+        hasRefetchedPublicRoom.current = true;
+        Report.openReport({reportID, introSelected, betas});
+    }, [isLoadingApp, allReports, introSelected, betas]);
 
     return null;
 }
