@@ -17,7 +17,7 @@ Your Expensify subscription is paid with a single payment card kept on file unde
 
 Only workspace Owners can add or update the payment card used to pay for their Expensify subscription.
 
-If you don't see Subscription, you're not a workspace Owner. To find the Owner of a workspace you're a member of, see What is a workspace Owner?.
+If you don't see Subscription, you're not a workspace Owner. To find the Owner of a workspace you're a member of, see [Understand workspace ownership](../Understand-Workspace-Ownership.md).
 
 ---
 

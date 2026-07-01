@@ -15,8 +15,8 @@ Expensify automatically calculates your donation each month based on qualifying 
 
 There are two types of Karma donations:
 
-- **Personal Karma** is based on the expenses you add to your own account. Learn more about [Personal Karma](https://use.expensify.com/personal-karma).
-- **Corporate Karma** is based on approved company spending across your workspaces. Learn more about [Corporate Karma](https://use.expensify.com/corporate-karma).
+- **Personal Karma** is based on the expenses you add to your own account. Learn how to [enable or manage Personal Karma](Enable-or-Manage-Karma-Donations.md).
+- **Corporate Karma** is based on approved company spending across your workspaces. Learn how to [enable or manage Corporate Karma](Enable-or-Manage-Karma-Donations.md).
 
 ---
 
@@ -85,8 +85,9 @@ No. Expensify automatically selects the appropriate Expensify.org fund based on 
 
 No. Karma donations are charged separately from your subscription and don't affect your subscription pricing.
 
+---
+
 ## Related articles
 
-* Enable or manage Personal Karma
-* Enable or manage Corporate Karma
-* Understand billing ownership
+* [Enable or manage Karma donations](Enable-or-Manage-Karma-Donations.md)
+* [Understand workspace ownership](../Understand-Workspace-Ownership.md)

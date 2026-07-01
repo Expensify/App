@@ -26,7 +26,7 @@ If you don't see **Subscription** in your account, you're not a billing owner. T
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Account** > **Subscription**.
 2. Scroll to the **Your plan** section to view your plan.
-3. Choose **Subscription Settings** to view your subscription details. 
+3. Choose **Subscription settings** to view your subscription details. 
 
 ---
 

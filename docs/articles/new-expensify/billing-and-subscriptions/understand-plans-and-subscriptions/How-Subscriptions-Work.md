@@ -6,8 +6,6 @@ internalScope: Audience is all workspace Owners. Explains what subscriptions are
 retrievalIntent: What a subscription is and Annual vs Pay per use.
 contentType: topic
 platform: new
-RAG/AI usability score: 9/10
-Human usability score: 9/10
 ---
 
 # How Subscriptions Work

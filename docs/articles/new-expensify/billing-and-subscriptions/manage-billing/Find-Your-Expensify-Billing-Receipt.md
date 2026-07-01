@@ -6,7 +6,7 @@ internalScope: Audience is billing owners. Covers how to locate the monthly Expe
 contentType: task
 ---
 
-# Find your Expensify Billing Receipt
+# Find Your Expensify Billing Receipt
 
 Expensify creates a billing receipt each time you are charged for your subscription. You can find the receipts in your subscription settings under **View payment history**, where each charge opens its own receipt.
 

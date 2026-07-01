@@ -58,6 +58,6 @@ Karma donations are charged separately from your subscription, and you receive a
 
 ## Related articles
 
-* Understand how Karma donations work
-* Understand billing ownership
-* Change your payment card
+* [Understand how Karma donations work](Understand-How-Karma-Donations-Work.md)
+* [Understand workspace ownership](../Understand-Workspace-Ownership.md)
+* [Manage the payment card on file](Add-or-Update-Your-Payment-Card.md)

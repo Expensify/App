@@ -32,14 +32,14 @@ To learn more, see [how your plan and subscription determine your bill](How-Your
 4. Choose **Collect** or **Control**.
 5. Confirm your selection. 
 
-**Note:** If your workspace is on the Control plan with an Annual subscription, you can't downgrade to Collect until your subscription term ends, To learn more, see [when you can change your plan](Understand-Plan-and-Subscription-Management> When you can change your plan). 
+**Note:** If your workspace is on the Control plan with an Annual subscription, you can't downgrade to Collect until your subscription term ends. To learn more, see [when you can change your plan](Understand-Plan-and-Subscription-Management.md#when-you-can-change-your-plan). 
 
 ---
 
 ## Related articles
 
 * [Compare Collect and Control plans](/articles/new-expensify/billing-and-subscriptions/understand-plans-and-subscriptions/Compare-Collect-and-Control-plans)
-* [How to view your current plan and subscription](/articles/new-expensify/billing-and-subscriptions/manage-plans-and-subscriptions/How-to-view-your-current-plan-and-subscription)
+* [How to view your current plan and subscription](/articles/new-expensify/billing-and-subscriptions/manage-plans-and-subscriptions/View-Your-Plan-and-Subscription)
 * [Understand Expensify pricing](/articles/new-expensify/billing-and-subscriptions/understand-plans-and-subscriptions/Understand-Expensify-pricing)
 
 ---

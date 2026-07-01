@@ -12,7 +12,7 @@ Your monthly Expensify billing receipt summarizes your subscription charges acro
 
 Only the billing owner can view subscription receipts.
 
-## Receipt overview
+## How your billing receipt is organized
 
 Your receipt is organized into several sections that explain different parts of your monthly bill.
 
@@ -20,7 +20,7 @@ It begins with a high-level summary of your subscription, followed by any availa
 
 Together, these sections explain both **what you were charged** and **how your monthly total was calculated**.
 
-## Receipt summary
+## What the receipt summary shows
 
 The summary provides an overview of your monthly subscription.
 
@@ -32,7 +32,7 @@ It includes:
 
 This section provides a quick snapshot of your subscription before the detailed breakdown.
 
-## Savings and discounts
+## What savings and discounts appear on your receipt
 
 If your account qualifies for discounts or credits, they're displayed in the savings section of your receipt.
 
@@ -45,7 +45,7 @@ Depending on your subscription, you may see:
 
 This section may also highlight opportunities to reduce future subscription costs, such as qualifying for Expensify Card pricing or switching to an annual subscription.
 
-## Billing breakdown
+## What the billing breakdown includes
 
 The billing breakdown itemizes every charge and credit included in your monthly total.
 
@@ -60,7 +60,7 @@ Depending on your subscription, this section may include:
 
 Each line helps explain how your overall subscription cost was calculated.
 
-## Workspace activity
+## What workspace activity appears on your receipt
 
 If you pay for multiple workspaces, your receipt includes a breakdown for each one.
 
@@ -77,8 +77,6 @@ This section makes it easier to understand how each workspace contributed to you
 
 ## Related articles
 
-* Understand billing and subscriptions
-* Understand billing terms and definitions
-* Understand billable activity
-* [Find your Expensify billing receipt](/articles/new-expensify/billing-and-subscriptions/manage-billing/Find-Your-Expensify-Billing-Receipt)
-* Understand why billing issues occur
+* [Understand billing terms and definitions](../Understand-Billing-Terms-and-Definitions.md)
+* [Find your Expensify billing receipt](Find-Your-Expensify-Billing-Receipt.md)
+* [Understand why billing issues occur](resolve-billing-issues/Why-billing-issues-occur.md)

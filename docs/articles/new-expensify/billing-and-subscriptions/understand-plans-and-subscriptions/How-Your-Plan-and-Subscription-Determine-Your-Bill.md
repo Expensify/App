@@ -50,12 +50,12 @@ For example, a workspace on the **Collect** plan can use either an **Annual** or
 
 Because plans and subscription types are independent, changing either one changes how your workspace is billed going forward.
 
-The way billable members are counted depends on your plan. To learn how **active members** and **unique members** are defined, see **Understand billing definitions**.
+The way billable members are counted depends on your plan. To learn how **active members** and **unique members** are defined, see [Understand Billing Terms and Definitions](../Understand-Billing-Terms-and-Definitions.md).
 
 ---
 
 ## Related articles
 
-* Learn about **Plan types**.
-* Learn about **Subscription types**.
-* Learn more in **Understand billing definitions**.
+* [Compare Collect and Control Plans](Compare-Collect-and-Control-pLans.md)
+* [How Subscriptions Work](How-Subscriptions-Work.md)
+* [Understand Billing Terms and Definitions](../Understand-Billing-Terms-and-Definitions.md)

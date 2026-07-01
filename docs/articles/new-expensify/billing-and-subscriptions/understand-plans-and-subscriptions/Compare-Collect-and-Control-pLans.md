@@ -4,8 +4,6 @@ description: Compare the features and capabilities of the Collect and Control pl
 keywords: [Collect plan, Control plan, compare plans, Expensify plans, Workspace plans]
 internalScope: Audience is anyone evaluating Expensify plans. Covers the differences between the Collect and Control plans. Does not cover change subscriptions or plans.
 retrievalIntent: Feature comparison to choose Collect vs Control.
-RAG/AI usability score: 9/10
-Human usability score: 9/10
 ---
 
 # Compare Collect and Control Plans
@@ -62,7 +60,7 @@ To learn more, see [How Your Plan and Subscription Determine Your Bill](How-Your
 
 ## Can I change my workspace plan later?
 
-Yes. If your organization's needs change, you can switch between the Collect and Control plans. However, if you are on an annual subscription, you may need to wait until your current subscription term ends before downgrading your plan. To learn more, see [Change Your Workspace Plan](Change-Your-Workspace-Plan.md).
+Yes. If your organization's needs change, you can switch between the Collect and Control plans. However, if you are on an annual subscription, you may need to wait until your current subscription term ends before downgrading your plan. To learn more, see [Change Your Workspace Plan](../manage-plans-and-subscriptions/Change-Your-Workspace-Plan.md).
 
 ## Does every Workspace need a plan?
 

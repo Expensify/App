@@ -22,7 +22,7 @@ Only the **workspace Owner** can view or change a workspace's plan and subscript
 
 Being a **Workspace Admin** doesn't include plan and subscription management permissions. Admins can manage members and workspace settings, but they can't change the workspace's plan or subscription unless they first take over workspace ownership.
 
-To learn more, see [Understand workspace billing ownership](Understand-billing-ownership.md). 
+To learn more, see [Understand workspace billing ownership](../Understand-Workspace-Ownership.md). 
 
 ---
 
@@ -48,7 +48,6 @@ Your subscription determines your billing commitment, so the rules for changing 
 
 Use these articles to complete common plan and subscription tasks:
 
-- View your current plan and subscription
-- Change your Annual subscription settings
-- Cancel an Annual subscription
-* [Cancel an Annual subscription](/articles/new-expensify/billing-and-subscriptions/manage-plans-and-subscriptions/Cancel-an-Annual-Subscription)
+- [View your current plan and subscription](View-Your-Plan-and-Subscription.md)
+- [Change your Annual subscription settings](Manage-Annual-Subscription-Settings.md)
+- [Cancel an Annual subscription](Cancel-an-Annual-Subscription.md)

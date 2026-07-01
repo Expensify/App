@@ -5,9 +5,6 @@ keywords: [billing terms, billing glossary, subscription, plan, active member, u
 internalScope: Audience is workspace Owners. Explains the terminology used throughout subscription billing. Does not explain billing workflows or troubleshooting.
 contentType: topic
 platform: new
-note: because this is a terminology glossary, bolding of non-UI elements allowed and task-based headings are not required.
-RAG/AI usability score: 9/10
-Human usability score: 9/10
 ---
 
 # Understand Billing Terms and Definitions
@@ -18,7 +15,7 @@ Most billing terminology is intended for workspace  Owners, since only workspace
 
 ---
 
-## Subscription terminology
+## What subscription terms mean
 
 A **subscription** is the billing arrangement for a workspace. It determines how Expensify charges for your workspace and is managed from **Account > Subscription**.
 
@@ -42,7 +39,7 @@ To learn more, see [How Billing, Plans and Subscriptions Work](How-Billing-Plans
 
 ---
 
-## Member terminology
+## What member terms mean
 
 A **member** is anyone who belongs to a workspace.
 
@@ -58,7 +55,7 @@ The **workspace Owner** is responsible for managing a workspace's subscription a
 
 ---
 
-## Subscription settings
+## What subscription settings affect your bill
 
 Some subscription settings affect how your workspace is billed over time.
 
@@ -72,7 +69,7 @@ To learn more, see [Manage Annual subscription settings](Manage-Annual-Subscript
 
 ---
 
-## Payment terminology
+## What payment terms mean
 
 The **payment card** is the credit card Expensify charges for your subscription.
 

@@ -48,7 +48,7 @@ The following table shows the standard localized pricing for each supported regi
 
 You can change your payment currency: 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), choose **Account > Subscription**.
-2. Under **Payment**, select elect the three dots (⋮).
+2. Under **Payment**, select the three dots **(⋮)**.
 3. Choose **Change payment currency**.
 
 ## Are localized prices converted from U.S. dollars?

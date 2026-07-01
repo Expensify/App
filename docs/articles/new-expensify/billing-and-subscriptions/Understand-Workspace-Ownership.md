@@ -5,8 +5,6 @@ keywords: [billing owner, workspace Admin, subscription owner, billing permissio
 internalScope: Audience is workspace Owners and Workspace admins. Explains workspace ownership, permissions, and responsibilities of the Workspace Owner. Does not include management procedures.
 contentType: topic
 platform: new
-RAG/AI usability score: 9/10
-Human usability score: 9/10
 ---
 
 # Understand Workspace Ownership
@@ -33,7 +31,7 @@ Only the billing owner can:
 
 The workspace Owner also receives subscription billing alerts and billing-related notifications.
 
-You can confirm the Owner of a workspace you're a member of by selecting **Workspaces** the in the navigation tabs and viewing the **Owner** column. 
+You can confirm the Owner of a workspace you're a member of by selecting **Workspaces** in the navigation tabs (on the left on web, on the bottom on mobile) and viewing the **Owner** column. 
 
 ---
 
@@ -64,6 +62,6 @@ To learn more, see [Take Over Billing Ownership](Take-over-billing-ownership.md)
 
 ## Related articles
 
-- [Understand billing terms and definitions](Understand-billing-terms-and-definitions.md)
+- [Understand billing terms and definitions](Understand-Billing-Terms-and-Definitions.md)
 - [How Billing, Plans, and Subscriptions Work](How-Billing-Plans-and-Subscriptions-Work.md)
 

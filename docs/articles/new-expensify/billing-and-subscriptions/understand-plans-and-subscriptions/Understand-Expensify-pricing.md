@@ -47,9 +47,9 @@ Your subscription price may be affected by:
 
 For more information, see:
 
-* **Compare Collect and Control plans**
-* **Understand localized pricing**
-* **Understand plan and subscription management**
+* [Compare Collect and Control Plans](Compare-Collect-and-Control-pLans.md)
+* [Understand localized pricing](Understand-localized-pricing.md)
+* [Understand Plan and Subscription Management](../manage-plans-and-subscriptions/Understand-Plan-and-Subscription-Management.md)
 
 # FAQ
 

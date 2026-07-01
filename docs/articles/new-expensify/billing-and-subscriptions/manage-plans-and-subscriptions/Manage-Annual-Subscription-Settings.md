@@ -65,4 +65,4 @@ Your Annual subscription stays active until the renewal date shown on the page. 
 
 * [Cancel an Annual subscription](/articles/new-expensify/billing-and-subscriptions/manage-plans-and-subscriptions/Cancel-an-Annual-Subscription)
 * [How subscriptions work](/articles/new-expensify/billing-and-subscriptions/understand-plans-and-subscriptions/How-Subscriptions-Work)
-* [How to view your current plan and subscription](/articles/new-expensify/billing-and-subscriptions/manage-plans-and-subscriptions/How-to-view-your-current-plan-and-subscription)
+* [How to view your current plan and subscription](/articles/new-expensify/billing-and-subscriptions/manage-plans-and-subscriptions/View-Your-Plan-and-Subscription)

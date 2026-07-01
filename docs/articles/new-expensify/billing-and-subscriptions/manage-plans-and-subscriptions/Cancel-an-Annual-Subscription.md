@@ -29,7 +29,7 @@ If your workspace is already on Pay-per-use, there's no subscription to cancel. 
 1. In the navigation tabs (on the left on web, at the bottom on mobile), go to **Account > Subscription**.
 2. Select **Cancel subscription**.
 3. Choose the main reason you're canceling and add the requested details.
-4. Review the acknowledgment that submitting the form requests cancellation and that and approval is not guaranteed, then **Submit**.
+4. Review the acknowledgment that submitting the form requests cancellation and that approval is not guaranteed, then **Submit**.
 
 ---
 
