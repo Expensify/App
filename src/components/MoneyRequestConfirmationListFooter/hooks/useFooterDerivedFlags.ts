@@ -63,7 +63,7 @@ function useFooterDerivedFlags({
     isTypeInvoice,
     shouldShowSmartScanFields,
 }: UseFooterDerivedFlagsParams) {
-    const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
+    const {policyForMovingExpenses, shouldSelectPolicy, shouldNavigateToUpgradePath} = usePolicyForMovingExpenses();
 
     const transaction = useTransactionSelector(transactionID, derivedFlagsSliceSelector);
 
@@ -91,7 +91,6 @@ function useFooterDerivedFlags({
     const shouldShowBillable = isBillableEnabledOnPolicy(policy);
     const shouldShowReimbursable =
         (isPolicyExpenseChat || isTrackExpense) && !!policy && policy?.disabledFields?.reimbursable !== true && !isManagedCardTransaction(transaction) && !isTypeInvoice;
-    const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
     const shouldShowTimeRequestFields = isTimeRequest && action === CONST.IOU.ACTION.CREATE;
 
     return {

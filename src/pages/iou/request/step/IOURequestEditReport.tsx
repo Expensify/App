@@ -17,6 +17,7 @@ import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNav
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {isUnreportedManagedCardTransaction} from '@libs/TransactionUtils';
 import {createNewReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -57,6 +58,8 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         () => getPersonalDetailsForAccountID(selectedReport?.ownerAccountID, personalDetails) as PersonalDetails,
         [personalDetails, selectedReport?.ownerAccountID],
     );
+    const [transactions] = useTransactionsByID(transactionIDs);
+    const hasUnreportedManagedCardTransactions = transactions.some((transaction) => isUnreportedManagedCardTransaction(transaction));
     const hasPerDiemTransactions = useHasPerDiemTransactions(transactionIDs);
 
     // When moving an expense that belongs to another user, or when the selection includes per diem
@@ -66,12 +69,11 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const isOwnedByOther = selectedReport?.ownerAccountID !== currentUserPersonalDetails.accountID;
     const isOwnedByOtherOrHasPerDiem = isOwnedByOther || hasPerDiemTransactions;
     const targetExpensePolicyID = isOwnedByOtherOrHasPerDiem ? selectedReport?.policyID : undefined;
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions, undefined, targetExpensePolicyID);
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions, undefined, targetExpensePolicyID, hasUnreportedManagedCardTransactions);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [transactions] = useTransactionsByID(transactionIDs);
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (transactionIDs.length === 0 || item.value === reportID) {
             Navigation.dismissToSuperWideRHP();
@@ -127,7 +129,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     };
 
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
-        if (!hasPerDiemTransactions && !policyForMovingExpenses?.id) {
+        if (!hasPerDiemTransactions && !hasUnreportedManagedCardTransactions && !policyForMovingExpenses?.id) {
             return;
         }
 
@@ -162,7 +164,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             handleCreateReport();
             return;
         }
-        if (!hasPerDiemTransactions && !policyForMovingExpensesID && !shouldSelectPolicy) {
+        if (!hasPerDiemTransactions && !hasUnreportedManagedCardTransactions && !policyForMovingExpensesID && !shouldSelectPolicy) {
             return;
         }
         if (shouldSelectPolicy) {
@@ -182,6 +184,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             isEditing={action === CONST.IOU.ACTION.EDIT}
             createReport={createReport}
             isPerDiemRequest={hasPerDiemTransactions}
+            isUnreportedManagedCardTransaction={hasUnreportedManagedCardTransactions}
             transactionPolicyID={targetExpensePolicyID}
         />
     );
