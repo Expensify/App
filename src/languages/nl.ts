@@ -4361,6 +4361,12 @@ ${amount} voor ${merchant} - ${date}`,
         carRental: 'autoverhuur',
         nightIn: 'nacht in',
         nightsIn: 'nachten in',
+        taxID: {
+            title: 'Belastingnummer',
+            subtitle: 'Voer het fiscale nummer van je rechtspersoon in zodat we reisfacturatie in je lokale valuta kunnen instellen.',
+            inputLabel: 'Belastingnummer rechtspersoon',
+            error: {required: 'Vul het fiscale identificatienummer van je rechtspersoon in.'},
+        },
     },
     workspace: {
         common: {

@@ -4410,6 +4410,14 @@ const translations = {
             subtitle: 'Choose a domain for Expensify Travel setup.',
             recommended: 'Recommended',
         },
+        taxID: {
+            title: 'Tax ID',
+            subtitle: 'Enter your legal entity tax ID so we can set up travel billing in your local currency.',
+            inputLabel: 'Legal entity tax ID',
+            error: {
+                required: 'Please enter your legal entity tax ID.',
+            },
+        },
         domainPermissionInfo: {
             title: 'Domain',
             restriction: (domain: string) =>
