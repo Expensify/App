@@ -246,6 +246,34 @@ const iouRequestPolicyCollectionSelector = (policies: OnyxCollection<Policy>): O
     return result;
 };
 
+type FilteredPoliciesInfo = {
+    /** Number of policies that should be shown to the user (short-circuited at 2) */
+    filteredPoliciesCount: number;
+
+    /** ID of the first policy that should be shown to the user */
+    firstPolicyID: string | undefined;
+};
+
+const createFilteredPoliciesInfoSelector =
+    (email: string | undefined) =>
+    (policies: OnyxCollection<Policy>): FilteredPoliciesInfo => {
+        let filteredPoliciesCount = 0;
+        let firstPolicyID: string | undefined;
+        for (const policy of Object.values(policies ?? {})) {
+            if (!policy || !shouldShowPolicy(policy, false, email)) {
+                continue;
+            }
+            if (filteredPoliciesCount === 0) {
+                firstPolicyID = policy.id;
+            }
+            filteredPoliciesCount++;
+            if (filteredPoliciesCount > 1) {
+                break;
+            }
+        }
+        return {filteredPoliciesCount, firstPolicyID};
+    };
+
 const hasOnlyPersonalPoliciesSelector = (policies: OnyxCollection<Policy>): boolean => {
     return !Object.values(policies ?? {}).some((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 };
@@ -360,6 +388,7 @@ export {
     ownerPoliciesSelector,
     createOwnedPaidPoliciesCountsSelector,
     createCopySettingsEligibleTargetsSelector,
+    createFilteredPoliciesInfoSelector,
     createWorkspaceListPoliciesSelector,
     activeAdminPoliciesSelector,
     hasActiveAdminPoliciesSelector,
