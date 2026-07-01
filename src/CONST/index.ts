@@ -140,9 +140,7 @@ const signupQualifiers = {
     SMB: 'smb',
 } as const;
 
-type NoneAccountingKey = 'none';
-
-type OnboardingAccounting = keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY | NoneAccountingKey | null;
+type OnboardingAccounting = keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY | (string & Record<never, never>) | null;
 
 const onboardingInviteTypes = {
     IOU: 'iou',

@@ -1,7 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import SidePanelActions from '@libs/actions/SidePanel';
-import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -59,10 +58,10 @@ const shouldOpenRHPVariant: ShouldOpenRHPVariant = (variantOverride) => {
  * All variants open the side panel without overlay.
  * The control variant is handled separately in navigateAfterOnboarding.
  */
-const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicyID, variantOverride) => {
+const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicyID, variantOverride, navigate) => {
     const variant = variantOverride ?? onboardingRHPVariant;
     if (variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
-        Navigation.navigate(ROUTES.HOME);
+        navigate(ROUTES.HOME);
         SidePanelActions.openSidePanel(true);
         return;
     }
@@ -70,9 +69,9 @@ const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicy
     const isRHPHomePage = variant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE;
 
     if (isRHPHomePage) {
-        Navigation.navigate(ROUTES.HOME);
+        navigate(ROUTES.HOME);
     } else {
-        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(onboardingPolicyID));
+        navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(onboardingPolicyID));
     }
     SidePanelActions.openSidePanel(true);
 };

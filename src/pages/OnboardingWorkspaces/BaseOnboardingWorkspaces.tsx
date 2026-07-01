@@ -165,7 +165,12 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             return;
         }
 
-        if (isVsb || isSmb) {
+        if (isVsb) {
+            Navigation.navigate(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute());
+            return;
+        }
+
+        if (isSmb) {
             Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
             return;
         }

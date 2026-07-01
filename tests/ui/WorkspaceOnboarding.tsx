@@ -140,7 +140,7 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should navigate to Onboarding employees page when skip is pressed and user is routed app via VSB', async () => {
+    it('should navigate to Onboarding interested features page when skip is pressed and user is routed app via VSB', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -166,7 +166,7 @@ describe('OnboardingWorkspaces Page', () => {
         fireEvent.press(skipButton, mockEvent);
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute());
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute());
         });
 
         unmount();

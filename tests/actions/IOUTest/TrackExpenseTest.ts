@@ -483,6 +483,8 @@ describe('actions/IOU/TrackExpense', () => {
             const selfDMReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
                 reportID: '10',
+                isPinned: false,
+                isOwnPolicyExpenseChat: false,
             };
             const policyExpenseChat: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
@@ -617,6 +619,8 @@ describe('actions/IOU/TrackExpense', () => {
             const selfDMReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
                 reportID: '10',
+                isPinned: false,
+                isOwnPolicyExpenseChat: false,
             };
             const policyExpenseChat: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
@@ -757,6 +761,8 @@ describe('actions/IOU/TrackExpense', () => {
             const selfDMReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
                 reportID: '10',
+                isPinned: false,
+                isOwnPolicyExpenseChat: false,
             };
             const policyExpenseChat: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
@@ -1718,6 +1724,8 @@ describe('actions/IOU/TrackExpense', () => {
             const selfDMReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
                 reportID: 'selfDM-retry-leak',
+                isPinned: false,
+                isOwnPolicyExpenseChat: false,
             };
             const existingTransaction: Transaction = {
                 ...createRandomTransaction(1),
@@ -1727,6 +1735,7 @@ describe('actions/IOU/TrackExpense', () => {
             };
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            mockFetch?.pause?.();
             mockFetch?.fail?.();
 
             // When trackExpense fails with a SCAN receipt
@@ -2100,6 +2109,8 @@ describe('actions/IOU/TrackExpense', () => {
                 ...createRandomReport(2, undefined),
                 reportID: 'chat-retry-leak',
                 type: CONST.REPORT.TYPE.CHAT,
+                isPinned: false,
+                isOwnPolicyExpenseChat: false,
                 participants: {
                     [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                     [CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
@@ -2113,6 +2124,7 @@ describe('actions/IOU/TrackExpense', () => {
             };
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            mockFetch?.pause?.();
             mockFetch?.fail?.();
 
             // When requestMoney fails with a SCAN receipt
@@ -2212,11 +2224,14 @@ describe('actions/IOU/TrackExpense', () => {
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
             subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
             await waitForBatchedUpdates();
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_USER_ACCOUNT_ID, email: TEST_USER_LOGIN});
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
             selfDMReport = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
                 reportID: '10',
+                isPinned: false,
+                isOwnPolicyExpenseChat: false,
             };
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);

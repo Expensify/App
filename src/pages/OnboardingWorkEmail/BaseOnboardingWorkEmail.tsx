@@ -76,7 +76,11 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
 
     useEffect(() => {
         const navigateToNextStep = (shouldSkipPrivateDomain = false) => {
-            if (isVsb || isSmb) {
+            if (isVsb) {
+                Navigation.navigate(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(), {forceReplace: true});
+                return;
+            }
+            if (isSmb) {
                 Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
                 return;
             }

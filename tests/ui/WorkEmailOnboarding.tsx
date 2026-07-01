@@ -432,7 +432,31 @@ describe('OnboardingWorkEmail Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should navigate VSB users to Onboarding employees page when merge is blocked and Got it is pressed', async () => {
+    it('should navigate to Onboarding interested features page when skip is pressed and user is routed app via vsb', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
+
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByTestId('onboardingPrivateEmailSkipButton'));
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(), {forceReplace: true});
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should navigate VSB users to Onboarding interested features page when merge is blocked and Got it is pressed', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -462,7 +486,7 @@ describe('OnboardingWorkEmail Page', () => {
         fireEvent.press(gotItButton, mockEvent);
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute());
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute());
         });
 
         unmount();
@@ -820,6 +844,36 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should navigate to Onboarding interested features page when validate code step is successful and user is routed app via vsb', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                shouldValidate: true,
+                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
+            });
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
+                onboardingWorkEmail: workEmail,
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, undefined);
+
+        await waitForBatchedUpdatesWithAct();
+
+        MergeIntoAccountAndLoginSuccessful();
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(), {forceReplace: true});
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should display specific error message when ONBOARDING_ERROR_MESSAGE is set', async () => {
         await TestHelper.signInWithTestUser();
 
@@ -875,7 +929,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should navigate VSB users to Onboarding employees page from validation when merge is blocked and Got it is pressed', async () => {
+    it('should navigate VSB users to Onboarding interested features page from validation when merge is blocked and Got it is pressed', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -906,7 +960,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         fireEvent.press(gotItButton, mockEvent);
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute());
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute());
         });
 
         unmount();
@@ -981,7 +1035,7 @@ describe('OnboardingPrivateDomain Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should redirect a public-domain VSB user away to the employees step', async () => {
+    it('should redirect a public-domain VSB user away to the interested features step', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -997,7 +1051,7 @@ describe('OnboardingPrivateDomain Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(), {forceReplace: true});
         });
 
         unmount();

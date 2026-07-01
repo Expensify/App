@@ -56,6 +56,13 @@ function setOnboardingUserReportedIntegration(value: OnboardingAccounting | null
     Onyx.set(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, value);
 }
 
+function setOnboardingAccountingEnabled(value: boolean | null) {
+    Onyx.set(ONYXKEYS.ONBOARDING_ACCOUNTING_ENABLED, value);
+}
+
+function setOnboardingInterestedFeaturesMap(value: Array<{id: string; enabled: boolean; enabledByDefault?: boolean; requiresUpdate?: boolean}> | null) {
+    Onyx.set(ONYXKEYS.ONBOARDING_INTERESTED_FEATURES_MAP, value);
+}
 function setOnboardingPersonalTrackGoal(value: string) {
     Onyx.set(ONYXKEYS.ONBOARDING_PERSONAL_TRACK_GOAL, value);
 }
@@ -218,6 +225,8 @@ export {
     setOnboardingMergeAccountStepValue,
     updateOnboardingValuesAndNavigation,
     setOnboardingUserReportedIntegration,
+    setOnboardingAccountingEnabled,
+    setOnboardingInterestedFeaturesMap,
     setOnboardingPersonalTrackGoal,
     addWorkEmailFormError,
     clearWorkEmailFormErrors,

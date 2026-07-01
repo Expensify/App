@@ -73,7 +73,11 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
 
     const navigateToNextOnboardingStep = useCallback(
         (backTo: string | undefined, options?: {forceReplace?: boolean}) => {
-            if (isVsb || isSmb) {
+            if (isVsb) {
+                Navigation.navigate(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(), options);
+                return;
+            }
+            if (isSmb) {
                 Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(backTo), options);
                 return;
             }
