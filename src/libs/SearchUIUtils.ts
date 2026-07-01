@@ -92,6 +92,7 @@ import type {
     SearchWithdrawalIDGroup,
     SearchYearGroup,
 } from '@src/types/onyx/SearchResults';
+import hasKey from '@src/types/utils/hasKey';
 import type IconAsset from '@src/types/utils/IconAsset';
 import arraysEqual from '@src/utils/arraysEqual';
 import {hasSynchronizationErrorMessage} from './actions/connections';
@@ -5449,8 +5450,8 @@ function getFilterNegatableValue<K extends FilterComponentsProps['filterKey']>(
     if (!isFilterNegatable(filterKey)) {
         return {isNegated: false, value: values?.[filterKey]};
     }
-    const negatedFilterKey = `${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as K;
-    const negatedValue = values?.[negatedFilterKey];
+    const negatedFilterKey = `${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as const;
+    const negatedValue = values && hasKey(values, negatedFilterKey) ? values[negatedFilterKey] : undefined;
     const value = negatedValue ?? values?.[filterKey];
     return {isNegated: !!negatedValue, value};
 }

@@ -29,9 +29,9 @@ type SearchAdvancedFiltersContentProps = {
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-function getFilterFormValue<K extends FilterComponentsProps['filterKey']>(filterKey: K, value: FilterComponentsProps['value']): Partial<SearchAdvancedFiltersForm> {
+function getFilterFormValue<K extends FilterComponentsProps['filterKey']>(filterKey: K, value: SearchAdvancedFiltersForm[K] | undefined): Partial<SearchAdvancedFiltersForm> {
     const update: Partial<SearchAdvancedFiltersForm> = {};
-    update[filterKey] = value as SearchAdvancedFiltersForm[K];
+    update[filterKey] = value;
     return update;
 }
 
