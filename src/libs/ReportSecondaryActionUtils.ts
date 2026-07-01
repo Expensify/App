@@ -1139,7 +1139,7 @@ function getSecondaryTransactionThreadActions({
     policy,
     transactionThreadReport,
     outstandingReportsByPolicyID,
-    isChatReportArchived,
+    isMoneyRequestReportArchived = false,
     grandParentReport,
     isProduction,
 }: {
@@ -1152,7 +1152,7 @@ function getSecondaryTransactionThreadActions({
     policy: OnyxEntry<Policy>;
     transactionThreadReport?: OnyxEntry<Report>;
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
-    isChatReportArchived?: boolean;
+    isMoneyRequestReportArchived?: boolean;
     grandParentReport?: OnyxEntry<Report>;
     isProduction: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
@@ -1191,11 +1191,11 @@ function getSecondaryTransactionThreadActions({
         canEditFieldOfMoneyRequest({
             reportAction,
             fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
-            isChatReportArchived,
+            isChatReportArchived: isMoneyRequestReportArchived,
             outstandingReportsByPolicyID,
             transaction: reportTransaction,
         }) &&
-        canUserPerformWriteActionReportUtils(parentReport, isChatReportArchived)
+        canUserPerformWriteActionReportUtils(parentReport, isMoneyRequestReportArchived)
     ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
     }

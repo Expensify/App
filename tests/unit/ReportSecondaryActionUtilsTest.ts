@@ -14,7 +14,9 @@ import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
 import {actionR14932, originalMessageR14932} from '../../__mocks__/reportData/actions';
-import {chatReportR14932 as chatReport} from '../../__mocks__/reportData/reports';
+import {policy420A} from '../../__mocks__/reportData/policies';
+import {chatReportR14932 as chatReport, iouReportR14932} from '../../__mocks__/reportData/reports';
+import {transactionR14932} from '../../__mocks__/reportData/transactions';
 import createRandomPolicy from '../utils/collections/policies';
 import {createExpenseReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -4378,10 +4380,55 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
             policy,
-            isChatReportArchived: false,
             isProduction: false,
         });
         expect(result).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
+        expect(ReportUtils.canEditFieldOfMoneyRequest).toHaveBeenCalledWith(
+            expect.objectContaining({
+                isChatReportArchived: false,
+            }),
+        );
+        expect(ReportUtils.canUserPerformWriteAction).toHaveBeenCalledWith(parentReport, false);
+    });
+
+    it('uses the money request report archived state for transaction thread MOVE_EXPENSE checks', () => {
+        const parentReport: Report = {
+            ...iouReportR14932,
+            reportID: String(REPORT_ID),
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            policyID: POLICY_ID,
+        };
+        const transaction: Transaction = {
+            ...transactionR14932,
+            transactionID: originalMessageR14932.IOUTransactionID,
+        };
+        const policy: Policy = {
+            ...policy420A,
+            id: POLICY_ID,
+        };
+
+        jest.spyOn(ReportUtils, 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+        jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(false);
+
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport,
+            reportTransaction: transaction,
+            reportAction: actionR14932,
+            originalTransaction: transaction,
+            policy,
+            isMoneyRequestReportArchived: true,
+            isProduction: false,
+        });
+
+        expect(result).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
+        expect(ReportUtils.canEditFieldOfMoneyRequest).toHaveBeenCalledWith(
+            expect.objectContaining({
+                isChatReportArchived: true,
+            }),
+        );
+        expect(ReportUtils.canUserPerformWriteAction).toHaveBeenCalledWith(parentReport, true);
     });
 
     it('does not include MOVE_EXPENSE option for transaction thread when canEditFieldOfMoneyRequest returns false', () => {
@@ -4407,7 +4454,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
             policy,
-            isChatReportArchived: false,
             isProduction: false,
         });
         expect(result).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);

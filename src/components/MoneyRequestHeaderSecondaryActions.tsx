@@ -162,6 +162,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const shouldNavigateToUpgradePath = !policyForMovingExpenses && !shouldSelectPolicy;
     const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({report: parentReport, reportActions: parentReportAction ? [parentReportAction] : [], policy});
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
+    const isMoneyRequestReportArchived = useReportIsArchived(iouReport?.reportID);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -291,7 +292,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             policy,
             transactionThreadReport: report,
             outstandingReportsByPolicyID,
-            isChatReportArchived: isChatIOUReportArchived,
+            isMoneyRequestReportArchived,
             grandParentReport,
             isProduction,
         });
