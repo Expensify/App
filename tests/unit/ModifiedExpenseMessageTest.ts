@@ -2186,6 +2186,74 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
+        describe('when attendees are changed', () => {
+            it('returns the correct message with old and new attendees in the right order', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        oldAttendees: [{email: 'alice@example.com', displayName: 'Alice', avatarUrl: ''}],
+                        newAttendees: [
+                            {email: 'alice@example.com', displayName: 'Alice', avatarUrl: ''},
+                            {email: 'bob@example.com', displayName: 'Bob', avatarUrl: ''},
+                        ],
+                    },
+                };
+
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: 'test@example.com',
+                });
+
+                expect(result).toEqual('changed the attendees to Alice, Bob (previously Alice)');
+            });
+
+            it('returns "set" message when attendees are added from empty', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        oldAttendees: [],
+                        newAttendees: [{email: 'alice@example.com', displayName: 'Alice', avatarUrl: ''}],
+                    },
+                };
+
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: 'test@example.com',
+                });
+
+                expect(result).toEqual('set the attendees to Alice');
+            });
+
+            it('returns "removed" message when attendees are cleared', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        oldAttendees: [{email: 'alice@example.com', displayName: 'Alice', avatarUrl: ''}],
+                        newAttendees: [],
+                    },
+                };
+
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: 'test@example.com',
+                });
+
+                expect(result).toEqual('removed the attendees (previously Alice)');
+            });
+        });
+
         describe('vendor changes', () => {
             // QBO policy with two named vendors used by the resolver. No `config` block — the resolver
             // must look up vendors regardless of the workspace's current export mode so historical
