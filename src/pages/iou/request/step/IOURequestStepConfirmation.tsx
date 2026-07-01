@@ -36,6 +36,7 @@ import {setMoneyRequestBillable, setMoneyRequestReimbursable} from '@libs/action
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
@@ -54,7 +55,7 @@ import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismiss
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {findSelfDMReportID, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {cancelTracking, getPendingSubmitFollowUpAction, isTracking} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -66,7 +67,7 @@ import {
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
     isScanRequest,
 } from '@libs/TransactionUtils';
-import {getIOURequestPolicyID, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
+import {getIOURequestPolicyID, setCustomUnitRateID, setMoneyRequestCategory, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {removeDraftTransaction, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -219,6 +220,7 @@ function IOURequestStepConfirmation({
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
     const isTimeRequest = requestType === CONST.IOU.REQUEST_TYPE.TIME;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
+    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     const receiptFilename = transaction?.receipt?.filename;
@@ -323,15 +325,54 @@ function IOURequestStepConfirmation({
                 }
                 setMoneyRequestParticipants(activeTransactionID, participantsList);
                 const firstParticipant = participantsList.at(0);
-                if (iouType !== CONST.IOU.TYPE.SPLIT) {
-                    setTransactionReport(activeTransactionID, {reportID: firstParticipant?.reportID ?? reportID}, true);
+                if (iouType !== CONST.IOU.TYPE.SPLIT && firstParticipant) {
+                    const isPolicyExpenseChatParticipant = !!firstParticipant.isPolicyExpenseChat;
+
+                    // A brand-new recipient picked by email has no chat yet (no reportID). Reusing the route's `reportID`
+                    // (which points at the flow's origin report - e.g. the default workspace chat this distance flow was
+                    // seeded with) leaves the expense bound to that workspace, so the backend rejects it with
+                    // "There is a previously existing chat between these users." Generate a fresh optimistic reportID for
+                    // P2P recipients, mirroring the legacy participants-step flow (useParticipantSubmission).
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    const participantReportID = firstParticipant.reportID || (isPolicyExpenseChatParticipant ? reportID : generateReportID());
+                    setTransactionReport(activeTransactionID, {reportID: participantReportID}, true);
+
+                    // When switching from the auto-assigned default workspace to a P2P recipient we must also undo the
+                    // workspace-specific defaults the distance step applied: reset the mileage rate to the P2P rate and
+                    // clear the workspace's default category (and the category-derived tax). Otherwise the confirmation
+                    // keeps the workspace "Default Rate"/category and the expense stays bound to that workspace. This
+                    // mirrors what the legacy addParticipant/goToNextStep path does when a P2P recipient is selected.
+                    if (!isPolicyExpenseChatParticipant) {
+                        if (isDistanceRequest) {
+                            const p2pRateID = DistanceRequestUtils.getCustomUnitRateID({
+                                reportID: firstParticipant.reportID,
+                                isPolicyExpenseChat: false,
+                                policy: undefined,
+                                lastSelectedDistanceRates,
+                                expenseDate: transaction?.created,
+                            });
+                            setCustomUnitRateID(activeTransactionID, p2pRateID, transaction, undefined);
+                        }
+                        setMoneyRequestCategory(activeTransactionID, '', undefined);
+                    }
                 }
             }
             if (participantsList.length > 0) {
                 closeParticipantPicker();
             }
         },
-        [activeTransactionID, closeParticipantPicker, currentUserPersonalDetails.accountID, navigation, selfDMReport, iouType, reportID],
+        [
+            activeTransactionID,
+            closeParticipantPicker,
+            currentUserPersonalDetails.accountID,
+            navigation,
+            selfDMReport,
+            iouType,
+            reportID,
+            isDistanceRequest,
+            lastSelectedDistanceRates,
+            transaction,
+        ],
     );
 
     useEffect(() => {
