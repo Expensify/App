@@ -96,6 +96,9 @@ const FILTER_KEYS = {
     FEED_NOT: 'feedNot',
     FEED: 'feed',
 
+    BANK_ACCOUNT_NOT: 'bankAccountNot',
+    BANK_ACCOUNT: 'bankAccount',
+
     MERCHANT_NOT: 'merchantNot',
     MERCHANT: 'merchant',
 
@@ -233,6 +236,8 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.CARD_ID_NOT,
         FILTER_KEYS.FEED,
         FILTER_KEYS.FEED_NOT,
+        FILTER_KEYS.BANK_ACCOUNT,
+        FILTER_KEYS.BANK_ACCOUNT_NOT,
         FILTER_KEYS.POSTED_AFTER,
         FILTER_KEYS.POSTED_BEFORE,
         FILTER_KEYS.POSTED_ON,
@@ -674,6 +679,9 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.FEED]: string[];
         [FILTER_KEYS.FEED_NOT]: string[];
 
+        [FILTER_KEYS.BANK_ACCOUNT]: string[];
+        [FILTER_KEYS.BANK_ACCOUNT_NOT]: string[];
+
         [FILTER_KEYS.MERCHANT]: string;
         [FILTER_KEYS.MERCHANT_NOT]: string;
 
@@ -768,17 +776,6 @@ type SearchAdvancedFiltersForm = Form<
         Record<ReportFieldNegatedKey, string>
 >;
 
-export type {
-    SearchAdvancedFiltersForm,
-    SearchAdvancedFiltersKey,
-    HasFilterValue,
-    HasFilterValues,
-    IsFilterValue,
-    IsFilterValues,
-    ExpenseTypeValue,
-    ExpenseTypeValues,
-    ReceiptTypeValue,
-    ReceiptTypeValues,
-};
+export type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey, HasFilterValue, HasFilterValues, IsFilterValue, IsFilterValues, ExpenseTypeValue, ExpenseTypeValues, ReceiptTypeValue};
 export default FILTER_KEYS;
 export {DATE_FILTER_KEYS, ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS};
