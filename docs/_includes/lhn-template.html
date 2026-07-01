@@ -34,9 +34,11 @@
                         </div>
                         <ul class="nested-treeview">
                             {% if hub.articles %} 
-                                {% assign sortedSectionsAndArticles = hub.sections | concat: hub.articles | sort: 'title' %} 
+                                {% assign sortedSections = hubSections | sort: 'order' %}
+                                {% assign sortedArticles = hubArticles | sort: 'order' %}
+                                {% assign sortedSectionsAndArticles = sortedSections | concat: sortedArticles %}
                             {% else %} 
-                                {% assign sortedSectionsAndArticles = hub.sections | sort: 'title' %} 
+                                {% assign sortedSectionsAndArticles = hubSections | sort: 'order' %} 
                             {% endif%}
                             {% for item in sortedSectionsAndArticles %}
                                 {% if item.articles %}

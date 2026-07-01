@@ -17,7 +17,8 @@
 <section>
     <div class="cards-group">
         {% if section.sections %}
-            {% for subsection in section.sections %}
+            {% assign sortedSubsections = section.sections | sort: 'order' %}
+            {% for subsection in sortedSubsections %}
                 {% include section-card.html platform=activePlatform hub=hub.href section=subsection.href title=subsection.title %}
             {% endfor %}
         {% endif %}
