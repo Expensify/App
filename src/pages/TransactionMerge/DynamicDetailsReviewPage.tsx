@@ -17,7 +17,7 @@ import useMergeTransactions from '@hooks/useMergeTransactions';
 import useOnyx from '@hooks/useOnyx';
 import useReportOwnerAsAttendee from '@hooks/useReportOwnerAsAttendee';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setMergeTransactionKey} from '@libs/actions/MergeTransaction';
+import {getMergeTransactionDynamicRouteSuffix, setMergeTransactionKey} from '@libs/actions/MergeTransaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     buildMergeFieldsData,
@@ -151,12 +151,7 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
         setHasErrors(newHasErrors);
 
         if (isEmptyObject(newHasErrors)) {
-            const activeRoute = Navigation.getActiveRoute();
-            const confirmationSuffix =
-                isOnSearch && !activeRoute.includes('isOnSearch=true')
-                    ? DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION.getRoute(isOnSearch)
-                    : DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION.path;
-            Navigation.navigate(createDynamicRoute(confirmationSuffix));
+            Navigation.navigate(createDynamicRoute(getMergeTransactionDynamicRouteSuffix(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION, isOnSearch)));
         }
     }, [mergeTransaction, conflictFields, isOnSearch]);
 

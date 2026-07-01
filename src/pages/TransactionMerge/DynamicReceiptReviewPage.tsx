@@ -15,7 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMergeTransactions from '@hooks/useMergeTransactions';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setMergeTransactionKey} from '@libs/actions/MergeTransaction';
+import {getMergeTransactionDynamicRouteSuffix, setMergeTransactionKey} from '@libs/actions/MergeTransaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getMergeableDataAndConflictFields} from '@libs/MergeTransactionUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -67,18 +67,10 @@ function DynamicReceiptReviewPage({route}: DynamicReceiptReviewPageProps) {
         if (!conflictFields.length) {
             // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
             setMergeTransactionKey(transactionID, mergeableData);
-            const activeRoute = Navigation.getActiveRoute();
-            const confirmationSuffix =
-                isOnSearch && !activeRoute.includes('isOnSearch=true')
-                    ? DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION.getRoute(isOnSearch)
-                    : DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION.path;
-            Navigation.navigate(createDynamicRoute(confirmationSuffix));
+            Navigation.navigate(createDynamicRoute(getMergeTransactionDynamicRouteSuffix(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION, isOnSearch)));
             return;
         }
-        const activeRoute = Navigation.getActiveRoute();
-        const detailsSuffix =
-            isOnSearch && !activeRoute.includes('isOnSearch=true') ? DYNAMIC_ROUTES.MERGE_TRANSACTION_DETAILS.getRoute(isOnSearch) : DYNAMIC_ROUTES.MERGE_TRANSACTION_DETAILS.path;
-        Navigation.navigate(createDynamicRoute(detailsSuffix));
+        Navigation.navigate(createDynamicRoute(getMergeTransactionDynamicRouteSuffix(DYNAMIC_ROUTES.MERGE_TRANSACTION_DETAILS, isOnSearch)));
     };
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {

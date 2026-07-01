@@ -54,10 +54,22 @@ function setMergeTransactionKey(transactionID: string, values: MergeTransactionU
     Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, values as OnyxMergeInput<`${typeof ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${string}`>);
 }
 
-function getMergeTransactionListRoute(transactionID: string, isOnSearch?: boolean) {
+type MergeTransactionDynamicRoute = {
+    path: string;
+    getRoute: (isOnSearch?: boolean) => string;
+};
+
+function shouldAddIsOnSearchQueryToMergeTransactionRoute(isOnSearch?: boolean) {
     const activeRoute = Navigation.getActiveRoute();
-    const shouldAddIsOnSearch = !!(isOnSearch && !activeRoute.includes('isOnSearch=true'));
-    return createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_LIST.getRoute(transactionID, shouldAddIsOnSearch));
+    return !!(isOnSearch && !activeRoute.includes('isOnSearch=true'));
+}
+
+function getMergeTransactionDynamicRouteSuffix(dynamicRoute: MergeTransactionDynamicRoute, isOnSearch?: boolean) {
+    return shouldAddIsOnSearchQueryToMergeTransactionRoute(isOnSearch) ? dynamicRoute.getRoute(isOnSearch) : dynamicRoute.path;
+}
+
+function getMergeTransactionListRoute(transactionID: string, isOnSearch?: boolean) {
+    return createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_LIST.getRoute(transactionID, shouldAddIsOnSearchQueryToMergeTransactionRoute(isOnSearch)));
 }
 
 function navigateToMergeTransactionScreen(suffix: string, navigationTransactionID: string, isOnSearch?: boolean, isSelectingSourceTransaction?: boolean) {
@@ -723,4 +735,12 @@ function mergeTransactionRequest({
     API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData, successData});
 }
 
-export {areTransactionsEligibleForMerge, setupMergeTransactionData, setupMergeTransactionDataAndNavigate, setMergeTransactionKey, getTransactionsForMerging, mergeTransactionRequest};
+export {
+    areTransactionsEligibleForMerge,
+    getMergeTransactionDynamicRouteSuffix,
+    setupMergeTransactionData,
+    setupMergeTransactionDataAndNavigate,
+    setMergeTransactionKey,
+    getTransactionsForMerging,
+    mergeTransactionRequest,
+};
