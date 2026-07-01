@@ -169,6 +169,7 @@ type ProcessNodeResult = {
     categories: string[] | undefined;
     labelItems: LabelItem[];
     legendItems: LegendItem[];
+    barWidth?: number;
 };
 
 /** Partial slice produced by a single per-tag parser before merging. */
