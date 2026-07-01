@@ -14,7 +14,7 @@ import BaseSearchList from './SearchList/BaseSearchList';
 import ExpenseReportListItem from './SearchList/ListItem/ExpenseReportListItem';
 import type {SearchListItem} from './SearchList/ListItem/types';
 import SearchListViewLayout from './SearchListViewLayout';
-import type {SearchColumnType, SearchQueryJSON} from './types';
+import type {SearchColumnType, SearchQueryJSON, SelectedTransactions} from './types';
 
 /** Imperative handle the router uses for highlight-driven scrolling (mirrors SearchList's handle). */
 type SearchListHandle = {
@@ -81,7 +81,7 @@ const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ??
 
 const isRowDeleted = (item: SearchListItem) => item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-const isRowSelected = (key: string | undefined, selectedTransactions: Record<string, {isSelected?: boolean}>) => !!(key && selectedTransactions[key]?.isSelected);
+const isRowSelected = (key: string | undefined, selectedTransactions: SelectedTransactions) => !!(key && selectedTransactions[key]?.isSelected);
 
 /**
  * The expense-report Search list (the report view, no group-by).
