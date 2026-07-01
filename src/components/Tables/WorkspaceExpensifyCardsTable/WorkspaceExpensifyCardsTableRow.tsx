@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {WorkspaceExpensifyCardTableRowData} from '.';
@@ -36,7 +36,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
     const theme = useTheme();
     const session = useSession();
 
-    const cardholderName = getDisplayNameOrDefault(item.cardholder);
+    const cardholderName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: item.cardholder, translate});
     const cardType = item.isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
     const limitTypeLabel = translate(getTranslationKeyForLimitType(item.limitType));
     const formattedLimit = convertToShortDisplayString(item.limit, item.currency);

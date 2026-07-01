@@ -15,7 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getPolicyEmployeeAccountIDs} from '@libs/PolicyUtils';
 import {canReportBeMentionedWithinPolicy, doesReportBelongToWorkspace, isGroupChat, isReportParticipant} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
@@ -382,7 +382,7 @@ function SuggestionMention({
                 if (CONST.RESTRICTED_EMAILS.includes(detail.login) || CONST.RESTRICTED_ACCOUNT_IDS.includes(detail.accountID)) {
                     return false;
                 }
-                const displayName = getDisplayNameOrDefault(detail);
+                const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: detail, translate});
                 const displayText = displayName === formatPhoneNumber(detail.login) ? displayName : `${displayName} ${detail.login}`;
                 if (searchValue && !displayText.toLowerCase().includes(searchValue.toLowerCase())) {
                     return false;
@@ -409,7 +409,7 @@ function SuggestionMention({
 
             for (const detail of sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length)) {
                 suggestions.push({
-                    text: `${formatLoginPrivateDomain(getDisplayNameOrDefault(detail), detail?.login)}`,
+                    text: `${formatLoginPrivateDomain(temporaryGetDisplayNameOrDefault({passedPersonalDetails: detail, translate}), detail?.login)}`,
                     alternateText: `@${formatLoginPrivateDomain(detail?.login, detail?.login)}`,
                     handle: detail?.login,
                     icons: [

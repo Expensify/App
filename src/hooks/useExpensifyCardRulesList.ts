@@ -1,6 +1,6 @@
 import {filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsSharedCurrency} from '@libs/CardUtils';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getSpendRuleFormValuesFromCardRule, getSpendRuleSummaryParts, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,7 +47,7 @@ export default function useExpensifyCardRules(policyID: string) {
                 }
 
                 const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                const displayName = getDisplayNameOrDefault(personalDetails?.[accountID], '', false);
+                const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[accountID], defaultValue: '', shouldFallbackToHidden: false, translate});
                 cardNames.push(getCardDescriptionForSearchTable(card, translate, displayName || undefined) || cardID);
                 cardOwnerDisplayNames.push(displayName);
             }
