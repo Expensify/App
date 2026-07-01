@@ -96,6 +96,7 @@ function SidebarOrderedReportsContextProvider({
     const [reportNameValuePairs, {sourceValue: reportNameValuePairsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [reportsDrafts, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportAttributes = useReportAttributes();
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -112,6 +113,7 @@ function SidebarOrderedReportsContextProvider({
     const prevBetas = usePrevious(betas);
     const prevPriorityMode = usePrevious(priorityMode);
     const prevIsOffline = usePrevious(isOffline);
+    const prevConciergeReportID = usePrevious(conciergeReportID);
 
     const perfRef = useRef<{hookDuration: number}>({
         hookDuration: 0,
@@ -124,7 +126,7 @@ function SidebarOrderedReportsContextProvider({
     const getUpdatedReports = useCallback(() => {
         const reportsToUpdate = new Set<string>();
 
-        if (betas !== prevBetas || priorityMode !== prevPriorityMode || isOffline !== prevIsOffline) {
+        if (betas !== prevBetas || priorityMode !== prevPriorityMode || isOffline !== prevIsOffline || conciergeReportID !== prevConciergeReportID) {
             for (const key of Object.keys(chatReports ?? {})) {
                 reportsToUpdate.add(key);
             }
@@ -193,6 +195,8 @@ function SidebarOrderedReportsContextProvider({
         prevPriorityMode,
         isOffline,
         prevIsOffline,
+        conciergeReportID,
+        prevConciergeReportID,
         prevDerivedCurrentReportID,
         derivedCurrentReportID,
     ]);
@@ -223,6 +227,7 @@ function SidebarOrderedReportsContextProvider({
                 isOffline,
                 currentUserLogin: currentUserLogin ?? '',
                 currentUserAccountID: accountID,
+                conciergeReportID,
             });
         } else {
             Log.info('[useSidebarOrderedReports] building reportsToDisplay from scratch');
@@ -239,6 +244,7 @@ function SidebarOrderedReportsContextProvider({
                 currentUserAccountID: accountID,
                 reportNameValuePairs,
                 reportAttributes,
+                conciergeReportID,
             });
         }
 
@@ -259,6 +265,7 @@ function SidebarOrderedReportsContextProvider({
         clearCacheDummyCounter,
         currentUserLogin,
         accountID,
+        conciergeReportID,
     ]);
 
     // Derive a stable boolean map indicating which reports have drafts.

@@ -1,11 +1,12 @@
+import {SafeString} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
-import SafeString from '@src/utils/SafeString';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import {isGroupPolicy} from './PolicyUtils';
@@ -324,13 +325,20 @@ function shouldUseTransactionDraft(action: IOUAction | undefined, type?: IOUType
     return action === CONST.IOU.ACTION.CREATE || type === CONST.IOU.TYPE.SPLIT_EXPENSE || isMovingTransactionFromTrackExpense(action);
 }
 
-function formatCurrentUserToAttendee(currentUser?: PersonalDetails) {
+function formatCurrentUserToAttendee(currentUser?: CurrentUserPersonalDetails) {
     if (!currentUser) {
         return;
     }
+    const login = currentUser.login ? currentUser.login : (currentUser.email ?? '');
+    const displayName = currentUser.displayName ? currentUser.displayName : login;
+
+    if (!login) {
+        return;
+    }
+
     const initialAttendee: Attendee = {
-        email: currentUser?.login ?? '',
-        displayName: currentUser.displayName ?? '',
+        email: login,
+        displayName,
         avatarUrl: SafeString(currentUser.avatar),
     };
 
@@ -427,7 +435,11 @@ function getInitialPerDiemTargetReport(
     defaultExpensePolicy: OnyxEntry<Pick<Policy, 'autoReporting'>>,
     personalPolicy: OnyxEntry<Pick<Policy, 'autoReporting'>>,
     isFromGlobalCreate: boolean,
-): {targetReport: OnyxEntry<Report>; targetIouType: IOUType; transactionReportID: string | undefined} {
+): {
+    targetReport: OnyxEntry<Report>;
+    targetIouType: IOUType;
+    transactionReportID: string | undefined;
+} {
     let targetReport = report;
     let targetIouType = iouType;
 
