@@ -9514,6 +9514,18 @@ ${reportName}`,
             chat: '在任意报销上聊天，快速解决问题',
         },
     },
+    submitPlanWelcomeModal: {
+        title: '想要免费的员工方案吗？',
+        description: '无需等待公司启用 Expensify。我们专为你打造了一个免费方案：',
+        confirmText: '获取免费方案',
+        dismissText: '不用了，谢谢',
+        features: {
+            getReimbursed: '直接在 Expensify 中更快获得报销',
+            buildReports: '几秒钟即可创建费用报告',
+            categorize: '为你的支出分类',
+            inviteBoss: '准备好后即可邀请你的上司',
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>从<strong>这里</strong>开始！</tooltip>',
         saveSearchTooltip: '<tooltip>在这里<strong>重命名已保存的搜索</strong>！</tooltip>',
