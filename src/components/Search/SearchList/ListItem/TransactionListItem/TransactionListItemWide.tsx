@@ -35,9 +35,11 @@ function TransactionListItemWide<TItem extends ListItem>({
     isLastItem,
     transactionViolations,
     handleActionButtonPress,
+    shouldDisableActionPointerEvents,
     transactionPreviewData,
     exportedReportActions,
     policyCategories,
+    policyTagLists,
     nonPersonalAndWorkspaceCards,
     isAttendeesEnabledForMovingPolicy,
     currentSearchHash,
@@ -173,6 +175,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                         report={transactionItem.report}
                         policy={transactionItem.policy}
                         policyCategories={policyCategories}
+                        policyTagLists={policyTagLists}
                         shouldShowTooltip={showTooltip}
                         onButtonPress={handleActionButtonPress}
                         onCheckboxPress={() => onCheckboxPress?.(item)}
@@ -182,6 +185,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                         isActionLoading={isLoading ?? isActionLoading}
                         isSelected={isSelected}
                         isDisabled={!!isDisabled}
+                        shouldDisableActionPointerEvents={shouldDisableActionPointerEvents}
                         dateColumnSize={dateColumnSize}
                         submittedColumnSize={submittedColumnSize}
                         approvedColumnSize={approvedColumnSize}

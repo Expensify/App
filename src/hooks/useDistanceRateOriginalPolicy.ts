@@ -1,27 +1,31 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getPolicyForDistanceRateID, getPolicyIDOrDefault} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 
 /**
- * Finds the policy that owns the given customUnitRateID by searching all policies
- * for one whose distance custom unit contains the rate.
+ * Finds the policy that owns the given customUnitRateID.
+ * Resolves the policy ID via a collection selector (scalar output) and subscribes
+ * only to that policy key for reactive updates.
+ *
+ * @param shouldLookup When false, skips the cross-policy scan (e.g. when the rate is already on the report policy).
  */
-function useDistanceRateOriginalPolicy(customUnitRateID: string | undefined): OnyxEntry<Policy> {
-    const [distanceOriginalPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+function useDistanceRateOriginalPolicy(customUnitRateID: string | undefined, shouldLookup = true): OnyxEntry<Policy> {
+    const [policyID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: (policies: OnyxCollection<Policy>) => {
-            if (!customUnitRateID) {
+            if (!shouldLookup || !customUnitRateID) {
                 return undefined;
             }
-            return Object.values(policies ?? {}).find((p) => {
-                const distanceUnit = getDistanceRateCustomUnit(p);
-                return !!distanceUnit?.rates && customUnitRateID in distanceUnit.rates;
-            });
+            return getPolicyForDistanceRateID(customUnitRateID, policies)?.id;
         },
     });
 
-    return distanceOriginalPolicy;
+    const resolvedPolicyID = getNonEmptyStringOnyxID(policyID);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDOrDefault(resolvedPolicyID)}`);
+
+    return shouldLookup && customUnitRateID && resolvedPolicyID ? policy : undefined;
 }
 
 export default useDistanceRateOriginalPolicy;

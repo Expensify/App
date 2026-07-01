@@ -8,6 +8,12 @@ import type {OnyxEntry} from 'react-native-onyx';
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {
+    ReportSubmitToPopoverAnchor,
+    SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT,
+    useOpenReportSubmitToPopover,
+    useSearchSubmitPopoverGuard,
+} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {TransactionListItemProps, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import useLiveRowCapabilities from '@components/Search/SearchList/ListItem/useLiveRowCapabilities';
@@ -35,13 +41,26 @@ import {
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 import TransactionListItemNarrow from './TransactionListItemNarrow';
 import TransactionListItemWide from './TransactionListItemWide';
 
-function TransactionListItem<TItem extends ListItem>({
+function TransactionListItem<TItem extends ListItem>(props: TransactionListItemProps<TItem>) {
+    const reportID = 'reportID' in props.item && typeof props.item.reportID === 'string' ? props.item.reportID : undefined;
+    return (
+        <ReportSubmitToPopoverAnchor
+            reportID={reportID}
+            anchorAlignment={SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT}
+        >
+            <TransactionListItemInner {...props} />
+        </ReportSubmitToPopoverAnchor>
+    );
+}
+
+function TransactionListItemInner<TItem extends ListItem>({
     item,
     isFocused,
     showTooltip,
@@ -98,9 +117,12 @@ function TransactionListItem<TItem extends ListItem>({
 
     // Fetch policy categories directly from Onyx since they are not included in the search snapshot
     const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
+    // Fetch policy tags directly from Onyx (not in the snapshot) so the Tag GL code cell can resolve.
+    const [policyTagLists] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
 
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
     const [transactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`);
+    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(transactionItem?.report?.ownerAccountID)});
     const [transaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`);
     const [transactionViolationsForRow] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`);
     const parentReportActionID = transactionItem?.reportAction?.reportActionID;
@@ -110,7 +132,7 @@ function TransactionListItem<TItem extends ListItem>({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [parentChatReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID)}`);
     const [chatReportActions] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID ?? snapshotReport?.parentReportID)}`);
-    const {amountOwed, currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy} = useReportPaymentContext({
+    const {amountOwed, currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, delegateEmail} = useReportPaymentContext({
         reportID: transactionItem.reportID,
         chatReportPolicyID: parentChatReport?.policyID,
     });
@@ -163,6 +185,8 @@ function TransactionListItem<TItem extends ListItem>({
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
+    const openReportSubmitToPopover = useOpenReportSubmitToPopover();
+    const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
 
     const handleActionButtonPress = (event?: Parameters<typeof onSelectRow>[2]) => {
         handleActionButtonPressUtil({
@@ -171,6 +195,7 @@ function TransactionListItem<TItem extends ListItem>({
             goToItem: () => onSelectRow(item, transactionPreviewData, event),
             snapshotReport,
             snapshotPolicy,
+            submitterLogin,
             policy: parentPolicy,
             lastPaymentMethod,
             userBillingGracePeriodEnds,
@@ -181,6 +206,9 @@ function TransactionListItem<TItem extends ListItem>({
             ownerBillingGracePeriodEnd,
             amountOwed,
             onUndelete: () => onUndelete?.(transactionItem),
+            openReportSubmitToPopover,
+            shouldDisableSearchSubmitPress,
+            consumeIgnoreNextSearchSubmitPress,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
             currentUserAccountID,
             currentUserLogin,
@@ -193,6 +221,7 @@ function TransactionListItem<TItem extends ListItem>({
             iouReportCurrentNextStepDeprecated: nextStep,
             searchData: currentSearchResults?.data,
             chatReportActions,
+            delegateEmail,
         });
     };
 
@@ -213,9 +242,11 @@ function TransactionListItem<TItem extends ListItem>({
         isActionLoading,
         transactionViolations,
         handleActionButtonPress,
+        shouldDisableActionPointerEvents: shouldDisableSearchSubmitPress,
         transactionPreviewData,
         exportedReportActions,
         policyCategories,
+        policyTagLists,
         nonPersonalAndWorkspaceCards,
         isAttendeesEnabledForMovingPolicy,
     };

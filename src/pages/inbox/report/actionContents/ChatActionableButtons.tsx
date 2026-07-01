@@ -1,3 +1,4 @@
+import {createFilteredPoliciesInfoSelector} from '@selectors/Policy';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React from 'react';
 import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
@@ -57,6 +58,9 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createFilteredPoliciesInfoSelector(personalDetail.email)});
+    const filteredPoliciesCount = filteredPoliciesInfo?.filteredPoliciesCount ?? 0;
+    const firstPolicyID = filteredPoliciesInfo?.firstPolicyID;
     const trackExpenseTransactionID = isActionableTrackExpense(action) ? getOriginalMessage(action)?.transactionID : undefined;
     const [trackExpenseTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(trackExpenseTransactionID)}`);
     const delegateAccountID = useDelegateAccountID();
@@ -174,6 +178,8 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                 currentUserAccountID: personalDetail.accountID,
                 currentUserEmail: personalDetail.email ?? '',
                 currentUserLocalCurrency: personalDetail.localCurrencyCode ?? CONST.CURRENCY.USD,
+                filteredPoliciesCount,
+                firstPolicyID,
             };
             const TRACK_EXPENSE_ACTIONS = {
                 submit: CONST.IOU.ACTION.SUBMIT,

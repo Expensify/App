@@ -17,13 +17,13 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResetBankAccountModal from '@hooks/useResetBankAccountModal';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestError, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasActiveAdminWorkspaces} from '@libs/PolicyUtils';
-import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import {goToWithdrawalAccountSetupStep, openPlaidView, updateReimbursementAccountDraft} from '@userActions/BankAccounts';
 import {setDraftValues} from '@userActions/FormActions';
 import {openExternalLink} from '@userActions/Link';
@@ -202,6 +202,15 @@ function VerifiedBankAccountFlowEntryPoint({
         Navigation.goBack(isCurrentUserPolicyAdmin ? ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE : ROUTES.SETTINGS_WALLET);
     };
 
+    useResetBankAccountModal({
+        reimbursementAccount,
+        isNonUSDWorkspace,
+        setUSDBankAccountStep,
+        setShouldShowContinueSetupButton,
+        navigateAfterReset,
+        backTo,
+    });
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -309,17 +318,6 @@ function VerifiedBankAccountFlowEntryPoint({
                     </PressableWithoutFeedback>
                 </View>
             </ScrollView>
-
-            {!!reimbursementAccount?.shouldShowResetModal && (
-                <WorkspaceResetBankAccountModal
-                    reimbursementAccount={reimbursementAccount}
-                    isNonUSDWorkspace={isNonUSDWorkspace}
-                    setUSDBankAccountStep={setUSDBankAccountStep}
-                    setShouldShowContinueSetupButton={setShouldShowContinueSetupButton}
-                    navigateAfterReset={navigateAfterReset}
-                    backTo={backTo}
-                />
-            )}
         </ScreenWrapper>
     );
 }

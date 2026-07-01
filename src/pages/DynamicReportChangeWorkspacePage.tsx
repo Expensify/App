@@ -40,7 +40,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import {doesPersonalDetailExistSelector, personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {DismissedProductTraining, PersonalDetailsList} from '@src/types/onyx';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
@@ -72,6 +72,9 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const managerID = report?.managerID;
     const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsLoginSelector(ownerAccountID)(personalDetailsList),
+    });
+    const [doesSubmitterPersonalDetailExist] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => doesPersonalDetailExistSelector(ownerAccountID)(personalDetailsList),
     });
     const [managerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsLoginSelector(managerID)(personalDetailsList),
@@ -108,6 +111,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 filteredReportActions,
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 submitterLogin,
+                doesSubmitterPersonalDetailExist ?? false,
                 reportTransactions,
             );
             if (!invite?.policyExpenseChatReportID) {
@@ -151,6 +155,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             policy,
             currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: session?.email ?? '',
+            ownerLogin: submitterLogin,
             managerLogin,
             hasViolationsParam: hasViolations,
             isChangePolicyTrainingModalDismissed,

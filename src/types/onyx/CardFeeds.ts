@@ -227,6 +227,9 @@ type CardFeeds = {
         /** User-friendly feed nicknames */
         companyCardNicknames?: Partial<Record<CardFeedWithNumber, string>>;
 
+        /** Custom card names by card ID */
+        companyCardCustomNames?: Record<string, string>;
+
         /** Company cards feeds */
         companyCards?: Partial<Record<CardFeedWithNumber, CustomCardFeedData>>;
 

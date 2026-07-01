@@ -1,11 +1,10 @@
 import {useFocusEffect} from '@react-navigation/native';
+import {reportNameSelector} from '@selectors/ReportAttributes';
 import {FlashList} from '@shopify/flash-list';
-import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useCallback, useDeferredValue, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useDeferredValue, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {ViewToken} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Animated from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
@@ -19,8 +18,6 @@ import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuS
 import StatusBadge from '@components/StatusBadge';
 import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -33,14 +30,12 @@ import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {getInvoicePayerName, getReportName} from '@libs/ReportNameUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
-    getDisplayNameForParticipant,
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
-    getPolicyName,
     getReportStatusColorStyle,
+    getReportStatusTooltipTranslation,
     getReportStatusTranslation,
     getTransactionsWithReceipts,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
@@ -52,33 +47,23 @@ import {
     isSettled,
     isTripRoom as isTripRoomReportUtils,
 } from '@libs/ReportUtils';
-import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {compareByRBR} from '@libs/TransactionPreviewUtils';
-import {getCreated, hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
-import colors from '@styles/theme/colors';
+import {hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ReportAttributesDerivedValue, Transaction} from '@src/types/onyx';
+import {transactionViolationsByIDsSelector} from '@src/selectors/TransactionViolations';
+import type {ReportAttributesDerivedValue, TransactionViolations} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import AccessMoneyRequestReportPreviewPlaceHolder from './AccessMoneyRequestReportPreviewPlaceHolder';
 import EmptyMoneyRequestReportPreview from './EmptyMoneyRequestReportPreview';
 import ReportPreviewActionButton from './ReportPreviewActionButton';
 import type {MoneyRequestReportPreviewContentProps} from './types';
-
-const MAX_PREVIEWS_NUMBER = 10;
-
-const ITEM_LAYOUT_TYPE = {
-    PREVIEW: 'preview',
-    SHOW_MORE: 'showMore',
-};
-
-const reportAttributesSelector = (c: OnyxEntry<ReportAttributesDerivedValue>) => c?.reports;
+import usePreviewMessageAnimation from './usePreviewMessageAnimation';
+import useReportPreviewCarousel from './useReportPreviewCarousel';
 
 function MoneyRequestReportPreviewContent({
     iouReportID,
@@ -131,8 +116,15 @@ function MoneyRequestReportPreviewContent({
 
     const shouldShowLoading =
         chatReportLoadingState != null && chatReportLoadingState.hasOnceLoadedReportActions !== true && transactions.length === 0 && !chatReportMetadata?.isOptimisticReport;
+    const transactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
+    const selectTransactionViolations = useCallback(
+        (allViolations: OnyxCollection<TransactionViolations>) => transactionViolationsByIDsSelector(transactionIDs)(allViolations),
+        [transactionIDs],
+    );
+    // Pass `transactionIDs` as a dependency so the selector re-runs once the transactions hydrate (otherwise
+    // it stays closed over the initial empty list and violations would never be selected on first load).
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: selectTransactionViolations});
     // `hasOnceLoadedReportActions` becomes true before transactions populate fully,
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     // so we defer the loading state update to ensure transactions are loaded
     const shouldShowLoadingDeferred = useDeferredValue(shouldShowLoading);
     const lastTransaction = transactions?.at(0);
@@ -159,8 +151,7 @@ function MoneyRequestReportPreviewContent({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const currentUserDetails = useCurrentUserPersonalDetails();
-    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
+    const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -184,12 +175,14 @@ function MoneyRequestReportPreviewContent({
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
+    const [methodID, setMethodID] = useState<number>();
     const [shouldShowPayButton, setShouldShowPayButton] = useState(false);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
 
-    const handleHoldMenuOpen = (holdRequestType: string, holdPaymentType?: PaymentMethodType, canPay?: boolean) => {
+    const handleHoldMenuOpen = (holdRequestType: string, holdPaymentType?: PaymentMethodType, canPay?: boolean, holdMethodID?: number) => {
         setRequestType(holdRequestType as ActionHandledType);
         setPaymentType(holdPaymentType);
+        setMethodID(holdMethodID);
         setShouldShowPayButton(!!canPay);
         setIsHoldMenuVisible(true);
     };
@@ -198,17 +191,11 @@ function MoneyRequestReportPreviewContent({
     const {totalDisplaySpend} = getMoneyRequestSpendBreakdown(iouReport);
 
     const iouSettled = isSettled(iouReportID) || action?.childStatusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-    const previewMessageOpacity = useSharedValue(1);
-    const previewMessageStyle = useAnimatedStyle(() => ({
-        opacity: previewMessageOpacity.get(),
-    }));
-    const checkMarkScale = useSharedValue(iouSettled ? 1 : 0);
 
     const isApproved = isReportApproved({
         report: iouReport,
         parentReportAction: action,
     });
-    const thumbsUpScale = useSharedValue(isApproved ? 1 : 0);
 
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(chatReport);
     const isInvoiceRoom = isInvoiceRoomReportUtils(chatReport);
@@ -220,53 +207,16 @@ function MoneyRequestReportPreviewContent({
 
     const shouldShowRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, lastTransactionViolations);
 
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
-        selector: reportAttributesSelector,
+    const selectReportName = useCallback((attributes: OnyxEntry<ReportAttributesDerivedValue>) => reportNameSelector(attributes, iouReportID), [iouReportID]);
+    const [derivedReportName] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: selectReportName,
     });
+    const reportName = derivedReportName ?? iouReport?.reportName ?? '';
 
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
 
-    const previewMessage = useMemo(() => {
-        if (isScanning) {
-            return totalDisplaySpend ? `${translate('common.receipt')} ${CONST.DOT_SEPARATOR} ${translate('common.scanning')}` : `${translate('common.receipt')}`;
-        }
-        if (numberOfPendingRequests === 1 && numberOfRequests === 1) {
-            return `${translate('common.receipt')} ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
-        }
-        if (shouldShowRTERViolationMessage) {
-            return `${translate('common.receipt')} ${CONST.DOT_SEPARATOR} ${translate('iou.pendingMatch')}`;
-        }
-
-        let payerOrApproverName;
-        if (isPolicyExpenseChat || isTripRoom) {
-            payerOrApproverName = getPolicyName({report: chatReport, policy});
-        } else if (isInvoiceRoom) {
-            payerOrApproverName = getInvoicePayerName(chatReport, invoiceReceiverPolicy, invoiceReceiverPersonalDetail);
-        } else {
-            payerOrApproverName = getDisplayNameForParticipant({
-                accountID: managerID,
-                shouldUseShortForm: true,
-                formatPhoneNumber,
-            });
-        }
-
-        if (isApproved) {
-            return translate('iou.managerApproved', payerOrApproverName);
-        }
-        let paymentVerb: TranslationPaths = 'iou.payerOwes';
-        if (iouSettled || iouReport?.isWaitingOnBankAccount) {
-            paymentVerb = 'iou.payerPaid';
-        } else if (hasNonReimbursableTransactions) {
-            paymentVerb = 'iou.payerSpent';
-            payerOrApproverName = getDisplayNameForParticipant({
-                accountID: chatReport?.ownerAccountID,
-                shouldUseShortForm: true,
-                formatPhoneNumber,
-            });
-        }
-        return translate(paymentVerb, payerOrApproverName);
-    }, [
+    const {previewMessageStyle} = usePreviewMessageAnimation({
         isScanning,
         numberOfPendingRequests,
         numberOfRequests,
@@ -276,17 +226,18 @@ function MoneyRequestReportPreviewContent({
         isInvoiceRoom,
         isApproved,
         iouSettled,
-        iouReport?.isWaitingOnBankAccount,
+        iouReport,
         hasNonReimbursableTransactions,
-        translate,
         totalDisplaySpend,
         chatReport,
         policy,
         invoiceReceiverPolicy,
         invoiceReceiverPersonalDetail,
         managerID,
-        formatPhoneNumber,
-    ]);
+        isPaidAnimationRunning,
+        isApprovedAnimationRunning,
+        isSubmittingAnimationRunning,
+    });
 
     /*
      Show subtitle if at least one of the expenses is not being smart scanned, and either:
@@ -304,214 +255,61 @@ function MoneyRequestReportPreviewContent({
         [translate, numberOfRequests],
     );
 
+    const reportStateNum = iouReport?.stateNum ?? action?.childStateNum;
+    const reportStatusNum = iouReport?.statusNum ?? action?.childStatusNum;
+
     const reportStatus = useMemo(
         () =>
             getReportStatusTranslation({
-                stateNum: iouReport?.stateNum ?? action?.childStateNum,
-                statusNum: iouReport?.statusNum ?? action?.childStatusNum,
+                stateNum: reportStateNum,
+                statusNum: reportStatusNum,
                 translate,
             }),
-        [action?.childStateNum, action?.childStatusNum, iouReport?.stateNum, iouReport?.statusNum, translate],
+        [reportStateNum, reportStatusNum, translate],
     );
 
     const shouldShowReportStatus = !!reportStatus && !!expenseCount;
 
-    const reportStatusColorStyle = useMemo(
-        () => getReportStatusColorStyle(theme, iouReport?.stateNum ?? action?.childStateNum, iouReport?.statusNum ?? action?.childStatusNum),
-        [action?.childStateNum, action?.childStatusNum, iouReport?.stateNum, iouReport?.statusNum, theme],
+    const reportStatusColorStyle = useMemo(() => getReportStatusColorStyle(theme, reportStateNum, reportStatusNum), [reportStateNum, reportStatusNum, theme]);
+
+    const reportStatusTooltip = useMemo(
+        () =>
+            getReportStatusTooltipTranslation({
+                stateNum: reportStateNum,
+                statusNum: reportStatusNum,
+                translate,
+            }),
+        [reportStateNum, reportStatusNum, translate],
     );
 
     const totalAmountStyle = shouldUseNarrowLayout ? [styles.flexColumnReverse, styles.alignItemsStretch] : [styles.flexRow, styles.alignItemsCenter];
 
-    useEffect(() => {
-        if (!isPaidAnimationRunning || isApprovedAnimationRunning || isSubmittingAnimationRunning) {
-            return;
-        }
-
-        previewMessageOpacity.set(
-            withTiming(0.75, {duration: CONST.ANIMATION_PAID_DURATION / 2}, () => {
-                previewMessageOpacity.set(withTiming(1, {duration: CONST.ANIMATION_PAID_DURATION / 2}));
-            }),
-        );
-        // We only want to animate the text when the text changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [previewMessage, previewMessageOpacity]);
-
-    useEffect(() => {
-        if (!iouSettled) {
-            return;
-        }
-
-        checkMarkScale.set(isPaidAnimationRunning ? withDelay(CONST.ANIMATION_PAID_CHECKMARK_DELAY, withSpring(1, {duration: CONST.ANIMATION_PAID_DURATION})) : 1);
-    }, [isPaidAnimationRunning, iouSettled, checkMarkScale]);
-
-    useEffect(() => {
-        if (!isApproved) {
-            return;
-        }
-
-        thumbsUpScale.set(isApprovedAnimationRunning ? withDelay(CONST.ANIMATION_THUMBS_UP_DELAY, withSpring(1, {duration: CONST.ANIMATION_THUMBS_UP_DURATION})) : 1);
-    }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
-
-    const carouselTransactions = useMemo(() => {
-        if (shouldShowAccessPlaceHolder) {
-            return [];
-        }
-        const sorted = [...transactions].sort((a, b) => {
-            const rbrComparison = compareByRBR(a, b, transactionViolations, currentUserDetails?.login ?? '', currentUserDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID, iouReport, policy);
-            if (rbrComparison !== 0) {
-                return rbrComparison;
-            }
-            // Tiebreak by date (ascending — oldest first) so position is stable across RBR state changes
-            return localeCompare(getCreated(a), getCreated(b));
-        });
-        return sorted.slice(0, 11);
-    }, [shouldShowAccessPlaceHolder, transactions, transactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, iouReport, policy, localeCompare]);
-    const prevCarouselTransactionLength = useRef(0);
-
-    useEffect(() => {
-        return () => {
-            prevCarouselTransactionLength.current = carouselTransactions.length;
-        };
-    }, [carouselTransactions.length]);
-
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [currentVisibleItems, setCurrentVisibleItems] = useState([0]);
-    const [footerWidth, setFooterWidth] = useState(0);
-    // optimisticIndex - value for index we are scrolling to with an arrow button or undefined after scroll is completed
-    // value ensures that disabled state is applied instantly and not overridden by onViewableItemsChanged when scrolling
-    // undefined makes arrow buttons react on currentIndex changes when scrolling manually
-    const [optimisticIndex, setOptimisticIndex] = useState<number | undefined>(undefined);
-    const carouselRef = useRef<FlashListRef<Transaction> | null>(null);
-    const prevTransactionCountForScroll = useRef(carouselTransactions.length);
-    const [carouselKey, setCarouselKey] = useState(0);
-
-    // Reset carousel when transitioning from empty to non-empty data.
-    // scrollToOffset doesn't clear RecyclerListView's internal layout cache on iOS mobile web,
-    // so we force a full re-mount via key to prevent new items from rendering off-screen.
-    useEffect(() => {
-        if (carouselTransactions.length > 0 && prevTransactionCountForScroll.current === 0) {
-            setCurrentIndex(0);
-            setOptimisticIndex(undefined);
-            setCarouselKey((prev) => prev + 1);
-        }
-        prevTransactionCountForScroll.current = carouselTransactions.length;
-    }, [carouselTransactions.length]);
-
-    const visibleItemsOnEndCount = useMemo(() => {
-        const lastItemWidth = transactions.length > MAX_PREVIEWS_NUMBER ? footerWidth : reportPreviewStyles.transactionPreviewCarouselStyle.width;
-        const lastItemWithGap = lastItemWidth + styles.gap2.gap;
-        const itemWithGap = reportPreviewStyles.transactionPreviewCarouselStyle.width + styles.gap2.gap;
-        return Math.floor((currentWidth - 2 * styles.pl2.paddingLeft - lastItemWithGap) / itemWithGap) + 1;
-    }, [transactions.length, footerWidth, reportPreviewStyles.transactionPreviewCarouselStyle.width, styles.gap2.gap, styles.pl2.paddingLeft, currentWidth]);
-    const viewabilityConfig = useMemo(() => {
-        return {itemVisiblePercentThreshold: 100};
-    }, []);
-
-    const carouselTransactionsRef = useRef(carouselTransactions);
-
-    useEffect(() => {
-        carouselTransactionsRef.current = carouselTransactions;
-    }, [carouselTransactions]);
-
-    const isFocusedRef = useIsFocusedRef();
-
-    useEffect(() => {
-        const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.has(transaction.transactionID));
-
-        if (index < 0) {
-            return;
-        }
-        const newTransaction = carouselTransactions.at(index);
-        setTimeout(() => {
-            if (!isFocusedRef.current) {
-                return;
-            }
-
-            // If the new transaction is not available at the index it was on before the delay, avoid the scrolling
-            // because we are scrolling to either a wrong or unavailable transaction (which can cause crash).
-            if (newTransaction?.transactionID !== carouselTransactionsRef.current.at(index)?.transactionID) {
-                return;
-            }
-
-            carouselRef.current?.scrollToIndex({
-                index,
-                viewOffset: -2 * styles.gap2.gap,
-                animated: true,
-            });
-        }, CONST.PENDING_TRANSACTION_SCROLL_DELAY);
-
-        // We only want to scroll to a new transaction when the set of new transaction IDs changes.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [newTransactionIDs]);
-
-    const onViewableItemsChanged = useRef(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
-        const newIndex = viewableItems.at(0)?.index;
-        if (typeof newIndex === 'number') {
-            setCurrentIndex(newIndex);
-        }
-        const viewableItemsIndexes = viewableItems.map((item) => item.index).filter((item): item is number => item !== null);
-        setCurrentVisibleItems(viewableItemsIndexes);
-    }).current;
-
-    const snapOffsets = carouselTransactions.map((_, index) => index * (reportPreviewStyles.transactionPreviewCarouselStyle.width + styles.transactionsCarouselGap.width));
-
-    const handleChange = (index: number) => {
-        if (index > carouselTransactions.length - visibleItemsOnEndCount) {
-            const lastScrollableIndex = carouselTransactions.length - visibleItemsOnEndCount;
-            setOptimisticIndex(lastScrollableIndex);
-            carouselRef.current?.scrollToOffset({
-                offset: snapOffsets.at(lastScrollableIndex) ?? 0,
-                animated: true,
-            });
-            return;
-        }
-        if (index < 0) {
-            setOptimisticIndex(0);
-            carouselRef.current?.scrollToTop({animated: true});
-            return;
-        }
-        if (index === carouselTransactions.length - visibleItemsOnEndCount) {
-            setOptimisticIndex(index);
-            carouselRef.current?.scrollToEnd({animated: true});
-            return;
-        }
-        setOptimisticIndex(index);
-        carouselRef.current?.scrollToOffset({
-            offset: snapOffsets.at(index) ?? 0,
-            animated: true,
-        });
-    };
-
-    const renderItem = (itemInfo: ListRenderItemInfo<Transaction>) => {
-        if (itemInfo.index > MAX_PREVIEWS_NUMBER - 1) {
-            return (
-                <View
-                    style={[styles.p5, styles.justifyContentCenter]}
-                    onLayout={(e) => setFooterWidth(e.nativeEvent.layout.width)}
-                >
-                    <Text style={{color: colors.blue600}}>
-                        +{transactions.length - MAX_PREVIEWS_NUMBER} {translate('common.more').toLowerCase()}
-                    </Text>
-                </View>
-            );
-        }
-        return renderTransactionItem(itemInfo);
-    };
-
-    useEffect(() => {
-        if (
-            optimisticIndex === undefined ||
-            optimisticIndex !== currentIndex ||
-            // currentIndex is still the same as target (f.ex. 0), but not yet scrolled to the far left
-            (currentVisibleItems.at(0) !== optimisticIndex && optimisticIndex !== undefined) ||
-            // currentIndex reached, but not scrolled to the end
-            (optimisticIndex === carouselTransactions.length - visibleItemsOnEndCount && currentVisibleItems.length !== visibleItemsOnEndCount)
-        ) {
-            return;
-        }
-        setOptimisticIndex(undefined);
-    }, [carouselTransactions.length, currentIndex, currentVisibleItems, currentVisibleItems.length, optimisticIndex, visibleItemsOnEndCount]);
+    const {
+        carouselTransactions,
+        carouselKey,
+        setCarouselRef,
+        snapOffsets,
+        renderItem,
+        getItemType,
+        renderSeparator,
+        viewabilityConfig,
+        onViewableItemsChanged,
+        adjustScroll,
+        goToPrevious,
+        goToNext,
+        isPreviousDisabled,
+        isNextDisabled,
+    } = useReportPreviewCarousel({
+        transactions,
+        transactionViolations,
+        iouReport,
+        policy,
+        shouldShowAccessPlaceHolder,
+        reportPreviewStyles,
+        currentWidth,
+        newTransactionIDs,
+        renderTransactionItem,
+    });
 
     const openReportFromPreview = useCallback(() => {
         if (!iouReportID) {
@@ -536,24 +334,6 @@ function MoneyRequestReportPreviewContent({
     }, [iouReportID, isSmallScreenWidth]);
 
     const isReportDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
-    const adjustScroll = useCallback(() => {
-        // Workaround for a known React Native bug on Android (https://github.com/facebook/react-native/issues/27504):
-        // When the FlatList is scrolled to the end and the last item is deleted, a blank space is left behind.
-        // To fix this, we detect when onEndReached is triggered due to an item deletion,
-        // and programmatically scroll to the end to fill the space.
-        if (carouselTransactions.length >= prevCarouselTransactionLength.current || !shouldAdjustScroll) {
-            return;
-        }
-        prevCarouselTransactionLength.current = carouselTransactions.length;
-        carouselRef.current?.scrollToEnd();
-    }, [carouselTransactions.length]);
-
-    const renderSeparator = () => <View style={styles.transactionsCarouselGap} />;
-
-    const getItemType = (_item: Transaction, index: number) => {
-        return index === MAX_PREVIEWS_NUMBER ? ITEM_LAYOUT_TYPE.SHOW_MORE : ITEM_LAYOUT_TYPE.PREVIEW;
-    };
 
     let previewContent: React.ReactNode;
 
@@ -590,7 +370,7 @@ function MoneyRequestReportPreviewContent({
                     horizontal
                     ItemSeparatorComponent={renderSeparator}
                     data={carouselTransactions}
-                    ref={carouselRef}
+                    ref={setCarouselRef}
                     nestedScrollEnabled
                     bounces={false}
                     keyExtractor={(item) => `${item.transactionID}_${reportPreviewStyles.transactionPreviewCarouselStyle.width}`}
@@ -669,7 +449,7 @@ function MoneyRequestReportPreviewContent({
                                                             style={[styles.headerText]}
                                                             testID="MoneyRequestReportPreview-reportName"
                                                         >
-                                                            {getReportName(iouReport, reportAttributes) || action.childReportName}
+                                                            {reportName || action.childReportName}
                                                         </Text>
                                                     </Animated.View>
                                                 </View>
@@ -685,6 +465,7 @@ function MoneyRequestReportPreviewContent({
                                                                     backgroundColor={reportStatusColorStyle?.backgroundColor}
                                                                     textColor={reportStatusColorStyle?.textColor}
                                                                     badgeStyles={styles.mr1}
+                                                                    tooltipText={reportStatusTooltip}
                                                                 />
                                                             )}
                                                             {!shouldShowAccessPlaceHolder && <Text style={[styles.textLabelSupporting, styles.lh16]}>{expenseCount}</Text>}
@@ -699,8 +480,8 @@ function MoneyRequestReportPreviewContent({
                                                         accessible
                                                         accessibilityLabel={translate('common.previous')}
                                                         style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
-                                                        onPress={() => handleChange(currentIndex - 1)}
-                                                        disabled={optimisticIndex !== undefined ? optimisticIndex === 0 : currentIndex === 0 && currentVisibleItems.at(0) === 0}
+                                                        onPress={goToPrevious}
+                                                        disabled={isPreviousDisabled}
                                                         disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
                                                         sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.CAROUSEL_PREVIOUS}
                                                     >
@@ -716,12 +497,8 @@ function MoneyRequestReportPreviewContent({
                                                         accessible
                                                         accessibilityLabel={translate('common.next')}
                                                         style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
-                                                        onPress={() => handleChange(currentIndex + 1)}
-                                                        disabled={
-                                                            optimisticIndex
-                                                                ? optimisticIndex + visibleItemsOnEndCount >= carouselTransactions.length
-                                                                : currentVisibleItems.at(-1) === carouselTransactions.length - 1
-                                                        }
+                                                        onPress={goToNext}
+                                                        disabled={isNextDisabled}
                                                         disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
                                                         sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.CAROUSEL_NEXT}
                                                     >
@@ -742,6 +519,8 @@ function MoneyRequestReportPreviewContent({
                                             <ReportPreviewActionButton
                                                 iouReportID={iouReportID}
                                                 chatReportID={chatReportID}
+                                                chatReport={chatReport}
+                                                iouReport={iouReport}
                                                 isPaidAnimationRunning={isPaidAnimationRunning}
                                                 isApprovedAnimationRunning={isApprovedAnimationRunning}
                                                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
@@ -786,6 +565,7 @@ function MoneyRequestReportPreviewContent({
                                 onClose={() => setIsHoldMenuVisible(false)}
                                 isVisible={isHoldMenuVisible}
                                 paymentType={paymentType}
+                                methodID={methodID}
                                 chatReport={chatReport}
                                 moneyRequestReport={iouReport}
                                 transactionCount={numberOfRequests}
