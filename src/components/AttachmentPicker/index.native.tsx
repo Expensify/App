@@ -19,6 +19,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanFileName, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
+import getBoundedImageResize from '@libs/getBoundedImageResize';
 import Log from '@libs/Log';
 import moveReceiptToDurableStorage from '@libs/moveReceiptToDurableStorage';
 import CONST from '@src/CONST';
@@ -234,8 +235,16 @@ function AttachmentPicker({
                                 .then((isHEIC) => {
                                     // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
                                     if (isHEIC && asset.uri) {
-                                        ImageManipulator.manipulate(asset.uri)
-                                            .renderAsync()
+                                        const sourceUri = asset.uri;
+                                        // Bound the decode dimensions before rendering so a full-resolution HEIC bitmap can't OOM iOS (no-op off iOS).
+                                        getBoundedImageResize(sourceUri)
+                                            .then((resize) => {
+                                                const imageManipulatorContext = ImageManipulator.manipulate(sourceUri);
+                                                if (resize) {
+                                                    imageManipulatorContext.resize(resize);
+                                                }
+                                                return imageManipulatorContext.renderAsync();
+                                            })
                                             .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.JPEG}))
                                             .then((manipulationResult) => {
                                                 const uri = manipulationResult.uri;
