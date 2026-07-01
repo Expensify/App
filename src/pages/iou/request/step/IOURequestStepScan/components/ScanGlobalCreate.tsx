@@ -131,7 +131,7 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
         navigateGlobalCreate(ids);
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
+    const {validateFiles, PDFValidationComponent} = useFilesValidation((files: FileObject[]) => {
         processReceipts(files);
     });
 
@@ -153,7 +153,6 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
                 onMultiScanSubmit={submitMultiScan}
                 shouldAcceptMultipleFiles
             />
-            {ErrorModal}
         </>
     );
 }

@@ -69,7 +69,7 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
         navigateBack();
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
+    const {validateFiles, PDFValidationComponent} = useFilesValidation((files: FileObject[]) => {
         const file = files.at(0);
         if (!file) {
             return;
@@ -92,7 +92,6 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
                 onAttachmentPickerStatusChange={setIsLoaderVisible}
                 isReplacingReceipt
             />
-            {ErrorModal}
         </StepScreenDragAndDropWrapper>
     );
 }

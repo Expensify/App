@@ -50,7 +50,7 @@ function useAttachmentPicker(reportID: string) {
         Navigation.navigate(ROUTES.REPORT_ADD_ATTACHMENT.getRoute(reportID));
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(onFilesValidated);
+    const {validateFiles, PDFValidationComponent} = useFilesValidation(onFilesValidated);
 
     const pickAttachments = ({dragEvent, files}: {dragEvent?: DragEvent; files?: FileObject | FileObject[]}) => {
         if (isAttachmentPreviewActive) {
@@ -94,7 +94,7 @@ function useAttachmentPicker(reportID: string) {
         validateFiles(fileObjects, filteredItems, {isValidatingReceipts: false});
     };
 
-    return {pickAttachments, PDFValidationComponent, ErrorModal};
+    return {pickAttachments, PDFValidationComponent};
 }
 
 export default useAttachmentPicker;

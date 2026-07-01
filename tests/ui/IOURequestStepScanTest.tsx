@@ -45,7 +45,6 @@ jest.mock('@hooks/useFilesValidation', () => {
         return {
             validateFiles: (files: FileObject[]) => callback(files),
             PDFValidationComponent: ReactLib.createElement(ReactLib.Fragment),
-            ErrorModal: ReactLib.createElement(ReactLib.Fragment),
         };
     };
 });

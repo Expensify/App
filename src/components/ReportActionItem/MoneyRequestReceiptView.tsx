@@ -252,7 +252,7 @@ function MoneyRequestReceiptView({
         });
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal: AttachmentErrorModal} = useFilesValidation(onAttachmentFilesValidated);
+    const {validateFiles, PDFValidationComponent} = useFilesValidation(onAttachmentFilesValidated);
 
     const iouType = useMemo(() => {
         if (isTrackExpense) {
@@ -744,7 +744,6 @@ function MoneyRequestReceiptView({
             )}
             {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
             {!hasReceiptUploadError && !!shouldShowAuditMessage && !hasReceipt && receiptAuditMessagesRow}
-            {AttachmentErrorModal}
             {PDFValidationComponent}
         </View>
     );

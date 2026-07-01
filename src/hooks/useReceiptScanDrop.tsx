@@ -1,5 +1,5 @@
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {useMemo} from 'react';
+import {useMemo} from 'react';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -107,7 +107,7 @@ function useReceiptScanDrop() {
         }
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(saveFileAndInitMoneyRequest);
+    const {validateFiles, PDFValidationComponent} = useFilesValidation(saveFileAndInitMoneyRequest);
 
     const initScanRequest = (e: DragEvent) => {
         const files = Array.from(e?.dataTransfer?.files ?? []);
@@ -122,14 +122,7 @@ function useReceiptScanDrop() {
         validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
     };
 
-    const auxiliaryUI = (
-        <>
-            {PDFValidationComponent}
-            {ErrorModal}
-        </>
-    );
-
-    return {initScanRequest, auxiliaryUI, isDragDisabled: isAnonymousUser};
+    return {initScanRequest, auxiliaryUI: PDFValidationComponent, isDragDisabled: isAnonymousUser};
 }
 
 export default useReceiptScanDrop;

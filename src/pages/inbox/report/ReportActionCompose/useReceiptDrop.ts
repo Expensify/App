@@ -96,7 +96,7 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
         );
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(onFilesValidated);
+    const {validateFiles, PDFValidationComponent} = useFilesValidation(onFilesValidated);
 
     const onReceiptDropped = (e: DragEvent) => {
         if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)) {
@@ -120,7 +120,7 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
         validateFiles(files, items, {isValidatingReceipts: true});
     };
 
-    return {onReceiptDropped, PDFValidationComponent, ErrorModal};
+    return {onReceiptDropped, PDFValidationComponent};
 }
 
 export default useReceiptDrop;

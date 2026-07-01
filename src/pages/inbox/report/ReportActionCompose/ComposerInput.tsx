@@ -39,7 +39,7 @@ function ComposerInput() {
     const {containerRef, suggestionsRef, isNextModalWillOpenRef} = useComposerMeta();
 
     const {submitDraftAndClearComposer, validateAndSubmitDraft} = useComposerSubmit(reportID);
-    const {pickAttachments, PDFValidationComponent, ErrorModal} = useAttachmentPicker(reportID);
+    const {pickAttachments, PDFValidationComponent} = useAttachmentPicker(reportID);
 
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
@@ -102,7 +102,6 @@ function ComposerInput() {
                 forwardedFSClass={fsClass}
             />
             {PDFValidationComponent}
-            {ErrorModal}
         </>
     );
 }
