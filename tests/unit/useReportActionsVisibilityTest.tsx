@@ -7,6 +7,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions} from '@src/types/onyx';
+import getOnyxValue from '../utils/getOnyxValue';
 import {getFakeReportAction} from '../utils/ReportTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -120,5 +121,39 @@ describe('useReportActionsVisibility scopes VISIBLE_REPORT_ACTIONS per report', 
         expect(renders).toBeGreaterThan(rendersBefore);
 
         unmount();
+    });
+});
+
+describe('VISIBLE_REPORT_ACTIONS reflects deleted report actions', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+        initOnyxDerivedValues();
+    });
+
+    beforeEach(async () => {
+        await Onyx.clear();
+        TestHelper.signInWithTestUser(1, 'test@test.com');
+        await waitForBatchedUpdates();
+    });
+
+    it('drops a deleted action from the derived value via the incremental delta path', async () => {
+        // Given a report with two visible actions (so the derived value has a cached entry to update incrementally)
+        await setReportActions(REPORT_A, buildActions('a1', 'a2'));
+        await waitForBatchedUpdates();
+
+        const visibleBefore = await getOnyxValue(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+        expect(Object.keys(visibleBefore?.[REPORT_A] ?? {}).sort()).toEqual(['a1', 'a2']);
+
+        // When one action is deleted (a null tombstone merge, exactly how report action deletion works)
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_A}`, {a1: null});
+            await waitForBatchedUpdates();
+        });
+
+        // Then the deleted action is gone from the derived visibility map (not left stale).
+        // The member-level delta no longer carries the per-action `null`, so this only passes
+        // because the changed report is rebuilt from its full current action set.
+        const visibleAfter = await getOnyxValue(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+        expect(Object.keys(visibleAfter?.[REPORT_A] ?? {})).toEqual(['a2']);
     });
 });

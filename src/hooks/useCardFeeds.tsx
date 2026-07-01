@@ -1,4 +1,4 @@
-import type {OnyxCollection, ResultMetadata} from 'react-native-onyx';
+import type {ResultMetadata} from 'react-native-onyx';
 import {getCombinedCardFeedsFromAllFeeds, getWorkspaceCardFeedsStatus} from '@libs/CardFeedUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,7 +23,7 @@ import useWorkspaceAccountID from './useWorkspaceAccountID';
  *     4. Card feed status by domain ID.
  *     5. Workspace account ID for the policy.
  */
-const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefined, ResultMetadata<OnyxCollection<CardFeeds>>, CardFeeds | undefined, CardFeedsStatusByDomainID, number] => {
+const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefined, ResultMetadata, CardFeeds | undefined, CardFeedsStatusByDomainID, number] => {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [allFeeds, allFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
