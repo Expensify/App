@@ -1,13 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return -- jest.mock factories delegate to require()'d helpers, which resolve as `any`. */
-import {screen} from '@testing-library/react-native';
+import {act, fireEvent, screen} from '@testing-library/react-native';
+import {MFA_TEST_SCENARIO_NAME} from 'tests/utils/mfa/flowFixtures';
 import getWalkedPaths from 'tests/utils/mfa/flowPaths';
 import getSettleableLeafStates from 'tests/utils/mfa/reachableStates';
-import {mfaEventExecutors, renderMfaUi} from 'tests/utils/mfa/realUi/harness';
-import {resetMfaUiMocks} from 'tests/utils/mfa/realUi/mocks';
+import {getMfaControls, renderMfaUi} from 'tests/utils/mfa/realUi/harness';
+import {pendingModalClose, resetMfaUiMocks} from 'tests/utils/mfa/realUi/mocks';
 import waitForBatchedUpdatesWithAct from 'tests/utils/waitForBatchedUpdatesWithAct';
 import {matchesState} from 'xstate';
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
-import {resetMfaNavigation} from '@components/MultifactorAuthentication/mfaNavigation';
+import type {MfaEvent} from '@components/MultifactorAuthentication/machine/types';
+import {handleInitialScreenLayout, resetMfaNavigation} from '@components/MultifactorAuthentication/mfaNavigation';
 import CONST from '@src/CONST';
 
 // This mock forces a wide layout so the navigator renders the backdrop used as the mounted marker.
@@ -26,7 +28,40 @@ jest.mock('@libs/Navigation/Navigation', () => require('tests/utils/mfa/realUi/m
 const OUTCOME_SCREEN_TEST_ID = 'OutcomeScreenBase';
 const MODAL_OVERLAY_LABEL = 'Close';
 
+// This stable testID keeps the test independent of translated button text.
+const CONFIRM_BUTTON_TEST_ID = 'MultifactorAuthenticationOutcomeConfirmButton';
+
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
+
+type MfaEventType = MfaEvent['type'];
+type MfaEventExecutor = () => Promise<void>;
+
+/**
+ * `INIT` enters through the public API, while `MODAL_CLOSED` runs the navigator's teardown callback.
+ * `satisfies Record<MfaEventType, ...>` requires an explicit executor for every machine event.
+ */
+/* eslint-disable @typescript-eslint/naming-convention -- keys mirror the machine's event type union. */
+const mfaEventExecutors = {
+    INIT: async () => {
+        await act(async () => {
+            await getMfaControls().executeScenario(MFA_TEST_SCENARIO_NAME);
+        });
+        await waitForBatchedUpdatesWithAct();
+        // The initial screen's `onLayout` does not fire in jsdom, so the test calls the same handler to flush the
+        // buffered navigation.
+        act(() => handleInitialScreenLayout());
+        await waitForBatchedUpdatesWithAct();
+    },
+    CLOSE_MODAL: async () => {
+        fireEvent.press(screen.getByTestId(CONFIRM_BUTTON_TEST_ID));
+        await waitForBatchedUpdatesWithAct();
+    },
+    MODAL_CLOSED: async () => {
+        act(() => pendingModalClose.run());
+        await waitForBatchedUpdatesWithAct();
+    },
+} satisfies Record<MfaEventType, MfaEventExecutor>;
+/* eslint-enable @typescript-eslint/naming-convention */
 
 // Dot-path state keys let `matchesState` target nested leaves such as `open.outcome.success`.
 const testConfig = {
