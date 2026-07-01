@@ -114,6 +114,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
 
@@ -301,6 +302,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         const sortInput = filteredData as Parameters<typeof getSortedSections>[2];
         return getSortedSections(type, status, sortInput, localeCompare, translate, sortBy, sortOrder, validGroupBy, {
             policyCategories,
+            policyTags,
             fallbackPolicyID: policyForMovingExpensesID,
         }).map((item) => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- chat variant rows are report actions
@@ -339,6 +341,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         sortOrder,
         validGroupBy,
         policyCategories,
+        policyTags,
         policyForMovingExpensesID,
         isChat,
         newSearchResultKeys,
@@ -363,7 +366,6 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
             type: searchDataType,
             groupBy: validGroupBy,
             shouldUseStrictDefaultExpenseColumns: currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && isDefaultExpensesQuery(queryJSON),
-            policyCategories,
             fallbackPolicyID: policyForMovingExpensesID,
         });
     })();

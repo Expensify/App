@@ -178,6 +178,7 @@ type GetIouParamsInput = {
     parentReportAction: OnyxEntry<ReportAction>;
     transactionThreadReport: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
+    policyForTrackExpense?: OnyxEntry<Policy>;
     policyCategories: OnyxEntry<PolicyCategories>;
     policyTags: OnyxEntry<PolicyTagLists>;
     policyRecentlyUsedCategories: OnyxEntry<RecentlyUsedCategories>;
@@ -185,6 +186,7 @@ type GetIouParamsInput = {
     parentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     isSelfTourViewed: boolean | undefined;
     hasCompletedGuidedSetupFlow: boolean | undefined;
+    distanceOriginalPolicy?: OnyxEntry<Policy>;
 };
 
 type TransactionInlineEditParams = GetIouParamsInput & {
@@ -205,6 +207,7 @@ function getIouParamsForTransaction({
     parentReportAction,
     transactionThreadReport,
     policy,
+    policyForTrackExpense,
     policyCategories,
     policyTags,
     policyRecentlyUsedCategories,
@@ -267,6 +270,7 @@ function getIouParamsForTransaction({
         transactionThreadReport: resolvedTransactionThreadReport,
         parentReport: resolvedParentReport,
         policy,
+        policyForTrackExpense,
         policyCategories,
         parentReportNextStep,
         currentUserAccountIDParam: currentUserAccountID,
@@ -294,6 +298,7 @@ function editTransactionDateInline(params: TransactionInlineEditParams, newDate:
         transactionViolations: allTransactionViolations,
         isOffline: params.isOffline,
         hash: params.hash,
+        distanceOriginalPolicy: params.distanceOriginalPolicy,
     });
 }
 

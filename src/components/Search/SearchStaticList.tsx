@@ -31,7 +31,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Navigation from '@libs/Navigation/Navigation';
-import {getReportStatusColorStyle, getReportStatusTranslation, isOneTransactionReport} from '@libs/ReportUtils';
+import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, isOneTransactionReport} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -181,6 +181,7 @@ function SearchStaticList({
         const statusNum = item.report?.statusNum;
         const statusText = getReportStatusTranslation({stateNum, statusNum, translate});
         const reportStatusColorStyle = getReportStatusColorStyle(theme, stateNum, statusNum);
+        const statusTooltipText = getReportStatusTooltipTranslation({stateNum, statusNum, translate});
 
         return (
             <PressableWithoutFeedback
@@ -222,6 +223,7 @@ function SearchStaticList({
                                     text={statusText}
                                     backgroundColor={reportStatusColorStyle.backgroundColor}
                                     textColor={reportStatusColorStyle.textColor}
+                                    tooltipText={statusTooltipText}
                                 />
                             )}
                         </View>

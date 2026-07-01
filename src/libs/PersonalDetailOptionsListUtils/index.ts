@@ -66,7 +66,12 @@ function createOption(
     result.keyForList = String(personalDetail.accountID);
     result.alternateText = formatPhoneNumber(personalDetail.login ?? '');
 
-    result.text = getDisplayNameForParticipant({accountID: personalDetail.accountID, formatPhoneNumber}) || formatPhoneNumber(personalDetail.login ?? '');
+    result.text =
+        getDisplayNameForParticipant({
+            accountID: personalDetail.accountID,
+            formatPhoneNumber,
+            personalDetailsData: {[personalDetail.accountID]: personalDetail},
+        }) || formatPhoneNumber(personalDetail.login ?? '');
     result.icons = [
         {
             id: personalDetail.accountID,

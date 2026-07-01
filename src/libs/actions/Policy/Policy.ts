@@ -1576,6 +1576,7 @@ function createPolicyExpenseChats(
     reportActionsList?: OnyxCollection<ReportActions>,
     hasOutstandingChildRequest = false,
     notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+    doesPersonalDetailExistByAccountID?: Record<number, boolean>,
 ): WorkspaceMembersChats {
     const {accountID: currentUserAccountID, displayName: currentUserDisplayName, email: currentUserEmail, avatar: currentUserAvatar} = currentUser;
     const workspaceMembersChats: WorkspaceMembersChats = {
@@ -1708,7 +1709,7 @@ function createPolicyExpenseChats(
                         createChat: null,
                     },
                     participants: {
-                        [accountID]: deprecatedAllPersonalDetails?.[accountID] ? {} : null,
+                        [accountID]: (doesPersonalDetailExistByAccountID?.[accountID] ?? !!deprecatedAllPersonalDetails?.[accountID]) ? {} : null,
                     },
                 },
             },
