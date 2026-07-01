@@ -421,7 +421,7 @@ function updateRilletDefaultVendor(policyID: string, vendorID: RilletExport['def
 }
 
 function updateRilletCreditCardAccount(policyID: string, creditCardAccountID: RilletExport['creditCardAccountCode'], oldCreditCardAccountID?: RilletExport['creditCardAccountCode']) {
-    const onyxData = prepareRilletExportOptimisticData(policyID, CONST.RILLET_CONFIG.DEFAULT_VENDORID, creditCardAccountID, oldCreditCardAccountID ?? null);
+    const onyxData = prepareRilletExportOptimisticData(policyID, CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE, creditCardAccountID, oldCreditCardAccountID ?? null);
     const parameters: UpdateRilletCreditCardAccountParams = {
         policyID,
         creditCardAccountID,
