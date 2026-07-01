@@ -214,13 +214,9 @@ function useSelectionModeReportActions({
         confirmApproval,
     });
 
-    // Wrap payment select with InteractionManager for mobile performance
-    // Note: shouldBlockAction is checked synchronously for immediate modal feedback,
-    // and also inside basePaymentSelect (for the desktop path that uses it directly).
+    // Defer payment select until the popover dismiss animation completes. shouldBlockAction inside
+    // basePaymentSelect defers blocking modals for the same reason (iOS modal-on-modal freeze).
     const onSelectionModePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
-        if (shouldBlockAction(iouPaymentType)) {
-            return;
-        }
         InteractionManager.runAfterInteractions(() => {
             basePaymentSelect(event, iouPaymentType, triggerKYCFlow);
         });

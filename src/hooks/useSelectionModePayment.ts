@@ -11,6 +11,7 @@ import {useSearchQueryContext, useSearchResultsContext} from '@components/Search
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
+import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -121,15 +122,15 @@ function useSelectionModePayment({
 
     const shouldBlockAction = (paymentMethodType?: PaymentMethodType) => {
         if (isDelegateAccessRestricted) {
-            showDelegateNoAccessModal();
+            deferModalPresentationAfterPopoverDismiss(showDelegateNoAccessModal);
             return true;
         }
         if (isAccountLocked) {
-            showLockedAccountModal();
+            deferModalPresentationAfterPopoverDismiss(showLockedAccountModal);
             return true;
         }
         if (!isUserValidated && paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+            deferModalPresentationAfterPopoverDismiss(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path)));
             return true;
         }
         return false;
