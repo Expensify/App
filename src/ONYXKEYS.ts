@@ -453,6 +453,10 @@ const ONYXKEYS = {
     /** The report ID of the public room that the user is currently viewing */
     VIEWING_PUBLIC_ROOM_REPORT_ID: 'ViewingPublicRoomReportID',
 
+    /** ReportID for the signed-out public-room deeplink currently being opened (#82013). Lets the
+     * ReportsSplitNavigator keep that room focused instead of defaulting to the last-accessed (Concierge) report. */
+    RAM_ONLY_PENDING_PUBLIC_ROOM_DEEPLINK_REPORT_ID: 'pendingPublicRoomDeepLinkReportID',
+
     /** A map of the user's security group IDs they belong to in specific domains */
     MY_DOMAIN_SECURITY_GROUPS: 'myDomainSecurityGroups',
 
@@ -1551,6 +1555,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_BETA]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM]: boolean;
     [ONYXKEYS.VIEWING_PUBLIC_ROOM_REPORT_ID]: string;
+    [ONYXKEYS.RAM_ONLY_PENDING_PUBLIC_ROOM_DEEPLINK_REPORT_ID]: string;
     [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: Record<string, string>;
     [ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE]: string[];
     [ONYXKEYS.VERIFY_3DS_SUBSCRIPTION]: string;

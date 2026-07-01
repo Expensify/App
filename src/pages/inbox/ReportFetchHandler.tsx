@@ -29,6 +29,7 @@ import {
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
+import {clearPendingPublicRoomDeepLink} from '@userActions/Link';
 import {
     clearStaleDMRecoveryTargetByTargetReportID,
     createTransactionThreadReport,
@@ -95,11 +96,24 @@ function ReportFetchHandler() {
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    const [pendingPublicRoomReportID] = useOnyx(ONYXKEYS.RAM_ONLY_PENDING_PUBLIC_ROOM_DEEPLINK_REPORT_ID);
     const prevIsLoadingReportData = usePrevious(isLoadingReportData);
     const [viewingPublicRoomReportID] = useOnyx(ONYXKEYS.VIEWING_PUBLIC_ROOM_REPORT_ID);
 
     const reportID = reportOnyx?.reportID;
     const report = reportOnyx;
+
+    // FIX #82013: Keep the pending public-room deeplink reportID for the whole anonymous session so the
+    // deeplinked room stays focused through the auth/OpenApp re-resolutions that would otherwise let
+    // ReportsSplitNavigator default to the last-accessed (Concierge) report. Clear it only once the user
+    // signs in to a real (non-anonymous) account, so it no longer affects their default report selection.
+    // (It is RAM-only, so it is also dropped on app restart.)
+    useEffect(() => {
+        if (!pendingPublicRoomReportID || isAnonymousUser) {
+            return;
+        }
+        clearPendingPublicRoomDeepLink();
+    }, [pendingPublicRoomReportID, isAnonymousUser]);
 
     const {reportActions: unfilteredReportActions, linkedAction} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);

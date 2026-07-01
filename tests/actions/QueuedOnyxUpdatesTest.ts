@@ -1,6 +1,7 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {flushQueue, queueOnyxUpdates} from '@libs/actions/QueuedOnyxUpdates';
+import {clear, flushQueue, isEmpty, queueOnyxUpdates} from '@libs/actions/QueuedOnyxUpdates';
+import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -178,6 +179,84 @@ describe('actions/QueuedOnyxUpdates', () => {
                     },
                 });
             });
+        });
+
+        it('should NOT filter report data when the batch itself establishes an anonymous session (#82013)', async () => {
+            // Signed-out public-room deeplink flow: at flush time currentAccountID is still undefined because
+            // the anonymous SESSION update that sets it is inside this same batch. The report data belongs to
+            // that newly-established anonymous session, so it must be preserved (not dropped by the stale-data
+            // filter) — otherwise the deeplink has no report data to navigate to and the flow hangs.
+            const reportActionID = '4135522899867010163';
+            const anonymousSessionUpdates: Array<OnyxUpdate<typeof ONYXKEYS.SESSION | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+                {
+                    key: ONYXKEYS.SESSION,
+                    value: {
+                        accountID: 18748326,
+                        authToken: 'anonymousAuthToken',
+                        authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS,
+                        encryptedAuthToken: 'testEncryptedAuthToken',
+                    },
+                    onyxMethod: 'merge',
+                },
+                {key: `${ONYXKEYS.COLLECTION.REPORT}2175919089355165`, value: {reportID: 'reportID'}, onyxMethod: 'merge'},
+                {
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2175919089355165`,
+                    value: {[reportActionID]: {reportActionID}},
+                    onyxMethod: 'merge',
+                },
+            ];
+
+            await queueOnyxUpdates(anonymousSessionUpdates);
+            // Clear the session so currentAccountID is undefined at flush time, reproducing the signed-out state.
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: null,
+            });
+
+            await flushQueue();
+
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}2175919089355165`,
+                    waitForCollectionCallback: false,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        expect(report).toEqual({reportID: 'reportID'});
+
+                        resolve();
+                    },
+                });
+            });
+
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2175919089355165`,
+                    waitForCollectionCallback: false,
+                    callback: (reportActions) => {
+                        Onyx.disconnect(connection);
+                        expect(reportActions).toEqual({[reportActionID]: {reportActionID}});
+
+                        resolve();
+                    },
+                });
+            });
+        });
+    });
+
+    describe('clear', () => {
+        it('empties the queue so buffered old-account updates are dropped on sign-out (#82013)', async () => {
+            // Given old-account updates buffered before sign-out
+            const oldUpdates: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
+                {key: `${ONYXKEYS.COLLECTION.REPORT}9999999999999999`, value: {reportID: 'oldReport'}, onyxMethod: 'merge'},
+            ];
+            await queueOnyxUpdates(oldUpdates);
+            expect(isEmpty()).toBe(false);
+
+            // When the session is cleaned up on sign-out (cleanupSession() calls QueuedOnyxUpdates.clear())
+            clear();
+
+            // Then the buffer is empty, so the old-account update can never ride through the anonymous-session
+            // stale-data-filter bypass in flushQueue() during a later signed-out deeplink flow.
+            expect(isEmpty()).toBe(true);
         });
     });
 });

@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import Onyx from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
@@ -19,6 +20,16 @@ import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 const loadReportScreen = () => require<ReactComponentModule>('@pages/inbox/ReportScreen').default;
 const loadSidebarScreen = () => require<ReactComponentModule>('@pages/inbox/sidebar/BaseSidebarScreen').default;
 const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
+
+// FIX #82013: track the pending signed-out public-room deeplink reportID via a module-level listener
+// (not useOnyx) so it is available synchronously inside the initialReportID useState initializer below.
+let pendingPublicRoomDeepLinkReportID: string | undefined;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.RAM_ONLY_PENDING_PUBLIC_ROOM_DEEPLINK_REPORT_ID,
+    callback: (value) => {
+        pendingPublicRoomDeepLinkReportID = value ?? undefined;
+    },
+});
 
 /**
  * This SplitNavigator includes the HOME screen (<BaseSidebarScreen /> component) with a list of reports as a sidebar screen and the REPORT screen displayed as a central one.
@@ -49,6 +60,14 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<TabNavigatorPar
         // Returning an empty string here will cause ReportScreen to skip the `openReport` call initially.
         if (isTransitioning) {
             return '';
+        }
+
+        // FIX #82013: While a signed-out public-room deeplink is being opened, keep that room focused
+        // instead of defaulting to the last-accessed report (which is Concierge for a fresh anonymous
+        // user). Without this, once OpenApp/auth settle and this navigator re-resolves without the
+        // reportID in its route params, findLastAccessedReport() picks Concierge and overrides the room.
+        if (pendingPublicRoomDeepLinkReportID) {
+            return pendingPublicRoomDeepLinkReportID;
         }
 
         const initialReport = ReportUtils.findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), isOpenOnAdminRoom, undefined, reportNameValuePairs);

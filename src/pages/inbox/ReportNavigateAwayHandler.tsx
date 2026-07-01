@@ -70,6 +70,7 @@ function ReportNavigateAwayHandler() {
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const isSelfTourViewed = onboarding?.selfTourViewed;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [pendingPublicRoomReportID] = useOnyx(ONYXKEYS.RAM_ONLY_PENDING_PUBLIC_ROOM_DEEPLINK_REPORT_ID);
 
     const parentReportAction = useParentReportAction(report);
     const deletedParentAction = isDeletedParentAction(parentReportAction);
@@ -91,6 +92,13 @@ function ReportNavigateAwayHandler() {
 
     // Navigation action that reads non-reactive context (concierge params, modal state, etc.)
     const navigateAwayFromReport = useEffectEvent((prevOnyxReportID: string | undefined, prevParentReportID: string | undefined) => {
+        // FIX #82013: never navigate away from a signed-out public-room deeplink while it is still being
+        // opened. The anonymous OpenApp settling can briefly make this report look removed/closed and
+        // spuriously trigger a navigate-away to Concierge ~tens of seconds after the room is shown
+        // ("room flashes then Concierge"). The pending key is cleared once the user signs in.
+        if (pendingPublicRoomReportID && reportIDFromRoute === pendingPublicRoomReportID) {
+            return;
+        }
         const currentRoute = navigationRef.getCurrentRoute();
         const topmostReportIDInSearchRHP = Navigation.getTopmostSearchReportID();
         const isTopmostSearchReportID = reportIDFromRoute === topmostReportIDInSearchRHP;
@@ -196,6 +204,11 @@ function ReportNavigateAwayHandler() {
             return;
         }
 
+        // FIX #82013: don't navigate away from a public-room deeplink being opened (see navigateAwayFromReport).
+        if (pendingPublicRoomReportID && reportIDFromRoute === pendingPublicRoomReportID) {
+            return;
+        }
+
         // Only redirect if focused
         if (!isFocused) {
             return;
@@ -224,7 +237,7 @@ function ReportNavigateAwayHandler() {
         Navigation.isNavigationReady().then(() => {
             navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
         });
-    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas]);
+    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, pendingPublicRoomReportID, reportIDFromRoute]);
 
     return null;
 }
