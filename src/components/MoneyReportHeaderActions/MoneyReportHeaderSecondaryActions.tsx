@@ -5,7 +5,7 @@ import React, {useContext, useEffect} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
-import type {ButtonWithDropdownMenuRef, DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import type {ButtonWithDropdownMenuRef} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import MoneyReportHeaderKYCDropdown from '@components/MoneyReportHeaderKYCDropdown';
@@ -16,7 +16,6 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {ReportSubmitToPopoverAnchor} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
-import ShowAuditTrailToggle from '@components/ShowAuditTrailToggle';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -384,23 +383,10 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         },
     };
 
-    const sortedSecondaryActions = sortAndSectionPopoverMenuItems(
+    const applicableSecondaryActions = sortAndSectionPopoverMenuItems(
         secondaryActions.map((action) => secondaryActionsImplementation[action]).filter((action) => action?.shouldShow !== false && action?.value !== primaryAction),
         REPORT_MORE_MENU_SECTIONS,
     );
-
-    // A non-interactive toggle row pinned to the bottom of the More menu, separated by a divider. The Switch owns its own state.
-    const showAuditTrailAction: DropdownOption<string> = {
-        value: 'showAuditTrail',
-        text: translate('reportDetailsPage.showAuditTrail'),
-        interactive: false,
-        shouldShowBasicTitle: true,
-        shouldShowRightComponent: true,
-        rightComponent: <ShowAuditTrailToggle />,
-        addSeparatorBefore: true,
-        shouldCloseModalOnSelect: false,
-    };
-    const applicableSecondaryActions = sortedSecondaryActions.length ? [...sortedSecondaryActions, showAuditTrailAction] : sortedSecondaryActions;
 
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
 

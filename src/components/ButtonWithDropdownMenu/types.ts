@@ -1,4 +1,4 @@
-import type {ReactNode, RefObject} from 'react';
+import type {RefObject} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -59,15 +59,6 @@ type DropdownOption<TValueType> = WithSentryLabel & {
 
     /** Whether to ignore compact popover menu styling for this item */
     shouldIgnoreCompactStyle?: boolean;
-
-    /** Whether to show the right component */
-    shouldShowRightComponent?: boolean;
-
-    /** Component to display on the right side of the option */
-    rightComponent?: ReactNode;
-
-    /** Whether to render the title in normal weight instead of bold */
-    shouldShowBasicTitle?: boolean;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {

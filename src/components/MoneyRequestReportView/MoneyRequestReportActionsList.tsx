@@ -5,6 +5,7 @@ import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, ListRenderItemInfo, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, View} from 'react-native';
+import CommentsAuditTrailMenu from '@components/CommentsAuditTrailMenu';
 import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
 import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -756,6 +757,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                                         isLoadingInitialReportActions={showReportActionsLoadingState}
                                     />
                                 )}
+                                <CommentsAuditTrailMenu />
                             </>
                         }
                         keyboardShouldPersistTaps="handled"
