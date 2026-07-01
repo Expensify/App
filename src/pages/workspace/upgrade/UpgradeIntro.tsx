@@ -1,6 +1,6 @@
 import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
@@ -185,17 +185,18 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                 </View>
                 <Button
                     isLoading={loading}
-                    text={
-                        isSubmitPolicy && feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.id
-                            ? translate('workspace.upgrade.expensifyCard.upgradeButton')
-                            : translate('common.upgrade')
-                    }
                     testID="upgrade-button"
-                    success
+                    variant="success"
                     onPress={onUpgrade}
                     isDisabled={buttonDisabled}
-                    large
-                />
+                    size={CONST.BUTTON_SIZE.LARGE}
+                >
+                    <Button.Text>
+                        {isSubmitPolicy && feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.id
+                            ? translate('workspace.upgrade.expensifyCard.upgradeButton')
+                            : translate('common.upgrade')}
+                    </Button.Text>
+                </Button>
             </View>
             <View style={[styles.mt6, styles.renderHTML]}>
                 <RenderHTML html={translate('workspace.upgrade.note', subscriptionLink)} />

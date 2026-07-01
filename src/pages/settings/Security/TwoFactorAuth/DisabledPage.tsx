@@ -1,5 +1,5 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -36,11 +36,12 @@ function DisabledPage() {
             />
             <FixedFooter style={[styles.flexGrow0]}>
                 <Button
-                    success
-                    large
-                    text={translate('common.buttonConfirm')}
+                    variant="success"
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={() => quitAndNavigateBack(ROUTES.SETTINGS_SECURITY)}
-                />
+                >
+                    <Button.Text>{translate('common.buttonConfirm')}</Button.Text>
+                </Button>
             </FixedFooter>
         </TwoFactorAuthWrapper>
     );

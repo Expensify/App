@@ -1,4 +1,6 @@
-import Button from '@components/Button';
+import React, {useState} from 'react';
+import {View} from 'react-native';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import Section from '@components/Section';
 import Text from '@components/Text';
@@ -36,11 +38,12 @@ function SubscriptionPlan() {
                     {translate('subscription.yourPlan.title')}
                 </Text>
                 <Button
-                    small
-                    text={translate('subscription.yourPlan.exploreAllPlans')}
+                    size={CONST.BUTTON_SIZE.SMALL}
                     onPress={() => setIsModalVisible(true)}
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.EXPLORE_PLANS}
-                />
+                >
+                    <Button.Text>{translate('subscription.yourPlan.exploreAllPlans')}</Button.Text>
+                </Button>
             </View>
         );
     };

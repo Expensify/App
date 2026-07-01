@@ -1,4 +1,7 @@
-import Button from '@components/Button';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -172,12 +175,13 @@ function RulesProhibitedDefaultPage({
                         addOfflineIndicatorBottomSafeAreaPadding
                     >
                         <Button
-                            success
-                            large
-                            text={translate('common.save')}
+                            variant="success"
+                            size={CONST.BUTTON_SIZE.LARGE}
                             onPress={handleSave}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_RECEIPT_LINE_ITEMS_SAVE}
-                        />
+                        >
+                            <Button.Text>{translate('common.save')}</Button.Text>
+                        </Button>
                     </FixedFooter>
                 )}
             </ScreenWrapper>

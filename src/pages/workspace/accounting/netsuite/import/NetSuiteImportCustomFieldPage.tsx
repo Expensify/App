@@ -1,4 +1,8 @@
-import Button from '@components/Button';
+import React, {useMemo} from 'react';
+import type {StyleProp, TextStyle} from 'react-native';
+import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
+import Button from '@components/ButtonComposed';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FixedFooter from '@components/FixedFooter';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -148,8 +152,8 @@ function NetSuiteImportCustomFieldPage({
 
             <FixedFooter style={[styles.mtAuto, styles.pt3]}>
                 <Button
-                    success
-                    large
+                    variant="success"
+                    size={CONST.BUTTON_SIZE.LARGE}
                     isDisabled={!!config?.pendingFields?.[importCustomField]}
                     onPress={() => {
                         if (importCustomField === CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS) {
@@ -158,8 +162,9 @@ function NetSuiteImportCustomFieldPage({
                             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_ADD.getRoute(policyID));
                         }
                     }}
-                    text={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.addText`)}
-                />
+                >
+                    <Button.Text>{translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.addText`)}</Button.Text>
+                </Button>
             </FixedFooter>
         </ConnectionLayout>
     );

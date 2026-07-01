@@ -1,4 +1,7 @@
-import Button from '@components/Button';
+import isEmpty from 'lodash/isEmpty';
+import React, {useCallback, useEffect, useRef} from 'react';
+import {View} from 'react-native';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import ScrollView from '@components/ScrollView';
 import type {BaseTwoFactorAuthFormRef} from '@components/TwoFactorAuthForm/types';
@@ -85,9 +88,8 @@ function DisablePage() {
             </ScrollView>
             <FixedFooter style={[styles.mt2, styles.pt2]}>
                 <Button
-                    success
-                    large
-                    text={translate('twoFactorAuth.disable')}
+                    variant="success"
+                    size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={account?.isLoading}
                     onPress={() => {
                         if (!formRef.current) {
@@ -95,7 +97,9 @@ function DisablePage() {
                         }
                         formRef.current.validateAndSubmitForm();
                     }}
-                />
+                >
+                    <Button.Text>{translate('twoFactorAuth.disable')}</Button.Text>
+                </Button>
             </FixedFooter>
         </TwoFactorAuthWrapper>
     );

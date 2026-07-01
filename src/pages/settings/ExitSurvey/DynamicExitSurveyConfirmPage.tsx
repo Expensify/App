@@ -1,5 +1,5 @@
 import Icon from '@components//Icon';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -62,6 +62,12 @@ function DynamicExitSurveyConfirmPage() {
         return `${parentBackPath.replace(/\/+$/, '')}/${reasonPathSuffix}` as Route;
     }, [isOffline, exitSurveyResponse, parentBackPath]);
 
+    const goToExpensifyClassic = () => {
+        switchToOldDot(exitSurveyResponse);
+        Navigation.dismissModal();
+        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+    };
+
     return (
         <ScreenWrapper
             testID="DynamicExitSurveyConfirmPage"
@@ -89,18 +95,19 @@ function DynamicExitSurveyConfirmPage() {
             </View>
             <FixedFooter>
                 <Button
-                    success
-                    large
-                    text={translate(shouldShowQuickTips ? 'exitSurvey.takeMeToExpensifyClassic' : 'exitSurvey.goToExpensifyClassic')}
-                    pressOnEnter
+                    variant="success"
+                    size={CONST.BUTTON_SIZE.LARGE}
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_EXIT_SURVEY.GO_TO_CLASSIC}
-                    onPress={() => {
-                        switchToOldDot(exitSurveyResponse);
-                        Navigation.dismissModal();
-                        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
-                    }}
+                    onPress={goToExpensifyClassic}
                     isDisabled={isOffline}
-                />
+                >
+                    <Button.KeyboardShortcut
+                        pressOnEnter
+                        onPress={goToExpensifyClassic}
+                        isDisabled={isOffline}
+                    />
+                    <Button.Text>{translate(shouldShowQuickTips ? 'exitSurvey.takeMeToExpensifyClassic' : 'exitSurvey.goToExpensifyClassic')}</Button.Text>
+                </Button>
             </FixedFooter>
         </ScreenWrapper>
     );

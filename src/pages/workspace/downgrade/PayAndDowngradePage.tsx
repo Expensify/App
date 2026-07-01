@@ -1,6 +1,6 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -16,7 +16,7 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
-
+import CONST from '@src/CONST';
 import {clearBillingReceiptDetailsErrors, payAndDowngrade} from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -115,13 +115,18 @@ function PayAndDowngradePage() {
                             </View>
                         )}
                         <Button
-                            large
-                            danger
-                            text={translate('workspace.payAndDowngrade.title')}
+                            size={CONST.BUTTON_SIZE.LARGE}
+                            variant="danger"
                             onPress={payAndDowngrade}
-                            pressOnEnter
                             isLoading={billingDetails?.isLoading}
-                        />
+                        >
+                            <Button.KeyboardShortcut
+                                pressOnEnter
+                                onPress={payAndDowngrade}
+                                isLoading={billingDetails?.isLoading}
+                            />
+                            <Button.Text>{translate('workspace.payAndDowngrade.title')}</Button.Text>
+                        </Button>
                     </FixedFooter>
                 </FullPageOfflineBlockingView>
             </FullPageNotFoundView>

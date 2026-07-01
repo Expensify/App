@@ -1,4 +1,8 @@
-import Button from '@components/Button';
+import React, {useCallback, useEffect, useState} from 'react';
+import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+import Button from '@components/ButtonComposed';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
 
@@ -83,11 +87,12 @@ function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerCha
             <Text style={styles.flex1}>{displayTexts.text}</Text>
             <View style={styles.pb5}>
                 <Button
-                    success
-                    large
+                    variant="success"
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={confirm}
-                    text={displayTexts.buttonText}
-                />
+                >
+                    <Button.Text>{displayTexts.buttonText}</Button.Text>
+                </Button>
             </View>
         </>
     );

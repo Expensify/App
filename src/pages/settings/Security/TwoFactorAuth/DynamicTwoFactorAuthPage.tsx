@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
@@ -182,10 +182,9 @@ function DynamicTwoFactorAuthPage() {
                     )}
                     {!!recoveryCodes && (
                         <Button
-                            success
-                            large
+                            variant="success"
+                            size={CONST.BUTTON_SIZE.LARGE}
                             isDisabled={!isUserValidated}
-                            text={translate('twoFactorAuth.downloadCodes')}
                             onPress={() => {
                                 localFileDownload(TWO_FACTOR_AUTH_RECOVERY_CODES_FILENAME, recoveryCodes, translate, undefined, undefined, false);
                                 setError('');
@@ -193,7 +192,9 @@ function DynamicTwoFactorAuthPage() {
                                 announceStatus(translate('fileDownload.success.title'));
                                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY.path, backPath), {forceReplace: true});
                             }}
-                        />
+                        >
+                            <Button.Text>{translate('twoFactorAuth.downloadCodes')}</Button.Text>
+                        </Button>
                     )}
                 </FixedFooter>
             </ScrollView>

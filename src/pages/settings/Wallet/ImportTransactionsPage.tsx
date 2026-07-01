@@ -1,4 +1,6 @@
-import Button from '@components/Button';
+import React, {useCallback, useState} from 'react';
+import {View} from 'react-native';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -98,11 +100,12 @@ function ImportTransactionsPage() {
                 </View>
                 <View style={[styles.mh5, styles.mb5]}>
                     <Button
-                        success
-                        large
-                        text={translate('common.next')}
+                        variant="success"
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={handleNext}
-                    />
+                    >
+                        <Button.Text>{translate('common.next')}</Button.Text>
+                    </Button>
                 </View>
             </ScrollView>
         </ScreenWrapper>

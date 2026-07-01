@@ -1,5 +1,5 @@
 import Badge from '@components/Badge';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
@@ -78,13 +78,14 @@ function UpgradeIntro({onUpgrade, buttonDisabled}: Props) {
                     </View>
                 </View>
                 <Button
-                    text={translate('onboarding.workspace.createWorkspace')}
                     testID="upgrade-button"
-                    success
+                    variant="success"
                     onPress={onUpgrade}
                     isDisabled={buttonDisabled}
-                    large
-                />
+                    size={CONST.BUTTON_SIZE.LARGE}
+                >
+                    <Button.Text>{translate('onboarding.workspace.createWorkspace')}</Button.Text>
+                </Button>
             </View>
             <View style={[styles.mt6, styles.renderHTML]}>
                 <RenderHTML html={translate('personalCard.note', subscriptionLink)} />

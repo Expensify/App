@@ -1,4 +1,6 @@
-import Button from '@components/Button';
+import React from 'react';
+import {View} from 'react-native';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
@@ -101,19 +103,21 @@ function DowngradeIntro({onDowngrade, buttonDisabled, loading, policyID, backTo}
             {policyID ? (
                 <Button
                     isLoading={loading}
-                    text={translate('common.downgradeWorkspace')}
-                    success
+                    variant="success"
                     onPress={onDowngrade}
                     isDisabled={buttonDisabled}
-                    large
-                />
+                    size={CONST.BUTTON_SIZE.LARGE}
+                >
+                    <Button.Text>{translate('common.downgradeWorkspace')}</Button.Text>
+                </Button>
             ) : (
                 <Button
-                    text={translate('workspace.common.goToWorkspaces')}
-                    success
+                    variant="success"
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute(backTo ?? Navigation.getActiveRoute()), {forceReplace: true})}
-                    large
-                />
+                    size={CONST.BUTTON_SIZE.LARGE}
+                >
+                    <Button.Text>{translate('workspace.common.goToWorkspaces')}</Button.Text>
+                </Button>
             )}
         </View>
     );

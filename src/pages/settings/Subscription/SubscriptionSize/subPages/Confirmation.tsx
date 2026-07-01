@@ -1,4 +1,6 @@
-import Button from '@components/Button';
+import React from 'react';
+import {View} from 'react-native';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
@@ -10,7 +12,7 @@ import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getNewSubscriptionRenewalDate} from '@pages/settings/Subscription/utils';
-
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/SubscriptionSizeForm';
 
@@ -43,11 +45,12 @@ function Confirmation({onNext}: ConfirmationProps) {
             />
             <FixedFooter style={[styles.mtAuto]}>
                 <Button
-                    success
-                    large
+                    variant="success"
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={onNext}
-                    text={translate('common.save')}
-                />
+                >
+                    <Button.Text>{translate('common.save')}</Button.Text>
+                </Button>
             </FixedFooter>
         </View>
     );

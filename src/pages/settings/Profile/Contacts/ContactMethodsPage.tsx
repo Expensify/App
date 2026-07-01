@@ -1,4 +1,7 @@
-import Button from '@components/Button';
+import {isUserValidatedSelector} from '@selectors/Account';
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+import Button from '@components/ButtonComposed';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -96,12 +99,16 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
                 )}
                 <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                     <Button
-                        large
-                        success
-                        text={translate('contacts.newContactMethod')}
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        variant="success"
                         onPress={onNewContactMethodButtonPress}
-                        pressOnEnter
-                    />
+                    >
+                        <Button.KeyboardShortcut
+                            pressOnEnter
+                            onPress={onNewContactMethodButtonPress}
+                        />
+                        <Button.Text>{translate('contacts.newContactMethod')}</Button.Text>
+                    </Button>
                 </FixedFooter>
             </ScrollView>
         </ScreenWrapper>
