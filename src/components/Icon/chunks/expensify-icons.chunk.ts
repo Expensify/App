@@ -63,6 +63,7 @@ import Coins from '@assets/images/coins.svg';
 import Collapse from '@assets/images/collapse.svg';
 import Columns from '@assets/images/columns.svg';
 import CommentBubbles from '@assets/images/comment-bubbles.svg';
+import Compass from '@assets/images/compass.svg';
 import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
 import ConnectionComplete from '@assets/images/connection-complete.svg';
@@ -559,6 +560,7 @@ const Expensicons = {
     LuggageWithLinesPlus,
     TreasureChestGreenWithSparkle,
     UserShield,
+    Compass,
 };
 
 // Create the ExpensifyIcons object from the imported Expensicons

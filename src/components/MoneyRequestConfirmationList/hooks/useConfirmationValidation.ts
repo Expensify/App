@@ -107,6 +107,9 @@ type UseConfirmationValidationParams = {
 
     /** Truthy when the route to the confirmation page has a known error */
     routeError: string | null | undefined;
+
+    /** Whether the new manual expense flow is enabled */
+    isNewManualExpenseFlowEnabled: boolean;
 };
 
 /**
@@ -150,6 +153,7 @@ function useConfirmationValidation({
     isPerDiemRequest,
     isTimeRequest,
     routeError,
+    isNewManualExpenseFlowEnabled,
 }: UseConfirmationValidationParams): {validate: (paymentType?: PaymentMethodType) => ValidationResult | null} {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const selectedParticipantsCount = selectedParticipants.length;
@@ -170,10 +174,11 @@ function useConfirmationValidation({
             return {errorKey: 'common.error.invalidAmount'};
         }
         // isAmountSet only applies to manual expenses — scan, per diem, distance, and time set amount programmatically.
-        if (transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL && !transaction?.isAmountSet) {
+        if (isNewManualExpenseFlowEnabled && transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL && !transaction?.isAmountSet) {
             return {errorKey: 'common.error.fieldRequired'};
         }
         if (
+            isNewManualExpenseFlowEnabled &&
             transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL &&
             transaction?.isAmountSet &&
             !isScanRequestUtil(transaction) &&
@@ -184,8 +189,8 @@ function useConfirmationValidation({
         ) {
             return {errorKey: 'common.error.invalidAmount'};
         }
-        // The date is an inline required field in the manual flow; block confirmation when the user cleared it.
-        if (transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL && isCreatedMissing(transaction)) {
+        // The date is an inline required field in the new manual flow; block confirmation when the user cleared it.
+        if (isNewManualExpenseFlowEnabled && transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL && isCreatedMissing(transaction)) {
             return {errorKey: 'common.error.fieldRequired'};
         }
         const merchantValue = iouMerchant ?? '';
@@ -243,10 +248,10 @@ function useConfirmationValidation({
             return {errorKey: 'violations.taxOutOfPolicy'};
         }
 
-        // In the manual expense flow the tax amount is edited inline, so the standalone tax amount step's
+        // In the new manual expense flow the tax amount is edited inline, so the standalone tax amount step's
         // guard (tax amount can't exceed the tax computed from the rate and the expense amount) runs here.
         // This also blocks creation when an invalid tax amount was persisted to the draft and then reloaded.
-        if (shouldShowTax && !isDistanceRequest) {
+        if (isNewManualExpenseFlowEnabled && shouldShowTax && !isDistanceRequest) {
             const decimals = getCurrencyDecimals(iouCurrencyCode);
             const maxTaxAmount = getCalculatedTaxAmount(policy, transaction, iouCurrencyCode, decimals);
             const currentTaxAmount = convertToFrontendAmountAsString(Math.abs(getTaxAmount(transaction, false)), decimals);

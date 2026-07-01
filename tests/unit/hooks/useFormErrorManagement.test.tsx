@@ -39,6 +39,8 @@ const baseParams: Params = {
     routeError: undefined,
     isTypeSplit: false,
     shouldShowReadOnlySplits: false,
+    isNewManualExpenseFlowEnabled: false,
+    isDistanceRequest: false,
 };
 
 function Wrapper({children}: {children: React.ReactNode}) {
@@ -105,5 +107,39 @@ describe('useFormErrorManagement', () => {
         const {result} = renderHook(() => useFormErrorManagement(baseParams), {wrapper: Wrapper});
         act(() => result.current.setFormError('violations.missingAttendees'));
         expect(result.current.errorMessage).toBeUndefined();
+    });
+
+    it('errorMessage suppresses required/invalid amount errors in the new manual expense flow (surfaced inline)', () => {
+        const {result: required} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: true}), {wrapper: Wrapper});
+        act(() => required.current.setFormError('common.error.fieldRequired'));
+        expect(required.current.errorMessage).toBeUndefined();
+
+        const {result: invalid} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: true}), {wrapper: Wrapper});
+        act(() => invalid.current.setFormError('common.error.invalidAmount'));
+        expect(invalid.current.errorMessage).toBeUndefined();
+    });
+
+    it('errorMessage still shows required/invalid amount errors when the new manual expense flow is disabled', () => {
+        const {result} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: false}), {wrapper: Wrapper});
+        act(() => result.current.setFormError('common.error.invalidAmount'));
+        expect(result.current.errorMessage).toBeDefined();
+    });
+
+    it('errorMessage still shows the invalid amount error for a distance request in the new manual expense flow (no inline surface)', () => {
+        const {result} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: true, isDistanceRequest: true}), {wrapper: Wrapper});
+        act(() => result.current.setFormError('common.error.invalidAmount'));
+        expect(result.current.errorMessage).toBeDefined();
+    });
+
+    it('errorMessage suppresses the invalid merchant error in the new manual expense flow (surfaced inline)', () => {
+        const {result} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: true}), {wrapper: Wrapper});
+        act(() => result.current.setFormError('iou.error.invalidMerchant'));
+        expect(result.current.errorMessage).toBeUndefined();
+    });
+
+    it('errorMessage still shows the invalid merchant error when the new manual expense flow is disabled', () => {
+        const {result} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: false}), {wrapper: Wrapper});
+        act(() => result.current.setFormError('iou.error.invalidMerchant'));
+        expect(result.current.errorMessage).toBeDefined();
     });
 });
