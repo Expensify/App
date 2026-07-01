@@ -1,5 +1,4 @@
-import React, {useCallback} from 'react';
-import type {ValueOf} from 'type-fest';
+import React, {useState} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -21,13 +20,14 @@ type DynamicWriteCapabilityPageProps = WithReportOrNotFoundProps;
 function DynamicWriteCapabilityPage({report, policy}: DynamicWriteCapabilityPageProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.path);
     const {translate} = useLocalize();
+    const currentWriteCapability = report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL;
+    const [selectedWriteCapability, setSelectedWriteCapability] = useState(currentWriteCapability);
     const writeCapabilityOptions = Object.values(CONST.REPORT.WRITE_CAPABILITIES).map((value) => ({
         value,
         text: translate(`writeCapabilityPage.writeCapability.${value}`),
         keyForList: value,
-        isSelected: value === (report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL),
+        isSelected: value === selectedWriteCapability,
     }));
-    const selectedOptionKey = writeCapabilityOptions.find((locale) => locale.isSelected)?.keyForList;
     const isReportArchived = useReportIsArchived(report.reportID);
     const isAbleToEdit = canEditWriteCapability(report, policy, isReportArchived);
 
@@ -35,13 +35,16 @@ function DynamicWriteCapabilityPage({report, policy}: DynamicWriteCapabilityPage
         Navigation.goBack(backPath);
     };
 
-    const updateWriteCapability = useCallback(
-        (newValue: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>) => {
-            updateWriteCapabilityUtil(report, newValue);
-            goBack();
-        },
-        [report, goBack],
-    );
+    const saveWriteCapability = () => {
+        updateWriteCapabilityUtil(report, selectedWriteCapability);
+        goBack();
+    };
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveWriteCapability,
+    };
 
     return (
         <ScreenWrapper
@@ -57,9 +60,10 @@ function DynamicWriteCapabilityPage({report, policy}: DynamicWriteCapabilityPage
                 <SelectionList
                     data={writeCapabilityOptions}
                     ListItem={SingleSelectListItem}
-                    onSelectRow={(option) => updateWriteCapability(option.value)}
+                    onSelectRow={(option) => setSelectedWriteCapability(option.value)}
+                    confirmButtonOptions={confirmButtonOptions}
                     shouldSingleExecuteRowSelect
-                    initiallyFocusedItemKey={selectedOptionKey}
+                    initiallyFocusedItemKey={currentWriteCapability}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>
