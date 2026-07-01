@@ -491,16 +491,25 @@ const ViolationsUtils = {
 
         const customUnitRateID = updatedTransaction?.comment?.customUnit?.customUnitRateID;
         if (customUnitRateID && customUnitRateID.length > 0 && !isSelfDM) {
-            const isPerDiem = TransactionUtils.isPerDiemRequest(updatedTransaction);
-            const customRate = isPerDiem ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : getDistanceRateCustomUnitRate(policy, customUnitRateID);
-            if (customRate && customRate.enabled !== false) {
+            // A P2P distance rate (FAKE_P2P_ID) isn't tied to any workspace, so it can never be "out of policy".
+            // Clear any stale violation instead of flagging it. This prevents a spurious "Rate not valid for this
+            // workspace" from appearing optimistically when a P2P expense is created while a workspace policy is
+            // still in context (e.g. the new manual expense flow switching the recipient from the default workspace
+            // to a person before the API distance response arrives).
+            if (TransactionUtils.isCustomUnitRateIDForP2P(updatedTransaction)) {
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
             } else {
-                newTransactionViolations.push({
-                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
-                    type: CONST.VIOLATION_TYPES.VIOLATION,
-                    showInReview: true,
-                });
+                const isPerDiem = TransactionUtils.isPerDiemRequest(updatedTransaction);
+                const customRate = isPerDiem ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : getDistanceRateCustomUnitRate(policy, customUnitRateID);
+                if (customRate && customRate.enabled !== false) {
+                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
+                } else {
+                    newTransactionViolations.push({
+                        name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        showInReview: true,
+                    });
+                }
             }
         }
 
