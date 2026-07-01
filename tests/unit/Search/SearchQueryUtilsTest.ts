@@ -26,6 +26,7 @@ import {
     getQueryWithUpdatedValues,
     getRangeBoundariesFromFormValue,
     getRoutes,
+    getStatusFromQuery,
     isSearchRootParams,
     serializeQueryJSONForBackend,
     shouldHighlight,
@@ -2317,7 +2318,7 @@ describe('SearchQueryUtils', () => {
             const newQueryJSON = buildSearchQueryJSON(result);
             const keywordFilter = newQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
             expect(keywordFilter?.filters.at(0)?.value).toBe('status:done');
-            expect(newQueryJSON?.status).toBe(CONST.SEARCH.STATUS.EXPENSE.ALL);
+            expect(getStatusFromQuery(newQueryJSON)).toBe(CONST.SEARCH.STATUS.EXPENSE.ALL);
         });
 
         test('does not add quotes to non-keyword filter values', () => {

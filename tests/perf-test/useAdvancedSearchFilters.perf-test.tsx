@@ -70,7 +70,7 @@ jest.mock('@react-navigation/native', () => {
 
 function TestComponent() {
     const currentType = 'expense';
-    const filters = useAdvancedSearchFilters(currentType, undefined);
+    const filters = useAdvancedSearchFilters(currentType, {value: undefined, isNegated: false});
     return <View testID={`${currentType}-${filters.length}`} />;
 }
 

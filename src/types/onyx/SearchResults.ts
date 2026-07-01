@@ -1,9 +1,17 @@
 import type {ValueOf} from 'type-fest';
 import type ChatListItem from '@components/Search/SearchList/ListItem/ChatListItem';
+import type ExpenseReportListItem from '@components/Search/SearchList/ListItem/ExpenseReportListItem';
+import type TaskListItem from '@components/Search/SearchList/ListItem/TaskListItem';
 import type TransactionGroupListItem from '@components/Search/SearchList/ListItem/TransactionGroupListItem';
 import type TransactionListItem from '@components/Search/SearchList/ListItem/TransactionListItem';
-import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {SearchStatus} from '@components/Search/types';
+import type {
+    ReportActionListItemType,
+    TaskListItemType,
+    TransactionGroupListItemType,
+    TransactionListItemType,
+    TransactionReportGroupListItemType,
+} from '@components/Search/SearchList/ListItem/types';
+import type {SearchGroupBy, SearchStatus} from '@components/Search/types';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
@@ -22,20 +30,26 @@ import type {TransactionViolation} from './TransactionViolation';
 type SearchDataTypes = ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
 
 /** Model of search result list item */
-type ListItemType<C extends SearchDataTypes, T extends SearchStatus> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
+type ListItemType<C extends SearchDataTypes, G extends SearchGroupBy | undefined> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
     ? typeof ChatListItem
-    : T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL
-      ? typeof TransactionListItem
-      : typeof TransactionGroupListItem;
+    : C extends typeof CONST.SEARCH.DATA_TYPES.TASK
+      ? typeof TaskListItem
+      : C extends typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT
+        ? typeof ExpenseReportListItem
+        : G extends SearchGroupBy
+          ? typeof TransactionGroupListItem
+          : typeof TransactionListItem;
 
 /** Model of search list item data type */
-type ListItemDataType<C extends SearchDataTypes, T extends SearchStatus> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
+type ListItemDataType<C extends SearchDataTypes, G extends SearchGroupBy | undefined> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
     ? ReportActionListItemType[]
     : C extends typeof CONST.SEARCH.DATA_TYPES.TASK
       ? TaskListItemType[]
-      : T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL
-        ? TransactionListItemType[]
-        : TransactionGroupListItemType[];
+      : C extends typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT
+        ? TransactionReportGroupListItemType[]
+        : G extends SearchGroupBy
+          ? TransactionGroupListItemType[]
+          : TransactionListItemType[];
 
 /** Model of search result state */
 type SearchResultsInfo = {
@@ -45,8 +59,8 @@ type SearchResultsInfo = {
     /** Type of search */
     type: SearchDataTypes;
 
-    /** The status filter for the current search */
-    status: SearchStatus;
+    /** The hash of the current search */
+    hash: number;
 
     /** Whether the user can fetch more search results */
     hasMoreResults: boolean;

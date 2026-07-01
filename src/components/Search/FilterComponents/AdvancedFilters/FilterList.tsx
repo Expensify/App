@@ -13,6 +13,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
+import type {PolicyIDFilter} from '@libs/SearchQueryUtils';
 import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
@@ -27,7 +28,7 @@ type FilterItemCallbacks = {
 
 type FilterListProps = FilterItemCallbacks & {
     type: SearchDataTypes | undefined;
-    policyID: string[] | undefined;
+    policyID: PolicyIDFilter;
     selectedFilter?: SearchFilter['key'];
     style?: StyleProp<ViewStyle>;
     contentContainerStyle?: StyleProp<ViewStyle>;

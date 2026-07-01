@@ -8,6 +8,7 @@ import type {CurrencyListActionsContextType} from '@components/CurrencyListConte
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {MenuItemWithLink} from '@components/MenuItemList';
+import {FilterComponentsProps} from '@components/Search/FilterComponents';
 import type {MultiSelectItem} from '@components/Search/FilterComponents/MultiSelect';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
 import ChatListItem from '@components/Search/SearchList/ListItem/ChatListItem';
@@ -50,7 +51,6 @@ import type {
     SearchGroupBy,
     SearchQueryJSON,
     SearchSortBy,
-    SearchStatus,
     SearchView,
     SearchWithdrawalStatus,
     SearchWithdrawalType,
@@ -177,6 +177,8 @@ import {
     getDateFilterKeys,
     getDateRangeDisplayValueFromFormValue,
     getDateRangeForPreset,
+    getStatusFromQuery,
+    isFilterNegatable,
     isFilterSupported,
     isSearchDatePreset,
     sortOptionsWithEmptyValue,
@@ -2095,7 +2097,7 @@ function getTransactionsSections({
         const isTrackedOptimisticItem = !!optimisticTransactionID && transactionItem.transactionID === optimisticTransactionID;
         if (currentQueryJSON && !isActionLoading && !isTrackedOptimisticItem) {
             if (currentQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
-                const status = currentQueryJSON.status;
+                const status = getStatusFromQuery(currentQueryJSON);
                 if (Array.isArray(status)) {
                     shouldShow = status.some((expenseStatus) => {
                         return isValidExpenseStatus(expenseStatus) ? expenseStatusActionMapping[expenseStatus](report, transactionItem.reportID) : false;
@@ -2819,7 +2821,7 @@ function getReportSections({
             const isActionLoading = isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`);
             if (currentQueryJSON && !isActionLoading) {
                 if (currentQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
-                    const status = currentQueryJSON.status;
+                    const status = getStatusFromQuery(currentQueryJSON);
 
                     if (Array.isArray(status)) {
                         shouldShow = status.some((expenseStatus) => {
@@ -3584,7 +3586,7 @@ function getQuarterSections(data: OnyxTypes.SearchResults['data'], queryJSON: Se
 /**
  * Returns the appropriate list item component based on the type and status of the search data.
  */
-function getListItem(type: SearchDataTypes, status: SearchStatus, groupBy?: SearchGroupBy): ListItemType<typeof type, typeof status> {
+function getListItem(type: SearchDataTypes, groupBy?: SearchGroupBy): ListItemType<typeof type, typeof groupBy> {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return ChatListItem;
     }
@@ -3754,8 +3756,7 @@ const groupByRequiredColumns: Partial<Record<SearchGroupBy, SearchColumnType[]>>
  */
 function getSortedSections(
     type: SearchDataTypes,
-    status: SearchStatus,
-    data: ListItemDataType<typeof type, typeof status>,
+    data: ListItemDataType<typeof type, typeof groupBy>,
     localeCompare: LocaleContextProps['localeCompare'],
     translate: LocaleContextProps['translate'],
     sortBy?: SearchSortBy,
@@ -4763,14 +4764,7 @@ function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: S
 }
 
 function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: Readonly<SearchQueryJSON> | undefined) {
-    const {status} = queryJSON ?? {};
-
-    const sortedSearchResultStatus = !Array.isArray(searchResults?.search?.status)
-        ? searchResults?.search?.status?.split(',').sort().join(',')
-        : searchResults?.search?.status?.sort().join(',');
-    const sortedQueryJSONStatus = Array.isArray(status) ? status.sort().join(',') : status;
-    const isDataLoaded =
-        (searchResults?.data != null || searchResults?.errors != null) && searchResults?.search?.type === queryJSON?.type && sortedSearchResultStatus === sortedQueryJSONStatus;
+    const isDataLoaded = (searchResults?.data != null || searchResults?.errors != null) && searchResults?.search?.type === queryJSON?.type && searchResults.search.hash === queryJSON?.hash;
 
     return isDataLoaded;
 }
@@ -5352,7 +5346,6 @@ function getDisplayValue(
     key: SearchAdvancedFiltersKey,
     form: Partial<SearchAdvancedFiltersForm>,
     type: SearchDataTypes,
-    policyIDQuery: string[] | undefined,
     translate: LocalizedTranslate,
     localeCompare: LocaleContextProps['localeCompare'],
 ) {
@@ -5418,18 +5411,11 @@ function getDisplayValue(
         key === FILTER_KEYS.ASSIGNEE ||
         key === FILTER_KEYS.TAX_RATE ||
         key === FILTER_KEYS.IN ||
-        key === FILTER_KEYS.BANK_ACCOUNT
+        key === FILTER_KEYS.BANK_ACCOUNT ||
+        key === FILTER_KEYS.POLICY_ID ||
+        key === FILTER_KEYS.POLICY_ID_NOT
     ) {
         return form[key];
-    }
-
-    if (key === FILTER_KEYS.POLICY_ID) {
-        const policyID = form[key];
-        const policyIDs = policyID ?? policyIDQuery;
-        if (policyIDs) {
-            return Array.isArray(policyIDs) ? policyIDs : [policyIDs];
-        }
-        return undefined;
     }
 
     if (key === FILTER_KEYS.EXPENSE_TYPE) {
@@ -5442,6 +5428,22 @@ function getDisplayValue(
 
     const formValue = form[key];
     return Array.isArray(formValue) ? formValue.join(', ') : formValue;
+}
+
+function getFilterNegatableValue<K extends FilterComponentsProps['filterKey']>(
+    filterKey: K,
+    values: Partial<SearchAdvancedFiltersForm> | undefined,
+): {
+    isNegated: boolean;
+    value: SearchAdvancedFiltersForm[K] | undefined;
+} {
+    if (!isFilterNegatable(filterKey)) {
+        return {isNegated: false, value: values?.[filterKey]};
+    }
+    const negatedFilterKey = `${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as K;
+    const negatedValue = values?.[negatedFilterKey];
+    const value = negatedValue ?? values?.[filterKey];
+    return {isNegated: !!negatedValue, value};
 }
 
 function shouldShowFilter(skipFilters: Set<SearchAdvancedFiltersKey> | undefined, key: SearchAdvancedFiltersKey, value: ValueOf<SearchAdvancedFiltersForm>, type: SearchDataTypes) {
@@ -5464,7 +5466,6 @@ type SearchFilter = {
 
 function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
-    policyIDQuery: string[] | undefined,
     skipFilters: Set<SearchAdvancedFiltersKey> | undefined,
     translate: LocalizedTranslate,
     localeCompare: LocaleContextProps['localeCompare'],
@@ -5518,7 +5519,7 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
 
         // Handle regular filters
         const label = key in FILTER_VIEW_MAP ? FILTER_VIEW_MAP[key as keyof typeof FILTER_VIEW_MAP].labelKey : undefined;
-        const value = getDisplayValue(key, searchAdvancedFiltersForm, type, policyIDQuery, translate, localeCompare);
+        const value = getDisplayValue(key, searchAdvancedFiltersForm, type, translate, localeCompare);
 
         if (label && value && !(Array.isArray(value) && value.length === 0)) {
             const filterLabelMapKey = key as keyof typeof FILTER_VIEW_MAP;
@@ -6404,6 +6405,7 @@ export {
     getTypeOptions,
     getSortByOptions,
     getSortOrderOptions,
+    getStatusOptions,
     getGroupBySections,
     getViewOptions,
     getCurrencyOptions,
@@ -6434,6 +6436,7 @@ export {
     getSelectedGroupFilterEntry,
     adjustTimeRangeToDateFilters,
     getDateDisplayValue,
+    getFilterNegatableValue,
     shouldShowFilter,
     mapFiltersFormToLabelValueList,
     isAmountFilterKey,

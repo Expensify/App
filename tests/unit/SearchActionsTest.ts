@@ -35,7 +35,6 @@ describe('queueExportSearchItemsToCSV', () => {
 
     it('sets optimistic Onyx data with state preparing and returns exportID', () => {
         const exportID = queueExportSearchItemsToCSV({
-            query: EXPENSE_STATUS_ALL,
             jsonQuery: '{}',
             reportIDList: [],
             transactionIDList: [],

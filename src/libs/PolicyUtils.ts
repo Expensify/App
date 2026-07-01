@@ -53,6 +53,8 @@ import {getIsOffline} from './NetworkState';
 import {formatMemberForList} from './OptionsListUtils';
 import type {MemberForList} from './OptionsListUtils';
 import {getAccountIDsByLogins, getKnownAccountIDByLogin, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {getAllPolicyValues} from './SearchQueryUtils';
+import type {PolicyIDFilter} from './SearchQueryUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {generateAccountID} from './UserUtils';
 import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
@@ -2333,14 +2335,14 @@ function getValidConnectedIntegration(policy: Policy | undefined, connectionName
  * @param policies - Collection of policies to get connected integrations.
  * @param policyIDs - Policy IDs to filter by. When provided, only integrations from these policies are included.
  */
-function getConnectedIntegrationNamesForPolicies(policies: OnyxCollection<Policy> | undefined, policyIDs?: string[]): Set<string> {
+function getConnectedIntegrationNamesForPolicies(policies: OnyxCollection<Policy> | undefined, policyID: PolicyIDFilter): Set<string> {
     if (!policies) {
         return new Set();
     }
 
     const connectedIntegrationNames = new Set<string>();
-    const hasWorkspaceFilter = policyIDs && policyIDs.length > 0;
-    const policiesToCheck = hasWorkspaceFilter ? policyIDs.map((id) => policies[`${ONYXKEYS.COLLECTION.POLICY}${id}`]) : Object.values(policies);
+    const hasWorkspaceFilter = !!policyID.value?.length;
+    const policiesToCheck = hasWorkspaceFilter ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies) : Object.values(policies);
 
     for (const policy of policiesToCheck) {
         const connectedIntegration = getValidConnectedIntegration(policy, getAccountingConnectionNames());

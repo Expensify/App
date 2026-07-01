@@ -87,7 +87,6 @@ function useSpendOverTimeData() {
         searchResults?.data && queryJSON && groupBy && login
             ? (getSortedSections(
                   queryJSON.type,
-                  queryJSON.status,
                   getSections({
                       type: queryJSON.type,
                       data: searchResults.data,

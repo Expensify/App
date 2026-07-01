@@ -261,7 +261,7 @@ describe('useAutocompleteSuggestions', () => {
 
     it('returns status suggestions when autocomplete key is status', () => {
         parseForAutocomplete.mockReturnValue({
-            autocomplete: {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS, value: ''},
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS, value: ''},
             ranges: [{key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: CONST.SEARCH.DATA_TYPES.EXPENSE, start: 0, length: 12}],
         });
 

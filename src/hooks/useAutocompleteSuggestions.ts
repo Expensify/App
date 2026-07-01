@@ -331,7 +331,7 @@ function useAutocompleteSuggestions({
             );
             return filteredViews.map((viewValue) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.VIEW, text: viewValue}));
         }
-        case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS: {
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS: {
             const statusAutocompleteList = (() => {
                 let suggestedStatuses;
                 switch (currentType) {

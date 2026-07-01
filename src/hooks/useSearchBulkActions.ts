@@ -546,7 +546,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         onlyShowPayElsewhere,
     });
 
-    const {status, hash} = queryJSON ?? {};
+    const {hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
     const firstTransactionID = selectedTransactionsKeys.at(0);
     const firstTransaction =
@@ -709,20 +709,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
 
-            if (status === null || status === undefined) {
-                return;
-            }
-
             const exportName = translate(isBasicExport ? 'export.basicExport' : 'export.currentView');
 
             if (areAllMatchingItemsSelected) {
-                if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
+                if (selectedTransactionsKeys.length === 0 || !hash) {
                     return;
                 }
                 const reportIDList = selectedReports?.map((report) => report?.reportID).filter((reportID) => reportID !== undefined) ?? [];
                 const exportParameters = getCSVExportParameters(isBasicExport, queryJSON);
                 const exportID = queueExportSearchItemsToCSV({
-                    query: status,
                     jsonQuery: exportParameters.jsonQuery,
                     reportIDList,
                     transactionIDList: selectedTransactionsKeys,
@@ -741,7 +736,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const exportParameters = getCSVExportParameters(isBasicExport, queryJSONToExport);
             await exportSearchItemsToCSV(
                 {
-                    query: status,
                     jsonQuery: exportParameters.jsonQuery,
                     reportIDList: isGroupExport ? [] : reportIDList,
                     transactionIDList: isGroupExport ? [] : selectedTransactionsKeys,
@@ -762,7 +756,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         },
         [
             isOffline,
-            status,
             areAllMatchingItemsSelected,
             queryJSON,
             selectedReports,
@@ -1436,7 +1429,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     }, [selectedReports, currentSearchResults?.data, isTrackIntentUser, policies, selectedTransactions]);
 
     const headerButtonsOptions = useMemo(() => {
-        if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
+        if (selectedTransactionsKeys.length === 0 || !hash) {
             return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
         }
 

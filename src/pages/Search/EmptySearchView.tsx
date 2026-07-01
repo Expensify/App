@@ -28,7 +28,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {canSendInvoice, getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
-import {isDefaultExpenseReportsQuery, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
+import {getAllPolicyValues, getPolicyIDFromQuery, isDefaultExpenseReportsQuery, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
@@ -145,10 +145,10 @@ function EmptySearchViewContent({
 
     const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<Policy>>, activePolicy);
 
-    const filteredPolicyID = queryJSON?.policyID;
+    const filteredPolicyID = getPolicyIDFromQuery(queryJSON);
     let isFilteredWorkspaceAccessible = true;
-    if (filteredPolicyID) {
-        const policyIDToCheck = Array.isArray(filteredPolicyID) ? filteredPolicyID.at(0) : filteredPolicyID;
+    if (filteredPolicyID.value) {
+        const policyIDToCheck = getAllPolicyValues(filteredPolicyID, ONYXKEYS.COLLECTION.POLICY, allPolicies).at(0);
         const filteredPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToCheck}`];
         isFilteredWorkspaceAccessible = !!filteredPolicy;
     }

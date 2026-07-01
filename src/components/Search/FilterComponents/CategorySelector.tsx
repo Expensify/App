@@ -5,6 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+import type {PolicyIDFilter} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
@@ -12,10 +13,10 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import MultiSelect from './MultiSelect';
 
 type CategorySelectorProps = SearchFilterCommonProps<string[] | undefined> & {
-    policyIDs: string[] | undefined;
+    policyID: PolicyIDFilter;
 };
 
-function CategorySelector({value = [], policyIDs = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: CategorySelectorProps) {
+function CategorySelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: CategorySelectorProps) {
     const {translate, localeCompare} = useLocalize();
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
@@ -45,13 +46,16 @@ function CategorySelector({value = [], policyIDs = [], selectionListTextInputSty
         [availableNonPersonalPolicyCategoriesSelector],
     );
     const selectedPoliciesCategories: PolicyCategory[] = Object.keys(allPolicyCategories ?? {})
-        .filter((key) => policyIDs.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`)?.includes(key))
+        .filter((key) => {
+            const isSelected = policyID.value?.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`)?.includes(key);
+            return policyID.isNegated ? !isSelected : isSelected;
+        })
         .map((key) => Object.values(allPolicyCategories?.[key] ?? {}))
         .flat();
 
     const categoryItems = [{text: translate('search.noCategory'), value: CONST.SEARCH.CATEGORY_EMPTY_VALUE as string}];
     const uniqueCategoryNames = new Set<string>();
-    if (policyIDs.length === 0) {
+    if (!policyID.value?.length) {
         const categories = Object.values(allPolicyCategories ?? {}).flatMap((policyCategories) => Object.values(policyCategories ?? {}));
         for (const category of categories) {
             uniqueCategoryNames.add(category.name);

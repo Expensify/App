@@ -2634,11 +2634,11 @@ describe('PolicyUtils', () => {
 
     describe('getConnectedIntegrationNamesForPolicies', () => {
         it('returns empty Set when policies is undefined', () => {
-            expect(getConnectedIntegrationNamesForPolicies(undefined)).toEqual(new Set());
+            expect(getConnectedIntegrationNamesForPolicies(undefined, {value: undefined, isNegated: false})).toEqual(new Set());
         });
 
         it('returns empty Set when policies is empty object', () => {
-            expect(getConnectedIntegrationNamesForPolicies({})).toEqual(new Set());
+            expect(getConnectedIntegrationNamesForPolicies({}, {value: undefined, isNegated: false})).toEqual(new Set());
         });
 
         it('returns Set with connection name when policy has verified connection', () => {
@@ -2653,7 +2653,7 @@ describe('PolicyUtils', () => {
             const policies: OnyxCollection<Policy> = {
                 [`${ONYXKEYS.COLLECTION.POLICY}1`]: policyWithXero,
             };
-            expect(getConnectedIntegrationNamesForPolicies(policies)).toEqual(new Set([CONST.POLICY.CONNECTIONS.NAME.XERO]));
+            expect(getConnectedIntegrationNamesForPolicies(policies, {value: undefined, isNegated: false})).toEqual(new Set([CONST.POLICY.CONNECTIONS.NAME.XERO]));
         });
 
         it('filters by policyIDs when provided', () => {
@@ -2673,7 +2673,7 @@ describe('PolicyUtils', () => {
                 [`${ONYXKEYS.COLLECTION.POLICY}1`]: policy1WithQBO,
                 [`${ONYXKEYS.COLLECTION.POLICY}2`]: policy2WithXero,
             };
-            expect(getConnectedIntegrationNamesForPolicies(policies, ['1'])).toEqual(new Set([CONST.POLICY.CONNECTIONS.NAME.QBO]));
+            expect(getConnectedIntegrationNamesForPolicies(policies, {value: ['1'], isNegated: false})).toEqual(new Set([CONST.POLICY.CONNECTIONS.NAME.QBO]));
         });
 
         it('returns all connection names when policies have different connections', () => {
@@ -2695,7 +2695,7 @@ describe('PolicyUtils', () => {
                 [`${ONYXKEYS.COLLECTION.POLICY}1`]: policy1,
                 [`${ONYXKEYS.COLLECTION.POLICY}2`]: policy2,
             };
-            const result = getConnectedIntegrationNamesForPolicies(policies);
+            const result = getConnectedIntegrationNamesForPolicies(policies, {value: ['1'], isNegated: false});
             expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.QBO);
             expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.XERO);
             expect(result.size).toBe(2);

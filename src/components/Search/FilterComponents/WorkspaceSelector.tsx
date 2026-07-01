@@ -23,11 +23,9 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ListFilterView from './ListFilterViewWrapper';
 import type {MultiSelectItem} from './MultiSelect';
 
-type WorkspaceSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
-    policyIDQuery: string[] | undefined;
-};
+type WorkspaceSelectorProps = SearchFilterCommonProps<string[] | undefined>;
 
-function WorkspaceSelector({policyIDQuery, value, selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: WorkspaceSelectorProps) {
+function WorkspaceSelector({value, selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: WorkspaceSelectorProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -45,7 +43,7 @@ function WorkspaceSelector({policyIDQuery, value, selectionListTextInputStyle, s
             icons: workspace.icons,
         }));
 
-    const policyID = value ?? policyIDQuery ?? [];
+    const policyID = value ?? [];
 
     const updateSelectedItems = (item: ListItem) => {
         let newValue;

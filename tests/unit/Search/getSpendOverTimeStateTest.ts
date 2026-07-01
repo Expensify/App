@@ -5,7 +5,6 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 
 const queryJSON: SearchQueryJSON = {
     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
     groupBy: CONST.SEARCH.GROUP_BY.MONTH,
     view: CONST.SEARCH.VIEW.LINE,
     sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
@@ -14,7 +13,7 @@ const queryJSON: SearchQueryJSON = {
 
 const makeSearchResults = (overrides: Partial<SearchResults> = {}): SearchResults =>
     ({
-        search: {offset: 0, type: queryJSON.type, status: queryJSON.status, hasMoreResults: false, hasResults: true, isLoading: false},
+        search: {offset: 0, type: queryJSON.type, hasMoreResults: false, hasResults: true, isLoading: false},
         data: {},
         ...overrides,
     }) as SearchResults;

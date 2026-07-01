@@ -21,6 +21,7 @@ import type {
     SearchQueryString,
     SearchStatus,
     SearchWithdrawalType,
+    SingularSearchStatus,
     SyntaxFilterKey,
     UserFriendlyKey,
     UserFriendlyValue,
@@ -32,7 +33,7 @@ import type {OnyxCollectionKey, OnyxCollectionValuesMapping} from '@src/ONYXKEYS
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS, NEGATABLE_FILTERS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {
     ExpenseTypeValue,
     ExpenseTypeValues,
@@ -42,6 +43,7 @@ import type {
     IsFilterValues,
     ReceiptTypeValue,
     SearchAdvancedFiltersKey,
+    SearchNegatableFilterKeys,
 } from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes, SearchResultDataType} from '@src/types/onyx/SearchResults';
@@ -60,6 +62,7 @@ import {getDisplayNameOrDefault, getPersonalDetailByEmail} from './PersonalDetai
 import {getCleanedTagName} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
+import {getStatusOptions} from './SearchUIUtils';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
 import {isValidDate} from './ValidationUtils';
@@ -425,6 +428,41 @@ function getFilters(queryJSON: SearchQueryJSON) {
     return filters;
 }
 
+function getStatusFromQuery(queryJSON: SearchQueryJSON | undefined): SearchStatus {
+    const statusFilters = queryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS)?.filters;
+    if (!statusFilters) {
+        return CONST.SEARCH.STATUS.EXPENSE.ALL;
+    }
+
+    const isNegated = statusFilters.at(0)?.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO;
+    const values = statusFilters.map((filter) => filter.value) as SearchStatus;
+
+    if (!isNegated) {
+        return values;
+    }
+
+    const statusOptions = getStatusOptions(() => '', queryJSON.type);
+    return statusOptions.reduce((acc, curr) => {
+        if (!values.includes(curr.value)) {
+            acc.push(curr.value);
+        }
+        return acc;
+    }, [] as SingularSearchStatus[]);
+}
+
+type PolicyIDFilter = {
+    value: string[] | undefined;
+    isNegated: boolean;
+};
+
+function getPolicyIDFromQuery(queryJSON: SearchQueryJSON | undefined): PolicyIDFilter {
+    const policyIDFilters = queryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID)?.filters;
+    const isNegated = policyIDFilters?.at(0)?.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO;
+    const value = policyIDFilters?.map((filter) => filter.value.toString());
+
+    return {value, isNegated};
+}
+
 /**
  * @private
  * Returns an updated filter value for some query filters.
@@ -524,12 +562,7 @@ function wasViewExplicitlySet(queryJSON?: SearchQueryJSON | Readonly<SearchQuery
 function getQueryHashes(query: SearchQueryJSON) {
     let orderedQuery = '';
     orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${query.type}`;
-    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${Array.isArray(query.status) ? query.status.join(',') : query.status}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${query.groupBy}`;
-
-    if (query.policyID) {
-        orderedQuery += ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${Array.isArray(query.policyID) ? query.policyID.join(',') : query.policyID} `;
-    }
 
     const filterSet = new Set<string>(orderedQuery);
 
@@ -651,11 +684,6 @@ function getCachedSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQue
         result.flatFilters = flatFilters;
         result.isViewExplicitlySet = rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW) ?? false;
 
-        if (result.policyID && typeof result.policyID === 'string') {
-            // Ensure policyID is always an array for consistency
-            result.policyID = [result.policyID];
-        }
-
         // Normalize limit before computing hashes to ensure invalid values don't affect hash
         if (result.limit !== undefined) {
             const num = Number(result.limit);
@@ -718,10 +746,6 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON | Readonly<SearchQue
                 queryParts.push(`${key}:${queryFieldValue}`);
             }
         }
-    }
-
-    if (queryJSON?.policyID) {
-        queryParts.push(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${Array.isArray(queryJSON.policyID) ? queryJSON.policyID.join(',') : queryJSON.policyID}`);
     }
 
     if (!queryJSON) {
@@ -832,7 +856,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
-    const {type, status, groupBy, view, columns, limit, ...otherFilters} = supportedFilterValues;
+    const {type, groupBy, view, columns, limit, ...otherFilters} = supportedFilterValues;
     const filtersString: string[] = [];
 
     if (options?.sortBy) {
@@ -856,16 +880,6 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     if (view && groupBy) {
         const sanitizedView = sanitizeSearchValue(view);
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW}:${sanitizedView}`);
-    }
-
-    if (status && typeof status === 'string') {
-        const sanitizedStatus = sanitizeSearchValue(status);
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${sanitizedStatus}`);
-    }
-
-    if (status && Array.isArray(status)) {
-        const filterValueArray = [...new Set<string>(status)];
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${filterValueArray.map(sanitizeSearchValue).join(',')}`);
     }
 
     if (columns?.length) {
@@ -989,6 +1003,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.EXPORTED_TO ||
                     filterKey === FILTER_KEYS.ATTENDEE ||
                     filterKey === FILTER_KEYS.COLUMNS ||
+                    filterKey === FILTER_KEYS.STATUS ||
                     filterKey === FILTER_KEYS.WITHDRAWAL_STATUS) &&
                 Array.isArray(filterValue) &&
                 filterValue.length > 0
@@ -1032,7 +1047,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 }
 
 function getAllPolicyValues<T extends OnyxCollectionKey>(
-    policyID: string[] | undefined,
+    {value: policyID, isNegated}: PolicyIDFilter,
     key: T,
     policyData: OnyxCollection<OnyxCollectionValuesMapping[T]>,
 ): Array<OnyxCollectionValuesMapping[T]> {
@@ -1040,7 +1055,53 @@ function getAllPolicyValues<T extends OnyxCollectionKey>(
         return [];
     }
 
+    if (isNegated) {
+        return Object.keys(policyData).reduce(
+            (acc, curr) => {
+                const id = curr.replace(key, '');
+                if (!policyID.includes(id) && policyData[curr]) {
+                    acc.push(policyData[curr]);
+                }
+                return acc;
+            },
+            [] as Array<OnyxCollectionValuesMapping[T]>,
+        );
+    }
+
     return policyID.map((id) => policyData?.[`${key}${id}`]).filter((data) => !!data) as Array<OnyxCollectionValuesMapping[T]>;
+}
+
+function getAllPolicyValuesMap<T extends OnyxCollectionKey>(
+    {value: policyID, isNegated}: PolicyIDFilter,
+    key: T,
+    policyData: OnyxCollection<OnyxCollectionValuesMapping[T]>,
+): OnyxCollection<OnyxCollectionValuesMapping[T]> {
+    if (!policyData || !policyID) {
+        return {};
+    }
+
+    if (isNegated) {
+        return Object.keys(policyData).reduce(
+            (acc, curr) => {
+                const id = curr.replace(key, '');
+                if (!policyID.includes(id) && policyData[curr]) {
+                    acc[curr] = policyData[curr];
+                }
+                return acc;
+            },
+            {} as Exclude<OnyxCollection<OnyxCollectionValuesMapping[T]>, undefined>,
+        );
+    }
+
+    return policyID.reduce(
+        (acc, curr) => {
+            if (policyData?.[`${key}${curr}`]) {
+                acc[`${key}${curr}`] = policyData?.[`${key}${curr}`];
+            }
+            return acc;
+        },
+        {} as Exclude<OnyxCollection<OnyxCollectionValuesMapping[T]>, undefined>,
+    );
 }
 
 function getEarlierDate(someDate: string | undefined, otherDate: string | undefined) {
@@ -1116,7 +1177,7 @@ function buildFilterFormValuesFromQuery(
 ) {
     const filters = queryJSON.flatFilters;
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
-    const policyID = queryJSON.policyID;
+    const policyID = getPolicyIDFromQuery(queryJSON);
 
     // Pre-compute dynamic validation Sets once (avoids recreating per filter iteration)
     const validCurrencies = new Set(Object.keys(currencyList));
@@ -1131,6 +1192,12 @@ function buildFilterFormValuesFromQuery(
         const isNegated = filterList.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO);
         const key = isNegated ? (`${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as const) : filterKey;
 
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
+            filtersForm[key as typeof filterKey] = filterValues;
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
+            filtersForm[key as typeof filterKey] = filterValues;
+        }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID) {
             filtersForm[key as typeof filterKey] = filterValues.join(',');
         }
@@ -1237,7 +1304,7 @@ function buildFilterFormValuesFromQuery(
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
             const uniqueTags = new Set<string>();
-            const tagLists = policyID ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_TAGS, policyTags) : Object.values(policyTags ?? {}).filter((item) => !!item);
+            const tagLists = policyID.value ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_TAGS, policyTags) : Object.values(policyTags ?? {}).filter((item) => !!item);
             for (const tagList of tagLists) {
                 for (const policyTagList of Object.values(tagList ?? {})) {
                     for (const tag of Object.values(policyTagList.tags ?? {})) {
@@ -1250,7 +1317,7 @@ function buildFilterFormValuesFromQuery(
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
             const uniqueCategories = new Set<string>();
-            const categoryLists = policyID ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, policyCategories) : Object.values(policyCategories ?? {});
+            const categoryLists = policyID.value ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, policyCategories) : Object.values(policyCategories ?? {});
             for (const item of categoryLists) {
                 for (const category of Object.values(item ?? {})) {
                     uniqueCategories.add(category.name);
@@ -1422,26 +1489,8 @@ function buildFilterFormValuesFromQuery(
         filtersForm[afterKey] = undefined;
     }
 
-    const [typeKey, typeValue] = Object.entries(CONST.SEARCH.DATA_TYPES).find(([, value]) => value === queryJSON.type) ?? [];
+    const typeValue = Object.values(CONST.SEARCH.DATA_TYPES).find((value) => value === queryJSON.type);
     filtersForm[FILTER_KEYS.TYPE] = typeValue ? queryJSON.type : CONST.SEARCH.DATA_TYPES.EXPENSE;
-
-    if (typeKey) {
-        if (Array.isArray(queryJSON.status)) {
-            const validStatuses = queryJSON.status.filter((status) => Object.values(CONST.SEARCH.STATUS[typeKey as keyof typeof CONST.SEARCH.DATA_TYPES]).includes(status));
-
-            if (validStatuses.length) {
-                filtersForm[FILTER_KEYS.STATUS] = queryJSON.status.join(',');
-            } else {
-                filtersForm[FILTER_KEYS.STATUS] = CONST.SEARCH.STATUS.EXPENSE.ALL;
-            }
-        } else {
-            filtersForm[FILTER_KEYS.STATUS] = queryJSON.status;
-        }
-    }
-
-    if (queryJSON.policyID) {
-        filtersForm[FILTER_KEYS.POLICY_ID] = queryJSON.policyID;
-    }
 
     if (queryJSON.groupBy) {
         filtersForm[FILTER_KEYS.GROUP_BY] = queryJSON.groupBy;
@@ -1711,8 +1760,8 @@ function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: Onyx
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE:
             userFriendlyKey = getUserFriendlyKey(CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
             break;
-        case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS:
-            userFriendlyKey = getUserFriendlyKey(CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS:
+            userFriendlyKey = getUserFriendlyKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS);
             break;
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY:
             userFriendlyKey = getUserFriendlyKey(CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY);
@@ -1774,7 +1823,7 @@ function buildUserReadableQueryString({
     reportAttributes,
     bankAccountList,
 }: BuildUserReadableQueryStringParams) {
-    const {type, status, groupBy, view, columns, policyID, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
+    const {type, groupBy, view, columns, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
 
     if (rawFilterList && rawFilterList.length > 0) {
         const segments: string[] = [];
@@ -1837,9 +1886,7 @@ function buildUserReadableQueryString({
         }
     }
 
-    let title = status
-        ? `type:${getUserFriendlyValue(type)} status:${Array.isArray(status) ? status.map(getUserFriendlyValue).join(',') : getUserFriendlyValue(status)}`
-        : `type:${getUserFriendlyValue(type)}`;
+    let title = `type:${getUserFriendlyValue(type)}`;
 
     if (groupBy) {
         title += ` group-by:${getUserFriendlyValue(groupBy)}`;
@@ -1847,10 +1894,6 @@ function buildUserReadableQueryString({
 
     if (view && groupBy && wasViewExplicitlySet(queryJSON)) {
         title += ` view:${getUserFriendlyValue(view)}`;
-    }
-
-    if (policyID && policyID.length > 0) {
-        title += ` workspace:${policyID.map((id) => sanitizeSearchValue(getPolicyNameWithFallback(id, policies, reports))).join(',')}`;
     }
 
     if (columns && columns.length > 0) {
@@ -1930,11 +1973,11 @@ function buildCannedSearchQuery({
 }
 
 function isDefaultExpensesQuery(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>) {
-    return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && !queryJSON.status && !queryJSON.filters && !queryJSON.groupBy && !queryJSON.policyID;
+    return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && !queryJSON.filters && !queryJSON.groupBy;
 }
 
 function isDefaultExpenseReportsQuery(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>) {
-    return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && !queryJSON.status && !queryJSON.filters && !queryJSON.groupBy && !queryJSON.policyID;
+    return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && !queryJSON.filters && !queryJSON.groupBy;
 }
 
 /**
@@ -2299,11 +2342,7 @@ function getEmptyDateValues(): SearchDateValues {
 function getAdvancedFiltersToReset(searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>) {
     const isTypeExpense = searchAdvancedFiltersForm.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
     return Object.keys(searchAdvancedFiltersForm).reduce((acc, filterKey) => {
-        if (filterKey === FILTER_KEYS.STATUS) {
-            if (searchAdvancedFiltersForm[filterKey] !== CONST.SEARCH.STATUS.EXPENSE.ALL) {
-                acc[filterKey] = CONST.SEARCH.STATUS.EXPENSE.ALL;
-            }
-        } else if (filterKey === FILTER_KEYS.TYPE) {
+        if (filterKey === FILTER_KEYS.TYPE) {
             if (!isTypeExpense) {
                 acc[filterKey] = CONST.SEARCH.DATA_TYPES.EXPENSE;
             }
@@ -2369,7 +2408,15 @@ function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFi
               return filter;
           })
         : queryData.rawFilterList;
-    return JSON.stringify({...queryData, filters: normalizedFilters, rawFilterList: normalizedRawFilterList});
+    return JSON.stringify({...queryData, filters: normalizedFilters, rawFilterList: normalizedRawFilterList, status: ''});
+}
+
+function removeNegation(filterKey: string) {
+    return filterKey.replace(CONST.SEARCH.NOT_MODIFIER, '');
+}
+
+function isFilterNegatable(key: SearchAdvancedFiltersKey) {
+    return NEGATABLE_FILTERS.has(removeNegation(key) as SearchNegatableFilterKeys);
 }
 
 export {
@@ -2399,6 +2446,7 @@ export {
     sortOptionsWithEmptyValue,
     shouldHighlight,
     getAllPolicyValues,
+    getAllPolicyValuesMap,
     getUserFriendlyValue,
     getUserFriendlyKey,
     shouldResetSort,
@@ -2415,8 +2463,11 @@ export {
     getParamsState,
     getRoutes,
     isSearchRootParams,
+    getStatusFromQuery,
+    getPolicyIDFromQuery,
+    isFilterNegatable,
 };
 
 export type {BuildUserReadableQueryStringParams};
 
-export type {SearchDateValues};
+export type {SearchDateValues, PolicyIDFilter};

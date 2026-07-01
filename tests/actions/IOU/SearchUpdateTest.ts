@@ -135,7 +135,6 @@ describe('actions/IOU', () => {
             };
             const currentSearchQueryJSON = {
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                status: '' as SearchStatus,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 filters: {
@@ -193,7 +192,6 @@ describe('actions/IOU', () => {
             };
             const currentSearchQueryJSON = {
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                status: '' as SearchStatus,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 filters: {
@@ -253,7 +251,6 @@ describe('actions/IOU', () => {
             };
             const currentSearchQueryJSON = {
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                status: '' as SearchStatus,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 filters: {
@@ -297,13 +294,16 @@ describe('actions/IOU', () => {
             const policyID = '12345';
             const currentSearchQueryJSON = {
                 type: 'expense',
-                status: '',
                 sortBy: 'date',
                 sortOrder: 'desc',
-                policyID: [policyID],
-                filters: null,
+                filters: {operator: 'eq', left: 'policyID', right: policyID},
                 inputQuery: `type:expense sortBy:date sortOrder:desc policyID:${policyID}`,
-                flatFilters: [],
+                flatFilters: [
+                    {
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                        filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: policyID}],
+                    },
+                ],
                 hash: 591785022,
                 recentSearchHash: 714245044,
                 similarSearchHash: 1023624110,

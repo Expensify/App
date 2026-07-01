@@ -302,7 +302,6 @@ type SearchAmountValues = Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, 
 type SearchFilterKey =
     | SyntaxFilterKey
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS
@@ -330,13 +329,11 @@ type SearchQueryString = string;
 
 type SearchQueryAST = {
     type: SearchDataTypes;
-    status: SearchStatus;
     sortBy: SearchSortBy;
     sortOrder: SortOrder;
     groupBy?: SearchGroupBy;
     view: SearchView;
     filters: ASTNode;
-    policyID?: string[];
     rawFilterList?: RawQueryFilter[];
     columns?: SearchCustomColumnIds | SearchCustomColumnIds[];
     limit?: number;
