@@ -5,7 +5,7 @@ import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearRilletErrorField} from '@libs/actions/connections/Rillet';
+import {clearRilletErrorField, updateRilletCreditCardAccount} from '@libs/actions/connections/Rillet';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
@@ -44,7 +44,7 @@ function RilletCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
 
     const selectDefaultVendor = (item: AccountListItem) => {
         if (item.value !== companyCardAccount?.id && policyID) {
-            // updateRilletCreditCardAccount(policyID, item.value, companyCardAccount?.id);
+            updateRilletCreditCardAccount(policyID, item.value, companyCardAccount?.id);
         }
         Navigation.goBack(backPath);
     };

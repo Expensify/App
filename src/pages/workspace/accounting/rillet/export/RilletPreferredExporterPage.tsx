@@ -7,7 +7,7 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearRilletErrorField} from '@libs/actions/connections/Rillet';
+import {clearRilletErrorField, updateRilletExporter} from '@libs/actions/connections/Rillet';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAdminEmployees, isExpensifyTeam, settingsPendingAction} from '@libs/PolicyUtils';
@@ -69,7 +69,7 @@ function RilletPreferredExporterPage({policy}: WithPolicyConnectionsProps) {
 
     const selectExporter = (item: ExporterListItem) => {
         if (item.value !== exporter && policyID) {
-            // updateRilletExporter(policyID, item.value, exporter);
+            updateRilletExporter(policyID, item.value, exporter);
         }
         Navigation.goBack(backPath);
     };

@@ -5,7 +5,7 @@ import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearRilletErrorField} from '@libs/actions/connections/Rillet';
+import {clearRilletErrorField, updateRilletDefaultVendor} from '@libs/actions/connections/Rillet';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
@@ -44,7 +44,7 @@ function RilletDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsProps
 
     const selectDefaultVendor = (item: VendorListItem) => {
         if (item.value !== defaultCompanyCardVendorID && policyID) {
-            // updateRilletDefaultVendor(policyID, item.value, defaultCompanyCardVendorID);
+            updateRilletDefaultVendor(policyID, item.value, defaultCompanyCardVendorID);
         }
         Navigation.goBack(backPath);
     };

@@ -5,7 +5,7 @@ import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearRilletErrorField} from '@libs/actions/connections/Rillet';
+import {clearRilletErrorField, updateRilletExportDate} from '@libs/actions/connections/Rillet';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
@@ -43,7 +43,7 @@ function RilletVendorBillDatePage({policy}: WithPolicyConnectionsProps) {
 
     const selectExportDate = (item: ExportDateListItem) => {
         if (item.value !== exportDate && policyID) {
-            // updateRilletExportDate(policyID, item.value, exportDate);
+            updateRilletExportDate(policyID, item.value, exportDate);
         }
         Navigation.goBack(backPath);
     };
