@@ -32,9 +32,9 @@ function DeferredAutocompleteList(props: SearchAutocompleteListProps) {
         setHasLayout(true);
     };
 
-    // Wait for the slide-in animation to finish before rendering the list. startTransition made the (expensive) first
-    // mount render preemptible: a competing update interrupted and discarded it before it could commit, forcing React
-    // to redo that same render a second time. useRunAfterTransitions fires a plain, non-preemptible update instead, so the first render always completes in a single pass.
+    // Wait for the slide-in animation to finish before rendering the list. With startTransition, a competing update
+    // interrupted and discarded the (expensive) first mount render before it could commit, forcing React to redo
+    // that same render a second time. useRunAfterTransitions fires a plain, synchronous update instead, so the first render always completes in a single pass.
     const shouldRender = useRunAfterTransitions(hasLayout);
 
     if (!shouldRender || !isFocusedUntilTransitionEnd) {
