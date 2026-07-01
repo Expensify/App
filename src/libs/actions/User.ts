@@ -41,6 +41,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Pusher from '@libs/Pusher';
 import type {PingPongEvent} from '@libs/Pusher/types';
 import PusherUtils from '@libs/PusherUtils';
+import {normalizeReactionUpdates} from '@libs/ReportActionReactionsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -964,7 +965,7 @@ function subscribeToUserEvents(currentUserAccountID: number, currentUserEmail: s
                 return;
             }
 
-            const onyxUpdatePromise = Onyx.update(pushJSON).then(() => {
+            const onyxUpdatePromise = Onyx.update(normalizeReactionUpdates(pushJSON)).then(() => {
                 triggerNotifications(pushJSON, currentUserAccountID, currentUserEmail, getReportAttributes?.());
             });
 

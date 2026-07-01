@@ -79,7 +79,7 @@ function ReportActionItemEmojiReactions({reportAction, reportID, isEditingInline
         importEmojiLocale(preferredLocale);
     }
 
-    const toggleReaction = (emoji: Emoji, skinTone: number, ignoreSkinToneOnCompare?: boolean) => {
+    const toggleReaction = (emoji: Emoji, skinTone: number) => {
         if (isAnonymousUser()) {
             hideContextMenu(false);
 
@@ -90,7 +90,7 @@ function ReportActionItemEmojiReactions({reportAction, reportID, isEditingInline
             });
             return;
         }
-        toggleEmojiReaction(reportID, reportAction, emoji, emojiReactions, skinTone, currentUserAccountID, ignoreSkinToneOnCompare);
+        toggleEmojiReaction(reportID, reportAction, emoji, emojiReactions, skinTone, currentUserAccountID);
     };
 
     // Each emoji is sorted by the oldest timestamp of user reactions so that they will always appear in the same order for everyone
@@ -103,7 +103,7 @@ function ReportActionItemEmojiReactions({reportAction, reportID, isEditingInline
             }
 
             const onPress = () => {
-                toggleReaction(emoji, preferredSkinTone, true);
+                toggleReaction(emoji, preferredSkinTone);
             };
 
             return {

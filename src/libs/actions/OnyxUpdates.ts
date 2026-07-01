@@ -4,6 +4,7 @@ import type {Merge} from 'type-fest';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import PusherUtils from '@libs/PusherUtils';
+import {normalizeReactionUpdates} from '@libs/ReportActionReactionsUtils';
 import {trackExpenseApiError} from '@libs/telemetry/trackExpenseCreationError';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,7 +38,7 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, res
     // First apply any onyx data updates that are being sent back from the API. We wait for this to complete and then
     // apply successData or failureData. This ensures that we do not update any pending, loading, or other UI states contained
     // in successData/failureData until after the component has received and API data.
-    const onyxDataUpdatePromise = response.onyxData ? updateHandler(response.onyxData) : Promise.resolve();
+    const onyxDataUpdatePromise = response.onyxData ? updateHandler(normalizeReactionUpdates(response.onyxData)) : Promise.resolve();
 
     return onyxDataUpdatePromise
         .then(() => {
@@ -98,7 +99,7 @@ function applyAirshipOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdate
     });
 
     airshipEventsPromise = updates
-        .reduce((promise, update) => promise.then(() => Onyx.update(update.data as Array<OnyxUpdate<TKey>>)), airshipEventsPromise)
+        .reduce((promise, update) => promise.then(() => Onyx.update(normalizeReactionUpdates(update.data as Array<OnyxUpdate<TKey>>))), airshipEventsPromise)
         .then(() => {
             Log.info('[OnyxUpdateManager] Done applying Airship updates', false, {lastUpdateID});
         });
