@@ -1,4 +1,4 @@
-import {format, fromUnixTime, isBefore} from 'date-fns';
+import {format, fromUnixTime, isBefore, parse} from 'date-fns';
 import groupBy from 'lodash/groupBy';
 import lodashSortBy from 'lodash/sortBy';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -1300,7 +1300,14 @@ function isBrokenConnectionPastDismissThreshold(card: Card): boolean {
     if (!isCardConnectionBroken(card) || !card.lastScrape) {
         return false;
     }
-    return DateUtils.getDifferenceInDaysFromNow(new Date(card.lastScrape)) >= CONST.COMPANY_CARDS.BROKEN_CONNECTION_DISMISS_AFTER_DAYS;
+    // `card.lastScrape` uses the Expensify DB datetime format (e.g. "2024-11-27 11:00:53"). Parse it explicitly with the
+    // matching format instead of relying on `new Date()`, whose handling of this non-ISO string is not portable across JS
+    // engines — an invalid parse would make the difference NaN, so the comparison would always be false and never dismiss.
+    const lastScrapeDate = parse(card.lastScrape, 'yyyy-MM-dd HH:mm:ss', new Date());
+    if (Number.isNaN(lastScrapeDate.getTime())) {
+        return false;
+    }
+    return DateUtils.getDifferenceInDaysFromNow(lastScrapeDate) >= CONST.COMPANY_CARDS.BROKEN_CONNECTION_DISMISS_AFTER_DAYS;
 }
 
 /**

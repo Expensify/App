@@ -4290,14 +4290,21 @@ describe('CardUtils', () => {
 
         it('returns true when broken and unresolved for at least the grace period', () => {
             jest.spyOn(DateUtils, 'getDifferenceInDaysFromNow').mockReturnValue(CONST.COMPANY_CARDS.BROKEN_CONNECTION_DISMISS_AFTER_DAYS);
-            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: '2020-01-01'};
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: '2020-01-01 00:00:00'};
             expect(isBrokenConnectionPastDismissThreshold(card)).toBe(true);
         });
 
         it('returns false when broken but still within the grace period', () => {
             jest.spyOn(DateUtils, 'getDifferenceInDaysFromNow').mockReturnValue(CONST.COMPANY_CARDS.BROKEN_CONNECTION_DISMISS_AFTER_DAYS - 1);
-            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: '2020-01-01'};
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: '2020-01-01 00:00:00'};
             expect(isBrokenConnectionPastDismissThreshold(card)).toBe(false);
+        });
+
+        // Uses the real DateUtils (no mock) to prove the DB-format string is parsed correctly, since new Date() on
+        // "yyyy-MM-dd HH:mm:ss" is not portable across JS engines and an invalid parse would silently never dismiss.
+        it('parses the DB datetime format and dismisses a long-broken connection without mocking', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: '2020-01-01 00:00:00'};
+            expect(isBrokenConnectionPastDismissThreshold(card)).toBe(true);
         });
     });
 
