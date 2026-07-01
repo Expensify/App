@@ -515,7 +515,8 @@ function MoneyRequestReceiptView({
 
     const showBorderlessLoading = isLoading && fillSpace;
 
-    const canShowReceiptActions = hasReceipt && !isLoading && isEditable && !isMapDistanceRequest && !mergeTransactionID;
+    // Map distance receipts show both hover actions just like regular receipts, so we don't exclude isMapDistanceRequest here.
+    const canShowReceiptActions = hasReceipt && !isLoading && isEditable && !mergeTransactionID;
     const receiptPendingAction = isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt');
     const isReceiptOfflinePending = isOffline && !!receiptPendingAction;
     const receiptAuditMessagesRow = (
