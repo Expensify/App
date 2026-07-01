@@ -11,6 +11,9 @@ type AvatarCropDraft = AvatarCropImage & {
 
     /** Translation key for the primary action button label */
     buttonLabelKey?: TranslationPaths;
+
+    /** Route of the opener that started the crop; lets that opener re-adopt the flow after a page refresh */
+    openerKey: string;
 };
 
 export default AvatarCropDraft;

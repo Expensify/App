@@ -9,6 +9,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 type SetAvatarCropDraftParams = {
     token: string;
     image: FileObject;
+    openerKey: string;
     maskType?: AvatarCropMaskType;
     buttonLabelKey?: TranslationPaths;
 };
@@ -18,23 +19,11 @@ type SetAvatarCropResultParams = {
     image: File | CustomRNImageManipulatorResult;
 };
 
-/**
- * Token of the crop flow initiated in THIS session. Lives in memory only (reset on reload), so it lets
- * the crop screen tell an in-session navigation apart from a refreshed/restored one whose initiating
- * opener no longer exists. The persisted Onyx draft can outlive the opener; this can't.
- */
-let activeCropToken: string | undefined;
-
-/** True only for a crop draft started in the current session (its opener is still alive to consume the result). */
-function isActiveCropToken(token: string | undefined): boolean {
-    return !!token && token === activeCropToken;
-}
-
-function setAvatarCropDraft({token, image, maskType, buttonLabelKey}: SetAvatarCropDraftParams): Promise<void> {
-    activeCropToken = token;
+function setAvatarCropDraft({token, image, openerKey, maskType, buttonLabelKey}: SetAvatarCropDraftParams): Promise<void> {
     return serializeAvatarCropImage(image).then((uri) =>
         Onyx.set(ONYXKEYS.AVATAR_CROP_DRAFT, {
             token,
+            openerKey,
             uri: uri ?? '',
             name: image.name ?? '',
             type: image.type ?? '',
@@ -45,7 +34,6 @@ function setAvatarCropDraft({token, image, maskType, buttonLabelKey}: SetAvatarC
 }
 
 function clearAvatarCropDraft(): Promise<void> {
-    activeCropToken = undefined;
     return Onyx.set(ONYXKEYS.AVATAR_CROP_DRAFT, null);
 }
 
@@ -67,4 +55,4 @@ function clearAvatarCropResult(): Promise<void> {
     return Onyx.set(ONYXKEYS.AVATAR_CROP_RESULT, null);
 }
 
-export {setAvatarCropDraft, clearAvatarCropDraft, setAvatarCropResult, clearAvatarCropResult, isActiveCropToken};
+export {setAvatarCropDraft, clearAvatarCropDraft, setAvatarCropResult, clearAvatarCropResult};

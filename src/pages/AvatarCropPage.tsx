@@ -4,7 +4,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {clearAvatarCropDraft, isActiveCropToken, setAvatarCropResult} from '@libs/actions/AvatarCrop';
+import {clearAvatarCropDraft, setAvatarCropResult} from '@libs/actions/AvatarCrop';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -15,19 +15,19 @@ function AvatarCropPage() {
     const icons = useMemoizedLazyExpensifyIcons(['ImageCropSquareMask']);
     const [draft, draftMetadata] = useOnyx(ONYXKEYS.AVATAR_CROP_DRAFT);
     const isLoadingDraft = isLoadingOnyxValue(draftMetadata);
-    // Valid only for a draft started in this session. A refreshed/restored crop screen keeps the persisted
-    // draft but its opener (and the in-memory token) is gone, so a save here could never be consumed.
-    const isLiveCrop = !!draft?.uri && isActiveCropToken(draft.token);
+    // The image is base64-persisted, so it survives a refresh and the cropper can re-render. The opener
+    // re-adopts the draft's token on mount (see useAvatarCrop), so a save still reaches it.
+    const hasCropImage = !!draft?.uri;
 
-    // Dismiss when there's nothing to crop, or when this is a refreshed/restored crop with no live opener.
-    // Wait for navigation to be ready: on a cold web refresh this effect can fire before the navigation
-    // container is initialized, in which case a bare goBack() is dropped and the loader hangs forever.
+    // Dismiss only when there's genuinely nothing to crop. Wait for navigation to be ready: on a cold web
+    // refresh this effect can fire before the navigation container is initialized, in which case a bare
+    // goBack() is dropped and the loader hangs forever.
     useEffect(() => {
-        if (isLoadingDraft || isLiveCrop) {
+        if (isLoadingDraft || hasCropImage) {
             return;
         }
         Navigation.isNavigationReady().then(() => Navigation.goBack());
-    }, [isLoadingDraft, isLiveCrop]);
+    }, [isLoadingDraft, hasCropImage]);
 
     // Make sure the input draft is cleaned up no matter how the screen is left (back gesture, hardware back, save).
     useEffect(
@@ -37,7 +37,7 @@ function AvatarCropPage() {
         [],
     );
 
-    if (isLoadingDraft || !draft?.uri || !isActiveCropToken(draft.token)) {
+    if (isLoadingDraft || !draft?.uri) {
         return (
             <FullScreenLoadingIndicator
                 shouldUseGoBackButton
