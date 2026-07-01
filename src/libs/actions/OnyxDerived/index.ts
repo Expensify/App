@@ -35,6 +35,14 @@ function init() {
 
         OnyxUtils.get(key).then((storedDerivedValue) => {
             let derivedValue = storedDerivedValue;
+            let hasSyncedDerivedValueFromOnyx = key !== ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS;
+            let pendingRecomputeAfterDerivedValueSync:
+                | {
+                      sourceKey?: string;
+                      sourceValue?: unknown;
+                      triggeredByIndex?: number;
+                  }
+                | undefined;
             if (derivedValue) {
                 Log.info(`Derived value for ${key} restored from disk`);
             }
@@ -76,8 +84,16 @@ function init() {
                     return;
                 }
 
+                if (!hasSyncedDerivedValueFromOnyx) {
+                    pendingRecomputeAfterDerivedValueSync = {sourceKey, sourceValue, triggeredByIndex};
+                    Log.info(`[OnyxDerived] waiting for current value sync before recomputing ${key}`);
+                    return;
+                }
+
                 context.currentValue = derivedValue;
                 context.sourceValues = sourceKey && sourceValue !== undefined ? {[sourceKey]: sourceValue} : undefined;
+                context.isInitialDependencyLoad = sourceKey !== undefined && sourceValue === undefined && triggeredByIndex !== undefined;
+                context.shouldSkipUpdate = false;
 
                 const spanId = `${CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE}_${key}`;
                 startSpan(spanId, {
@@ -90,6 +106,10 @@ function init() {
                 try {
                     // @ts-expect-error TypeScript can't confirm the shape of dependencyValues matches the compute function's parameters
                     const newDerivedValue = compute(dependencyValues, context);
+                    if (context.shouldSkipUpdate) {
+                        Log.info(`[OnyxDerived] skipping update for ${key}`);
+                        return;
+                    }
                     Log.info(`[OnyxDerived] updating value for ${key} in Onyx`);
                     derivedValue = newDerivedValue;
                     setDerivedValue(key, derivedValue);
@@ -97,6 +117,24 @@ function init() {
                     endSpan(spanId);
                 }
             };
+
+            if (key === ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS) {
+                Onyx.connectWithoutView({
+                    key,
+                    callback: (value) => {
+                        derivedValue = value;
+                        hasSyncedDerivedValueFromOnyx = true;
+
+                        if (!pendingRecomputeAfterDerivedValueSync) {
+                            return;
+                        }
+
+                        const {sourceKey, sourceValue, triggeredByIndex} = pendingRecomputeAfterDerivedValueSync;
+                        pendingRecomputeAfterDerivedValueSync = undefined;
+                        recomputeDerivedValue(sourceKey, sourceValue, triggeredByIndex);
+                    },
+                });
+            }
 
             for (let i = 0; i < dependencies.length; i++) {
                 const dependencyIndex = i;
