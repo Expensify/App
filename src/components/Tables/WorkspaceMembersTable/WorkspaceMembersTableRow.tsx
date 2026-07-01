@@ -38,7 +38,7 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
-    const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
+    const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.X_SMALL;
     const roleLabel = translate('workspace.common.roleName', item.role);
     const accessibilityLabel = `${item.name}, ${item.email}, ${roleLabel}`;
     const memberSubtitle = !shouldUseNarrowTableLayout ? item.email : `${roleLabel} • ${item.email}`;

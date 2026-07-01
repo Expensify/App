@@ -4,7 +4,7 @@ import useReceiptPreviewsSizes from '@pages/iou/request/step/IOURequestStepScan/
 const MOCK_STYLES = {
     receiptPlaceholder: {width: 44, marginRight: 8, height: 52},
     receiptPlaceholderLandscape: {height: 52, marginBottom: 8, width: 44},
-    singleAvatarMedium: {height: 52, width: 52},
+    singleAvatarXLarge: {height: 52, width: 52},
     ph4: {paddingHorizontal: 16},
     ph6: {paddingHorizontal: 24},
     pv2: {paddingVertical: 8},
@@ -46,7 +46,7 @@ describe('useReceiptPreviewsSizes', () => {
         it('returns the correct initialReceiptsAmount', () => {
             const {result} = renderHook(() => useReceiptPreviewsSizes(false));
 
-            // initialReceiptsAmount = (windowWidth - ph4.paddingHorizontal * 2 - singleAvatarMedium.width) / previewItemSize
+            // initialReceiptsAmount = (windowWidth - ph4.paddingHorizontal * 2 - singleAvatarXLarge.width) / previewItemSize
             // = (400 - 16 * 2 - 52) / 52 = 316 / 52
             expect(result.current.initialReceiptsAmount).toBe(316 / 52);
         });
@@ -89,7 +89,7 @@ describe('useReceiptPreviewsSizes', () => {
             const {result} = renderHook(() => useReceiptPreviewsSizes(true));
 
             // initialReceiptsAmount = (windowHeight - submitButtonHeight - tabSelectorButtonHeight - contentHeaderHeight) / previewItemSize
-            // submitButtonHeight = singleAvatarMedium.height = 52
+            // submitButtonHeight = singleAvatarXLarge.height = 52
             // tabSelectorButtonHeight = tabSelectorButtonHeight (40) + pb4.paddingBottom (16) = 56
             // contentHeaderHeight = 100 (variables.contentHeaderHeight capped at maxValue in test environment)
             // = (800 - 52 - 56 - 100) / 60 = 592 / 60

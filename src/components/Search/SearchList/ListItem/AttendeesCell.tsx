@@ -45,7 +45,7 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
-    const size = CONST.AVATAR_SIZE.SMALLER;
+    const size = CONST.AVATAR_SIZE.XX_SMALL;
     const maxAvatarsInRow = CONST.AVATAR_ROW_SIZE.DEFAULT;
     const oneAvatarSize = StyleUtils.getAvatarStyle(size);
     const oneAvatarBorderWidth = StyleUtils.getAvatarBorderWidth(size).borderWidth ?? 0;

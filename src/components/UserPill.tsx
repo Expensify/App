@@ -34,7 +34,7 @@ function UserPill({avatar, displayName, accountID, email, style}: UserPillProps)
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart, styles.userPill, shouldUseNarrowLayout && styles.mw100, style]}>
                 <Avatar
                     source={avatar}
-                    size={CONST.AVATAR_SIZE.MENTION_ICON}
+                    size={CONST.AVATAR_SIZE.XXXX_SMALL}
                     type={CONST.ICON_TYPE_AVATAR}
                     avatarID={accountID}
                     name={displayName}

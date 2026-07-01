@@ -32,7 +32,7 @@ export default function DomainAdminsTableRow({item, rowIndex, shouldUseNarrowTab
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
-    const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
+    const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.X_SMALL;
     const primaryContactLabel = item.isPrimaryContact ? translate('domain.admins.primaryContact') : '';
     const accessibilityLabel = [item.name, item.email, primaryContactLabel].filter(Boolean).join(', ');
 

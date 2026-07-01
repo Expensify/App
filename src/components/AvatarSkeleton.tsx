@@ -13,7 +13,7 @@ type AvatarSkeletonProps = {
     reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
-function AvatarSkeleton({size = CONST.AVATAR_SIZE.SMALL, reasonAttributes}: AvatarSkeletonProps) {
+function AvatarSkeleton({size = CONST.AVATAR_SIZE.X_SMALL, reasonAttributes}: AvatarSkeletonProps) {
     const theme = useTheme();
     useSkeletonSpan('AvatarSkeleton', reasonAttributes);
     const StyleUtils = useStyleUtils();

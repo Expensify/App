@@ -256,18 +256,18 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const DefaultAvatar = useCallback(
         () => (
             <Avatar
-                containerStyles={styles.avatarXLarge}
-                imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
+                containerStyles={styles.avatarXxxxxLarge}
+                imageStyles={[styles.avatarXxxxxLarge, styles.alignSelfCenter]}
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
                 source={policy?.avatarURL || getDefaultWorkspaceAvatar(policyName)}
                 fallbackIcon={expensifyIcons.FallbackWorkspaceAvatar}
-                size={CONST.AVATAR_SIZE.X_LARGE}
+                size={CONST.AVATAR_SIZE.XXXXX_LARGE}
                 name={policyName}
                 avatarID={policyID}
                 type={CONST.ICON_TYPE_WORKSPACE}
             />
         ),
-        [expensifyIcons.FallbackWorkspaceAvatar, policy?.avatarURL, policyID, policyName, styles.alignSelfCenter, styles.avatarXLarge],
+        [expensifyIcons.FallbackWorkspaceAvatar, policy?.avatarURL, policyID, policyName, styles.alignSelfCenter, styles.avatarXxxxxLarge],
     );
 
     const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
@@ -523,9 +523,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         }}
                         source={policy?.avatarURL ?? ''}
                         avatarID={policyID}
-                        size={CONST.AVATAR_SIZE.X_LARGE}
+                        size={CONST.AVATAR_SIZE.XXXXX_LARGE}
                         name={policyName}
-                        avatarStyle={styles.avatarXLarge}
+                        avatarStyle={styles.avatarXxxxxLarge}
                         enablePreview
                         DefaultAvatar={DefaultAvatar}
                         type={CONST.ICON_TYPE_WORKSPACE}

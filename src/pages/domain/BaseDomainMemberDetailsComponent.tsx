@@ -66,12 +66,12 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                             <OfflineWithFeedback pendingAction={personalDetails?.pendingFields?.avatar}>
                                 <Avatar
-                                    containerStyles={[styles.avatarXLarge, styles.mb4, styles.noOutline]}
-                                    imageStyles={[styles.avatarXLarge]}
+                                    containerStyles={[styles.avatarXxxxxLarge, styles.mb4, styles.noOutline]}
+                                    imageStyles={[styles.avatarXxxxxLarge]}
                                     source={personalDetails?.avatar}
                                     avatarID={accountID}
                                     type={CONST.ICON_TYPE_AVATAR}
-                                    size={CONST.AVATAR_SIZE.X_LARGE}
+                                    size={CONST.AVATAR_SIZE.XXXXX_LARGE}
                                     fallbackIcon={personalDetails?.fallbackIcon}
                                 />
                             </OfflineWithFeedback>

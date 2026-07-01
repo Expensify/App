@@ -42,7 +42,7 @@ function AvatarWithDelegateAvatar({delegateEmail, isHovered = false, isSelected 
             <View style={[styles.sidebarStatusAvatar, isHovered && styles.sidebarStatusAvatarHovered]}>
                 <View style={styles.emojiStatusLHN}>
                     <Avatar
-                        size={isSmallScreenWidth ? CONST.AVATAR_SIZE.MID_SUBSCRIPT : CONST.AVATAR_SIZE.SMALL}
+                        size={isSmallScreenWidth ? CONST.AVATAR_SIZE.XXXX_SMALL : CONST.AVATAR_SIZE.X_SMALL}
                         source={getSmallSizeAvatar({avatarSource: delegatePersonalDetail?.avatar, accountID: delegatePersonalDetail?.accountID, defaultAvatars})}
                         fallbackIcon={delegatePersonalDetail?.fallbackIcon}
                         type={CONST.ICON_TYPE_AVATAR}

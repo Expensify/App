@@ -9,7 +9,7 @@ function useReceiptPreviewsSizes(isInLandscapeMode: boolean) {
     if (isInLandscapeMode) {
         const previewItemSize = styles.receiptPlaceholderLandscape.height + styles.receiptPlaceholderLandscape.marginBottom;
 
-        const submitButtonHeight = styles.singleAvatarMedium.height;
+        const submitButtonHeight = styles.singleAvatarXLarge.height;
         const tabSelectorButtonHeight = variables.tabSelectorButtonHeight + styles.pb4.paddingBottom;
         const contentHeaderHeight = variables.contentHeaderHeight;
         const initialReceiptsAmount = (windowHeight - submitButtonHeight - tabSelectorButtonHeight - contentHeaderHeight) / previewItemSize;
@@ -22,7 +22,7 @@ function useReceiptPreviewsSizes(isInLandscapeMode: boolean) {
     }
 
     const previewItemSize = styles.receiptPlaceholder.width + styles.receiptPlaceholder.marginRight;
-    const initialReceiptsAmount = (windowWidth - styles.ph4.paddingHorizontal * 2 - styles.singleAvatarMedium.width) / previewItemSize;
+    const initialReceiptsAmount = (windowWidth - styles.ph4.paddingHorizontal * 2 - styles.singleAvatarXLarge.width) / previewItemSize;
 
     return {
         previewsSize: styles.receiptPlaceholder.height + styles.pv2.paddingVertical * 2,

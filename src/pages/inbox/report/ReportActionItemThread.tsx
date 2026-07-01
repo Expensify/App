@@ -76,7 +76,7 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
                 >
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
                         <ReportActionAvatars
-                            size={CONST.AVATAR_SIZE.SMALL}
+                            size={CONST.AVATAR_SIZE.X_SMALL}
                             accountIDs={accountIDs}
                             horizontalStacking={{
                                 isHovered,

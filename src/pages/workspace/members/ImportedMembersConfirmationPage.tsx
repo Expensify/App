@@ -131,7 +131,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             <View style={styles.ph5}>
                 <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                     <ReportActionAvatars
-                        size={CONST.AVATAR_SIZE.LARGE}
+                        size={CONST.AVATAR_SIZE.XXX_LARGE}
                         accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
                         horizontalStacking={{
                             displayInRows: true,

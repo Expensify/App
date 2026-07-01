@@ -53,14 +53,14 @@ WithPreselectedLetterAvatar.args = {
 const LargeAvatars: AvatarSelectorStory = Template.bind({});
 LargeAvatars.args = {
     selectedID: 'helmet-blue400',
-    size: CONST.AVATAR_SIZE.LARGE,
+    size: CONST.AVATAR_SIZE.XXX_LARGE,
     label: 'Large avatars',
     name: 'A',
 };
 
 const SmallAvatars: AvatarSelectorStory = Template.bind({});
 SmallAvatars.args = {
-    size: CONST.AVATAR_SIZE.SMALL,
+    size: CONST.AVATAR_SIZE.X_SMALL,
     label: 'Small avatars',
     name: 'A',
 };

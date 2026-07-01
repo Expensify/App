@@ -100,7 +100,7 @@ describe('AvatarButtonWithIcon', () => {
             expect(screen.getByTestId(MOCK_TEST_ID, {includeHiddenElements: true})).toBeTruthy();
         });
 
-        it.each([CONST.AVATAR_SIZE.DEFAULT, CONST.AVATAR_SIZE.LARGE, CONST.AVATAR_SIZE.X_LARGE])('should render with size: %s', (size) => {
+        it.each([CONST.AVATAR_SIZE.DEFAULT, CONST.AVATAR_SIZE.XXX_LARGE, CONST.AVATAR_SIZE.XXXXX_LARGE])('should render with size: %s', (size) => {
             renderWithProvider(
                 <AvatarButtonWithIcon
                     {...defaultProps}
@@ -145,7 +145,7 @@ describe('AvatarButtonWithIcon', () => {
                     disabledStyle={{opacity: 0.3}}
                     editIconStyle={{backgroundColor: 'blue'}}
                     DefaultAvatar={DefaultAvatar}
-                    size={CONST.AVATAR_SIZE.X_LARGE}
+                    size={CONST.AVATAR_SIZE.XXXXX_LARGE}
                     fallbackIcon={icons.current.Building}
                     type={CONST.ICON_TYPE_WORKSPACE}
                     pendingAction="update"

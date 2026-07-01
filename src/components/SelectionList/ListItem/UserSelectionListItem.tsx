@@ -81,7 +81,7 @@ function UserSelectionListItem<TItem extends ListItem>({
                     <View style={styles.mentionSuggestionsAvatarContainer}>
                         <Avatar
                             source={item.icons.at(0)?.source}
-                            size={CONST.AVATAR_SIZE.SMALLER}
+                            size={CONST.AVATAR_SIZE.XX_SMALL}
                             name={item.icons.at(0)?.name}
                             avatarID={item.icons.at(0)?.id}
                             type={item.icons.at(0)?.type ?? CONST.ICON_TYPE_AVATAR}

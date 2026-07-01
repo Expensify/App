@@ -170,7 +170,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                                     source={item.icon}
                                     avatarID={item.policyID}
                                     type={CONST.ICON_TYPE_WORKSPACE}
-                                    size={CONST.AVATAR_SIZE.SMALL}
+                                    size={CONST.AVATAR_SIZE.X_SMALL}
                                     imageStyles={styles.alignSelfCenter}
                                     fallbackIcon={icons.FallbackWorkspaceAvatar}
                                 />
@@ -190,7 +190,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                                     source={item.ownerAvatar}
                                     avatarID={item.ownerAccountID}
                                     type={CONST.ICON_TYPE_AVATAR}
-                                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                                    size={CONST.AVATAR_SIZE.XXXX_SMALL}
                                 />
                                 <WorkspacesListRowDisplayName
                                     isDeleted={item.isDeleted}

@@ -88,65 +88,61 @@ const eReceiptColors: EReceiptColorName[] = [
 ];
 
 const avatarBorderSizes: Partial<Record<AvatarSizeName, number>> = {
-    [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.componentBorderRadiusSmall,
-    [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.componentBorderRadiusSmall,
-    [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.componentBorderRadiusMedium,
-    [CONST.AVATAR_SIZE.SMALLER]: variables.componentBorderRadiusMedium,
+    [CONST.AVATAR_SIZE.XXXXX_SMALL]: variables.componentBorderRadiusSmall,
+    [CONST.AVATAR_SIZE.XXXX_SMALL]: variables.componentBorderRadiusSmall,
+    [CONST.AVATAR_SIZE.XXX_SMALL]: variables.componentBorderRadiusMedium,
+    [CONST.AVATAR_SIZE.XX_SMALL]: variables.componentBorderRadiusMedium,
+    [CONST.AVATAR_SIZE.X_SMALL]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.SMALL]: variables.componentBorderRadiusMedium,
-    [CONST.AVATAR_SIZE.HEADER]: variables.componentBorderRadiusNormal,
-    [CONST.AVATAR_SIZE.DEFAULT]: variables.componentBorderRadiusNormal,
-    [CONST.AVATAR_SIZE.MEDIUM]: variables.componentBorderRadiusLarge,
-    [CONST.AVATAR_SIZE.LARGE]: variables.componentBorderRadiusLarge,
+    [CONST.AVATAR_SIZE.MEDIUM]: variables.componentBorderRadiusNormal,
     [CONST.AVATAR_SIZE.X_LARGE]: variables.componentBorderRadiusLarge,
-    [CONST.AVATAR_SIZE.MEDIUM_LARGE]: variables.componentBorderRadiusLarge,
-    [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.componentBorderRadiusRounded,
-    [CONST.AVATAR_SIZE.SMALL_NORMAL]: variables.componentBorderRadiusMedium,
+    [CONST.AVATAR_SIZE.XX_LARGE]: variables.componentBorderRadiusLarge,
+    [CONST.AVATAR_SIZE.XXX_LARGE]: variables.componentBorderRadiusLarge,
+    [CONST.AVATAR_SIZE.XXXX_LARGE]: variables.componentBorderRadiusRounded,
+    [CONST.AVATAR_SIZE.XXXXX_LARGE]: variables.componentBorderRadiusLarge,
 };
 
 const avatarSizes: Record<AvatarSizeName, AvatarSizeValue> = {
-    [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarSizeNormal,
-    [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.avatarSizeSmallSubscript,
-    [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.avatarSizeMidSubscript,
-    [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.avatarSizeSubscript,
+    [CONST.AVATAR_SIZE.XXXXX_SMALL]: variables.avatarSizeXxxxxSmall,
+    [CONST.AVATAR_SIZE.XXXX_SMALL]: variables.avatarSizeXxxxSmall,
+    [CONST.AVATAR_SIZE.XXX_SMALL]: variables.avatarSizeXxxSmall,
+    [CONST.AVATAR_SIZE.XX_SMALL]: variables.avatarSizeXxSmall,
+    [CONST.AVATAR_SIZE.X_SMALL]: variables.avatarSizeXSmall,
     [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
-    [CONST.AVATAR_SIZE.SMALLER]: variables.avatarSizeSmaller,
+    [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
     [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
     [CONST.AVATAR_SIZE.X_LARGE]: variables.avatarSizeXLarge,
-    [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
-    [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.avatarSizeLargeBordered,
-    [CONST.AVATAR_SIZE.MEDIUM_LARGE]: variables.avatarSizeMediumLarge,
-    [CONST.AVATAR_SIZE.HEADER]: variables.avatarSizeHeader,
-    [CONST.AVATAR_SIZE.MENTION_ICON]: variables.avatarSizeMentionIcon,
-    [CONST.AVATAR_SIZE.SMALL_NORMAL]: variables.avatarSizeSmallNormal,
-    [CONST.AVATAR_SIZE.LARGE_NORMAL]: variables.avatarSizeLargeNormal,
+    [CONST.AVATAR_SIZE.XX_LARGE]: variables.avatarSizeXxLarge,
+    [CONST.AVATAR_SIZE.XXX_LARGE]: variables.avatarSizeXxxLarge,
+    [CONST.AVATAR_SIZE.XXXX_LARGE]: variables.avatarSizeXxxxLarge,
+    [CONST.AVATAR_SIZE.XXXXX_LARGE]: variables.avatarSizeXxxxxLarge,
 };
 
 const avatarFontSizes: Partial<Record<AvatarSizeName, number>> = {
-    [CONST.AVATAR_SIZE.DEFAULT]: variables.fontSizeNormal,
-    [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.fontSizeExtraSmall,
-    [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.fontSizeExtraSmall,
-    [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.fontSizeExtraSmall,
-    [CONST.AVATAR_SIZE.SMALL]: variables.fontSizeSmall,
-    [CONST.AVATAR_SIZE.SMALLER]: variables.fontSizeExtraSmall,
-    [CONST.AVATAR_SIZE.LARGE]: variables.fontSizeXLarge,
-    [CONST.AVATAR_SIZE.MEDIUM_LARGE]: variables.fontSizeXLarge,
-    [CONST.AVATAR_SIZE.MEDIUM]: variables.fontSizeMedium,
-    [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.fontSizeXLarge,
+    [CONST.AVATAR_SIZE.XXXXX_SMALL]: variables.fontSizeExtraSmall,
+    [CONST.AVATAR_SIZE.XXXX_SMALL]: variables.fontSizeExtraSmall,
+    [CONST.AVATAR_SIZE.XXX_SMALL]: variables.fontSizeExtraSmall,
+    [CONST.AVATAR_SIZE.XX_SMALL]: variables.fontSizeExtraSmall,
+    [CONST.AVATAR_SIZE.X_SMALL]: variables.fontSizeSmall,
+    [CONST.AVATAR_SIZE.MEDIUM]: variables.fontSizeNormal,
+    [CONST.AVATAR_SIZE.X_LARGE]: variables.fontSizeMedium,
+    [CONST.AVATAR_SIZE.XX_LARGE]: variables.fontSizeXLarge,
+    [CONST.AVATAR_SIZE.XXX_LARGE]: variables.fontSizeXLarge,
+    [CONST.AVATAR_SIZE.XXXX_LARGE]: variables.fontSizeXLarge,
 };
 
 const avatarBorderWidths: Partial<Record<AvatarSizeName, number>> = {
-    [CONST.AVATAR_SIZE.DEFAULT]: 3,
-    [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: 2,
-    [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: 2,
-    [CONST.AVATAR_SIZE.SUBSCRIPT]: 2,
-    [CONST.AVATAR_SIZE.SMALL]: 2,
-    [CONST.AVATAR_SIZE.SMALLER]: 2,
-    [CONST.AVATAR_SIZE.HEADER]: 2,
-    [CONST.AVATAR_SIZE.LARGE]: 4,
-    [CONST.AVATAR_SIZE.MEDIUM_LARGE]: 3,
-    [CONST.AVATAR_SIZE.X_LARGE]: 4,
+    [CONST.AVATAR_SIZE.XXXXX_SMALL]: 2,
+    [CONST.AVATAR_SIZE.XXXX_SMALL]: 2,
+    [CONST.AVATAR_SIZE.XXX_SMALL]: 2,
+    [CONST.AVATAR_SIZE.XX_SMALL]: 2,
+    [CONST.AVATAR_SIZE.X_SMALL]: 2,
     [CONST.AVATAR_SIZE.MEDIUM]: 3,
-    [CONST.AVATAR_SIZE.LARGE_BORDERED]: 4,
+    [CONST.AVATAR_SIZE.X_LARGE]: 3,
+    [CONST.AVATAR_SIZE.XX_LARGE]: 3,
+    [CONST.AVATAR_SIZE.XXX_LARGE]: 4,
+    [CONST.AVATAR_SIZE.XXXX_LARGE]: 4,
+    [CONST.AVATAR_SIZE.XXXXX_LARGE]: 4,
 };
 
 /**
@@ -2012,20 +2008,20 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         let containerStyles: ViewStyle[];
 
         switch (size) {
-            case CONST.AVATAR_SIZE.SMALL:
-                containerStyles = [styles.emptyAvatarSmall, styles.emptyAvatarMargin];
+            case CONST.AVATAR_SIZE.X_SMALL:
+                containerStyles = [styles.emptyAvatarXSmall, styles.emptyAvatarMargin];
                 break;
-            case CONST.AVATAR_SIZE.SMALLER:
-                containerStyles = [styles.emptyAvatarSmaller, styles.emptyAvatarMarginSmaller];
-                break;
-            case CONST.AVATAR_SIZE.MEDIUM:
-                containerStyles = [styles.emptyAvatarMedium, styles.emptyAvatarMargin];
-                break;
-            case CONST.AVATAR_SIZE.LARGE:
-                containerStyles = [styles.emptyAvatarLarge, styles.mb2, styles.mr2];
+            case CONST.AVATAR_SIZE.XX_SMALL:
+                containerStyles = [styles.emptyAvatarXxSmall, styles.emptyAvatarMarginXxSmall];
                 break;
             case CONST.AVATAR_SIZE.X_LARGE:
-                containerStyles = [styles.emptyAvatarXLarge, styles.mb3, styles.mr3];
+                containerStyles = [styles.emptyAvatarXLarge, styles.emptyAvatarMargin];
+                break;
+            case CONST.AVATAR_SIZE.XXX_LARGE:
+                containerStyles = [styles.emptyAvatarXxxLarge, styles.mb2, styles.mr2];
+                break;
+            case CONST.AVATAR_SIZE.XXXXX_LARGE:
+                containerStyles = [styles.emptyAvatarXxxxxLarge, styles.mb3, styles.mr3];
                 break;
             default:
                 containerStyles = [styles.emptyAvatar, isInReportAction ? styles.emptyAvatarMarginChat : styles.emptyAvatarMargin];
@@ -2092,9 +2088,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     }),
 
     getTripReservationIconContainer: (isSmallIcon: boolean): StyleProp<ViewStyle> => ({
-        width: isSmallIcon ? variables.avatarSizeSmallNormal : variables.avatarSizeNormal,
-        height: isSmallIcon ? variables.avatarSizeSmallNormal : variables.avatarSizeNormal,
-        borderRadius: isSmallIcon ? variables.avatarSizeSmallNormal : variables.componentBorderRadiusXLarge,
+        width: isSmallIcon ? variables.avatarSizeSmall : variables.avatarSizeMedium,
+        height: isSmallIcon ? variables.avatarSizeSmall : variables.avatarSizeMedium,
+        borderRadius: isSmallIcon ? variables.avatarSizeSmall : variables.componentBorderRadiusXLarge,
         backgroundColor: theme.border,
         alignItems: 'center',
         justifyContent: 'center',

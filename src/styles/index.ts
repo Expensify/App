@@ -2450,35 +2450,35 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
-        singleAvatar: {
+        singleAvatarXxSmall: {
             height: 24,
             width: 24,
             backgroundColor: theme.icon,
             borderRadius: 12,
         },
 
-        singleAvatarSmall: {
+        singleAvatarXxxxSmall: {
             height: 16,
             width: 16,
             backgroundColor: theme.icon,
             borderRadius: 8,
         },
 
-        singleAvatarMedium: {
+        singleAvatarXLarge: {
             height: 52,
             width: 52,
             backgroundColor: theme.icon,
             borderRadius: 52,
         },
 
-        singleAvatarMediumLarge: {
+        singleAvatarXxLarge: {
             height: 60,
             width: 60,
             backgroundColor: theme.icon,
             borderRadius: 80,
         },
 
-        secondAvatar: {
+        secondAvatarXxSmall: {
             position: 'absolute',
             right: -18,
             bottom: -18,
@@ -2487,7 +2487,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: 'transparent',
         },
 
-        secondAvatarSmall: {
+        secondAvatarXxxxSmall: {
             position: 'absolute',
             right: -14,
             bottom: -14,
@@ -2496,7 +2496,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: 'transparent',
         },
 
-        secondAvatarMedium: {
+        secondAvatarXLarge: {
             position: 'absolute',
             right: -36,
             bottom: -36,
@@ -2505,7 +2505,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: 'transparent',
         },
 
-        secondAvatarMediumLarge: {
+        secondAvatarXxLarge: {
             position: 'absolute',
             right: -42,
             bottom: -42,
@@ -2520,19 +2520,19 @@ const staticStyles = (theme: ThemeColors) =>
             bottom: -6,
         },
 
-        secondAvatarSubscriptXLarge: {
+        secondAvatarSubscriptXxxxxLarge: {
             position: 'absolute',
             right: -10,
             bottom: -10,
         },
 
-        secondAvatarSubscriptCompact: {
+        secondAvatarSubscriptXSmall: {
             position: 'absolute',
             bottom: -4,
             right: -4,
         },
 
-        secondAvatarSubscriptSmallNormal: {
+        secondAvatarSubscriptSmall: {
             position: 'absolute',
             bottom: 0,
             right: 0,
@@ -2547,9 +2547,9 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
         },
 
-        avatarXLarge: {
-            width: variables.avatarSizeXLarge,
-            height: variables.avatarSizeXLarge,
+        avatarXxxxxLarge: {
+            width: variables.avatarSizeXxxxxLarge,
+            height: variables.avatarSizeXxxxxLarge,
         },
 
         avatarInnerText: {
@@ -2570,33 +2570,33 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         emptyAvatar: {
-            height: variables.avatarSizeNormal,
-            width: variables.avatarSizeNormal,
-        },
-
-        emptyAvatarSmall: {
-            height: variables.avatarSizeSmall,
-            width: variables.avatarSizeSmall,
-        },
-
-        emptyAvatarSmaller: {
-            height: variables.avatarSizeSmaller,
-            width: variables.avatarSizeSmaller,
-        },
-
-        emptyAvatarMedium: {
             height: variables.avatarSizeMedium,
             width: variables.avatarSizeMedium,
         },
 
-        emptyAvatarLarge: {
-            height: variables.avatarSizeLarge,
-            width: variables.avatarSizeLarge,
+        emptyAvatarXSmall: {
+            height: variables.avatarSizeXSmall,
+            width: variables.avatarSizeXSmall,
+        },
+
+        emptyAvatarXxSmall: {
+            height: variables.avatarSizeXxSmall,
+            width: variables.avatarSizeXxSmall,
         },
 
         emptyAvatarXLarge: {
             height: variables.avatarSizeXLarge,
             width: variables.avatarSizeXLarge,
+        },
+
+        emptyAvatarXxxLarge: {
+            height: variables.avatarSizeXxxLarge,
+            width: variables.avatarSizeXxxLarge,
+        },
+
+        emptyAvatarXxxxxLarge: {
+            height: variables.avatarSizeXxxxxLarge,
+            width: variables.avatarSizeXxxxxLarge,
         },
 
         emptyAvatarMargin: {
@@ -2607,11 +2607,11 @@ const staticStyles = (theme: ThemeColors) =>
             marginRight: variables.avatarChatSpacing - 12,
         },
 
-        emptyAvatarMarginSmall: {
+        emptyAvatarMarginXSmall: {
             marginRight: variables.avatarChatSpacing - 4,
         },
 
-        emptyAvatarMarginSmaller: {
+        emptyAvatarMarginXxSmall: {
             marginRight: variables.avatarChatSpacing - 4,
         },
 
@@ -4367,7 +4367,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         assigneeTextStyle: {
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            minHeight: variables.avatarSizeSubscript,
+            minHeight: variables.avatarSizeXxxSmall,
         },
 
         taskRightIconContainer: {

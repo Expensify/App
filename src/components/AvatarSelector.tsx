@@ -33,7 +33,7 @@ const SPACER_SIZE = 10;
 /**
  * AvatarSelector — renders a grid of selectable avatars.
  */
-function AvatarSelector({selectedID, onSelect, label, name, size = CONST.AVATAR_SIZE.MEDIUM}: AvatarSelectorProps) {
+function AvatarSelector({selectedID, onSelect, label, name, size = CONST.AVATAR_SIZE.X_LARGE}: AvatarSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

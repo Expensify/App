@@ -37,7 +37,7 @@ WorkspaceAvatar.args = {
     type: CONST.ICON_TYPE_WORKSPACE,
     name: 'Cathy’s Croissants',
     avatarID: 'policy_123',
-    size: CONST.AVATAR_SIZE.LARGE,
+    size: CONST.AVATAR_SIZE.XXX_LARGE,
 };
 
 const FallbackAvatar: AvatarStory = Template.bind({});
@@ -53,7 +53,7 @@ SmallAvatar.args = {
     type: CONST.ICON_TYPE_AVATAR,
     source: AVATAR_URL,
     name: 'Jane',
-    size: CONST.AVATAR_SIZE.SMALL,
+    size: CONST.AVATAR_SIZE.X_SMALL,
 };
 
 export default story;

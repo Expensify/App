@@ -187,7 +187,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                         {!!item.assignee.accountID && (
                             <Avatar
                                 imageStyles={[styles.alignSelfCenter]}
-                                size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                                size={CONST.AVATAR_SIZE.XXXX_SMALL}
                                 source={item.assignee.avatar}
                                 name={item.formattedAssignee}
                                 type={CONST.ICON_TYPE_AVATAR}

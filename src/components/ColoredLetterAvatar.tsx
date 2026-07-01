@@ -21,7 +21,7 @@ type ColoredLetterAvatarProps = {
  * ColoredLetterAvatar renders an SVG component with a colored circular background.
  * Used for letter avatars and other colored icon avatars.
  */
-function ColoredLetterAvatar({component, backgroundColor, fillColor, size = CONST.AVATAR_SIZE.MEDIUM}: ColoredLetterAvatarProps) {
+function ColoredLetterAvatar({component, backgroundColor, fillColor, size = CONST.AVATAR_SIZE.X_LARGE}: ColoredLetterAvatarProps) {
     const StyleUtils = useStyleUtils();
     const avatarSize = StyleUtils.getAvatarSize(size);
     return (

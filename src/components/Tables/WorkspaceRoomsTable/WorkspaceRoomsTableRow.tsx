@@ -95,7 +95,7 @@ function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
                                     singleAvatarContainerStyle={[styles.mr0]}
                                     subscriptAvatarBorderColor={hovered ? theme.hoverComponentBG : theme.highlightBG}
                                     reportID={item.reportID}
-                                    size={CONST.AVATAR_SIZE.SMALL}
+                                    size={CONST.AVATAR_SIZE.X_SMALL}
                                 />
                                 <TextWithTooltip
                                     shouldShowTooltip

@@ -88,7 +88,6 @@ function TransactionPreview(props: TransactionPreviewProps) {
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
     const isReviewDuplicateTransactionPage = route.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW;
-
     if (onPreviewPressed) {
         return (
             <PressableWithoutFeedback

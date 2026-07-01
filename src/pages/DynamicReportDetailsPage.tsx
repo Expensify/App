@@ -738,7 +738,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 <View style={styles.mb3}>
                     <ReportActionAvatars
                         noRightMarginOnSubscriptContainer
-                        size={CONST.AVATAR_SIZE.X_LARGE}
+                        size={CONST.AVATAR_SIZE.XXXXX_LARGE}
                         useProfileNavigationWrapper
                         singleAvatarContainerStyle={[]}
                         reportID={report?.reportID ?? moneyRequestReport?.reportID}
@@ -752,8 +752,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 source={icons.at(0)?.source}
                 avatarID={icons.at(0)?.id}
                 isUsingDefaultAvatar={!report.avatarUrl}
-                size={CONST.AVATAR_SIZE.X_LARGE}
-                avatarStyle={styles.avatarXLarge}
+                size={CONST.AVATAR_SIZE.XXXXX_LARGE}
+                avatarStyle={styles.avatarXxxxxLarge}
                 onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
                 onImageRemoved={() => {
                     // Calling this without a file will remove the avatar
@@ -775,7 +775,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         isGroupChat,
         icons,
         report,
-        styles.avatarXLarge,
+        styles.avatarXxxxxLarge,
         styles.smallEditIconAccount,
         styles.mt6,
         styles.w100,

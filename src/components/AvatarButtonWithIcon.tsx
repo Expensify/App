@@ -46,7 +46,7 @@ type AvatarButtonWithIconProps = WithSentryLabel & {
     DefaultAvatar?: () => React.ReactNode;
 
     /** Size of Indicator */
-    size?: typeof CONST.AVATAR_SIZE.X_LARGE | typeof CONST.AVATAR_SIZE.LARGE | typeof CONST.AVATAR_SIZE.DEFAULT;
+    size?: typeof CONST.AVATAR_SIZE.XXXXX_LARGE | typeof CONST.AVATAR_SIZE.XXX_LARGE | typeof CONST.AVATAR_SIZE.DEFAULT;
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon?: AvatarSource;

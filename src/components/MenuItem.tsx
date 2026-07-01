@@ -670,7 +670,7 @@ function MenuItem({
     const shouldDimIconRight = iconRight === icons.ArrowRight || !iconRight;
 
     // eslint-disable-next-line no-nested-ternary -- Selects ml2/ml3/empty based on icon presence and avatar size
-    const iconLeftPadding = shouldPutLeftPaddingWhenNoIcon || (icon && !Array.isArray(icon)) ? (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3) : {};
+    const iconLeftPadding = shouldPutLeftPaddingWhenNoIcon || (icon && !Array.isArray(icon)) ? (avatarSize === CONST.AVATAR_SIZE.X_SMALL ? styles.ml2 : styles.ml3) : {};
 
     const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
         [
@@ -1132,7 +1132,7 @@ function MenuItem({
                                                             subscriptAvatarBorderColor={isHovered ? theme.activeComponentBG : theme.componentBG}
                                                             singleAvatarContainerStyle={[styles.actionAvatar, styles.mr2]}
                                                             reportID={rightIconReportID}
-                                                            size={CONST.AVATAR_SIZE.SMALL}
+                                                            size={CONST.AVATAR_SIZE.X_SMALL}
                                                             horizontalStacking={
                                                                 shouldStackHorizontally && {
                                                                     isHovered,

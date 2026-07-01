@@ -1,15 +1,29 @@
+import lodashSortBy from 'lodash/sortBy';
 import React from 'react';
 import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import DiagonalAvatars from '@components/Avatars/Primitives/DiagonalAvatars';
+import HorizontalAvatars from '@components/Avatars/Primitives/HorizontalAvatars';
+import type {HorizontalStackingOptions} from '@components/Avatars/Primitives/HorizontalAvatars';
+import SingleAvatar from '@components/Avatars/Primitives/SingleAvatar';
+import SubscriptAvatar from '@components/Avatars/Primitives/SubscriptAvatar';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {sortIconsByName} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InvitedEmailsToAccountIDs, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {CardFeed} from '@src/types/onyx/CardFeeds';
-import type {HorizontalStacking} from './ReportActionAvatar';
-import ReportActionAvatar from './ReportActionAvatar';
+import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import useReportActionAvatars from './useReportActionAvatars';
+
+type SortingOptions = ValueOf<typeof CONST.REPORT_ACTION_AVATARS.SORT_BY>;
+
+type HorizontalStacking = HorizontalStackingOptions & {
+    sort?: SortingOptions | SortingOptions[];
+};
 
 type ReportActionAvatarsProps = {
     horizontalStacking?: HorizontalStacking | boolean;
@@ -116,6 +130,8 @@ function ReportActionAvatars({
     shouldUseRealActor = false,
 }: ReportActionAvatarsProps) {
     const accountIDs = passedAccountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
+    const allPersonalDetails = usePersonalDetails();
+    const {localeCompare} = useLocalize();
 
     const reportID =
         potentialReportID ??
@@ -130,11 +146,11 @@ function ReportActionAvatars({
 
     const shouldStackHorizontally = !!horizontalStacking;
     const isHorizontalStackingAnObject = shouldStackHorizontally && typeof horizontalStacking !== 'boolean';
-    const {isHovered = false} = isHorizontalStackingAnObject ? horizontalStacking : {};
+    const {isHovered = false, sort: sortAvatars, ...horizontalStackingRest} = isHorizontalStackingAnObject ? horizontalStacking : ({} as HorizontalStacking);
 
     const {
         avatarType: notPreciseAvatarType,
-        avatars: icons,
+        avatars: unsortedIcons,
         details: {delegateAccountID},
         source,
     } = useReportActionAvatars({
@@ -152,6 +168,19 @@ function ReportActionAvatars({
         shouldUseRealActor,
     });
 
+    let icons: IconType[] = unsortedIcons;
+    if (sortAvatars) {
+        if (sortAvatars.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME)) {
+            icons = sortIconsByName(unsortedIcons, allPersonalDetails, localeCompare);
+        } else if (sortAvatars.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.ID)) {
+            icons = lodashSortBy(unsortedIcons, (icon) => icon.id);
+        }
+
+        if (sortAvatars.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE)) {
+            icons = icons.reverse();
+        }
+    }
+
     let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE> = notPreciseAvatarType;
 
     if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE && !icons.length) {
@@ -166,7 +195,7 @@ function ReportActionAvatars({
 
     if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && (!!secondaryAvatar?.name || !!subscriptCardFeed)) {
         return (
-            <ReportActionAvatar.Subscript
+            <SubscriptAvatar
                 primaryAvatar={primaryAvatar}
                 secondaryAvatar={secondaryAvatar}
                 size={size}
@@ -184,8 +213,9 @@ function ReportActionAvatars({
 
     if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_HORIZONTAL) {
         return (
-            <ReportActionAvatar.Multiple.Horizontal
-                {...(isHorizontalStackingAnObject ? horizontalStacking : {})}
+            <HorizontalAvatars
+                {...horizontalStackingRest}
+                isHovered={isHovered}
                 size={size}
                 icons={icons}
                 isInReportAction={isInReportAction}
@@ -199,7 +229,7 @@ function ReportActionAvatars({
 
     if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL && !!secondaryAvatar?.name) {
         return (
-            <ReportActionAvatar.Multiple.Diagonal
+            <DiagonalAvatars
                 shouldShowTooltip={shouldShowTooltip}
                 size={size}
                 icons={icons}
@@ -215,7 +245,7 @@ function ReportActionAvatars({
     }
 
     return (
-        <ReportActionAvatar.Single
+        <SingleAvatar
             avatar={primaryAvatar}
             size={size}
             containerStyles={shouldStackHorizontally ? [] : singleAvatarContainerStyle}
