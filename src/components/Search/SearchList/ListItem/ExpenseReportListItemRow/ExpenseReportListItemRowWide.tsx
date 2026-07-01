@@ -210,6 +210,7 @@ function ExpenseReportListItemRowWide({
                 <ExportedIconCell reportActions={reportActions} />
             </View>
         ),
+
         [CONST.SEARCH.TABLE_COLUMNS.ACTION]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
                 <ReportSubmitToPopoverMeasurableAnchor wrapperStyle={styles.w100}>
