@@ -88,7 +88,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     // passes `anchorTransactionID`), use that transaction as the carousel anchor so the user can keep
     // paging the broader list. Falls back to the first of this report's transactions found in the active
     // list, so the carousel still renders even without an explicit hint.
-    const anchorTransactionIDFromRoute = (route.params as {anchorTransactionID?: string} | undefined)?.anchorTransactionID;
+    const anchorTransactionIDFromRoute = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? route.params.anchorTransactionID : undefined;
     const multiTxAnchorTransactionID = useMemo(() => {
         if (singleTransactionID) {
             return undefined;
