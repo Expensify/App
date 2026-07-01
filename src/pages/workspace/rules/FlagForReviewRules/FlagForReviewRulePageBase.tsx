@@ -28,7 +28,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {getFlagForReviewRuleAmountRoute, getFlagForReviewRuleCategoryRoute, getFlagForReviewRuleExpenseLimitTypeRoute} from '@src/ROUTES';
+import ROUTES, {getFlagForReviewRuleAmountRoute, getFlagForReviewRuleCategoryRoute} from '@src/ROUTES';
 import type {FlagForReviewRuleForm} from '@src/types/form/FlagForReviewRuleForm';
 import INPUT_IDS from '@src/types/form/FlagForReviewRuleForm';
 
@@ -70,8 +70,6 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
 
     const parsedMaxAmount = Number.parseFloat(form?.[INPUT_IDS.MAX_EXPENSE_AMOUNT] ?? '');
     const maxAmountMenuTitle = Number.isFinite(parsedMaxAmount) ? convertToDisplayString(convertToBackendAmount(parsedMaxAmount), policyCurrency) : '';
-    const expenseLimitType = form?.[INPUT_IDS.EXPENSE_LIMIT_TYPE] ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
-    const expenseLimitTypeTitle = translate(`workspace.rules.categoryRules.expenseLimitTypes.${expenseLimitType}`);
 
     useEffect(() => () => clearDraftFlagForReviewRule(), []);
 
@@ -195,12 +193,10 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
                         disabled={isEditing}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_CATEGORY}
                     />
-                    <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
-                    <Text style={[styles.textLabel, styles.textSupporting, styles.lh16, styles.ph5, styles.pv3]}>{translate('workspace.rules.flagForReviewRule.thenFlagForReview')}</Text>
                     <MenuItemWithTopDescription
                         description={translate('iou.amount')}
                         title={maxAmountMenuTitle ? translate('workspace.rules.spendRules.maxAmountAbove', {amount: maxAmountMenuTitle}) : undefined}
-                        errorText={canWriteRules && shouldShowError && !form?.[INPUT_IDS.MAX_EXPENSE_AMOUNT]?.trim() ? translate('common.error.fieldRequired') : ''}
+                        errorText={canWriteRules && shouldShowError ? getFlagForReviewRuleAmountError(form?.[INPUT_IDS.MAX_EXPENSE_AMOUNT], translate) : ''}
                         onPress={canWriteRules ? () => Navigation.navigate(getFlagForReviewRuleAmountRoute(policyID, categoryName)) : undefined}
                         shouldShowRightIcon={canWriteRules}
                         interactive={canWriteRules}
@@ -209,14 +205,6 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
                         iconHeight={variables.iconSizeNormal}
                         shouldIconUseAutoWidthStyle
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_AMOUNT}
-                    />
-                    <MenuItemWithTopDescription
-                        description={translate('common.type')}
-                        title={expenseLimitTypeTitle}
-                        onPress={canWriteRules ? () => Navigation.navigate(getFlagForReviewRuleExpenseLimitTypeRoute(policyID, categoryName)) : undefined}
-                        shouldShowRightIcon={canWriteRules}
-                        interactive={canWriteRules}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE}
                     />
                 </ScrollView>
                 {footer}
