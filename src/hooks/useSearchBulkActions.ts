@@ -10,6 +10,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import {useOpenSearchReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {BulkPaySelectionData, PaymentData, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 import {exportReportsToPDF} from '@libs/actions/Export';
@@ -368,7 +369,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
-    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -394,6 +394,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [isPdfModalVisible, setIsPdfModalVisible] = useState(false);
     const [pdfReportID, setPdfReportID] = useState<string | undefined>(undefined);
     const {showConfirmModal} = useConfirmModal();
+    const openSearchReportSubmitToPopover = useOpenSearchReportSubmitToPopover();
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
         typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
@@ -456,6 +457,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         .map((report) => report.reportID)
         .filter((reportID) => reportID !== undefined);
     const isCurrencySupportedBulkWallet = isCurrencySupportWalletBulkPay(selectedReports, selectedTransactions);
+
+    const doSelectedItemsBelongToSubmitPolicy = useMemo(() => {
+        const selectedItems = selectedReports.length > 0 ? selectedReports : Object.values(selectedTransactions);
+        if (selectedItems.length === 0) {
+            return false;
+        }
+
+        return selectedItems.some((item) => {
+            const policy = item.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`] : undefined;
+            return isSubmitPolicy(policy);
+        });
+    }, [selectedReports, selectedTransactions, policies]);
 
     const selectedPolicyIDs = useMemo(
         () => [
@@ -670,7 +683,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 type: exportSearchType,
                 groupBy: getValidGroupBy(queryJSON?.groupBy),
                 shouldUseStrictDefaultExpenseColumns: currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && !!queryJSON && isDefaultExpensesQuery(queryJSON),
-                policyCategories,
                 fallbackPolicyID: policyForMovingExpensesID,
             });
 
@@ -687,7 +699,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 exportColumnLabels: JSON.stringify(exportColumnLabels),
             };
         },
-        [accountID, currentSearchKey, exportSearchData, exportSearchType, policyCategories, policyForMovingExpensesID, queryJSON, translate, visibleColumns],
+        [accountID, currentSearchKey, exportSearchData, exportSearchType, policyForMovingExpensesID, queryJSON, translate, visibleColumns],
     );
 
     const handleCSVExport = useCallback(
@@ -1769,8 +1781,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
+        const uniqueSelectedReportIDsFromTransactions = new Set(
+            selectedTransactionsKeys.map((id) => selectedTransactions[id]?.reportID).filter((reportID): reportID is string => !!reportID),
+        );
+        const hasSingleSubmitPolicySelection = selectedReports.length === 1 || uniqueSelectedReportIDsFromTransactions.size === 1;
+
         const shouldShowSubmitOption =
             !isOffline &&
+            (!doSelectedItemsBelongToSubmitPolicy || (doSelectedItemsBelongToSubmitPolicy && hasSingleSubmitPolicySelection)) &&
             areSelectedTransactionsIncludedInReports &&
             (selectedReports.length
                 ? selectedReports.every((report) => report.canSubmit) &&
@@ -1808,6 +1826,37 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                     if (hasOnlyPendingCardTransactions(allSelectedTransactionsList)) {
                         showPendingCardTransactionsBlockModal(showConfirmModal, translate);
+                        return;
+                    }
+
+                    const selectedReportForSubmit = selectedReports.at(0);
+                    const reportIDForSubmit = selectedReportForSubmit?.reportID ?? selectedTransactionsKeys.map((id) => selectedTransactions[id]?.reportID).find((id): id is string => !!id);
+                    const policyIDForSubmit = selectedReportForSubmit?.policyID ?? selectedTransactionsKeys.map((id) => selectedTransactions[id]?.policyID).find((id): id is string => !!id);
+                    const policyForSubmit = policyIDForSubmit ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDForSubmit}`] : undefined;
+
+                    if (policyForSubmit && isSubmitPolicy(policyForSubmit) && reportIDForSubmit && hash) {
+                        const snapshotReport = getReportOrDraftReport(
+                            reportIDForSubmit,
+                            undefined,
+                            searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDForSubmit}`] ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDForSubmit}`],
+                        );
+
+                        if (snapshotReport) {
+                            openSearchReportSubmitToPopover(reportIDForSubmit, {
+                                onSubmitWithManagerEmail: (managerEmail, managerAccountID) => {
+                                    submitMoneyRequestOnSearch(
+                                        hash,
+                                        [snapshotReport],
+                                        [policyForSubmit],
+                                        getLoginByAccountID(snapshotReport.ownerAccountID, personalDetails),
+                                        currentSearchKey,
+                                        managerEmail,
+                                        managerAccountID,
+                                    );
+                                    clearSelectedTransactions();
+                                },
+                            });
+                        }
                         return;
                     }
 
@@ -2157,6 +2206,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selfDMReportID,
         splitEffectivePolicy,
         restrictedActionPolicyID,
+        doSelectedItemsBelongToSubmitPolicy,
+        openSearchReportSubmitToPopover,
         deleteTransactionsFromHook,
         duplicateTransactionViolations,
         duplicateTransactions,

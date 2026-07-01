@@ -134,6 +134,7 @@ function IOURequestStepDate({
                 policy,
                 policyForTrackExpense,
                 lastSelectedDistanceRates,
+                isDraft: isTransactionDraft,
             });
         }
 

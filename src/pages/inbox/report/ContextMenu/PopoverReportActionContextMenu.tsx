@@ -60,8 +60,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const selectionRef = useRef('');
     const isReportArchived = useReportIsArchived(reportIDRef.current);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDRef.current}`);
-    const reportActionsRef = useRef(reportActions);
-    reportActionsRef.current = reportActions;
+    const [originalReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions)}`);
     const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions));
     const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportActionRef.current);
     const {transitionActionSheetState} = useActionSheetAwareScrollViewActions();
@@ -412,12 +411,12 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 deleteReportComment(
                     report,
                     reportAction,
+                    originalReportActions,
                     ancestorsRef.current,
                     isReportArchived,
                     isOriginalReportArchived,
                     email ?? '',
                     visibleReportActionsData ?? undefined,
-                    reportActionsRef.current ?? undefined,
                 );
             };
         }
@@ -426,6 +425,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         setIsDeleteCommentConfirmModalVisible(false);
     }, [
         report,
+        originalReportActions,
         childReportActions,
         childParentReportAction,
         childReport,
