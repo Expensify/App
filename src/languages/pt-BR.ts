@@ -6323,6 +6323,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 one: 'Tornar auditor',
                 other: 'Tornar auditores',
             }),
+            makePeopleAdmin: () => ({
+                one: 'Tornar administrador de pessoas',
+                other: 'Tornar administradores de pessoas',
+            }),
             selectAll: 'Selecionar tudo',
             error: {
                 genericAdd: 'Ocorreu um problema ao adicionar este membro do workspace',
@@ -6355,6 +6359,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             syncWithHR: (providerName: string) => `Sincronizar com ${providerName}`,
             makeCardAdmin: () => ({one: 'Tornar admin do cartão', other: 'Tornar administradores do cartão'}),
             cardAdmins: 'Administradores de cartões',
+            peopleAdmins: 'Administradores de pessoas',
             members: 'Membros',
         },
         card: {

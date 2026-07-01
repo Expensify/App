@@ -8,6 +8,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {
     arePolicyRulesEnabled,
     canAccessSubmitWorkspaceFeatures,
+    canMemberAssignRole,
+    canMemberManageMemberWithRole,
     canMemberRead,
     canMemberWrite,
     canSendInvoiceFromWorkspace,
@@ -323,6 +325,27 @@ describe('PolicyUtils', () => {
             expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.CARD_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS)).toBe(false);
             expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS)).toBe(true);
             expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.PAYMENTS_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS)).toBe(true);
+        });
+
+        it('limits People Admin member role management to members and auditors', () => {
+            const policy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
+
+            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.USER)).toBe(true);
+            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.AUDITOR)).toBe(true);
+            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.ADMIN)).toBe(false);
+            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.CARD_ADMIN)).toBe(false);
+            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PEOPLE_ADMIN)).toBe(false);
+            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PAYMENTS_ADMIN)).toBe(false);
+        });
+
+        it('allows Submit workspace editors to manage editor memberships without assigning roles', () => {
+            const policy = {
+                ...buildPolicy(CONST.POLICY.ROLE.EDITOR),
+                type: CONST.POLICY.TYPE.SUBMIT,
+            };
+
+            expect(canMemberManageMemberWithRole(policy, memberLogin, CONST.POLICY.ROLE.EDITOR)).toBe(true);
+            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.EDITOR)).toBe(false);
         });
     });
 
