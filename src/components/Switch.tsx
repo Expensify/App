@@ -36,6 +36,8 @@ const OFFSET_X = {
     ON: 20,
 };
 
+const SWITCH_LOCK_ICON_TEST_ID = 'SwitchLockIcon';
+
 function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, disabledAction, isNested}: SwitchProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -125,6 +127,7 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
                 <Animated.View style={[styles.switchThumb, animatedThumbStyle]}>
                     {(!!disabled || !!showLockIcon) && (
                         <Icon
+                            testID={SWITCH_LOCK_ICON_TEST_ID}
                             src={expensifyIcons.Lock}
                             fill={isOn ? theme.text : theme.icon}
                             width={styles.toggleSwitchLockIcon.width}
@@ -138,3 +141,4 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
 }
 
 export default Switch;
+export {SWITCH_LOCK_ICON_TEST_ID};
