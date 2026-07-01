@@ -49,6 +49,10 @@ function SAMLSignInPage() {
 
             if (!jsonParam) {
                 Log.hmmm('SAMLSignInPage - No JSON parameter found in callback URL');
+                // The browser returned but there's nothing to sign in with, so clear the guard we set before
+                // opening it. Otherwise it stays true, and since loginCallback URLs hide the back button and leave
+                // account.isLoading true, future reauthenticate() calls would keep aborting and the user gets stuck.
+                setIsAuthenticatingWithShortLivedToken(false);
                 return;
             }
 
