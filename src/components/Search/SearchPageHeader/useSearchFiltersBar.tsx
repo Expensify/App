@@ -6,7 +6,7 @@ import CommonPopup from '@components/Search/FilterDropdowns/CommonPopup';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import ReportFieldPopup from '@components/Search/FilterDropdowns/ReportFieldPopup';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
-import {useSearchResultsContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {ReportFieldKey, SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -14,8 +14,9 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {close} from '@libs/actions/Modal';
 import {setSearchContext} from '@libs/actions/Search';
-import {getAdvancedFiltersToReset} from '@libs/SearchQueryUtils';
-import {FILTER_VIEW_MAP, isAmountFilterKey, isDateFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {buildSearchQueryJSON, getAdvancedFiltersToReset} from '@libs/SearchQueryUtils';
+import {FILTER_VIEW_MAP, getSuggestedSearchMandatoryFilterKeys, isAmountFilterKey, isDateFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,6 +29,9 @@ import DatePickerFilterPopup from './DatePickerFilterPopup';
 type FilterItem = WithSentryLabel & {
     PopoverComponent: (props: PopoverComponentProps) => ReactNode;
     onClosePress: () => void;
+
+    /** Mandatory filters of a suggested search can't be removed, otherwise the search loses its identity */
+    isCloseButtonDisabled?: boolean;
 };
 
 type UseSearchFiltersBarResult = {
@@ -35,6 +39,9 @@ type UseSearchFiltersBarResult = {
     hasErrors: boolean;
     shouldShowFiltersBarLoading: boolean;
     clearFilters: () => void;
+
+    /** Whether to render the reset button. On a suggested search it only shows once the user deviates from its defaults */
+    shouldShowClearButton: boolean;
 };
 
 type FilterPopupProps = {
@@ -125,7 +132,14 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     const {isOffline} = useNetwork();
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {shouldShowFiltersBarLoading, currentSearchResults} = useSearchResultsContext();
+    const {currentSearchKey, suggestedSearches, currentSavedSearchQuery} = useSearchQueryContext();
     const {setFilterQueryParams, updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
+    // The "defaults" for the active named search — a suggested search's canned query, or a saved search's stored
+    // query — drive which pills are locked, when the reset button shows, and what reset reverts to.
+    const suggestedSearch = currentSearchKey ? suggestedSearches[currentSearchKey] : undefined;
+    const defaultsQueryString = suggestedSearch?.searchQuery ?? currentSavedSearchQuery;
+    const defaultsQueryJSON = suggestedSearch?.searchQueryJSON ?? (currentSavedSearchQuery ? buildSearchQueryJSON(currentSavedSearchQuery) : undefined);
+    const mandatoryFilterKeys = getSuggestedSearchMandatoryFilterKeys(defaultsQueryJSON);
     const filters = mapFiltersFormToLabelValueList<FilterItem>(
         searchAdvancedFiltersForm,
         queryJSON.policyID,
@@ -147,7 +161,12 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                 </ListFilterHeightContextProvider>
             ),
             sentryLabel: getFilterSentryLabel(filterKey),
+            isCloseButtonDisabled: mandatoryFilterKeys.has(filterKey),
             onClosePress: () => {
+                if (mandatoryFilterKeys.has(filterKey)) {
+                    return;
+                }
+
                 if (isAmountFilterKey(filterKey)) {
                     const equalToKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`;
                     const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`;
@@ -181,16 +200,33 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
         }),
     );
 
+    // Default (mandatory) filter pills render first, followed by any custom filters the user added, so pill
+    // placement stays predictable as filters are added and removed.
+    const orderedFilters = [...filters.filter((filter) => mandatoryFilterKeys.has(filter.key)), ...filters.filter((filter) => !mandatoryFilterKeys.has(filter.key))];
+
     const clearFilters = () => {
+        // On a suggested or saved search, resetting restores its defining filters (keeping its mandatory ones)
+        // rather than clearing everything. setParams preserves the searchKey/savedSearchKey, so identity is kept.
+        if (defaultsQueryString) {
+            Navigation.setParams({q: defaultsQueryString, rawQuery: undefined});
+            setSearchContext(false);
+            return;
+        }
         setFilterQueryParams(getAdvancedFiltersToReset(searchAdvancedFiltersForm ?? {}));
         setSearchContext(false);
     };
 
+    // On a suggested or saved search, only surface the reset action once the query deviates from its defaults
+    // (added/changed filters, columns, or sort). Other searches keep the standard "reset when filters exist".
+    const hasChangesFromDefaults = !!defaultsQueryJSON && queryJSON.hash !== defaultsQueryJSON.hash;
+    const shouldShowClearButton = defaultsQueryJSON ? hasChangesFromDefaults : orderedFilters.length > 0;
+
     return {
-        filters,
+        filters: orderedFilters,
         hasErrors: Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline,
         shouldShowFiltersBarLoading,
         clearFilters,
+        shouldShowClearButton,
     };
 }
 

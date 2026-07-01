@@ -6,7 +6,7 @@ import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView
 import {useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
-import {useSearchSelectionActions} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -20,7 +20,7 @@ import type {TodoCounts} from '@hooks/useTodoCounts';
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getItemBadgeText, getSectionBadgeText} from '@libs/SearchUIUtils';
-import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
+import type {SearchKey, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -40,7 +40,7 @@ type SectionParams = {
     sectionStartIndex: number;
     reportCounts: TodoCounts;
     areAllSectionsExpanded: boolean;
-    onItemPress: (query: string) => void;
+    onItemPress: (query: string, searchKey: SearchKey) => void;
     onCollapsed: (isCollapsed: boolean) => void;
 };
 
@@ -111,7 +111,7 @@ function Section({section, hash, activeItemIndex, sectionStartIndex, reportCount
                             icon={icon}
                             badgeText={getItemBadgeText(item.key, reportCounts)}
                             focused={focused}
-                            onPress={() => onItemPress(item.searchQuery)}
+                            onPress={() => onItemPress(item.searchQuery, item.key)}
                         />
                     );
                 })}
@@ -126,9 +126,19 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
     const {isOffline} = useNetwork();
     const {singleExecution} = useSingleExecution();
     const {clearSelectedTransactions} = useSearchSelectionActions();
-    const {typeMenuSections, activeItemIndex} = useSearchTypeMenuSections({hash, similarSearchHash, sortBy, sortOrder, type});
+    const {currentSearchKey, currentSavedSearchKey} = useSearchQueryContext();
+    const {typeMenuSections, activeItemIndex} = useSearchTypeMenuSections({
+        hash,
+        similarSearchHash,
+        sortBy,
+        sortOrder,
+        type,
+        searchKey: currentSearchKey,
+        hasActiveSavedSearch: !!currentSavedSearchKey,
+    });
     const {isVisuallyCollapsed} = useSearchSidebarCollapse();
     const [isSearchDataLoaded, isSearchDataLoadedResult] = useOnyx(ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED);
+    const [suggestedSearchOverrides] = useOnyx(ONYXKEYS.SEARCH_SUGGESTED_OVERRIDES);
     // Intentionally left enabled (no focus freeze): the wide menu renders in the search navigator's ExtraContent
     // slot, where useIsFocused() does not track visibility, so freezing on it would be unreliable.
     const {counts: reportCounts} = useTodoCounts();
@@ -145,10 +155,12 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
         saveScrollOffset(route, e.nativeEvent.contentOffset.y);
     };
 
-    const handleTypeMenuItemPress = singleExecution((searchQuery: string) => {
+    const handleTypeMenuItemPress = singleExecution((searchQuery: string, searchKey: SearchKey) => {
         clearSelectedTransactions();
         setSearchContext(false);
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
+        // Restore the suggested search's last-used filters & columns if the user previously customized them.
+        const query = suggestedSearchOverrides?.[searchKey] ?? searchQuery;
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, searchKey}));
     });
 
     useLayoutEffect(() => {

@@ -948,9 +948,23 @@ const ROUTES = {
     SEARCH_ROUTER: 'search-router',
     SEARCH_ROOT: {
         route: 'search',
-        getRoute: ({query, rawQuery, name}: {query: SearchQueryString; rawQuery?: SearchQueryString; name?: string}) => {
+        getRoute: ({
+            query,
+            rawQuery,
+            name,
+            searchKey,
+            savedSearchKey,
+        }: {
+            query: SearchQueryString;
+            rawQuery?: SearchQueryString;
+            name?: string;
+            searchKey?: string;
+            savedSearchKey?: string;
+        }) => {
             const rawQuerySegment = rawQuery ? `&rawQuery=${encodeURIComponent(rawQuery)}` : '';
-            return `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}${rawQuerySegment}` as const;
+            const searchKeySegment = searchKey ? `&searchKey=${searchKey}` : '';
+            const savedSearchKeySegment = savedSearchKey ? `&savedSearchKey=${savedSearchKey}` : '';
+            return `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}${rawQuerySegment}${searchKeySegment}${savedSearchKeySegment}` as const;
         },
     },
     SEARCH_SAVE: 'search/save',
