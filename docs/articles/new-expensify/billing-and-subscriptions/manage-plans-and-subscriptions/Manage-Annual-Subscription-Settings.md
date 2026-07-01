@@ -3,6 +3,7 @@ title: Manage Annual subscription settings
 description: Learn how the workspace Owner can adjust Annual subscription size, auto-renew, and auto-increase for an Expensify Annual subscription.
 keywords: [New Expensify, annual subscription, subscription settings, subscription size, auto-renew, auto-increase annual seats, increase seats, billing owner, workspace owner, contract, 12-month commitment]
 internalScope: Audience is workspace owners on an Annual subscription. Covers changing subscription size, auto-renew, and auto-increase under Account > Subscription. Does not cover pricing, billing calculations, plans, or Pay-per-use subscriptions.
+retrievalIntent: How to change subscription size, auto-renew, and auto-increase seats.
 contentType: task
 platform: new
 ---
