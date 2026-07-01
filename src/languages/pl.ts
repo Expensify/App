@@ -5022,10 +5022,10 @@ ${amount} dla ${merchant} - ${date}`,
                 installBundle: 'Zainstaluj pakiet Expensify',
                 installBundlePSAHeader: 'Dla połączeń PSA/SRP:',
                 installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
-                    `Zainstaluj pakiet Expensify w Salesforce, klikając ten link: <a href="${href}">Zainstaluj pakiet PSA/SRP Expensify (wersja ${version})</a>`,
+                    `<p>Zainstaluj pakiet Expensify w Salesforce, klikając ten link: <a href="${href}">Zainstaluj pakiet PSA/SRP Expensify (wersja ${version})</a></p>`,
                 installBundleFFAHeader: 'Dla połączeń FFA:',
                 installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
-                    `Zainstaluj pakiet Expensify w Salesforce, klikając ten link: <a href="${href}">Zainstaluj pakiet Expensify dla FFA (wersja ${version})</a>`,
+                    `<p>Zainstaluj pakiet Expensify w Salesforce, klikając ten link: <a href="${href}">Zainstaluj pakiet Expensify dla FFA (wersja ${version})</a></p>`,
                 installBundleConfirm: 'Zainstalowałem pakiet',
                 setupContacts: 'Skonfiguruj użytkownika i kontakty',
                 setupContactsBullet1:
