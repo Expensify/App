@@ -120,7 +120,7 @@ No. Changes to the reimbursable setting only apply to transactions imported afte
 
 ## Can I set the transaction start date to a future date?
 
-Yes. The transaction start date can be set to a past or future date. If you choose a future date, Expensify begins importing transactions for the card from that date onward.
+Yes. The **Transaction start date** can be set to a past or future date. If you choose a future date, Expensify begins importing transactions for the card from that date onward.
 
 ## Why don't I see my personal card in the Wallet?
 
