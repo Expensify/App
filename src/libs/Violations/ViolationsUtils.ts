@@ -540,7 +540,7 @@ const ViolationsUtils = {
             }
 
             // Add 'missingCategory' violation if category is required and not set
-            if (!hasMissingCategoryViolation && policyRequiresCategories && !categoryKey && !isSelfDM) {
+            if (!hasMissingCategoryViolation && policyRequiresCategories && isCategoryMissing(categoryKey) && !isSelfDM) {
                 newTransactionViolations.push({name: 'missingCategory', type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
             }
         } else if (transactionViolations.some((violation) => violation.name === 'missingCategory')) {
