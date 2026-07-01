@@ -84,7 +84,6 @@ function useOtherFeedsForFeedSelector(policyID: string): CardFeedListItem[] {
                 country: feed?.country,
                 alternateText: domainName ?? linkedPolicy?.name ?? firstLinkedPolicyID,
                 text: getCustomOrFormattedFeedName(translate, feedName, feed.name),
-                // feed.id (`${fundID}_${feed}`) is unique per feed, so a stable key avoids duplicate rows.
                 keyForList: feed.id,
                 isSelected: feed.id === selectedFeedName,
                 brickRoadIndicator: shouldShowRBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
