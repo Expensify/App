@@ -9932,6 +9932,17 @@ ${reportName}`,
         positiveButton: 'やった！',
         negativeButton: 'そうでもありません',
     },
+    trialPaymentReminder: {
+        title: '期限に遅れないようにしましょう',
+        subtitle: 'ぎりぎりまで待たずに、今日お支払い方法を追加して、Expensify での経費への継続的なアクセスを確保しましょう。',
+        trialEndsInDays: () => ({
+            one: 'トライアル終了まであと1日',
+            other: (pluralCount: number) => `トライアル終了まであと${pluralCount}日`,
+        }),
+        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `トライアル終了まで ${hours}時間 : ${minutes}分 : ${seconds}秒`,
+        closeButton: '閉じる',
+        addPaymentCardButton: '支払いカードを追加',
+    },
     monthPickerPage: {month: '月', selectMonth: '月を選択してください'},
 };
 export default translations;
