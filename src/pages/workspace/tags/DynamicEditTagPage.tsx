@@ -24,11 +24,11 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
 
-type EditTagPageProps =
+type DynamicEditTagPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_TAG_EDIT>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_EDIT>;
 
-function EditTagPage({route}: EditTagPageProps) {
+function DynamicEditTagPage({route}: DynamicEditTagPageProps) {
     const {policyID} = route.params;
     const orderWeight = Number(route.params.orderWeight);
     const policyData = usePolicyData(policyID);
@@ -84,7 +84,7 @@ function EditTagPage({route}: EditTagPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID="EditTagPage"
+                testID="DynamicEditTagPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -117,4 +117,4 @@ function EditTagPage({route}: EditTagPageProps) {
     );
 }
 
-export default EditTagPage;
+export default DynamicEditTagPage;
