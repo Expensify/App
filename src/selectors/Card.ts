@@ -4,7 +4,7 @@ import {isCard, isCardHiddenFromSearch, isCSVFeedOrExpensifyCard, isExpensifyCar
 import {filterObject} from '@libs/ObjectUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardList, NonPersonalAndWorkspaceCardListDerivedValue, WorkspaceCardsList} from '@src/types/onyx';
+import type {CardFeeds, CardList, NonPersonalAndWorkspaceCardListDerivedValue, WorkspaceCardsList} from '@src/types/onyx';
 
 /**
  * Builds a lightweight map of "${domainID}_${feedName}" keys that have card entries.
@@ -101,6 +101,9 @@ const isExpensifyCardContinuousReconciliationEnabledSelector = (value: boolean |
     return typeof value === 'string' ? value === '1' : value;
 };
 
+/** Picks the shared company card custom names from a domain's card feeds, avoiding a subscription to the entire CardFeeds object. */
+const companyCardCustomNamesSelector = (cardFeeds: OnyxEntry<CardFeeds>) => cardFeeds?.settings?.companyCardCustomNames;
+
 export {
     filterCardsHiddenFromSearch,
     filterOutPersonalCards,
@@ -111,4 +114,5 @@ export {
     isExpensifyCardUkEuSupportedSelector,
     getBankLinkedPersonalCards,
     isExpensifyCardContinuousReconciliationEnabledSelector,
+    companyCardCustomNamesSelector,
 };
