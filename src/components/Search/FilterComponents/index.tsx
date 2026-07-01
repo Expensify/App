@@ -1,11 +1,7 @@
 import React from 'react';
 import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterCommonProps} from '@components/Search/types';
-import TextInput from '@components/TextInput';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {FILTER_VIEW_MAP, getMultiSelectFilterOptions, getSingleSelectFilterOptions} from '@libs/SearchUIUtils';
+import {getMultiSelectFilterOptions, getSingleSelectFilterOptions} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
@@ -33,19 +29,6 @@ type FilterComponentsProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[F
     policyIDQuery: string[] | undefined;
 };
 
-type TextInputFilterComponentsProps = {
-    filterKey:
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID;
-    value: string | undefined;
-    autoFocus?: boolean;
-    onChange: (value: string) => void;
-};
-
 type SingleSelectFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE;
 type SingleSelectFilterComponentsProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[SingleSelectFilterKeys] | undefined> & {
     filterKey: SingleSelectFilterKeys;
@@ -62,26 +45,6 @@ type MultiSelectFilterComponentsProps = SearchFilterCommonProps<SearchAdvancedFi
     filterKey: MultiSelectFilterKeys;
     type: SearchDataTypes | undefined;
 };
-
-function TextInputFilterComponents({filterKey, value, autoFocus, onChange}: TextInputFilterComponentsProps) {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
-
-    const label = translate(FILTER_VIEW_MAP[filterKey].labelKey);
-    const {inputCallbackRef} = useAutoFocusInput();
-
-    return (
-        <TextInput
-            ref={autoFocus ? (inputCallbackRef as (ref: BaseTextInputRef | null) => void) : undefined}
-            placeholder={label}
-            value={value}
-            onChangeText={onChange}
-            accessibilityLabel={label}
-            role={CONST.ROLE.PRESENTATION}
-            containerStyles={[styles.ph5]}
-        />
-    );
-}
 
 function SingleSelectFilterComponents({filterKey, value, selectionListTextInputStyle, selectionListStyle, footer, onChange}: SingleSelectFilterComponentsProps) {
     const {translate} = useLocalize();
@@ -162,22 +125,6 @@ function FilterComponents({filterKey, value, type, policyIDs, policyIDQuery, sel
                     value={typeof value === 'string' ? value : undefined}
                     selectionListStyle={selectionListStyle}
                     footer={footer}
-                    onChange={onChange}
-                />
-            );
-        }
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT:
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION:
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID:
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD:
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE:
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID: {
-            return (
-                <TextInputFilterComponents
-                    key={filterKey}
-                    filterKey={filterKey}
-                    value={typeof value === 'string' ? value : undefined}
-                    autoFocus={autoFocus}
                     onChange={onChange}
                 />
             );

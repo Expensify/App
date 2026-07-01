@@ -284,6 +284,16 @@ type ReportFieldNegatedKey = `${typeof CONST.SEARCH.REPORT_FIELD.NOT_PREFIX}${st
 type ReportFieldDateKey = `${typeof CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX}${ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>}-${string}`;
 type ReportFieldKey = ReportFieldTextKey | ReportFieldDateKey | ReportFieldNegatedKey;
 
+type SearchTextFilterKeys =
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT
+    | ReportFieldTextKey;
+
 type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED
@@ -477,6 +487,7 @@ export type {
     SearchWithdrawalStatus,
     UserFriendlyValue,
     SelectedReports,
+    SearchTextFilterKeys,
     BankAccountMenuItem,
     SearchCustomColumnIds,
     GroupedItem,

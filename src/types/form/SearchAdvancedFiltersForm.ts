@@ -8,6 +8,7 @@ import type {
     SearchCustomColumnIds,
     SearchDateFilterKeys,
     SearchGroupBy,
+    SearchTextFilterKeys,
     SearchView,
     SearchWithdrawalStatus,
     SearchWithdrawalType,
@@ -15,6 +16,16 @@ import type {
 import CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type Form from './Form';
+
+const TEXT_FILTER_KEYS = new Set<SearchTextFilterKeys>([
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
+    CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT,
+]);
 
 const DATE_FILTER_KEYS: SearchDateFilterKeys[] = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
@@ -778,4 +789,4 @@ type SearchAdvancedFiltersForm = Form<
 
 export type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey, HasFilterValue, HasFilterValues, IsFilterValue, IsFilterValues, ExpenseTypeValue, ExpenseTypeValues, ReceiptTypeValue};
 export default FILTER_KEYS;
-export {DATE_FILTER_KEYS, ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS};
+export {TEXT_FILTER_KEYS, DATE_FILTER_KEYS, ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS};
