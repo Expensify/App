@@ -244,6 +244,9 @@ type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The old tax code of the tax rate when we edit the tax code */
     previousTaxCode?: string;
 
+    /** The old tax code kept only while a tax code edit is in flight, used to resolve the rate from the old code; cleared once the API resolves */
+    optimisticPreviousTaxCode?: string;
+
     /** An error message to display to the user */
     errors?: OnyxCommon.Errors;
 
