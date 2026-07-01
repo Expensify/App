@@ -183,7 +183,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
                     amount: getAmount(transaction, isFromExpenseReport, isFromTrackedExpense),
                     currency: getCurrency(transaction),
                     reportAction: getIOUActionForTransactionID(snapshotReportActions, transaction.transactionID),
-                report: reportByReportID.get(transaction.reportID),
+                    report: reportByReportID.get(transaction.reportID),
                     transaction,
                 };
             });
