@@ -1040,6 +1040,61 @@ describe('getExistingTransactionID', () => {
     });
 });
 
+describe('formatCurrentUserToAttendee', () => {
+    test('returns undefined when current user has no login or display name', () => {
+        const currentUser = {
+            accountID: 2840332,
+        };
+
+        expect(IOUUtils.formatCurrentUserToAttendee(currentUser)).toBeUndefined();
+    });
+
+    test('returns undefined when current user has only a display name', () => {
+        const currentUser = {
+            accountID: 2840332,
+            displayName: 'John Smith',
+        };
+
+        expect(IOUUtils.formatCurrentUserToAttendee(currentUser)).toBeUndefined();
+    });
+
+    test('uses login and display name when current user login exists', () => {
+        const currentUser = {
+            accountID: 2840332,
+            login: 'john.smith@example.com',
+            displayName: 'John Smith',
+        };
+
+        const attendees = IOUUtils.formatCurrentUserToAttendee(currentUser);
+
+        expect(attendees).toEqual([
+            {
+                email: 'john.smith@example.com',
+                displayName: 'John Smith',
+                avatarUrl: '',
+            },
+        ]);
+    });
+
+    test('uses session email when current user login is missing', () => {
+        const currentUser = {
+            accountID: 2840332,
+            email: 'john.smith@example.com',
+            displayName: '',
+        };
+
+        const attendees = IOUUtils.formatCurrentUserToAttendee(currentUser);
+
+        expect(attendees).toEqual([
+            {
+                email: 'john.smith@example.com',
+                displayName: 'john.smith@example.com',
+                avatarUrl: '',
+            },
+        ]);
+    });
+});
+
 describe('isParticipantP2P', () => {
     it('should return true for P2P participant with accountID and isPolicyExpenseChat false', () => {
         const participant = {

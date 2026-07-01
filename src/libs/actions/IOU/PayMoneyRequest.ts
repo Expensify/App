@@ -1155,5 +1155,5 @@ function savePreferredPaymentMethod(
     });
 }
 
-export {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
+export {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, mergeAdditionalPayOnyxData, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
 export type {AdditionalPayOnyxData};

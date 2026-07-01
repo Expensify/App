@@ -312,6 +312,7 @@ const computeReportName = (
         currentUserAccountID: currentUserID,
         currentUserLogin: currentUserEmail,
         conciergeReportID,
+        isTrackIntentUser: false,
     });
 const participantsPersonalDetails: PersonalDetailsList = {
     '1': {
@@ -3622,46 +3623,46 @@ describe('ReportUtils', () => {
 
         it('should return empty string for chat thread', () => {
             const report = createWorkspaceThread(1);
-            const result = getChatRoomSubtitle(report, policy, undefined);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal);
             expect(result).toBe('');
         });
 
         it('should return "Your space" for self DM', () => {
             const report = createSelfDM(1, currentUserAccountID);
-            const result = getChatRoomSubtitle(report, policy, undefined);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal);
             expect(result).toBe('Your space');
         });
 
         it('should return "Invoices" for invoice room', () => {
             const report = createInvoiceRoom(1);
-            const result = getChatRoomSubtitle(report, policy, undefined);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal);
             expect(result).toBe('Invoices');
         });
 
         it('should return empty string for non-default, non-user-created, non-policy-expense chat', () => {
             const report = createRegularChat(1, [currentUserAccountID, 2]);
-            const result = getChatRoomSubtitle(report, policy, undefined);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal);
             expect(result).toBe('');
         });
 
         it('should return domain name for domain room', () => {
             const report = createDomainRoom(1);
             report.reportName = '#example.com';
-            const result = getChatRoomSubtitle(report, policy, undefined);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal);
             expect(result).toBe('example.com');
         });
 
         it('should return policy name for admin room', () => {
             const report = createAdminRoom(1);
             report.policyID = policy.id;
-            const result = getChatRoomSubtitle(report, policy, undefined);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal);
             expect(result).toBe(policy.name);
         });
 
         it('should return policy name for announce room', () => {
             const report = createAnnounceRoom(1);
             report.policyID = policy.id;
-            const result = getChatRoomSubtitle(report, policy, undefined);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal);
             expect(result).toBe(policy.name);
         });
 
@@ -3671,42 +3672,42 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
                 policyID: policy.id,
             };
-            const result = getChatRoomSubtitle(report, policy, undefined);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal);
             expect(result).toBe(policy.name);
         });
 
         it('should return policy name for policy expense chat when not in create expense flow', () => {
             const report = createPolicyExpenseChat(1);
             report.policyID = policy.id;
-            const result = getChatRoomSubtitle(report, policy, undefined);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal);
             expect(result).toBe(policy.name);
         });
 
         it('should return empty string for expense report (not default/user-created/policy-expense)', () => {
             const report = createExpenseReport(1);
             report.policyID = policy.id;
-            const result = getChatRoomSubtitle(report, policy, undefined);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal);
             expect(result).toBe('');
         });
 
         it('should return empty string for expense report in create expense flow (not default/user-created/policy-expense)', () => {
             const report = createExpenseReport(1);
             report.policyID = policy.id;
-            const result = getChatRoomSubtitle(report, policy, undefined, true, false);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal, true);
             expect(result).toBe('');
         });
 
         it('should return oldPolicyName when report is archived', () => {
             const report = createAdminRoom(1);
             report.oldPolicyName = 'Old Policy Name';
-            const result = getChatRoomSubtitle(report, policy, undefined, false, true);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal, false, true);
             expect(result).toBe('Old Policy Name');
         });
 
         it('should return empty string when report is archived but has no oldPolicyName', () => {
             const report = createAdminRoom(1);
             report.oldPolicyName = undefined;
-            const result = getChatRoomSubtitle(report, policy, undefined, false, true);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal, false, true);
             expect(result).toBe('');
         });
 
@@ -3714,26 +3715,26 @@ describe('ReportUtils', () => {
             const report = createAdminRoom(1);
             report.policyID = policy.id;
             report.oldPolicyName = 'Archived Policy';
-            const result = getChatRoomSubtitle(report, policy, undefined, true, true);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal, true, true);
             expect(result).toBe('Archived Policy');
         });
 
         it('should handle with only report data', () => {
             const report = createAdminRoom(1);
             report.policyID = policy.id;
-            const result = getChatRoomSubtitle(report, policy, undefined);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal);
             expect(result).toBe(policy.name);
         });
 
         it('should return "Concierge support" when the report is the Concierge chat passed via conciergeReportID', () => {
             const report = createRegularChat(1, [currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]);
-            const result = getChatRoomSubtitle(report, policy, report.reportID, false, false);
+            const result = getChatRoomSubtitle(report, policy, report.reportID, translateLocal);
             expect(result).toBe('Your personal AI agent');
         });
 
         it('should not return "Concierge support" when conciergeReportID does not match the report', () => {
             const report = createRegularChat(1, [currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]);
-            const result = getChatRoomSubtitle(report, policy, 'some-other-report-id', false, false);
+            const result = getChatRoomSubtitle(report, policy, 'some-other-report-id', translateLocal);
             expect(result).not.toBe('Your personal AI agent');
         });
     });
@@ -7032,29 +7033,6 @@ describe('ReportUtils', () => {
             const report: Report = {
                 ...LHNTestUtils.getFakeReport(),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-            };
-
-            expect(
-                shouldReportBeInOptionList({
-                    report,
-                    chatReport: mockedChatReport,
-                    currentReportId: '',
-                    isInFocusMode: false,
-                    betas: [CONST.BETAS.DEFAULT_ROOMS],
-                    doesReportHaveViolations: false,
-                    excludeEmptyChats: true,
-                    draftComment: '',
-                    isReportArchived: undefined,
-                }),
-            ).toBeTruthy();
-        });
-
-        it('should return true for empty admin room even when excludeEmptyChats is true', () => {
-            const report: Report = {
-                ...createAdminRoom(1),
-                participants: buildParticipantsFromAccountIDs([1, 2]),
-                lastMessageText: '',
-                lastVisibleActionCreated: DateUtils.getDBTime(),
             };
 
             expect(
@@ -16534,7 +16512,7 @@ describe('ReportUtils', () => {
             const timeOfCreation = DateUtils.getDBTime();
 
             // Then the report name should be "New Report"
-            const optimisticReport = buildOptimisticEmptyReport(reportID, accountID, parentReport, parentReportActionID, policyWithEmptyFieldList, timeOfCreation, betas);
+            const optimisticReport = buildOptimisticEmptyReport(reportID, accountID, currentUserEmail, parentReport, parentReportActionID, policyWithEmptyFieldList, timeOfCreation, betas);
             expect(optimisticReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
 
@@ -16563,7 +16541,7 @@ describe('ReportUtils', () => {
             const timeOfCreation = DateUtils.getDBTime();
 
             // Then the report name should be "New Report"
-            const optimisticReport = buildOptimisticEmptyReport(reportID, accountID, parentReport, parentReportActionID, policyWithEmptyFieldList, timeOfCreation, betas);
+            const optimisticReport = buildOptimisticEmptyReport(reportID, accountID, currentUserEmail, parentReport, parentReportActionID, policyWithEmptyFieldList, timeOfCreation, betas);
             expect(optimisticReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
     });
@@ -17768,6 +17746,31 @@ describe('ReportUtils', () => {
             expect(result).toBe('Project A');
         });
 
+        it('should return tag GL code for TAG_GL_CODE column', () => {
+            const transaction = createMockTransaction({tag: 'Engineering:Roadshow'});
+            const policyTagLists = {
+                Department: {
+                    name: 'Department',
+                    orderWeight: 0,
+                    required: false,
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true, 'GL Code': '1234'},
+                    },
+                },
+                Project: {
+                    name: 'Project',
+                    orderWeight: 1,
+                    required: false,
+                    tags: {
+                        Roadshow: {name: 'Roadshow', enabled: true, 'GL Code': '5678'},
+                    },
+                },
+            };
+
+            expect(getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE, mockReport, mockPolicy, undefined, policyTagLists)).toBe('1234, 5678');
+            expect(getTransactionSortValue(transaction, CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE, mockReport, mockPolicy, undefined, policyTagLists)).toBe('1234, 5678');
+        });
+
         it('should return 1 for billable and 0 for non-billable', () => {
             const billable = createMockTransaction({billable: true});
             const nonBillable = createMockTransaction({billable: false});
@@ -17838,6 +17841,7 @@ describe('ReportUtils', () => {
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.TAG)).toBe(true);
+            expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)).toBe(true);

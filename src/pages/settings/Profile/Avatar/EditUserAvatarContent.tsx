@@ -30,7 +30,6 @@ function EditUserAvatarContent() {
 
     const [selected, setSelected] = useState<string | undefined>();
     const avatarCaptureRef = useRef<AvatarCaptureHandle>(null);
-    const isSavingRef = useRef(false);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -40,8 +39,8 @@ function EditUserAvatarContent() {
 
     const isDirty = imageData.uri !== '' || !!selected;
 
-    useDiscardChangesConfirmation({
-        getHasUnsavedChanges: () => !isSavingRef.current && isDirty,
+    const {notifySaving} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => isDirty,
     });
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -65,7 +64,7 @@ function EditUserAvatarContent() {
     };
 
     const onPress = () => {
-        isSavingRef.current = true;
+        notifySaving();
 
         if (imageData.file) {
             updateAvatar(imageData.file, {
@@ -96,7 +95,7 @@ function EditUserAvatarContent() {
             return;
         }
         if (!selected || !avatarCaptureRef.current) {
-            isSavingRef.current = false;
+            notifySaving(false);
             return;
         }
         avatarCaptureRef.current
@@ -112,7 +111,7 @@ function EditUserAvatarContent() {
                 Navigation.dismissModal();
             })
             .catch(() => {
-                isSavingRef.current = false;
+                notifySaving(false);
             });
     };
 
