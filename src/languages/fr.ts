@@ -1149,6 +1149,9 @@ const translations: TranslationDeepObject<typeof en> = {
         importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} tags ont été ajoutés.` : '1 tag a été ajouté.'),
         importMultiLevelTagsSuccessfulDescription: 'Des tags à plusieurs niveaux ont été ajoutés.',
         importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates} indemnités journalières ont été ajoutées.` : '1 taux de per diem a été ajouté.'),
+        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => (rules > 1 ? `${rules} règles de marchand ont été ajoutées.` : '1 règle de marchand a été ajoutée.'),
+        importMerchantRulesRequiredColumns:
+            'Oups ! Vous devez associer au moins une colonne « Le marchand est » ou « Le marchand contient », ainsi qu’au moins un champ à mettre à jour. Veuillez examiner et réessayer.',
         importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `${transactions} transactions ont été importées.` : '1 transaction a été importée.',
         importFailedTitle: 'Échec de l’importation',
@@ -7385,6 +7388,12 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 addRule: 'Ajouter une règle de marchand',
                 addRuleTitle: 'Ajouter une règle',
                 editRuleTitle: 'Modifier la règle',
+                importRulesTitle: 'Importer des règles de marchand',
+                importColumnMerchantIs: 'Le marchand est',
+                importColumnMerchantContains: 'Le marchand contient',
+                importColumnUpdatedMerchant: 'Marchand mis à jour',
+                importColumnUpdatedCategory: 'Catégorie mise à jour',
+                importColumnUpdatedDescription: 'Description mise à jour',
                 expensesWith: 'Pour les dépenses avec :',
                 expensesExactlyMatching: 'Pour les dépenses correspondant exactement :',
                 applyUpdates: 'Appliquer ces mises à jour :',

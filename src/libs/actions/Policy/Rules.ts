@@ -1,8 +1,9 @@
+import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
-import type {AddPolicyAgentRuleParams, DeletePolicyAgentRuleParams, UpdatePolicyAgentRuleParams} from '@libs/API/parameters';
+import type {AddPolicyAgentRuleParams, DeletePolicyAgentRuleParams, ImportMerchantRulesSpreadsheetParams, UpdatePolicyAgentRuleParams} from '@libs/API/parameters';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
 import type SetPolicyCodingRuleParams from '@libs/API/parameters/SetPolicyCodingRuleParams';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as NumberUtils from '@libs/NumberUtils';
@@ -11,6 +12,7 @@ import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MerchantRuleForm} from '@src/types/form';
+import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type Policy from '@src/types/onyx/Policy';
 import type {AgentRule, CodingRule, CodingRuleFilter, CodingRuleTax} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -18,6 +20,9 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
+
+/** A coding rule parsed from an imported spreadsheet row, keyed by a client-generated ruleID */
+type ImportedMerchantRule = Omit<CodingRule, 'ruleID' | 'pendingAction' | 'errors'>;
 
 /**
  * Builds the tax object from a tax key and policy
@@ -229,6 +234,34 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
+}
+
+/**
+ * Imports coding rules parsed from a spreadsheet into the given policy in bulk
+ * @param policyID - The ID of the policy to import the rules into
+ * @param rules - Coding rule values keyed by client-generated ruleID
+ */
+async function importMerchantRulesSpreadsheet(policyID: string, rules: Record<string, ImportedMerchantRule>): Promise<ImportFinalModal> {
+    const importFinalModal: ImportFinalModal = {
+        titleKey: 'spreadsheet.importSuccessfulTitle',
+        promptKey: 'spreadsheet.importMerchantRulesSuccessfulDescription',
+        promptKeyParams: {rules: Object.keys(rules).length},
+    };
+
+    const parameters: ImportMerchantRulesSpreadsheetParams = {
+        policyID,
+        rules: JSON.stringify(rules),
+    };
+
+    try {
+        // We need the server result immediately so the initiating page can show the final confirmation modal
+        // without storing transient modal state in Onyx.
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MERCHANT_RULES_SPREADSHEET, parameters);
+        return response?.jsonCode === CONST.JSON_CODE.SUCCESS ? importFinalModal : getImportFailedFinalModal();
+    } catch {
+        return getImportFailedFinalModal();
+    }
 }
 
 function getTransactionsMatchingCodingRule(policyID: string, filters: CodingRuleFilter) {
@@ -594,6 +627,7 @@ function clearPolicyAgentRuleErrors(policyID: string, agentRuleID: string, agent
 export {
     openPolicyRulesPage,
     setPolicyCodingRule,
+    importMerchantRulesSpreadsheet,
     deletePolicyCodingRule,
     getTransactionsMatchingCodingRule,
     addPolicyAgentRule,
@@ -602,3 +636,4 @@ export {
     clearPolicyCodingRuleErrors,
     clearPolicyAgentRuleErrors,
 };
+export type {ImportedMerchantRule};

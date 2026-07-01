@@ -31,7 +31,13 @@ function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
 
         case 'category':
         case 'categories':
+        case 'updatedcategory':
             attribute = CONST.CSV_IMPORT_COLUMNS.CATEGORY;
+            break;
+
+        case 'description':
+        case 'updateddescription':
+            attribute = CONST.CSV_IMPORT_COLUMNS.COMMENT;
             break;
 
         case 'glcode':
@@ -135,6 +141,27 @@ function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
         case 'vendor':
         case 'vendors':
             attribute = CONST.CSV_IMPORT_COLUMNS.MERCHANT;
+            break;
+
+        case 'merchantis':
+            attribute = CONST.CSV_IMPORT_COLUMNS.MERCHANT_IS;
+            break;
+
+        case 'merchantcontains':
+            attribute = CONST.CSV_IMPORT_COLUMNS.MERCHANT_CONTAINS;
+            break;
+
+        case 'updatedmerchant':
+        case 'newmerchant':
+            attribute = CONST.CSV_IMPORT_COLUMNS.UPDATED_MERCHANT;
+            break;
+
+        case 'reimbursable':
+            attribute = CONST.CSV_IMPORT_COLUMNS.REIMBURSABLE;
+            break;
+
+        case 'billable':
+            attribute = CONST.CSV_IMPORT_COLUMNS.BILLABLE;
             break;
 
         case 'rateid':

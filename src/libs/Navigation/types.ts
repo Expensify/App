@@ -1531,6 +1531,12 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_IMPORTED]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.RULES_SPEND_NEW]: {
         policyID: string;
     };

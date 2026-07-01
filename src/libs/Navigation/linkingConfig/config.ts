@@ -1252,6 +1252,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: {
                             path: ROUTES.RULES_MERCHANT_NEW.route,
                         },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_IMPORT]: {
+                            path: ROUTES.RULES_MERCHANT_IMPORT.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_IMPORTED]: {
+                            path: ROUTES.RULES_MERCHANT_IMPORTED.route,
+                        },
                         [SCREENS.WORKSPACE.RULES_SPEND_NEW]: {
                             path: ROUTES.RULES_SPEND_NEW.route,
                         },

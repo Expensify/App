@@ -1144,6 +1144,9 @@ const translations: TranslationDeepObject<typeof en> = {
         importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} tags foram adicionadas.` : '1 tag foi adicionada.'),
         importMultiLevelTagsSuccessfulDescription: 'Tags de vários níveis foram adicionadas.',
         importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `Foram adicionadas ${rates} diárias.` : '1 diária foi adicionada.'),
+        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => (rules > 1 ? `Foram adicionadas ${rules} regras de comerciante.` : '1 regra de comerciante foi adicionada.'),
+        importMerchantRulesRequiredColumns:
+            'Ops! Você precisa mapear pelo menos uma coluna "O comerciante é" ou "O comerciante contém", além de pelo menos um campo para atualizar. Revise e tente novamente.',
         importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `${transactions} transações foram importadas.` : '1 transação foi importada.',
         importFailedTitle: 'Falha na importação',
@@ -7314,6 +7317,12 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 addRule: 'Adicionar regra de comerciante',
                 addRuleTitle: 'Adicionar regra',
                 editRuleTitle: 'Editar regra',
+                importRulesTitle: 'Importar regras de comerciante',
+                importColumnMerchantIs: 'O comerciante é',
+                importColumnMerchantContains: 'O comerciante contém',
+                importColumnUpdatedMerchant: 'Comerciante atualizado',
+                importColumnUpdatedCategory: 'Categoria atualizada',
+                importColumnUpdatedDescription: 'Descrição atualizada',
                 expensesWith: 'Para despesas com:',
                 expensesExactlyMatching: 'Para despesas que correspondam exatamente:',
                 applyUpdates: 'Aplicar estas atualizações:',

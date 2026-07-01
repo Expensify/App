@@ -84,7 +84,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['Flash']);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Task', 'Flag', 'Trashcan']);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Task', 'Flag', 'Trashcan', 'Table']);
     const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
@@ -248,7 +248,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             return null;
         }
 
-        return (
+        const addRuleButton = (
             <Button
                 success
                 onPress={handleNewRule}
@@ -256,6 +256,40 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 icon={icons.Plus}
                 style={[shouldDisplayButtonsInSeparateLine && styles.w100]}
             />
+        );
+
+        if (activeTab !== RULES_TAB.EXPENSE_DEFAULTS) {
+            return addRuleButton;
+        }
+
+        const moreOptions: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [
+            {
+                icon: icons.Table,
+                text: translate('spreadsheet.importSpreadsheet'),
+                value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
+                onSelected: () => {
+                    if (!canWriteRules) {
+                        showReadOnlyModal();
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.RULES_MERCHANT_IMPORT.getRoute(policyID));
+                },
+            },
+        ];
+
+        return (
+            <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.w100]}>
+                {addRuleButton}
+                <ButtonWithDropdownMenu
+                    success={false}
+                    onPress={() => {}}
+                    shouldAlwaysShowDropdownMenu
+                    customText={translate('common.more')}
+                    options={moreOptions}
+                    isSplitButton={false}
+                    wrapperStyle={styles.flexGrow0}
+                />
+            </View>
         );
     };
 
