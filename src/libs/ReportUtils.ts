@@ -155,6 +155,7 @@ import {
     isGroupPolicy as isGroupPolicyPolicyUtils,
     isInstantSubmitEnabled,
     isPendingDeletePolicy,
+    isPerDiemEnabled,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
     isPolicyOwner,
@@ -5171,7 +5172,7 @@ function canEditFieldOfMoneyRequest({
                 // For unreported per diem expenses, check if there's a valid policy with rates.
                 const perDiemPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
                 const perDiemCustomUnit = getPerDiemCustomUnit(perDiemPolicy);
-                if (!perDiemPolicy?.arePerDiemRatesEnabled || isEmptyObject(perDiemCustomUnit?.rates)) {
+                if (!isPerDiemEnabled(perDiemPolicy) || isEmptyObject(perDiemCustomUnit?.rates)) {
                     return false;
                 }
             }

@@ -24,6 +24,7 @@ import {
     getActivePoliciesWithExpenseChatAndTimeEnabled,
     getPerDiemCustomUnit,
     isControlPolicy,
+    isPerDiemEnabled,
     isTimeTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
@@ -115,7 +116,7 @@ function IOURequestStartPage({
     );
     const doesPerDiemPolicyExist = policiesWithPerDiemEnabledAndHasRates.length > 0;
     const moreThanOnePerDiemExist = policiesWithPerDiemEnabledAndHasRates.length > 1;
-    const hasCurrentPolicyPerDiemEnabled = isControlPolicy(policy) && !!policy?.arePerDiemRatesEnabled;
+    const hasCurrentPolicyPerDiemEnabled = isControlPolicy(policy) && isPerDiemEnabled(policy);
     const hasCurrentPolicyTimeTrackingEnabled = policy ? isTimeTrackingEnabled(policy) : false;
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const hasPolicyPerDiemRates = !isEmptyObject(perDiemCustomUnit?.rates);

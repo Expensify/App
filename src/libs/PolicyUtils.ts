@@ -112,13 +112,13 @@ function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | nul
 }
 
 function getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
-    return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => policy?.arePerDiemRatesEnabled && isControlPolicy(policy));
+    return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => isPerDiemEnabled(policy) && isControlPolicy(policy));
 }
 
 function getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => {
         const perDiemCustomUnit = getPerDiemCustomUnit(policy);
-        return policy?.arePerDiemRatesEnabled && isControlPolicy(policy) && !isEmptyObject(perDiemCustomUnit?.rates);
+        return isPerDiemEnabled(policy) && isControlPolicy(policy) && !isEmptyObject(perDiemCustomUnit?.rates);
     });
 }
 
@@ -326,6 +326,15 @@ function getPerDiemCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | undefined
 }
 
 /**
+ * Whether Per Diem is enabled for the policy. Respects an explicit `arePerDiemRatesEnabled` toggle
+ * (true/false) and only falls back to the configured Per Diem custom unit when the flag was never
+ * provided (e.g. for migrated members), mirroring `canSubmitPerDiemExpenseFromWorkspace`.
+ */
+function isPerDiemEnabled(policy: OnyxEntry<Policy>): boolean {
+    return policy?.arePerDiemRatesEnabled ?? !!getPerDiemCustomUnit(policy)?.enabled;
+}
+
+/**
  * Finds a policy that contains the customUnitID from the transaction
  */
 function getPolicyByCustomUnitID(transaction: OnyxEntry<Transaction>, policies: OnyxCollection<Policy>): OnyxEntry<Policy> {
@@ -336,7 +345,7 @@ function getPolicyByCustomUnitID(transaction: OnyxEntry<Transaction>, policies: 
     }
 
     return Object.values(policies).find((policy) => {
-        if (!policy?.customUnits || !policy?.arePerDiemRatesEnabled) {
+        if (!policy?.customUnits || !isPerDiemEnabled(policy)) {
             return false;
         }
         return customUnitID in policy.customUnits;
@@ -2962,6 +2971,7 @@ export {
     hasDynamicExternalWorkflow,
     getPolicyEmployeeAccountIDs,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
+    isPerDiemEnabled,
     getTravelStep,
     isWorkspaceProvisionedForTravel,
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,

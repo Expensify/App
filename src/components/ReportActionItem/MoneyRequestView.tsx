@@ -76,6 +76,7 @@ import {
     isAttendeeTrackingEnabled,
     isGroupPolicyByType,
     isMultiLevelTags,
+    isPerDiemEnabled,
     isPolicyAccessible,
     isTaxTrackingEnabled,
 } from '@libs/PolicyUtils';
@@ -176,7 +177,7 @@ const perDiemPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => 
             const perDiemCustomUnit = getPerDiemCustomUnit(policy);
             const hasPolicyPerDiemRates = !isEmptyObject(perDiemCustomUnit?.rates);
 
-            return policy?.arePerDiemRatesEnabled && hasPolicyPerDiemRates;
+            return isPerDiemEnabled(policy) && hasPolicyPerDiemRates;
         }),
     );
 };

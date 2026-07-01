@@ -488,8 +488,8 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
             return (type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isDynamicWorkflowRoutedAction) || (type === CONST.CONTEXT_MENU_TYPES.REPORT && !isUnreadChat);
         },
-        onPress: (closePopover, {reportActions, reportAction, reportID, currentUserAccountID}) => {
-            markCommentAsUnread(reportID, reportActions, reportAction, currentUserAccountID);
+        onPress: (closePopover, {reportActions, reportAction, reportID, currentUserAccountID, isOffline}) => {
+            markCommentAsUnread(reportID, reportActions, reportAction, currentUserAccountID, isOffline);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }

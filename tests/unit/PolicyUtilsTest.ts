@@ -29,6 +29,7 @@ import {
     getMatchingVendorByID,
     getMatchingVendors,
     getPolicyBrickRoadIndicatorStatus,
+    getPolicyByCustomUnitID,
     getPolicyEmployeeAccountIDs,
     getRateDisplayValue,
     getSubmitToAccountID,
@@ -50,6 +51,7 @@ import {
     hasPolicyWithXeroConnection,
     hasVendorFeature,
     isMergeHRCompleteSetupNeededSelector,
+    isPerDiemEnabled,
     isPolicyMemberWithoutPendingDelete,
     isSubmitterApproveBlockedOnSubmitWorkspace,
     shouldShowPolicy,
@@ -2614,6 +2616,96 @@ describe('PolicyUtils', () => {
             const result = getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies, undefined);
             expect(result).toHaveLength(1);
             expect(result.at(0)?.id).toBe('1');
+        });
+
+        it('includes a control policy whose arePerDiemRatesEnabled flag is missing but has an enabled per diem custom unit', () => {
+            const policies: OnyxCollection<Policy> = {
+                corporate: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    role: CONST.POLICY.ROLE.USER,
+                    pendingAction: null,
+                    isPolicyExpenseChatEnabled: true,
+                    // Migrated member: flag never arrived, but the configured custom unit is present
+                    arePerDiemRatesEnabled: undefined,
+                    customUnits: {
+                        ABCDEF: perDiemCustomUnit,
+                    },
+                },
+            };
+
+            expect(getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined)).toHaveLength(1);
+            expect(getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies, undefined)).toHaveLength(1);
+        });
+
+        it('excludes a control policy where per diem was explicitly disabled even if a custom unit lingers', () => {
+            const policies: OnyxCollection<Policy> = {
+                corporate: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    role: CONST.POLICY.ROLE.USER,
+                    pendingAction: null,
+                    isPolicyExpenseChatEnabled: true,
+                    // Explicit off must be respected, so the lingering custom unit cannot re-enable it
+                    arePerDiemRatesEnabled: false,
+                    customUnits: {
+                        ABCDEF: perDiemCustomUnit,
+                    },
+                },
+            };
+
+            expect(getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined)).toHaveLength(0);
+            expect(getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies, undefined)).toHaveLength(0);
+        });
+
+        describe('isPerDiemEnabled', () => {
+            it('returns true when arePerDiemRatesEnabled is explicitly true', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: true, customUnits: {}};
+                expect(isPerDiemEnabled(policy)).toBe(true);
+            });
+
+            it('returns false when arePerDiemRatesEnabled is explicitly false, ignoring the configured custom unit', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: false, customUnits: {ABCDEF: perDiemCustomUnit}};
+                expect(isPerDiemEnabled(policy)).toBe(false);
+            });
+
+            it('infers true from an enabled per diem custom unit when the flag is missing', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: undefined, customUnits: {ABCDEF: perDiemCustomUnit}};
+                expect(isPerDiemEnabled(policy)).toBe(true);
+            });
+
+            it('returns false when the flag is missing and the per diem custom unit is disabled', () => {
+                const policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    arePerDiemRatesEnabled: undefined,
+                    customUnits: {ABCDEF: {...perDiemCustomUnit, enabled: false}},
+                };
+                expect(isPerDiemEnabled(policy)).toBe(false);
+            });
+
+            it('returns false when the flag is missing and there is no per diem custom unit', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: undefined, customUnits: {}};
+                expect(isPerDiemEnabled(policy)).toBe(false);
+            });
+        });
+
+        describe('getPolicyByCustomUnitID', () => {
+            const transactionWithPerDiemUnit: Transaction = {
+                ...createRandomTransaction(0),
+                comment: {customUnit: {customUnitID: 'ABCDEF'}},
+            };
+
+            it('resolves the policy with the matching custom unit when arePerDiemRatesEnabled is missing', () => {
+                const policies: OnyxCollection<Policy> = {
+                    corporate: {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: undefined, customUnits: {ABCDEF: perDiemCustomUnit}},
+                };
+                expect(getPolicyByCustomUnitID(transactionWithPerDiemUnit, policies)?.id).toBe('1');
+            });
+
+            it('does not resolve a policy where per diem was explicitly disabled', () => {
+                const policies: OnyxCollection<Policy> = {
+                    corporate: {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: false, customUnits: {ABCDEF: perDiemCustomUnit}},
+                };
+                expect(getPolicyByCustomUnitID(transactionWithPerDiemUnit, policies)).toBeUndefined();
+            });
         });
     });
 
