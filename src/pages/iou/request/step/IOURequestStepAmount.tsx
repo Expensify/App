@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import {isDraftReportSelector} from '@selectors/Report';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
@@ -89,6 +90,8 @@ function IOURequestStepAmount({
     const [allReportNVPs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
     const [storedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(existingTransactionID)}`);
+    const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
+    const [isDraftChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`, {selector: isDraftReportSelector});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(isEditing && transactionID ? [transactionID] : []);
@@ -177,6 +180,7 @@ function IOURequestStepAmount({
             transaction,
             splitDraftTransaction,
             policy,
+            isDraftChatReport,
             selectedCurrency,
             decimals,
             iouType,

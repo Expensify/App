@@ -1,5 +1,6 @@
 import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {isDraftReportSelector} from '@selectors/Report';
 import {useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useActivePolicy from '@hooks/useActivePolicy';
@@ -220,6 +221,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const reportTransactions = useReportTransactions(report?.reportID);
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const [isDraftChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${currentChatReport?.reportID}`, {selector: isDraftReportSelector});
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`);
     const selectedParticipants = participants.filter((participant) => participant.selected);
@@ -631,6 +633,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             trackExpenseIOUActions({
                 report,
                 isDraftPolicy,
+                isDraftChatReport,
                 action,
                 existingTransaction: item,
                 participantParams: {
