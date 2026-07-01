@@ -8488,6 +8488,7 @@ const translations = {
             topMerchants: 'Top merchants',
         },
         resultsAreLimited: 'Search results are limited.',
+        goTo: ({destination}: {destination: string}) => `Go to ${destination}`,
         viewResults: 'View results',
         applyFilters: 'Apply filters',
         appliedFilters: 'Applied filters',

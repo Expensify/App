@@ -8364,6 +8364,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     },
     search: {
         resultsAreLimited: 'Zoekresultaten zijn beperkt.',
+        goTo: ({destination}: {destination: string}) => `Ga naar ${destination}`,
         viewResults: 'Resultaten bekijken',
         applyFilters: 'Filters toepassen',
         appliedFilters: 'Toegepaste filters',

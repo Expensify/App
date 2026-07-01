@@ -8353,6 +8353,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
     },
     search: {
         resultsAreLimited: 'Wyniki wyszukiwania są ograniczone.',
+        goTo: ({destination}: {destination: string}) => `Przejdź do ${destination}`,
         viewResults: 'Zobacz wyniki',
         applyFilters: 'Zastosuj filtry',
         appliedFilters: 'Zastosowane filtry',

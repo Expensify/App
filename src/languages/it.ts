@@ -8393,6 +8393,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
     },
     search: {
         resultsAreLimited: 'I risultati di ricerca sono limitati.',
+        goTo: ({destination}: {destination: string}) => `Vai a ${destination}`,
         viewResults: 'Visualizza risultati',
         applyFilters: 'Applica i filtri',
         appliedFilters: 'Filtri applicati',

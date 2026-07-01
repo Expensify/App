@@ -8351,6 +8351,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     },
     search: {
         resultsAreLimited: 'Os resultados da pesquisa são limitados.',
+        goTo: ({destination}: {destination: string}) => `Ir para ${destination}`,
         viewResults: 'Ver resultados',
         applyFilters: 'Aplicar filtros',
         appliedFilters: 'Filtros aplicados',

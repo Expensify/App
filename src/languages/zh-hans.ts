@@ -8130,6 +8130,7 @@ ${reportName}`,
     },
     search: {
         resultsAreLimited: '搜索结果已受限制。',
+        goTo: ({destination}: {destination: string}) => `前往${destination}`,
         viewResults: '查看结果',
         applyFilters: '应用筛选条件',
         appliedFilters: '已应用的筛选条件',
