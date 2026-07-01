@@ -7503,6 +7503,7 @@ const CONST = {
         HAS_LOCKED_BANK_ACCOUNT: 'hasLockedBankAccount',
         HAS_DEVICE_MANAGEMENT_ERROR: 'hasDeviceManagementError',
         HAS_MERGE_HR_SETUP_NEEDED: 'hasMergeHRSetupNeeded',
+        HAS_HR_CONNECTION_ERROR: 'hasHRConnectionError',
     },
 
     DEBUG: {

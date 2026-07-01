@@ -7751,6 +7751,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     `<muted-text-label>Connecté. ${setupLink ? `<a href="${setupLink}">Terminer la configuration</a>` : 'Terminer la configuration'} pour importer les employés.</muted-text-label>`,
                 groups: {title: 'Groupes', description: 'Choisissez les groupes d’employés que vous souhaitez synchroniser avec cet espace de travail'},
             },
+            notSync: 'Non synchronisé',
+            authenticationError: (providerName: string) => `Connexion à ${providerName} impossible en raison d'une connexion expirée.`,
+            reconnect: 'Reconnect',
+            reconnectLink: 'Reconnectez-vous.',
         },
         emptyDomain: {
             title: 'Renforcez votre sécurité avec des domaines',
@@ -9792,6 +9796,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             theresAProblemWithYourWalletTerms: 'Il y a un problème avec les conditions de votre portefeuille',
             aBankAccountIsLocked: 'Un compte bancaire est verrouillé',
             completeHrSetup: 'Terminer la configuration RH',
+            theresAProblemWithAnHRConnection: 'Un problème est survenu avec une connexion RH',
         },
     },
     emptySearchView: {
