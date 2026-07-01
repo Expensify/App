@@ -3,6 +3,7 @@ import {useEffect, useEffectEvent, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsOwnWorkspaceChatRef from '@hooks/useIsOwnWorkspaceChatRef';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePrevious from '@hooks/usePrevious';
@@ -13,7 +14,6 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import {isDeletedParentAction} from '@libs/ReportActionsUtils';
 import {isAdminRoom, isAnnounceRoom, isGroupChat, isMoneyRequest, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isPolicyExpenseChat} from '@libs/ReportUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
-import {setShouldShowComposeInput} from '@userActions/Composer';
 import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,7 +30,8 @@ type ReportScreenRoute =
 const reportDetailScreens = [
     ...Object.values(SCREENS.REPORT_DETAILS),
     ...Object.values(SCREENS.REPORT_SETTINGS),
-    ...Object.values(SCREENS.PRIVATE_NOTES),
+    SCREENS.DYNAMIC_PRIVATE_NOTES_LIST,
+    SCREENS.DYNAMIC_PRIVATE_NOTES_EDIT,
     ...Object.values(SCREENS.REPORT_PARTICIPANTS),
 ];
 
@@ -81,6 +82,11 @@ function ReportNavigateAwayHandler() {
     const isOptimisticDelete = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
     const {wasDeleted: reportWasDeleted, parentReportID: deletedReportParentID} = useReportWasDeleted(reportIDFromRoute, report, isOptimisticDelete, userLeavingStatus);
 
+    // Track whether the current route is an own workspace chat. A vacation delegate split sends
+    // a temporary Onyx SET that wipes the report; by the time effects fire, report is undefined
+    // so we must persist the value in a ref updated synchronously during render. See issue #84248.
+    const isCurrentRouteOwnWorkspaceChatRef = useIsOwnWorkspaceChatRef(report, reportIDFromRoute);
+
     const firstRender = useRef(true);
 
     // Navigation action that reads non-reactive context (concierge params, modal state, etc.)
@@ -96,6 +102,15 @@ function ReportNavigateAwayHandler() {
             typeof currentRoute.params === 'object' &&
             'reportID' in currentRoute.params &&
             reportIDFromRoute === currentRoute.params.reportID;
+        // A thread open at the top of the search RHP just became empty - its parent message and last reply were both
+        // deleted, so the parent action went from a "[Deleted message]" placeholder to fully removed. Pop only that
+        // screen (any wider RHP below stays open) instead of letting the narrow-pane guard leave an empty report on
+        // screen. Scoped to this trigger so deleting an expense in the search RHP still no-ops here (the original
+        // reason for the guard below). See https://github.com/Expensify/App/issues/91603.
+        if (prevDeletedParentAction && !deletedParentAction && isFocused && isTopmostSearchReportID) {
+            Navigation.goBack();
+            return;
+        }
         // Early return if the report we're passing isn't in a focused state. We only want to navigate to Concierge if the user leaves the room from another device or gets removed from the room while the report is in a focused state.
         // Prevent auto navigation for report in RHP
         if ((!isFocused && !isHoldScreenOpenInRHP && !isReportDetailOpenInRHP) || (!isHoldScreenOpenInRHP && isInNarrowPaneModal)) {
@@ -138,7 +153,10 @@ function ReportNavigateAwayHandler() {
             isEmpty(report) &&
             (isMoneyRequest(prevReport) ||
                 isMoneyRequestReport(prevReport) ||
-                isPolicyExpenseChat(prevReport) ||
+                // Own workspace chats are excluded: a vacation delegate split sends a temporary
+                // Onyx SET that wipes the report — the chat was never intentionally removed.
+                // See issue #84248.
+                (isPolicyExpenseChat(prevReport) && !prevReport?.isOwnPolicyExpenseChat) ||
                 isGroupChat(prevReport) ||
                 isAdminRoom(prevReport) ||
                 isAnnounceRoom(prevReport));
@@ -155,18 +173,7 @@ function ReportNavigateAwayHandler() {
             (prevDeletedParentAction && !deletedParentAction)
         ) {
             navigateAwayFromReport(prevOnyxReportID, prevReport?.parentReportID);
-            return;
         }
-
-        // If you already have a report open and are deeplinking to a new report on native,
-        // the ReportScreen never actually unmounts and the reportID in the route also doesn't change.
-        // Therefore, we need to compare if the existing reportID is the same as the one in the route
-        // before deciding that we shouldn't call OpenReport.
-        if (reportIDFromRoute === lastReportIDFromRoute && (!onyxReportID || onyxReportID === reportIDFromRoute)) {
-            return;
-        }
-
-        setShouldShowComposeInput(true);
     }, [
         report,
         prevReport?.reportID,
@@ -191,6 +198,17 @@ function ReportNavigateAwayHandler() {
 
         // Only redirect if focused
         if (!isFocused) {
+            return;
+        }
+
+        // For own workspace chats, a vacation delegate split sends a temporary Onyx SET that
+        // silently wipes the report from Onyx — triggering this effect. We skip navigation here
+        // entirely: the re-fetch effect in ReportFetchHandler restores the data, which causes
+        // useReportWasDeleted to reset wasDeleted → false, and this effect exits early on the
+        // next run. Genuine workspace deletions (e.g. user removed, workspace closed) always
+        // trigger the "navigate on removal" effect above via userLeavingStatus / didReportClose,
+        // never via this path alone. See issue #84248.
+        if (isCurrentRouteOwnWorkspaceChatRef.current) {
             return;
         }
 

@@ -1,7 +1,6 @@
 import {deepEqual} from 'fast-equals';
 import type {ForwardedRef, ReactNode, RefObject} from 'react';
 import React, {createRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {InteractionManager} from 'react-native';
 import type {StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import {useInputBlurActions} from '@components/InputBlurContext';
@@ -11,15 +10,17 @@ import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
 import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {isSafari} from '@libs/Browser';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
 import {prepareValues} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import {clearErrorFields, clearErrors, setDraftValues, setErrors as setFormErrors} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import type {OnyxFormDraftKey, OnyxFormKey} from '@src/ONYXKEYS';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -139,7 +140,7 @@ function FormProvider({
     ref,
     ...rest
 }: FormProviderProps) {
-    const [network] = useOnyx(ONYXKEYS.NETWORK);
+    const {isOffline} = useNetwork();
     const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`);
     const [draftValues, draftValuesMetadata] = useOnyx<OnyxFormDraftKey, Form>(`${formID}Draft`);
     const {preferredLocale, translate} = useLocalize();
@@ -159,6 +160,10 @@ function FormProvider({
     const [errorAnnouncementKey, setErrorAnnouncementKey] = useState(0);
     const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
     const {setIsBlurred} = useInputBlurActions();
+    const blurTransitionHandle = useRef<CancelHandle | null>(null);
+
+    // Cancel any in-flight blur transition callback on unmount so it doesn't fire after the form is gone.
+    useEffect(() => () => blurTransitionHandle.current?.cancel(), []);
 
     const errorMessage = formState ? getLatestErrorMessage(formState) : undefined;
     const isGeneralAlertVisible = ((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage;
@@ -295,7 +300,7 @@ function FormProvider({
             }
 
             // Do not submit form if network is offline and the form is not enabled when offline
-            if (network?.isOffline && !enabledWhenOffline) {
+            if (isOffline && !enabledWhenOffline) {
                 return;
             }
 
@@ -306,19 +311,7 @@ function FormProvider({
             } else {
                 onSubmit(trimmedStringValues);
             }
-        }, [
-            enabledWhenOffline,
-            formState?.isLoading,
-            inputValues,
-            isLoading,
-            network?.isOffline,
-            onSubmit,
-            onValidate,
-            shouldTrimValues,
-            hasServerError,
-            keyboardSubmitBehavior,
-            onBeforeSubmit,
-        ]),
+        }, [enabledWhenOffline, formState?.isLoading, inputValues, isLoading, isOffline, onSubmit, onValidate, shouldTrimValues, hasServerError, keyboardSubmitBehavior, onBeforeSubmit]),
         1000,
         {leading: true, trailing: false},
     );
@@ -477,9 +470,12 @@ function FormProvider({
                     }
                     inputProps.onBlur?.(event);
                     if (isSafari()) {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        InteractionManager.runAfterInteractions(() => {
-                            setIsBlurred(true);
+                        blurTransitionHandle.current?.cancel();
+                        blurTransitionHandle.current = TransitionTracker.runAfterTransitions({
+                            callback: () => {
+                                setIsBlurred(true);
+                            },
+                            waitForUpcomingTransition: true,
                         });
                     }
                 },
@@ -534,7 +530,6 @@ function FormProvider({
 
     return (
         <FormContext.Provider value={value}>
-            {/* eslint-disable react/jsx-props-no-spreading */}
             <FormWrapper
                 {...rest}
                 formID={formID}

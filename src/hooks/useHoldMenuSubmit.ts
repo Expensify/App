@@ -2,7 +2,7 @@ import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import {hasOnlyNonReimbursableTransactions, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
@@ -11,8 +11,8 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useNonReimbursablePaymentModal from './useNonReimbursablePaymentModal';
 import useOnyx from './useOnyx';
+import usePayChatReportActions from './usePayChatReportActions';
 import usePermissions from './usePermissions';
 import usePolicy from './usePolicy';
 
@@ -26,16 +26,17 @@ type UseHoldMenuSubmitParams = {
     methodID?: number;
     onClose: () => void;
     onConfirm?: (full: boolean) => void;
-    transactions?: OnyxTypes.Transaction[];
 };
 
-function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, paymentType, methodID, onClose, onConfirm, transactions}: UseHoldMenuSubmitParams) {
+function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, paymentType, methodID, onClose, onConfirm}: UseHoldMenuSubmitParams) {
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const activePolicy = usePolicy(activePolicyID);
     const policy = usePolicy(moneyRequestReport?.policyID);
+    const chatReportPolicy = usePolicy(chatReport?.policyID);
+    const getChatReportActions = usePayChatReportActions(chatReport, undefined);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
@@ -49,7 +50,6 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {showNonReimbursablePaymentErrorModal} = useNonReimbursablePaymentModal(moneyRequestReport, transactions);
 
     const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
 
@@ -59,18 +59,18 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
             return;
         }
 
-        if (!isApprove && chatReport && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID, transactions) && paymentType && paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-            onClose();
-            showNonReimbursablePaymentErrorModal();
-            return;
-        }
-
         const animationCallback = () => onConfirm?.(full);
+
+        // moneyRequestReport/chatReport can be lightweight versions of the report (the report list drops fields
+        // like the last message text/time so it doesn't re-render on every new message). The pay/approve actions
+        // restore the report on failure by merging it back in, so we grab the full reports here to make sure the
+        // chat's last message comes back correctly if the payment fails.
+        const currentMoneyRequestReport = getReportOrDraftReport(moneyRequestReport?.reportID) ?? moneyRequestReport;
+        const currentChatReport = getReportOrDraftReport(chatReport?.reportID) ?? chatReport;
 
         if (isApprove) {
             approveMoneyRequest({
-                expenseReport: moneyRequestReport,
-                policy: activePolicy,
+                expenseReport: currentMoneyRequestReport,
                 currentUserAccountIDParam: currentUserDetails.accountID,
                 currentUserEmailParam: currentUserDetails.email ?? '',
                 hasViolations,
@@ -85,17 +85,19 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 expenseReportPolicy: policy,
                 delegateEmail,
             });
-        } else if (chatReport && paymentType) {
+        } else if (currentChatReport && paymentType) {
             payMoneyRequest({
                 paymentType,
-                chatReport,
-                iouReport: moneyRequestReport,
+                chatReport: currentChatReport,
+                iouReport: currentMoneyRequestReport,
                 introSelected,
                 iouReportCurrentNextStepDeprecated: moneyRequestReportNextStep,
                 currentUserAccountID: currentUserDetails.accountID,
+                currentUserLogin: currentUserDetails.login ?? '',
                 full,
                 activePolicy,
                 policy,
+                chatReportPolicy,
                 betas,
                 isSelfTourViewed,
                 userBillingGracePeriodEnds,
@@ -103,6 +105,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 ownerBillingGracePeriodEnd,
                 methodID,
                 onPaid: animationCallback,
+                chatReportActions: getChatReportActions(false),
             });
         }
         onClose();

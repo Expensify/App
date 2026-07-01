@@ -33,6 +33,7 @@ const receiptErrorsR14932: ReceiptErrors = {
             transactionID: RECEIPT_ERRORS_TRANSACTION_ID_R14932,
             source: CONST.POLICY.ID_FAKE,
             transactionPolicy: undefined,
+            transactionPolicyTagList: undefined,
         },
     },
 };

@@ -260,6 +260,7 @@ GEM
     nap (1.1.0)
     naturally (2.3.0)
     netrc (0.11.0)
+    nkf (0.2.0)
     openssl (3.3.1)
     optparse (0.8.1)
     os (1.1.4)
@@ -331,12 +332,13 @@ DEPENDENCIES
   fastlane-plugin-firebase_app_distribution
   logger
   mutex_m
+  nkf
   openssl (>= 3.3.1)
   xcodeproj (~> 1.27)
   xcpretty (~> 0)
 
 RUBY VERSION
-   ruby 3.3.4p94
+   ruby 3.4.1p0
 
 BUNDLED WITH
    2.6.9

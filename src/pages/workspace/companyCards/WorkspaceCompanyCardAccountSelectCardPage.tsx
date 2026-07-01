@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import RenderHTML from '@components/RenderHTML';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import useCardFeeds from '@hooks/useCardFeeds';
@@ -20,6 +19,7 @@ import {getConnectedIntegration, getCurrentConnectionName} from '@libs/PolicyUti
 import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -49,6 +49,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const shouldShowTextInput = (exportMenuItem?.data?.length ?? 0) >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
     const defaultVendor = translate('workspace.accounting.defaultVendor');
+    const defaultAccount = translate('workspace.accounting.defaultAccount');
     const isXeroConnection = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
@@ -73,7 +74,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
         if (!exportMenuItem?.exportType) {
             return;
         }
-        const isDefaultSelected = value === defaultCard || value === defaultVendor;
+        const isDefaultSelected = value === defaultCard || value === defaultVendor || value === defaultAccount;
         const exportValue = isDefaultSelected ? CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE : value;
         setCompanyCardExportAccount(policyID, domainOrWorkspaceAccountID, cardID, exportMenuItem.exportType, exportValue, getCompanyCardFeed(feed));
 
@@ -81,44 +82,51 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     };
 
     return (
-        <SelectionScreen
+        <AccessOrNotFoundWrapper
             policyID={policyID}
-            headerContent={
-                <View style={[styles.mh5, styles.mb3]}>
-                    {!!exportMenuItem?.description && (
-                        <View style={[styles.renderHTML, styles.flexRow]}>
-                            <RenderHTML
-                                html={
-                                    isXeroConnection
-                                        ? translate('workspace.moreFeatures.companyCards.integrationExportTitleXero', exportMenuItem.description)
-                                        : translate(
-                                              'workspace.moreFeatures.companyCards.integrationExportTitle',
-                                              exportMenuItem.description,
-                                              `${environmentURL}/${exportMenuItem.exportPageLink}`,
-                                          )
-                                }
-                            />
-                        </View>
-                    )}
-                </View>
-            }
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
-            displayName="WorkspaceCompanyCardAccountSelectCardPage"
-            data={searchedListOptions ?? []}
-            listItem={RadioListItem}
-            textInputOptions={{
-                label: translate('common.search'),
-                value: searchText,
-                onChangeText: setSearchText,
-            }}
-            onSelectRow={updateExportAccount}
-            initiallyFocusedOptionKey={exportMenuItem?.data?.find((mode) => mode.isSelected)?.keyForList}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feed, cardID, backTo))}
-            headerTitleAlreadyTranslated={exportMenuItem?.description}
-            listEmptyContent={listEmptyContent}
-            connectionName={connectedIntegration}
-            shouldShowTextInput={shouldShowTextInput}
-        />
+            policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+        >
+            <SelectionScreen
+                policyID={policyID}
+                headerContent={
+                    <View style={[styles.mh5, styles.mb3]}>
+                        {!!exportMenuItem?.description && (
+                            <View style={[styles.renderHTML, styles.flexRow]}>
+                                <RenderHTML
+                                    html={
+                                        isXeroConnection
+                                            ? translate('workspace.moreFeatures.companyCards.integrationExportTitleXero', exportMenuItem.description)
+                                            : translate(
+                                                  'workspace.moreFeatures.companyCards.integrationExportTitle',
+                                                  exportMenuItem.description,
+                                                  `${environmentURL}/${exportMenuItem.exportPageLink}`,
+                                              )
+                                    }
+                                />
+                            </View>
+                        )}
+                    </View>
+                }
+                featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+                displayName="WorkspaceCompanyCardAccountSelectCardPage"
+                data={searchedListOptions ?? []}
+                textInputOptions={{
+                    label: translate('common.search'),
+                    value: searchText,
+                    onChangeText: setSearchText,
+                }}
+                onSelectRow={updateExportAccount}
+                initiallyFocusedOptionKey={exportMenuItem?.data?.find((mode) => mode.isSelected)?.keyForList}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feed, cardID, backTo))}
+                headerTitleAlreadyTranslated={exportMenuItem?.description}
+                listEmptyContent={listEmptyContent}
+                connectionName={connectedIntegration}
+                shouldShowTextInput={shouldShowTextInput}
+                isRowMultilineSupported
+            />
+        </AccessOrNotFoundWrapper>
     );
 }
 

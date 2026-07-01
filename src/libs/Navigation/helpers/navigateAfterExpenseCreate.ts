@@ -1,5 +1,7 @@
+import {addPendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransactions';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
+import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
@@ -17,7 +19,17 @@ type NavigateAfterExpenseCreateParams = {
     isFromGlobalCreate?: boolean;
     isInvoice?: boolean;
     hasMultipleTransactions: boolean;
+    shouldAddPendingNewTransactionIDs?: boolean;
+    shouldNavigate?: boolean;
 };
+
+function getNavigateAfterCreateSearchNavigatorState() {
+    const rootState = navigationRef.getRootState();
+    const tabNavigatorRoute = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+    const tabState = tabNavigatorRoute?.state ?? (tabNavigatorRoute?.key ? getPreservedNavigatorState(tabNavigatorRoute.key) : undefined);
+    const searchNavigatorRoute = tabState?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+    return searchNavigatorRoute?.state ?? (searchNavigatorRoute?.key ? getPreservedNavigatorState(searchNavigatorRoute.key) : undefined);
+}
 
 /**
  * Helper to navigate after an expense is created in order to standardize the post‑creation experience
@@ -26,14 +38,31 @@ type NavigateAfterExpenseCreateParams = {
  * - If it is created on the inbox tab, it will open the chat report containing that expense.
  * - If it is created elsewhere, it will navigate to Reports > Expense and highlight the newly created expense.
  */
-function navigateAfterExpenseCreate({activeReportID, transactionID, isFromGlobalCreate, isInvoice, hasMultipleTransactions}: NavigateAfterExpenseCreateParams) {
+function navigateAfterExpenseCreate({
+    activeReportID,
+    transactionID,
+    isFromGlobalCreate,
+    isInvoice,
+    hasMultipleTransactions,
+    shouldAddPendingNewTransactionIDs = false,
+    shouldNavigate = true,
+}: NavigateAfterExpenseCreateParams) {
     const isUserOnInbox = isReportTopmostSplitNavigator();
 
     // If the expense is not created from global create or is currently on the inbox tab,
     // we just need to dismiss the money request flow screens
     // and open the report chat containing the IOU report
     if (!isFromGlobalCreate || isUserOnInbox || !transactionID) {
-        dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions);
+        if (shouldNavigate) {
+            dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions);
+        }
+        if (shouldAddPendingNewTransactionIDs) {
+            addPendingNewTransactionIDs(activeReportID, transactionID);
+        }
+        return;
+    }
+
+    if (!shouldNavigate) {
         return;
     }
 
@@ -41,15 +70,14 @@ function navigateAfterExpenseCreate({activeReportID, transactionID, isFromGlobal
 
     // When already on Search ROOT with the same type (expense vs invoice), we navigate to the same screen (no-op or refresh); record as dismiss_modal_only.
     // When on another Search sub-tab (e.g. Chats), or on Search with a different type (e.g. on Invoice, submitting expense), record as navigate_to_search.
-    const rootState = navigationRef.getRootState();
-    const searchNavigatorRoute = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
-    const lastSearchRoute = searchNavigatorRoute?.state?.routes?.at(-1);
-    const alreadyOnSearchRoot = isSearchTopmostFullScreenRoute() && lastSearchRoute?.name === SCREENS.SEARCH.ROOT;
+    const searchNavigatorState = getNavigateAfterCreateSearchNavigatorState();
+    const lastSearchRoute = searchNavigatorState?.routes?.at(-1);
+    const isSearchTopmost = isSearchTopmostFullScreenRoute();
+    const alreadyOnSearchRoot = isSearchTopmost && lastSearchRoute?.name === SCREENS.SEARCH.ROOT;
     const currentSearchQueryJSON = alreadyOnSearchRoot ? getCurrentSearchQueryJSON() : undefined;
     const isSameSearchType = currentSearchQueryJSON?.type === type;
-    setPendingSubmitFollowUpAction(
-        alreadyOnSearchRoot && isSameSearchType ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH,
-    );
+    const followUpAction = alreadyOnSearchRoot && isSameSearchType ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH;
+    setPendingSubmitFollowUpAction(followUpAction);
 
     const queryString = buildCannedSearchQuery({type});
     const navigateToSearch = () => {
@@ -64,7 +92,7 @@ function navigateAfterExpenseCreate({activeReportID, transactionID, isFromGlobal
             if (!alreadyOnSearchRoot || !isSameSearchType || isRHPStillOnTop) {
                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
             } else {
-                Log.info('[IOU] navigateToSearch: already on matching Search root with RHP dismissed — no-op');
+                Log.info('[IOU] navigateToSearch: already on matching Search root with RHP dismissed - no-op');
             }
         } else {
             Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));

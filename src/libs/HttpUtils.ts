@@ -1,3 +1,4 @@
+import type {fetch as nitroFetch} from 'react-native-nitro-fetch';
 import type {OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -11,7 +12,11 @@ import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
+import {setLoadTestParameters} from './Network/LoadTestState';
+import preparePrefetchRequest from './Prefetch/preparePrefetchRequest';
+import registerPrefetchOnAppStart from './Prefetch/registerPrefetchOnAppStart';
 import prepareRequestPayload from './prepareRequestPayload';
+import markAppStartupNetworkRequestEnd from './telemetry/markAppStartupNetworkRequestEnd';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
@@ -48,6 +53,12 @@ abortControllerMap.set(ABORT_COMMANDS.SearchForUsers, new AbortController());
 const addSkewList = new Set<string>([WRITE_COMMANDS.OPEN_REPORT, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_APP]);
 
 /**
+ * Per-command server response messages we recognize as the PHP-wrapped "AlreadyCreated" error.
+ * Add new variants here as we discover them for other non-idempotent commands.
+ */
+const ALREADY_CREATED_MESSAGES = new Set<string>([CONST.ERROR_TITLE.ALREADY_CREATED_TRANSACTION]);
+
+/**
  * Regex to get API command from the command
  */
 const APICommandRegex = /\/api\/([^&?]+)\??.*/;
@@ -63,21 +74,35 @@ function processHTTPRequest<TKey extends OnyxKey>(
     abortSignal: AbortSignal | undefined = undefined,
 ): Promise<Response<TKey>> {
     const startTime = new Date().valueOf();
-    return fetch(url, {
+
+    const command = url.match(APICommandRegex)?.[1];
+
+    const {prefetchKey, prefetchHeaders} = preparePrefetchRequest(command);
+
+    const fetchParams: NonNullable<Parameters<typeof nitroFetch>[1]> = {
         // We hook requests to the same Controller signal, so we can cancel them all at once
         signal: abortSignal,
         method,
         body,
+        headers: prefetchHeaders,
         // On Web fetch already defaults to 'omit' for credentials, but it seems that this is not the case for the ReactNative implementation
         // so to avoid sending cookies with the request we set it to 'omit' explicitly
         // this avoids us sending specially the expensifyWeb cookie, which makes a CSRF token required
         // more on that here: https://stackoverflowteams.com/c/expensify/questions/93
         credentials: 'omit',
-    })
+    };
+
+    registerPrefetchOnAppStart({prefetchKey, fetchParams, command, url});
+
+    return fetch(url, fetchParams)
         .then((response) => {
+            if (response.headers) {
+                setLoadTestParameters(response.headers.get('X-Load-Test'));
+            }
+
             // We are calculating the skew to minimize the delay when posting the messages
-            const match = url.match(APICommandRegex)?.[1];
-            if (match && addSkewList.has(match) && response.headers) {
+
+            if (command && addSkewList.has(command) && response.headers) {
                 const dateHeaderValue = response.headers.get('Date');
                 const serverTime = dateHeaderValue ? new Date(dateHeaderValue).valueOf() : new Date().valueOf();
                 const endTime = new Date().valueOf();
@@ -133,6 +158,16 @@ function processHTTPRequest<TKey extends OnyxKey>(
                     message: CONST.ERROR.DUPLICATE_RECORD,
                     status: CONST.JSON_CODE.BAD_REQUEST.toString(),
                     title: CONST.ERROR_TITLE.DUPLICATE_RECORD,
+                    requestID: response.requestID,
+                });
+            }
+
+            // Per-command messages indicating the resource already exists on the server (e.g. retry after a successful first attempt).
+            if (response.jsonCode === CONST.JSON_CODE.EXP_ERROR && response.message && ALREADY_CREATED_MESSAGES.has(response.message)) {
+                throw new HttpsError({
+                    message: CONST.ERROR.ALREADY_CREATED,
+                    status: CONST.JSON_CODE.EXP_ERROR.toString(),
+                    title: response.message,
                 });
             }
 
@@ -142,6 +177,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
                     message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
                     status: CONST.JSON_CODE.EXP_ERROR.toString(),
                     title: CONST.ERROR_TITLE.SOCKET,
+                    requestID: response.requestID,
                 });
             }
 
@@ -157,7 +193,8 @@ function processHTTPRequest<TKey extends OnyxKey>(
                 alertUser();
             }
             return response;
-        });
+        })
+        .finally(() => markAppStartupNetworkRequestEnd(command));
 }
 
 /**

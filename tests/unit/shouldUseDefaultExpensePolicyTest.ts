@@ -33,27 +33,27 @@ describe('shouldUseDefaultExpensePolicy', () => {
 
     it('returns false when iouType is not CREATE', () => {
         const policy = makePaidGroupPolicy();
-        expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SUBMIT, policy, undefined, undefined, undefined)).toBeFalsy();
-        expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.TRACK, policy, undefined, undefined, undefined)).toBeFalsy();
+        expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SUBMIT, policy, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID)).toBeFalsy();
+        expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.TRACK, policy, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID)).toBeFalsy();
     });
 
     it('returns false when defaultExpensePolicy is null', () => {
-        expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, null, undefined, undefined, undefined)).toBeFalsy();
+        expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, null, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID)).toBeFalsy();
     });
 
     it('returns false when defaultExpensePolicy is not a paid group policy (personal type)', () => {
         const policy = makePaidGroupPolicy({type: CONST.POLICY.TYPE.PERSONAL});
-        expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, undefined, undefined, undefined)).toBeFalsy();
+        expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID)).toBeFalsy();
     });
 
     it('returns false when isPolicyExpenseChatEnabled is false', () => {
         const policy = makePaidGroupPolicy({isPolicyExpenseChatEnabled: false});
-        expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, undefined, undefined, undefined)).toBeFalsy();
+        expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID)).toBeFalsy();
     });
 
     it('returns true when all conditions are met and user is not restricted', () => {
         const policy = makePaidGroupPolicy();
-        expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, undefined, undefined, undefined)).toBeTruthy();
+        expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID)).toBeTruthy();
     });
 
     it('returns false when the user is restricted (owner past due with amount owed)', async () => {
@@ -67,7 +67,7 @@ describe('shouldUseDefaultExpensePolicy', () => {
         const amountOwed = 500;
 
         // User is the owner, past due, and owes money → shouldRestrictUserBillableActions returns true
-        expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, amountOwed, undefined, pastDueGracePeriodEnd)).toBeFalsy();
+        expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, amountOwed, undefined, pastDueGracePeriodEnd, OWNER_ACCOUNT_ID)).toBeFalsy();
     });
 
     it('returns true when the owner is past due but amount owed is 0', async () => {
@@ -79,7 +79,7 @@ describe('shouldUseDefaultExpensePolicy', () => {
         const policy = makePaidGroupPolicy({ownerAccountID: OWNER_ACCOUNT_ID});
         const pastDueGracePeriodEnd = getUnixTime(subDays(new Date(), 3));
 
-        expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, pastDueGracePeriodEnd)).toBeTruthy();
+        expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, pastDueGracePeriodEnd, OWNER_ACCOUNT_ID)).toBeTruthy();
     });
 
     it('returns false when a non-owner member workspace owner is past due', async () => {
@@ -104,6 +104,7 @@ describe('shouldUseDefaultExpensePolicy', () => {
                     [gracePeriodKey]: {...billingGraceEndPeriod, value: pastDueGracePeriodEnd},
                 },
                 undefined,
+                memberAccountID,
             ),
         ).toBeFalsy();
     });

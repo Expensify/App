@@ -1,4 +1,4 @@
-import type {IOURequestType} from '@libs/actions/IOU';
+import type {IOURequestType} from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type {Attendee} from './IOU';
 import type Transaction from './Transaction';

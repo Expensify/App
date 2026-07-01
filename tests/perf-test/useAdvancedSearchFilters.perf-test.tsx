@@ -1,7 +1,6 @@
 import type * as NativeNavigation from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
 import Onyx from 'react-native-onyx';
 import {measureFunction, measureRenders} from 'reassure';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -32,10 +31,10 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     getTopmostReportId: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     isDisplayedInModal: jest.fn(() => false),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
 }));
 
 jest.mock('@hooks/useExportedToFilterOptions', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({
         exportedToFilterOptions: [],
@@ -70,7 +69,8 @@ jest.mock('@react-navigation/native', () => {
 });
 
 function TestComponent() {
-    const {currentType, typeFiltersKeys: filters} = useAdvancedSearchFilters();
+    const currentType = 'expense';
+    const filters = useAdvancedSearchFilters(currentType, undefined);
     return <View testID={`${currentType}-${filters.length}`} />;
 }
 

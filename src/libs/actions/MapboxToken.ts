@@ -6,9 +6,10 @@ import Onyx from 'react-native-onyx';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';
+import {onReachabilityConfirmed} from '@libs/NetworkState';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MapboxAccessToken, Network} from '@src/types/onyx';
+import type {MapboxAccessToken} from '@src/types/onyx';
 
 let authToken: string | undefined;
 // Use connectWithoutView since this is only for auth token and don't affect to any UI
@@ -20,7 +21,7 @@ Onyx.connectWithoutView({
 });
 
 let tokenConnection: Connection | null;
-let networkConnection: Connection | null;
+let unsubscribeReachability: (() => void) | null = null;
 let appStateSubscription: NativeEventSubscription | null;
 let currentToken: MapboxAccessToken | undefined;
 let refreshTimeoutID: NodeJS.Timeout | undefined;
@@ -119,24 +120,16 @@ const init = () => {
         });
     }
 
-    if (!networkConnection) {
-        let network: Network | undefined;
-        // Use connectWithoutView since the network state and don't affect to any UI
-        networkConnection = Onyx.connectWithoutView({
-            key: ONYXKEYS.NETWORK,
-            callback: (value) => {
-                // When the network reconnects, check if the token has expired. If it has, then clearing the token will
-                // trigger the fetch of a new one
-                if (network && network.isOffline && value && !value.isOffline) {
-                    if (Object.keys(currentToken ?? {}).length === 0) {
-                        fetchToken();
-                    } else if (!isCurrentlyFetchingToken && hasTokenExpired()) {
-                        console.debug('[MapboxToken] Token is expired after network came online');
-                        clearToken();
-                    }
-                }
-                network = value;
-            },
+    if (!unsubscribeReachability) {
+        unsubscribeReachability = onReachabilityConfirmed(() => {
+            // When the network reconnects, check if the token has expired. If it has, then clearing the token will
+            // trigger the fetch of a new one
+            if (Object.keys(currentToken ?? {}).length === 0) {
+                fetchToken();
+            } else if (!isCurrentlyFetchingToken && hasTokenExpired()) {
+                console.debug('[MapboxToken] Token is expired after network came online');
+                clearToken();
+            }
         });
     }
 };
@@ -147,9 +140,9 @@ const stop = () => {
         Onyx.disconnect(tokenConnection);
         tokenConnection = null;
     }
-    if (networkConnection) {
-        Onyx.disconnect(networkConnection);
-        networkConnection = null;
+    if (unsubscribeReachability) {
+        unsubscribeReachability();
+        unsubscribeReachability = null;
     }
     if (appStateSubscription) {
         appStateSubscription.remove();

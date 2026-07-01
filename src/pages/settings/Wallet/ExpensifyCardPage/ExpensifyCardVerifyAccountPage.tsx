@@ -3,7 +3,7 @@ import ValidateCodeActionContent from '@components/ValidateCodeActionModal/Valid
 import useLocalize from '@hooks/useLocalize';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import {revealVirtualCardDetails} from '@libs/actions/Card';
-import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
+import {requestValidateCodeAction} from '@libs/actions/User';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -42,7 +42,7 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
         // We can't store the response in Onyx for security reasons.
         // That is why this action is handled manually and the response is stored in a local state.
         // Hence eslint disable here.
-        // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
+
         revealVirtualCardDetails(Number.parseInt(cardID, 10), validateCode)
             .then((value) => {
                 setCardsDetails((prevState: Record<number, ExpensifyCardDetails | null>) => ({...prevState, [cardID]: value}));
@@ -70,7 +70,6 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
             validateError={validateError}
             clearError={() => setValidateError({})}
             onClose={() => {
-                resetValidateActionCodeSent();
                 navigateBack();
             }}
         />

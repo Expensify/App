@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -20,7 +20,7 @@ function AmexCustomFeed() {
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [localTypeSelected, setLocalTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED>>();
-    const typeSelected = localTypeSelected ?? addNewCard?.data.selectedAmexCustomFeed;
+    const typeSelected = localTypeSelected ?? addNewCard?.data?.selectedAmexCustomFeed;
     const [hasError, setHasError] = useState(false);
 
     const submit = () => {
@@ -88,7 +88,7 @@ function AmexCustomFeed() {
 
             <SelectionList
                 data={data}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 onSelectRow={({value}) => {
                     setLocalTypeSelected(value);
                     setHasError(false);
@@ -96,7 +96,7 @@ function AmexCustomFeed() {
                 confirmButtonOptions={confirmButtonOptions}
                 shouldSingleExecuteRowSelect
                 alternateNumberOfSupportedLines={3}
-                initiallyFocusedItemKey={addNewCard?.data.selectedAmexCustomFeed ?? undefined}
+                initiallyFocusedItemKey={addNewCard?.data?.selectedAmexCustomFeed ?? undefined}
                 shouldUpdateFocusedIndex
                 addBottomSafeAreaPadding
             >

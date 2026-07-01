@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
+import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import CONFIG from '@src/CONFIG';
@@ -11,11 +12,17 @@ import type {OnboardingAccounting} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/OnboardingWorkEmailForm';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import type Onboarding from '@src/types/onyx/Onboarding';
+import type OnboardingRHPVariant from '@src/types/onyx/OnboardingRHPVariant';
 import type {OnboardingCompanySize} from './OnboardingFlow';
 
 let isLoadingReportData = true;
+// Tracks whether we've seen loading start (true) in the current session.
+// Without this, a stale persisted `false` from a previous session would
+// resolve the onServerDataReady() promise before OpenApp/ReconnectApp completes.
+let hasStartedLoading = false;
 
 let resolveIsReadyPromise: (value?: Promise<void>) => void | undefined;
 let isServerDataReadyPromise = new Promise<void>((resolve) => {
@@ -49,6 +56,10 @@ function setOnboardingUserReportedIntegration(value: OnboardingAccounting | null
     Onyx.set(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, value);
 }
 
+function setOnboardingPersonalTrackGoal(value: string) {
+    Onyx.set(ONYXKEYS.ONBOARDING_PERSONAL_TRACK_GOAL, value);
+}
+
 function setOnboardingErrorMessage(value: TranslationPaths | null) {
     Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, value);
 }
@@ -59,6 +70,10 @@ function setOnboardingAdminsChatReportID(adminsChatReportID?: string) {
 
 function setOnboardingPolicyID(policyID?: string) {
     Onyx.set(ONYXKEYS.ONBOARDING_POLICY_ID, policyID ?? null);
+}
+
+function setOnboardingRHPVariant(value?: OnboardingRHPVariant) {
+    Onyx.set(ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT, value ?? null);
 }
 
 function updateOnboardingLastVisitedPath(path: string) {
@@ -77,10 +92,6 @@ function updateOnboardingValuesAndNavigation(onboardingValues: Onboarding | unde
 
 function setOnboardingMergeAccountStepValue(value: boolean, skipped = false) {
     Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergeAccountStepCompleted: value, isMergeAccountStepSkipped: skipped});
-}
-
-function setOnboardingTestDriveModalDismissed() {
-    Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {testDriveModalDismissed: true});
 }
 
 function completeHybridAppOnboarding() {
@@ -106,9 +117,26 @@ function completeHybridAppOnboarding() {
             return;
         }
 
-        // No matter what the response is, we want to mark the onboarding as completed (user saw the explanation modal)
+        // No matter what the response is, we want to mark the onboarding as completed.
         Log.info(`[HybridApp] Onboarding status has changed. Propagating new value to OldDot`, true);
         HybridAppModule.completeOnboarding({status: true});
+    });
+}
+
+function addWorkEmailFormError(error: string, isLoading = false) {
+    Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
+        errors: getMicroSecondOnyxErrorWithMessage(error),
+        errorFields: {
+            [INPUT_IDS.ONBOARDING_WORK_EMAIL]: getMicroSecondOnyxErrorWithMessage(error),
+        },
+        isLoading,
+    });
+}
+function clearWorkEmailFormErrors(isLoading = false) {
+    Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
+        errors: null,
+        errorFields: null,
+        isLoading,
     });
 }
 
@@ -116,10 +144,16 @@ function completeHybridAppOnboarding() {
 // and doesn't need to trigger component re-renders.
 Onyx.connectWithoutView({
     key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-    initWithStoredValues: false,
     callback: (value) => {
         isLoadingReportData = value ?? false;
-        checkServerDataReady();
+        if (isLoadingReportData) {
+            hasStartedLoading = true;
+        }
+        // Only resolve once loading has started — this ensures a stale
+        // persisted `false` from a previous session is ignored.
+        if (hasStartedLoading) {
+            checkServerDataReady();
+        }
     },
 });
 
@@ -128,6 +162,7 @@ function resetAllChecks() {
         resolveIsReadyPromise = resolve;
     });
     isLoadingReportData = true;
+    hasStartedLoading = false;
 }
 
 function setSelfTourViewed(shouldUpdateOnyxDataOnlyLocally = false) {
@@ -175,6 +210,7 @@ export {
     resetAllChecks,
     setOnboardingAdminsChatReportID,
     setOnboardingPolicyID,
+    setOnboardingRHPVariant,
     completeHybridAppOnboarding,
     setOnboardingErrorMessage,
     setOnboardingCompanySize,
@@ -182,5 +218,7 @@ export {
     setOnboardingMergeAccountStepValue,
     updateOnboardingValuesAndNavigation,
     setOnboardingUserReportedIntegration,
-    setOnboardingTestDriveModalDismissed,
+    setOnboardingPersonalTrackGoal,
+    addWorkEmailFormError,
+    clearWorkEmailFormErrors,
 };

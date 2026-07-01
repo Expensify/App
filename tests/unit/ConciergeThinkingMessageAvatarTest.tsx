@@ -11,7 +11,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 let mockCapturedAvatarProps: Record<string, unknown> = {};
 
 jest.mock('@components/ReportActionAvatars', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
     return (props: Record<string, unknown>) => {
         mockCapturedAvatarProps = props;
@@ -19,9 +19,22 @@ jest.mock('@components/ReportActionAvatars', () => {
     };
 });
 
-// Mock the AgentZero context to make isProcessing=true so the component renders
+// Admin and announce rooms surface Concierge as the only candidate agent, so the mock returns
+// Concierge's accountID here. `mock` prefix lets jest's hoist plugin reference this from inside
+// the factory below.
+const mockPersonaAccountID = CONST.ACCOUNT_ID.CONCIERGE;
+
+// Mock the AgentZero context to render one bubble for Concierge.
 jest.mock('@pages/inbox/AgentZeroStatusContext', () => ({
     useAgentZeroStatus: () => ({
+        candidateAgentIDs: [mockPersonaAccountID],
+    }),
+}));
+
+// Mock the per-agent indicator hook so the bubble is in the processing state and renders.
+jest.mock('@hooks/useAgentZeroStatusIndicator', () => ({
+    __esModule: true,
+    default: () => ({
         isProcessing: true,
         reasoningHistory: [],
         statusLabel: 'Thinking...',
@@ -38,12 +51,12 @@ jest.mock('@hooks/useLazyAsset', () => ({
 
 // Avoid loading the full ReportActionItemMessageHeaderSender
 jest.mock('@pages/inbox/report/ReportActionItemMessageHeaderSender', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
     return () => <View testID="MockedSender" />;
 });
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 const ConciergeThinkingMessage = require('@pages/home/report/ConciergeThinkingMessage').default;
 
 const conciergeAccountID = CONST.ACCOUNT_ID.CONCIERGE;
@@ -80,19 +93,19 @@ afterEach(() => {
 
 describe('ConciergeThinkingMessage avatar prop integration', () => {
     test('should pass accountIDs=[CONCIERGE] to ReportActionAvatars in admin room', () => {
-        render(<ConciergeThinkingMessage report={mockAdminRoom} />);
+        render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
 
         expect(mockCapturedAvatarProps.accountIDs).toEqual([conciergeAccountID]);
     });
 
     test('should pass accountIDs=[CONCIERGE] to ReportActionAvatars in announce room', () => {
-        render(<ConciergeThinkingMessage report={mockAnnounceRoom} />);
+        render(<ConciergeThinkingMessage reportID={mockAnnounceRoom.reportID} />);
 
         expect(mockCapturedAvatarProps.accountIDs).toEqual([conciergeAccountID]);
     });
 
     test('should pass exactly CONCIERGE account ID, not an empty array', () => {
-        render(<ConciergeThinkingMessage report={mockAdminRoom} />);
+        render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
 
         expect(mockCapturedAvatarProps.accountIDs).toBeDefined();
         expect((mockCapturedAvatarProps.accountIDs as number[]).length).toBe(1);
@@ -100,8 +113,15 @@ describe('ConciergeThinkingMessage avatar prop integration', () => {
     });
 
     test('should not pass policyID to ReportActionAvatars (would force workspace avatar)', () => {
-        render(<ConciergeThinkingMessage report={mockAdminRoom} />);
+        render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
 
         expect(mockCapturedAvatarProps.policyID).toBeUndefined();
+    });
+
+    test('should not pass reportID/chatReportID to ReportActionAvatars (report context would override the agent avatar with the report-preview sender)', () => {
+        render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
+
+        expect(mockCapturedAvatarProps.reportID).toBeUndefined();
+        expect(mockCapturedAvatarProps.chatReportID).toBeUndefined();
     });
 });

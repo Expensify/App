@@ -1,4 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {AccessibilityInfo, View} from 'react-native';
@@ -21,6 +21,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
+import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
+import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import {isValidValidateCode} from '@libs/ValidationUtils';
 import {clearValidateCodeActionError} from '@userActions/User';
 import CONST from '@src/CONST';
@@ -118,22 +121,28 @@ function BaseValidateCodeForm({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
     const [formError, setFormError] = useState<ValidateCodeFormError>({});
     const [validateCode, setValidateCode] = useState('');
-    const [isCountdownRunning, setIsCountdownRunning] = useState(true);
 
     const inputValidateCodeRef = useRef<MagicCodeInputHandle>(null);
     const [account = getEmptyObject<Account>()] = useOnyx(ONYXKEYS.ACCOUNT);
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
     const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [canShowError, setCanShowError] = useState<boolean>(false);
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
-    const validateCodeSent = useMemo(() => hasMagicCodeBeenSent ?? validateCodeAction?.validateCodeSent, [hasMagicCodeBeenSent, validateCodeAction?.validateCodeSent]);
+    const lastValidateCodeRequestedAt = validateCodeAction?.lastValidateCodeRequestedAt;
+    // A code is sent (or resumed) on mount and re-sent on resend, so the resend countdown is running whenever a code was recently requested.
+    const [isCountdownRunning, setIsCountdownRunning] = useState(true);
     const latestValidateCodeError = getLatestErrorField(validateCodeAction, validateCodeActionErrorField);
     const defaultValidateCodeError = getLatestErrorField(validateCodeAction, 'actionVerified');
+    // A request stamps `lastValidateCodeRequestedAt` and reverts it to null on failure, so a present timestamp with no in-flight request and no error means the code was sent successfully.
+    const isCodeSentSuccessfully = !!lastValidateCodeRequestedAt && !validateCodeAction?.isLoading && isEmptyObject(defaultValidateCodeError);
+    // Flows that supply `hasMagicCodeBeenSent` track the magic code outside VALIDATE_ACTION_CODE; otherwise reflect whether a code was sent successfully.
+    const validateCodeSent = hasMagicCodeBeenSent ?? isCodeSentSuccessfully;
     const countdownRef = useRef<ValidateCodeCountdownHandle | null>(null);
+    const isFirstCountdownRunRef = useRef(true);
 
     const clearDefaultValidationCodeError = useCallback(() => {
         // Clear "Failed to send magic code" error
@@ -170,26 +179,56 @@ function BaseValidateCodeForm({
                 clearTimeout(focusTimeoutRef.current);
             }
 
-            // Keyboard won't show if we focus the input with a delay, so we need to focus immediately.
-            if (!isMobileSafari()) {
-                focusTimeoutRef.current = setTimeout(() => {
-                    inputValidateCodeRef.current?.focusLastSelected();
-                }, CONST.ANIMATED_TRANSITION);
-            } else {
+            // On mobile Safari, focus must be synchronous to trigger the keyboard.
+            if (isMobileSafari()) {
                 inputValidateCodeRef.current?.focusLastSelected();
+                return;
             }
 
-            return () => {
-                if (!focusTimeoutRef.current) {
+            // Android only opens the soft keyboard once the app window has focus.
+            let didFocus = false;
+            let isCancelled = false;
+            const focusOnce = () => {
+                if (didFocus) {
                     return;
                 }
-                clearTimeout(focusTimeoutRef.current);
+                didFocus = true;
+                isWindowReadyToFocus().then(() => {
+                    // Skip if the screen lost focus while the window-ready promise was pending, to avoid stealing focus.
+                    if (isCancelled) {
+                        return;
+                    }
+                    inputValidateCodeRef.current?.focusLastSelected();
+                });
             };
-        }, []),
+
+            const unsubscribeTransitionEnd = navigation?.addListener?.('transitionEnd', (event) => {
+                if (event?.data?.closing) {
+                    return;
+                }
+                focusOnce();
+            });
+
+            // Fallback in case `transitionEnd` does not fire.
+            focusTimeoutRef.current = setTimeout(focusOnce, CONST.SCREEN_TRANSITION_END_TIMEOUT);
+
+            return () => {
+                isCancelled = true;
+                unsubscribeTransitionEnd?.();
+                if (focusTimeoutRef.current) {
+                    clearTimeout(focusTimeoutRef.current);
+                }
+            };
+        }, [navigation]),
     );
 
     useEffect(() => {
         if (!isCountdownRunning) {
+            return;
+        }
+        // On the initial run, the countdown is seeded with the resumed `initialTimeRemaining`; only reset to the full delay on later restarts (e.g. manual resend).
+        if (isFirstCountdownRunRef.current) {
+            isFirstCountdownRunRef.current = false;
             return;
         }
 
@@ -309,12 +348,13 @@ function BaseValidateCodeForm({
                 <View style={[styles.mt5, styles.flexRow, styles.renderHTML]}>
                     <ValidateCodeCountdown
                         ref={countdownRef}
+                        requestedAt={hasMagicCodeBeenSent !== undefined ? undefined : lastValidateCodeRequestedAt}
                         onCountdownFinish={handleCountdownFinish}
                     />
                 </View>
             )}
             <OfflineWithFeedback
-                pendingAction={validateCodeAction?.pendingFields?.validateCodeSent}
+                pendingAction={validateCodeAction?.pendingFields?.actionVerified}
                 errorRowStyles={[styles.mt2]}
                 onClose={() => clearValidateCodeActionError(validateCodeActionErrorField)}
             >
@@ -336,7 +376,10 @@ function BaseValidateCodeForm({
                     </View>
                 )}
             </OfflineWithFeedback>
-            <View accessibilityLiveRegion="polite">
+            <View
+                role={CONST.ROLE.STATUS}
+                accessibilityLiveRegion="polite"
+            >
                 {!!validateCodeSent && (
                     <DotIndicatorMessage
                         type="success"

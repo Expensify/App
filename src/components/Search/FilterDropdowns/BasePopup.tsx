@@ -10,10 +10,10 @@ import ActionButtons from './ActionButtons';
 type BasePopupProps = React.PropsWithChildren & {
     label?: string;
     applySentryLabel: string;
-    resetSentryLabel: string;
+    resetSentryLabel?: string;
     style?: StyleProp<ViewStyle>;
     onApply: () => void;
-    onReset: () => void;
+    onReset?: () => void;
     onBackButtonPress?: () => void;
 };
 
@@ -23,7 +23,7 @@ function BasePopup({children, label, applySentryLabel, resetSentryLabel, style, 
     const styles = useThemeStyles();
 
     return (
-        <View style={[!isSmallScreenWidth && styles.pv4, style]}>
+        <View style={[styles.pv4, style]}>
             {onBackButtonPress ? (
                 <HeaderWithBackButton
                     shouldDisplayHelpButton={false}

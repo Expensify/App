@@ -1,77 +1,66 @@
-import React, {useContext, useEffect, useRef, useState} from 'react';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import {navigationRef} from '@libs/Navigation/Navigation';
+import React, {useContext, useRef, useState} from 'react';
+import useSyncModalWithHistory from '@components/Modal/useSyncModalWithHistory';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
-import SCREENS from '@src/SCREENS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {closeSearch, openSearch} from './toggleSearch';
+
+// Module-level pending query used to seed the SearchRouter input on open.
+// Set before opening, peeked during SearchRouter render, cleared on mount.
+let pendingRouterQuery = '';
+let pendingIsFromSearchPageSearchButton = false;
+
+function peekPendingRouterState() {
+    return {query: pendingRouterQuery, isFromSearchPageSearchButton: pendingIsFromSearchPageSearchButton};
+}
+
+function clearPendingRouterState() {
+    pendingRouterQuery = '';
+    pendingIsFromSearchPageSearchButton = false;
+}
+
+export {peekPendingRouterState, clearPendingRouterState};
 
 type SearchRouterStateContextType = {
     isSearchRouterDisplayed: boolean;
 };
 
 type SearchRouterActionsContextType = {
-    openSearchRouter: () => void;
+    openSearchRouter: (query?: string, isFromSearchPage?: boolean) => void;
     closeSearchRouter: () => void;
     toggleSearch: () => void;
-    registerSearchPageInput: (ref: AnimatedTextInputRef) => void;
-    unregisterSearchPageInput: () => void;
-};
-
-type HistoryState = {
-    isSearchModalOpen?: boolean;
 };
 
 const defaultSearchRouterActionsContext: SearchRouterActionsContextType = {
     openSearchRouter: () => {},
     closeSearchRouter: () => {},
     toggleSearch: () => {},
-    registerSearchPageInput: () => {},
-    unregisterSearchPageInput: () => {},
 };
 
 const SearchRouterStateContext = React.createContext<SearchRouterStateContextType>({isSearchRouterDisplayed: false});
 
 const SearchRouterActionsContext = React.createContext<SearchRouterActionsContextType>(defaultSearchRouterActionsContext);
 
-const isBrowserWithHistory = typeof window !== 'undefined' && typeof window.history !== 'undefined';
-const canListenPopState = typeof window !== 'undefined' && typeof window.addEventListener === 'function';
-
 function SearchRouterContextProvider({children}: ChildrenProps) {
     const [isSearchRouterDisplayed, setIsSearchRouterDisplayed] = useState(false);
     const searchRouterDisplayedRef = useRef(false);
-    const searchPageInputRef = useRef<AnimatedTextInputRef | undefined>(undefined);
-    useEffect(() => {
-        if (!canListenPopState) {
-            return;
-        }
 
-        /**
-         * Handle browser back/forward navigation
-         * When user clicks back/forward, we check the history state:
-         * - If state has isSearchModalOpen=true, we show the modal
-         * - If state has isSearchModalOpen=false or no state, we hide the modal
-         * This creates a proper browser history integration where modal state
-         * is part of the navigation history
-         */
-        const handlePopState = (event: PopStateEvent) => {
-            const state = event.state as HistoryState | null;
-            if (state?.isSearchModalOpen) {
-                setIsSearchRouterDisplayed(true);
-                searchRouterDisplayedRef.current = true;
-            } else {
-                setIsSearchRouterDisplayed(false);
-                searchRouterDisplayedRef.current = false;
-            }
-        };
-
-        window.addEventListener('popstate', handlePopState);
-        return () => window.removeEventListener('popstate', handlePopState);
-    }, []);
+    // Registers a browser-history entry when the SearchRouter is open, so browser Back closes it
+    // and browser Forward (after Back) reopens it. Uses the same sentinel mechanism as other modals
+    // rather than direct window.history calls, avoiding misalignment with other sentinel-tracked overlays.
+    useSyncModalWithHistory({
+        isVisible: isSearchRouterDisplayed,
+        shouldHandleNavigationBack: true,
+        onClose: () => {
+            closeSearch(setIsSearchRouterDisplayed);
+            searchRouterDisplayedRef.current = false;
+        },
+        onOpen: () => {
+            openSearch(setIsSearchRouterDisplayed);
+            searchRouterDisplayedRef.current = true;
+        },
+    });
 
     const startListRenderSpan = () => {
         startSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER, {
@@ -81,10 +70,9 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
         });
     };
 
-    const openSearchRouter = () => {
-        if (isBrowserWithHistory) {
-            window.history.pushState({isSearchModalOpen: true} satisfies HistoryState, '');
-        }
+    const openSearchRouter = (query?: string, isFromSearchPageSearchButton?: boolean) => {
+        pendingRouterQuery = query ?? '';
+        pendingIsFromSearchPageSearchButton = isFromSearchPageSearchButton ?? false;
         startSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_MODAL_CLOSE_WAIT, {
             name: CONST.TELEMETRY.SPAN_SEARCH_ROUTER_MODAL_CLOSE_WAIT,
             op: 'ui.modal.wait',
@@ -103,16 +91,12 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
     };
 
     const closeSearchRouter = () => {
+        cancelSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
+        cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_MODAL_CLOSE_WAIT);
         cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_PAGE_VISIBLE);
         cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER);
         closeSearch(setIsSearchRouterDisplayed);
         searchRouterDisplayedRef.current = false;
-        if (isBrowserWithHistory) {
-            const state = window.history.state as HistoryState | null;
-            if (state?.isSearchModalOpen) {
-                window.history.replaceState({isSearchModalOpen: false} satisfies HistoryState, '');
-            }
-        }
     };
 
     const startSearchRouterOpenSpan = () => {
@@ -127,34 +111,13 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
 
     // There are callbacks that live outside of React render-loop and interact with SearchRouter
     // So we need a function that is based on ref to correctly open/close it
-    // When user is on `/search` page we focus the Input instead of showing router
     const toggleSearch = () => {
-        const searchFullScreenRoutes = navigationRef.getRootState()?.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
-        const lastRoute = searchFullScreenRoutes?.state?.routes?.at(-1);
-        const isUserOnSearchPage = isSearchTopmostFullScreenRoute() && lastRoute?.name === SCREENS.SEARCH.ROOT;
-
-        if (isUserOnSearchPage && searchPageInputRef.current) {
-            if (searchPageInputRef.current.isFocused()) {
-                searchPageInputRef.current.blur();
-            } else {
-                startSearchRouterOpenSpan();
-                startListRenderSpan();
-                searchPageInputRef.current.focus();
-            }
-        } else if (searchRouterDisplayedRef.current) {
+        if (searchRouterDisplayedRef.current) {
             closeSearchRouter();
         } else {
             startSearchRouterOpenSpan();
             openSearchRouter();
         }
-    };
-
-    const registerSearchPageInput = (ref: AnimatedTextInputRef) => {
-        searchPageInputRef.current = ref;
-    };
-
-    const unregisterSearchPageInput = () => {
-        searchPageInputRef.current = undefined;
     };
 
     // Because of the React Compiler we don't need to memoize it manually
@@ -163,8 +126,6 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
         openSearchRouter,
         closeSearchRouter,
         toggleSearch,
-        registerSearchPageInput,
-        unregisterSearchPageInput,
     };
 
     // Because of the React Compiler we don't need to memoize it manually

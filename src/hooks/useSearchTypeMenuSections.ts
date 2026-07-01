@@ -2,11 +2,11 @@ import {defaultExpensifyCardSelector} from '@selectors/Card';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
 import {createTypeMenuSections, doesSearchItemMatchSort} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {IntroSelected, Policy, Session} from '@src/types/onyx';
+import {isTrackIntentUserSelector} from '@src/selectors/Onboarding';
+import type {Policy, Session} from '@src/types/onyx';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
 import useMappedPolicies from './useMappedPolicies';
@@ -36,15 +36,13 @@ const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         areExpensifyCardsEnabled: policy.areExpensifyCardsEnabled,
         achAccount: policy.achAccount,
         areCategoriesEnabled: policy.areCategoriesEnabled,
+        areWorkflowsEnabled: policy.areWorkflowsEnabled,
     };
 
 const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
     email: session?.email,
     accountID: session?.accountID,
 });
-
-const isTrackIntentUserSelector = (introSelected: OnyxEntry<IntroSelected>) =>
-    introSelected?.choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND || introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE;
 
 type UseSearchTypeMenuSectionsParams = {
     hash?: number;
@@ -68,7 +66,6 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
     const [allPolicies] = useMappedPolicies(policyMapper);
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const shouldRedirectToExpensifyClassic = useMemo(() => areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {}), [allPolicies]);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
@@ -112,7 +109,6 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
                 savedSearches,
                 isOffline,
                 defaultExpensifyCard,
-                shouldRedirectToExpensifyClassic,
                 draftTransactionIDs,
                 isTrackIntentUser: isTrackIntentUser ?? false,
             }),
@@ -125,7 +121,6 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
             allPolicies,
             savedSearches,
             isOffline,
-            shouldRedirectToExpensifyClassic,
             draftTransactionIDs,
             isTrackIntentUser,
         ],
@@ -156,7 +151,6 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
         const typeToGenericKey: Record<string, string> = {
             [CONST.SEARCH.DATA_TYPES.EXPENSE]: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
             [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: CONST.SEARCH.SEARCH_KEYS.REPORTS,
-            [CONST.SEARCH.DATA_TYPES.CHAT]: CONST.SEARCH.SEARCH_KEYS.CHATS,
         };
         const fallbackKey = type ? typeToGenericKey[type] : undefined;
         if (fallbackKey) {
@@ -173,9 +167,12 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
         return -1;
     }, [typeMenuSections, savedSearches, hash, similarSearchHash, sortBy, sortOrder, type]);
 
+    const activeKey = activeItemIndex < 0 ? undefined : typeMenuSections.flatMap((section) => section.menuItems).at(activeItemIndex)?.key;
+
     return {
         typeMenuSections,
         activeItemIndex,
+        activeKey,
     };
 };
 

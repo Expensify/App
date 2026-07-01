@@ -73,7 +73,7 @@ function UserInfoCellsWithArrow({
                     ) : (
                         <Text
                             testID="UserInfoToIndicator"
-                            style={[styles.textMicroSupporting]}
+                            style={[styles.mutedNormalTextLabel]}
                         >
                             {translate('common.conjunctionTo')}
                         </Text>

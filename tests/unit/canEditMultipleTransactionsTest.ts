@@ -53,7 +53,6 @@ const buildTestData = (options?: {disableSecondAction?: boolean}) => {
         role: CONST.POLICY.ROLE.ADMIN,
     };
     const reportAction1OriginalMessage: OriginalMessageIOU = {
-        IOUReportID: report1.reportID,
         IOUTransactionID: transaction1.transactionID,
         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         amount: transaction1.amount,
@@ -63,10 +62,10 @@ const buildTestData = (options?: {disableSecondAction?: boolean}) => {
         ...createRandomReportAction(1),
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: currentUserAccountID,
+        reportID: report1.reportID,
         originalMessage: reportAction1OriginalMessage,
     };
     const reportAction2OriginalMessage: OriginalMessageIOU = {
-        IOUReportID: report2.reportID,
         IOUTransactionID: transaction2.transactionID,
         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         amount: transaction2.amount,
@@ -76,6 +75,7 @@ const buildTestData = (options?: {disableSecondAction?: boolean}) => {
         ...createRandomReportAction(2),
         actionName: options?.disableSecondAction ? CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT : CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: currentUserAccountID,
+        reportID: report2.reportID,
         originalMessage: reportAction2OriginalMessage,
     };
 
@@ -227,7 +227,16 @@ describe('canEditMultipleTransactions', () => {
         expect(result).toBe(true);
     });
 
-    it('returns false when selecting an unreported expense and a split expense', () => {
+    it('returns true when selecting a reported split expense with editable coding fields', () => {
+        const {transaction1, transaction2, reports, policies, reportActions} = buildTestData();
+
+        const splitTransaction: Transaction = {...transaction2, comment: {source: CONST.IOU.TYPE.SPLIT}};
+
+        const result = canEditMultipleTransactions([transaction1, splitTransaction], reportActions, reports, policies);
+        expect(result).toBe(true);
+    });
+
+    it('returns true when selecting an unreported expense and a reported split expense', () => {
         const {transaction1, transaction2, reports, policies, reportActions} = buildTestData();
 
         const unreportedTransaction: Transaction = {...transaction1, reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
@@ -235,11 +244,11 @@ describe('canEditMultipleTransactions', () => {
 
         // Unreported first, split second
         const result = canEditMultipleTransactions([unreportedTransaction, splitTransaction], reportActions, reports, policies);
-        expect(result).toBe(false);
+        expect(result).toBe(true);
 
         // Split first, unreported second
         const resultReversed = canEditMultipleTransactions([splitTransaction, unreportedTransaction], reportActions, reports, policies);
-        expect(resultReversed).toBe(false);
+        expect(resultReversed).toBe(true);
     });
 
     it('returns false when selecting an unreported expense and an approved expense', () => {

@@ -20,10 +20,10 @@ type SpendRuleForm = Form<
         [INPUT_IDS.MERCHANT_NAMES]: string[];
         [INPUT_IDS.MERCHANT_MATCH_TYPES]: Array<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>;
         [INPUT_IDS.CATEGORIES]: SpendRuleCategory[];
+        [INPUT_IDS.CURRENCIES]: string[];
         [INPUT_IDS.MAX_AMOUNT]: string;
     }
 >;
 
 export {SPEND_RULE_CATEGORIES, isSpendRuleCategory};
-export type {InputID, SpendRuleForm, SpendRuleCategory};
-export default INPUT_IDS;
+export type {SpendRuleForm, SpendRuleCategory};

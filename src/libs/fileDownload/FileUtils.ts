@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-deprecated */
 import {Str} from 'expensify-common';
 import {Alert, Linking, Platform} from 'react-native';
 import type {ReactNativeBlobUtilReadStream} from 'react-native-blob-util';
@@ -198,6 +197,15 @@ function cleanFileName(fileName: string): string {
     return fileName.replaceAll(/[^a-zA-Z0-9\-._]/g, '_');
 }
 
+/**
+ * Builds a standardized export filename: `expensify_<exportName>_<uniqueID>.<extension>`.
+ * The export name is sanitized and the whole name is lowercased so it is safe and consistent
+ * to use as a filename, and the unique id keeps filenames distinct without relying on a timestamp.
+ */
+function getExportFileName(exportName: string, uniqueID: string, extension = 'csv'): string {
+    return `expensify_${cleanFileName(exportName)}_${uniqueID}.${extension}`.toLowerCase();
+}
+
 function appendTimeToFileName(fileName: string): string {
     const file = splitExtensionFromFileName(fileName);
 
@@ -317,6 +325,54 @@ function base64ToFile(base64: string, filename: string): File {
     file.uri = URL.createObjectURL(blob);
 
     return file;
+}
+
+/**
+ * Converts a file-like input to a data URL string.
+ * Accepts either a `FileObject` (including `File`) or a URI string and returns
+ * a base64 data URL payload suitable for persisted storage.
+ */
+function convertFileObjectOrUriToBase64DataURL(fileObjectOrUri: FileObject | string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const source = typeof fileObjectOrUri === 'string' ? fileObjectOrUri : fileObjectOrUri.uri;
+        if (!source && !(typeof File !== 'undefined' && fileObjectOrUri instanceof File)) {
+            reject(new Error('No valid source to convert to base64'));
+            return;
+        }
+
+        if (source?.startsWith('data:')) {
+            resolve(source);
+            return;
+        }
+
+        const convertBlobToDataURL = (blob: Blob) => {
+            if (typeof FileReader === 'undefined') {
+                reject(new Error('FileReader is not available'));
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                if (typeof reader.result === 'string') {
+                    resolve(reader.result);
+                    return;
+                }
+                reject(new Error('Failed to convert blob to base64'));
+            };
+            reader.onerror = () => reject(new Error('Failed to read blob as base64'));
+            reader.readAsDataURL(blob);
+        };
+
+        if (typeof File !== 'undefined' && fileObjectOrUri instanceof File) {
+            convertBlobToDataURL(fileObjectOrUri);
+            return;
+        }
+
+        fetch(source ?? '')
+            .then((response) => response.blob())
+            .then((blob) => convertBlobToDataURL(blob))
+            .catch((error) => reject(error));
+    });
 }
 
 function validateImageForCorruption(file: FileObject): Promise<{width: number; height: number} | void> {
@@ -507,7 +563,7 @@ function isHighResolutionImage(resolution: {width: number; height: number} | nul
  * Reads image dimensions directly from the file header (JPEG SOF marker or PNG IHDR chunk).
  * This bypasses browser Image API which may downsample large images on mobile browsers.
  */
-// eslint-disable-next-line no-bitwise
+
 const getImageDimensionsFromFileHeader = (blob: Blob): Promise<{width: number; height: number} | null> => {
     return new Promise((resolve) => {
         const reader = new FileReader();
@@ -879,11 +935,13 @@ export {
     getFileName,
     getFileType,
     cleanFileName,
+    getExportFileName,
     appendTimeToFileName,
     ANDROID_SAFE_FILE_NAME_LENGTH,
     truncateFileNameToSafeLengthOnAndroid,
     readFileAsync,
     base64ToFile,
+    convertFileObjectOrUriToBase64DataURL,
     isLocalFile,
     validateImageForCorruption,
     isImage,

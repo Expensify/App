@@ -43,7 +43,6 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, t
             }
             testID={testID}
             headerContainerStyles={[styles.justifyContentCenter, styles.w100, shouldLimitHeight && styles.centralPaneAnimation]}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         >
             {children}

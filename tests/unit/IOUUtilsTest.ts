@@ -1,4 +1,5 @@
 import {renderHook} from '@testing-library/react-native';
+import type {RenderAPI} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -16,30 +17,31 @@ import type {Policy, Report, ReportMetadata, Transaction, TransactionViolations}
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import currencyList from './currencyList.json';
+import initCurrencyListContext from '../utils/initCurrencyListContext';
 
 const testDate = DateUtils.getDBTime();
 const currentUserAccountID = 5;
 
-function initCurrencyList() {
-    Onyx.init({
-        keys: ONYXKEYS,
-        initialKeyStates: {
-            [ONYXKEYS.CURRENCY_LIST]: currencyList,
-        },
-    });
-    return waitForBatchedUpdates();
-}
-
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
+    navigationRef: {
+        getCurrentRoute: jest.fn(() => undefined),
+    },
 }));
 
 describe('IOUUtils', () => {
     describe('calculateAmount', () => {
-        beforeAll(() => initCurrencyList());
+        let currencyListProvider: RenderAPI;
+
+        beforeEach(async () => {
+            currencyListProvider = await initCurrencyListContext({keys: ONYXKEYS});
+        });
+
+        afterEach(async () => {
+            currencyListProvider.unmount();
+            await Onyx.clear();
+        });
 
         test('103 JPY split among 3 participants including the default user should be [35, 34, 34]', () => {
             const participantsAccountIDs = [100, 101];
@@ -92,8 +94,6 @@ describe('IOUUtils', () => {
         });
 
         describe('calculateAmount - floorToLast rounding', () => {
-            beforeAll(() => initCurrencyList());
-
             test('Positive total: remainder added entirely to default user', () => {
                 // $10.00 among 3 -> base 3.33, remainder 0.01 -> default gets 3.34
                 const numberOfSplits = 2; // total participants = 3
@@ -305,6 +305,18 @@ describe('IOUUtils', () => {
 
         test('Return multiple tags when hasMultipleTagLists is true', () => {
             expect(IOUUtils.insertTagIntoTransactionTagsString('East:NY:California', 'NewTag', 1, true)).toBe('East:NewTag:California');
+        });
+
+        test('Should not produce a leading colon when transactionTags is empty and tagIndex > 0', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('', 'Alpha', 1, true)).toBe(':Alpha');
+        });
+
+        test('Should produce correct result when transactionTags is empty and tagIndex is 0', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('', 'Alpha', 0, true)).toBe('Alpha');
+        });
+
+        test('Should fill sparse slots when tagIndex exceeds current array length', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('First', 'Third', 2, true)).toBe('First::Third');
         });
     });
 });
@@ -736,7 +748,7 @@ describe('canApproveIOU', () => {
 
         // When checking if approve action is available
         // Then it should return true because DEW approval is not in progress
-        expect(canApproveIOU(report, policy, reportMetadata, [transaction])).toBe(true);
+        expect(canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [transaction])).toBe(true);
     });
 
     it('should return false for DEW policy report with pending approval', async () => {
@@ -771,7 +783,36 @@ describe('canApproveIOU', () => {
 
         // When checking if approve action is available while DEW approval is pending
         // Then it should return false because DEW is already processing an approval
-        expect(canApproveIOU(report, policy, reportMetadata, [transaction])).toBe(false);
+        expect(canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [transaction])).toBe(false);
+    });
+
+    it('should return true for Submit workspace report when user is manager', async () => {
+        const report: Report = {
+            ...createRandomReport(Number(REPORT_ID), undefined),
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: 999,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: currentUserAccountID,
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const policy: Policy = {
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT),
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+        };
+
+        const transaction: Transaction = {
+            ...createRandomTransaction(123),
+            reportID: REPORT_ID,
+            amount: 10,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+            status: undefined,
+        };
+
+        expect(canApproveIOU(report, policy, {}, currentUserAccountID, [transaction])).toBe(true);
     });
 
     it('should return false for non-expense report', async () => {
@@ -790,7 +831,7 @@ describe('canApproveIOU', () => {
         const reportMetadata: ReportMetadata = {};
 
         // Then canApproveIOU should return false
-        expect(canApproveIOU(report, policy, reportMetadata)).toBe(false);
+        expect(canApproveIOU(report, policy, reportMetadata, currentUserAccountID)).toBe(false);
     });
 });
 
@@ -815,9 +856,9 @@ describe('getExistingTransactionID', () => {
             reportActionID: 'action1',
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             created: '',
+            reportID: 'report456',
             originalMessage: {
                 IOUTransactionID: 'txn123',
-                IOUReportID: 'report456',
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             },
         } as unknown as Parameters<typeof IOUUtils.getExistingTransactionID>[0];
@@ -856,5 +897,190 @@ describe('getExistingTransactionID', () => {
             expect(result1.chatReportID).toBeDefined();
             expect(result2.chatReportID).toBeDefined();
         });
+    });
+
+    describe('resolveReportForMoneyRequest', () => {
+        const policyForResolve: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM, 'Resolve Test Policy'), id: 'resolve-policy'};
+
+        const makeOutstandingReport = (reportID: string): Report => ({
+            ...createRandomReport(Number(reportID), undefined),
+            reportID,
+            policyID: policyForResolve.id,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        });
+
+        const makeRouteReport = (reportID: string): Report => ({
+            ...createRandomReport(Number(reportID), undefined),
+            reportID,
+            policyID: policyForResolve.id,
+            type: CONST.REPORT.TYPE.CHAT,
+        });
+
+        const makeTransaction = (reportID: string): Transaction => ({...createRandomTransaction(Number(reportID)), reportID});
+
+        it('returns undefined when the transaction is unreported', () => {
+            const transaction = makeTransaction(CONST.REPORT.UNREPORTED_REPORT_ID);
+            const transactionReport = makeOutstandingReport('500');
+            const routeReport = makeRouteReport('100');
+            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport, routeReport, policy: policyForResolve})).toBeUndefined();
+        });
+
+        it('returns the picked report when it is outstanding (user-selected report wins)', () => {
+            const transaction = makeTransaction('500');
+            const transactionReport = makeOutstandingReport('500');
+            const routeReport = makeRouteReport('100');
+            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport, routeReport, policy: policyForResolve})?.reportID).toBe('500');
+        });
+
+        it('returns undefined when the picked report is non-outstanding and differs from the route (forces a new optimistic IOU)', () => {
+            const transaction = makeTransaction('500');
+            const nonOutstandingPick: Report = {
+                ...makeOutstandingReport('500'),
+                policyID: 'someOtherPolicy',
+            };
+            const routeReport = makeRouteReport('100');
+            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport: nonOutstandingPick, routeReport, policy: policyForResolve})).toBeUndefined();
+        });
+
+        it('returns the route report when no different transaction report has been picked', () => {
+            const transaction = makeTransaction('100');
+            const transactionReport = makeRouteReport('100');
+            const routeReport = makeRouteReport('100');
+            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport, routeReport, policy: policyForResolve})?.reportID).toBe('100');
+        });
+
+        it('falls back to the transaction report when no route report exists (the !routeReport branch)', () => {
+            const transaction = makeTransaction('500');
+            const transactionReport = makeOutstandingReport('500');
+            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport, routeReport: undefined, policy: policyForResolve})?.reportID).toBe('500');
+        });
+
+        it('returns undefined when the picked report is processing and policy harvesting is disabled', () => {
+            const transaction = makeTransaction('500');
+            const processingPick: Report = {
+                ...makeOutstandingReport('500'),
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            const routeReport = makeRouteReport('100');
+            const harvestingDisabledPolicy: Policy = {...policyForResolve, harvesting: {enabled: false}};
+            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport: processingPick, routeReport, policy: harvestingDisabledPolicy})).toBeUndefined();
+        });
+    });
+});
+
+describe('formatCurrentUserToAttendee', () => {
+    test('returns undefined when current user has no login or display name', () => {
+        const currentUser = {
+            accountID: 2840332,
+        };
+
+        expect(IOUUtils.formatCurrentUserToAttendee(currentUser)).toBeUndefined();
+    });
+
+    test('returns undefined when current user has only a display name', () => {
+        const currentUser = {
+            accountID: 2840332,
+            displayName: 'John Smith',
+        };
+
+        expect(IOUUtils.formatCurrentUserToAttendee(currentUser)).toBeUndefined();
+    });
+
+    test('uses login and display name when current user login exists', () => {
+        const currentUser = {
+            accountID: 2840332,
+            login: 'john.smith@example.com',
+            displayName: 'John Smith',
+        };
+
+        const attendees = IOUUtils.formatCurrentUserToAttendee(currentUser);
+
+        expect(attendees).toEqual([
+            {
+                email: 'john.smith@example.com',
+                displayName: 'John Smith',
+                avatarUrl: '',
+            },
+        ]);
+    });
+
+    test('uses session email when current user login is missing', () => {
+        const currentUser = {
+            accountID: 2840332,
+            email: 'john.smith@example.com',
+            displayName: '',
+        };
+
+        const attendees = IOUUtils.formatCurrentUserToAttendee(currentUser);
+
+        expect(attendees).toEqual([
+            {
+                email: 'john.smith@example.com',
+                displayName: 'john.smith@example.com',
+                avatarUrl: '',
+            },
+        ]);
+    });
+});
+
+describe('isParticipantP2P', () => {
+    it('should return true for P2P participant with accountID and isPolicyExpenseChat false', () => {
+        const participant = {
+            accountID: 123,
+            isPolicyExpenseChat: false,
+        };
+
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(true);
+    });
+
+    it('should return false when participant is undefined', () => {
+        expect(IOUUtils.isParticipantP2P(undefined)).toBe(false);
+    });
+
+    it('should return false when participant has no accountID', () => {
+        const participant = {
+            isPolicyExpenseChat: false,
+        };
+
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(false);
+    });
+
+    it('should return false when participant is a policy expense chat', () => {
+        const participant = {
+            accountID: 123,
+            isPolicyExpenseChat: true,
+        };
+
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(false);
+    });
+
+    it('should return false when accountID is 0', () => {
+        const participant = {
+            accountID: 0,
+            isPolicyExpenseChat: false,
+        };
+
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(false);
+    });
+
+    it('should return true for P2P participant without isPolicyExpenseChat property', () => {
+        const participant = {
+            accountID: 456,
+        };
+
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(true);
+    });
+
+    it('should return false for self-DM participant', () => {
+        const participant = {
+            accountID: 123,
+            isPolicyExpenseChat: false,
+            isSelfDM: true,
+        };
+
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(false);
     });
 });

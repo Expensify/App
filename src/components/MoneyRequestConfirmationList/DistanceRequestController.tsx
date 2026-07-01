@@ -4,10 +4,11 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
-import {setCustomUnitRateID, setMoneyRequestAmount, setMoneyRequestMerchant, setMoneyRequestPendingFields} from '@libs/actions/IOU';
+import {clearMoneyRequestRateAutoUpdated, setCustomUnitRateID, setMoneyRequestAmount, setMoneyRequestMerchant, setMoneyRequestPendingFields} from '@libs/actions/IOU/MoneyRequest';
 import {setSplitShares} from '@libs/actions/IOU/Split';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
+import {getCreated} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,6 +34,7 @@ type DistanceRequestControllerProps = {
     distance: number;
     distanceRequestAmount: number;
     shouldCalculateDistanceAmount: boolean;
+    currentUserAccountID: number;
     isDistanceRequestWithPendingRoute: boolean;
     hasRoute: boolean;
     defaultMileageRateCustomUnitRateID: string | undefined;
@@ -65,6 +67,7 @@ function DistanceRequestController({
     distance,
     distanceRequestAmount,
     shouldCalculateDistanceAmount,
+    currentUserAccountID,
     isDistanceRequestWithPendingRoute,
     hasRoute,
     defaultMileageRateCustomUnitRateID,
@@ -83,12 +86,17 @@ function DistanceRequestController({
     useEffect(() => {
         // We want this effect to run when the transaction is moving from Self DM to an expense chat, or when the policy changes
         const isPolicyChanged = prevPolicy?.id !== policy?.id;
+        const didSwitchPolicy = !!prevPolicy?.id && prevPolicy.id !== policy?.id;
         if (!transactionID || !isDistanceRequest || !isPolicyExpenseChat || (!isMovingTransactionFromTrackExpense && !isPolicyChanged)) {
             return;
         }
 
         const errorKey = 'iou.error.invalidRate';
         const policyRates = DistanceRequestUtils.getMileageRates(policy);
+
+        if (didSwitchPolicy && transaction?.comment?.customUnit?.rateAutoUpdated) {
+            clearMoneyRequestRateAutoUpdated(transactionID);
+        }
 
         // If the selected rate belongs to the policy, and for moving track expense if the units also matches, clear the error
         if (customUnitRateID && customUnitRateID in policyRates && (!isMovingTransactionFromTrackExpense || policyRates[customUnitRateID].unit === mileageRate.unit)) {
@@ -147,13 +155,24 @@ function DistanceRequestController({
         // If it's a split request among individuals, set the split shares
         const participantAccountIDs: number[] = selectedParticipantsProp.map((participant) => participant.accountID ?? CONST.DEFAULT_NUMBER_ID);
         if (isTypeSplit && !isPolicyExpenseChat && amount && transaction?.currency) {
-            setSplitShares(transaction, amount, currency, participantAccountIDs);
+            setSplitShares(transaction, amount, currency, participantAccountIDs, currentUserAccountID);
         }
-    }, [shouldCalculateDistanceAmount, isReadOnly, distanceRequestAmount, transactionID, currency, isTypeSplit, isPolicyExpenseChat, selectedParticipantsProp, transaction]);
+    }, [
+        shouldCalculateDistanceAmount,
+        isReadOnly,
+        distanceRequestAmount,
+        transactionID,
+        currency,
+        isTypeSplit,
+        isPolicyExpenseChat,
+        selectedParticipantsProp,
+        transaction,
+        currentUserAccountID,
+    ]);
 
     useEffect(() => {
         if (
-            !['-1', CONST.CUSTOM_UNITS.FAKE_P2P_ID].includes(customUnitRateID) ||
+            !DistanceRequestUtils.isUnsetDistanceCustomUnitRateID(customUnitRateID) ||
             !isDistanceRequest ||
             !isPolicyExpenseChat ||
             !transactionID ||
@@ -164,13 +183,32 @@ function DistanceRequestController({
             return;
         }
 
-        setCustomUnitRateID(transactionID, lastSelectedRate, transaction, policy);
-    }, [customUnitRateID, transactionID, lastSelectedRate, isDistanceRequest, isPolicyExpenseChat, isMovingTransactionFromTrackExpense, transaction, policy, selectedParticipants]);
+        let rateToUse = lastSelectedRate;
+        const expenseDate = getCreated(transaction);
+        if (expenseDate) {
+            const mileageRates = DistanceRequestUtils.getMileageRates(policy);
+            const lastRate = lastSelectedRate ? mileageRates[lastSelectedRate] : undefined;
+            if (!lastRate || !DistanceRequestUtils.isRateEligibleForDate(lastRate, expenseDate)) {
+                const bestRate = DistanceRequestUtils.getBestEligibleRate(mileageRates, expenseDate);
+                rateToUse = bestRate?.customUnitRateID ?? defaultMileageRateCustomUnitRateID ?? lastSelectedRate;
+            }
+        }
+        setCustomUnitRateID(transactionID, rateToUse, transaction, policy);
+    }, [
+        customUnitRateID,
+        transactionID,
+        lastSelectedRate,
+        isDistanceRequest,
+        isPolicyExpenseChat,
+        isMovingTransactionFromTrackExpense,
+        transaction,
+        policy,
+        selectedParticipants,
+        defaultMileageRateCustomUnitRateID,
+    ]);
 
     useEffect(() => {
-        if (!isDistanceRequest || (isMovingTransactionFromTrackExpense && !isPolicyExpenseChat) || !transactionID || isReadOnly) {
-            // We don't want to recalculate the distance merchant when moving a transaction from Track Expense to a 1:1 chat, because the distance rate will be the same default P2P rate.
-            // When moving to a policy chat (e.g. sharing with an accountant), we should recalculate the distance merchant with the policy's rate.
+        if (!isDistanceRequest || !transactionID || isReadOnly) {
             return;
         }
 
@@ -203,11 +241,9 @@ function DistanceRequestController({
         translate,
         toLocaleDigit,
         isDistanceRequest,
-        isPolicyExpenseChat,
         transaction,
         transactionID,
         isReadOnly,
-        isMovingTransactionFromTrackExpense,
         getCurrencySymbol,
         isManualDistanceRequest,
     ]);

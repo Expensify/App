@@ -1,87 +1,58 @@
 import React from 'react';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import Icon from './Icon';
-import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import SelectionButton from './SelectionButton';
+import type {RadioButtonProps} from './SelectionButton';
 
-type RadioButtonProps = {
-    /** Whether radioButton is checked */
-    isChecked: boolean;
-
-    /** A function that is called when the box/label is pressed */
-    onPress: () => void;
-
-    /** Specifies the accessibility label for the radio button */
-    accessibilityLabel: string;
-
-    /** Should the input be styled for errors  */
-    hasError?: boolean;
-
-    /** Should the input be disabled  */
-    disabled?: boolean;
-
-    /** Whether to use new radio button style */
-    // See https://expensify.slack.com/archives/C07HPDRELLD/p1752500012040139?thread_ts=1751637205.950179&cid=C07HPDRELLD
-    shouldUseNewStyle?: boolean;
-};
-
-function RadioButton({isChecked, onPress, accessibilityLabel, hasError = false, disabled = false, shouldUseNewStyle = false}: RadioButtonProps) {
-    const theme = useTheme();
-    const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
-
-    if (shouldUseNewStyle) {
-        return (
-            <PressableWithFeedback
-                disabled={disabled}
-                onPress={onPress}
-                hoverDimmingValue={1}
-                pressDimmingValue={1}
-                accessibilityLabel={accessibilityLabel}
-                role={CONST.ROLE.RADIO}
-                sentryLabel={CONST.SENTRY_LABEL.RADIO_BUTTON.BUTTON}
-                style={[
-                    styles.newRadioButtonContainer,
-                    hasError && styles.borderColorDanger,
-                    disabled && styles.cursorDisabled,
-                    isChecked && styles.checkedContainer,
-                    isChecked && styles.borderColorFocus,
-                ]}
-            >
-                {isChecked && (
-                    <Icon
-                        src={icons.Checkmark}
-                        fill={theme.textLight}
-                        height={14}
-                        width={14}
-                    />
-                )}
-            </PressableWithFeedback>
-        );
-    }
-
+/**
+ * A circular radio button for single-selection contexts.
+ */
+function RadioButton({
+    isChecked,
+    onPress,
+    hasError,
+    disabled,
+    style,
+    containerStyle,
+    children,
+    onMouseDown,
+    containerSize,
+    containerBorderRadius,
+    caretSize,
+    accessibilityLabel,
+    shouldStopMouseDownPropagation,
+    shouldSelectOnPressEnter = true,
+    wrapperStyle,
+    testID,
+    ref,
+    sentryLabel = CONST.SENTRY_LABEL.RADIO_BUTTON.BUTTON,
+    tabIndex,
+    accessible,
+}: RadioButtonProps) {
     return (
-        <PressableWithFeedback
-            disabled={disabled}
-            onPress={onPress}
-            hoverDimmingValue={1}
-            pressDimmingValue={1}
-            accessibilityLabel={accessibilityLabel}
+        <SelectionButton
             role={CONST.ROLE.RADIO}
-            sentryLabel={CONST.SENTRY_LABEL.RADIO_BUTTON.BUTTON}
-            style={[styles.radioButtonContainer, hasError && styles.borderColorDanger, disabled && styles.cursorDisabled]}
+            isChecked={isChecked}
+            onPress={onPress}
+            hasError={hasError}
+            disabled={disabled}
+            style={style}
+            containerStyle={containerStyle}
+            onMouseDown={onMouseDown}
+            containerSize={containerSize}
+            containerBorderRadius={containerBorderRadius}
+            caretSize={caretSize}
+            accessibilityLabel={accessibilityLabel}
+            shouldStopMouseDownPropagation={shouldStopMouseDownPropagation}
+            shouldSelectOnPressEnter={shouldSelectOnPressEnter}
+            wrapperStyle={wrapperStyle}
+            testID={testID}
+            ref={ref}
+            sentryLabel={sentryLabel}
+            tabIndex={tabIndex}
+            accessible={accessible}
         >
-            {isChecked && (
-                <Icon
-                    src={icons.Checkmark}
-                    fill={theme.checkBox}
-                    height={20}
-                    width={20}
-                />
-            )}
-        </PressableWithFeedback>
+            {children}
+        </SelectionButton>
     );
 }
 

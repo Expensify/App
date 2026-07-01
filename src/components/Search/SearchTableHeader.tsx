@@ -8,13 +8,15 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import SortableTableHeader from './SortableTableHeader';
-import type {SearchColumnType, SearchGroupBy, SortOrder} from './types';
+import type {SearchColumnType, SearchGroupBy, SearchSortBy, SortOrder} from './types';
 
 type SearchColumnConfig = {
     columnName: SearchColumnType;
     translationKey: TranslationPaths | undefined;
     icon?: IconAsset;
     isColumnSortable?: boolean;
+    sortColumnName?: SearchSortBy;
+    canEdit?: boolean;
 };
 
 type SearchHeaderIcons = {
@@ -37,6 +39,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DATE,
         translationKey: 'common.date',
+        canEdit: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.POSTED,
@@ -57,10 +60,12 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
         translationKey: 'common.merchant',
+        canEdit: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
         translationKey: 'common.description',
+        canEdit: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.FROM,
@@ -81,6 +86,12 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
         translationKey: 'common.category',
+        canEdit: true,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
+        translationKey: 'common.categoryGLCode',
+        sortColumnName: CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ATTENDEES,
@@ -93,6 +104,12 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAG,
         translationKey: 'common.tag',
+        canEdit: true,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE,
+        translationKey: 'common.tagGLCode',
+        sortColumnName: CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
@@ -101,6 +118,14 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.BILLABLE,
         translationKey: 'common.billable',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.MCC,
+        translationKey: 'common.mcc',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_CODE,
+        translationKey: 'workspace.taxes.taxCode',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_RATE,
@@ -119,12 +144,29 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         translationKey: 'common.originalAmount',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+        translationKey: 'common.total',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
         translationKey: 'common.withdrawalID',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
+        translationKey: 'workspace.common.customField1',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
+        translationKey: 'workspace.common.customField2',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
+        translationKey: 'common.internationalReimbursementIDs',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
         translationKey: groupBy ? 'common.total' : 'iou.amount',
+        canEdit: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,
@@ -246,6 +288,18 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
         translationKey: 'common.total',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
+        translationKey: 'workspace.common.customField1',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
+        translationKey: 'workspace.common.customField2',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
+        translationKey: 'common.internationalReimbursementIDs',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,
@@ -431,9 +485,9 @@ function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, icons: 
 type SearchTableHeaderProps = {
     columns: SearchColumnType[];
     type: SearchDataTypes;
-    sortBy?: SearchColumnType;
+    sortBy?: SearchSortBy;
     sortOrder?: SortOrder;
-    onSortPress: (column: SearchColumnType, order: SortOrder) => void;
+    onSortPress: (column: SearchSortBy, order: SortOrder) => void;
     shouldShowYear: boolean;
     shouldShowYearSubmitted?: boolean;
     shouldShowYearApproved?: boolean;
@@ -448,6 +502,9 @@ type SearchTableHeaderProps = {
 
     /** True when we are inside an expense report view, false if we're in the Reports page. */
     isExpenseReportView?: boolean;
+
+    /** True when the action column should render in its wider variant (e.g. tasks, deleted expenses). */
+    isActionColumnWide?: boolean;
 };
 
 function SearchTableHeader({
@@ -468,6 +525,7 @@ function SearchTableHeader({
     isTaxAmountColumnWide,
     groupBy,
     isExpenseReportView,
+    isActionColumnWide,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -540,7 +598,7 @@ function SearchTableHeader({
             sortBy={sortBy}
             sortOrder={sortOrder}
             shouldRemoveTotalColumnFlex={!!groupBy !== !!isExpenseReportView}
-            isActionColumnWide={type === CONST.SEARCH.DATA_TYPES.TASK}
+            isActionColumnWide={isActionColumnWide ?? type === CONST.SEARCH.DATA_TYPES.TASK}
             // Don't butt up against the 'select all' checkbox if present
             containerStyles={canSelectMultiple && [styles.pl3]}
             onSortPress={(columnName, order) => {

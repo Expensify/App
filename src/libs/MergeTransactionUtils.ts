@@ -9,7 +9,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction, Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import SafeString from '@src/utils/SafeString';
-import {convertToBackendAmount, convertToDisplayString} from './CurrencyUtils';
+import {getDecodedLeafCategoryName} from './CategoryUtils';
+import {convertToBackendAmount} from './CurrencyUtils';
 import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 import {constructReceiptSourceFromFilename} from './ReceiptUtils';
@@ -26,6 +27,7 @@ import {
     getReimbursable,
     getTaxName,
     getWaypoints,
+    hasValidModifiedAmount,
     isDistanceRequest,
     isExpenseSplit,
     isFetchingWaypointsFromServer,
@@ -45,6 +47,7 @@ const DERIVED_MERGE_FIELDS = [...MERGE_FIELDS, 'taxCode', 'taxAmount'] as const;
 type MergeFieldKey = TupleToUnion<typeof MERGE_FIELDS>;
 type MergeFieldOption = {
     transaction: Transaction;
+    transactionDetails: TransactionDetails;
     displayValue: string;
     isSelected: boolean;
 };
@@ -285,10 +288,10 @@ function getMergeableDataAndConflictFields(
         }
 
         if (field === 'attendees') {
-            const targetAttendeeLogins = ((targetValue as Attendee[] | undefined)?.map((attendee) => attendee.login ?? attendee.email) ?? []).sort(localeCompare);
-            const sourceAttendeeLogins = ((sourceValue as Attendee[] | undefined)?.map((attendee) => attendee.login ?? attendee.email) ?? []).sort(localeCompare);
+            const targetAttendeeLogins = ((targetValue as Attendee[] | undefined)?.map((attendee) => attendee.email) ?? []).filter((login): login is string => !!login).sort(localeCompare);
+            const sourceAttendeeLogins = ((sourceValue as Attendee[] | undefined)?.map((attendee) => attendee.email) ?? []).filter((login): login is string => !!login).sort(localeCompare);
 
-            if (isTargetValueEmpty || isSourceValueEmpty || deepEqual(targetAttendeeLogins, sourceAttendeeLogins)) {
+            if (deepEqual(targetAttendeeLogins, sourceAttendeeLogins)) {
                 mergeableData[field] = isTargetValueEmpty ? sourceValue : targetValue;
             } else {
                 conflictFields.push(field);
@@ -390,6 +393,7 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         taxAmount: mergeTransaction.taxAmount,
         taxCode: mergeTransaction.taxCode,
         taxName: mergeTransaction.taxName,
+        ...(mergeTransaction.iouRequestType && {iouRequestType: mergeTransaction.iouRequestType}),
     };
 }
 
@@ -493,8 +497,17 @@ function selectTargetAndSourceTransactionsForMerge(
  * @param translate - The translation function
  * @returns The formatted display string for the field value
  */
-function getDisplayValue(field: MergeFieldKey, transaction: Transaction, policy: Policy | undefined, translate: LocaleContextProps['translate'], reports?: Array<OnyxEntry<Report>>): string {
-    const fieldValue = getMergeFieldValue(getTransactionDetails(transaction), transaction, field);
+function getDisplayValue(
+    field: MergeFieldKey,
+    transaction: Transaction,
+    transactionDetails: TransactionDetails | undefined,
+    policy: Policy | undefined,
+    translate: LocaleContextProps['translate'],
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+    localeCompare: LocaleContextProps['localeCompare'],
+    reports?: Array<OnyxEntry<Report>>,
+): string {
+    const fieldValue = getMergeFieldValue(transactionDetails, transaction, field);
 
     if (isEmptyMergeValue(fieldValue) || fieldValue === undefined) {
         return '';
@@ -523,11 +536,15 @@ function getDisplayValue(field: MergeFieldKey, transaction: Transaction, policy:
         return transaction?.reportName ?? getReportName(getReportOrDraftReport(SafeString(fieldValue), reports));
     }
     if (field === 'attendees') {
-        return Array.isArray(fieldValue) ? getAttendeesListDisplayString(fieldValue) : '';
+        return Array.isArray(fieldValue) ? getAttendeesListDisplayString(fieldValue, localeCompare) : '';
     }
 
     if (field === 'taxValue') {
         return getTaxName(policy, transaction) ?? transaction.taxValue ?? '';
+    }
+
+    if (field === 'category') {
+        return getDecodedLeafCategoryName(SafeString(fieldValue));
     }
 
     return SafeString(fieldValue);
@@ -541,17 +558,37 @@ function getDisplayValue(field: MergeFieldKey, transaction: Transaction, policy:
  * @param translate - The translation function
  * @returns Array of merge field data for UI rendering
  */
-function buildMergeFieldsData(
-    conflictFields: MergeFieldKey[],
-    targetTransaction: Transaction | undefined,
-    sourceTransaction: Transaction | undefined,
-    mergeTransaction: MergeTransaction | null | undefined,
-    targetTransactionPolicy: Policy | undefined,
-    sourceTransactionPolicy: Policy | undefined,
-    translate: LocaleContextProps['translate'],
-    reports: Array<OnyxEntry<Report>> = [],
-): MergeFieldData[] {
-    if (!targetTransaction || !sourceTransaction) {
+function buildMergeFieldsData({
+    conflictFields,
+    targetTransaction,
+    sourceTransaction,
+    targetReportOwnerAsAttendee,
+    sourceReportOwnerAsAttendee,
+    mergeTransaction,
+    targetTransactionPolicy,
+    sourceTransactionPolicy,
+    translate,
+    convertToDisplayString,
+    localeCompare,
+    reports,
+}: {
+    conflictFields: MergeFieldKey[];
+    targetTransaction: Transaction | undefined;
+    sourceTransaction: Transaction | undefined;
+    targetReportOwnerAsAttendee: Attendee | undefined;
+    sourceReportOwnerAsAttendee: Attendee | undefined;
+    mergeTransaction: MergeTransaction | null | undefined;
+    targetTransactionPolicy: Policy | undefined;
+    sourceTransactionPolicy: Policy | undefined;
+    translate: LocaleContextProps['translate'];
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    localeCompare: LocaleContextProps['localeCompare'];
+    reports: Array<OnyxEntry<Report>>;
+}): MergeFieldData[] {
+    const targetTransactionDetails = getTransactionDetails(targetTransaction, undefined, undefined, undefined, undefined, targetReportOwnerAsAttendee);
+    const sourceTransactionDetails = getTransactionDetails(sourceTransaction, undefined, undefined, undefined, undefined, sourceReportOwnerAsAttendee);
+
+    if (!targetTransaction || !sourceTransaction || !targetTransactionDetails || !sourceTransactionDetails) {
         return [];
     }
 
@@ -563,12 +600,14 @@ function buildMergeFieldsData(
         const options: MergeFieldOption[] = [
             {
                 transaction: targetTransaction,
-                displayValue: getDisplayValue(field, targetTransaction, targetTransactionPolicy, translate, reports),
+                transactionDetails: targetTransactionDetails,
+                displayValue: getDisplayValue(field, targetTransaction, targetTransactionDetails, targetTransactionPolicy, translate, convertToDisplayString, localeCompare, reports),
                 isSelected: selectedTransactionId === targetTransaction.transactionID,
             },
             {
                 transaction: sourceTransaction,
-                displayValue: getDisplayValue(field, sourceTransaction, sourceTransactionPolicy, translate, reports),
+                transactionDetails: sourceTransactionDetails,
+                displayValue: getDisplayValue(field, sourceTransaction, sourceTransactionDetails, sourceTransactionPolicy, translate, convertToDisplayString, localeCompare, reports),
                 isSelected: selectedTransactionId === sourceTransaction.transactionID,
             },
         ];
@@ -610,8 +649,9 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
 
     if (field === 'amount') {
         updatedValues.currency = getCurrency(transaction);
-        if (mergeTransaction?.taxValue && transaction?.amount) {
-            updatedValues.taxAmount = convertToBackendAmount(calculateTaxAmount(mergeTransaction?.taxValue, transaction.amount, getCurrencyDecimals(getCurrency(transaction))));
+        const amount = hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
+        if (mergeTransaction?.taxValue && amount) {
+            updatedValues.taxAmount = convertToBackendAmount(calculateTaxAmount(mergeTransaction?.taxValue, amount, getCurrencyDecimals(getCurrency(transaction))));
         }
     }
 
@@ -633,8 +673,11 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
         // Distance expense tax rate is fixed to the distance rate, so just carry it over
         updatedValues.taxValue = transaction?.taxValue;
         updatedValues.taxCode = transaction?.taxCode;
-        updatedValues.taxName = getTaxName(policy, transaction) ?? transaction?.taxValue ?? '';
+        updatedValues.taxName = getTaxName(policy, transaction) ?? transaction?.taxValue;
         updatedValues.taxAmount = transaction?.taxAmount;
+        // Don't erase this prop
+        // The selected rate might not have tax tracking
+        // The backend needs it to remove tax from the transaction
         updatedValues.taxPolicyID = policy?.id;
 
         // Copy odometer readings from the selected transaction for odometer distance requests
@@ -686,7 +729,6 @@ export {
     DERIVED_MERGE_FIELDS,
     getRateFromMerchant,
     getTransactionsAndReportsFromSearch,
-    MERGE_FIELDS,
 };
 
 export type {MergeFieldKey, MergeFieldData, MergeTransactionUpdateValues};

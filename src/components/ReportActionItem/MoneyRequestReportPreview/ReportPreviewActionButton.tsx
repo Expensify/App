@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ExportWithDropdownMenu from '@components/ReportActionItem/ExportWithDropdownMenu';
@@ -20,8 +21,9 @@ import variables from '@styles/variables';
 import {canIOUBePaid as canIOUBePaidIOUActions} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
-import type {Transaction} from '@src/types/onyx';
+import type {Report, Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ApproveActionButton from './ApproveActionButton';
 import PayActionButton from './PayActionButton';
@@ -30,6 +32,10 @@ import SubmitActionButton from './SubmitActionButton';
 type ReportPreviewActionButtonProps = {
     iouReportID: string | undefined;
     chatReportID: string | undefined;
+    chatReport: OnyxEntry<Report>;
+
+    /** The stabilized IOU report, provided by the parent so the dispatcher does not re-subscribe to the churning report */
+    iouReport: OnyxEntry<Report>;
     isPaidAnimationRunning: boolean;
     isApprovedAnimationRunning: boolean;
     isSubmittingAnimationRunning: boolean;
@@ -39,15 +45,16 @@ type ReportPreviewActionButtonProps = {
     startSubmittingAnimation: () => void;
     onPaymentOptionsShow?: () => void;
     onPaymentOptionsHide?: () => void;
-    onNonReimbursablePaymentError?: () => void;
     openReportFromPreview: () => void;
-    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean) => void;
+    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => void;
     transactionPreviewCarouselWidth: number;
 };
 
 function ReportPreviewActionButton({
     iouReportID,
     chatReportID,
+    chatReport,
+    iouReport,
     isPaidAnimationRunning,
     isApprovedAnimationRunning,
     isSubmittingAnimationRunning,
@@ -57,7 +64,6 @@ function ReportPreviewActionButton({
     startSubmittingAnimation,
     onPaymentOptionsShow,
     onPaymentOptionsHide,
-    onNonReimbursablePaymentError,
     openReportFromPreview,
     onHoldMenuOpen,
     transactionPreviewCarouselWidth,
@@ -68,8 +74,6 @@ function ReportPreviewActionButton({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'ReceiptPlus', 'Plus']);
 
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
@@ -84,6 +88,7 @@ function ReportPreviewActionButton({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [iouReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`);
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)}, [iouReport?.ownerAccountID]);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -95,8 +100,32 @@ function ReportPreviewActionButton({
     const isDEWSubmitPending = hasPendingDEWSubmit(iouReportMetadata, isDEWPolicy);
     const connectedIntegration = getConnectedIntegration(policy);
 
-    const canIOUBePaid = canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, false, undefined, invoiceReceiverPolicy);
-    const onlyShowPayElsewhere = !canIOUBePaid && canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, true, undefined, invoiceReceiverPolicy);
+    const canIOUBePaid = canIOUBePaidIOUActions(
+        iouReport,
+        chatReport,
+        policy,
+        bankAccountList,
+        currentUserDetails.login ?? '',
+        currentUserDetails.accountID,
+        transactions,
+        false,
+        undefined,
+        invoiceReceiverPolicy,
+    );
+    const onlyShowPayElsewhere =
+        !canIOUBePaid &&
+        canIOUBePaidIOUActions(
+            iouReport,
+            chatReport,
+            policy,
+            bankAccountList,
+            currentUserDetails.login ?? '',
+            currentUserDetails.accountID,
+            transactions,
+            true,
+            undefined,
+            invoiceReceiverPolicy,
+        );
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
 
     const buttonMaxWidth =
@@ -117,6 +146,7 @@ function ReportPreviewActionButton({
         isDEWSubmitPending,
         violationsData: transactionViolations,
         reportMetadata: iouReportMetadata,
+        ownerLogin,
     });
 
     const renderButton = () => {
@@ -124,7 +154,6 @@ function ReportPreviewActionButton({
             return (
                 <SubmitActionButton
                     iouReportID={iouReportID}
-                    chatReportID={chatReportID}
                     isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                     stopAnimation={stopAnimation}
                     startSubmittingAnimation={startSubmittingAnimation}
@@ -148,6 +177,7 @@ function ReportPreviewActionButton({
                 <PayActionButton
                     iouReportID={iouReportID}
                     chatReportID={chatReportID}
+                    chatReport={chatReport}
                     isPaidAnimationRunning={isPaidAnimationRunning}
                     isApprovedAnimationRunning={isApprovedAnimationRunning}
                     stopAnimation={stopAnimation}
@@ -156,7 +186,6 @@ function ReportPreviewActionButton({
                     onPaymentOptionsShow={onPaymentOptionsShow}
                     onPaymentOptionsHide={onPaymentOptionsHide}
                     onHoldMenuOpen={onHoldMenuOpen}
-                    onNonReimbursablePaymentError={onNonReimbursablePaymentError}
                     buttonMaxWidth={buttonMaxWidth}
                     reportPreviewAction={reportPreviewAction}
                 />
@@ -197,6 +226,7 @@ function ReportPreviewActionButton({
                         iouRequestBackToReport: chatReportID,
                         unreportedExpenseBackToReport: iouReport?.parentReportID,
                         lastDistanceExpenseType,
+                        currentUserAccountID: currentUserDetails.accountID,
                     })}
                     isSplitButton={false}
                     anchorAlignment={{

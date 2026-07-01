@@ -11,7 +11,10 @@ declare global {
         transaction?: Promise<Transaction | undefined>;
         receipt?: Promise<Receipt | undefined>;
     }
+
+    // Injected by webpack DefinePlugin at build time; empty string in non-development builds.
+    // eslint-disable-next-line @typescript-eslint/naming-convention, no-underscore-dangle
+    const __GIT_BRANCH__: string;
 }
 
-// eslint-disable-next-line import/no-anonymous-default-export
 export {};

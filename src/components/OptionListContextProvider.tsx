@@ -1,8 +1,10 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
+import useSortedActions from '@hooks/useSortedActions';
 import {createOptionFromReport, createOptionList, processReport, shallowOptionsListCompare} from '@libs/OptionsListUtils';
 import type {OptionList, SearchOption} from '@libs/OptionsListUtils';
 import {isSelfDM} from '@libs/ReportUtils';
@@ -51,7 +53,7 @@ const isEqualPersonalDetail = (prevPersonalDetail: PersonalDetails, personalDeta
     prevPersonalDetail?.displayName === personalDetail?.displayName;
 
 function buildUpdatedReportsMap(reportOptions: OptionList['reports']) {
-    return new Map(reportOptions.filter((report) => report && report.reportID).map((report) => [report.reportID, report]));
+    return new Map(reportOptions.filter((report) => report?.reportID).map((report) => [report.reportID, report]));
 }
 
 function OptionsListContextProvider({children}: OptionsListProviderProps) {
@@ -70,24 +72,27 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     const personalDetails = usePersonalDetails();
     const prevPersonalDetails = usePrevious(personalDetails);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
+    const sortedActions = useSortedActions();
     const hasInitialData = useMemo(() => Object.keys(personalDetails ?? {}).length > 0, [personalDetails]);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+
     const getReprocessedReportOption = useCallback(
         (report: OnyxEntry<Report> | null, reportID: string, policyID?: string) => {
             const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID ?? report?.policyID}`];
 
-            return processReport(report, personalDetails, privateIsArchived, policy, reportAttributes?.reports).reportOption;
+            return processReport(report, personalDetails, privateIsArchived, policy, reportAttributes?.reports, undefined, undefined, isTrackIntentUser).reportOption;
         },
-        [allPolicies, personalDetails, privateIsArchivedMap, reportAttributes?.reports],
+        [allPolicies, personalDetails, privateIsArchivedMap, reportAttributes?.reports, isTrackIntentUser],
     );
 
     const loadOptions = useCallback(() => {
-        const optionLists = createOptionList(personalDetails, privateIsArchivedMap, reports, allPolicies, reportAttributes?.reports);
+        const optionLists = createOptionList(personalDetails, privateIsArchivedMap, reports, allPolicies, reportAttributes?.reports, undefined, undefined, isTrackIntentUser);
         setOptions({
             reports: optionLists.reports,
             personalDetails: optionLists.personalDetails,
         });
-    }, [personalDetails, privateIsArchivedMap, reports, allPolicies, reportAttributes?.reports]);
+    }, [personalDetails, privateIsArchivedMap, reports, allPolicies, reportAttributes?.reports, isTrackIntentUser]);
 
     /**
      * This effect is responsible for generating the options list when their data is not yet initialized
@@ -270,6 +275,9 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 reports,
                 allPolicies,
                 reportAttributes?.reports,
+                undefined,
+                undefined,
+                isTrackIntentUser,
             );
             setOptions((prevOptions) => ({
                 ...prevOptions,
@@ -305,9 +313,20 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
 
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
                 const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-                const newReportOption = createOptionFromReport(report, personalDetails, privateIsArchived, policy, reportAttributes?.reports, {
-                    showPersonalDetails: true,
-                });
+                const newReportOption = createOptionFromReport(
+                    report,
+                    personalDetails,
+                    privateIsArchived,
+                    policy,
+                    sortedActions,
+                    reportAttributes?.reports,
+                    {
+                        showPersonalDetails: true,
+                    },
+                    undefined,
+                    undefined,
+                    isTrackIntentUser,
+                );
                 const replaceIndex = options.reports.findIndex((option) => option.reportID === report.reportID);
                 newReportOptions.push({
                     newReportOption,
@@ -317,7 +336,16 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         }
 
         // since personal details are not a collection, we need to recreate the whole list from scratch
-        const newPersonalDetailsOptions = createOptionList(personalDetails, privateIsArchivedMap, reports, allPolicies, reportAttributes?.reports).personalDetails;
+        const newPersonalDetailsOptions = createOptionList(
+            personalDetails,
+            privateIsArchivedMap,
+            reports,
+            allPolicies,
+            reportAttributes?.reports,
+            undefined,
+            undefined,
+            isTrackIntentUser,
+        ).personalDetails;
 
         setOptions((prevOptions) => {
             const newOptions = {...prevOptions};
@@ -435,4 +463,4 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
 
 export default OptionsListContextProvider;
 
-export {useOptionsList, useOptionsListState, useOptionsListActions, OptionsListStateContext, OptionsListActionsContext};
+export {useOptionsList, OptionsListStateContext, OptionsListActionsContext};

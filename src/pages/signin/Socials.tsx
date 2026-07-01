@@ -74,7 +74,7 @@ function Socials() {
                             src={icons[social.iconURL]}
                             height={variables.iconSizeLarge}
                             width={variables.iconSizeLarge}
-                            fill={hovered || pressed ? theme.link : theme.textLight}
+                            fill={hovered || pressed ? theme.link : theme.text}
                         />
                     )}
                 </PressableWithoutFeedback>

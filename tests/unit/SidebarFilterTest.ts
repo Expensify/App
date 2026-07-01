@@ -1,6 +1,7 @@
 import {screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
+import {setHasRadio} from '@libs/NetworkState';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
@@ -16,6 +17,7 @@ jest.mock('@libs/Permissions');
 const ONYXKEYS = {
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
     IS_LOADING_APP: 'isLoadingApp',
+    IS_LOADING_REPORT_DATA: 'isLoadingReportData',
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
     SESSION: 'session',
     BETAS: 'betas',
@@ -41,7 +43,7 @@ xdescribe('Sidebar', () => {
         // Wrap Onyx each onyx action with waitForBatchedUpdates
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         // Initialize the network key for OfflineWithFeedback
-        return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
     });
 
     // clear out Onyx after each test so that each test starts with a clean slate
@@ -958,6 +960,7 @@ xdescribe('Sidebar', () => {
                                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                                 [ONYXKEYS.IS_LOADING_APP]: false,
+                                [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                                 ...reportCollectionDataSet,
                             }),
                         )

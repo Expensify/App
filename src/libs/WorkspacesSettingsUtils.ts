@@ -1,11 +1,12 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {CompanyAddress, Unit} from '@src/types/onyx/Policy';
-import {convertToDisplayString} from './CurrencyUtils';
+import {getConnectionExporters, isPolicyAdmin, isPolicyApprover, isPolicyAuditor} from './PolicyUtils';
 
 type BrickRoad = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
 
@@ -82,6 +83,7 @@ function getUnitTranslationKey(unit: Unit): TranslationPaths {
 function getOwnershipChecksDisplayText(
     error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>,
     translate: LocaleContextProps['translate'],
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     policy: OnyxEntry<Policy>,
     accountLogin: string | undefined,
 ) {
@@ -134,5 +136,43 @@ function getOwnershipChecksDisplayText(
     return {title, text, buttonText};
 }
 
-export {getChatTabBrickRoadReportID, getBrickRoadForPolicy, getChatTabBrickRoad, getUnitTranslationKey, getOwnershipChecksDisplayText, getWorkspaceAddressStreetLines};
-export type {BrickRoad, WorkspaceAddressStreetLines};
+function getLeaveWorkspaceConfirmationPrompt(policy: OnyxEntry<Policy>, userEmail: string, ownerDisplayName: string, translate: LocaleContextProps['translate']): string {
+    const exporters = getConnectionExporters(policy);
+
+    if (policy?.achAccount?.reimburser === userEmail) {
+        return translate('common.leaveWorkspaceReimburser');
+    }
+
+    if (policy?.technicalContact === userEmail) {
+        return translate('common.leaveWorkspaceConfirmationTechContact', ownerDisplayName);
+    }
+
+    if (exporters.some((exporter) => exporter === userEmail)) {
+        return translate('common.leaveWorkspaceConfirmationExporter', ownerDisplayName);
+    }
+
+    if (isPolicyApprover(policy, userEmail)) {
+        return translate('common.leaveWorkspaceConfirmationApprover', ownerDisplayName);
+    }
+
+    if (isPolicyAdmin(policy)) {
+        return translate('common.leaveWorkspaceConfirmationAdmin');
+    }
+
+    if (isPolicyAuditor(policy)) {
+        return translate('common.leaveWorkspaceConfirmationAuditor');
+    }
+
+    return translate('common.leaveWorkspaceConfirmation');
+}
+
+export {
+    getChatTabBrickRoadReportID,
+    getBrickRoadForPolicy,
+    getChatTabBrickRoad,
+    getUnitTranslationKey,
+    getOwnershipChecksDisplayText,
+    getWorkspaceAddressStreetLines,
+    getLeaveWorkspaceConfirmationPrompt,
+};
+export type {BrickRoad};

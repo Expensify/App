@@ -1,17 +1,29 @@
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingIntent from '@hooks/useOnboardingIntent';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {enablePolicyCategories} from '@libs/actions/Policy/Category';
 import {hasCompanyCardFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasAccountingConnections, hasCustomCategories, hasNonDefaultRules, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {
+    arePolicyRulesEnabled,
+    getValidConnectedIntegration,
+    hasAccountingFeatureConnection,
+    hasConfiguredRules,
+    hasCustomCategories,
+    isPaidGroupPolicy,
+    isPendingDeletePolicy,
+    isPolicyAdmin,
+} from '@libs/PolicyUtils';
 import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/utils/isWithinGettingStartedPeriod';
-import {enablePolicyCategories} from '@userActions/Policy/Category';
-import {enableCompanyCards, enablePolicyConnections, enablePolicyRules} from '@userActions/Policy/Policy';
+import {enableCompanyCards, enablePolicyConnections} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
+
+const MIN_MEMBERS_FOR_ACCOUNTANT_INVITED = 2;
 
 type GettingStartedItem = {
     key: string;
@@ -38,19 +50,27 @@ const DIRECT_CONNECT_INTEGRATIONS = new Set<string>([
 function useGettingStartedItems(): UseGettingStartedItemsResult {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [onboardingPurpose] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const intent = useOnboardingIntent();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [reportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${activePolicyID}`);
     const [allCardFeeds] = useCardFeeds(activePolicyID);
+    const isAccountingEnabled = !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy);
 
     const emptyResult: UseGettingStartedItemsResult = {shouldShowSection: false, items: []};
 
-    const intent = introSelected?.choice ?? onboardingPurpose;
-    if (intent !== CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
+    // Hide the whole section as soon as every onboarding to-do is complete, instead of keeping it
+    // around for the full Getting Started window.
+    const buildResult = (builtItems: GettingStartedItem[]): UseGettingStartedItemsResult => {
+        if (builtItems.every((item) => item.isComplete)) {
+            return emptyResult;
+        }
+        return {shouldShowSection: true, items: builtItems};
+    };
+
+    if (intent !== CONST.ONBOARDING_CHOICES.MANAGE_TEAM && intent !== CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
         return emptyResult;
     }
 
@@ -75,14 +95,41 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         route: shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(activePolicyID, Navigation.getActiveRoute()) : ROUTES.WORKSPACE_OVERVIEW.getRoute(activePolicyID),
     });
 
-    const isDirectConnect = !!reportedIntegration && DIRECT_CONNECT_INTEGRATIONS.has(reportedIntegration);
+    if (intent === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
+        items.push({
+            key: 'customizeCategories',
+            label: translate('homePage.gettingStartedSection.customizeCategories'),
+            isComplete: hasCustomCategories(policyCategories),
+            route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
+            isFeatureEnabled: policy.areCategoriesEnabled,
+            enableFeature: () => enablePolicyCategories({policy, categories: policyCategories ?? {}, tags: {}, reports: [], transactionsAndViolations: {}}, true, false),
+        });
 
-    if (isDirectConnect) {
-        const integrationName = CONST.ONBOARDING_ACCOUNTING_MAPPING[reportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING] ?? String(reportedIntegration);
+        const activeMemberCount = Object.values(policy.employeeList ?? {}).filter((member) => member?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+        items.push({
+            key: 'inviteAccountant',
+            label: translate('homePage.gettingStartedSection.inviteAccountant'),
+            isComplete: activeMemberCount >= MIN_MEMBERS_FOR_ACCOUNTANT_INVITED,
+            route: ROUTES.WORKSPACE_MEMBERS.getRoute(activePolicyID),
+        });
+
+        return buildResult(items);
+    }
+
+    const isDirectConnect = !!reportedIntegration && DIRECT_CONNECT_INTEGRATIONS.has(reportedIntegration);
+    // Only route to the Connections page when the user picked a directly supported integration or the workspace already has a
+    // real accounting connection. Otherwise (e.g. the "Other" onboarding choice merely enables the connections feature) we send
+    // the user to customize categories instead of back to the integration list they already opted out of.
+    const shouldShowConnectAccounting = isAccountingEnabled && (isDirectConnect || hasAccountingFeatureConnection(policy));
+
+    if (shouldShowConnectAccounting) {
+        const integrationName = isDirectConnect
+            ? (CONST.ONBOARDING_ACCOUNTING_MAPPING[reportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING] ?? String(reportedIntegration))
+            : undefined;
         items.push({
             key: 'connectAccounting',
-            label: translate('homePage.gettingStartedSection.connectAccounting', {integrationName}),
-            isComplete: hasAccountingConnections(policy),
+            label: integrationName ? translate('homePage.gettingStartedSection.connectAccounting', {integrationName}) : translate('homePage.gettingStartedSection.connectAccountingDefault'),
+            isComplete: !!getValidConnectedIntegration(policy) || Object.values(policy?.connections ?? {}).some((conn) => !!conn?.lastSync?.successfulDate),
             route: ROUTES.WORKSPACE_ACCOUNTING.getRoute(activePolicyID),
             isFeatureEnabled: policy.areConnectionsEnabled,
             enableFeature: () => enablePolicyConnections(activePolicyID, true, false),
@@ -107,19 +154,17 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         enableFeature: () => enableCompanyCards(activePolicyID, true, false),
     });
 
-    if (policy.areRulesEnabled) {
+    if (arePolicyRulesEnabled(policy, policyCategories)) {
         items.push({
             key: 'setupRules',
             label: translate('homePage.gettingStartedSection.setupRules'),
-            isComplete: hasNonDefaultRules(policy),
+            isComplete: hasConfiguredRules(policy, policyCategories),
             route: ROUTES.WORKSPACE_RULES.getRoute(activePolicyID),
-            isFeatureEnabled: policy.areRulesEnabled,
-            enableFeature: () => enablePolicyRules(policy, true, false),
         });
     }
 
-    return {shouldShowSection: true, items};
+    return buildResult(items);
 }
 
 export default useGettingStartedItems;
-export type {GettingStartedItem, UseGettingStartedItemsResult};
+export type {GettingStartedItem};

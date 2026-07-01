@@ -1,7 +1,9 @@
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {StepCounterParams} from '@src/languages/params';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import getOnboardingRouteFromScreen from './Navigation/helpers/getOnboardingRouteFromScreen';
 
 type OnboardingScreen = ValueOf<typeof SCREENS.ONBOARDING>;
 
@@ -11,6 +13,7 @@ type OnboardingFlowContext = {
     hasAccessibleDomainPolicies?: boolean;
     purposeSelected?: ValueOf<typeof CONST.ONBOARDING_CHOICES>;
     isMergeAccountStepSkipped?: boolean;
+    isAccountValidated?: boolean;
 };
 
 type OnboardingStepResult = {
@@ -28,20 +31,20 @@ const screenResolution: Record<OnboardingScreen, OnboardingScreen> = {
     [ONBOARDING.PERSONAL_DETAILS]: ONBOARDING.PERSONAL_DETAILS,
     [ONBOARDING.WORKSPACES]: ONBOARDING.WORKSPACES,
     [ONBOARDING.PURPOSE]: ONBOARDING.PURPOSE,
+    [ONBOARDING.PERSONAL_TRACK_GOAL]: ONBOARDING.PERSONAL_TRACK_GOAL,
     [ONBOARDING.EMPLOYEES]: ONBOARDING.EMPLOYEES,
     [ONBOARDING.ACCOUNTING]: ONBOARDING.ACCOUNTING,
     [ONBOARDING.INTERESTED_FEATURES]: ONBOARDING.INTERESTED_FEATURES,
-    [ONBOARDING.WORKSPACE_OPTIONAL]: ONBOARDING.WORKSPACE_OPTIONAL,
-    [ONBOARDING.WORKSPACE_CONFIRMATION]: ONBOARDING.WORKSPACE_OPTIONAL,
-    [ONBOARDING.WORKSPACE_CURRENCY]: ONBOARDING.WORKSPACE_OPTIONAL,
-    [ONBOARDING.WORKSPACE_INVITE]: ONBOARDING.WORKSPACE_OPTIONAL,
 };
 
 // Screens that follow PURPOSE. For private domain users, PERSONAL_DETAILS is filtered out.
+const TRACK_PURPOSE_SUFFIXES = [ONBOARDING.PERSONAL_DETAILS];
+
 const purposeSuffixes = {
     [ONBOARDING_CHOICES.MANAGE_TEAM]: [ONBOARDING.EMPLOYEES, ONBOARDING.ACCOUNTING, ONBOARDING.INTERESTED_FEATURES],
-    [ONBOARDING_CHOICES.PERSONAL_SPEND]: [ONBOARDING.PERSONAL_DETAILS, ONBOARDING.WORKSPACE_OPTIONAL],
-    [ONBOARDING_CHOICES.TRACK_WORKSPACE]: [ONBOARDING.PERSONAL_DETAILS, ONBOARDING.WORKSPACE_OPTIONAL],
+    [ONBOARDING_CHOICES.TRACK_BUSINESS]: TRACK_PURPOSE_SUFFIXES,
+    [ONBOARDING_CHOICES.TRACK_PERSONAL]: [ONBOARDING.PERSONAL_TRACK_GOAL, ...TRACK_PURPOSE_SUFFIXES],
+    [ONBOARDING_CHOICES.PERSONAL_SPEND]: TRACK_PURPOSE_SUFFIXES,
     [ONBOARDING_CHOICES.EMPLOYER]: [ONBOARDING.PERSONAL_DETAILS],
     [ONBOARDING_CHOICES.CHAT_SPLIT]: [ONBOARDING.PERSONAL_DETAILS],
     [ONBOARDING_CHOICES.LOOKING_AROUND]: [ONBOARDING.PERSONAL_DETAILS],
@@ -52,7 +55,7 @@ const purposeSuffixes = {
 
 // VSB/SMB have fixed suffixes; individual (null) is handled via purposeSuffixes.
 const qualifierSuffixes = {
-    [ONBOARDING_SIGNUP_QUALIFIERS.VSB]: [ONBOARDING.ACCOUNTING, ONBOARDING.INTERESTED_FEATURES],
+    [ONBOARDING_SIGNUP_QUALIFIERS.VSB]: [ONBOARDING.EMPLOYEES, ONBOARDING.ACCOUNTING, ONBOARDING.INTERESTED_FEATURES],
     [ONBOARDING_SIGNUP_QUALIFIERS.SMB]: [ONBOARDING.EMPLOYEES, ONBOARDING.ACCOUNTING, ONBOARDING.INTERESTED_FEATURES],
     [ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL]: null,
 } satisfies Record<ValueOf<typeof ONBOARDING_SIGNUP_QUALIFIERS>, OnboardingScreen[] | null>;
@@ -70,12 +73,13 @@ function getResolvedPage(page: OnboardingScreen, context: OnboardingFlowContext)
 
 function getDomainPrefix(context: OnboardingFlowContext): OnboardingScreen[] {
     if (context.isFromPublicDomain) {
+        // Validated or skipped work-email steps are no longer reachable: navigating back to them immediately redirects
+        // forward again. Excluding them keeps the step counter accurate and prevents a dead back button.
+        if (context.isAccountValidated || context.isMergeAccountStepSkipped === true) {
+            return [];
+        }
         if (context.isMergeAccountStepSkipped === false) {
             return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION, ONBOARDING.WORKSPACES];
-        }
-        // User skipped the work email step — they never see WORK_EMAIL_VALIDATION
-        if (context.isMergeAccountStepSkipped === true) {
-            return [ONBOARDING.WORK_EMAIL];
         }
         return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION];
     }
@@ -132,5 +136,25 @@ function getOnboardingStepCounter(page: OnboardingScreen, context: OnboardingFlo
     };
 }
 
-export {getOnboardingFlow, getOnboardingStepCounter};
+function getPreviousOnboardingRoute(page: OnboardingScreen, context: OnboardingFlowContext, backTo?: string): Route | undefined {
+    const flow = getOnboardingFlow(context);
+    if (!flow) {
+        return undefined;
+    }
+
+    const resolvedPage = getResolvedPage(page, context);
+    const index = flow.indexOf(resolvedPage);
+    if (index <= 0) {
+        return undefined;
+    }
+
+    const previousScreen = flow.at(index - 1);
+    if (!previousScreen) {
+        return undefined;
+    }
+
+    return getOnboardingRouteFromScreen(previousScreen, backTo);
+}
+
+export {getOnboardingFlow, getOnboardingStepCounter, getPreviousOnboardingRoute};
 export type {OnboardingFlowContext, OnboardingScreen, OnboardingStepResult};

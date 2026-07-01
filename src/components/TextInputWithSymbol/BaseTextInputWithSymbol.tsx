@@ -24,6 +24,7 @@ function BaseTextInputWithSymbol({
     style,
     symbolTextStyle,
     isNegative = false,
+    negativeSymbolStyle,
     rightHandSideComponent,
     ref,
     disabled,
@@ -42,7 +43,7 @@ function BaseTextInputWithSymbol({
         onChangeAmount(newAmount);
     };
 
-    const negativeSymbol = <Text style={[styles.iouAmountText]}>-</Text>;
+    const negativeSymbol = <Text style={[styles.iouAmountText, negativeSymbolStyle]}>-</Text>;
 
     return (
         <>
@@ -68,7 +69,6 @@ function BaseTextInputWithSymbol({
                 onKeyPress={onKeyPress}
                 style={[styles.pr1, style]}
                 rightHandSideComponent={rightHandSideComponent}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />
             {!hideSymbol && symbolPosition === CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX && (

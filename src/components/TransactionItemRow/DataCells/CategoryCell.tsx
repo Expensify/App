@@ -1,18 +1,41 @@
 import React from 'react';
+import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal';
 import TextWithIconCell from '@components/Search/SearchList/ListItem/TextWithIconCell';
+import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import {EditableCell, usePopoverEditState} from '@components/TransactionItemRow/EditableCell';
+import type {EditableProps} from '@components/TransactionItemRow/EditableCell';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
+import {getDecodedLeafCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
-function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem}: TransactionDataCellProps) {
+type CategoryCellProps = TransactionDataCellProps &
+    EditableProps<string> & {
+        policyID?: string;
+    };
+
+function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem, canEdit, onSave, policyID}: CategoryCellProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Folder']);
     const styles = useThemeStyles();
 
-    const categoryForDisplay = isCategoryMissing(transactionItem?.category) ? '' : getDecodedCategoryName(transactionItem?.category ?? '');
+    // For display: decoded category name for user-readable text
+    const categoryForDisplay = isCategoryMissing(transactionItem?.category) ? '' : getDecodedLeafCategoryName(transactionItem?.category ?? '');
 
-    return shouldUseNarrowLayout ? (
+    // For picker comparison: raw category name (empty if missing, matches IOURequestStepCategory)
+    const categoryForComparison = isCategoryMissing(transactionItem?.category) ? '' : (transactionItem?.category ?? '');
+
+    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
+        canEdit,
+        value: categoryForComparison,
+        onSave,
+    });
+
+    const handleCategorySelected = (item: ListItem) => {
+        handleSave(item.keyForList);
+    };
+
+    const displayContent = shouldUseNarrowLayout ? (
         <TextWithIconCell
             icon={icons.Folder}
             showTooltip={shouldShowTooltip}
@@ -26,6 +49,28 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
             numberOfLines={1}
             style={[styles.lineHeightLarge, styles.justifyContentCenter]}
         />
+    );
+
+    return (
+        <EditableCell
+            canEdit={canEdit}
+            isEditing={isEditing}
+            onStartEditing={startEditing}
+            anchorRef={anchorRef}
+            popoverContent={
+                <CategoryPickerModal
+                    policyID={policyID}
+                    selectedCategory={categoryForComparison}
+                    isVisible={isPopoverVisible}
+                    onClose={cancelEditing}
+                    anchorPosition={popoverPosition}
+                    shouldMeasureAnchorPositionFromTop={!isInverted}
+                    onSelected={handleCategorySelected}
+                />
+            }
+        >
+            {displayContent}
+        </EditableCell>
     );
 }
 

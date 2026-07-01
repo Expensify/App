@@ -22,6 +22,7 @@ index.js
 web/snippets/**
 
 # Automatically generated files
+.eslint-reports/
 src/libs/SearchParser/searchParser.js
 src/libs/SearchParser/autocompleteParser.js
 

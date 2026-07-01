@@ -3,6 +3,7 @@ import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,6 +13,7 @@ import ROUTES from '@src/ROUTES';
 
 function UnlockAccountPage() {
     const {translate} = useLocalize();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['EmptyStateSpyPigeon']);
 
@@ -33,7 +35,7 @@ function UnlockAccountPage() {
                     descriptionStyle={styles.colorMuted}
                     buttonText={translate('unlockAccountPage.chatWithConcierge')}
                     onButtonPress={() => {
-                        requestUnlockAccount();
+                        requestUnlockAccount(currentUserPersonalDetails.accountID);
                         Navigation.navigate(ROUTES.CONCIERGE);
                     }}
                     containerStyle={styles.h100}

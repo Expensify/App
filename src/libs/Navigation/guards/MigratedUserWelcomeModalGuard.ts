@@ -4,22 +4,65 @@ import {tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {DismissedProductTraining} from '@src/types/onyx';
+import type {DismissedProductTraining, Session} from '@src/types/onyx';
 import type {GuardResult, NavigationGuard} from './types';
 
 let hasBeenAddedToNudgeMigration = false;
 let dismissedProductTraining: OnyxEntry<DismissedProductTraining>;
+let isDismissedProductTrainingLoaded = false;
+let session: OnyxEntry<Session>;
+let isLoadingApp = true;
 
 let hasRedirectedToMigratedUserModal = false;
 
+function getMigratedUserWelcomeModalRoute(basePath?: string): Route {
+    return createDynamicRoute(DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path, basePath ?? (Navigation.getActiveRoute() || ROUTES.HOME));
+}
+
 function resetSessionFlag() {
     hasRedirectedToMigratedUserModal = false;
+}
+
+/**
+ * Proactively navigate to the migrated user welcome modal when all conditions are met,
+ * without waiting for a user-initiated navigation action.
+ * Waits for NVP_DISMISSED_PRODUCT_TRAINING to load before evaluating, preventing the
+ * race condition where the modal would re-appear on app restart.
+ */
+function navigateToMigratedUserWelcomeModalIfReady() {
+    if (
+        !session?.authToken ||
+        isLoadingApp ||
+        hasRedirectedToMigratedUserModal ||
+        !hasBeenAddedToNudgeMigration ||
+        !isDismissedProductTrainingLoaded ||
+        isProductTrainingElementDismissed('migratedUserWelcomeModal', dismissedProductTraining)
+    ) {
+        return;
+    }
+
+    Log.info('[MigratedUserWelcomeModalGuard] Proactively navigating to migrated user welcome modal');
+    hasRedirectedToMigratedUserModal = true;
+    Navigation.navigate(getMigratedUserWelcomeModalRoute());
+}
+
+/**
+ * Called by guards/index.ts when session or loading app state changes.
+ * Reuses the shared Onyx subscriptions from guards/index.ts to avoid duplicate connections.
+ */
+function onSessionOrLoadingAppChanged(sessionValue: OnyxEntry<Session>, isLoadingAppValue: boolean) {
+    session = sessionValue;
+    isLoadingApp = isLoadingAppValue;
+    navigateToMigratedUserWelcomeModalIfReady();
 }
 
 Onyx.connectWithoutView({
@@ -27,6 +70,7 @@ Onyx.connectWithoutView({
     callback: (value) => {
         const result = value ? tryNewDotOnyxSelector(value) : undefined;
         hasBeenAddedToNudgeMigration = result?.hasBeenAddedToNudgeMigration ?? false;
+        navigateToMigratedUserWelcomeModalIfReady();
     },
 });
 
@@ -34,9 +78,11 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
     callback: (value) => {
         dismissedProductTraining = value;
+        isDismissedProductTrainingLoaded = true;
         if (isProductTrainingElementDismissed('migratedUserWelcomeModal', value)) {
             hasRedirectedToMigratedUserModal = false;
         }
+        navigateToMigratedUserWelcomeModalIfReady();
     },
 });
 
@@ -57,8 +103,8 @@ function shouldBlockWhileModalActive(state: NavigationState, action: NavigationA
 
 /** Prevents redirect loops by detecting when we're already on or resetting to the modal. */
 function isNavigatingToMigratedUserModal(state: NavigationState, action: NavigationAction): boolean {
-    const isOnModal = findFocusedRoute(state)?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT;
-    const isResettingToModal = action.type === 'RESET' && !!action.payload && findFocusedRoute(action.payload as NavigationState)?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT;
+    const isOnModal = findFocusedRoute(state)?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT;
+    const isResettingToModal = action.type === 'RESET' && !!action.payload && findFocusedRoute(action.payload as NavigationState)?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT;
 
     return isOnModal || isResettingToModal;
 }
@@ -83,13 +129,23 @@ const MigratedUserWelcomeModalGuard: NavigationGuard = {
             return {type: 'ALLOW'};
         }
 
+        // Guard against the race condition where NVP_TRY_NEW_DOT arrives before
+        // NVP_DISMISSED_PRODUCT_TRAINING has been fetched. Without this check, a
+        // navigation firing between those two Onyx callbacks would see an undefined
+        // dismissedProductTraining and incorrectly redirect users who already dismissed
+        // the modal (most noticeable in copilot sessions or on large accounts with
+        // slow OpenApp responses).
+        if (!isDismissedProductTrainingLoaded) {
+            return {type: 'ALLOW'};
+        }
+
         if (hasBeenAddedToNudgeMigration && !isProductTrainingElementDismissed('migratedUserWelcomeModal', dismissedProductTraining)) {
             Log.info('[MigratedUserWelcomeModalGuard] Redirecting to migrated user welcome modal');
             hasRedirectedToMigratedUserModal = true;
 
             return {
                 type: 'REDIRECT',
-                route: ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute(),
+                route: getMigratedUserWelcomeModalRoute(),
             };
         }
 
@@ -98,4 +154,16 @@ const MigratedUserWelcomeModalGuard: NavigationGuard = {
 };
 
 export default MigratedUserWelcomeModalGuard;
-export {resetSessionFlag};
+export {resetSessionFlag, onSessionOrLoadingAppChanged};
+
+/**
+ * Resets the dismissal-NVP loaded flag and cached value.
+ * Only intended for use in unit tests to simulate the race condition where
+ * NVP_DISMISSED_PRODUCT_TRAINING has not yet been delivered by Onyx.
+ */
+function resetDismissedProductTrainingState() {
+    isDismissedProductTrainingLoaded = false;
+    dismissedProductTraining = undefined;
+}
+
+export {resetDismissedProductTrainingState};

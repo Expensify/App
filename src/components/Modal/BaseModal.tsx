@@ -1,13 +1,15 @@
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
+import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
+import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
 // Animated required for side panel navigation
 // eslint-disable-next-line no-restricted-imports
-import {Animated, DeviceEventEmitter, View} from 'react-native';
+import {Animated, View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import NavigationBar from '@components/NavigationBar';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
 import ScrollView from '@components/ScrollView';
 import useKeyboardState from '@hooks/useKeyboardState';
+import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
@@ -63,7 +65,7 @@ function BaseModal({
     swipeDirection,
     shouldPreventScrollOnFocus = false,
     enableEdgeToEdgeBottomSafeAreaPadding,
-    shouldApplySidePanelOffset = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
+    shouldApplySidePanelOffset: shouldApplySidePanelOffsetProp,
     hasBackdrop,
     backdropOpacity,
     shouldDisableBottomSafeAreaPadding = false,
@@ -71,13 +73,13 @@ function BaseModal({
     forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK,
     ref,
     shouldDisplayBelowModals = false,
+    shouldKeepRightDockedBackdropInNarrowPane = false,
     shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode = true,
 }: BaseModalProps) {
-    // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
-    const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
     const {windowWidth, windowHeight} = useWindowDimensions();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct modal width
     const canUseTouchScreen = canUseTouchScreenCheck();
@@ -85,6 +87,9 @@ function BaseModal({
     const {isSmallScreenWidth, shouldUseNarrowLayout, isInNarrowPaneModal, isInLandscapeMode} = useResponsiveLayout();
 
     const {sidePanelOffset} = useSidePanelState();
+
+    // This prop does not have a default value, because React Compiler throws an internal error if this is provided as a default value.
+    const shouldApplySidePanelOffset = shouldApplySidePanelOffsetProp ?? type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED;
     const sidePanelAnimatedStyle = shouldApplySidePanelOffset && !isSmallScreenWidth ? {transform: [{translateX: Animated.multiply(sidePanelOffset.current, -1)}]} : undefined;
     const keyboardStateContextValue = useKeyboardState();
 
@@ -95,16 +100,21 @@ function BaseModal({
 
     const shouldCallHideModalOnUnmount = useRef(false);
     const hideModalCallbackRef = useRef<(callHideCallback: boolean) => void>(undefined);
+    const bottomDockedDismissButtonRef = useRef<View>(null);
+    const fallbackModalIdRef = useRef<number | undefined>(undefined);
+    if (fallbackModalIdRef.current === undefined) {
+        fallbackModalIdRef.current = ComposerFocusManager.getId();
+    }
 
     const wasVisible = usePrevious(isVisible);
 
-    const uniqueModalId = useMemo(() => modalId ?? ComposerFocusManager.getId(), [modalId]);
-    const saveFocusState = useCallback(() => {
+    const uniqueModalId = modalId ?? fallbackModalIdRef.current;
+    const saveFocusState = () => {
         if (shouldEnableNewFocusManagement) {
             ComposerFocusManager.saveFocusState(uniqueModalId);
         }
         ComposerFocusManager.resetReadyToFocus(uniqueModalId);
-    }, [shouldEnableNewFocusManagement, uniqueModalId]);
+    };
     /**
      * Hides modal
      * @param callHideCallback - Should we call the onModalHide callback
@@ -166,11 +176,9 @@ function BaseModal({
             }
             hideModalCallbackRef.current?.(true);
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
         [],
     );
-
-    useEffect(() => () => DeviceEventEmitter.emit(CONST.MODAL_EVENTS.CLOSED), []);
 
     const handleShowModal = useCallback(() => {
         if (shouldSetModalVisibility) {
@@ -179,8 +187,8 @@ function BaseModal({
         onModalShow();
     }, [onModalShow, shouldSetModalVisibility, type]);
 
-    const handleBackdropPress = (e?: KeyboardEvent) => {
-        if (e?.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+    const handleBackdropPress = (e?: GestureResponderEvent | KeyboardEvent) => {
+        if (e && 'key' in e && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
             return;
         }
 
@@ -227,84 +235,57 @@ function BaseModal({
         shouldAddTopSafeAreaPadding,
         shouldAddBottomSafeAreaPadding,
         hideBackdrop,
-    } = useMemo(
-        () =>
-            StyleUtils.getModalStyles(
-                type,
-                {
-                    windowWidth,
-                    windowHeight,
-                    isSmallScreenWidth,
-                    shouldUseNarrowLayout,
-                },
-                popoverAnchorPosition,
-                innerContainerStyle,
-                outerStyle,
-                shouldUseModalPaddingStyle,
-                {
-                    modalOverlapsWithTopSafeArea,
-                    shouldDisableBottomSafeAreaPadding: !!shouldDisableBottomSafeAreaPadding,
-                },
-                shouldDisplayBelowModals,
-            ),
-        [
-            StyleUtils,
-            type,
+    } = StyleUtils.getModalStyles({
+        type,
+        windowDimensions: {
             windowWidth,
             windowHeight,
             isSmallScreenWidth,
             shouldUseNarrowLayout,
-            popoverAnchorPosition,
-            innerContainerStyle,
-            outerStyle,
-            shouldUseModalPaddingStyle,
-            modalOverlapsWithTopSafeArea,
-            shouldDisableBottomSafeAreaPadding,
-            shouldDisplayBelowModals,
-        ],
-    );
-
-    const modalPaddingStyles = useMemo(() => {
-        const paddings = StyleUtils.getModalPaddingStyles({
-            shouldAddBottomSafeAreaMargin,
-            shouldAddTopSafeAreaMargin,
-            // enableEdgeToEdgeBottomSafeAreaPadding is used as a temporary solution to disable safe area bottom spacing on modals, to allow edge-to-edge content
-            shouldAddBottomSafeAreaPadding: !isUsingEdgeToEdgeMode && (!avoidKeyboard || !keyboardStateContextValue.isKeyboardActive) && shouldAddBottomSafeAreaPadding,
-            shouldAddTopSafeAreaPadding,
-            modalContainerStyle,
-            insets,
-        });
-        return shouldUseModalPaddingStyle ? paddings : {paddingLeft: paddings.paddingLeft, paddingRight: paddings.paddingRight};
-    }, [
-        StyleUtils,
-        avoidKeyboard,
-        insets,
-        isUsingEdgeToEdgeMode,
-        keyboardStateContextValue.isKeyboardActive,
-        modalContainerStyle,
-        shouldAddBottomSafeAreaMargin,
-        shouldAddBottomSafeAreaPadding,
-        shouldAddTopSafeAreaMargin,
-        shouldAddTopSafeAreaPadding,
+        },
+        popoverAnchorPosition,
+        innerContainerStyle,
+        outerStyle,
         shouldUseModalPaddingStyle,
-    ]);
+        safeAreaOptions: {
+            modalOverlapsWithTopSafeArea,
+            shouldDisableBottomSafeAreaPadding: !!shouldDisableBottomSafeAreaPadding,
+        },
+        enableEdgeToEdgeBottomSafeAreaPadding,
+        shouldDisplayBelowModals,
+    });
 
-    const modalContextValue = useMemo(
-        () => ({
-            activeModalType: isVisible ? type : undefined,
-            default: false,
-        }),
-        [isVisible, type],
-    );
+    // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
+    const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
+
+    const paddings = StyleUtils.getModalPaddingStyles({
+        shouldAddBottomSafeAreaMargin,
+        shouldAddTopSafeAreaMargin,
+        // enableEdgeToEdgeBottomSafeAreaPadding is used as a temporary solution to disable safe area bottom spacing on modals, to allow edge-to-edge content
+        shouldAddBottomSafeAreaPadding: !isUsingEdgeToEdgeMode && (!avoidKeyboard || !keyboardStateContextValue.isKeyboardActive) && shouldAddBottomSafeAreaPadding,
+        shouldAddTopSafeAreaPadding,
+        modalContainerStyle,
+        insets,
+    });
+    const modalPaddingStyles = shouldUseModalPaddingStyle ? paddings : {paddingLeft: paddings.paddingLeft, paddingRight: paddings.paddingRight};
+
+    const modalContextValue = {
+        activeModalType: isVisible ? type : undefined,
+        default: false,
+    };
 
     // In Modals we need to reset the ScreenWrapperOfflineIndicatorContext to allow nested ScreenWrapper components to render offline indicators,
     // except if we are in a narrow pane navigator. In this case, we use the narrow pane's original values.
     const {isInNarrowPane} = useContext(NarrowPaneContext);
     const {originalValues} = useContext(ScreenWrapperOfflineIndicatorContext);
-    const offlineIndicatorContextValue = useMemo(() => (isInNarrowPane ? (originalValues ?? {}) : {}), [isInNarrowPane, originalValues]);
+    const offlineIndicatorContextValue = isInNarrowPane ? (originalValues ?? {}) : {};
 
+    const shouldSuppressRightDockedBackdrop =
+        type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth && (isInNarrowPane || isInNarrowPaneModal) && !shouldKeepRightDockedBackdropInNarrowPane;
+    const isFullWidthNarrowSheet =
+        (type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED || type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT) && isSmallScreenWidth && !shouldKeepRightDockedBackdropInNarrowPane;
     const backdropOpacityAdjusted =
-        hideBackdrop || (type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth && (isInNarrowPane || isInNarrowPaneModal)) // right_docked modals shouldn't add backdrops when opened in same-width RHP
+        hideBackdrop || shouldSuppressRightDockedBackdrop || isFullWidthNarrowSheet // full-width narrow sheets (RHP-like) shouldn't dim a backdrop behind them
             ? 0
             : backdropOpacity;
 
@@ -313,6 +294,11 @@ function BaseModal({
     const isBottomDockedModalInLandscapeMode = type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && isInLandscapeMode;
 
     const shouldWrapChildrenInScrollView = shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode && isBottomDockedModalInLandscapeMode;
+    const shouldShowBottomDockedDismissButton = isSmallScreenWidth && type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && !!(onBackdropPress ?? onClose);
+    // `bottomDockedDismissButtonRef.current` can be `null` by the time focus-trap reads `initialFocus` (the read is
+    // deferred via setTimeout) — e.g. the sheet was dismissed quickly, or a layout change flipped `shouldShowBottomDockedDismissButton`
+    // and unmounted the button. focus-trap throws on a `null` (vs `false`) initial focus, so coerce it to `false` ("no initial focus").
+    const modalInitialFocus = shouldShowBottomDockedDismissButton ? () => bottomDockedDismissButtonRef.current ?? false : initialFocus;
 
     return (
         <ModalContext.Provider value={modalContextValue}>
@@ -350,7 +336,7 @@ function BaseModal({
                         onSwipeComplete={onClose}
                         swipeDirection={swipeDirection}
                         shouldPreventScrollOnFocus={shouldPreventScrollOnFocus}
-                        initialFocus={initialFocus}
+                        initialFocus={modalInitialFocus}
                         swipeThreshold={swipeThreshold}
                         isVisible={isVisible}
                         backdropColor={theme.overlay}
@@ -391,6 +377,19 @@ function BaseModal({
                             ref={ref}
                             fsClass={forwardedFSClass}
                         >
+                            {shouldShowBottomDockedDismissButton && (
+                                <PressableWithoutFeedback
+                                    ref={bottomDockedDismissButtonRef}
+                                    onPress={handleBackdropPress}
+                                    role={CONST.ROLE.BUTTON}
+                                    accessibilityRole={CONST.ROLE.BUTTON}
+                                    accessibilityLabel={translate('common.dismiss')}
+                                    sentryLabel={CONST.SENTRY_LABEL.MODAL.DISMISS_DIALOG}
+                                    style={styles.bottomDockedModalDismissButton}
+                                >
+                                    <View />
+                                </PressableWithoutFeedback>
+                            )}
                             <ColorSchemeWrapper>{shouldWrapChildrenInScrollView ? <ScrollView>{children}</ScrollView> : children}</ColorSchemeWrapper>
                         </Animated.View>
                         {!keyboardStateContextValue?.isKeyboardActive && <NavigationBar />}

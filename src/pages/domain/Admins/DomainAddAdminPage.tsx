@@ -9,14 +9,16 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useSearchSelector from '@hooks/useSearchSelector';
+import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchUserInServer} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getHeaderMessage} from '@libs/OptionsListUtils';
-import type {OptionData} from '@libs/ReportUtils';
+import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
+import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
+import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import {addAdminToDomain} from '@userActions/Domain';
@@ -24,6 +26,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsLoginsSelector} from '@src/selectors/PersonalDetails';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 type Sections = Section<OptionData>;
 
@@ -43,20 +47,28 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
     const [adminIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: adminAccountIDsSelector,
     });
+    const [adminLoginsByAccountIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginsSelector(adminIDs)});
 
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-    const [currentlySelectedUser, setCurrentlySelectedUser] = useState<OptionData | null>(null);
     const didInvite = useRef<boolean>(false);
 
     const domainName = domainEmail ? Str.extractEmailDomain(domainEmail) : undefined;
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
+
+    // Any existing participants and Expensify emails should not be eligible for invitation
+    const excludedUsers: Record<string, boolean> = {
+        ...CONST.EXPENSIFY_EMAILS_OBJECT,
+    };
+    for (const login of adminLoginsByAccountIDs) {
+        const smsDomain = addSMSDomainIfPhoneNumber(login);
+        excludedUsers[smsDomain] = true;
+    }
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, availableOptions, toggleSelection, areOptionsInitialized} = usePersonalDetailSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
-        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
-        includeRecentReports: false,
         includeUserToInvite: true,
-        excludeLogins: Object.fromEntries(CONST.EXPENSIFY_EMAILS.map((email) => [email, true])),
+        includeRecentReports: false,
+        shouldUpdateSelectedOptionsOnSingleSelect: true,
+        excludeLogins: excludedUsers,
         shouldInitialize: didScreenTransitionEnd,
-        onSingleSelect: (option) => setCurrentlySelectedUser({...option, isSelected: true}),
     });
 
     useEffect(() => {
@@ -64,38 +76,35 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
     }, [debouncedSearchTerm]);
 
     const inviteUser = () => {
-        if (didInvite.current || !currentlySelectedUser || !currentlySelectedUser.accountID || !currentlySelectedUser.login || !domainName) {
+        const selectedOption = selectedOptions.at(0);
+        if (didInvite.current || !selectedOption?.accountID || !selectedOption.login || !domainName) {
             return;
         }
         didInvite.current = true;
 
-        addAdminToDomain(domainAccountID, currentlySelectedUser.accountID, currentlySelectedUser.login, domainName, !!currentlySelectedUser.isOptimisticAccount);
+        addAdminToDomain(domainAccountID, selectedOption.accountID, selectedOption.login, domainName, !!selectedOption.isOptimisticPersonalDetail);
         Navigation.dismissModal();
     };
 
-    const filteredOptions = areOptionsInitialized
-        ? availableOptions.personalDetails.filter(({accountID}) => accountID && accountID !== currentlySelectedUser?.accountID && !adminIDs?.includes(accountID))
-        : [];
-
     const sections: Sections[] = [];
     if (areOptionsInitialized) {
-        if (currentlySelectedUser) {
+        if (availableOptions.selectedOptions.length > 0) {
             sections.push({
                 title: undefined,
-                data: [currentlySelectedUser],
+                data: availableOptions.selectedOptions,
                 sectionIndex: 0,
             });
         }
 
-        if (filteredOptions.length > 0) {
+        if (availableOptions.personalDetails.length > 0) {
             sections.push({
                 title: translate('common.contacts'),
-                data: filteredOptions,
+                data: availableOptions.personalDetails,
                 sectionIndex: 1,
             });
         }
 
-        if (availableOptions.userToInvite && currentlySelectedUser?.login !== availableOptions.userToInvite.login) {
+        if (availableOptions.userToInvite) {
             sections.push({
                 title: undefined,
                 data: [availableOptions.userToInvite],
@@ -106,7 +115,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
 
     const footerContent = (
         <FormAlertWithSubmitButton
-            isDisabled={!currentlySelectedUser}
+            isDisabled={selectedOptions.length === 0}
             isAlertVisible={false}
             buttonText={translate('common.invite')}
             onSubmit={inviteUser}
@@ -116,16 +125,17 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
     );
 
     const headerMessage = () => {
+        if (sections.length > 0) {
+            return '';
+        }
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
-        if (!availableOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
+        if (CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
             return translate('messages.errorMessageInvalidEmail');
         }
-
-        const searchedUserPersonalDetails = availableOptions.personalDetails.find(({login}) => login?.toLowerCase() === searchValue);
-        if (!availableOptions.userToInvite && searchedUserPersonalDetails?.accountID && adminIDs?.includes(searchedUserPersonalDetails.accountID)) {
-            return translate('messages.userIsAlreadyAnAdmin', {login: searchValue, name: domainName ?? ''});
+        if (excludedUsers[parsePhoneNumber(appendCountryCode(searchValue, countryCode)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue, countryCode)) : searchValue]) {
+            return translate('messages.userIsAlreadyAnAdmin', searchValue, domainName ?? '');
         }
-        return getHeaderMessage(filteredOptions.length > 0 || !!currentlySelectedUser, !!availableOptions.userToInvite, searchValue, countryCode, false);
+        return getHeaderMessage(translate, searchValue, countryCode);
     };
 
     const textInputOptions = {
@@ -161,7 +171,6 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     footerContent={footerContent}
                     isLoadingNewOptions={!!isSearchingForReports}
-                    onEndReached={onListEndReached}
                     addBottomSafeAreaPadding
                     shouldShowTextInput
                     disableMaintainingScrollPosition

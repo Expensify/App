@@ -68,5 +68,4 @@ function addSMSDomainIfPhoneNumber(login = ''): string {
     return login;
 }
 
-// eslint-disable-next-line import/prefer-default-export
 export {parsePhoneNumber, addSMSDomainIfPhoneNumber};

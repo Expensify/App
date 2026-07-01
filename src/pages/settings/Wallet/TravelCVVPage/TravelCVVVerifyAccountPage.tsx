@@ -4,7 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import {revealVirtualCardDetails} from '@libs/actions/Card';
-import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
+import {requestValidateCodeAction} from '@libs/actions/User';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTravelInvoicingCard} from '@libs/TravelInvoicingUtils';
@@ -39,7 +39,7 @@ function TravelCVVVerifyAccountPage() {
         setIsLoading(true);
 
         // Call revealVirtualCardDetails and only extract CVV
-        // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
+
         revealVirtualCardDetails(+travelCard.cardID, validateCode)
             .then((cardDetails) => {
                 // Only store CVV - never persist PAN or other details
@@ -64,7 +64,6 @@ function TravelCVVVerifyAccountPage() {
             validateError={validateError}
             clearError={() => setValidateError({})}
             onClose={() => {
-                resetValidateActionCodeSent();
                 navigateBack();
             }}
             isLoading={isLoading}

@@ -1,0 +1,136 @@
+import React, {useState} from 'react';
+import type {ReactNode} from 'react';
+import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
+import type {SearchFilterCommonProps} from '@components/Search/types';
+import SelectionList from '@components/SelectionList';
+import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
+import type {ListItem} from '@components/SelectionList/ListItem/types';
+import type {TextInputOptions} from '@components/SelectionList/types';
+import useDebouncedState from '@hooks/useDebouncedState';
+import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import CONST from '@src/CONST';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
+import ListFilterView from './ListFilterViewWrapper';
+
+type MultiSelectItem<T> = {
+    text: string;
+    value: T;
+    icons?: Icon[];
+    leftElement?: ReactNode;
+    searchableText?: string;
+};
+
+type MultiSelectProps<T> = SearchFilterCommonProps<Array<MultiSelectItem<T>>> & {
+    /** The list of all items to show up in the list */
+    items: Array<MultiSelectItem<T>>;
+
+    /** Whether the search input should be displayed. */
+    isSearchable?: boolean;
+
+    /** Search input placeholder. Defaults to 'common.search' when not provided. */
+    searchPlaceholder?: string;
+
+    /** Whether the data for the popover is loading */
+    loading?: boolean;
+
+    /** Whether to show the loading placeholder */
+    shouldShowLoadingPlaceholder?: boolean;
+};
+
+function MultiSelect<T extends string>({
+    loading,
+    shouldShowLoadingPlaceholder,
+    value,
+    items,
+    isSearchable,
+    searchPlaceholder,
+    selectionListTextInputStyle,
+    selectionListStyle,
+    autoFocus,
+    footer,
+    onChange,
+}: MultiSelectProps<T>) {
+    const theme = useTheme();
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+
+    const [selectedItems, setSelectedItems] = useState(value);
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+
+    const searchLower = debouncedSearchTerm.toLowerCase();
+    const filteredItems = isSearchable ? items.filter((item) => item.text.toLowerCase().includes(searchLower) || item.searchableText?.toLowerCase().includes(searchLower)) : items;
+    const listData: ListItem[] = filteredItems.map((item) => ({
+        text: item.text,
+        keyForList: item.value,
+        isSelected: !!selectedItems.find((i) => i.value === item.value),
+        icons: item.icons,
+        leftElement: item.leftElement,
+    }));
+
+    const headerMessage = isSearchable && listData.length === 0 ? translate('common.noResultsFound') : undefined;
+
+    const updateSelectedItems = (item: ListItem) => {
+        if (item.isSelected) {
+            const newSelectedItems = selectedItems.filter((i) => i.value !== item.keyForList);
+            setSelectedItems(newSelectedItems);
+            onChange(newSelectedItems);
+            return;
+        }
+
+        const newItem = items.find((i) => i.value === item.keyForList);
+
+        if (newItem) {
+            const newSelectedItems = [...selectedItems, newItem];
+            setSelectedItems(newSelectedItems);
+            onChange(newSelectedItems);
+        }
+    };
+
+    const textInputOptions: TextInputOptions = {
+        value: searchTerm,
+        label: isSearchable ? (searchPlaceholder ?? translate('common.search')) : undefined,
+        onChangeText: setSearchTerm,
+        headerMessage,
+        style: {
+            containerStyle: selectionListTextInputStyle,
+        },
+        disableAutoFocus: !autoFocus,
+    };
+
+    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'MultiSelectDataLoading'};
+
+    return (
+        <ListFilterView
+            itemCount={listData.length}
+            isSearchable={isSearchable}
+        >
+            {loading ? (
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
+                        color={theme.spinner}
+                        reasonAttributes={reasonAttributes}
+                    />
+                </View>
+            ) : (
+                <SelectionList
+                    shouldSingleExecuteRowSelect
+                    shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
+                    data={listData}
+                    ListItem={MultiSelectListItem}
+                    onSelectRow={updateSelectedItems}
+                    textInputOptions={textInputOptions}
+                    style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
+                    footerContent={footer}
+                />
+            )}
+        </ListFilterView>
+    );
+}
+
+export type {MultiSelectItem};
+export default MultiSelect;

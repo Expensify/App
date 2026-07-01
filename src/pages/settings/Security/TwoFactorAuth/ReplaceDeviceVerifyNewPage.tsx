@@ -1,5 +1,5 @@
 import React, {useEffect, useRef} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import Button from '@components/Button';
@@ -52,15 +52,12 @@ function ReplaceDeviceVerifyNewPage() {
         if (!account || account.twoFactorAuthSecretKey) {
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_2FA_SUCCESS.route, {forceReplace: true});
+        Navigation.navigate(ROUTES.SETTINGS_2FA_SUCCESS, {forceReplace: true});
     }, [account, account?.twoFactorAuthSecretKey]);
 
     const handleInputFocus = () => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            requestAnimationFrame(() => {
-                scrollViewRef.current?.scrollToEnd({animated: true});
-            });
+        requestAnimationFrame(() => {
+            scrollViewRef.current?.scrollToEnd({animated: true});
         });
     };
 

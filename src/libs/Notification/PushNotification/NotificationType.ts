@@ -49,4 +49,4 @@ type TransactionPushNotificationData<TUpdate extends AnyOnyxServerUpdate> = Base
  * types of push notifications sent by our API.
  */
 export default NotificationType;
-export type {NotificationTypes, NotificationDataMap, PushNotificationData, AnyPushNotificationData, ReportActionPushNotificationData, TransactionPushNotificationData};
+export type {NotificationTypes, NotificationDataMap, PushNotificationData, AnyPushNotificationData};

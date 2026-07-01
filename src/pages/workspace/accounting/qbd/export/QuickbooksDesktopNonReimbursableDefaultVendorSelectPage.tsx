@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -35,9 +34,7 @@ function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithP
                 value: vendor.id,
                 text: vendor.name,
                 keyForList: vendor.name,
-                // We use the logical OR (||) here instead of ?? because `nonReimbursableBillDefaultVendor` can be an empty string
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                isSelected: vendor.id === (nonReimbursableBillDefaultVendor || vendors.at(0)?.id),
+                isSelected: vendor.id === nonReimbursableBillDefaultVendor,
             })) ?? [],
         [nonReimbursableBillDefaultVendor, vendors],
     );
@@ -74,7 +71,6 @@ function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithP
             displayName="QuickbooksDesktopNonReimbursableDefaultVendorSelectPage"
             title="workspace.accounting.defaultVendor"
             data={data}
-            listItem={RadioListItem}
             onSelectRow={selectVendor}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}

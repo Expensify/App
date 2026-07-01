@@ -19,7 +19,7 @@ type HybridAppModuleWithClose = {
 };
 
 type HybridAppActionsModule = {
-    closeReactNativeApp: (params: {shouldSetNVP: boolean; isTrackingGPS: boolean}) => void;
+    closeReactNativeApp: (params: {shouldSetNVP: boolean; isTrackingGPS: boolean; shouldIgnoreTryNewDotLoading?: boolean}) => void;
 };
 
 describe('HybridApp actions', () => {
@@ -62,6 +62,26 @@ describe('HybridApp actions', () => {
         expect(closeNativeAppSpy).not.toHaveBeenCalled();
     });
 
+    it('opens the GPS OldApp handoff modal while tryNewDot is loading', async () => {
+        await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+        await waitForBatchedUpdatesWithAct();
+
+        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: true});
+
+        expect(setIsGPSInProgressModalOpen).toHaveBeenCalledWith(true);
+        expect(closeNativeAppSpy).not.toHaveBeenCalled();
+    });
+
+    it('opens the GPS OldApp handoff modal once switching to OldApp is allowed', async () => {
+        await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+        await waitForBatchedUpdatesWithAct();
+
+        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: true});
+
+        expect(setIsGPSInProgressModalOpen).toHaveBeenCalledWith(true);
+        expect(closeNativeAppSpy).not.toHaveBeenCalled();
+    });
+
     it('allows shouldSetNVP exits once tryNewDot resolves without a mobile lock', async () => {
         await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
         await waitForBatchedUpdatesWithAct();
@@ -70,6 +90,28 @@ describe('HybridApp actions', () => {
 
         expect(Navigation.clearPreloadedRoutes).toHaveBeenCalled();
         expect(closeNativeAppSpy).toHaveBeenCalledWith({shouldSetNVP: true});
+    });
+
+    it('allows the GPS modal confirmation to switch after tryNewDot loading blocked the original action', async () => {
+        await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+        await waitForBatchedUpdatesWithAct();
+
+        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false, shouldIgnoreTryNewDotLoading: true});
+
+        expect(Navigation.clearPreloadedRoutes).toHaveBeenCalled();
+        expect(closeNativeAppSpy).toHaveBeenCalledWith({shouldSetNVP: true});
+    });
+
+    it('keeps the GPS modal confirmation blocked when the user is locked to NewApp', async () => {
+        await Onyx.set(ONYXKEYS.NVP_TRY_NEW_DOT, {
+            isLockedToNewApp: true,
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false, shouldIgnoreTryNewDotLoading: true});
+
+        expect(Navigation.clearPreloadedRoutes).not.toHaveBeenCalled();
+        expect(closeNativeAppSpy).not.toHaveBeenCalled();
     });
 
     it('blocks shouldSetNVP false exits when the user is locked to NewApp', async () => {
@@ -151,6 +193,31 @@ describe('HybridApp actions', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
+        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false});
+        expect(closeNativeAppSpy).toHaveBeenCalledWith({shouldSetNVP: true});
+    });
+
+    it('allows shouldSetNVP exits when NVP_TRY_NEW_DOT arrives before SESSION on initial app start', async () => {
+        await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+        await waitForBatchedUpdatesWithAct();
+
+        // Simulate mobile ordering: NVP fires before SESSION
+        await Onyx.set(ONYXKEYS.NVP_TRY_NEW_DOT, {
+            classicRedirect: {
+                dismissed: false,
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // SESSION fires after NVP — this is the initial undefined → accountID transition
+        await Onyx.set(ONYXKEYS.SESSION, {
+            accountID: 1,
+            authToken: 'auth-token',
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // closeReactNativeApp should still work because the initial session load
+        // must not blank the already-populated currentTryNewDot
         closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false});
         expect(closeNativeAppSpy).toHaveBeenCalledWith({shouldSetNVP: true});
     });

@@ -42,7 +42,7 @@ This document lists all implemented telemetry metrics in the Expensify App.
 - Technical: Report actions list rendered (onLayout event)
   - Report data loaded from Onyx (reportID, type, chatType)
   - Report actions list layout complete (we are waiting for the first page data render, so if there is any data in the Onyx, we'll not wait for the API)
-  - Called in [`src/pages/home/report/ReportActionsView.tsx`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/pages/home/report/ReportActionsView.tsx#L272) and [`src/components/MoneyRequestReportActionsList.tsx`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/components/MoneyRequestReportActionsList.tsx#L649)
+  - Called in the list body `src/pages/inbox/report/ReportActionsList.tsx`
 **Span ID**: `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`
 **Attributes**: `is_transaction_thread`, `is_one_transaction_report`, `report_type`, `chat_type`
 
@@ -63,6 +63,36 @@ This document lists all implemented telemetry metrics in the Expensify App.
 - User sees: Search skeleton displayed (cold)
 - Technical: Search skeleton layout complete (onLayoutSkeleton event)
   - Skeleton layout rendered ([`src/components/Search/index.tsx`](https://github.com/Expensify/App/blob/e8d4f62021987e5821d69ce483349562918a948a/src/components/Search/index.tsx#L1162))
+
+### Navigate to Reports Tab (First Paint)
+
+**Constant**: `CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_FIRST_PAINT`
+**Sentry Name**: `ManualNavigateToReportsFirstPaint`
+**Threshold**: 400ms (P90)
+**What's Measured**: Time from clicking the reports tab to the first visible paint - skeleton on a cold start, content on a warm start. Runs alongside the legacy `ManualNavigateToReports` span and ends at the same moment ([`src/libs/telemetry/navigateToReportsSpans.ts`](https://github.com/Expensify/App/blob/c6476c33675cc5620c090234869cd04125878e48/src/libs/telemetry/navigateToReportsSpans.ts))
+**Start**: User clicks search/reports tab, started via `startNavigateToReportsSpans()` ([`src/libs/telemetry/navigateToReportsSpans.ts`](https://github.com/Expensify/App/blob/c6476c33675cc5620c090234869cd04125878e48/src/libs/telemetry/navigateToReportsSpans.ts#L42))
+**End**:
+- User sees: First visible paint (cold skeleton or warm content)
+- Technical: First paint layout complete via [`endNavigateToReportsFirstPaint()`](https://github.com/Expensify/App/blob/c6476c33675cc5620c090234869cd04125878e48/src/libs/telemetry/navigateToReportsSpans.ts#L48) (first call wins)
+  - Cold start: skeleton layout complete, tagged `start_type: cold` ([`SearchLoadingSkeleton.tsx`](https://github.com/Expensify/App/blob/c6476c33675cc5620c090234869cd04125878e48/src/components/Search/SearchLoadingSkeleton.tsx#L27))
+  - Warm start: content or chart layout complete, tagged `start_type: warm_first` ([list](https://github.com/Expensify/App/blob/c6476c33675cc5620c090234869cd04125878e48/src/components/Search/index.tsx#L1550), [chart](https://github.com/Expensify/App/blob/c6476c33675cc5620c090234869cd04125878e48/src/components/Search/index.tsx#L1596), [deferred-mount skeleton](https://github.com/Expensify/App/blob/c6476c33675cc5620c090234869cd04125878e48/src/components/Search/SearchWithNavigationDeferredMount.tsx#L17))
+  - Cached re-visit: screen re-focus, tagged `start_type: warm_subsequent` ([`src/components/Search/index.tsx`](https://github.com/Expensify/App/blob/c6476c33675cc5620c090234869cd04125878e48/src/components/Search/index.tsx#L1626))
+**Attributes**: `start_type` (`cold` | `warm_first` | `warm_subsequent`), `search_type`, `search_view`, `search_group_by`
+
+### Navigate to Reports Tab (Content Load)
+
+**Constant**: `CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_CONTENT_LOAD`
+**Sentry Name**: `ManualNavigateToReportsContentLoad`
+**Threshold**: 1000ms (P90)
+**What's Measured**: Time from clicking the reports tab to the real content paint (list or chart), ignoring any skeleton shown in between. Runs alongside the legacy `ManualNavigateToReports` span ([`src/libs/telemetry/navigateToReportsSpans.ts`](https://github.com/Expensify/App/blob/c6476c33675cc5620c090234869cd04125878e48/src/libs/telemetry/navigateToReportsSpans.ts))
+**Start**: User clicks search/reports tab, started via `startNavigateToReportsSpans()` ([`src/libs/telemetry/navigateToReportsSpans.ts`](https://github.com/Expensify/App/blob/c6476c33675cc5620c090234869cd04125878e48/src/libs/telemetry/navigateToReportsSpans.ts#L42))
+**End**:
+- User sees: Real search content displayed (list or chart, never the skeleton)
+- Technical: Content layout complete via [`endNavigateToReportsContentLoad()`](https://github.com/Expensify/App/blob/c6476c33675cc5620c090234869cd04125878e48/src/libs/telemetry/navigateToReportsSpans.ts#L61) (first call wins)
+  - Content layout complete ([`src/components/Search/index.tsx`](https://github.com/Expensify/App/blob/c6476c33675cc5620c090234869cd04125878e48/src/components/Search/index.tsx#L1551))
+  - Chart layout complete ([`src/components/Search/index.tsx`](https://github.com/Expensify/App/blob/c6476c33675cc5620c090234869cd04125878e48/src/components/Search/index.tsx#L1597))
+  - Cached re-visit: screen re-focus ([`src/components/Search/index.tsx`](https://github.com/Expensify/App/blob/c6476c33675cc5620c090234869cd04125878e48/src/components/Search/index.tsx#L1627))
+**Attributes**: `start_type` (copied from First Paint; `unknown` is a fallback that signals First Paint did not run), `search_type`, `search_view`, `search_group_by`
 
 ### Navigate to Inbox Tab
 

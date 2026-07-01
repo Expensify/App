@@ -42,6 +42,8 @@ jest.mock('@libs/Navigation/Navigation', () => {
         goBack: jest.fn(),
         navigationRef: mockRef,
         getActiveRoute: () => '',
+        getActiveRouteWithoutParams: jest.fn(() => ''),
+        isNavigationReady: jest.fn(() => Promise.resolve()),
     };
 });
 
@@ -83,14 +85,9 @@ const DEFAULT_SPLIT_TRANSACTION: Transaction = {
     comment: {
         attendees: [
             {
-                accountID: ACCOUNT_ID,
                 avatarUrl: '',
                 displayName: '',
                 email: ACCOUNT_LOGIN,
-                login: ACCOUNT_LOGIN,
-                reportID: REPORT_ID_1,
-                selected: true,
-                text: ACCOUNT_LOGIN,
             },
         ],
     },

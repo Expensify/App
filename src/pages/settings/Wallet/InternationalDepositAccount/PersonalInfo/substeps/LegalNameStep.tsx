@@ -10,7 +10,12 @@ import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.BANK_INFO_STEP;
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.FIRST_NAME, PERSONAL_INFO_STEP_KEY.LAST_NAME];
 
-function LegalNameStep({onNext, onMove, isEditing}: SubStepProps) {
+type LegalNameStepProps = SubStepProps & {
+    /** Whether the form submit button should be enabled when offline */
+    enabledWhenOffline?: boolean;
+};
+
+function LegalNameStep({onNext, onMove, isEditing, enabledWhenOffline}: LegalNameStepProps) {
     const {translate} = useLocalize();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
 
@@ -34,11 +39,13 @@ function LegalNameStep({onNext, onMove, isEditing}: SubStepProps) {
             onMove={onMove}
             formID={ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM}
             formTitle={translate('personalInfoStep.whatsYourLegalName')}
+            formSubtitle={translate('personalInfoStep.legalNameSubtitle')}
             onSubmit={handleSubmit}
             stepFields={STEP_FIELDS}
             firstNameInputID={PERSONAL_INFO_STEP_KEY.FIRST_NAME}
             lastNameInputID={PERSONAL_INFO_STEP_KEY.LAST_NAME}
             defaultValues={defaultValues}
+            enabledWhenOffline={enabledWhenOffline}
         />
     );
 }

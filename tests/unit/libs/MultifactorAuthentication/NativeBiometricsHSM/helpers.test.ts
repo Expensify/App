@@ -1,5 +1,5 @@
 import {Buffer} from 'buffer';
-import {buildSigningData, getKeyAlias, mapAuthTypeNumber, mapLibraryErrorToReason, mapSignErrorCodeToReason} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
+import {buildSigningData, decodeLibraryError, getKeyAlias, mapAuthTypeNumber, mapSignErrorCodeToReason} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
 import NATIVE_BIOMETRICS_HSM_VALUES from '@libs/MultifactorAuthentication/NativeBiometricsHSM/VALUES';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 
@@ -116,141 +116,141 @@ describe('NativeBiometricsHSM helpers', () => {
             // Given exact error code strings from the library indicating the user canceled the biometric prompt
             // When mapping the error codes
             // Then both iOS (USER_CANCEL) and Android (USER_CANCELED) variants should resolve to HSM.CANCELED
-            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.USER_CANCEL)).toBe(VALUES.REASON.HSM.CANCELED);
-            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.USER_CANCELED)).toBe(VALUES.REASON.HSM.CANCELED);
+            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.USER_CANCEL)).toBe(VALUES.REASON.LOCAL_ERRORS.HSM.CANCELED);
+            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.USER_CANCELED)).toBe(VALUES.REASON.LOCAL_ERRORS.HSM.CANCELED);
         });
 
         it('should return CANCELED for system cancel error codes', () => {
             // Given exact error code strings indicating the system canceled authentication (e.g., app backgrounded)
             // When mapping the error codes
             // Then both iOS (SYSTEM_CANCEL) and Android (SYSTEM_CANCELED) variants should resolve to HSM.CANCELED
-            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.SYSTEM_CANCEL)).toBe(VALUES.REASON.HSM.CANCELED);
-            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.SYSTEM_CANCELED)).toBe(VALUES.REASON.HSM.CANCELED);
+            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.SYSTEM_CANCEL)).toBe(VALUES.REASON.LOCAL_ERRORS.HSM.CANCELED);
+            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.SYSTEM_CANCELED)).toBe(VALUES.REASON.LOCAL_ERRORS.HSM.CANCELED);
         });
 
         it('should return NOT_AVAILABLE for biometric unavailability error codes', () => {
             // Given exact error codes indicating biometrics are not available on the device
             // When mapping the error codes
             // Then they should resolve to HSM.NOT_AVAILABLE so the app can guide the user to enable biometrics or use an alternative method
-            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.BIOMETRY_NOT_AVAILABLE)).toBe(VALUES.REASON.HSM.NOT_AVAILABLE);
-            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.BIOMETRIC_NOT_AVAILABLE)).toBe(VALUES.REASON.HSM.NOT_AVAILABLE);
-            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.BIOMETRIC_UNAVAILABLE)).toBe(VALUES.REASON.HSM.NOT_AVAILABLE);
+            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.BIOMETRY_NOT_AVAILABLE)).toBe(VALUES.REASON.LOCAL_ERRORS.HSM.NOT_AVAILABLE);
+            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.BIOMETRIC_NOT_AVAILABLE)).toBe(VALUES.REASON.LOCAL_ERRORS.HSM.NOT_AVAILABLE);
+            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.BIOMETRIC_UNAVAILABLE)).toBe(VALUES.REASON.LOCAL_ERRORS.HSM.NOT_AVAILABLE);
         });
 
         it('should return LOCKOUT for temporary lockout error codes', () => {
             // Given exact error codes indicating temporary biometric lockout after too many failed attempts
             // When mapping the error codes
             // Then both iOS and Android variants should resolve to HSM.LOCKOUT
-            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.BIOMETRY_LOCKOUT)).toBe(VALUES.REASON.HSM.LOCKOUT);
-            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.BIOMETRIC_LOCKOUT)).toBe(VALUES.REASON.HSM.LOCKOUT);
+            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.BIOMETRY_LOCKOUT)).toBe(VALUES.REASON.LOCAL_ERRORS.HSM.LOCKOUT);
+            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.BIOMETRIC_LOCKOUT)).toBe(VALUES.REASON.LOCAL_ERRORS.HSM.LOCKOUT);
         });
 
         it('should return LOCKOUT_PERMANENT for permanent lockout error codes', () => {
             // Given exact error codes indicating permanent biometric lockout requiring device credential to reset
             // When mapping the error codes
             // Then both iOS and Android variants should resolve to HSM.LOCKOUT_PERMANENT
-            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.BIOMETRY_LOCKOUT_PERMANENT)).toBe(VALUES.REASON.HSM.LOCKOUT_PERMANENT);
-            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.BIOMETRIC_LOCKOUT_PERMANENT)).toBe(VALUES.REASON.HSM.LOCKOUT_PERMANENT);
+            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.BIOMETRY_LOCKOUT_PERMANENT)).toBe(VALUES.REASON.LOCAL_ERRORS.HSM.LOCKOUT_PERMANENT);
+            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.BIOMETRIC_LOCKOUT_PERMANENT)).toBe(VALUES.REASON.LOCAL_ERRORS.HSM.LOCKOUT_PERMANENT);
         });
 
         it('should return SIGNATURE_FAILED for signature creation failure', () => {
             // Given the exact error code for signature creation failure
             // When mapping the error code
             // Then it should resolve to HSM.SIGNATURE_FAILED
-            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.SIGNATURE_CREATION_FAILED)).toBe(VALUES.REASON.HSM.SIGNATURE_FAILED);
+            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.SIGNATURE_CREATION_FAILED)).toBe(VALUES.REASON.LOCAL_ERRORS.HSM.SIGNATURE_FAILED);
         });
 
         it('should return KEY_NOT_FOUND for key not found error code', () => {
             // Given the exact error code for when the signing key does not exist in the keystore
             // When mapping the error code
             // Then it should resolve to HSM.KEY_NOT_FOUND
-            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.KEY_NOT_FOUND)).toBe(VALUES.REASON.HSM.KEY_NOT_FOUND);
+            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.KEY_NOT_FOUND)).toBe(VALUES.REASON.LOCAL_ERRORS.HSM.KEY_NOT_FOUND);
         });
 
         it('should return REGISTRATION_REQUIRED for key access failed error code', () => {
             // Given the exact error code for when the key cannot be accessed (e.g. biometric enrollment changed)
             // When mapping the error code
             // Then it should resolve to HSM.KEY_ACCESS_FAILED to trigger re-registration
-            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.KEY_ACCESS_FAILED)).toBe(VALUES.REASON.HSM.KEY_ACCESS_FAILED);
+            expect(mapSignErrorCodeToReason(NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.KEY_ACCESS_FAILED)).toBe(VALUES.REASON.LOCAL_ERRORS.HSM.KEY_ACCESS_FAILED);
         });
 
         it('should return GENERIC for unrecognized error codes', () => {
             // Given an error code that does not match any known library error code constant
             // When mapping the error code
-            // Then it should fall back to HSM.GENERIC so the error is still surfaced to the user with a general error message
-            expect(mapSignErrorCodeToReason('some_unknown_error')).toBe(VALUES.REASON.HSM.GENERIC);
+            // Then it should fall back to HSM.UNRECOGNIZED so the error is still surfaced to the user with a general error message
+            expect(mapSignErrorCodeToReason('some_unknown_error')).toBe(VALUES.REASON.LOCAL_ERRORS.HSM.UNRECOGNIZED);
         });
     });
 
-    describe('mapLibraryErrorToReason', () => {
+    describe('decodeLibraryError', () => {
         it('should return CANCELED for Error with USER_CANCEL code', () => {
             // Given an Error object with a code property matching the iOS user cancel error code
-            // When mapping the library error
+            // When decoding the library error
             // Then it should resolve to HSM.CANCELED based on the exact error code
             const error = Object.assign(new Error('User canceled authentication'), {code: NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.USER_CANCEL});
-            expect(mapLibraryErrorToReason(error)).toBe(VALUES.REASON.HSM.CANCELED);
+            expect(decodeLibraryError(error)).toEqual({reason: VALUES.REASON.LOCAL_ERRORS.HSM.CANCELED, message: 'User canceled authentication'});
         });
 
         it('should return CANCELED for Error with USER_CANCELED code', () => {
             // Given an Error object with a code property matching the Android user cancel error code
-            // When mapping the library error
+            // When decoding the library error
             // Then it should resolve to HSM.CANCELED based on the exact error code
             const error = Object.assign(new Error('User canceled the operation'), {code: NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.USER_CANCELED});
-            expect(mapLibraryErrorToReason(error)).toBe(VALUES.REASON.HSM.CANCELED);
+            expect(decodeLibraryError(error)).toEqual({reason: VALUES.REASON.LOCAL_ERRORS.HSM.CANCELED, message: 'User canceled the operation'});
         });
 
         it('should return KEY_CREATION_FAILED for Error with CREATE_KEYS_ERROR code', () => {
             // Given an Error object with a code property matching the key creation error code
-            // When mapping the library error
+            // When decoding the library error
             // Then it should resolve to HSM.KEY_CREATION_FAILED
             const error = Object.assign(new Error('Failed to create keys'), {code: NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.CREATE_KEYS_ERROR});
-            expect(mapLibraryErrorToReason(error)).toBe(VALUES.REASON.HSM.KEY_CREATION_FAILED);
+            expect(decodeLibraryError(error)).toEqual({reason: VALUES.REASON.LOCAL_ERRORS.HSM.KEY_CREATION_FAILED, message: 'Failed to create keys'});
         });
 
         it('should return KEY_CREATION_FAILED for Error with KEY_ALREADY_EXISTS code', () => {
             // Given an Error object with a code property matching the key already exists error code
-            // When mapping the library error
+            // When decoding the library error
             // Then it should resolve to HSM.KEY_CREATION_FAILED since the key creation operation failed
             const error = Object.assign(new Error('Key already exists'), {code: NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.KEY_ALREADY_EXISTS});
-            expect(mapLibraryErrorToReason(error)).toBe(VALUES.REASON.HSM.KEY_CREATION_FAILED);
+            expect(decodeLibraryError(error)).toEqual({reason: VALUES.REASON.LOCAL_ERRORS.HSM.KEY_CREATION_FAILED, message: 'Key already exists'});
         });
 
         it('should return KEY_NOT_FOUND for Error with KEY_NOT_FOUND code', () => {
             // Given an Error object with a code property matching the key not found error code
-            // When mapping the library error
+            // When decoding the library error
             // Then it should resolve to HSM.KEY_NOT_FOUND
             const error = Object.assign(new Error('Cryptographic key not found'), {code: NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.KEY_NOT_FOUND});
-            expect(mapLibraryErrorToReason(error)).toBe(VALUES.REASON.HSM.KEY_NOT_FOUND);
+            expect(decodeLibraryError(error)).toEqual({reason: VALUES.REASON.LOCAL_ERRORS.HSM.KEY_NOT_FOUND, message: 'Cryptographic key not found'});
         });
 
-        it('should return REGISTRATION_REQUIRED for Error with KEY_ACCESS_FAILED code', () => {
+        it('should return KEY_ACCESS_FAILED for Error with KEY_ACCESS_FAILED code', () => {
             // Given an Error object with a code property matching the key access failed error code
-            // When mapping the library error
+            // When decoding the library error
             // Then it should resolve to HSM.KEY_ACCESS_FAILED to trigger re-registration
             const error = Object.assign(new Error('Failed to access cryptographic key'), {code: NATIVE_BIOMETRICS_HSM_VALUES.ERROR_CODE.KEY_ACCESS_FAILED});
-            expect(mapLibraryErrorToReason(error)).toBe(VALUES.REASON.HSM.KEY_ACCESS_FAILED);
+            expect(decodeLibraryError(error)).toEqual({reason: VALUES.REASON.LOCAL_ERRORS.HSM.KEY_ACCESS_FAILED, message: 'Failed to access cryptographic key'});
         });
 
-        it('should return undefined for Error without code property', () => {
+        it('should return UNRECOGNIZED for Error without code property', () => {
             // Given an Error object without a code property (generic JS error, not from the library)
-            // When mapping the library error
-            // Then undefined should be returned because the error cannot be classified without a code
-            expect(mapLibraryErrorToReason(new Error('Network error'))).toBeUndefined();
+            // When decoding the library error
+            // Then UNRECOGNIZED should be returned with the error message preserved
+            expect(decodeLibraryError(new Error('Network error'))).toEqual({reason: VALUES.REASON.LOCAL_ERRORS.HSM.UNRECOGNIZED, message: 'Network error'});
         });
 
-        it('should return undefined for Error with unrecognized code', () => {
+        it('should return UNRECOGNIZED for Error with unrecognized code', () => {
             // Given an Error object with a code property that does not match any known library error code
-            // When mapping the library error
-            // Then undefined should be returned so the caller can provide a fallback reason
+            // When decoding the library error
+            // Then UNRECOGNIZED should be returned so the error is still surfaced for debugging
             const error = Object.assign(new Error('Some error'), {code: 'UNKNOWN_CODE'});
-            expect(mapLibraryErrorToReason(error)).toBeUndefined();
+            expect(decodeLibraryError(error)).toEqual({reason: VALUES.REASON.LOCAL_ERRORS.HSM.UNRECOGNIZED, message: 'Some error'});
         });
 
-        it('should return undefined for non-Error values', () => {
+        it('should return UNRECOGNIZED for non-Error values', () => {
             // Given a plain string error (not an Error object, so no code property)
-            // When mapping the library error
-            // Then undefined should be returned because only Error objects with code properties are classified
-            expect(mapLibraryErrorToReason('some string error')).toBeUndefined();
+            // When decoding the library error
+            // Then UNRECOGNIZED should be returned with the string value as the message
+            expect(decodeLibraryError('some string error')).toEqual({reason: VALUES.REASON.LOCAL_ERRORS.HSM.UNRECOGNIZED, message: 'some string error'});
         });
     });
 

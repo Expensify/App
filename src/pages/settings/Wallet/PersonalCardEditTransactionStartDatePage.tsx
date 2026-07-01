@@ -114,7 +114,6 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
                     initiallyFocusedItemKey={dateOptionSelected}
                     shouldUpdateFocusedIndex
                     addBottomSafeAreaPadding
-                    shouldHighlightSelectedItem={false}
                     footerContent={
                         <Button
                             success
@@ -140,7 +139,6 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
                                         setStartDate(value);
                                     }}
                                     minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                                    maxDate={new Date()}
                                     errorText={errorText}
                                 />
                             </View>

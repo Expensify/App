@@ -30,7 +30,7 @@ import useTransactionsAndViolationsForReport from './useTransactionsAndViolation
 function useOptimisticNextStep(reportID: string | undefined) {
     const theme = useTheme();
     const {isOffline} = useNetwork();
-    const {accountID, email} = useCurrentUserPersonalDetails();
+    const {accountID, email, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -57,7 +57,7 @@ function useOptimisticNextStep(reportID: string | undefined) {
         transactions,
     );
 
-    let optimisticNextStep = getReportNextStep(nextStep, moneyRequestReport, transactions, policy, allTransactionViolations, email ?? '', accountID);
+    let optimisticNextStep = getReportNextStep(nextStep, moneyRequestReport, transactions, policy, allTransactionViolations, email ?? '', accountID, moneyRequestReport?.nextStep);
 
     if (isDEWPolicy && (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN || moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED)) {
         if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
@@ -75,7 +75,7 @@ function useOptimisticNextStep(reportID: string | undefined) {
                 optimisticNextStep = buildOptimisticNextStepForDEWOffline();
             }
         } else if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
-            const gbrResult = getReasonAndReportActionThatRequiresAttention(moneyRequestReport, undefined, isArchivedReport);
+            const gbrResult = getReasonAndReportActionThatRequiresAttention(moneyRequestReport, currentUserLogin ?? '', accountID, undefined, isArchivedReport);
             const hasDEWApproveFailed = gbrResult?.reason === CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED;
             const isCurrentUserTheApprover = moneyRequestReport?.managerID === accountID;
             if (hasDEWApproveFailed && isCurrentUserTheApprover) {

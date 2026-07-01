@@ -19,7 +19,7 @@ Workspace Admins can reconcile reimbursements when Payments is enabled on the Wo
 
 ## How to View Reimbursements 
 
-1. Click the navigation tabs (on the left on web, on the bottom on mobile) and go to **Reports**.
+1. Click the navigation tabs (on the left on web, on the bottom on mobile) and go to **Spend**.
 2. In the **Reconciliation** section, select **Reimbursements**.
 3. Choose the **Withdrawn** filter to select a date range (for example, **Last month**).
 4. Review the list of reimbursements. Each row represents a reimbursement for a single report and shows the total amount.

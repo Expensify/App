@@ -35,6 +35,9 @@ type DelegateErrors = {
     /** Errors while removing a delegate keyed by email */
     removeDelegate?: Record<string, OnyxCommon.Errors>;
 
+    /** Errors while removing a delegator keyed by email */
+    removeDelegator?: Record<string, OnyxCommon.Errors>;
+
     /** Errors while connecting as a delegate keyed by email */
     connect?: Record<string, OnyxCommon.Errors>;
 
@@ -109,6 +112,12 @@ type Account = {
 
     /** The Report ID of the account manager */
     accountManagerReportID?: string;
+
+    /** The account ID of the partner manager */
+    partnerManagerAccountID?: number;
+
+    /** The email of the partner manager */
+    partnerManagerEmail?: string;
 
     /** The message to be displayed when code requested */
     message?: string;

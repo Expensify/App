@@ -9,6 +9,7 @@ import type {
     SearchDateFilterKeys,
     SearchGroupBy,
     SearchView,
+    SearchWithdrawalStatus,
     SearchWithdrawalType,
 } from '@components/Search/types';
 import CONST from '@src/CONST';
@@ -73,6 +74,9 @@ const FILTER_KEYS = {
     WITHDRAWAL_TYPE_NOT: 'withdrawalTypeNot',
     WITHDRAWAL_TYPE: 'withdrawalType',
 
+    WITHDRAWAL_STATUS_NOT: 'withdrawalStatusNot',
+    WITHDRAWAL_STATUS: 'withdrawalStatus',
+
     WITHDRAWN_NOT: 'withdrawnNot',
     WITHDRAWN_ON: 'withdrawnOn',
     WITHDRAWN_AFTER: 'withdrawnAfter',
@@ -91,6 +95,9 @@ const FILTER_KEYS = {
 
     FEED_NOT: 'feedNot',
     FEED: 'feed',
+
+    BANK_ACCOUNT_NOT: 'bankAccountNot',
+    BANK_ACCOUNT: 'bankAccount',
 
     MERCHANT_NOT: 'merchantNot',
     MERCHANT: 'merchant',
@@ -117,6 +124,9 @@ const FILTER_KEYS = {
 
     EXPENSE_TYPE_NOT: 'expenseTypeNot',
     EXPENSE_TYPE: 'expenseType',
+
+    RECEIPT_TYPE_NOT: 'receiptTypeNot',
+    RECEIPT_TYPE: 'receiptType',
 
     TAG_NOT: 'tagNot',
     TAG: 'tag',
@@ -194,12 +204,15 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.POLICY_ID,
         FILTER_KEYS.EXPENSE_TYPE,
         FILTER_KEYS.EXPENSE_TYPE_NOT,
+        FILTER_KEYS.RECEIPT_TYPE,
+        FILTER_KEYS.RECEIPT_TYPE_NOT,
         FILTER_KEYS.MERCHANT,
         FILTER_KEYS.MERCHANT_NOT,
         FILTER_KEYS.DATE_ON,
         FILTER_KEYS.DATE_NOT,
         FILTER_KEYS.DATE_AFTER,
         FILTER_KEYS.DATE_BEFORE,
+        FILTER_KEYS.DATE_RANGE,
         FILTER_KEYS.AMOUNT_EQUAL_TO,
         FILTER_KEYS.AMOUNT_NOT,
         FILTER_KEYS.AMOUNT_GREATER_THAN,
@@ -223,16 +236,22 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.CARD_ID_NOT,
         FILTER_KEYS.FEED,
         FILTER_KEYS.FEED_NOT,
+        FILTER_KEYS.BANK_ACCOUNT,
+        FILTER_KEYS.BANK_ACCOUNT_NOT,
         FILTER_KEYS.POSTED_AFTER,
         FILTER_KEYS.POSTED_BEFORE,
         FILTER_KEYS.POSTED_ON,
         FILTER_KEYS.POSTED_NOT,
+        FILTER_KEYS.POSTED_RANGE,
         FILTER_KEYS.WITHDRAWAL_TYPE,
         FILTER_KEYS.WITHDRAWAL_TYPE_NOT,
+        FILTER_KEYS.WITHDRAWAL_STATUS,
+        FILTER_KEYS.WITHDRAWAL_STATUS_NOT,
         FILTER_KEYS.WITHDRAWN_AFTER,
         FILTER_KEYS.WITHDRAWN_BEFORE,
         FILTER_KEYS.WITHDRAWN_ON,
         FILTER_KEYS.WITHDRAWN_NOT,
+        FILTER_KEYS.WITHDRAWN_RANGE,
         FILTER_KEYS.TAX_RATE,
         FILTER_KEYS.TAX_RATE_NOT,
         FILTER_KEYS.REIMBURSABLE,
@@ -245,18 +264,22 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.SUBMITTED_NOT,
         FILTER_KEYS.SUBMITTED_AFTER,
         FILTER_KEYS.SUBMITTED_BEFORE,
+        FILTER_KEYS.SUBMITTED_RANGE,
         FILTER_KEYS.APPROVED_ON,
         FILTER_KEYS.APPROVED_NOT,
         FILTER_KEYS.APPROVED_AFTER,
         FILTER_KEYS.APPROVED_BEFORE,
+        FILTER_KEYS.APPROVED_RANGE,
         FILTER_KEYS.PAID_ON,
         FILTER_KEYS.PAID_NOT,
         FILTER_KEYS.PAID_AFTER,
         FILTER_KEYS.PAID_BEFORE,
+        FILTER_KEYS.PAID_RANGE,
         FILTER_KEYS.EXPORTED_ON,
         FILTER_KEYS.EXPORTED_NOT,
         FILTER_KEYS.EXPORTED_AFTER,
         FILTER_KEYS.EXPORTED_BEFORE,
+        FILTER_KEYS.EXPORTED_RANGE,
         FILTER_KEYS.EXPORTER,
         FILTER_KEYS.EXPORTER_NOT,
         FILTER_KEYS.EXPORTED_TO,
@@ -296,6 +319,7 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.DATE_NOT,
         FILTER_KEYS.DATE_AFTER,
         FILTER_KEYS.DATE_BEFORE,
+        FILTER_KEYS.DATE_RANGE,
         FILTER_KEYS.TOTAL_EQUAL_TO,
         FILTER_KEYS.TOTAL_NOT,
         FILTER_KEYS.TOTAL_GREATER_THAN,
@@ -307,28 +331,35 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.PAYER_NOT,
         FILTER_KEYS.WITHDRAWAL_TYPE,
         FILTER_KEYS.WITHDRAWAL_TYPE_NOT,
+        FILTER_KEYS.WITHDRAWAL_STATUS,
+        FILTER_KEYS.WITHDRAWAL_STATUS_NOT,
         FILTER_KEYS.WITHDRAWN_AFTER,
         FILTER_KEYS.WITHDRAWN_BEFORE,
         FILTER_KEYS.WITHDRAWN_ON,
         FILTER_KEYS.WITHDRAWN_NOT,
+        FILTER_KEYS.WITHDRAWN_RANGE,
         FILTER_KEYS.REPORT_ID,
         FILTER_KEYS.REPORT_ID_NOT,
         FILTER_KEYS.SUBMITTED_ON,
         FILTER_KEYS.SUBMITTED_NOT,
         FILTER_KEYS.SUBMITTED_AFTER,
         FILTER_KEYS.SUBMITTED_BEFORE,
+        FILTER_KEYS.SUBMITTED_RANGE,
         FILTER_KEYS.APPROVED_AFTER,
         FILTER_KEYS.APPROVED_BEFORE,
         FILTER_KEYS.APPROVED_ON,
+        FILTER_KEYS.APPROVED_RANGE,
         FILTER_KEYS.APPROVED_NOT,
         FILTER_KEYS.PAID_AFTER,
         FILTER_KEYS.PAID_BEFORE,
         FILTER_KEYS.PAID_ON,
+        FILTER_KEYS.PAID_RANGE,
         FILTER_KEYS.PAID_NOT,
         FILTER_KEYS.EXPORTED_AFTER,
         FILTER_KEYS.EXPORTED_BEFORE,
         FILTER_KEYS.EXPORTED_ON,
         FILTER_KEYS.EXPORTED_NOT,
+        FILTER_KEYS.EXPORTED_RANGE,
         FILTER_KEYS.EXPORTER,
         FILTER_KEYS.EXPORTED_TO,
         FILTER_KEYS.EXPORTED_TO_NOT,
@@ -356,6 +387,7 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.DATE_NOT,
         FILTER_KEYS.DATE_AFTER,
         FILTER_KEYS.DATE_BEFORE,
+        FILTER_KEYS.DATE_RANGE,
         FILTER_KEYS.AMOUNT_EQUAL_TO,
         FILTER_KEYS.AMOUNT_NOT,
         FILTER_KEYS.AMOUNT_GREATER_THAN,
@@ -382,12 +414,16 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.POSTED_BEFORE,
         FILTER_KEYS.POSTED_ON,
         FILTER_KEYS.POSTED_NOT,
+        FILTER_KEYS.POSTED_RANGE,
         FILTER_KEYS.WITHDRAWAL_TYPE,
         FILTER_KEYS.WITHDRAWAL_TYPE_NOT,
+        FILTER_KEYS.WITHDRAWAL_STATUS,
+        FILTER_KEYS.WITHDRAWAL_STATUS_NOT,
         FILTER_KEYS.WITHDRAWN_AFTER,
         FILTER_KEYS.WITHDRAWN_BEFORE,
         FILTER_KEYS.WITHDRAWN_ON,
         FILTER_KEYS.WITHDRAWN_NOT,
+        FILTER_KEYS.WITHDRAWN_RANGE,
         FILTER_KEYS.TAX_RATE,
         FILTER_KEYS.TAX_RATE_NOT,
         FILTER_KEYS.REPORT_ID,
@@ -396,18 +432,22 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.SUBMITTED_NOT,
         FILTER_KEYS.SUBMITTED_AFTER,
         FILTER_KEYS.SUBMITTED_BEFORE,
+        FILTER_KEYS.SUBMITTED_RANGE,
         FILTER_KEYS.APPROVED_ON,
         FILTER_KEYS.APPROVED_NOT,
         FILTER_KEYS.APPROVED_AFTER,
         FILTER_KEYS.APPROVED_BEFORE,
+        FILTER_KEYS.APPROVED_RANGE,
         FILTER_KEYS.PAID_ON,
         FILTER_KEYS.PAID_NOT,
         FILTER_KEYS.PAID_AFTER,
         FILTER_KEYS.PAID_BEFORE,
+        FILTER_KEYS.PAID_RANGE,
         FILTER_KEYS.EXPORTED_ON,
         FILTER_KEYS.EXPORTED_NOT,
         FILTER_KEYS.EXPORTED_AFTER,
         FILTER_KEYS.EXPORTED_BEFORE,
+        FILTER_KEYS.EXPORTED_RANGE,
         FILTER_KEYS.EXPORTER,
         FILTER_KEYS.EXPORTER_NOT,
         FILTER_KEYS.ACTION,
@@ -441,6 +481,7 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.DATE_NOT,
         FILTER_KEYS.DATE_AFTER,
         FILTER_KEYS.DATE_BEFORE,
+        FILTER_KEYS.DATE_RANGE,
         FILTER_KEYS.AMOUNT_EQUAL_TO,
         FILTER_KEYS.AMOUNT_NOT,
         FILTER_KEYS.AMOUNT_GREATER_THAN,
@@ -468,6 +509,7 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.POSTED_BEFORE,
         FILTER_KEYS.POSTED_ON,
         FILTER_KEYS.POSTED_NOT,
+        FILTER_KEYS.POSTED_RANGE,
         FILTER_KEYS.TAX_RATE,
         FILTER_KEYS.TAX_RATE_NOT,
         FILTER_KEYS.REPORT_ID,
@@ -476,18 +518,22 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.SUBMITTED_NOT,
         FILTER_KEYS.SUBMITTED_AFTER,
         FILTER_KEYS.SUBMITTED_BEFORE,
+        FILTER_KEYS.SUBMITTED_RANGE,
         FILTER_KEYS.APPROVED_ON,
         FILTER_KEYS.APPROVED_NOT,
         FILTER_KEYS.APPROVED_AFTER,
         FILTER_KEYS.APPROVED_BEFORE,
+        FILTER_KEYS.APPROVED_RANGE,
         FILTER_KEYS.PAID_ON,
         FILTER_KEYS.PAID_NOT,
         FILTER_KEYS.PAID_AFTER,
         FILTER_KEYS.PAID_BEFORE,
+        FILTER_KEYS.PAID_RANGE,
         FILTER_KEYS.EXPORTED_ON,
         FILTER_KEYS.EXPORTED_NOT,
         FILTER_KEYS.EXPORTED_AFTER,
         FILTER_KEYS.EXPORTED_BEFORE,
+        FILTER_KEYS.EXPORTED_RANGE,
         FILTER_KEYS.EXPORTER,
         FILTER_KEYS.EXPORTER_NOT,
         FILTER_KEYS.EXPORTED_TO,
@@ -519,6 +565,7 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.DATE_AFTER,
         FILTER_KEYS.DATE_BEFORE,
         FILTER_KEYS.DATE_ON,
+        FILTER_KEYS.DATE_RANGE,
         FILTER_KEYS.DATE_NOT,
         FILTER_KEYS.IS,
         FILTER_KEYS.IS_NOT,
@@ -543,6 +590,7 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.DATE_NOT,
         FILTER_KEYS.DATE_AFTER,
         FILTER_KEYS.DATE_BEFORE,
+        FILTER_KEYS.DATE_RANGE,
     ]),
 };
 
@@ -555,6 +603,8 @@ type IsFilterValues = IsFilterValue[];
 type BooleanValue = ValueOf<typeof CONST.SEARCH.BOOLEAN>;
 type ExpenseTypeValue = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 type ExpenseTypeValues = ExpenseTypeValue[];
+type ReceiptTypeValue = ValueOf<typeof CONST.SEARCH.RECEIPT_TYPE>;
+type ReceiptTypeValues = ReceiptTypeValue[];
 
 type SearchAdvancedFiltersForm = Form<
     SearchAdvancedFiltersKey,
@@ -605,6 +655,9 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.WITHDRAWAL_TYPE]: SearchWithdrawalType;
         [FILTER_KEYS.WITHDRAWAL_TYPE_NOT]: SearchWithdrawalType;
 
+        [FILTER_KEYS.WITHDRAWAL_STATUS]: SearchWithdrawalStatus;
+        [FILTER_KEYS.WITHDRAWAL_STATUS_NOT]: SearchWithdrawalStatus;
+
         [FILTER_KEYS.WITHDRAWN_ON]: string;
         [FILTER_KEYS.WITHDRAWN_NOT]: string;
         [FILTER_KEYS.WITHDRAWN_AFTER]: string;
@@ -625,6 +678,9 @@ type SearchAdvancedFiltersForm = Form<
 
         [FILTER_KEYS.FEED]: string[];
         [FILTER_KEYS.FEED_NOT]: string[];
+
+        [FILTER_KEYS.BANK_ACCOUNT]: string[];
+        [FILTER_KEYS.BANK_ACCOUNT_NOT]: string[];
 
         [FILTER_KEYS.MERCHANT]: string;
         [FILTER_KEYS.MERCHANT_NOT]: string;
@@ -653,6 +709,9 @@ type SearchAdvancedFiltersForm = Form<
 
         [FILTER_KEYS.EXPENSE_TYPE]: ExpenseTypeValues;
         [FILTER_KEYS.EXPENSE_TYPE_NOT]: ExpenseTypeValues;
+
+        [FILTER_KEYS.RECEIPT_TYPE]: ReceiptTypeValues;
+        [FILTER_KEYS.RECEIPT_TYPE_NOT]: ReceiptTypeValues;
 
         [FILTER_KEYS.TAG]: string[];
         [FILTER_KEYS.TAG_NOT]: string[];
@@ -717,6 +776,6 @@ type SearchAdvancedFiltersForm = Form<
         Record<ReportFieldNegatedKey, string>
 >;
 
-export type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey, HasFilterValue, HasFilterValues, IsFilterValue, IsFilterValues, ExpenseTypeValue, ExpenseTypeValues};
+export type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey, HasFilterValue, HasFilterValues, IsFilterValue, IsFilterValues, ExpenseTypeValue, ExpenseTypeValues, ReceiptTypeValue};
 export default FILTER_KEYS;
-export {DATE_FILTER_KEYS, ALLOWED_TYPE_FILTERS, FILTER_KEYS, AMOUNT_FILTER_KEYS};
+export {DATE_FILTER_KEYS, ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS};

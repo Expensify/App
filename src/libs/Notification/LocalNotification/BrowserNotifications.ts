@@ -3,9 +3,9 @@ import {Str} from 'expensify-common';
 import type {ImageSourcePropType} from 'react-native';
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
 import * as AppUpdate from '@libs/actions/AppUpdate';
-// eslint-disable-next-line @typescript-eslint/no-deprecated -- translateLocal is deprecated; BrowserNotifications is non-React code that cannot use the translate hook
 import {translateLocal} from '@libs/Localize';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
+import NotificationPermission from '@libs/Notification/notificationPermission';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -17,28 +17,18 @@ import type {LocalNotificationClickHandler, LocalNotificationData, LocalNotifica
 const notificationCache: Record<string, Notification> = {};
 
 /**
- * Checks if the user has granted permission to show browser notifications
+ * Checks if the user has granted permission to show browser notifications, prompting them
+ * if they have not yet decided.
  */
 function canUseBrowserNotifications(): Promise<boolean> {
-    return new Promise((resolve) => {
-        // They have no browser notifications so we can't use this feature
-        if (!window.Notification) {
-            resolve(false);
-            return;
+    return NotificationPermission.getStatus().then((status) => {
+        if (status === 'granted') {
+            return true;
         }
-
-        // Check if they previously granted or denied us access to send a notification
-        const permissionGranted = Notification.permission === 'granted';
-
-        if (permissionGranted || Notification.permission === 'denied') {
-            resolve(permissionGranted);
-            return;
+        if (status === 'denied') {
+            return false;
         }
-
-        // Check their global preferences for browser notifications and ask permission if they have none
-        Notification.requestPermission().then((status) => {
-            resolve(status === 'granted');
-        });
+        return NotificationPermission.request().then((requested) => requested === 'granted');
     });
 }
 
@@ -151,7 +141,6 @@ export default {
     }: LocalNotificationModifiedExpensePushParams) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
         const bodyWithHTML = getForReportAction({
-            // eslint-disable-next-line @typescript-eslint/no-deprecated -- translateLocal is deprecated; BrowserNotifications is non-React code that cannot use the translate hook
             translate: translateLocal,
             reportAction,
             policy,

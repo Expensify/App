@@ -12,6 +12,7 @@ import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
+import {setHasRadio} from '@libs/NetworkState';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as TestHelper from '../../utils/TestHelper';
@@ -32,7 +33,6 @@ jest.mock('@hooks/useNetwork', () =>
 );
 
 jest.mock('@hooks/useKeyboardState', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
         isKeyboardShown: false,
@@ -41,7 +41,6 @@ jest.mock('@hooks/useKeyboardState', () => ({
 }));
 
 jest.mock('@hooks/useResponsiveLayout', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
         isSmallScreenWidth: false,
@@ -51,7 +50,6 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
 }));
 
 jest.mock('@hooks/useSafeAreaPaddings', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
         safeAreaPaddingBottomStyle: {},
@@ -59,7 +57,6 @@ jest.mock('@hooks/useSafeAreaPaddings', () => ({
 }));
 
 jest.mock('@hooks/useWindowDimensions', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
         windowWidth: 1200,
@@ -169,7 +166,7 @@ beforeAll(() =>
 beforeEach(() => {
     global.fetch = TestHelper.getGlobalFetchMock();
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
-    Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+    setHasRadio(true);
     Onyx.merge(ONYXKEYS.COLLECTION.REPORT, {});
     Onyx.merge(ONYXKEYS.COLLECTION.POLICY, {});
 });
@@ -184,15 +181,12 @@ describe('SearchList render count', () => {
 
         function SearchListWrapper({onRenderCount}: {onRenderCount: () => void}) {
             const onSelectRow = useCallback(() => {}, []);
-            const onCheckboxPress = useCallback(() => {}, []);
-            const onAllCheckboxPress = useCallback(() => {}, []);
             const onEndReached = useCallback(() => {}, []);
             const onLayout = useCallback(() => {}, []);
 
             const queryJSON = useMemo(() => STABLE_QUERY_JSON, []);
             const columns = useMemo(() => STABLE_COLUMNS, []);
             const data = useMemo(() => MOCK_DATA, []);
-            const selectedTransactions = useMemo(() => ({}), []);
             const contentContainerStyle = useMemo(() => ({}), []);
             const containerStyle = useMemo(() => ({}), []);
 
@@ -205,10 +199,7 @@ describe('SearchList render count', () => {
                         data={data}
                         ListItem={MockListItem as never}
                         onSelectRow={onSelectRow}
-                        onCheckboxPress={onCheckboxPress}
-                        onAllCheckboxPress={onAllCheckboxPress}
                         canSelectMultiple={false}
-                        selectedTransactions={selectedTransactions}
                         queryJSON={queryJSON}
                         columns={columns}
                         isMobileSelectionModeEnabled={false}

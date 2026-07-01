@@ -7,12 +7,21 @@ type SentryLogLevel = 'debug' | 'info' | 'warn' | 'error';
  * Exact strings match the key literally, regexes match against the flattened dot-notation key.
  * Example: /^mfa\./ matches all keys under the `mfa` namespace (mfa.scenario, mfa.isOffline, etc.).
  */
-const PARAMETERS_WHITELIST: ReadonlyArray<string | RegExp> = ['timestamp', 'error', 'command', 'isSupportAuthTokenUsed', /^mfa\./];
+const PARAMETERS_WHITELIST: ReadonlyArray<string | RegExp> = [
+    'timestamp',
+    'error',
+    'command',
+    'isSupportAuthTokenUsed',
+    'type',
+    'lastUpdateID',
+    'previousLastUpdateIDAppliedToClient',
+    /^mfa\./,
+];
 
 /**
  * Only log lines whose message contains one of these prefixes are forwarded to Sentry.
  */
-const FORWARDED_LOG_PREFIXES = ['[Reauthenticate]', '[MFA]'] as const;
+const FORWARDED_LOG_PREFIXES = ['[Reauthenticate]', '[MFA]', '[OnyxUpdateManagerError]'] as const;
 
 /**
  * Method deciding whether a log packet should be forwarded to Sentry.
@@ -21,7 +30,7 @@ const FORWARDED_LOG_PREFIXES = ['[Reauthenticate]', '[MFA]'] as const;
  * Currently, this always returns false because we want to deliberately decide what is being forwarded.
  * There is no redaction / filtering of sensitive data implemented yet. When you implement any log forwarding logic, make sure that you do not leak any sensitive data.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 function shouldForwardLog(log: {message?: string; parameters?: Record<string, unknown> | undefined}) {
     return FORWARDED_LOG_PREFIXES.some((prefix) => log.message?.includes(prefix));
 }

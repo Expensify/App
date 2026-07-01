@@ -1,8 +1,8 @@
 import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import * as API from '@libs/API';
+import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AddNewPersonalCard, AddNewPersonalCardFeedData, AddNewPersonalCardFeedStep} from '@src/types/onyx/PersonalCard';
@@ -19,7 +19,6 @@ type AddNewPersonalCardFlowData = {
 };
 
 function setAddNewPersonalCardStepAndData({data, isEditing, step}: NullishDeep<AddNewPersonalCardFlowData>) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- false positive when AddNewPersonalCard includes `errors`; merge fields are NullishDeep<AddNewPersonalCardFlowData>
     Onyx.merge(ONYXKEYS.ADD_NEW_PERSONAL_CARD, {data, isEditing, currentStep: step} as Partial<AddNewPersonalCard>);
 }
 
@@ -81,7 +80,7 @@ function updatePersonalCardConnection(cardID: string, lastScrapeResult?: number)
                         lastScrape: null,
                     },
                     errorFields: {
-                        lastScrape: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                        lastScrape: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                     },
                 },
             },
@@ -92,7 +91,7 @@ function updatePersonalCardConnection(cardID: string, lastScrapeResult?: number)
         cardID: Number(cardID),
     };
 
-    API.write(WRITE_COMMANDS.SYNC_CARD, parameters, {optimisticData, finallyData, failureData});
+    write(WRITE_COMMANDS.SYNC_CARD, parameters, {optimisticData, finallyData, failureData});
 }
 
 export {clearAddNewPersonalCardErrors, clearAddNewPersonalCardFlow, setAddNewPersonalCardStepAndData, updatePersonalCardConnection};

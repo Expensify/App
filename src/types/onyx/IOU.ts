@@ -182,82 +182,16 @@ type SplitExpense = {
     isManuallyEdited?: boolean;
 };
 
-/** Model of IOU request */
-type IOU = {
-    /** ID of the IOU request */
-    id: string;
-
-    /** Amount requested in IOU */
-    amount?: number;
-
-    /** Selected Currency Code of the current IOU */
-    currency?: string;
-
-    /** Comment of the IOU request creator */
-    comment?: string;
-
-    /** Category assigned to the IOU request */
-    category?: string;
-
-    /** Merchant where the amount was spent */
-    merchant?: string;
-
-    /** Date timestamp when the IOU request was created */
-    created?: string;
-
-    /** Local file path of the expense receipt */
-    receiptPath?: string;
-
-    /** File name of the expense receipt */
-    receiptFilename?: string;
-
-    /** Transaction ID assigned to the IOU request */
-    transactionID?: string;
-
-    /** Users involved in the IOU request */
-    participants?: Participant[];
-
-    /** Tag assigned to the IOU request */
-    tag?: string;
-
-    /** Whether the IOU request is billable */
-    billable?: boolean;
-
-    /** Whether the IOU request is to be split with multiple users */
-    isSplitRequest?: boolean;
-};
-
 /** Model of IOU attendee */
 type Attendee = {
     /** IOU attendee email */
-    email: string;
+    email?: string;
 
     /** IOU attendee display name */
     displayName: string;
 
     /** IOU attendee avatar url */
     avatarUrl: string;
-
-    /** Account ID */
-    accountID?: number;
-
-    /** Text to be displayed in lists (participant display name) */
-    text?: string;
-
-    /** IOU attendee login */
-    login?: string;
-
-    /** Text that IOU attendee display name and login, if available, for searching purposes */
-    searchText?: string;
-
-    /** Is IOU attendee selected in list */
-    selected?: boolean;
-
-    /** The type of IOU report, i.e. split, request, send, track */
-    iouType?: IOUType;
-
-    /** IOU attendee report ID */
-    reportID?: string;
 };
 
 /** Model of IOU accountant */
@@ -270,7 +204,10 @@ type Accountant = {
 };
 
 /** Type of distance expense */
-type DistanceExpenseType = typeof CONST.IOU.REQUEST_TYPE.DISTANCE_MAP | typeof CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
+type DistanceExpenseType =
+    | typeof CONST.IOU.REQUEST_TYPE.DISTANCE_MAP
+    | typeof CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL
+    | typeof CONST.IOU.REQUEST_TYPE.DISTANCE_GPS
+    | typeof CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
 
-export default IOU;
 export type {Participant, Split, Attendee, Accountant, SplitExpense, DistanceExpenseType};

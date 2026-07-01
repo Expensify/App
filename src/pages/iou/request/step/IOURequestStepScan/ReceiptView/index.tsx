@@ -1,5 +1,4 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {InteractionManager} from 'react-native';
 import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView';
 import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
@@ -56,13 +55,12 @@ function ReceiptView({route}: ReceiptViewProps) {
         setPage(activeReceiptIndex);
     }, [receipts, route?.params?.transactionID]);
 
-    const handleDeleteReceipt = useCallback(() => {
+    const deleteReceipt = () => {
         if (!currentReceipt) {
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
+        const handleDeleteReceipt = () => {
             if (currentReceipt.transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
                 if (receipts.length === 1) {
                     removeTransactionReceipt(currentReceipt.transactionID);
@@ -73,14 +71,10 @@ function ReceiptView({route}: ReceiptViewProps) {
                 return;
             }
             removeDraftTransaction(currentReceipt.transactionID);
-        });
+        };
 
-        Navigation.goBack();
-    }, [currentReceipt, receipts.length, secondTransaction, secondTransactionID]);
-
-    const deleteReceipt = useCallback(() => {
-        handleDeleteReceipt();
-    }, [handleDeleteReceipt]);
+        Navigation.goBack(undefined, {afterTransition: handleDeleteReceipt});
+    };
 
     const handleGoBack = useCallback(() => {
         Navigation.goBack(route.params.backTo);

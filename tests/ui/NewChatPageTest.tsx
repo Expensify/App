@@ -20,7 +20,6 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 jest.mock('@react-navigation/native');
 jest.mock('@src/libs/Navigation/navigationRef');
 jest.mock('react-native-permissions', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     RESULTS: {
         UNAVAILABLE: 'unavailable',
@@ -40,6 +39,8 @@ jest.mock('react-native-permissions', () => ({
         },
     },
 }));
+
+const triggerTransitionEnd = () => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
 
 const wrapper = ({children}: {children: React.ReactNode}) => (
     <OnyxListItemProvider>
@@ -69,21 +70,130 @@ describe('NewChatPage', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should scroll to top when adding a user to the group selection', async () => {
+    it('should not auto-scroll when adding a user to the group selection', async () => {
         await act(async () => {
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
         });
         render(<NewChatPage />, {wrapper});
         await waitForBatchedUpdatesWithAct();
         act(() => {
-            (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
+            triggerTransitionEnd();
         });
         const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
         const addButton = await waitFor(() => screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0));
         if (addButton) {
             fireEvent.press(addButton);
-            expect(scrollToSpy).toHaveBeenCalled();
+            expect(scrollToSpy).not.toHaveBeenCalled();
         }
+    });
+
+    it('should not move a selected user to the top of the list', async () => {
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+        });
+        render(<NewChatPage />, {wrapper});
+        await waitForBatchedUpdatesWithAct();
+        act(() => {
+            triggerTransitionEnd();
+        });
+
+        const getRenderedNames = () => screen.getAllByText(/^Email /).map((node) => String(node.props.children));
+
+        // Wait until the contacts list has rendered more than one selectable user.
+        const namesBefore = await waitFor(() => {
+            const names = getRenderedNames();
+            expect(names.length).toBeGreaterThan(2);
+            return names;
+        });
+
+        // Select a user that is not first in the list by pressing its "Add to group" button.
+        const addButtons = screen.getAllByText(translateLocal('newChatPage.addToGroup'));
+        const targetIndex = 2;
+        const targetName = namesBefore.at(targetIndex);
+        const targetButton = addButtons.at(targetIndex);
+        if (targetButton) {
+            fireEvent.press(targetButton);
+        }
+        await waitForBatchedUpdatesWithAct();
+
+        // The selected user should stay in place rather than jumping to the top of the list.
+        const namesAfter = getRenderedNames();
+        expect(namesAfter.at(0)).toBe(namesBefore.at(0));
+        expect(namesAfter.indexOf(targetName ?? '')).toBe(targetIndex);
+    });
+
+    it('should keep a selected non-existing user visible in the top section after the search is cleared', async () => {
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+        });
+        render(<NewChatPage />, {wrapper});
+        await waitForBatchedUpdatesWithAct();
+        act(() => {
+            triggerTransitionEnd();
+        });
+
+        const invitedEmail = 'nonexistinguser@example.com';
+
+        // Search for a user that doesn't exist yet so the invite option is generated.
+        const input = screen.getByTestId('selection-list-text-input');
+        fireEvent.changeText(input, invitedEmail);
+
+        // Wait for the invite row to appear — this confirms the debounce has fired and regular
+        // contacts are filtered out, so the only "Add to group" button is the invite row's.
+        await waitFor(() => {
+            expect(screen.getAllByText(invitedEmail).length).toBeGreaterThan(0);
+        });
+
+        // Select the invite option via its "Add to group" button.
+        const addButton = screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0);
+        if (addButton) {
+            fireEvent.press(addButton);
+        }
+        await waitForBatchedUpdatesWithAct();
+
+        // Clear the search. The regular contacts reappearing confirms the debounced search has settled and the invite row is gone.
+        fireEvent.changeText(input, '');
+        await waitFor(() => {
+            expect(screen.getAllByText(/^Email /).length).toBeGreaterThan(2);
+        });
+
+        // The selected non-existing user has no row in recents/contacts, so it must remain visible in the top section.
+        await waitFor(() => {
+            expect(screen.getAllByText(invitedEmail).length).toBeGreaterThan(0);
+        });
+    });
+
+    it('should not auto-scroll when selecting multiple users in sequence', async () => {
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+        });
+        render(<NewChatPage />, {wrapper});
+        await waitForBatchedUpdatesWithAct();
+        act(() => {
+            triggerTransitionEnd();
+        });
+
+        const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
+
+        // Wait until more than one selectable user is rendered.
+        await waitFor(() => {
+            expect(screen.getAllByText(translateLocal('newChatPage.addToGroup')).length).toBeGreaterThan(2);
+        });
+
+        // Select two users one after another. The viewport must stay put between selections so multi-selection isn't interrupted.
+        const firstButton = screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0);
+        if (firstButton) {
+            fireEvent.press(firstButton);
+        }
+        await waitForBatchedUpdatesWithAct();
+
+        const secondButton = screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0);
+        if (secondButton) {
+            fireEvent.press(secondButton);
+        }
+        await waitForBatchedUpdatesWithAct();
+
+        expect(scrollToSpy).not.toHaveBeenCalled();
     });
 
     describe('should not display "Add to group" button on expensify emails', () => {
@@ -102,7 +212,7 @@ describe('NewChatPage', () => {
             render(<NewChatPage />, {wrapper});
             await waitForBatchedUpdatesWithAct();
             act(() => {
-                (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
+                triggerTransitionEnd();
             });
 
             // And email is entered into the search input

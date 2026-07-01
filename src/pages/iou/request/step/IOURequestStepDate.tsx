@@ -6,19 +6,25 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getFormattedCreated, hasReceipt} from '@libs/TransactionUtils';
-import {setMoneyRequestCreated} from '@userActions/IOU';
+import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
+import {isPolicyExpenseChat as isPolicyExpenseChatReportUtil} from '@libs/ReportUtils';
+import {getFormattedCreated, hasReceipt, isDistanceRequest} from '@libs/TransactionUtils';
+import {setMoneyRequestCreated, updateDistanceRateOnExpenseDateChange} from '@userActions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import {updateMoneyRequestDate} from '@userActions/IOU/UpdateMoneyRequest';
 import CONST from '@src/CONST';
@@ -49,6 +55,13 @@ function IOURequestStepDate({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(report?.policyID);
+    const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
+    const policyForTrackExpense = usePolicy(isTrackExpense ? policyForMovingExpensesID : undefined);
+    const effectivePolicy = isTrackExpense ? policyForTrackExpense : policy;
+    const customUnitRateID = isDistanceRequest(transaction) ? transaction?.comment?.customUnit?.customUnitRateID : undefined;
+    const shouldLookupDistancePolicy = !!customUnitRateID && !getDistanceRateCustomUnitRate(effectivePolicy, customUnitRateID);
+    const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
@@ -57,8 +70,11 @@ function IOURequestStepDate({
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const {isOffline} = useNetwork();
+    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
@@ -67,7 +83,6 @@ function IOURequestStepDate({
     const currentCreated = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? getFormattedCreated(splitDraftTransaction) : getFormattedCreated(transaction);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFound = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     const navigateBack = () => {
@@ -92,8 +107,6 @@ function IOURequestStepDate({
 
         const isTransactionDraft = shouldUseTransactionDraft(action);
 
-        setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft, hasReceipt(transaction));
-
         if (isEditing) {
             updateMoneyRequestDate({
                 transactionID,
@@ -102,13 +115,32 @@ function IOURequestStepDate({
                 transactions: duplicateTransactions,
                 transactionViolations: duplicateTransactionViolations,
                 value: newCreated,
-                policy,
+                policy: effectivePolicy,
+                policyForTrackExpense,
                 policyTags,
                 policyCategories,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 isASAPSubmitBetaEnabled,
                 parentReportNextStep,
+                isOffline,
+                delegateAccountID,
+                distanceOriginalPolicy,
+            });
+        } else {
+            setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft, hasReceipt(transaction));
+
+            updateDistanceRateOnExpenseDateChange({
+                transactionID,
+                transaction,
+                newCreated,
+                reportID,
+                isPolicyExpenseChat: isPolicyExpenseChatReportUtil(report),
+                isTrackExpense,
+                policy,
+                policyForTrackExpense,
+                lastSelectedDistanceRates,
+                isDraft: isTransactionDraft,
             });
         }
 
@@ -150,7 +182,6 @@ function IOURequestStepDate({
                     label={translate('common.date')}
                     defaultValue={currentCreated}
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                    minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                     autoFocus
                 />
             </FormProvider>
@@ -158,9 +189,8 @@ function IOURequestStepDate({
     );
 }
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDate);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepDateWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDateWithFullTransactionOrNotFound);
 
 export default IOURequestStepDateWithWritableReportOrNotFound;

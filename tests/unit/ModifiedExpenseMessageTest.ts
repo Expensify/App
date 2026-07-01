@@ -1,12 +1,9 @@
 import Onyx from 'react-native-onyx';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {getForReportAction, getMovedFromOrToReportMessage, getMovedReportID} from '@libs/ModifiedExpenseMessage';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as PolicyUtils from '@libs/PolicyUtils';
-// eslint-disable-next-line no-restricted-syntax, no-restricted-imports -- this is required to allow mocking
+// eslint-disable-next-line no-restricted-imports -- this is required to allow mocking
 import * as ReportNameUtils from '@libs/ReportNameUtils';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
-import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import {translate} from '@src/libs/Localize';
@@ -42,7 +39,7 @@ describe('ModifiedExpenseMessage', () => {
 
     beforeEach(() => {
         // The `getReportName` method is quite complex, and we don't need to test it here
-        jest.spyOn(ReportUtils, 'getReportName').mockImplementation((reportNameInformation) => reportNameInformation?.report?.reportName ?? '');
+        jest.spyOn(ReportNameUtils, 'getReportName').mockImplementation((report) => report?.reportName ?? '');
     });
 
     afterEach(() => {
@@ -255,7 +252,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportName: '',
                 };
                 const result = getMovedFromOrToReportMessage(translateLocal, reportWithoutName, undefined, CURRENT_USER_LOGIN, undefined);
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReport', '');
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReportNoName');
 
                 expect(result).toEqual(expectedResult);
             });
@@ -283,7 +280,13 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `changed the amount to $18.00 (previously $12.55)`;
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -304,7 +307,67 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `changed the amount to $18.00 (previously $0.00)`;
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the amount is set for the first time (oldAmount absent, e.g. receipt still scanning)', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    amount: 1800,
+                    currency: CONST.CURRENCY.USD,
+                    oldCurrency: CONST.CURRENCY.USD,
+                },
+            };
+
+            it('returns "set the amount" instead of "changed the amount"', () => {
+                const expectedResult = 'set the amount to $18.00';
+
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the amount is set for the first time and the merchant is also set', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    amount: 1800,
+                    currency: CONST.CURRENCY.USD,
+                    oldCurrency: CONST.CURRENCY.USD,
+                    oldMerchant: '',
+                    merchant: 'Taco Bell',
+                },
+            };
+
+            it('returns "set" for both amount and merchant', () => {
+                const expectedResult = 'set the amount to $18.00 and the merchant to "Taco Bell"';
+
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -327,7 +390,13 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = 'changed the amount to $18.00 (previously $12.55)\nremoved the description (previously "this is for the shuttle")';
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -352,7 +421,13 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = 'changed the amount to $18.00 (previously $12.55)\nset the category to "Benefits"\nremoved the description (previously "this is for the shuttle")';
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -375,7 +450,13 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = 'changed the amount to $18.00 (previously $12.55) and the merchant to "Taco Bell" (previously "Big Belly")';
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -403,7 +484,13 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult =
                     'changed the amount to $18.00 (previously $12.55) and the merchant to "Taco Bell" (previously "Big Belly")\nset the category to "Benefits"\nremoved the description (previously "this is for the shuttle")';
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -429,7 +516,13 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult =
                     'changed the amount to $18.00 (previously $12.55), the description to "I bought it on the way" (previously "from the business trip"), and the merchant to "Taco Bell" (previously "Big Belly")';
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -448,7 +541,13 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `removed the merchant (previously "Big Belly")`;
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -467,7 +566,13 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `set the merchant to "KFC"`;
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -486,7 +591,13 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `set the merchant to "KFC"`;
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -505,7 +616,13 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct "removed" text message', () => {
                 const expectedResult = `removed the merchant (previously "Old Merchant")`;
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -524,7 +641,13 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct "changed" text message', () => {
                 const expectedResult = `changed the merchant to "New Merchant" (previously "Old Merchant")`;
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -545,7 +668,13 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `removed the description (previously "mini shore") and the merchant (previously "Big Belly")`;
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -568,7 +697,13 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `removed the description (previously "mini shore"), the merchant (previously "Big Belly"), and the category (previously "Benefits")`;
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -587,7 +722,13 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `set the merchant to "Big Belly"`;
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -608,7 +749,13 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `set the description to "mini shore" and the merchant to "Big Belly"`;
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -631,7 +778,13 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `set the description to "mini shore", the merchant to "Big Belly", and the category to "Benefits"`;
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -650,7 +803,13 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = 'changed the date to 2023-12-27 (previously 2023-12-26)';
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -668,7 +827,13 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = 'changed the expense';
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -690,7 +855,13 @@ describe('ModifiedExpenseMessage', () => {
 
             it('then the message says the distance is changed and shows the new and old merchant and amount', () => {
                 const expectedResult = `changed the distance to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $7.00 (previously $0.70)`;
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
                 expect(result).toEqual(expectedResult);
             });
         });
@@ -711,7 +882,42 @@ describe('ModifiedExpenseMessage', () => {
 
             it('then the message says the rate is changed and shows the new and old merchant and amount', () => {
                 const expectedResult = `changed the rate to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $55.80 (previously $39.45)`;
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the date change also changes the distance rate', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    oldMerchant: '56.36 mi @ $0.70 / mi',
+                    merchant: '56.36 mi @ $0.99 / mi',
+                    oldAmount: 3945,
+                    amount: 5580,
+                    oldCurrency: CONST.CURRENCY.USD,
+                    currency: CONST.CURRENCY.USD,
+                    oldCreated: '2025-06-19',
+                    created: '2026-06-19',
+                },
+            };
+
+            it('then the message reports both the rate change and the date change', () => {
+                const expectedResult = `changed the rate to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $55.80 (previously $39.45)\nchanged the date to 2026-06-19 (previously 2025-06-19)`;
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
                 expect(result).toEqual(expectedResult);
             });
         });
@@ -730,7 +936,14 @@ describe('ModifiedExpenseMessage', () => {
                     reportName: '',
                 };
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN, movedFromReport});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    movedFromReport,
+                });
                 expect(result).toEqual(expectedResult);
             });
         });
@@ -749,7 +962,13 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message with AI attribution when setting description', () => {
                 const expectedResult = 'set the description based on past activity to "Flight to client meeting"';
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -769,7 +988,13 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message with AI attribution when changing description', () => {
                 const expectedResult = 'changed the description based on past activity to "New description" (previously "Old description")';
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -789,7 +1014,13 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message with AI attribution', () => {
                 const expectedResult = `changed the category based on past activity to "Travel" (previously "Food")`;
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -809,7 +1040,13 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message with MCC attribution for non-admin', () => {
                 const expectedResult = `changed the category based on workspace rule to "Travel" (previously "Food")`;
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -831,7 +1068,13 @@ describe('ModifiedExpenseMessage', () => {
 
                 jest.spyOn(PolicyUtils, 'isPolicyAdmin').mockReturnValue(true);
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: mockPolicy, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: mockPolicy,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 // Verify the policyID in the URL exactly matches the policy.id (case-preserved)
                 expect(result).toContain(`workspaces/${mockPolicy.id}/rules`);
@@ -854,7 +1097,13 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message with AI attribution', () => {
                 const expectedResult = `set the category based on past activity to "Travel"`;
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -874,7 +1123,13 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message without showing previously uncategorized', () => {
                 const expectedResult = `set the category based on past activity to "6403 Travel - Member Services"`;
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -893,7 +1148,13 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the generic changed expense message since no meaningful change occurred', () => {
                 const expectedResult = `changed the expense`;
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -913,7 +1174,13 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message with AI attribution', () => {
                 const expectedResult = `removed the category based on past activity (previously "Travel")`;
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -927,7 +1194,7 @@ describe('ModifiedExpenseMessage', () => {
                 environmentURL = await getEnvironmentURL();
             });
 
-            const policyRulesPolicy = {id: policyRulesPolicyId, areRulesEnabled: true} as Policy;
+            const policyRulesPolicy = {id: policyRulesPolicyId, areRulesEnabled: true, type: CONST.POLICY.TYPE.CORPORATE} as Policy;
 
             beforeEach(() => {
                 // Default: current user has policy rule access (admin + rules enabled), so link points to workspace rules
@@ -949,7 +1216,13 @@ describe('ModifiedExpenseMessage', () => {
                     } as OriginalMessageModifiedExpense,
                 };
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: policyRulesPolicy, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: policyRulesPolicy,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 const expectedResult = `marked the expense as "billable", marked the expense as "reimbursable", set the category to "Travel", and merchant to "McDonald's" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
 
@@ -975,10 +1248,40 @@ describe('ModifiedExpenseMessage', () => {
                     } as OriginalMessageModifiedExpense,
                 };
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: policyRulesPolicy, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: policyRulesPolicy,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 const expectedResult = `set the tax rate to "New Tax Rate" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
 
+                expect(result).toEqual(expectedResult);
+            });
+
+            it('does not throw when tax override is missing field_id_TAX', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        policyID: '1234',
+                        policyRulesModifiedFields: {
+                            tax: {},
+                        },
+                    } as OriginalMessageModifiedExpense,
+                };
+
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: policyRulesPolicy,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+
+                const expectedResult = `set the tax rate to "" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
                 expect(result).toEqual(expectedResult);
             });
 
@@ -995,7 +1298,13 @@ describe('ModifiedExpenseMessage', () => {
                     } as OriginalMessageModifiedExpense,
                 };
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: policyRulesPolicy, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: policyRulesPolicy,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 const expectedResult = `set the category to "Travel" and merchant to "McDonald's" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
 
@@ -1014,7 +1323,13 @@ describe('ModifiedExpenseMessage', () => {
                     } as OriginalMessageModifiedExpense,
                 };
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: policyRulesPolicy, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: policyRulesPolicy,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 const expectedResult = `marked the expense as "billable" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
 
@@ -1034,7 +1349,13 @@ describe('ModifiedExpenseMessage', () => {
                     } as OriginalMessageModifiedExpense,
                 };
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: policyRulesPolicy, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: policyRulesPolicy,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 const expectedResult = `marked the expense as "reimbursable" and marked the expense as "billable" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
 
@@ -1056,7 +1377,13 @@ describe('ModifiedExpenseMessage', () => {
                     } as OriginalMessageModifiedExpense,
                 };
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: policyRulesPolicy, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: policyRulesPolicy,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toContain(CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL);
                 expect(result).toContain('workspace rules</a>');
@@ -1077,7 +1404,13 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message without attribution', () => {
                 const expectedResult = `changed the category to "Travel" (previously "Food")`;
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -1097,7 +1430,13 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message without attribution', () => {
                 const expectedResult = `changed the category to "Travel" (previously "Food")`;
 
-                const result = getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: undefined, currentUserLogin: CURRENT_USER_LOGIN});
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
 
                 expect(result).toEqual(expectedResult);
             });
@@ -1151,6 +1490,79 @@ describe('ModifiedExpenseMessage', () => {
                 });
 
                 expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the amount is set for the first time (oldAmount absent, e.g. receipt still scanning)', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    amount: 1800,
+                    currency: CONST.CURRENCY.USD,
+                    oldCurrency: CONST.CURRENCY.USD,
+                },
+            };
+
+            it('returns "set the amount" instead of "changed the amount"', () => {
+                const expectedResult = 'set the amount to $18.00';
+
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: 'test@example.com',
+                });
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the amount is set for the first time and then changed', () => {
+            it('returns "set" for the first edit (oldAmount absent)', () => {
+                const firstEditAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        amount: 1800,
+                        currency: CONST.CURRENCY.USD,
+                        oldCurrency: CONST.CURRENCY.USD,
+                    },
+                };
+
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction: firstEditAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: 'test@example.com',
+                });
+
+                expect(result).toEqual('set the amount to $18.00');
+            });
+
+            it('returns "changed" for the second edit (oldAmount present)', () => {
+                const secondEditAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        amount: 2500,
+                        currency: CONST.CURRENCY.USD,
+                        oldAmount: 1800,
+                        oldCurrency: CONST.CURRENCY.USD,
+                    },
+                };
+
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction: secondEditAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: 'test@example.com',
+                });
+
+                expect(result).toEqual('changed the amount to $25.00 (previously $18.00)');
             });
         });
 
@@ -1771,6 +2183,122 @@ describe('ModifiedExpenseMessage', () => {
                 });
 
                 expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('vendor changes', () => {
+            // QBO policy with two named vendors used by the resolver. No `config` block — the resolver
+            // must look up vendors regardless of the workspace's current export mode so historical
+            // chat entries keep rendering the vendor name after an admin switches export modes away
+            // from CC/DC. The fourth case below omits a vendor from the list to exercise the
+            // externalID fallback path.
+            const policyWithVendors: Policy = {
+                id: 'p-1',
+                name: 'My Workspace',
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: 'test@example.com',
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                connections: {
+                    quickbooksOnline: {
+                        data: {
+                            vendors: [
+                                {id: 'v-acme', name: 'Acme', currency: 'USD', email: ''},
+                                {id: 'v-office', name: 'Office Supplies', currency: 'USD', email: ''},
+                            ],
+                        },
+                    },
+                },
+            } as Policy;
+
+            describe('when the vendor is set for the first time (oldVendor key stripped by Onyx null-merge)', () => {
+                // Onyx merges with `shouldRemoveNestedNulls: true`, so the optimistic
+                // `oldVendor: null` we write is stripped from storage. The rendered action
+                // must still treat the missing key as a "set" rather than falling back to
+                // the generic "changed the expense" message.
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        vendor: {externalID: 'v-acme', isManuallySet: true},
+                    },
+                };
+
+                it('renders "set the vendor to X"', () => {
+                    const result = getForReportAction({
+                        translate: translateLocal,
+                        reportAction,
+                        policy: policyWithVendors,
+                        policyTags: undefined,
+                        currentUserLogin: CURRENT_USER_LOGIN,
+                    });
+                    expect(result).toEqual('set the vendor to "Acme"');
+                });
+            });
+
+            describe('when the vendor is changed from one to another', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        oldVendor: {externalID: 'v-acme', isManuallySet: false},
+                        vendor: {externalID: 'v-office', isManuallySet: true},
+                    },
+                };
+
+                it('renders "changed the vendor to Y (previously X)"', () => {
+                    const result = getForReportAction({
+                        translate: translateLocal,
+                        reportAction,
+                        policy: policyWithVendors,
+                        policyTags: undefined,
+                        currentUserLogin: CURRENT_USER_LOGIN,
+                    });
+                    expect(result).toEqual('changed the vendor to "Office Supplies" (previously "Acme")');
+                });
+            });
+
+            describe('when the vendor is removed (vendor key stripped by Onyx null-merge)', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        oldVendor: {externalID: 'v-acme', isManuallySet: true},
+                    },
+                };
+
+                it('renders "removed the vendor X"', () => {
+                    const result = getForReportAction({
+                        translate: translateLocal,
+                        reportAction,
+                        policy: policyWithVendors,
+                        policyTags: undefined,
+                        currentUserLogin: CURRENT_USER_LOGIN,
+                    });
+                    expect(result).toEqual('removed the vendor (previously "Acme")');
+                });
+            });
+
+            describe('when the vendor is set to an ID no longer in the QBO vendor list (e.g. deleted from QBO)', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        vendor: {externalID: 'v-deleted', isManuallySet: false},
+                    },
+                };
+
+                it('falls back to rendering the externalID so the fragment still identifies which vendor was set', () => {
+                    const result = getForReportAction({
+                        translate: translateLocal,
+                        reportAction,
+                        policy: policyWithVendors,
+                        policyTags: undefined,
+                        currentUserLogin: CURRENT_USER_LOGIN,
+                    });
+                    expect(result).toEqual('set the vendor to "v-deleted"');
+                });
             });
         });
     });

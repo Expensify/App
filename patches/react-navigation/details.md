@@ -1,8 +1,9 @@
 # `@react-navigation` patches
 
 ### @react-navigation+package-name+7+fix-failing-jest-by-disabling-esmodule.patch
+#### [@react-navigation+bottom-tabs+7.15.5+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+bottom-tabs+7.15.5+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+core+7.16.1+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+core+7.16.1+001+fix-failing-jest-by-disabling-esmodule.patch)
-#### [@react-navigation+elements+2.9.10+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+elements+2.9.10+001+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+elements+2.9.14+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+elements+2.9.14+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+material-top-tabs+7.4.19+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+material-top-tabs+7.4.19+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+native-stack+7.14.5+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native-stack+7.14.5+002+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+native+7.1.33+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native+7.1.33+002+fix-failing-jest-by-disabling-esmodule.patch)
@@ -29,6 +30,15 @@
 - Upstream PR/issue: https://www.github.com/react-navigation/react-navigation/pull/12679
 - E/App issue: [#65709](https://github.com/Expensify/App/issues/65709)
 - PR Introducing Patch: [#65836](https://github.com/Expensify/App/pull/65836)
+- PR Updating Patch: N/A
+
+### [@react-navigation+core+7.16.1+003+propagate-beforeremove-on-nested-reset.patch](@react-navigation+core+7.16.1+003+propagate-beforeremove-on-nested-reset.patch)
+
+- Reason: Browser back on web dispatches a root-targeted `RESET` that keeps route keys and only changes nested state, silently bypassing `usePreventRemove`/`beforeRemove` and losing unsaved data. The patch propagates the check into nested navigators.
+- Upstream PR: https://github.com/react-navigation/react-navigation/pull/13153
+- Upstream issue: https://github.com/react-navigation/react-navigation/issues/9031
+- E/App issue: [#84246](https://github.com/Expensify/App/issues/84246)
+- PR Introducing Patch: [#93268](https://github.com/Expensify/App/pull/93268)
 - PR Updating Patch: N/A
 
 ### [@react-navigation+native-stack+7.14.5+001+added-interaction-manager-integration.patch](@react-navigation+native-stack+7.14.5+001+added-interaction-manager-integration.patch)
@@ -69,10 +79,3 @@
 - E/App issue: [#48150](https://github.com/Expensify/App/issues/48150)
 - PR Introducing Patch: [#48151](https://github.com/Expensify/App/pull/48151)
 - PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155)
-
-### [@react-navigation+core+7.16.1+003+fix-clearing-preloaded-routes-after-logout.patch](@react-navigation+core+7.16.1+003+fix-clearing-preloaded-routes-after-logout.patch)
-- Reason: Clear preloaded routes from state that are not available after logging out.
-- Upstream PR/issue: N/A
-- E/App issue: [#65709](https://github.com/Expensify/App/issues/65211)
-- PR Introducing Patch: [#65836](https://github.com/Expensify/App/pull/66890)
-- PR Updating Patch: N/A

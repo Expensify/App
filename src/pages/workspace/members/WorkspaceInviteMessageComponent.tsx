@@ -22,13 +22,14 @@ import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
 import {addMembersToWorkspace, clearWorkspaceInviteApproverDraft, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getDefaultApprover, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isControlPolicy} from '@libs/PolicyUtils';
+import {getDefaultApprover, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isControlPolicy, isSubmitPolicy, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/PolicyUtils';
+import {getAllPolicyExpenseChatReportActions} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+import {getSearchParamFromPath} from '@libs/Url';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,7 +37,7 @@ import AccessOrNotFoundWrapper from '@src/pages/workspace/AccessOrNotFoundWrappe
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route as Routes} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkspaceInviteMessageForm';
-import type {PersonalDetails} from '@src/types/onyx';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -45,7 +46,7 @@ type WorkspaceInviteMessageComponentProps = {
     policy: OnyxEntry<Policy>;
     policyID: string;
     backTo: Routes | undefined;
-    currentUserPersonalDetails: OnyxEntry<PersonalDetails>;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
     shouldShowTooltip?: boolean;
     shouldShowBackButton?: boolean;
     shouldShowMemberNames?: boolean;
@@ -66,8 +67,17 @@ function WorkspaceInviteMessageComponent({
 }: WorkspaceInviteMessageComponentProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const policyName = policy?.name;
+
+    const backToPath = typeof backTo === 'string' ? (backTo.split('?').at(0) ?? '') : '';
+    const isWorkflowApprovalExpensesFromRoute = backToPath.endsWith('/workflows/approvals/expenses-from');
+    const headerTitle = isWorkflowApprovalExpensesFromRoute ? translate('workflowsExpensesFromPage.title') : translate('workspace.inviteMessage.confirmDetails');
+    const subtitle = isWorkflowApprovalExpensesFromRoute ? undefined : policyName;
+
     const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT);
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
 
     const [welcomeNote, setWelcomeNote] = useState<string>();
 
@@ -75,8 +85,10 @@ function WorkspaceInviteMessageComponent({
 
     const [invitedEmailsToAccountIDsDraft, invitedEmailsToAccountIDsDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`);
     const [workspaceInviteMessageDraft, workspaceInviteMessageDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${policyID}`);
-    const [workspaceInviteRoleDraft = CONST.POLICY.ROLE.USER] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`);
-
+    const [workspaceInviteRoleDraftFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`);
+    // Submit workspaces only allow inviting editors, so default the invite role accordingly when no draft is set.
+    // The backend ignores any other role for Submit workspaces, but defaulting here keeps the UI honest before submit.
+    const workspaceInviteRoleDraft = workspaceInviteRoleDraftFromOnyx ?? (isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : CONST.POLICY.ROLE.USER);
     const defaultApprover = getDefaultApprover(policy);
     const [approverDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`);
     const workspaceInviteApproverDraft = approverDraft ?? defaultApprover;
@@ -93,6 +105,7 @@ function WorkspaceInviteMessageComponent({
     };
 
     const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
+
     const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
     const memberNames = Object.values(personalDetailsOfInvitedEmails)
         .map((personalDetail) => {
@@ -146,6 +159,7 @@ function WorkspaceInviteMessageComponent({
 
     const sendInvitation = () => {
         Keyboard.dismiss();
+        const filteredReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
         // See https://github.com/Expensify/App/blob/main/README.md#workspace, we set conditions about who can leave the workspace
@@ -156,6 +170,14 @@ function WorkspaceInviteMessageComponent({
             policyMemberAccountIDs,
             workspaceInviteRoleDraft,
             formatPhoneNumber,
+            allPersonalDetails,
+            {
+                accountID: currentUserPersonalDetails?.accountID,
+                displayName: currentUserPersonalDetails?.displayName,
+                email: currentUserPersonalDetails.email,
+                avatar: currentUserPersonalDetails?.avatar,
+            },
+            filteredReportActions,
             shouldShowApproverRow ? validatedApprover : undefined,
         );
         setWorkspaceInviteMessageDraft(policyID, welcomeNote ?? null);
@@ -166,18 +188,25 @@ function WorkspaceInviteMessageComponent({
             return;
         }
 
-        if ((backTo as string)?.endsWith('members')) {
-            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
+        if (isWorkflowApprovalExpensesFromRoute) {
+            const nestedBackTo = getSearchParamFromPath(backTo?.toString() ?? '', 'backTo');
+            if (nestedBackTo) {
+                Navigation.goBack(nestedBackTo as Routes);
+            } else {
+                // forceReplace so the invite page is removed from the stack. Otherwise it stays
+                // underneath the Approver page and an iOS swipe-back reopens the invite confirm page.
+                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, 0), {forceReplace: true});
+            }
             return;
         }
 
-        if (getIsNarrowLayout()) {
-            Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID), {forceReplace: true});
+        if (backTo?.endsWith('members')) {
+            Navigation.dismissModal();
             return;
         }
 
-        Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.dismissModal({callback: () => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID))});
+        Navigation.dismissModal({
+            afterTransition: () => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)),
         });
     };
 
@@ -195,7 +224,6 @@ function WorkspaceInviteMessageComponent({
         return errorFields;
     };
 
-    const policyName = policy?.name;
     const invitingMemberEmail = Object.keys(invitedEmailsToAccountIDsDraft ?? {}).at(0) ?? '';
     const invitingMemberDetails = getPersonalDetailByEmail(invitingMemberEmail);
     const invitingMemberName = Str.removeSMSDomain(invitingMemberDetails?.displayName ?? '');
@@ -220,8 +248,8 @@ function WorkspaceInviteMessageComponent({
             >
                 {shouldShowBackButton && (
                     <HeaderWithBackButton
-                        title={translate('workspace.inviteMessage.confirmDetails')}
-                        subtitle={policyName}
+                        title={headerTitle}
+                        subtitle={subtitle}
                         shouldShowBackButton
                         onCloseButtonPress={() => Navigation.dismissModal()}
                         onBackButtonPress={() => Navigation.goBack(backTo)}
@@ -237,7 +265,9 @@ function WorkspaceInviteMessageComponent({
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    {isInviteNewMemberStep && <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.inviteNewMember')}</Text>}
+                    {(isInviteNewMemberStep || isWorkflowApprovalExpensesFromRoute) && (
+                        <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.inviteNewMember')}</Text>
+                    )}
                     <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                         <ReportActionAvatars
                             size={CONST.AVATAR_SIZE.LARGE}
@@ -276,6 +306,9 @@ function WorkspaceInviteMessageComponent({
                                 description={translate('common.role')}
                                 shouldShowRightIcon
                                 onPress={() => {
+                                    if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias, Navigation.getActiveRoute())) {
+                                        return;
+                                    }
                                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.path));
                                 }}
                             />

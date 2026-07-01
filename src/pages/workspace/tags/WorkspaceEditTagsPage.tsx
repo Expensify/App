@@ -7,9 +7,11 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getCleanedTagName, getTagListName, isMultiLevelTags} from '@libs/PolicyUtils';
@@ -18,22 +20,21 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {renamePolicyTagList} from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyTagNameForm';
 
-type WorkspaceEditTagsPageProps =
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_EDIT>
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_EDIT>;
+type WorkspaceEditTagsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_EDIT>;
 
 function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const tagListName = getTagListName(policyTags, route.params.orderWeight);
+    const orderWeight = Number(route.params.orderWeight);
+    const tagListName = getTagListName(policyTags, orderWeight);
     const {inputCallbackRef} = useAutoFocusInput();
-    const backTo = route.params.backTo;
-    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_EDIT;
+    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_EDIT;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAGS_EDIT.path);
     const isMultiLevelTagsEnabled = isMultiLevelTags(policyTags);
 
     const validateTagName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
@@ -44,7 +45,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
         if (values[INPUT_IDS.POLICY_TAGS_NAME]?.trim() === '0') {
             errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('workspace.tags.invalidTagNameError');
         }
-        if (policyTags && Object.values(policyTags).find((tag) => tag.orderWeight !== route.params.orderWeight && tag.name === values[INPUT_IDS.POLICY_TAGS_NAME])) {
+        if (policyTags && Object.values(policyTags).find((tag) => tag.orderWeight !== orderWeight && tag.name === values[INPUT_IDS.POLICY_TAGS_NAME])) {
             errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('workspace.tags.existingTagError');
         }
         return errors;
@@ -52,19 +53,19 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
 
     const goBackToTagsSettings = () => {
         if (isQuickSettingsFlow) {
-            Navigation.goBack(backTo);
+            Navigation.goBack(backPath);
             return;
         }
         Navigation.goBack(
             isMultiLevelTagsEnabled
-                ? ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(route?.params?.policyID, route.params.orderWeight)
-                : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID),
+                ? ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(route?.params?.policyID, orderWeight)
+                : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAGS_SETTINGS.path, ROUTES.WORKSPACE_TAGS.getRoute(route?.params?.policyID)),
         );
     };
 
     const updateTagListName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
         if (values[INPUT_IDS.POLICY_TAGS_NAME] !== tagListName) {
-            renamePolicyTagList(route.params.policyID, {oldName: tagListName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]}, policyTags, route.params.orderWeight);
+            renamePolicyTagList(route.params.policyID, {oldName: tagListName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]}, policyTags, orderWeight);
         }
         goBackToTagsSettings();
     };

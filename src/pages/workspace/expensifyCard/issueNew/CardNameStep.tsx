@@ -6,12 +6,14 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDefaultCardName} from '@libs/CardUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {getUserNameByEmail} from '@libs/PersonalDetailsUtils';
+import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getFieldRequiredErrors, isValidInputLength} from '@libs/ValidationUtils';
 import {setIssueNewCardStepAndData} from '@userActions/Card';
 import CONST from '@src/CONST';
@@ -31,14 +33,19 @@ type CardNameStepProps = {
 };
 
 function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) {
-    const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const isInLandscapeMode = useIsInLandscapeMode();
+
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
     const isEditing = issueNewCard?.isEditing;
     const data = issueNewCard?.data;
     const isVirtualCard = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL;
+    const areSpendRulesAvailable = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, policyCategories);
 
     const userName = getUserNameByEmail(data?.assigneeEmail ?? '', 'firstName');
     const defaultCardTitle = !isVirtualCard ? getDefaultCardName(userName) : '';
@@ -76,12 +83,14 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
                 setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
                 return;
             }
-            setIssueNewCardStepAndData({
-                step: isVirtualCard ? CONST.EXPENSIFY_CARD.STEP.EXPIRY_OPTIONS : CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE,
-                policyID,
-            });
+            if (isVirtualCard || areSpendRulesAvailable) {
+                setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.SPEND_RULES, policyID});
+                return;
+            }
+
+            setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE, policyID});
         });
-    }, [isEditing, isVirtualCard, policyID]);
+    }, [isEditing, areSpendRulesAvailable, isVirtualCard, policyID]);
 
     return (
         <InteractiveStepWrapper
@@ -94,7 +103,7 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
             stepNames={stepNames}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.giveItName')}</Text>
+            {!isInLandscapeMode && <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.giveItName')}</Text>}
             <FormProvider
                 formID={ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM}
                 submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
@@ -105,6 +114,7 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
                 shouldHideFixErrorsAlert
                 addBottomSafeAreaPadding
             >
+                {isInLandscapeMode && <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.giveItName')}</Text>}
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.CARD_TITLE}

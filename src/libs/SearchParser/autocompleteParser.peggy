@@ -90,10 +90,13 @@ autocompleteKey "key"
       / createdBy
       / assignee
       / expenseType
+      / receiptType
       / withdrawalType
+      / withdrawalStatus
       / type
       / status
       / cardID
+      / bankAccount
       / feed
       / groupBy
       / view

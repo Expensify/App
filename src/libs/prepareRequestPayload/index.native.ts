@@ -16,7 +16,7 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
         promiseChain = promiseChain.then(() => {
             const value = data[key];
 
-            if (value === undefined) {
+            if (value === undefined || value === null) {
                 return Promise.resolve();
             }
 

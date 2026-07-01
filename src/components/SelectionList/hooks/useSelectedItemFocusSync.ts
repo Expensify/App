@@ -18,7 +18,7 @@ type UseSelectedItemFocusSyncParams<TItem extends ListItem, TData = TItem> = {
     searchValue: string | undefined;
 
     /** Function to set the focused index */
-    setFocusedIndex: (index: number) => void;
+    setFocusedIndex: (index: number, shouldScrollHint?: boolean) => void;
 };
 
 /**
@@ -39,7 +39,7 @@ function useSelectedItemFocusSync<TItem extends ListItem, TData = TItem>({
         if (selectedItemIndex === -1 || selectedItemIndex === focusedIndex || searchValue) {
             return;
         }
-        setFocusedIndex(selectedItemIndex);
+        setFocusedIndex(selectedItemIndex, true);
 
         // Only sync focus when selectedItemIndex changes, not when other dependencies update
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -49,4 +49,3 @@ function useSelectedItemFocusSync<TItem extends ListItem, TData = TItem>({
 }
 
 export default useSelectedItemFocusSync;
-export type {UseSelectedItemFocusSyncParams};

@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import {emailSelector} from '@selectors/Session';
 import React, {useEffect, useMemo} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import ConfirmationPage from '@components/ConfirmationPage';
 import type {ConfirmationPageProps} from '@components/ConfirmationPage';
@@ -17,6 +17,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 import {closeReactNativeApp} from '@userActions/HybridApp';
@@ -196,10 +197,13 @@ function MergeResultPage() {
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            Navigation.removeScreenFromNavigationState(SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS);
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                Navigation.removeScreenFromNavigationState(SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS);
+            },
+            waitForUpcomingTransition: true,
         });
+        return () => handle.cancel();
     }, [result]);
 
     const {
