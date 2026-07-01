@@ -38,7 +38,6 @@ function HoldSubmitterEducationalModal({onClose, onConfirm}: HoldSubmitterEducat
             onClose={onClose}
             onConfirm={onConfirm}
             shouldCloseOnConfirm={false}
-            shouldGoBack={false}
             shouldUseScrollView
         >
             <HoldMenuSectionList />

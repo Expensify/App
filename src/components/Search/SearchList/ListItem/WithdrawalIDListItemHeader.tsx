@@ -210,7 +210,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                                     {statusBadge}
                                     <TextWithTooltip
                                         text={withdrawalInfoText}
-                                        style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                        style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.flexShrink1]}
                                     />
                                 </View>
                             </View>

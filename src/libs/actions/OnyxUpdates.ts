@@ -157,17 +157,36 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
 
         return Promise.resolve(response);
     }
-    if (lastUpdateID && (lastUpdateIDAppliedToClient === undefined || Number(lastUpdateID) > lastUpdateIDAppliedToClient)) {
+    const previousLastUpdateIDAppliedToClient = lastUpdateIDAppliedToClient;
+    const didAdvanceLastUpdateID = !!lastUpdateID && (lastUpdateIDAppliedToClient === undefined || Number(lastUpdateID) > lastUpdateIDAppliedToClient);
+    if (didAdvanceLastUpdateID) {
         Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Number(lastUpdateID));
     }
+
+    // The watermark is advanced before the updates are applied, so if applying fails the updates are silently lost
+    // and the client goes stale. Surface that case in Sentry.
+    const logApplyFailureIfNeeded = <T>(promise: Promise<T>): Promise<T> =>
+        promise.catch((error) => {
+            if (didAdvanceLastUpdateID) {
+                Log.alert('[OnyxUpdateManagerError] lastUpdateID was advanced but applying the updates failed, the updates may be lost', {
+                    type,
+                    command: request?.command,
+                    lastUpdateID,
+                    previousLastUpdateIDAppliedToClient,
+                    error: error instanceof Error ? error.message : String(error),
+                });
+            }
+            throw error;
+        });
+
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response) {
-        return applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID));
+        return logApplyFailureIfNeeded(applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID)));
     }
     if (type === CONST.ONYX_UPDATE_TYPES.PUSHER && updates) {
-        return applyPusherOnyxUpdates(updates, Number(lastUpdateID));
+        return logApplyFailureIfNeeded(applyPusherOnyxUpdates(updates, Number(lastUpdateID)));
     }
     if (type === CONST.ONYX_UPDATE_TYPES.AIRSHIP && updates) {
-        return applyAirshipOnyxUpdates(updates, Number(lastUpdateID));
+        return logApplyFailureIfNeeded(applyAirshipOnyxUpdates(updates, Number(lastUpdateID)));
     }
 }
 

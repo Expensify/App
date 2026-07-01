@@ -21,7 +21,7 @@ import type {Delegate, DelegatedAccess, DelegateRole} from '@src/types/onyx/Acco
 import type Credentials from '@src/types/onyx/Credentials';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
-import {confirmReadyToOpenApp, openApp} from './App';
+import {openApp} from './App';
 import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
@@ -218,7 +218,6 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                     return clearOnyxForDelegateTransition();
                 })
                 .then(() => {
-                    confirmReadyToOpenApp();
                     return openApp().then(() => {
                         if (!CONFIG.IS_HYBRID_APP || !policyID) {
                             return true;
@@ -323,7 +322,6 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
                     });
                     Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
                     Onyx.set(ONYXKEYS.STASHED_SESSION, {});
-                    confirmReadyToOpenApp();
                     openApp().then(() => {
                         if (!CONFIG.IS_HYBRID_APP) {
                             return;
@@ -384,7 +382,7 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
         ];
     };
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -488,15 +486,6 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
             },
         },
     ];
-
-    const optimisticResetActionCode = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: ONYXKEYS.VALIDATE_ACTION_CODE,
-        value: {
-            validateCodeSent: null,
-        },
-    };
-    optimisticData.push(optimisticResetActionCode);
 
     const parameters: APIAddDelegateParams = {delegateEmail: email, validateCode, role};
 
@@ -762,7 +751,6 @@ function restoreDelegateSession<TKey extends OnyxKey>(authenticateResponse: Resp
         NetworkStore.setAuthToken(authenticateResponse.authToken ?? null);
         NetworkStore.setIsAuthenticating(false);
 
-        confirmReadyToOpenApp();
         openApp();
     });
 }

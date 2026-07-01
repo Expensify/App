@@ -37,7 +37,7 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
     // sometimes primaryLogin can be empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const contactMethod = (account?.primaryLogin || currentUserPersonalDetails.email) ?? '';
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const loginData = loginList?.[contactMethod];
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
     const isUserValidated = account?.validated ?? false;
@@ -46,9 +46,9 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
-            validateSecondaryLogin(contactMethod, validateCode, formatPhoneNumber, true);
+            validateSecondaryLogin(contactMethod, validateCode);
         },
-        [contactMethod, formatPhoneNumber],
+        [contactMethod],
     );
 
     const handleCloseWithFallback = useCallback(() => {
