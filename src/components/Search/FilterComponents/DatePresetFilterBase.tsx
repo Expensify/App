@@ -483,7 +483,7 @@ function DatePresetFilterBase({
                         isSelected: selectedDateModifier === dateModifier,
                     }}
                     onSelectRow={() => selectDateModifier(dateModifier)}
-                    wrapperStyle={styles.flexReset}
+                    wrapperStyle={[styles.flexReset, styles.optionRowCompact]}
                 />
             ))}
         </>
