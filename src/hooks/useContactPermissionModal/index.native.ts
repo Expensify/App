@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import {useEffect, useEffectEvent, useRef} from 'react';
 import {RESULTS} from 'react-native-permissions';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -13,92 +13,91 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type UseContactPermissionModalParams from './types';
 
 function useContactPermissionModal({onDeny, onGrant, onFocusTextInput}: UseContactPermissionModalParams) {
-    const [hasDeniedContactImportPrompt] = useOnyx(ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT);
+    const [hasDeniedContactImportPrompt, hasDeniedContactImportPromptMetadata] = useOnyx(ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['ToddWithPhones']);
     const {showConfirmModal} = useConfirmModal();
 
-    const handleGrantPermission = () => {
-        requestContactPermission()
-            .then((status) => {
-                onFocusTextInput();
-                if (status !== RESULTS.GRANTED) {
-                    return;
-                }
-                onGrant();
-            })
-            .catch((error) => {
-                Log.warn('[useContactPermissionModal] Failed to request contact permission', {error});
-                onFocusTextInput();
-            });
-    };
+    const isMountedRef = useRef(false);
 
-    const handleCloseModal = () => {
-        setHasDeniedContactImportPrompt(true);
-        onDeny(RESULTS.DENIED);
-        onFocusTextInput();
-    };
-
-    useEffect(() => {
-        let isMounted = true;
-
+    const runContactPermissionFlow = useEffectEvent(async () => {
         if (hasDeniedContactImportPrompt) {
             onFocusTextInput();
             return;
         }
-        getContactPermission()
-            .then(async (status) => {
-                if (!isMounted) {
-                    return;
-                }
-                // Permission hasn't been asked yet, show the soft permission modal
-                if (status !== RESULTS.DENIED) {
-                    onFocusTextInput();
-                    return;
-                }
 
-                const result = await showConfirmModal({
-                    confirmText: translate('common.continue'),
-                    cancelText: translate('common.noThanks'),
-                    prompt: translate('contact.importContactsText'),
-                    promptStyles: [styles.textLabelSupportingEmptyValue, styles.mb4],
-                    title: translate('contact.importContactsTitle'),
-                    titleContainerStyles: [styles.mt2, styles.mb0],
-                    titleStyles: [styles.textHeadline],
-                    iconSource: illustrations.ToddWithPhones,
-                    iconFill: false,
-                    iconWidth: 176,
-                    iconHeight: 178,
-                    shouldCenterIcon: true,
-                    shouldReverseStackedButtons: true,
-                });
+        try {
+            const status = await getContactPermission();
 
-                if (!isMounted) {
-                    return;
-                }
+            if (!isMountedRef.current) {
+                return;
+            }
 
-                if (result?.action === ModalActions.CONFIRM) {
-                    handleGrantPermission();
-                } else {
-                    handleCloseModal();
-                }
-            })
-            .catch((error) => {
-                Log.warn('[useContactPermissionModal] Failed to read contact permission', {error});
-                if (!isMounted) {
-                    return;
-                }
+            // Permission hasn't been asked yet, show the soft permission modal
+            if (status !== RESULTS.DENIED) {
                 onFocusTextInput();
+                return;
+            }
+
+            const result = await showConfirmModal({
+                confirmText: translate('common.continue'),
+                cancelText: translate('common.noThanks'),
+                prompt: translate('contact.importContactsText'),
+                promptStyles: [styles.textLabelSupportingEmptyValue, styles.mb4],
+                title: translate('contact.importContactsTitle'),
+                titleContainerStyles: [styles.mt2, styles.mb0],
+                titleStyles: [styles.textHeadline],
+                iconSource: illustrations.ToddWithPhones,
+                iconFill: false,
+                iconWidth: 176,
+                iconHeight: 178,
+                shouldCenterIcon: true,
+                shouldReverseStackedButtons: true,
             });
 
+            if (!isMountedRef.current) {
+                return;
+            }
+
+            if (result?.action === ModalActions.CONFIRM) {
+                try {
+                    const permissionStatus = await requestContactPermission();
+                    onFocusTextInput();
+                    if (permissionStatus === RESULTS.GRANTED) {
+                        onGrant();
+                    }
+                } catch (error) {
+                    Log.warn('[useContactPermissionModal] Failed to request contact permission', {error});
+                    onFocusTextInput();
+                }
+            } else {
+                setHasDeniedContactImportPrompt(true);
+                onDeny(RESULTS.DENIED);
+                onFocusTextInput();
+            }
+        } catch (error) {
+            Log.warn('[useContactPermissionModal] Failed to read contact permission', {error});
+            if (!isMountedRef.current) {
+                return;
+            }
+            onFocusTextInput();
+        }
+    });
+
+    useEffect(() => {
+        if (hasDeniedContactImportPromptMetadata.status === 'loading') {
+            return;
+        }
+
+        isMountedRef.current = true;
+        runContactPermissionFlow();
+
         return () => {
-            isMounted = false;
+            isMountedRef.current = false;
         };
-        // Should only be evaluated once on mount
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [hasDeniedContactImportPrompt, hasDeniedContactImportPromptMetadata.status]);
 }
 
 export default useContactPermissionModal;
