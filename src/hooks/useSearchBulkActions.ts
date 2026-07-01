@@ -469,14 +469,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     }, [selectedReports, selectedTransactions, policies]);
 
     const selectedPolicyIDs = useMemo(
-        () => [
-            ...new Set(
-                Object.values(selectedTransactions)
-                    .map((transaction) => transaction.policyID)
-                    .filter(Boolean),
-            ),
-        ],
-        [selectedTransactions],
+        () => [...new Set([...Object.values(selectedTransactions).map((transaction) => transaction.policyID), ...selectedReports.map((report) => report.policyID)].filter(Boolean))],
+        [selectedTransactions, selectedReports],
     );
     const selectedBulkCurrency = selectedReports.at(0)?.currency ?? Object.values(selectedTransactions).at(0)?.currency;
     const totalFormattedAmount = getTotalFormattedAmount(convertToDisplayString, selectedReports, selectedTransactions, selectedBulkCurrency);
