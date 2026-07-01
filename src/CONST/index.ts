@@ -4520,6 +4520,7 @@ const CONST = {
         },
         CARD_NAME: {
             CASH: '__CASH__',
+            TRAVEL: 'Travel invoicing',
         },
         CARD_LIST_THRESHOLD: 8,
         DEFAULT_EXPORT_TYPE: 'default',
