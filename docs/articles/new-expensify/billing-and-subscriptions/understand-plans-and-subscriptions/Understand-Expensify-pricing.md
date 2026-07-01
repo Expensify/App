@@ -3,6 +3,9 @@ title: Understand Expensify pricing
 description: Learn how Expensify subscription pricing works, including Collect and Control pricing, billable members, and the factors that affect your subscription cost.
 keywords: [Expensify pricing, Collect pricing, Control pricing, subscription pricing, active members, unique members]
 internalScope: Audience is anyone evaluating or managing an Expensify subscription. Covers subscription pricing and how subscription charges are calculated. Does not cover localized pricing, changing plans, or subscription management.
+retrievalIntent: Actual prices, billable-member counting, cost factors.
+contentType: topic
+platform: new
 ---
 
 # Understand Expensify pricing
