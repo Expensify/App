@@ -20,8 +20,8 @@ import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {SearchResults} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import CurrencyPopup from './CurrencyPopup';
 import GroupByPopup from './GroupByPopup';
+import GroupCurrencyPopup from './GroupCurrencyPopup';
 import SingleSelectPopup from './SingleSelectPopup';
 import SortByPopup from './SortByPopup';
 import SortOrderPopup from './SortOrderPopup';
@@ -187,13 +187,10 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
             );
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY:
             return (
-                <CurrencyPopup
-                    value={searchAdvancedFilters[CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]}
+                <GroupCurrencyPopup
                     onChange={(item) => updateFilterForm({groupCurrency: item?.value})}
-                    label={translate('common.groupCurrency')}
                     onBackButtonPress={goBack}
                     closeOverlay={closeOverlay}
-                    searchPlaceholder={translate('common.groupCurrency')}
                 />
             );
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW:

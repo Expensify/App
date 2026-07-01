@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import {resolveDuplicationConflictAction, resolveReconnectDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
 import * as NetworkState from '@libs/NetworkState';
 import {clear as clearPersistedRequests, getAll, getLength, getOngoingRequest, updateOngoingRequest} from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
@@ -399,6 +400,146 @@ describe('SequentialQueue', () => {
             onyxUpdateSpy.mockRestore();
         }
     });
+});
+
+describe('SequentialQueue - reconnect coverage collapse', () => {
+    // Build a ReconnectApp wired to the real resolver exactly as API.writeWithNoDuplicatesReconnectConflictAction
+    // does, so these tests exercise the wiring, not a stand-in matcher. getOngoingRequest() is read inside the
+    // closure (both eval passes agree).
+    function makeReconnectRequest<TKey extends OnyxKey = never>(overrides: {command: 'ReconnectApp'; data?: Record<string, unknown>} & Partial<Request<TKey>>): Request<TKey> {
+        const incoming: AnyRequest = {command: overrides.command, data: overrides.data};
+        return {
+            ...overrides,
+            checkAndFixConflictingRequest: (persistedRequests) => resolveReconnectDuplicationConflictAction(persistedRequests as AnyRequest[], getOngoingRequest(), incoming),
+        } as Request<TKey>;
+    }
+
+    // Build an OpenApp wired exactly as API.writeWithNoDuplicatesConflictAction(OPEN_APP) does: the generic
+    // resolver dedupes by command against the waiting queue only and never reads the in-flight request.
+    function makeOpenAppRequest<TKey extends OnyxKey = never>(overrides: {data?: Record<string, unknown>} & Partial<Request<TKey>> = {}): Request<TKey> {
+        return {
+            ...overrides,
+            command: 'OpenApp',
+            checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests as AnyRequest[], (queued) => queued.command === 'OpenApp'),
+        } as Request<TKey>;
+    }
+
+    it('drops an identical reconnect enqueued while one is in flight, leaving only one on the wire', async () => {
+        mockFetch.pause();
+        try {
+            await SequentialQueue.push(makeReconnectRequest({command: 'ReconnectApp'}));
+            await waitForBatchedUpdates();
+            expect(getOngoingRequest()?.command).toBe('ReconnectApp');
+
+            // An identical full reconnect lands mid-flight. It is fully covered, so it is dropped.
+            await SequentialQueue.push(makeReconnectRequest({command: 'ReconnectApp'}));
+
+            // Only the in-flight request remains; nothing was added to the waiting queue.
+            expect(getLength()).toBe(1);
+            expect(getAll()).toHaveLength(0);
+        } finally {
+            await mockFetch.resume();
+        }
+    });
+
+    it('keeps a full reconnect that arrives while only an incremental one is in flight (no data lost)', async () => {
+        mockFetch.pause();
+        try {
+            await SequentialQueue.push(makeReconnectRequest({command: 'ReconnectApp', data: {updateIDFrom: 500}}));
+            await waitForBatchedUpdates();
+            expect(getOngoingRequest()?.data?.updateIDFrom).toBe(500);
+
+            // A full reconnect re-fetches more than the in-flight incremental one, so it must run after.
+            await SequentialQueue.push(makeReconnectRequest({command: 'ReconnectApp'}));
+
+            expect(getLength()).toBe(2);
+            expect(getAll().at(0)?.data?.updateIDFrom).toBeUndefined();
+        } finally {
+            await mockFetch.resume();
+        }
+    });
+
+    it('does not collapse an unrelated command enqueued during an in-flight reconnect', async () => {
+        mockFetch.pause();
+        try {
+            await SequentialQueue.push(makeReconnectRequest({command: 'ReconnectApp'}));
+            await waitForBatchedUpdates();
+            expect(getOngoingRequest()?.command).toBe('ReconnectApp');
+
+            await SequentialQueue.push({command: 'AddComment', data: {reportActionID: '1'}});
+
+            expect(getLength()).toBe(2);
+            expect(getAll().some((r) => r.command === 'AddComment')).toBe(true);
+        } finally {
+            await mockFetch.resume();
+        }
+    });
+
+    it('drops an incoming incremental reconnect rather than clobbering a waiting full reconnect (under-fetch fix)', async () => {
+        // The generic resolver would `replace` the waiting full reconnect with the newer incremental one,
+        // silently narrowing coverage. The reconnect resolver drops the incremental and keeps the full.
+        SequentialQueue.pause();
+        try {
+            await SequentialQueue.push(makeReconnectRequest({command: 'ReconnectApp'}));
+            await SequentialQueue.push(makeReconnectRequest({command: 'ReconnectApp', data: {updateIDFrom: 500}}));
+
+            expect(getLength()).toBe(1);
+            expect(getAll().at(0)?.data?.updateIDFrom).toBeUndefined();
+        } finally {
+            SequentialQueue.unpause();
+        }
+    });
+
+    it('clears IS_LOADING_REPORT_DATA after a dropped duplicate, once the in-flight reconnect finishes', async () => {
+        const onyxData = {
+            optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.IS_LOADING_REPORT_DATA, value: true}] as Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_REPORT_DATA>>,
+            finallyData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.IS_LOADING_REPORT_DATA, value: false}] as Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_REPORT_DATA>>,
+        };
+        let isLoadingReportData: boolean | undefined;
+        const connectionID = Onyx.connect({
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            callback: (value) => {
+                isLoadingReportData = value;
+            },
+        });
+
+        try {
+            mockFetch.pause();
+            await SequentialQueue.push(makeReconnectRequest<typeof ONYXKEYS.IS_LOADING_REPORT_DATA>({command: 'ReconnectApp', ...onyxData}));
+            await waitForBatchedUpdates();
+            await SequentialQueue.push(makeReconnectRequest<typeof ONYXKEYS.IS_LOADING_REPORT_DATA>({command: 'ReconnectApp', ...onyxData}));
+            expect(getLength()).toBe(1);
+            await mockFetch.resume();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            // The in-flight cycle owns the shared flag; its finallyData clears the spinner even under the drop.
+            expect(isLoadingReportData).toBe(false);
+        } finally {
+            Onyx.disconnect(connectionID);
+        }
+    });
+
+    it('keeps an incoming OpenApp that arrives while a reconnect is in flight (HAS_LOADED_APP path is preserved)', async () => {
+        mockFetch.pause();
+        try {
+            await SequentialQueue.push(makeReconnectRequest({command: 'ReconnectApp'}));
+            await waitForBatchedUpdates();
+            expect(getOngoingRequest()?.command).toBe('ReconnectApp');
+
+            // OpenApp dedupes against the waiting queue only, never the in-flight request, so an OpenApp that
+            // lands mid-reconnect still runs and its preservation writes are never dropped.
+            await SequentialQueue.push(makeOpenAppRequest());
+
+            expect(getLength()).toBe(2);
+            expect(getAll().at(0)?.command).toBe('OpenApp');
+        } finally {
+            await mockFetch.resume();
+        }
+    });
+
+    // The failure→retry→no-loss story (a dropped duplicate is a subset of the durable, retryable in-flight
+    // request) rests on the queue's existing retry/backoff, which is exercised in tests/unit/APITest.ts.
 });
 
 describe('SequentialQueue - QueueFlushedData', () => {

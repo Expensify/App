@@ -394,6 +394,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reportID: 'ID raportu',
         longReportID: 'Długi identyfikator raportu',
         withdrawalID: 'Identyfikator wypłaty',
+        internationalReimbursementIDs: 'Identyfikatory zwrotów międzynarodowych',
         withdrawalStatus: 'Status wypłaty',
         bankAccounts: 'Konta bankowe',
         chooseFile: 'Wybierz plik',
@@ -512,6 +513,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Edytor',
         restrictions: 'Ograniczenia',
+        tagGLCode: 'Oznacz kod GL',
         off: 'Wyłączone',
     },
     socials: {
@@ -842,6 +844,7 @@ const translations: TranslationDeepObject<typeof en> = {
         joinThread: 'Dołącz do wątku',
         leaveThread: 'Opuść wątek',
         copyOnyxData: 'Skopiuj dane Onyx',
+        copyAgentZeroRequestID: 'Skopiuj identyfikator żądania AgentZero',
         flagAsOffensive: 'Oznacz jako obraźliwe',
         menu: 'Menu',
     },
@@ -1339,6 +1342,9 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Czy na pewno chcesz usunąć te raporty?',
         }),
         settledExpensify: 'Zapłacono',
+        paidStatusMarkedAsPaid: 'Oznaczono jako zapłacone',
+        paidStatusWithdrawing: 'Wypłata',
+        paidStatusConfirmed: 'Potwierdzone',
         done: 'Gotowe',
         settledElsewhere: 'Opłacone gdzie indziej',
         individual: 'Osoba',
@@ -1654,6 +1660,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Przenieś do raportu',
         moveExpensesError: 'Nie możesz przenosić diet do raportów w innych przestrzeniach roboczych, ponieważ stawki diet mogą się różnić między przestrzeniami roboczymi.',
+        submitReportTo: {
+            sendExpense: 'Wyślij swój wydatek do dowolnej osoby',
+            sendExpenseSubtitle: 'Zaproś dowolną osobę do Expensify, używając jej adresu e-mail lub numeru telefonu.',
+        },
         changeApprover: {
             title: 'Zmień osobę zatwierdzającą',
             header: (workflowSettingLink: string) =>
@@ -3175,9 +3185,9 @@ ${amount} dla ${merchant} - ${date}`,
                     `),
             },
             combinedTrackSubmitExpenseTask: {
-                title: 'Wyślij wydatek',
+                title: 'Utwórz wydatek',
                 description: dedent(`
-                    *Zgłoś wydatek*, wprowadzając kwotę lub skanując paragon.
+                    *Utwórz wydatek*, wprowadzając kwotę lub skanując paragon.
 
                     1. Kliknij przycisk *+*.
                     2. Wybierz *Utwórz wydatek*.
@@ -3189,9 +3199,9 @@ ${amount} dla ${merchant} - ${date}`,
                 `),
             },
             adminSubmitExpenseTask: {
-                title: 'Wyślij wydatek',
+                title: 'Utwórz wydatek',
                 description: dedent(`
-                    *Zgłoś wydatek*, wpisując kwotę lub skanując paragon.
+                    *Utwórz wydatek*, wpisując kwotę lub skanując paragon.
 
                     1. Kliknij przycisk *+*.
                     2. Wybierz *Utwórz wydatek*.
@@ -4494,7 +4504,7 @@ ${amount} dla ${merchant} - ${date}`,
             budgetTypeForNotificationMessage: {tag: 'znacznik', category: 'kategoria'},
             policyExpenseChatName: (displayName: string) => `Wydatki ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Transakcje z Karty Expensify będą automatycznie eksportowane do „Konta zobowiązań Karty Expensify” utworzonego dzięki <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">naszej integracji</a>.</muted-text-label>`,
-            travelInvoicing: 'Eksportuj wydatki z fakturowania podróży jako',
+            travelInvoicing: 'Eksportuj skonsolidowane wydatki z rozliczeń podróży jako',
             travelInvoicingVendor: 'Dostawca usług turystycznych',
             travelInvoicingPayableAccount: 'Konto zobowiązań z tytułu podróży',
             hr: 'HR',
@@ -5008,9 +5018,13 @@ ${amount} dla ${merchant} - ${date}`,
             noCompaniesFoundDescription: 'Po dodaniu firm w Certinia zsynchronizuj ponownie to połączenie.',
             prerequisites: {
                 title: 'Zanim się połączysz',
-                installBundle: 'Dla połączeń FFA',
-                installBundleDescription: ({href, version}: {href: string; version: string}) =>
-                    `Zainstaluj pakiet Expensify w Salesforce, klikając ten link: <a href="${href}">Zainstaluj pakiet FFA Expensify (wersja ${version})</a>`,
+                installBundle: 'Zainstaluj pakiet Expensify',
+                installBundlePSAHeader: 'Dla połączeń PSA/SRP:',
+                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
+                    `Zainstaluj pakiet Expensify w Salesforce, klikając ten link: <a href="${href}">Zainstaluj pakiet PSA/SRP Expensify (wersja ${version})</a>`,
+                installBundleFFAHeader: 'Dla połączeń FFA:',
+                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
+                    `Zainstaluj pakiet Expensify w Salesforce, klikając ten link: <a href="${href}">Zainstaluj pakiet Expensify dla FFA (wersja ${version})</a>`,
                 installBundleConfirm: 'Zainstalowałem pakiet',
                 setupContacts: 'Skonfiguruj użytkownika i kontakty',
                 setupContactsBullet1:
@@ -5785,8 +5799,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             travel: {
                 title: 'Podróże',
                 subtitle: 'Rezerwuj, zarządzaj i uzgadniaj wszystkie wyjazdy służbowe.',
-                disableTravelTitle: 'Najpierw wyłącz fakturowanie podróży',
-                disableTravelPrompt: 'Fakturowanie podróży jest włączone dla tego obszaru roboczego. Wyłącz je, zanim będziesz mógł wyłączyć funkcję Podróże.',
+                disableTravelTitle: 'Najpierw wyłącz zbiorcze rozliczanie podróży',
+                disableTravelPrompt: 'Scalona fakturowanie podróży jest włączone dla tego miejsca pracy. Wyłącz je, zanim będziesz mógł wyłączyć Podróże.',
                 disableTravelButton: 'Przejdź do ustawień Podróży',
                 getStarted: {
                     title: 'Pierwsze kroki z Expensify Travel',
@@ -5813,7 +5827,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                         manageTravelLabel: 'Zarządzaj podróżami',
                     },
                     travelInvoicingSection: {
-                        title: 'Fakturowanie podróży',
+                        title: 'Zbiorcze rozliczanie podróży',
                         subtitle: 'Skonsoliduj wszystkie wydatki na podróże w jednym miesięcznym rachunku zamiast płacić w momencie zakupu.',
                         learnHow: 'Dowiedz się jak.',
                         subsections: {
@@ -5830,16 +5844,16 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                             reduceLimitWarning:
                                 'Jeśli zmniejszysz limit, członkowie, którzy już wydali więcej niż ta kwota, nie będą mogli dokonywać nowych rezerwacji podróży do następnego miesiąca.',
                             provisioningError:
-                                'Nie udało się utworzyć dostępu do fakturowania podróży dla części członków Twojego workspace. Spróbuj ponownie później albo skontaktuj się z Concierge, żeby uzyskać pomoc.',
+                                'Nie udało nam się skonfigurować części członków twojego miejsca pracy do skonsolidowanego rozliczania podróży. Spróbuj ponownie później albo skontaktuj się z Concierge, żeby uzyskać pomoc.',
                         },
                     },
                     disableModal: {
-                        title: 'Wyłączyć fakturowanie podróży?',
+                        title: 'Wyłączyć zbiorcze rozliczanie podróży?',
                         body: 'Nadchodzące rezerwacje hoteli i wynajmu samochodów mogą wymagać ponownej rezerwacji z użyciem innej metody płatności, aby uniknąć anulowania.',
                         confirm: 'Wyłącz',
                     },
                     outstandingBalanceModal: {
-                        title: 'Nie można wyłączyć fakturowania podróży',
+                        title: 'Nie można wyłączyć Zbiorczego Rozliczania Podróży',
                         body: 'Masz nadal zaległe saldo za podróż. Najpierw ureguluj swoje saldo.',
                         confirm: 'Rozumiem',
                     },
@@ -5851,8 +5865,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     exportToCSV: 'Eksportuj do CSV',
                     selectDateRangeError: 'Wybierz zakres dat do eksportu',
                     invalidDateRangeError: 'Data początkowa musi być wcześniejsza niż data końcowa',
-                    enabled: 'Fakturowanie podróży włączone!',
-                    enabledDescription: 'Wszystkie wydatki podróżne w tym obszarze roboczym będą teraz rozliczane na scentralizowanej, miesięcznej fakturze.',
+                    enabled: 'Włączono zbiorcze rozliczanie podróży!',
+                    enabledDescription: 'Wszystkie wydatki podróżne w tym obszarze roboczym będą teraz scentralizowane na miesięcznym rachunku.',
                 },
                 personalDetailsDescription: 'Aby zarezerwować podróż, wpisz swoje imię i nazwisko dokładnie tak, jak widnieje w Twoim dokumencie tożsamości wydanym przez organ państwowy.',
             },
@@ -6301,6 +6315,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 one: 'Ustaw jako administratora przestrzeni roboczej',
                 other: 'Ustaw jako administratorów przestrzeni roboczej',
             }),
+            makeGroupAdmin: () => ({
+                one: 'Ustaw jako administratora',
+                other: 'Ustaw jako administratorów',
+            }),
             makeAuditor: () => ({
                 one: 'Ustaw jako audytora',
                 other: 'Utwórz audytorów',
@@ -6681,11 +6699,11 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 chooseBankAccount: 'Wybierz konto bankowe, do którego będą uzgadniane płatności kartą Karta Expensify.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Upewnij się, że to konto jest takie samo jak twoje <a href="${settlementAccountUrl}">konto rozliczeniowe Karty Expensify</a> (kończące się na ${lastFourPAN}), aby Ciągłe Uzgadnianie działało poprawnie.`,
-                chooseTravelInvoicingBankAccount: 'Wybierz konto bankowe, z którym będą uzgadniane płatności za faktury podróżne.',
+                chooseTravelInvoicingBankAccount: 'Wybierz konto bankowe, z którym będą uzgadniane płatności za Zbiorcze Rozliczanie Podróży.',
                 travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
-                    `Upewnij się, że to konto jest takie samo jak konto rozliczeniowe do fakturowania podróży (kończące się na ${lastFourPAN}), żeby Ciągłe Uzgadnianie działało poprawnie.`,
+                    `Upewnij się, że to konto jest takie samo jak konto rozliczeniowe Consolidated Travel Billing (kończące się na ${lastFourPAN}), żeby Continuous Reconciliation działało poprawnie.`,
             },
-            syncTravelInvoicingSettlements: 'Synchronizuj rozliczenia faktur podróżnych',
+            syncTravelInvoicingSettlements: 'Synchronizuj rozliczenia skonsolidowanego rozliczania podróży',
         },
         export: {
             notReadyHeading: 'Niegotowe do eksportu',
@@ -6742,7 +6760,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 optionFixedDistanceTitle: 'Wyklucz stały dystans na każde rozliczenie',
                 optionFixedDistanceHelp: 'Odejmij tę samą odległość dojazdu od każdego rozliczenia. Najlepsze dla osób, które składają jedno rozliczenie na każdy dzień pracy.',
                 distanceLabel: 'Dystans',
-                errors: {distanceMustBePositive: 'Dystans musi być większy niż 0.'},
+                errors: {distanceMustBePositive: 'Dystans musi być dodatnią liczbą całkowitą.'},
             },
             distance: 'Dystans',
             centrallyManage: 'Centralnie zarządzaj stawkami, śledź w milach lub kilometrach i ustaw domyślną kategorię.',
@@ -7466,6 +7484,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             agentRules: {
                 title: 'Zasady agenta',
                 subtitle: 'Ustaw zasady dotyczące tego, jak agenci AI obsługują wydatki w tym obszarze roboczym.',
+                enforcedBy: 'Zasady agenta są egzekwowane przez',
+                ruleBotName: 'RuleBot',
                 addRule: 'Dodaj regułę agenta',
                 findRule: 'Znajdź regułę agenta',
                 addRuleTitle: 'Dodaj regułę',
@@ -7912,17 +7932,17 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 case 'Expensify Cards':
                     return `${enabled ? 'włączone' : 'wyłączone'} Karty Expensify`;
                 case 'travel invoicing':
-                    return `Fakturowanie podróży ${enabled ? 'włączone' : 'wyłączone'}`;
+                    return `${enabled ? 'włączone' : 'wyłączone'} Zbiorcze rozliczenie podróży`;
                 case 'company cards':
                     return `${enabled ? 'włączone' : 'wyłączone'} karty firmowe`;
                 case 'invoicing':
                     return `Fakturowanie ${enabled ? 'włączone' : 'wyłączone'}`;
                 case 'per diem':
-                    return `${enabled ? 'włączone' : 'wyłączone'} dieta dzienna`;
+                    return `${enabled ? 'włączone' : 'wyłączone'} diety`;
                 case 'receipt partners':
-                    return `partnerzy paragonów ${enabled ? 'włączone' : 'wyłączone'}`;
+                    return `${enabled ? 'włączone' : 'wyłączone'} paragonów od partnerów`;
                 case 'rules':
-                    return `${enabled ? 'włączone' : 'wyłączone'} zasad`;
+                    return `${enabled ? 'włączone' : 'wyłączone'} reguły`;
                 case 'tax tracking':
                     return `Śledzenie podatku ${enabled ? 'włączone' : 'wyłączone'}`;
                 default:
@@ -8237,7 +8257,14 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `zasada wydatków z ${cards}`,
                 composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} na ${cards}`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} z ${cards}`,
+                bodyCurrency: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} waluta „${value}”` : `waluta „${value}”`),
+                bodyCurrencyValueOnly: ({value}: {value: string}) => `'${value}'`,
+                bodyCurrencyChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} walutę z „${oldValue}” na „${newValue}”` : `walutę z „${oldValue}” na „${newValue}”`,
+                bodyCurrencyRestriction: 'ograniczenie waluty',
             },
+            allowedCurrencyFilters: ({currencies}: {currencies: string}) => `waluty ${currencies}`,
+            blockedCurrencyFilters: ({currencies}: {currencies: string}) => `waluty spoza ${currencies}`,
         },
         updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
             `zmienił(a) domyślną stawkę podatku dla kategorii „${categoryName}” na „${newTax}” (wcześniej „${oldTax}”)`,
@@ -8444,8 +8471,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `Wszystkie ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Wszystkie zaimportowane karty CSV${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
-                travelInvoicing: 'Fakturowanie podróży',
+                travelInvoicing: 'Zbiorcze rozliczanie podróży',
             },
+            bankAccount: {banks: 'Konta bankowe', closedBankAccounts: 'Zamknięte konta bankowe'},
             reportField: (name: string, value: string) => `${name} to ${value}`,
             current: 'Bieżące',
             past: 'Przeszłe',
@@ -8478,7 +8506,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Karta Expensify',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Zwrot kosztów',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Fakturowanie podróży',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Zbiorcze rozliczanie podróży',
             },
             is: 'Jest',
             action: {
@@ -8520,6 +8548,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         noMerchant: 'Brak sprzedawcy',
         noTag: 'Brak tagu',
         expenseType: 'Typ wydatku',
+        receiptType: 'Typ paragonu',
+        receiptTypeValues: {
+            ereceipt: 'eParagon',
+            itemized: 'Szczegółowy',
+            hotel: 'Hotel',
+        },
         withdrawalType: 'Typ wypłaty',
         recentSearches: 'Ostatnie wyszukiwania',
         recentChats: 'Ostatnie czaty',
@@ -8904,7 +8938,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         personalCard: 'Karta osobista',
         companyCard: 'Karta firmowa',
         expensifyCard: 'Karta Expensify',
-        travelInvoicing: 'Fakturowanie podróży',
+        travelInvoicing: 'Zbiorcze rozliczanie podróży',
         travelCard: 'Karta podróżna',
     },
     distance: {
@@ -9216,6 +9250,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         resolvedDuplicates: 'rozwiązano duplikat',
         companyCardRequired: 'Wymagane zakupy kartą firmową',
         noRoute: 'Wybierz prawidłowy adres',
+        customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `Stawka jest ważna tylko od ${startDate} do ${endDate}`,
+        customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Stawka jest ważna tylko od ${startDate}`,
+        customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Stawka jest ważna tylko do ${endDate}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `Pole ${fieldName} jest wymagane`,
@@ -9276,10 +9313,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             'Chętnie umówimy się z Tobą na rozmowę, aby zrozumieć dlaczego. Możesz zarezerwować rozmowę z jednym z naszych starszych menedżerów produktu, aby omówić swoje potrzeby.',
         takeMeToExpensifyClassic: 'Przejdź do Expensify Classic',
         goBackJustOnce: 'Wróć tylko raz',
-    },
-    listBoundary: {
-        errorMessage: 'Wystąpił błąd podczas wczytywania kolejnych wiadomości',
-        tryAgain: 'Spróbuj ponownie',
     },
     systemMessage: {
         mergedWithCashTransaction: 'dopasowano paragon do tej transakcji',
@@ -9744,7 +9777,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         expenseLevelExport: 'Wszystkie dane – poziom wydatku',
         exportInProgress: 'Trwa eksport',
         conciergeWillSend: 'Concierge wkrótce wyśle Ci plik.',
-        currentView: 'Eksportuj bieżący widok',
+        currentView: 'Bieżący widok',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',
