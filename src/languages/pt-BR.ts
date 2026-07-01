@@ -2786,8 +2786,6 @@ ${amount} para ${merchant} - ${date}`,
         activatePhysicalCard: 'Ativar cartão físico',
         error: {
             thatDidNotMatch: 'Isso não correspondeu aos últimos 4 dígitos do seu cartão. Tente novamente.',
-            throttled:
-                'Você digitou incorretamente os últimos 4 dígitos do seu Cartão Expensify muitas vezes. Se tiver certeza de que os números estão corretos, entre em contato com o Concierge para resolver. Caso contrário, tente novamente mais tarde.',
         },
     },
     getPhysicalCard: {
