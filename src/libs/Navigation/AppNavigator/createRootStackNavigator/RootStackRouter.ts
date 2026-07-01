@@ -19,6 +19,7 @@ import {
     handleToggleMfaModalNavigatorWithHistoryAction,
     handleToggleModalWithHistoryAction,
     handleToggleSidePanelWithHistoryAction,
+    MODAL_ROUTES_TO_DISMISS,
 } from './GetStateForActionHandlers';
 import syncBrowserHistory from './syncBrowserHistory';
 import type {
@@ -71,6 +72,14 @@ function isPreloadAction(action: RootStackNavigatorAction): action is PreloadAct
     return action.type === CONST.NAVIGATION.ACTION_TYPE.PRELOAD;
 }
 
+// Onboarding REDIRECT layers a modal on top of whatever was already on screen.
+// Preserve the underlying fullscreen base rather than replacing the entire stack.
+const MODAL_GUARD_REDIRECT_TARGETS = new Set<string>([NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]);
+
+function isModalGuardRedirectTarget(name: string | undefined): boolean {
+    return !!name && MODAL_GUARD_REDIRECT_TARGETS.has(name);
+}
+
 /**
  * Evaluates navigation guards and handles BLOCK/REDIRECT results
  *
@@ -99,6 +108,49 @@ function handleNavigationGuards(
 
         if (!redirectState?.routes) {
             return null;
+        }
+
+        const isModalRedirect = redirectState.routes.some((r) => isModalGuardRedirectTarget(r.name));
+        const focusedRouteName = state.routes[state.index]?.name;
+        const redirectTargetName = redirectState.routes.at(-1)?.name;
+
+        // Idempotency guard against APP-7FR-style loops when multiple actions burst at cold-start.
+        // This is intentionally scoped to modal redirects so non-modal redirects like HOME can still
+        // reset nested state even when their root navigator is already focused.
+        if (isModalRedirect && focusedRouteName && redirectTargetName && focusedRouteName === redirectTargetName) {
+            return state;
+        }
+
+        if (isModalRedirect) {
+            // Drop dismissible-modal routes (RHP, SignIn modal, CONCIERGE, etc.) and anything
+            // above them so the new stack doesn't end up with two modals on top of
+            // each other - regression #86258 (two Expensify logos when SignIn RHP was still
+            // on top at REDIRECT time).
+            const firstDismissibleModalIndex = state.routes.findIndex((route) => MODAL_ROUTES_TO_DISMISS.has(route.name));
+            const cleanedRoutes = firstDismissibleModalIndex === -1 ? state.routes : state.routes.slice(0, firstDismissibleModalIndex);
+
+            const underlyingFullScreen = cleanedRoutes.findLast((r) => isFullScreenName(r.name));
+            const redirectModal = redirectState.routes.findLast((r) => isModalGuardRedirectTarget(r.name));
+
+            // Invariant restored: exactly one fullscreen base under the modal. If no
+            // fullscreen survives (e.g. `/concierge` force-close leaves the stack as [CONCIERGE]),
+            // fall through to the unmodified redirectState.routes - that baseline is what
+            // SignInModal.tsx and navigateAfterOnboarding's Navigation.navigate(ROUTES.HOME)
+            // calls expect; removing them caused regression #90303.
+            if (underlyingFullScreen && redirectModal) {
+                const redirectModalWithKey: StackNavigationState<ParamListBase>['routes'][number] = {
+                    ...redirectModal,
+                    key: redirectModal.key ?? `${redirectModal.name}-modal-redirect`,
+                };
+                const modalResetState: StackNavigationState<ParamListBase> = {
+                    ...state,
+                    index: 1,
+                    routes: [underlyingFullScreen, redirectModalWithKey],
+                    preloadedRoutes: [],
+                };
+                const modalResetAction = CommonActions.reset(modalResetState);
+                return stackRouter.getStateForAction(state, modalResetAction, configOptions);
+            }
         }
 
         const resetAction = CommonActions.reset({

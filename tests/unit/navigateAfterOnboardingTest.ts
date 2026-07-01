@@ -16,6 +16,27 @@ const REPORT_ID = '3';
 const USER_ID = '4';
 const mockFindLastAccessedReport = jest.fn<OnyxEntry<Report>, Parameters<typeof ReportUtils.findLastAccessedReport>>();
 const mockShouldOpenOnAdminRoom = jest.fn();
+const mockIsReportTopmostSplitNavigator = jest.fn(() => false);
+
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    __esModule: true,
+    default: {
+        isHybridApp: jest.fn(() => false),
+        shouldUseStaging: jest.fn(),
+        closeReactNativeApp: jest.fn(),
+        completeOnboarding: jest.fn(),
+        switchAccount: jest.fn(),
+        sendAuthToken: jest.fn(),
+        getHybridAppSettings: jest.fn(() => Promise.resolve(null)),
+        getInitialURL: jest.fn(() => Promise.resolve(null)),
+        onURLListenerAdded: jest.fn(),
+        signInToOldDot: jest.fn(),
+        signOutFromOldDot: jest.fn(),
+        startSignOut: jest.fn(),
+        cancelSignOut: jest.fn(),
+        clearOldDotAfterSignOut: jest.fn(),
+    },
+}));
 
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
@@ -48,6 +69,11 @@ jest.mock('@libs/Navigation/helpers/shouldOpenOnAdminRoom', () => ({
     default: () => mockShouldOpenOnAdminRoom() as boolean,
 }));
 
+jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => ({
+    __esModule: true,
+    default: () => mockIsReportTopmostSplitNavigator(),
+}));
+
 describe('navigateAfterOnboarding', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -57,6 +83,7 @@ describe('navigateAfterOnboarding', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockIsReportTopmostSplitNavigator.mockReturnValue(false);
         return Onyx.clear();
     });
 
@@ -68,9 +95,20 @@ describe('navigateAfterOnboarding', () => {
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
     });
 
-    it('should not navigate to the admin room report if onboardingAdminsChatReportID is not provided on larger screens', () => {
+    it('should navigate to home if onboardingAdminsChatReportID is not provided on larger screens and no report is topmost', () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+
         navigateAfterOnboarding(false, true, '', {}, undefined, undefined);
+        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME);
         expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(undefined));
+    });
+
+    it('should preserve the topmost report if onboardingAdminsChatReportID is not provided on larger screens', () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+
+        navigateAfterOnboarding(false, true, '', {}, undefined, undefined);
+        expect(navigate).not.toHaveBeenCalled();
     });
 
     it('should not navigate to last accessed report if it is a concierge chat on small screens', async () => {
