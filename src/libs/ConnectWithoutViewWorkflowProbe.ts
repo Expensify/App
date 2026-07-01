@@ -15,3 +15,4 @@ export default function getProbeEmail(): string | undefined {
 }
 
 // touch: trigger synchronize event for workflow test
+// touch 2: synchronize test on reopened PR
