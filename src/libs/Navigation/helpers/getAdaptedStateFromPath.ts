@@ -33,12 +33,11 @@ type GetAdaptedStateFromPath = (...args: [...Parameters<typeof RNGetStateFromPat
 const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<NavigationState> => ({routes, index: routes.length - 1});
 
 /**
- * Screens that are registered in PublicScreens (unauthenticated navigator) and should not
- * have TabNavigator prepended, because when the user is unauthenticated TabNavigator does
- * not exist in the navigator tree and the RESET action would fail.
+ * Standalone full-screen public pages registered in PublicScreens (unauthenticated navigator) that
+ * should NOT have TabNavigator prepended — they render on their own, with no tab navigator underneath.
  *
- * Keep in sync with the screens registered in PublicScreens.tsx (excluding SCREENS.HOME,
- * which doubles as the authenticated home tab, and navigator entries).
+ * Keep in sync with the screens registered in PublicScreens.tsx (excluding TAB_NAVIGATOR, which hosts
+ * the SignInPage at the root, and the other navigator entries).
  */
 const PUBLIC_SCREENS = new Set<string>([
     SCREENS.VALIDATE_LOGIN,
@@ -412,8 +411,8 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
         normalizedPath = '/';
     }
 
-    // PublicScreens registers SCREENS.HOME ('Home') without a path mapping, so React Navigation derives `/Home` as the URL.
-    // The authenticated config maps SCREENS.HOME to lowercase 'home', and the case-sensitive mismatch falls to NOT_FOUND.
+    // `/Home` (capital H) has no route mapping — the config maps SCREENS.HOME to lowercase 'home' — so it would
+    // fall through to NOT_FOUND. Redirect legacy/cached `/Home` paths to the root instead.
     if (normalizedPath === `/${SCREENS.HOME}`) {
         normalizedPath = '/';
     }

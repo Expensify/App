@@ -381,6 +381,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether to show the tooltip */
         shouldRenderTooltip?: boolean;
 
+        /** Whether the tooltip content should be visible. When omitted, matches shouldRenderTooltip. */
+        shouldDisplayEducationalTooltip?: boolean;
+
         /** Anchor alignment of the tooltip */
         tooltipAnchorAlignment?: TooltipAnchorAlignment;
 
@@ -584,6 +587,7 @@ function MenuItem({
     onBlur,
     avatarID,
     shouldRenderTooltip = false,
+    shouldDisplayEducationalTooltip,
     shouldHideOnScroll = false,
     tooltipAnchorAlignment,
     tooltipWrapperStyle = {},
@@ -843,6 +847,7 @@ function MenuItem({
             )}
             <EducationalTooltip
                 shouldRender={shouldRenderTooltip}
+                shouldDisplayTooltip={shouldDisplayEducationalTooltip}
                 anchorAlignment={tooltipAnchorAlignment}
                 renderTooltipContent={renderTooltipContent}
                 wrapperStyle={tooltipWrapperStyle}

@@ -973,16 +973,7 @@ const ROUTES = {
         getRoute: ({name, jsonQuery}: {name: string; jsonQuery: SearchQueryString}) => `search/saved-search/rename?name=${name}&q=${encodeURIComponent(jsonQuery)}` as const,
     },
     SEARCH_COLUMNS: 'search/columns',
-    SEARCH_ADVANCED_FILTERS: {
-        route: 'search/filters/:filterKey?/:subPage?',
-        getRoute: (filterKey?: SearchFilterKey | UserFriendlyKey, subPage?: string) => {
-            const baseRoute = `search/filters/${filterKey ?? ''}` as const;
-            if (!subPage || !filterKey) {
-                return baseRoute;
-            }
-            return `${baseRoute}/${subPage}` as const;
-        },
-    },
+    SEARCH_ADVANCED_FILTERS: 'search/filters',
     SEARCH_ADVANCED_FILTERS_CONTENT: {
         route: 'search/filters/:filterKey',
         getRoute: (filterKey: SearchFilterKey | UserFriendlyKey) => `search/filters/${filterKey}` as const,
@@ -2212,6 +2203,10 @@ const ROUTES = {
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/export/travel-invoicing/payable-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/export/travel-invoicing/payable-account` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_SETUP: {
+        route: 'workspaces/:policyID/accounting/quickbooks-online/setup',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/setup` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_CONFIGURATION: {
         route: 'workspaces/:policyID/accounting/netsuite/export/travel-invoicing',
@@ -3481,6 +3476,10 @@ const ROUTES = {
             const url = getUrlWithBackToParam(`merge/${transactionID}/confirmation` as const, backTo);
             return isOnSearch ? (`${url}&isOnSearch=true` as const) : url;
         },
+    },
+    POLICY_ACCOUNTING_XERO_SETUP: {
+        route: 'workspaces/:policyID/accounting/xero/setup',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/xero/setup` as const,
     },
     POLICY_ACCOUNTING_XERO_IMPORT: {
         route: 'workspaces/:policyID/accounting/xero/import',
