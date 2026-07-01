@@ -43,9 +43,6 @@ type TransactionDetailsFieldsProps = {
     /** Per-field visibility decisions resolved by `computeFieldVisibility` */
     fieldVisibility: Pick<FieldVisibility, 'amount' | 'distance' | 'rate' | 'merchant' | 'time'>;
 
-    /** Triggers submit from inline inputs */
-    onSubmitForm?: () => void;
-
     /** Whether the parent-owned participant picker modal is currently open (new manual expense flow). Drives amount autofocus on picker close. */
     isParticipantPickerVisible: boolean;
 };
@@ -61,11 +58,22 @@ function TransactionDetailsFields({
     iouCurrencyCode,
     isCompactMode,
     fieldVisibility,
-    onSubmitForm,
     isParticipantPickerVisible,
 }: TransactionDetailsFieldsProps) {
-    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isPolicyExpenseChat, isManualDistanceRequest, isOdometerDistanceRequest, isGPSDistanceRequest} =
-        useConfirmationFields();
+    const {
+        action,
+        iouType,
+        transactionID,
+        reportID,
+        reportActionID,
+        isReadOnly,
+        didConfirm,
+        isNewManualExpenseFlowEnabled,
+        isPolicyExpenseChat,
+        isManualDistanceRequest,
+        isOdometerDistanceRequest,
+        isGPSDistanceRequest,
+    } = useConfirmationFields();
     const shouldAutoFocusAmountField = !canUseTouchScreen();
 
     return (
@@ -78,6 +86,7 @@ function TransactionDetailsFields({
                     distanceRateCurrency={distanceData.distanceRateCurrency}
                     iouCurrencyCode={iouCurrencyCode}
                     isDistanceRequest={fieldVisibility.distance}
+                    isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
                     didConfirm={didConfirm}
                     isReadOnly={isReadOnly}
                     shouldShowTimeRequestFields={fieldVisibility.time}
@@ -98,6 +107,7 @@ function TransactionDetailsFields({
             {!isCompactMode && fieldVisibility.merchant && (
                 <MerchantField
                     isMerchantRequired={requiredFlags.isMerchantRequired}
+                    isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
                     isReadOnly={isReadOnly}
                     didConfirm={didConfirm}
                     shouldDisplayFieldError={errorState.shouldDisplayFieldError}
@@ -111,6 +121,7 @@ function TransactionDetailsFields({
             )}
 
             <DescriptionField
+                isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
                 isReadOnly={isReadOnly}
                 didConfirm={didConfirm}
                 isDescriptionRequired={requiredFlags.isDescriptionRequired}
@@ -120,7 +131,6 @@ function TransactionDetailsFields({
                 reportID={reportID}
                 reportActionID={reportActionID}
                 policy={policy}
-                onSubmitForm={onSubmitForm}
             />
 
             {fieldVisibility.distance && (

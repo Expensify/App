@@ -1,4 +1,7 @@
+import type {Camera} from '@rnmapbox/maps';
+import type {RefObject} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {SharedValue} from 'react-native-reanimated';
 import type {MapMarkerType} from '@hooks/useMapMarkers/types';
 import type {Unit} from '@src/types/onyx/Policy';
 
@@ -40,6 +43,20 @@ type MapViewProps = {
 
     // Whether it should display the compass overlay on the map
     shouldDisplayCompass?: boolean;
+};
+
+type CompassProps = {
+    // Whether the map is interactive or not
+    interactive: boolean;
+
+    // Whether the compass should be displayed or not
+    shouldDisplayCompass: boolean;
+
+    // Shared value for the map heading
+    mapHeading: SharedValue<number>;
+
+    // Reference to the camera
+    cameraRef: RefObject<Camera | null>;
 };
 
 type GPSMapViewProps = Omit<MapViewProps, 'directionCoordinates' | 'initialState'> & {
@@ -108,4 +125,4 @@ type MapViewHandle = {
     fitBounds: (ne: Coordinate, sw: Coordinate, paddingConfig?: number | number[], animationDuration?: number) => void;
 };
 
-export type {WayPoint, MapViewProps, GPSMapViewProps, DirectionProps, PendingMapViewProps, Coordinate, GPSDirectionProps};
+export type {WayPoint, MapViewProps, GPSMapViewProps, DirectionProps, PendingMapViewProps, Coordinate, GPSDirectionProps, CompassProps};

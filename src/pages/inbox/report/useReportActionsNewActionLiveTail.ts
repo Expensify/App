@@ -1,12 +1,11 @@
 import {useCallback, useEffect, useEffectEvent, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type useReportScrollManager from '@hooks/useReportScrollManager';
 import type {OpenReportActionParams} from '@libs/actions/Report';
 import {openReport, pruneReportActionPagesToNewestWindow, subscribeToNewActionEvent} from '@libs/actions/Report';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -76,56 +75,58 @@ function useReportActionsNewActionLiveTail({
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
 
     const scrollToBottomForCurrentUserAction = useEffectEvent((isFromCurrentUser: boolean, action?: OnyxTypes.ReportAction) => {
-        InteractionManager.runAfterInteractions(() => {
-            // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
-            // they are now in the list.
-            if (!isFromCurrentUser || (!isReportTopmostSplitNavigator() && !Navigation.getReportRHPActiveRoute())) {
-                return;
-            }
-            if (!hasNewestReportAction && !isFromCurrentUser) {
-                if (Navigation.getReportRHPActiveRoute()) {
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
+                // they are now in the list.
+                if (!isFromCurrentUser || (!isReportTopmostSplitNavigator() && !Navigation.getReportRHPActiveRoute())) {
                     return;
                 }
-                Navigation.setNavigationActionToMicrotaskQueue(() => {
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-                });
-                return;
-            }
-
-            const shouldJumpToLiveTail =
-                !isOffline && action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && (hasNewerActions || !!linkedReportActionID || unreadMarkerReportActionID);
-
-            if (shouldJumpToLiveTail) {
-                if (liveTailJumpRef.current.stage === 'idle') {
-                    liveTailJumpRef.current = {stage: 'open_report'};
-                    openReport({
-                        reportID,
-                        introSelected,
-                        betas,
+                if (!hasNewestReportAction && !isFromCurrentUser) {
+                    if (Navigation.getReportRHPActiveRoute()) {
+                        return;
+                    }
+                    Navigation.setNavigationActionToMicrotaskQueue(() => {
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
                     });
+                    return;
                 }
-                return;
-            }
 
-            const index = sortedVisibleReportActions.findIndex((item) => item.reportActionID === action?.reportActionID);
-            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
-                if (index > 0) {
-                    setTimeout(() => {
-                        reportScrollManager.scrollToIndex(index);
-                    }, 100);
+                const shouldJumpToLiveTail =
+                    !isOffline && action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && (hasNewerActions || !!linkedReportActionID || unreadMarkerReportActionID);
+
+                if (shouldJumpToLiveTail) {
+                    if (liveTailJumpRef.current.stage === 'idle') {
+                        liveTailJumpRef.current = {stage: 'open_report'};
+                        openReport({
+                            reportID,
+                            introSelected,
+                            betas,
+                        });
+                    }
+                    return;
+                }
+
+                const index = sortedVisibleReportActions.findIndex((item) => item.reportActionID === action?.reportActionID);
+                if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                    if (index > 0) {
+                        setTimeout(() => {
+                            reportScrollManager.scrollToIndex(index);
+                        }, 100);
+                    } else {
+                        setIsFloatingMessageCounterVisible(false);
+                        reportScrollManager.scrollToBottom();
+                    }
+                    if (action?.reportActionID) {
+                        setActionIdToHighlight(action.reportActionID);
+                    }
                 } else {
                     setIsFloatingMessageCounterVisible(false);
                     reportScrollManager.scrollToBottom();
                 }
-                if (action?.reportActionID) {
-                    setActionIdToHighlight(action.reportActionID);
-                }
-            } else {
-                setIsFloatingMessageCounterVisible(false);
-                reportScrollManager.scrollToBottom();
-            }
 
-            setIsScrollToBottomEnabled(true);
+                setIsScrollToBottomEnabled(true);
+            },
         });
     });
 

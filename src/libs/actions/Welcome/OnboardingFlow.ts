@@ -183,12 +183,6 @@ const getOnboardingMessages = (locale?: Locale) => {
         ONBOARDING_TASK_NAME: translate(resolvedLocale, 'onboarding.testDrive.name', {}),
         EMBEDDED_DEMO_WHITELIST: ['http://', 'https://', 'about:'] as string[],
         EMBEDDED_DEMO_IFRAME_TITLE: translate(resolvedLocale, 'onboarding.testDrive.embeddedDemoIframeTitle'),
-        EMPLOYEE_FAKE_RECEIPT: {
-            AMOUNT: 2000,
-            CURRENCY: 'USD',
-            DESCRIPTION: translate(resolvedLocale, 'onboarding.testDrive.employeeFakeReceipt.description'),
-            MERCHANT: "Tommy's Tires",
-        },
     };
     const addExpenseApprovalsTask: OnboardingTask = {
         type: CONST.ONBOARDING_TASK_TYPE.ADD_EXPENSE_APPROVALS,

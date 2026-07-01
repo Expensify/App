@@ -52,8 +52,6 @@ function IOURequestStepGPSTripEdit({
         return trimmedCoords.map((seg): Coordinate[] => seg.map(({lat, long}) => [long, lat]));
     });
 
-    const mapRef = useRef<MapViewHandle>(null);
-
     // Use refs so the animated-reaction callback is always fresh without re-creating the gesture
     const gpsPointsRef = useRef(gpsPoints);
     const totalDistanceMetersRef = useRef(totalDistanceMeters);
@@ -135,7 +133,6 @@ function IOURequestStepGPSTripEdit({
                         styleURL={CONST.MAPBOX.STYLE_URL}
                         waypoints={gpsWaypointMarkers}
                         directionCoordinates={trimmedDirectionCoords}
-                        ref={mapRef}
                     />
                 </View>
 
