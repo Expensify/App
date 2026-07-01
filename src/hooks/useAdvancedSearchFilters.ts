@@ -314,7 +314,7 @@ function shouldDisplayCardFilterSelector(cardList: OnyxEntry<CardList>) {
     return shouldDisplayFilter(Object.keys(filterCardsHiddenFromSearch(cardList)).length, true);
 }
 
-function useAdvancedSearchFilters(type: SearchDataTypes | undefined, policyID: Filter) {
+function useAdvancedSearchFilters(type: SearchDataTypes | undefined, policyID: Filter | undefined) {
     const [shouldDisplayCardFilter] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: shouldDisplayCardFilterSelector});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: advancedSearchPoliciesSelector});
     const [policyDerived] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policyDerivedSelector});

@@ -1019,19 +1019,19 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 }
 
 function getAllPolicyValues<T extends OnyxCollectionKey>(
-    {value: policyID, isNegated}: Filter,
+    policyID: Filter | undefined,
     key: T,
     policyData: OnyxCollection<OnyxCollectionValuesMapping[T]>,
 ): Array<OnyxCollectionValuesMapping[T]> {
-    if (!policyData || !policyID) {
+    if (!policyData || !policyID || !policyID.value) {
         return [];
     }
 
-    if (isNegated) {
+    if (policyID.isNegated) {
         return Object.keys(policyData).reduce(
             (acc, curr) => {
                 const id = curr.replace(key, '');
-                if (!policyID.includes(id) && policyData[curr]) {
+                if (!policyID.value?.includes(id) && policyData[curr]) {
                     acc.push(policyData[curr]);
                 }
                 return acc;
@@ -1040,7 +1040,7 @@ function getAllPolicyValues<T extends OnyxCollectionKey>(
         );
     }
 
-    return policyID.map((id) => policyData?.[`${key}${id}`]).filter((data) => !!data) as Array<OnyxCollectionValuesMapping[T]>;
+    return policyID.value.map((id) => policyData?.[`${key}${id}`]).filter((data) => !!data) as Array<OnyxCollectionValuesMapping[T]>;
 }
 
 function getAllPolicyValuesMap<T extends OnyxCollectionKey>(
