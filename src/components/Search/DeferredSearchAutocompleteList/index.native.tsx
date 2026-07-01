@@ -33,9 +33,9 @@ function DeferredAutocompleteList(props: SearchAutocompleteListProps) {
         setHasLayout(true);
     };
 
-    // Wait for the slide-in animation to finish before rendering the list. Using startTransition would put the render
-    // on React's low-priority lane, causing Onyx storms during open to restart it 2-3x and recompute heavy memos.
-    // runAfterTransitions queues a single blocking render after the navigation animation completes.
+    // Wait for the slide-in animation to finish before rendering the list. startTransition made the (expensive) first
+    // mount render preemptible: a competing update interrupted and discarded it before it could commit, forcing React
+    // to redo that same render a second time. runAfterTransitions fires a plain, non-preemptible update instead, so the first render always completes in a single pass.
     useEffect(() => {
         if (!hasLayout) {
             return;
