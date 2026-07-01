@@ -44,7 +44,7 @@ function WorkspaceVerifyWorkAccountPageContent({route}: WorkspaceVerifyWorkAccou
         if (!workEmail) {
             return;
         }
-        resendValidateCode(workEmail);
+        resendValidateCode({reasonCode: null}, workEmail);
     };
 
     const validateAccountAndMerge = (validateCode: string) => {

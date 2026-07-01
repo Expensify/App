@@ -69,7 +69,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         if (!credentials?.login) {
             return;
         }
-        resendValidateCode(credentials.login);
+        resendValidateCode({reasonCode: null}, credentials.login);
     };
 
     const validateAccountAndMerge = (validateCode: string) => {

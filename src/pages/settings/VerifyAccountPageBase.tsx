@@ -1,3 +1,4 @@
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -43,6 +44,8 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
     const isUserValidated = account?.validated ?? false;
 
     useEffect(() => () => clearUnvalidatedNewContactMethodAction(), []);
+
+    const sendValidateCode = () => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.VALIDATE_ACCOUNT});
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
@@ -100,7 +103,7 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
             title={translate('contacts.validateAccount')}
             descriptionPrimary={translate('contacts.featureRequiresValidate')}
             descriptionSecondary={translate('contacts.enterMagicCode', contactMethod)}
-            sendValidateCode={requestValidateCodeAction}
+            sendValidateCode={sendValidateCode}
             validateCodeActionErrorField="validateLogin"
             validatePendingAction={loginData?.pendingFields?.validateCodeSent}
             handleSubmitForm={handleSubmitForm}

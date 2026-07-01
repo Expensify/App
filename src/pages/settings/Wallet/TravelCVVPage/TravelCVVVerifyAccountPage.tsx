@@ -1,3 +1,4 @@
+import {CONST} from 'expensify-common';
 import React, {useCallback} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useLocalize from '@hooks/useLocalize';
@@ -54,11 +55,15 @@ function TravelCVVVerifyAccountPage() {
             });
     };
 
+    if (!travelCard) {
+        return null;
+    }
+
     return (
         <ValidateCodeActionContent
             title={translate('cardPage.validateCardTitle')}
             descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin ?? '')}
-            sendValidateCode={() => requestValidateCodeAction()}
+            sendValidateCode={() => requestValidateCodeAction({reasonCode: CONST.VALIDATE_CODE_REASONS.REVEAL_CARD_DETAILS, reasonCardID: travelCard.cardID})}
             validateCodeActionErrorField="revealExpensifyCardDetails"
             handleSubmitForm={handleRevealCardDetails}
             validateError={validateError}

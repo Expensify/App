@@ -1,3 +1,4 @@
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useLocalize from '@hooks/useLocalize';
@@ -33,7 +34,7 @@ function NewContactMethodConfirmMagicCodePage({route}: NewContactMethodConfirmMa
     return (
         <ValidateCodeActionContent
             title={translate('delegate.makeSureItIsYou')}
-            sendValidateCode={() => requestValidateCodeAction()}
+            sendValidateCode={() => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.ADD_CONTACT_METHOD})}
             descriptionPrimary={translate('contacts.enterMagicCode', contactMethod)}
             validateCodeActionErrorField="addedLogin"
             validateError={validateCodeError}
