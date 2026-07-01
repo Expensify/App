@@ -808,49 +808,51 @@ function restoreDelegateSession({authToken, encryptedAuthToken, accountID, email
     // Write SESSION before the clear: SESSION is in KEYS_TO_PRESERVE_DELEGATE_ACCESS, so clearing
     // preserves the value at clear time. If we cleared first, an interrupted flow would leave
     // SESSION holding the prior delegate-restricted auth token. See Expensify/App#80073.
-    return Onyx.set(ONYXKEYS.SESSION, {
-        ...(stashedSession ?? {}),
-        accountID,
-        email,
-        authToken,
-        encryptedAuthToken,
-        creationDate,
-    })
-        .then(() => {
-            NetworkStore.setAuthToken(authToken ?? null);
-            // Disconnect Pusher before the transition so it cannot keep pushing updates for the delegate
-            // account; it is reinitialized for the restored account after `openApp()`. See Expensify/App#93265.
-            Pusher.disconnect();
-            return clearOnyxForDelegateTransition();
+    return (
+        Onyx.set(ONYXKEYS.SESSION, {
+            ...(stashedSession ?? {}),
+            accountID,
+            email,
+            authToken,
+            encryptedAuthToken,
+            creationDate,
         })
-        .then(() => {
-            Onyx.set(ONYXKEYS.CREDENTIALS, {
-                ...(stashedCredentials ?? {}),
-                accountID,
-            });
-            Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
-            Onyx.set(ONYXKEYS.STASHED_SESSION, {});
+            .then(() => {
+                NetworkStore.setAuthToken(authToken ?? null);
+                // Disconnect Pusher before the transition so it cannot keep pushing updates for the delegate
+                // account; it is reinitialized for the restored account after `openApp()`. See Expensify/App#93265.
+                Pusher.disconnect();
+                return clearOnyxForDelegateTransition();
+            })
+            .then(() => {
+                Onyx.set(ONYXKEYS.CREDENTIALS, {
+                    ...(stashedCredentials ?? {}),
+                    accountID,
+                });
+                Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
+                Onyx.set(ONYXKEYS.STASHED_SESSION, {});
 
-            NetworkStore.setIsAuthenticating(false);
+                NetworkStore.setIsAuthenticating(false);
 
-            return openApp();
-        })
-        // Reinitialize Pusher for the restored account so realtime updates resume on the correct session.
-        .then(() => requestPusherReinitialize({accountID, email}))
-        .then(() => {
-            // Keep OldDot in sync with NewDot. Without this, OD remains on the delegate session
-            // after a reauth-driven restoration (e.g. expired delegate token, invalidateAuthToken),
-            // causing the two halves of HybridApp to disagree about which account is active.
-            if (!CONFIG.IS_HYBRID_APP || !email || !authToken) {
-                return;
-            }
-            HybridAppModule.switchAccount({
-                newDotCurrentAccountEmail: email,
-                authToken,
-                policyID: '',
-                accountID: '',
-            });
-        });
+                return openApp();
+            })
+            // Reinitialize Pusher for the restored account so realtime updates resume on the correct session.
+            .then(() => requestPusherReinitialize({accountID, email}))
+            .then(() => {
+                // Keep OldDot in sync with NewDot. Without this, OD remains on the delegate session
+                // after a reauth-driven restoration (e.g. expired delegate token, invalidateAuthToken),
+                // causing the two halves of HybridApp to disagree about which account is active.
+                if (!CONFIG.IS_HYBRID_APP || !email || !authToken) {
+                    return;
+                }
+                HybridAppModule.switchAccount({
+                    newDotCurrentAccountEmail: email,
+                    authToken,
+                    policyID: '',
+                    accountID: '',
+                });
+            })
+    );
 }
 
 function openSecuritySettingsPage() {
