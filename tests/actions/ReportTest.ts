@@ -12,6 +12,7 @@ import useAncestors from '@hooks/useAncestors';
 import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import {CONCIERGE_RESPONSE_DELAY_MS, resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
+import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -8463,6 +8464,119 @@ describe('actions/Report', () => {
                 notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 role: CONST.REPORT.ROLE.ADMIN,
             });
+        });
+
+        it('should forward reportID and inviteeEmails to the API when resolution is INVITE', async () => {
+            global.fetch = TestHelper.getGlobalFetchMock();
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            const REPORT_ID = '900';
+            const WHISPER_ACTION_ID = '9001';
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(900, undefined),
+                reportID: REPORT_ID,
+            };
+            const whisperAction = createMock<OnyxTypes.ReportAction>({
+                reportActionID: WHISPER_ACTION_ID,
+                reportID: REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                created: '2024-11-19 08:04:13.730',
+                message: [{html: 'Mentioned @user1 and @user2', text: 'Mentioned @user1 and @user2', type: 'COMMENT'}],
+                originalMessage: {
+                    inviteeAccountIDs: [200, 300],
+                    inviteeEmails: ['user1@example.com', 'user2@example.com'],
+                    whisperedTo: [100],
+                },
+            });
+
+            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false);
+            await waitForBatchedUpdates();
+
+            // The resolve request must carry the same (reportID, inviteeEmails) pair InviteToRoom sends, so the backend can email the new logins
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER,
+                expect.objectContaining({
+                    reportActionID: WHISPER_ACTION_ID,
+                    resolution: CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE,
+                    reportID: REPORT_ID,
+                    inviteeEmails: ['user1@example.com', 'user2@example.com'],
+                }),
+                expect.anything(),
+            );
+
+            writeSpy.mockRestore();
+        });
+
+        it('should NOT forward reportID and inviteeEmails when resolution is NOTHING', async () => {
+            global.fetch = TestHelper.getGlobalFetchMock();
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            const REPORT_ID = '901';
+            const WHISPER_ACTION_ID = '9011';
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(901, undefined),
+                reportID: REPORT_ID,
+            };
+            const whisperAction = createMock<OnyxTypes.ReportAction>({
+                reportActionID: WHISPER_ACTION_ID,
+                reportID: REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                created: '2024-11-19 08:04:13.730',
+                message: [{html: 'Mentioned @user1', text: 'Mentioned @user1', type: 'COMMENT'}],
+                originalMessage: {
+                    inviteeAccountIDs: [200],
+                    inviteeEmails: ['user1@example.com'],
+                    whisperedTo: [100],
+                },
+            });
+
+            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, false);
+            await waitForBatchedUpdates();
+
+            const resolveCall = writeSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER);
+            const params = resolveCall?.at(1);
+            expect(params).toBeDefined();
+            expect(params).not.toHaveProperty('reportID');
+            expect(params).not.toHaveProperty('inviteeEmails');
+
+            writeSpy.mockRestore();
+        });
+
+        it('should NOT forward reportID and inviteeEmails when the whisper has no invitee emails', async () => {
+            global.fetch = TestHelper.getGlobalFetchMock();
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            const REPORT_ID = '902';
+            const WHISPER_ACTION_ID = '9021';
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(902, undefined),
+                reportID: REPORT_ID,
+            };
+            const whisperAction = createMock<OnyxTypes.ReportAction>({
+                reportActionID: WHISPER_ACTION_ID,
+                reportID: REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                created: '2024-11-19 08:04:13.730',
+                message: [{html: 'Mentioned invitee', text: 'Mentioned invitee', type: 'COMMENT'}],
+                originalMessage: {
+                    inviteeAccountIDs: [],
+                    inviteeEmails: [],
+                    whisperedTo: [100],
+                },
+            });
+
+            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false);
+            await waitForBatchedUpdates();
+
+            const resolveCall = writeSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER);
+            const params = resolveCall?.at(1);
+            expect(params).toBeDefined();
+            expect(params).not.toHaveProperty('reportID');
+            expect(params).not.toHaveProperty('inviteeEmails');
+
+            writeSpy.mockRestore();
         });
     });
 
