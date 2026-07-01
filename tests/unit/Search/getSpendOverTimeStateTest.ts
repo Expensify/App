@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
 const queryJSON: SearchQueryJSON = {
+    hash: 0,
     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
     groupBy: CONST.SEARCH.GROUP_BY.MONTH,
     view: CONST.SEARCH.VIEW.LINE,
