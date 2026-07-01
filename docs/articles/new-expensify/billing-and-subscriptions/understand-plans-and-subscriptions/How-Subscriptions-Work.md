@@ -3,6 +3,7 @@ title: How Subscriptions Work
 description: Learn what a subscription is, the subscription options available in Expensify, and how subscriptions affect billing.
 keywords: [New Expensify, subscriptions, Annual, Pay-per-use, billing owner, billing]
 internalScope: Audience is all workspace Owners. Explains what subscriptions are, how they work, and the available subscription options. Does not explain pricing, billing definitions, or how to manage subscriptions.
+retrievalIntent: What a subscription is and Annual vs Pay per use.
 contentType: topic
 platform: new
 RAG/AI usability score: 9/10
