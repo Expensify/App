@@ -1,9 +1,9 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {SearchAutocompleteListProps} from '@components/Search/SearchAutocompleteList';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
 import useIsFocusedUntilTransitionEnd from '@hooks/useIsFocusedUntilTransitionEnd';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import useRunAfterTransitions from '@hooks/useRunAfterTransitions';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
@@ -17,11 +17,10 @@ function DeferredAutocompleteList(props: SearchAutocompleteListProps) {
     // On native it stays mounted behind when a chat is opened from it.
     // Unmount the heavy list once this screen loses focus (kept mounted through the closing transition so it doesn't blank mid-navigation).
     const isFocusedUntilTransitionEnd = useIsFocusedUntilTransitionEnd();
-    const [shouldRender, setShouldRender] = useState(false);
     const [hasLayout, setHasLayout] = useState(false);
     const hasEndedPageVisibleSpan = useRef(false);
 
-    const handleLayout = () => {
+    const markLayoutComplete = () => {
         if (!hasEndedPageVisibleSpan.current) {
             hasEndedPageVisibleSpan.current = true;
             endSpan(CONST.TELEMETRY.SPAN_SEARCH_PAGE_VISIBLE);
@@ -31,23 +30,15 @@ function DeferredAutocompleteList(props: SearchAutocompleteListProps) {
 
     // Wait for the slide-in animation to finish before rendering the list. startTransition made the (expensive) first
     // mount render preemptible: a competing update interrupted and discarded it before it could commit, forcing React
-    // to redo that same render a second time. runAfterTransitions fires a plain, non-preemptible update instead, so the first render always completes in a single pass.
-    useEffect(() => {
-        if (!hasLayout) {
-            return;
-        }
-        const handle = TransitionTracker.runAfterTransitions({
-            callback: () => setShouldRender(true),
-        });
-        return () => handle.cancel();
-    }, [hasLayout]);
+    // to redo that same render a second time. useRunAfterTransitions fires a plain, non-preemptible update instead, so the first render always completes in a single pass.
+    const shouldRender = useRunAfterTransitions(hasLayout);
 
     if (!shouldRender || !isFocusedUntilTransitionEnd) {
         return (
             <OptionsListSkeletonView
                 fixedNumItems={4}
                 shouldStyleAsTable
-                onLayout={handleLayout}
+                onLayout={markLayoutComplete}
                 speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
                 reasonAttributes={{context: 'DeferredSearchAutocompleteList'} satisfies SkeletonSpanReasonAttributes}
             />
