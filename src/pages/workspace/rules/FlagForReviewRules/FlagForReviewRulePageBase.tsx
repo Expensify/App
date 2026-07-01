@@ -21,7 +21,7 @@ import Tab from '@libs/actions/Tab';
 import {clearDraftFlagForReviewRule, setDraftFlagForReviewRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
-import {getFlagForReviewFormFromCategory, saveFlagForReviewRule} from '@libs/FlagForReviewRulesUtils';
+import {getFlagForReviewFormFromCategory, getFlagForReviewRuleAmountError, saveFlagForReviewRule} from '@libs/FlagForReviewRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -43,13 +43,7 @@ function getValidationError(form: FlagForReviewRuleForm | null | undefined, tran
         return translate('workspace.rules.flagForReviewRule.confirmErrorCategory');
     }
 
-    const parsedAmount = Number.parseFloat(form[INPUT_IDS.MAX_EXPENSE_AMOUNT] ?? '');
-
-    if (!form[INPUT_IDS.MAX_EXPENSE_AMOUNT]?.trim() || !Number.isFinite(parsedAmount) || parsedAmount <= 0) {
-        return translate('workspace.rules.flagForReviewRule.confirmErrorAmount');
-    }
-
-    return '';
+    return getFlagForReviewRuleAmountError(form[INPUT_IDS.MAX_EXPENSE_AMOUNT], translate) ?? '';
 }
 
 function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForReviewRulePageBaseProps) {

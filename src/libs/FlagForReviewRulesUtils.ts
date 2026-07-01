@@ -27,6 +27,22 @@ function hasExplicitFlagAmount(maxExpenseAmount: number | null | undefined): max
     return maxExpenseAmount !== null && maxExpenseAmount !== undefined && maxExpenseAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE;
 }
 
+function getFlagForReviewRuleAmountError(maxExpenseAmount: string | undefined, translate: LocaleContextProps['translate']): string | undefined {
+    const trimmedAmount = maxExpenseAmount?.trim() ?? '';
+
+    if (!trimmedAmount) {
+        return translate('workspace.rules.flagForReviewRule.confirmErrorAmount');
+    }
+
+    const parsedAmount = Number.parseFloat(trimmedAmount);
+
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+        return translate('workspace.rules.flagForReviewRule.confirmErrorAmount');
+    }
+
+    return undefined;
+}
+
 function getFlagForReviewRuleNavigationRoute(policyID: string, categoryName: string): Route {
     return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName);
 }
@@ -134,5 +150,5 @@ function getFlagForReviewTableData({
     return rules;
 }
 
-export {deleteFlagForReviewRule, getFlagForReviewFormFromCategory, getFlagForReviewTableData, saveFlagForReviewRule};
+export {deleteFlagForReviewRule, getFlagForReviewFormFromCategory, getFlagForReviewRuleAmountError, getFlagForReviewTableData, saveFlagForReviewRule};
 export type {FlagForReviewTableItem};

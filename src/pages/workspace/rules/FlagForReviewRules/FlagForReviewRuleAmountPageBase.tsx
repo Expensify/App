@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -14,6 +14,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateDraftFlagForReviewRule} from '@libs/actions/User';
+import {getFlagForReviewRuleAmountError} from '@libs/FlagForReviewRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
@@ -47,6 +48,17 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName}: FlagForReview
         Navigation.goBack(backToRoute);
     };
 
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_MAX_AMOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_MAX_AMOUNT_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_MAX_AMOUNT_FORM> = {};
+        const amountError = getFlagForReviewRuleAmountError(values.maxAmount, translate);
+
+        if (amountError) {
+            errors.maxAmount = amountError;
+        }
+
+        return errors;
+    };
+
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_MAX_AMOUNT_FORM>) => {
         updateDraftFlagForReviewRule({[FLAG_FOR_REVIEW_RULE_INPUT_IDS.MAX_EXPENSE_AMOUNT]: values.maxAmount.trim()});
         goBack();
@@ -76,6 +88,7 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName}: FlagForReview
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_MAX_AMOUNT_FORM}
                     submitButtonText={translate('common.save')}
+                    validate={validate}
                     onSubmit={onSubmit}
                 >
                     <View style={styles.mb4}>
