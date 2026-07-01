@@ -13,12 +13,11 @@ function useExpensifyCardFeedsForFeedSelector(policyID: string | undefined): {
     const [cardSettingsCollection] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [domains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
     if (!policyID) {
         return {primaryFeeds: [], otherFeeds: [], allFeeds: []};
     }
-    const allFeeds = getAdminExpensifyCardFeedEntries(cardSettingsCollection, policies, domains, currentUserAccountID, cardList);
+    const allFeeds = getAdminExpensifyCardFeedEntries(cardSettingsCollection, policies, domains, currentUserAccountID);
     const {primary, other} = partitionExpensifyCardFeedsForSelector(allFeeds, policyID);
     return {primaryFeeds: primary, otherFeeds: other, allFeeds};
 }

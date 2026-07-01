@@ -1,13 +1,15 @@
 import {renderHook} from '@testing-library/react-native';
 import React from 'react';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
-import useCardFeedsForActivePolicies from '@hooks/useCardFeedsForActivePolicies';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useCompanyCards from '@hooks/useCompanyCards';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import useLocalize from '@hooks/useLocalize';
 import useOtherFeedsForFeedSelector from '@hooks/useOtherFeedsForFeedSelector';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CardFeedUtilsModule from '@libs/CardFeedUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -19,7 +21,8 @@ const mockDomainCollection = {
 };
 
 const mockPolicyCollection = {
-    [`${ONYXKEYS.COLLECTION.POLICY}${otherPolicyID}`]: {name: 'Other workspace'},
+    // POLICY collection entries are keyed by uppercase policy IDs, matching how the hook indexes them.
+    [`${ONYXKEYS.COLLECTION.POLICY}${otherPolicyID.toUpperCase()}`]: {name: 'Other workspace'},
 };
 
 const mockUseOnyx = jest.fn();
@@ -29,12 +32,23 @@ jest.mock('@hooks/useOnyx', () => ({
     default: (...args: unknown[]): [unknown, {status?: string}] => mockUseOnyx(...args) as [unknown, {status?: string}],
 }));
 
-jest.mock('@hooks/useCardFeedsForActivePolicies', () => ({
+jest.mock('@libs/CardFeedUtils', () => ({
+    __esModule: true,
+    ...jest.requireActual<typeof CardFeedUtilsModule>('@libs/CardFeedUtils'),
+    getVisibleCompanyCardFeedsForSelector: jest.fn(),
+}));
+
+jest.mock('@hooks/useCompanyCards', () => ({
     __esModule: true,
     default: jest.fn(),
 }));
 
-jest.mock('@hooks/useCompanyCards', () => ({
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+
+jest.mock('@hooks/useFeedKeysWithAssignedCards', () => ({
     __esModule: true,
     default: jest.fn(),
 }));
@@ -64,6 +78,10 @@ jest.mock('@hooks/useCompanyCardIcons', () => ({
     useCompanyCardFeedIcons: jest.fn(),
 }));
 
+const mockVisibleFeeds = (feeds: CardFeedUtilsModule.CardFeedForDisplay[]): void => {
+    (CardFeedUtilsModule.getVisibleCompanyCardFeedsForSelector as jest.Mock).mockReturnValue(feeds);
+};
+
 describe('useOtherFeedsForFeedSelector', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -83,52 +101,67 @@ describe('useOtherFeedsForFeedSelector', () => {
         (useThemeIllustrations as jest.Mock).mockReturnValue({});
         (useCompanyCardFeedIcons as jest.Mock).mockReturnValue({});
         (useCardFeedErrors as jest.Mock).mockReturnValue({shouldShowRbrForFeedNameWithDomainID: {}});
-        (useCompanyCards as jest.Mock).mockReturnValue({feedName: undefined});
-        (useCardFeedsForActivePolicies as jest.Mock).mockReturnValue({cardFeedsByPolicy: {}});
+        (useCompanyCards as jest.Mock).mockReturnValue({feedName: undefined, companyCardFeeds: {}});
+        (useCurrentUserPersonalDetails as jest.Mock).mockReturnValue({accountID: 999});
+        (useFeedKeysWithAssignedCards as jest.Mock).mockReturnValue(undefined);
+        mockVisibleFeeds([]);
     });
 
-    it('should return an empty list when cardFeedsByPolicy is empty', () => {
+    it('should return an empty list when there are no visible feeds', () => {
         const {result} = renderHook(() => useOtherFeedsForFeedSelector(currentPolicyID));
 
         expect(result.current).toEqual([]);
     });
 
     it('should exclude feeds already linked to the current policy', () => {
-        (useCardFeedsForActivePolicies as jest.Mock).mockReturnValue({
-            cardFeedsByPolicy: {
-                [otherPolicyID]: [
-                    {
-                        id: '999_oauth.chase.com',
-                        feed: 'oauth.chase.com',
-                        fundID: '999',
-                        name: 'Chase feed',
-                        linkedPolicyIDs: [currentPolicyID],
-                        country: 'US',
-                    },
-                ],
+        mockVisibleFeeds([
+            {
+                id: '999_oauth.chase.com',
+                feed: 'oauth.chase.com',
+                fundID: '999',
+                name: 'Chase feed',
+                linkedPolicyIDs: [currentPolicyID],
+                country: 'US',
             },
-        });
+        ]);
 
         const {result} = renderHook(() => useOtherFeedsForFeedSelector(currentPolicyID));
 
         expect(result.current).toHaveLength(0);
     });
 
-    it('should include feeds from other policies that are not linked to the current policy', () => {
-        (useCardFeedsForActivePolicies as jest.Mock).mockReturnValue({
-            cardFeedsByPolicy: {
-                [otherPolicyID]: [
-                    {
-                        id: '999_oauth.chase.com',
-                        feed: 'oauth.chase.com',
-                        fundID: '999',
-                        name: 'Chase feed',
-                        linkedPolicyIDs: ['policy_unrelated'],
-                        country: 'US',
-                    },
-                ],
+    it('should exclude feeds already present in the active policy available list', () => {
+        // Build the key the same way production does (`${feed}${separator}${fundID}`) via a computed property name,
+        // which keeps the dotted feed key out of a string literal and avoids a naming-convention violation.
+        const activePolicyFeedKey = `oauth.chase.com${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}999`;
+        (useCompanyCards as jest.Mock).mockReturnValue({feedName: undefined, companyCardFeeds: {[activePolicyFeedKey]: {feed: 'oauth.chase.com'}}});
+        mockVisibleFeeds([
+            {
+                id: '999_oauth.chase.com',
+                feed: 'oauth.chase.com',
+                fundID: '999',
+                name: 'Chase feed',
+                linkedPolicyIDs: ['policy_unrelated'],
+                country: 'US',
             },
-        });
+        ]);
+
+        const {result} = renderHook(() => useOtherFeedsForFeedSelector(currentPolicyID));
+
+        expect(result.current).toHaveLength(0);
+    });
+
+    it('should include feeds that are not linked to the current policy', () => {
+        mockVisibleFeeds([
+            {
+                id: '999_oauth.chase.com',
+                feed: 'oauth.chase.com',
+                fundID: '999',
+                name: 'Chase feed',
+                linkedPolicyIDs: ['policy_unrelated'],
+                country: 'US',
+            },
+        ]);
 
         const {result} = renderHook(() => useOtherFeedsForFeedSelector(currentPolicyID));
 
@@ -139,7 +172,8 @@ describe('useOtherFeedsForFeedSelector', () => {
             feed: 'oauth.chase.com',
             fundID: 999,
             country: 'US',
-            keyForList: `${otherPolicyID}_999_oauth.chase.com`,
+            // Stable, deduped key: feed.id is unique per feed (no per-policy composite).
+            keyForList: '999_oauth.chase.com',
             isSelected: false,
         });
         expect(React.isValidElement(result.current.at(0)?.leftElement)).toBe(true);
@@ -147,20 +181,16 @@ describe('useOtherFeedsForFeedSelector', () => {
 
     it('should set isSelected when feed id matches the selected feed from useCompanyCards', () => {
         const feedId = '999_oauth.chase.com';
-        (useCompanyCards as jest.Mock).mockReturnValue({feedName: feedId});
-        (useCardFeedsForActivePolicies as jest.Mock).mockReturnValue({
-            cardFeedsByPolicy: {
-                [otherPolicyID]: [
-                    {
-                        id: feedId,
-                        feed: 'oauth.chase.com',
-                        fundID: '999',
-                        name: 'Chase feed',
-                        linkedPolicyIDs: ['policy_unrelated'],
-                    },
-                ],
+        (useCompanyCards as jest.Mock).mockReturnValue({feedName: feedId, companyCardFeeds: {}});
+        mockVisibleFeeds([
+            {
+                id: feedId,
+                feed: 'oauth.chase.com',
+                fundID: '999',
+                name: 'Chase feed',
+                linkedPolicyIDs: ['policy_unrelated'],
             },
-        });
+        ]);
 
         const {result} = renderHook(() => useOtherFeedsForFeedSelector(currentPolicyID));
 
@@ -172,19 +202,15 @@ describe('useOtherFeedsForFeedSelector', () => {
         (useCardFeedErrors as jest.Mock).mockReturnValue({
             shouldShowRbrForFeedNameWithDomainID: {[feedId]: true},
         });
-        (useCardFeedsForActivePolicies as jest.Mock).mockReturnValue({
-            cardFeedsByPolicy: {
-                [otherPolicyID]: [
-                    {
-                        id: feedId,
-                        feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-                        fundID: '999',
-                        name: 'Visa feed',
-                        linkedPolicyIDs: ['policy_unrelated'],
-                    },
-                ],
+        mockVisibleFeeds([
+            {
+                id: feedId,
+                feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                fundID: '999',
+                name: 'Visa feed',
+                linkedPolicyIDs: ['policy_unrelated'],
             },
-        });
+        ]);
 
         const {result} = renderHook(() => useOtherFeedsForFeedSelector(currentPolicyID));
 
@@ -195,19 +221,15 @@ describe('useOtherFeedsForFeedSelector', () => {
     });
 
     it('should use domain email domain for alternateText when domain data exists', () => {
-        (useCardFeedsForActivePolicies as jest.Mock).mockReturnValue({
-            cardFeedsByPolicy: {
-                [otherPolicyID]: [
-                    {
-                        id: '999_visa',
-                        feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-                        fundID: '999',
-                        name: 'Visa feed',
-                        linkedPolicyIDs: ['policy_unrelated'],
-                    },
-                ],
+        mockVisibleFeeds([
+            {
+                id: '999_visa',
+                feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                fundID: '999',
+                name: 'Visa feed',
+                linkedPolicyIDs: ['policy_unrelated'],
             },
-        });
+        ]);
 
         const {result} = renderHook(() => useOtherFeedsForFeedSelector(currentPolicyID));
 
@@ -225,19 +247,15 @@ describe('useOtherFeedsForFeedSelector', () => {
             return [undefined, {}];
         });
 
-        (useCardFeedsForActivePolicies as jest.Mock).mockReturnValue({
-            cardFeedsByPolicy: {
-                [otherPolicyID]: [
-                    {
-                        id: '888_visa',
-                        feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-                        fundID: '888',
-                        name: 'Visa feed',
-                        linkedPolicyIDs: [otherPolicyID],
-                    },
-                ],
+        mockVisibleFeeds([
+            {
+                id: '888_visa',
+                feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                fundID: '888',
+                name: 'Visa feed',
+                linkedPolicyIDs: [otherPolicyID],
             },
-        });
+        ]);
 
         const {result} = renderHook(() => useOtherFeedsForFeedSelector(currentPolicyID));
 
