@@ -1313,7 +1313,7 @@ const CONST = {
     COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/Import-Company-Card-Transactions-From-a-Spreadsheet',
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#formulas',
     CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules',
-    CONFIGURE_APPROVAL_WORKFLOWS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Configure-approval-workflows',
+    CONFIGURE_APPROVAL_WORKFLOWS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Add-Approvals#configure-approval-workflows',
     SELECT_WORKFLOWS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Add-or-Act-As-a-Copilot',
     CUSTOM_AGENTS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/ai-agents/Create-and-Use-Custom-Agents',
@@ -3871,6 +3871,7 @@ const CONST = {
             MAKE_ADMIN: 'makeAdmin',
             MAKE_AUDITOR: 'makeAuditor',
             MAKE_CARD_ADMIN: 'makeCardAdmin',
+            MAKE_PEOPLE_ADMIN: 'makePeopleAdmin',
         },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',
@@ -4189,6 +4190,7 @@ const CONST = {
         NEW_RATE: 'New Rate',
         RATE_DECIMALS: 3,
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
+        UNSET_DISTANCE_RATE_ID: '-1',
         MILES_TO_KILOMETERS: 1.609344,
         KILOMETERS_TO_MILES: 0.621371,
         RATE_STATUS: {
@@ -4701,6 +4703,7 @@ const CONST = {
             BLOCK: 'block',
         },
         NOUN: {
+            CURRENCY: 'currency',
             MERCHANT: 'merchant',
             SPEND_CATEGORY: 'spendCategory',
         },
@@ -6079,6 +6082,7 @@ const CONST = {
         CATEGORY_OUT_OF_POLICY: 'categoryOutOfPolicy',
         CONVERSION_SURCHARGE: 'conversionSurcharge',
         CUSTOM_UNIT_OUT_OF_POLICY: 'customUnitOutOfPolicy',
+        CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE: 'customUnitRateOutOfDateRange',
         DUPLICATED_TRANSACTION: 'duplicatedTransaction',
         FIELD_REQUIRED: 'fieldRequired',
         FUTURE_DATE: 'futureDate',
@@ -6428,6 +6432,7 @@ const CONST = {
         },
         SORT_BY_COLUMNS: {
             CATEGORY_GL_CODE: 'glcode',
+            TAG_GL_CODE: 'tagglcode',
         },
         GROUP_BY: {
             FROM: 'from',
@@ -6474,6 +6479,7 @@ const CONST = {
                 ATTENDEES: {column: this.TABLE_COLUMNS.ATTENDEES, search: true, reportView: true},
                 TOTAL_PER_ATTENDEE: {column: this.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, search: true, reportView: true},
                 TAG: {column: this.TABLE_COLUMNS.TAG, search: true, reportView: true},
+                TAG_GL_CODE: {column: this.TABLE_COLUMNS.TAG_GL_CODE, search: true, reportView: true},
                 EXCHANGE_RATE: {column: this.TABLE_COLUMNS.EXCHANGE_RATE, search: true, reportView: true},
                 ORIGINAL_AMOUNT: {column: this.TABLE_COLUMNS.ORIGINAL_AMOUNT, search: true, reportView: true},
                 REPORT_ID: {column: this.TABLE_COLUMNS.REPORT_ID, search: true, reportView: false},
@@ -6728,6 +6734,7 @@ const CONST = {
             MCC: 'mcc',
             TAX_CODE: 'taxCode',
             CATEGORY_GL_CODE: 'categoryGLCode',
+            TAG_GL_CODE: 'tagGLCode',
             WITHDRAWAL_ID: 'withdrawalID',
             SUBMITTER_USER_ID: 'submitterUserID',
             SUBMITTER_PAYROLL_ID: 'submitterPayrollID',
@@ -6948,6 +6955,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.MCC]: 'mcc',
                 [this.TABLE_COLUMNS.TAX_CODE]: 'tax-code',
                 [this.TABLE_COLUMNS.CATEGORY_GL_CODE]: 'category-gl-code',
+                [this.TABLE_COLUMNS.TAG_GL_CODE]: 'tag-gl-code',
                 [this.TABLE_COLUMNS.WITHDRAWAL_ID]: 'withdrawal-id',
                 [this.TABLE_COLUMNS.AVATAR]: 'avatar',
                 [this.TABLE_COLUMNS.STATUS]: 'status',
@@ -8372,6 +8380,7 @@ const CONST = {
                 CHOOSE_SPEND_RULE: 'WorkspaceExpensifyCard-ChooseSpendRule',
             },
             PER_DIEM: {
+                ROW: 'WorkspacePerDiem-Row',
                 MORE_DROPDOWN: 'WorkspacePerDiem-MoreDropdown',
                 BULK_ACTIONS_DROPDOWN: 'WorkspacePerDiem-BulkActionsDropdown',
             },
