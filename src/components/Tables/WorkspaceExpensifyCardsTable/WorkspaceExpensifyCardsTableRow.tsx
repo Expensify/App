@@ -54,18 +54,26 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
     const statusTranslationKey = getTranslationKeyForCardStatus(item.card.state, item.isVirtual);
     const statusLabel = statusTranslationKey ? translate(statusTranslationKey) : '';
     const formattedLimit = convertToShortDisplayString(item.limit, item.currency);
+    const formattedRemainingLimit = convertToShortDisplayString(item.remainingLimit, item.currency);
+    const remainingLimitLabel = translate('workspace.expensifyCard.remainingLimit');
     const formattedFrozenDate = item.frozenDate ? DateUtils.formatWithUTCTimeZone(item.frozenDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
     let frozenByText: string | undefined;
     if (formattedFrozenDate) {
         if (item.frozenByAccountID === session?.accountID) {
-            frozenByText = translate('cardPage.youFroze', {date: formattedFrozenDate});
+            frozenByText = translate('cardPage.youFroze', {
+                date: formattedFrozenDate,
+            });
         } else {
-            const frozenByAdminPrefix = translate('cardPage.frozenByAdminPrefix', {date: formattedFrozenDate});
+            const frozenByAdminPrefix = translate('cardPage.frozenByAdminPrefix', {
+                date: formattedFrozenDate,
+            });
             frozenByText = `${frozenByAdminPrefix}${item.frozenByDisplayName ?? translate('common.someone')}`;
         }
     }
 
-    const accessibilityLabel = [cardholderName, item.name, cardType, limitTypeLabel, item.lastFourPAN, statusLabel, formattedLimit, frozenByText].filter(Boolean).join(', ');
+    const accessibilityLabel = [cardholderName, item.name, cardType, limitTypeLabel, item.lastFourPAN, statusLabel, formattedLimit, formattedRemainingLimit, frozenByText]
+        .filter(Boolean)
+        .join(', ');
 
     const frozenByRowFooter = !!frozenByText && (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt1]}>
@@ -200,7 +208,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                         <TextWithTooltip
                             shouldShowTooltip
                             numberOfLines={1}
-                            text={formattedLimit}
+                            text={shouldUseNarrowTableLayout ? `${formattedLimit} · ${remainingLimitLabel} ${formattedRemainingLimit}` : formattedLimit}
                         />
                         {shouldUseNarrowTableLayout && (
                             <Text
@@ -211,6 +219,19 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                             </Text>
                         )}
                     </View>
+
+                    {!shouldUseNarrowTableLayout && (
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            <TextWithTooltip
+                                shouldShowTooltip
+                                numberOfLines={1}
+                                text={formattedRemainingLimit}
+                            />
+                        </View>
+                    )}
 
                     <View
                         style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}
