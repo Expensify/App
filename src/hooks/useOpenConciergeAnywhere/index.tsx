@@ -14,7 +14,7 @@ function useOpenConciergeAnywhere() {
     const {openSidePanel} = useSidePanelActions();
 
     const openConciergeAnywhere = (options?: OpenConciergeAnywhereOptions) => {
-        if (!shouldHideSidePanel) {
+        if (!shouldHideSidePanel && !options?.forceConcierge) {
             return;
         }
         openSidePanel({forceConcierge: options?.forceConcierge});
