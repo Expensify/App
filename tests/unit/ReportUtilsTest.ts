@@ -8444,8 +8444,17 @@ describe('ReportUtils', () => {
             expect(isPayer(currentUserAccountID, currentUserEmail, approvedReport, undefined, undefined, false)).toBe(false);
         });
 
-        it('should return true for a reimburser of a group policy on a closed report', async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES, achAccount: {reimburser: currentUserEmail}});
+        it('should return true for an admin reimburser of a group policy on a closed report', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: {
+                    [currentUserEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                },
+                achAccount: {reimburser: currentUserEmail},
+            });
 
             const closedReport: Report = {
                 ...createRandomReport(2, undefined),
