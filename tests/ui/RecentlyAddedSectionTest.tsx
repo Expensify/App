@@ -230,6 +230,35 @@ describe('RecentlyAddedSection', () => {
         });
     });
 
+    describe('anonymous user', () => {
+        it('hides the entire section (including the empty state) for guests', async () => {
+            mockUseRecentlyAddedData.mockReturnValue({transactions: []});
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderRecentlyAddedSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId('recentlyAddedEmptyState')).not.toBeOnTheScreen();
+            expect(screen.queryByText('homePage.recentlyAddedSection.title')).not.toBeOnTheScreen();
+        });
+
+        it('still hides the section for guests even when expenses are present', async () => {
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [ROW_1]});
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderRecentlyAddedSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId('recentlyAddedRow-t1')).not.toBeOnTheScreen();
+        });
+    });
+
     describe('rows', () => {
         it('renders one row per expense with the merchant name', async () => {
             mockUseRecentlyAddedData.mockReturnValue({transactions: [ROW_1, ROW_2]});

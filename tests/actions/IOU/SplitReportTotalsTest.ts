@@ -740,6 +740,7 @@ describe('actions/IOU', () => {
             return {
                 allTransactionsList: {},
                 allReportsList: {},
+                allReportActionsList: {},
                 allReportNameValuePairsList: {},
                 transactionData: {
                     reportID: EXPENSE_REPORT_ID,

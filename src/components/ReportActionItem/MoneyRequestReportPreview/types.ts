@@ -39,6 +39,9 @@ type MoneyRequestReportPreviewProps = {
     /** The active IOUReport, used for Onyx subscription */
     iouReportID: string | undefined;
 
+    /** The stabilized IOU report, provided by the parent so the preview does not re-subscribe to the churning report */
+    iouReport: OnyxEntry<Report>;
+
     /** Callback when the payment options popover is shown */
     onPaymentOptionsShow?: () => void;
 
