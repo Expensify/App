@@ -1125,6 +1125,45 @@ function getLengthOfTag(tag: string): number {
 }
 
 /**
+ * Resolves a transaction's tag to the GL codes configured on the matching policy tags.
+ * Multi-level tags resolve each level against the tag list with the same order weight,
+ * and the non-empty GL codes are joined into a single comma-separated string.
+ */
+function getTagGLCode(policyTagLists: OnyxEntry<PolicyTagLists>, transactionTag: string | undefined): string {
+    if (isEmptyObject(policyTagLists) || !transactionTag) {
+        return '';
+    }
+
+    const tagLists = getTagLists(policyTagLists);
+    const tagParts = getTagArrayFromName(transactionTag);
+    return tagParts
+        .map((tagName, index) => {
+            const levelTags = tagLists.at(index)?.tags;
+            if (!levelTags) {
+                return '';
+            }
+
+            // Dependent tag lists can hold same-named child tags under different parents (stored under unique
+            // record keys), so a tag only matches by name when its parent filter also matches the parent tag path.
+            const parentTagPath = tagParts.slice(0, index).join(':');
+            const matchesTagAtLevel = (levelTag: ValueOf<PolicyTags> | undefined): levelTag is ValueOf<PolicyTags> => {
+                if (!levelTag || levelTag.name !== tagName) {
+                    return false;
+                }
+                const filterRegex = levelTag.rules?.parentTagsFilter ?? levelTag.parentTagsFilter;
+                return !filterRegex || new RegExp(filterRegex).test(parentTagPath);
+            };
+
+            const directMatch = levelTags[tagName];
+            const matchingTag = matchesTagAtLevel(directMatch) ? directMatch : Object.values(levelTags).find(matchesTagAtLevel);
+            const glCode = matchingTag?.['GL Code'];
+            return glCode != null ? String(glCode).replaceAll('"', '') : '';
+        })
+        .filter(Boolean)
+        .join(', ');
+}
+
+/**
  * Escape colon from tag name
  */
 function escapeTagName(tag: string) {
@@ -2858,6 +2897,7 @@ export {
     getPolicyRole,
     hasIndependentTags,
     getLengthOfTag,
+    getTagGLCode,
     isPolicyMemberWithoutPendingDelete,
     hasDynamicExternalWorkflow,
     getPolicyEmployeeAccountIDs,

@@ -526,6 +526,7 @@ const translations = {
         year: 'Year',
         quarter: 'Quarter',
         restrictions: 'Restrictions',
+        tagGLCode: 'Tag GL code',
         concierge: {
             greeting: 'Hi there, how can I help?',
             showHistory: 'Show history',

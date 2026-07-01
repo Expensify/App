@@ -513,6 +513,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Edytor',
         restrictions: 'Ograniczenia',
+        tagGLCode: 'Oznacz kod GL',
         off: 'Wyłączone',
     },
     socials: {

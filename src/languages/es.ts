@@ -465,6 +465,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
         editor: 'Editor',
         restrictions: 'Restricciones',
+        tagGLCode: 'Etiquetar código GL',
         off: 'Desactivado',
     },
     socials: {
