@@ -2,14 +2,12 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {typeOptionsPoliciesSelector} from '@components/Search/FilterComponents/TypeSelector';
 import {advancedSearchPoliciesSelector} from '@hooks/useAdvancedSearchFilters';
 import {exportedToPoliciesSelector} from '@hooks/useExportedToFilterOptions';
-import {policiesSelector, policyCategoriesSelector, policyTagsSelector, reportsSelector} from '@hooks/useFilterFormValues';
+import {policiesSelector, policyCategoriesSelector, policyTagsSelector} from '@hooks/useFilterFormValues';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyTagLists, Report} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 
 const POLICY_KEY = `${ONYXKEYS.COLLECTION.POLICY}1`;
 const POLICY_KEY_2 = `${ONYXKEYS.COLLECTION.POLICY}2`;
-const REPORT_KEY = `${ONYXKEYS.COLLECTION.REPORT}1`;
-const REPORT_KEY_2 = `${ONYXKEYS.COLLECTION.REPORT}2`;
 const CATEGORIES_KEY = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`;
 const CATEGORIES_KEY_2 = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}2`;
 const TAGS_KEY = `${ONYXKEYS.COLLECTION.POLICY_TAGS}1`;
@@ -48,38 +46,6 @@ describe('useFilterFormValues selectors', () => {
 
             expect(result).toEqual({[POLICY_KEY]: {taxRates: {}}});
             expect(result).not.toHaveProperty(POLICY_KEY_2);
-        });
-    });
-
-    describe('reportsSelector', () => {
-        it('returns undefined input as-is', () => {
-            expect(reportsSelector(undefined)).toBeUndefined();
-        });
-
-        it('extracts only reportID from each report', () => {
-            const reports: OnyxCollection<Report> = {
-                [REPORT_KEY]: {reportID: '100', reportName: 'Expense Report', chatType: 'policyExpenseChat'} as unknown as Report,
-                [REPORT_KEY_2]: {reportID: '200', reportName: 'Invoice', chatType: 'invoice'} as unknown as Report,
-            };
-
-            const result = reportsSelector(reports);
-
-            expect(result).toEqual({
-                [REPORT_KEY]: {reportID: '100'},
-                [REPORT_KEY_2]: {reportID: '200'},
-            });
-            expect(result?.[REPORT_KEY]).not.toHaveProperty('reportName');
-        });
-
-        it('skips undefined report entries', () => {
-            const reports: OnyxCollection<Report> = {
-                [REPORT_KEY]: {reportID: '100'} as Report,
-                [REPORT_KEY_2]: undefined,
-            };
-
-            const result = reportsSelector(reports);
-
-            expect(result).toEqual({[REPORT_KEY]: {reportID: '100'}});
         });
     });
 
