@@ -1499,6 +1499,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     GET_MISSING_ONYX_MESSAGES: 'GetMissingOnyxMessages',
     IMPORT_CATEGORIES_SPREADSHEET: 'ImportCategoriesSpreadsheet',
     IMPORT_MEMBERS_SPREADSHEET: 'ImportMembersSpreadsheet',
+    IMPORT_MERCHANT_RULES_SPREADSHEET: 'ImportMerchantRulesSpreadsheet',
     IMPORT_PER_DIEM_RATES: 'ImportPerDiemRates',
     IMPORT_TAGS_SPREADSHEET: 'ImportTagsSpreadsheet',
     OPEN_OLD_DOT_LINK: 'OpenOldDotLink',
@@ -1544,6 +1545,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER]: Parameters.AuthenticatePusherParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_CATEGORIES_SPREADSHEET]: Parameters.ImportCategoriesSpreadsheetParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MEMBERS_SPREADSHEET]: Parameters.ImportMembersSpreadsheetParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MERCHANT_RULES_SPREADSHEET]: Parameters.ImportMerchantRulesSpreadsheetParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_PER_DIEM_RATES]: Parameters.ImportPerDiemRatesParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_TAGS_SPREADSHEET]: Parameters.ImportTagsSpreadsheetParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK]: Parameters.OpenOldDotLinkParams;

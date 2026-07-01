@@ -1133,6 +1133,9 @@ const translations: TranslationDeepObject<typeof en> = {
         importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} Tags wurden hinzugefügt.` : '1 Tag wurde hinzugefügt.'),
         importMultiLevelTagsSuccessfulDescription: 'Mehrstufige Tags wurden hinzugefügt.',
         importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates} Tagessätze wurden hinzugefügt.` : '1 Tagegeldsatz wurde hinzugefügt.'),
+        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => (rules > 1 ? `${rules} Händlerregeln wurden hinzugefügt.` : '1 Händlerregel wurde hinzugefügt.'),
+        importMerchantRulesRequiredColumns:
+            'Ups! Du musst mindestens eine Spalte („Händler ist“ oder „Händler enthält“) zuordnen sowie mindestens ein zu aktualisierendes Feld. Bitte überprüfe es und versuche es erneut.',
         importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `${transactions} Buchungen wurden importiert.` : '1 Transaktion wurde importiert.',
         importFailedTitle: 'Import fehlgeschlagen',
@@ -7317,6 +7320,12 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 addRule: 'Händlerregel hinzufügen',
                 addRuleTitle: 'Regel hinzufügen',
                 editRuleTitle: 'Regel bearbeiten',
+                importRulesTitle: 'Händlerregeln importieren',
+                importColumnMerchantIs: 'Händler ist',
+                importColumnMerchantContains: 'Händler enthält',
+                importColumnUpdatedMerchant: 'Aktualisierter Händler',
+                importColumnUpdatedCategory: 'Aktualisierte Kategorie',
+                importColumnUpdatedDescription: 'Aktualisierte Beschreibung',
                 expensesWith: 'Für Ausgaben mit:',
                 expensesExactlyMatching: 'Für Ausgaben mit genau folgender Übereinstimmung:',
                 applyUpdates: 'Diese Aktualisierungen anwenden:',

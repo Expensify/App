@@ -7466,6 +7466,11 @@ const CONST = {
         EXTERNAL_ID: 'externalID',
         MAX_AMOUNT_NO_RECEIPT: 'maxAmountNoReceipt',
         MAX_AMOUNT_NO_ITEMIZED_RECEIPT: 'maxAmountNoItemizedReceipt',
+        MERCHANT_IS: 'merchantIs',
+        MERCHANT_CONTAINS: 'merchantContains',
+        UPDATED_MERCHANT: 'updatedMerchant',
+        REIMBURSABLE: 'reimbursable',
+        BILLABLE: 'billable',
     },
 
     IMPORT_SPREADSHEET: {
@@ -8355,6 +8360,7 @@ const CONST = {
                 SPEND_RULE_ITEM: 'WorkspaceRules-SpendRuleItem',
                 MERCHANT_RULE_ITEM: 'WorkspaceRules-MerchantRuleItem',
                 ADD_MERCHANT_RULE: 'WorkspaceRules-AddMerchantRule',
+                IMPORT_MERCHANT_RULES: 'WorkspaceRules-ImportMerchantRules',
                 MERCHANT_RULE_SECTION_ITEM: 'WorkspaceRules-MerchantRuleSectionItem',
                 MERCHANT_RULE_SAVE: 'WorkspaceRules-MerchantRuleSave',
                 MERCHANT_RULE_PREVIEW_MATCHES: 'WorkspaceRules-MerchantRulePreviewMatches',

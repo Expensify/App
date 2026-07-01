@@ -1132,6 +1132,9 @@ const translations: TranslationDeepObject<typeof en> = {
         importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} tags zijn toegevoegd.` : '1 tag is toegevoegd.'),
         importMultiLevelTagsSuccessfulDescription: 'Tags met meerdere niveaus zijn toegevoegd.',
         importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates} per diem-tarieven zijn toegevoegd.` : '1 dagvergoeding is toegevoegd.'),
+        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => (rules > 1 ? `${rules} handelaarregels zijn toegevoegd.` : '1 handelaarregel is toegevoegd.'),
+        importMerchantRulesRequiredColumns:
+            'Oeps! Je moet ten minste één kolom "Handelaar is" of "Handelaar bevat" toewijzen, plus ten minste één veld om bij te werken. Controleer het en probeer het opnieuw.',
         importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `${transactions} transacties zijn geïmporteerd.` : '1 transactie is geïmporteerd.',
         importFailedTitle: 'Import mislukt',
@@ -7281,6 +7284,12 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 addRule: 'Merchantregel toevoegen',
                 addRuleTitle: 'Regel toevoegen',
                 editRuleTitle: 'Regel bewerken',
+                importRulesTitle: 'Handelaarregels importeren',
+                importColumnMerchantIs: 'Handelaar is',
+                importColumnMerchantContains: 'Handelaar bevat',
+                importColumnUpdatedMerchant: 'Bijgewerkte handelaar',
+                importColumnUpdatedCategory: 'Bijgewerkte categorie',
+                importColumnUpdatedDescription: 'Bijgewerkte omschrijving',
                 expensesWith: 'Voor declaraties met:',
                 expensesExactlyMatching: 'Voor onkosten die exact overeenkomen met:',
                 applyUpdates: 'Pas deze updates toe:',

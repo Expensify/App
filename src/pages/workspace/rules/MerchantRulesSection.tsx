@@ -78,7 +78,7 @@ function MerchantRulesSection({policyID, canWriteRules, showReadOnlyModal}: Merc
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'Table']);
 
     // Hoist iterator-independent translations to avoid redundant calls in the loop
     const fieldLabels: FieldLabels = useMemo(
@@ -192,7 +192,7 @@ function MerchantRulesSection({policyID, canWriteRules, showReadOnlyModal}: Merc
                 icon={expensifyIcons.Plus}
                 iconHeight={20}
                 iconWidth={20}
-                style={[styles.sectionMenuItemTopDescription, !hasRules && styles.mt6, styles.mbn3, !canWriteRules && styles.buttonOpacityDisabled]}
+                style={[styles.sectionMenuItemTopDescription, !hasRules && styles.mt6, !canWriteRules && styles.buttonOpacityDisabled]}
                 onPress={() => {
                     if (!canWriteRules) {
                         showReadOnlyModal();
@@ -201,6 +201,22 @@ function MerchantRulesSection({policyID, canWriteRules, showReadOnlyModal}: Merc
                     Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
                 }}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_MERCHANT_RULE}
+            />
+            <MenuItem
+                title={translate('spreadsheet.importSpreadsheet')}
+                titleStyle={styles.textStrong}
+                icon={expensifyIcons.Table}
+                iconHeight={20}
+                iconWidth={20}
+                style={[styles.sectionMenuItemTopDescription, styles.mbn3, !canWriteRules && styles.buttonOpacityDisabled]}
+                onPress={() => {
+                    if (!canWriteRules) {
+                        showReadOnlyModal();
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.RULES_MERCHANT_IMPORT.getRoute(policyID));
+                }}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.IMPORT_MERCHANT_RULES}
             />
         </Section>
     );
