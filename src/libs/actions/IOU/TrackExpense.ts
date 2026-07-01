@@ -1639,6 +1639,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         personalDetails,
         shouldDeferAutoSubmit,
         delegateAccountID,
+        isTrackIntentUser,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -1756,6 +1757,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         betas,
         personalDetails,
         delegateAccountID,
+        isTrackIntentUser,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 

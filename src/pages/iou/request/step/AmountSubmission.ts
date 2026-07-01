@@ -167,6 +167,7 @@ type SubmitAmountArgs = {
     allReportNVPs: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
     duplicateTransactions: OnyxCollection<OnyxTypes.Transaction>;
     duplicateTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    isTrackIntentUser?: boolean;
 };
 
 /**
@@ -244,6 +245,7 @@ function submitAmount({
     allReportNVPs,
     duplicateTransactions,
     duplicateTransactionViolations,
+    isTrackIntentUser,
 }: SubmitAmountArgs): void {
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreateAction = action === CONST.IOU.ACTION.CREATE;
@@ -419,6 +421,7 @@ function submitAmount({
                             personalDetails: allPersonalDetails,
                             optimisticChatReportID,
                             optimisticTransactionID,
+                            isTrackIntentUser,
                         });
                     }
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {

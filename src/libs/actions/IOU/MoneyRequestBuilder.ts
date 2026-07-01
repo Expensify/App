@@ -180,6 +180,7 @@ type RequestMoneyInformation = {
     shouldDeferAutoSubmit?: boolean;
     // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
+    isTrackIntentUser?: boolean;
 };
 
 type MoneyRequestInformationParams = {
@@ -215,6 +216,7 @@ type MoneyRequestInformationParams = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
+    isTrackIntentUser?: boolean;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -269,6 +271,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     isSelfDMSplit?: boolean;
     /** The selfDM report ID for split transactions */
     selfDMReportID?: string;
+    isTrackIntentUser?: boolean;
 };
 
 type BuildOnyxDataForTestDriveIOUParams = {
@@ -430,6 +433,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         isSelfDMSplit,
         isReverseSplitOperation,
         selfDMReportID,
+        isTrackIntentUser,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -1116,6 +1120,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             currentUserEmailParam,
             hasViolations,
             isASAPSubmitBetaEnabled,
+            isTrackIntentUser,
         });
         onyxData.optimisticData?.push(violationsOnyxData, {
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iou.report.reportID}`,
@@ -1130,6 +1135,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 currentUserEmailParam,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
+                isTrackIntentUser,
             }),
         });
         onyxData.optimisticData?.push({
@@ -1233,6 +1239,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         personalDetails,
         betas,
         delegateAccountID,
+        isTrackIntentUser,
     } = moneyRequestInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -1553,6 +1560,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        isTrackIntentUser,
     });
 
     const optimisticNextStep = buildOptimisticNextStep({
@@ -1563,6 +1571,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        isTrackIntentUser,
     });
 
     // STEP 5: Build Onyx Data
@@ -1615,6 +1624,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         delegateAccountID,
         isSelfDMSplit,
         selfDMReportID,
+        isTrackIntentUser,
     });
 
     return {

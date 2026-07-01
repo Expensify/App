@@ -1,18 +1,15 @@
 import {addMonths, format, isPast, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {IntroSelected, Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import EmailUtils from './EmailUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
-import isTrackOnboardingChoice from './OnboardingUtils';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
 import {
@@ -28,15 +25,6 @@ import {
     shouldShowMarkAsDone,
 } from './ReportUtils';
 import {hasSubmissionBlockingViolations} from './TransactionUtils';
-
-let introSelected: OnyxEntry<IntroSelected>;
-// eslint-disable-next-line rulesdir/no-onyx-connect -- NextStepUtils is a pure utility called from action files that cannot use hooks
-Onyx.connect({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (value) => {
-        introSelected = value;
-    },
-});
 
 type BuildNextStepNewParams = {
     report: OnyxEntry<Report>;
@@ -55,6 +43,7 @@ type BuildNextStepNewParams = {
      * This is necessary in the case where report actions are not yet updated to determine the bypass action.
      */
     bypassNextApproverID?: number;
+    isTrackIntentUser?: boolean;
 };
 
 function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContextProps['translate'], currentUserAccountID: number): string {
@@ -101,6 +90,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
         isReopen,
         isRejectedReport: isRejectedReportParam,
         bypassNextApproverID,
+        isTrackIntentUser,
     } = params;
 
     if (!isExpenseReport(report)) {
@@ -152,7 +142,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             }
             if (isReopen) {
                 nextStep = {
-                    messageKey: shouldShowMarkAsDone({isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice), report, policy})
+                    messageKey: shouldShowMarkAsDone({isTrackIntentUser, report, policy})
                         ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE
                         : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -216,7 +206,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             if (hasTransactions && !policy?.harvesting?.enabled) {
                 nextStep = {
                     messageKey: shouldShowMarkAsDone({
-                        isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice),
+                        isTrackIntentUser,
                         report,
                         policy,
                     })
@@ -495,8 +485,8 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         isReopen,
         isRejectedReport,
         bypassNextApproverID,
+        isTrackIntentUser,
     } = params;
-
     if (!isExpenseReport(report)) {
         return null;
     }
@@ -566,7 +556,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         // Generates an optimistic nextStep once a report has been opened
         case CONST.REPORT.STATUS_NUM.OPEN:
             {
-                const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice), report, policy});
+                const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({isTrackIntentUser, report, policy});
 
                 if (isRejectedReport) {
                     optimisticNextStep = {

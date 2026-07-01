@@ -632,6 +632,7 @@ function createExpenseByType({
     customUnitPolicyID,
     personalDetails,
     recentWaypoints,
+    isTrackIntentUser,
 }: {
     transactionType: string;
     params: RequestMoneyInformation;
@@ -644,6 +645,7 @@ function createExpenseByType({
     customUnitPolicyID?: string;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+    isTrackIntentUser: boolean | undefined;
 }) {
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
@@ -693,6 +695,7 @@ function createExpenseByType({
                 personalDetails,
                 recentWaypoints,
                 shouldHandleNavigation: false,
+                isTrackIntentUser,
             };
             return createDistanceRequest(distanceParams);
         }
@@ -706,6 +709,7 @@ function createExpenseByType({
                 },
                 hasViolations: false,
                 customUnitPolicyID,
+                isTrackIntentUser,
             };
             return submitPerDiemExpense(perDiemParams);
         }
@@ -738,6 +742,7 @@ type DuplicateExpenseTransactionParams = {
     optimisticReportPreviewActionID?: string;
     currentUser: CurrentUser;
     currentUserLocalCurrency: string | undefined;
+    isTrackIntentUser?: boolean;
 };
 
 function duplicateExpenseTransaction({
@@ -764,6 +769,7 @@ function duplicateExpenseTransaction({
     optimisticReportPreviewActionID: externalReportPreviewActionID,
     currentUser,
     currentUserLocalCurrency,
+    isTrackIntentUser,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -811,6 +817,7 @@ function duplicateExpenseTransaction({
         betas,
         personalDetails,
         shouldDeferAutoSubmit,
+        isTrackIntentUser,
     };
 
     // If no workspace is provided the expense should be unreported
@@ -872,6 +879,7 @@ function duplicateExpenseTransaction({
         customUnitPolicyID,
         personalDetails,
         recentWaypoints,
+        isTrackIntentUser,
     });
 }
 
@@ -896,6 +904,7 @@ type DuplicateReportParams = {
     currentUserLogin: string;
     currentUserAccountID: number;
     shouldPlaySound?: boolean;
+    isTrackIntentUser?: boolean;
 };
 
 function duplicateReport({
@@ -919,6 +928,7 @@ function duplicateReport({
     currentUserAccountID,
     currentUserLogin,
     shouldPlaySound = true,
+    isTrackIntentUser,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
         return;
@@ -1009,6 +1019,7 @@ function duplicateReport({
             betas,
             personalDetails,
             shouldDeferAutoSubmit: !isLastExpense,
+            isTrackIntentUser,
         };
 
         const result = createExpenseByType({
@@ -1023,6 +1034,7 @@ function duplicateReport({
             customUnitPolicyID: targetPolicy?.id,
             personalDetails,
             recentWaypoints,
+            isTrackIntentUser,
         });
 
         if (result?.iouReport) {
@@ -1054,6 +1066,7 @@ type BulkDuplicateExpensesParams = {
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     currentUser: CurrentUser;
     currentUserLocalCurrency: string | undefined;
+    isTrackIntentUser?: boolean;
 };
 
 function bulkDuplicateExpenses({
@@ -1075,6 +1088,7 @@ function bulkDuplicateExpenses({
     recentWaypoints,
     currentUser,
     currentUserLocalCurrency,
+    isTrackIntentUser,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
 
@@ -1170,6 +1184,7 @@ function bulkDuplicateExpenses({
             optimisticReportPreviewActionID: currentReportPreviewActionID,
             currentUser,
             currentUserLocalCurrency,
+            isTrackIntentUser,
         });
 
         if (result?.iouReport) {
@@ -1205,6 +1220,7 @@ type BulkDuplicateReportsParams = {
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     currentUserLogin: string;
     currentUserAccountID: number;
+    isTrackIntentUser?: boolean;
 };
 
 function bulkDuplicateReports({
@@ -1228,6 +1244,7 @@ function bulkDuplicateReports({
     recentWaypoints,
     currentUserLogin,
     currentUserAccountID,
+    isTrackIntentUser,
 }: BulkDuplicateReportsParams) {
     const allTransactionsMap = getAllTransactions();
     const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
@@ -1302,6 +1319,7 @@ function bulkDuplicateReports({
             shouldPlaySound: false,
             currentUserAccountID,
             currentUserLogin,
+            isTrackIntentUser,
         });
     }
 

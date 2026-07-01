@@ -138,6 +138,7 @@ type CreateDistanceRequestInformation = {
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
     // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
+    isTrackIntentUser?: boolean;
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -1911,6 +1912,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         shouldDeferAutoSubmit,
         previousOdometerDraft,
         delegateAccountID,
+        isTrackIntentUser,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -2093,6 +2095,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             betas,
             optimisticReportPreviewActionID,
             delegateAccountID,
+            isTrackIntentUser,
         });
 
         onyxData = moneyRequestOnyxData;
