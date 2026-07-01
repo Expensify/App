@@ -1,15 +1,17 @@
 ---
-title: How subscriptions work in Expensify
+title: How Subscriptions Work
 description: Learn what a subscription is, the subscription options available in Expensify, and how subscriptions affect billing.
 keywords: [New Expensify, subscriptions, Annual, Pay-per-use, billing owner, billing]
-internalScope: Audience is all workspace members. Explains what subscriptions are, how they work, and the available subscription options. Does not explain pricing, billing definitions, or how to manage subscriptions.
+internalScope: Audience is all workspace Owners. Explains what subscriptions are, how they work, and the available subscription options. Does not explain pricing, billing definitions, or how to manage subscriptions.
 contentType: topic
 platform: new
+RAG/AI usability score: 9/10
+Human usability score: 9/10
 ---
 
-# How subscriptions work
+# How Subscriptions Work
 
-Every paid Expensify workspace has a subscription. A subscription determines **how** your workspace is billed, including whether you pay month-to-month or commit to an annual term.
+Every paid Expensify workspace has a subscription. A subscription determines how your workspace is billed, including whether you pay month-to-month or commit to an annual term.
 
 Expensify offers two subscription options: **Annual** and **Pay-per-use**. Both subscription models work with either the Collect or Control plan.
 
@@ -17,9 +19,9 @@ Expensify offers two subscription options: **Annual** and **Pay-per-use**. Both 
 
 ## Who can view and manage a subscription
 
-Each workspace has a single subscription that is managed by the workspace's **billing owner**.
+Each workspace has a single subscription that is managed by the workspace Owner. Only the workspace Owner can view or manage the subscription under **Account > Subscription**.
 
-Only the billing owner can view or manage the subscription under **Account > Subscription**.
+To learn more, see [Understand Workspace Ownership](Understand-Workspace-Ownership.md).
 
 ---
 
@@ -27,8 +29,8 @@ Only the billing owner can view or manage the subscription under **Account > Sub
 
 Expensify offers two subscription options:
 
-* **Annual** subscriptions include a 12-month commitment and discounted billing.
-* **Pay-per-use** subscriptions bill month-to-month with no annual commitment.
+ - **Annual** subscriptions include a 12-month commitment in exchange for discounted billing and are billed monthly. 
+ - **Pay-per-use** subscriptions have no commitment and are billed monthly. 
 
 Your subscription determines how your workspace is billed, but it does not determine which features are available. Your workspace features are determined by its plan.
 
@@ -47,21 +49,11 @@ A workspace can use either subscription option with either plan:
 
 Together, your plan and subscription determine how your workspace is billed.
 
----
-
-## Where to learn more about subscriptions
-
-For details about each subscription model, see:
-
-* **Annual subscriptions**
-* **Pay-per-use subscriptions**
-
-To learn how subscriptions work together with plans to determine billing, see **How your plan and subscription determine your bill**.
+To learn more, see [How Your Plan and Subscription Determine Your Bill](How-Your-Plan-and-Subscription-Determine-Your-Bill.md).
 
 ---
 
 ## Related articles
 
-* Learn how **your plan and subscription determine your bill**.
-* Learn more about **Annual subscriptions**.
-* Learn more about **Pay-per-use subscriptions**.
+- [Understand Expensify Pricing](Understand-Expensify-pricing.md)
+- [Understand Plan and Subscription Management](Understand-Plan-and-Subscription-Management.md)
