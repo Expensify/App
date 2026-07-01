@@ -138,8 +138,14 @@ describe('NewChatPage', () => {
         const input = screen.getByTestId('selection-list-text-input');
         fireEvent.changeText(input, invitedEmail);
 
-        // Wait for the invite option to appear, then select it via its "Add to group" button.
-        const addButton = await waitFor(() => screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0));
+        // Wait for the invite row to appear — this confirms the debounce has fired and regular
+        // contacts are filtered out, so the only "Add to group" button is the invite row's.
+        await waitFor(() => {
+            expect(screen.getAllByText(invitedEmail).length).toBeGreaterThan(0);
+        });
+
+        // Select the invite option via its "Add to group" button.
+        const addButton = screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0);
         if (addButton) {
             fireEvent.press(addButton);
         }

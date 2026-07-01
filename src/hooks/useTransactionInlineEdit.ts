@@ -21,6 +21,7 @@ import {
 } from '@libs/actions/TransactionInlineEdit';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {isTrackExpenseReportNew} from '@libs/ReportUtils';
 import {isExpenseUnreported, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -128,7 +129,9 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const {hasSelectedTransactions} = useSearchSelectionContext();
 
     const isPerDiem = isPerDiemRequest(transaction);
-    const {shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiem);
+    const {shouldSelectPolicy, policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiem);
+
+    const isTrackExpense = isTrackExpenseReportNew(transactionThreadReport, effectiveParentReport, parentReportAction);
 
     const {isOffline} = useNetwork();
 
@@ -157,6 +160,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             parentReportAction,
             transactionThreadReport,
             policy: completePolicy ?? policy,
+            policyForTrackExpense: isTrackExpense ? policyForMovingExpenses : undefined,
             policyCategories,
             policyTags,
             policyRecentlyUsedCategories,

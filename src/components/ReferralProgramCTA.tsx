@@ -20,12 +20,15 @@ type ReferralProgramCTAProps = {
     referralContentType: typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT;
     style?: StyleProp<ViewStyle>;
     onDismiss?: () => void;
+
+    /** Called right before navigating to the referral details route. Lets a caller dismiss an overlay (e.g. a docked modal) that would otherwise cover the referral RHP. */
+    onBeforeNavigate?: () => void;
 };
 
 // Width of the close button (touchableButtonImage) + the gap between text and button.
 const CLOSE_BUTTON_OFFSET = variables.componentSizeNormal + 10;
 
-function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralProgramCTAProps) {
+function ReferralProgramCTA({referralContentType, style, onDismiss, onBeforeNavigate}: ReferralProgramCTAProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -56,6 +59,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
             <PressableWithoutFeedback
                 sentryLabel={CONST.SENTRY_LABEL.REFERRAL_PROGRAM.CTA}
                 onPress={() => {
+                    onBeforeNavigate?.();
                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REFERRAL_DETAILS.getRoute(referralContentType), Navigation.getActiveRouteWithoutParams()));
                 }}
                 style={[styles.pAbsolute, styles.t0, styles.b0, styles.l0, {right: CLOSE_BUTTON_OFFSET}]}
