@@ -9,7 +9,7 @@ platform: new
 
 # Understand billing ownership
 
-Every paid workspace has a **billing owner**. The billing owner is responsible for the workspace's subscription and is the only person who can manage billing-related settings.
+Every paid workspace has an Owner. The Oener is responsible for paying the workspace's subscription and is the only person who can manage billing-related settings like plans and sunscriptions. 
 
 Billing ownership is separate from workspace administration. Understanding the difference helps explain why some members can manage a workspace but cannot change its subscription.
 
@@ -31,6 +31,8 @@ Only the billing owner can:
 
 The billing owner also receives subscription billing alerts and billing-related notifications.
 
+You can confirm who is the Owner of a workspace you are member by clicking **Workspaces** the in the navigation tabs and viewing the **Owner** column for the workspace. 
+
 ---
 
 ## Billing owner vs. Workspace Admin
@@ -47,6 +49,7 @@ Although these roles often overlap, they are not the same.
 A Workspace Admin does not automatically gain permission to manage billing.
 
 ---
+
 
 ## Why billing ownership matters
 
