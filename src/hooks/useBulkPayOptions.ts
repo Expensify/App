@@ -76,7 +76,7 @@ function useBulkPayOptions({
     const activeAdminPolicies = useActiveAdminPolicies();
     const isIOUReport = isIOUReportUtil(selectedReportID);
     const isExpenseReport = isExpenseReportUtil(selectedReportID);
-    const isInvoiceReport = isInvoiceReportUtil(selectedReportID);
+    const isInvoiceReport = isInvoiceReportUtil(iouReport);
     const shouldShowPayElsewhereOption = !isInvoiceReport;
     const canUseBusinessBankAccount = isExpenseReport || (isIOUReport && selectedReportID && !hasRequestFromCurrentAccount(iouReport, accountID ?? CONST.DEFAULT_NUMBER_ID));
     const canUsePersonalBankAccount = isIOUReport;

@@ -1423,8 +1423,7 @@ function isChatReport(report: OnyxEntry<Report>): boolean {
     return report?.type === CONST.REPORT.TYPE.CHAT;
 }
 
-function isInvoiceReport(reportOrID: OnyxInputOrEntry<Report> | string): boolean {
-    const report = typeof reportOrID === 'string' ? (getReport(reportOrID, deprecatedAllReports) ?? null) : reportOrID;
+function isInvoiceReport(report: OnyxInputOrEntry<Report>): boolean {
     return report?.type === CONST.REPORT.TYPE.INVOICE;
 }
 
