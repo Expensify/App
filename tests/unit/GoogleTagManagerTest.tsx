@@ -285,6 +285,7 @@ describe('GoogleTagManagerTest', () => {
             betas: [CONST.BETAS.ALL],
             isSelfTourViewed: false,
             currentUserLocalCurrency: undefined,
+            reportActionsList: undefined,
         });
 
         await waitForBatchedUpdatesWithAct();

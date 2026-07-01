@@ -710,6 +710,7 @@ describe('actions/PolicyMember', () => {
                     TestHelper.formatPhoneNumber,
                     undefined,
                     currentUserInput,
+                    undefined,
                 );
 
             type BuildResult = ReturnType<typeof buildForCurrentUser>;

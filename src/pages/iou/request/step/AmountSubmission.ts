@@ -385,6 +385,7 @@ function submitAmount({
                             isSelfTourViewed,
                             optimisticChatReportID,
                             optimisticTransactionID,
+                            reportActionsList: undefined,
                         });
                     } else {
                         const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
