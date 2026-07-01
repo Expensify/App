@@ -378,7 +378,20 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 dismissError: () => dismissError(login, accountID, policyEmployee.pendingAction),
             };
         });
-    }, [filteredMembers, isPolicyAdmin, policy?.owner, policy?.ownerAccountID, formatPhoneNumber, translate, session?.accountID, shouldShowCustomField1Column, shouldShowCustomField2Column, invitedPrimaryToSecondaryLogins, openMemberDetails, dismissError]);
+    }, [
+        filteredMembers,
+        isPolicyAdmin,
+        policy?.owner,
+        policy?.ownerAccountID,
+        formatPhoneNumber,
+        translate,
+        session?.accountID,
+        shouldShowCustomField1Column,
+        shouldShowCustomField2Column,
+        invitedPrimaryToSecondaryLogins,
+        openMemberDetails,
+        dismissError,
+    ]);
 
     useEffect(() => {
         if (!isFocused) {
