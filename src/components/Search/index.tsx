@@ -81,6 +81,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+import ExpenseFlatSearchView from './ExpenseFlatSearchView';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
@@ -164,6 +165,7 @@ function Search({
     const isAttendeesEnabledForMovingPolicy = shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policyForMovingExpenses);
 
     const [, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, offset === 0);
@@ -1001,7 +1003,8 @@ function Search({
     }
 
     const searchTableHeader = !shouldShowTableHeader ? undefined : (
-        <View style={[!isTask && styles.pr9, styles.flex1]}>
+        // Match the rows' trailing arrow spacing so the header columns line up with them.
+        <View style={[!isTask && styles.pr8, styles.flex1]}>
             <SearchTableHeader
                 canSelectMultiple={canSelectMultiple}
                 columns={columnsToShow}
@@ -1037,6 +1040,12 @@ function Search({
             />
         ) : undefined;
 
+    // Flat-expense (a plain transaction list) renders through the dedicated ExpenseFlatSearchView, which
+    // composes the reusable Search list primitives directly over BaseSearchList. Every other variant
+    // (chat, task, report, grouped) keeps the legacy SearchList shell. The snapshot, lifecycle and
+    // selection providers stay here so the data layer runs once.
+    const isFlatExpenseView = type === CONST.SEARCH.DATA_TYPES.EXPENSE && !validGroupBy;
+
     return (
         <SearchScopeProvider>
             <SearchWriteActionsProvider
@@ -1051,31 +1060,57 @@ function Search({
                 isSearchResultsEmpty={isSearchResultsEmpty}
             >
                 <Animated.View style={[styles.flex1, animatedStyle]}>
-                    <SearchList
-                        ref={searchListRef}
-                        data={stableSortedData}
-                        ListItem={ListItem}
-                        onSelectRow={onSelectRow}
-                        canSelectMultiple={canSelectMultiple}
-                        shouldPreventLongPressRow={isChat || isTask}
-                        SearchTableHeader={searchTableHeader}
-                        contentContainerStyle={[styles.pb3, contentContainerStyle]}
-                        containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3]}
-                        onScroll={onSearchListScroll}
-                        onEndReachedThreshold={0.75}
-                        onEndReached={fetchMoreResults}
-                        ListFooterComponent={listFooterComponent}
-                        queryJSON={queryJSON}
-                        columns={columnsToShow}
-                        onLayout={onLayout}
-                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                        shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
-                        newTransactions={newTransactions}
-                        hasLoadedAllTransactions={hasLoadedAllTransactions}
-                        isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
-                        nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                        isActionColumnWide={isTask || hasDeletedTransaction}
-                    />
+                    {isFlatExpenseView ? (
+                        <ExpenseFlatSearchView
+                            ref={searchListRef}
+                            queryJSON={queryJSON}
+                            data={stableSortedData}
+                            columns={columnsToShow}
+                            onSelectRow={onSelectRow}
+                            canSelectMultiple={canSelectMultiple}
+                            SearchTableHeader={searchTableHeader}
+                            tableHeaderVisible={tableHeaderVisible}
+                            contentContainerStyle={[styles.pb3, contentContainerStyle]}
+                            containerStyle={[styles.pv0]}
+                            onScroll={onSearchListScroll}
+                            onEndReached={fetchMoreResults}
+                            ListFooterComponent={listFooterComponent}
+                            onLayout={onLayout}
+                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                            newTransactions={newTransactions}
+                            hasLoadedAllTransactions={hasLoadedAllTransactions}
+                            isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
+                            nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                            isActionColumnWide={isTask || hasDeletedTransaction}
+                        />
+                    ) : (
+                        <SearchList
+                            ref={searchListRef}
+                            data={stableSortedData}
+                            ListItem={ListItem}
+                            onSelectRow={onSelectRow}
+                            canSelectMultiple={canSelectMultiple}
+                            shouldPreventLongPressRow={isChat || isTask}
+                            SearchTableHeader={searchTableHeader}
+                            contentContainerStyle={[styles.pb3, contentContainerStyle]}
+                            containerStyle={[styles.pv0]}
+                            onScroll={onSearchListScroll}
+                            onEndReachedThreshold={0.75}
+                            onEndReached={fetchMoreResults}
+                            ListFooterComponent={listFooterComponent}
+                            queryJSON={queryJSON}
+                            columns={columnsToShow}
+                            onLayout={onLayout}
+                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                            shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
+                            newTransactions={newTransactions}
+                            hasLoadedAllTransactions={hasLoadedAllTransactions}
+                            isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
+                            nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                            policyTags={policyTags}
+                            isActionColumnWide={isTask || hasDeletedTransaction}
+                        />
+                    )}
                 </Animated.View>
             </SearchWriteActionsProvider>
         </SearchScopeProvider>

@@ -259,6 +259,15 @@ function getPersonalDetailByEmail(email: string | undefined): PersonalDetails | 
 }
 
 /**
+ * Returns the accountID for a login only when it exists in personal details.
+ * Unlike getAccountIDsByLogins, does not fabricate optimistic account IDs for unknown logins.
+ */
+function getKnownAccountIDByLogin(login: string | undefined): number | undefined {
+    const accountID = getPersonalDetailByEmail(login)?.accountID;
+    return accountID !== undefined ? Number(accountID) : undefined;
+}
+
+/**
  * Given a list of logins, find the associated personal detail and return related accountIDs.
  *
  * @param logins Array of user logins
@@ -285,16 +294,19 @@ function getLoginByAccountID(accountID: number | undefined, personalDetails: Ony
  * Given a list of accountIDs, find the associated personal detail and return related logins.
  *
  * @param accountIDs Array of user accountIDs
+ * @param personalDetailsList Record of user personal details, indexed by user id
  * @returns Array of logins according to passed accountIDs
  */
-function getLoginsByAccountIDs(accountIDs: number[]): string[] {
-    return accountIDs.reduce((foundLogins: string[], accountID) => {
-        const currentLogin = getLoginByAccountID(accountID);
-        if (currentLogin) {
-            foundLogins.push(currentLogin);
-        }
-        return foundLogins;
-    }, []);
+function getLoginsByAccountIDs(accountIDs: number[] | undefined, personalDetailsList: OnyxEntry<PersonalDetailsList> = allPersonalDetails): string[] {
+    return (
+        accountIDs?.reduce((foundLogins: string[], accountID) => {
+            const currentLogin = getLoginByAccountID(accountID, personalDetailsList);
+            if (currentLogin) {
+                foundLogins.push(currentLogin);
+            }
+            return foundLogins;
+        }, []) ?? []
+    );
 }
 
 /**
@@ -594,6 +606,7 @@ export {
     getPersonalDetailsListByIDs,
     getDisplayNameOrYou,
     getPersonalDetailByEmail,
+    getKnownAccountIDByLogin,
     getAccountIDsByLogins,
     getLoginsByAccountIDs,
     getPersonalDetailsOnyxDataForOptimisticUsers,

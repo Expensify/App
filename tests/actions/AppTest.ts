@@ -37,7 +37,6 @@ describe('actions/App', () => {
     test('lastFullReconnectTime - openApp', async () => {
         // When Open App runs
         App.openApp();
-        App.confirmReadyToOpenApp();
         await waitForBatchedUpdates();
 
         // The lastFullReconnectTime should be updated
@@ -48,7 +47,6 @@ describe('actions/App', () => {
         // When a full ReconnectApp runs
         await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
         App.reconnectApp();
-        App.confirmReadyToOpenApp();
         await waitForBatchedUpdates();
 
         // The lastFullReconnectTime should be updated
@@ -59,7 +57,6 @@ describe('actions/App', () => {
         // When an incremental ReconnectApp runs
         await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
         App.reconnectApp(123);
-        App.confirmReadyToOpenApp();
         await waitForBatchedUpdates();
 
         // The lastFullReconnectTime should NOT be updated
@@ -71,7 +68,6 @@ describe('actions/App', () => {
 
         // When OpenApp runs
         App.openApp();
-        App.confirmReadyToOpenApp();
         await waitForBatchedUpdates();
 
         // The lastFullReconnectTime should be updated
@@ -92,7 +88,6 @@ describe('actions/App', () => {
 
         // When OpenApp runs
         App.openApp();
-        App.confirmReadyToOpenApp();
         await waitForBatchedUpdates();
 
         // The lastFullReconnectTime should be updated

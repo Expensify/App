@@ -7,7 +7,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -40,7 +40,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     });
 
     const domainHasOnlyOneAdmin = adminAccountIDs?.length === 1;
-    const displayName = formatPhoneNumber(getDisplayNameOrDefault(adminPersonalDetails));
+    const displayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: adminPersonalDetails, translate}));
     const memberLogin = adminPersonalDetails?.login ?? '';
     const isCurrentUserPrimaryContact = primaryContact === memberLogin;
 
