@@ -209,7 +209,8 @@ function canMemberAssignRole(policy: OnyxInputOrEntry<Policy>, login: string, ro
         return false;
     }
 
-    if (isControlPolicyOnlyRole(role) && policy?.type !== CONST.POLICY.TYPE.CORPORATE) {
+    const isCorporatePolicy = policy?.type === CONST.POLICY.TYPE.CORPORATE;
+    if (isControlPolicyOnlyRole(role) && !isCorporatePolicy) {
         return false;
     }
 
@@ -217,11 +218,11 @@ function canMemberAssignRole(policy: OnyxInputOrEntry<Policy>, login: string, ro
         return true;
     }
 
-    return (
-        policy?.type === CONST.POLICY.TYPE.CORPORATE &&
-        canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.MEMBERS) &&
-        (role === CONST.POLICY.ROLE.USER || role === CONST.POLICY.ROLE.AUDITOR)
-    );
+    // Reaching here: USER always, plus AUDITOR only on corporate policies (control-only roles are
+    // already filtered out on non-corporate policies above). Assigning USER/AUDITOR needs the
+    // MEMBERS permission, and only on corporate policies.
+    const isNonElevatedRole = role === CONST.POLICY.ROLE.USER || role === CONST.POLICY.ROLE.AUDITOR;
+    return isCorporatePolicy && canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.MEMBERS) && isNonElevatedRole;
 }
 
 // Whether the member can assign any elevated role: admins (via assignElevatedRoles) on any policy, or People Admins (up to auditor) on Control.
