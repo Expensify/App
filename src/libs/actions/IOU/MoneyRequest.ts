@@ -618,7 +618,14 @@ function setMoneyRequestTimeCount(transactionID: string, count: number, isDraft:
  * if passed transaction previously had it to make sure that transaction does not have inconsistent
  * states (for example distanceUnit not matching distance unit of the new customUnitRateID)
  */
-function setCustomUnitRateID(transactionID: string, customUnitRateID: string | undefined, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, rateAutoUpdated = false) {
+function setCustomUnitRateID(
+    transactionID: string,
+    customUnitRateID: string | undefined,
+    transaction: OnyxEntry<Transaction>,
+    policy: OnyxEntry<Policy>,
+    rateAutoUpdated = false,
+    personalPolicyOutputCurrency?: string,
+) {
     const isFakeP2PRate = customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
     let newDistanceUnit: Unit | undefined;
@@ -626,7 +633,7 @@ function setCustomUnitRateID(transactionID: string, customUnitRateID: string | u
 
     if (customUnitRateID && transaction) {
         const distanceRate = isFakeP2PRate
-            ? DistanceRequestUtils.getRate({transaction: undefined, policy: undefined, useTransactionDistanceUnit: false, isFakeP2PRate})
+            ? DistanceRequestUtils.getRate({transaction: undefined, policy: undefined, useTransactionDistanceUnit: false, isFakeP2PRate, personalPolicyOutputCurrency})
             : DistanceRequestUtils.getRateByCustomUnitRateID({policy, customUnitRateID});
 
         const transactionDistanceUnit = transaction.comment?.customUnit?.distanceUnit;
@@ -845,6 +852,7 @@ function updateDistanceRateOnExpenseDateChange({
     policyForTrackExpense,
     lastSelectedDistanceRates,
     isDraft,
+    personalPolicyOutputCurrency,
 }: {
     transactionID: string;
     transaction: OnyxEntry<Transaction>;
@@ -856,6 +864,7 @@ function updateDistanceRateOnExpenseDateChange({
     policyForTrackExpense: OnyxEntry<Policy>;
     lastSelectedDistanceRates: OnyxEntry<LastSelectedDistanceRates>;
     isDraft: boolean;
+    personalPolicyOutputCurrency: string | undefined;
 }) {
     if (!isDistanceRequest(transaction) || !(isPolicyExpenseChat || isTrackExpense)) {
         return;
@@ -872,7 +881,7 @@ function updateDistanceRateOnExpenseDateChange({
     });
     const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
     const rateChanged = rateID !== currentRateID;
-    setCustomUnitRateID(transactionID, rateID, transaction, effectivePolicy, rateChanged);
+    setCustomUnitRateID(transactionID, rateID, transaction, effectivePolicy, rateChanged, personalPolicyOutputCurrency);
 
     if (rateChanged && rateID && isTaxTrackingEnabled(isPolicyExpenseChat || isTrackExpense || isExpenseUnreported(transaction), effectivePolicy, isDistanceRequest(transaction))) {
         const mileageRates = DistanceRequestUtils.getMileageRates(effectivePolicy);

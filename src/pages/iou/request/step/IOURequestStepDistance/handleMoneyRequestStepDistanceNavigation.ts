@@ -108,6 +108,7 @@ function buildDistanceAmountAndMerchant({
     transaction,
     policy,
     translate,
+    personalPolicyOutputCurrency,
 }: {
     isManualDistance: boolean;
     distance: number | undefined;
@@ -115,12 +116,13 @@ function buildDistanceAmountAndMerchant({
     transaction: Transaction | undefined;
     policy: OnyxEntry<Policy>;
     translate: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>) => string;
+    personalPolicyOutputCurrency: string | undefined;
 }): {amount: number; merchant: string} {
     if (!isManualDistance || distance === undefined || !unit) {
         return {amount: 0, merchant: translate('iou.fieldPending')};
     }
     const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
-    const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
+    const mileageRate = DistanceRequestUtils.getRate({transaction, policy, personalPolicyOutputCurrency});
     const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, mileageRate?.rate ?? 0);
     const merchant = DistanceRequestUtils.getDistanceMerchant(
         true,
@@ -248,7 +250,15 @@ function handleMoneyRequestStepDistanceNavigation({
 
             const validWaypoints = !isManualDistance && !isOdometerDistance ? getValidWaypoints(waypoints, true, isGPSDistance) : undefined;
 
-            const {amount, merchant} = buildDistanceAmountAndMerchant({isManualDistance, distance, unit, transaction, policy, translate});
+            const {amount, merchant} = buildDistanceAmountAndMerchant({
+                isManualDistance,
+                distance,
+                unit,
+                transaction,
+                policy,
+                translate,
+                personalPolicyOutputCurrency: personalOutputCurrency,
+            });
             setMoneyRequestMerchant(transactionID, merchant, false);
             const distanceDefaultTaxCode = getDefaultTaxCode(policy, transaction);
             const distanceTaxCode = (transaction?.taxCode ? transaction.taxCode : distanceDefaultTaxCode) ?? '';
