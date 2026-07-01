@@ -1315,8 +1315,7 @@ function getParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> {
  * For invoice chat threads, returns the parent invoice report.
  * For other cases, returns the provided report.
  */
-function getReportForHeader(report: OnyxEntry<Report>): OnyxEntry<Report> {
-    const parentReport = getParentReport(report);
+function getReportForHeader(report: OnyxEntry<Report>, parentReport: OnyxEntry<Report>): OnyxEntry<Report> {
     const isParentInvoiceAndIsChatThread = isChatThread(report) && isInvoiceReport(parentReport);
     return isParentInvoiceAndIsChatThread ? parentReport : report;
 }

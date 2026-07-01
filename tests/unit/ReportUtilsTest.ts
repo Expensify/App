@@ -102,6 +102,7 @@ import {
     getOriginalReportID,
     getOutstandingChildRequest,
     getParentNavigationSubtitle,
+    getParentReport,
     getParticipantsList,
     getPolicyExpenseChat,
     getPolicyIDsWithEmptyReportsForAccount,
@@ -109,6 +110,7 @@ import {
     getReasonAndReportActionThatRequiresAttention,
     getReportActionWithSmartscanError,
     getReportFieldsByPolicyID,
+    getReportForHeader,
     getReportIDFromLink,
     getReportOrDraftReport,
     getReportPreviewMessage,
@@ -19477,5 +19479,46 @@ describe('getAllPolicyExpenseChatReportActions', () => {
 
     it('returns an empty object for undefined collections', () => {
         expect(getAllPolicyExpenseChatReportActions(undefined, undefined)).toEqual({});
+    });
+});
+
+describe('getParentReport', () => {
+    it('returns undefined when report is undefined', () => {
+        expect(getParentReport(undefined)).toBeUndefined();
+    });
+
+    it('returns undefined when report has no parentReportID', () => {
+        expect(getParentReport({reportID: '1'} as Report)).toBeUndefined();
+    });
+
+    it('returns parentReport from Onyx when not passed explicitly', async () => {
+        const parentReport = {reportID: '2'} as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, parentReport);
+        const report = {reportID: '1', parentReportID: '2'} as Report;
+        const result = getParentReport(report);
+        expect(result?.reportID).toBe('2');
+    });
+});
+
+describe('getReportForHeader', () => {
+    it('returns the report itself when it is not a chat thread', () => {
+        const report = {reportID: '1', type: CONST.REPORT.TYPE.CHAT} as Report;
+        expect(getReportForHeader(report, undefined)).toBe(report);
+    });
+
+    it('returns the report itself when parent is not an invoice report', () => {
+        const parentReport = {reportID: '2', type: CONST.REPORT.TYPE.EXPENSE} as Report;
+        const report = {reportID: '1', parentReportID: '2', parentReportActionID: 'action1', type: CONST.REPORT.TYPE.CHAT} as Report;
+        expect(getReportForHeader(report, parentReport)).toBe(report);
+    });
+
+    it('returns the parent invoice report when report is a chat thread of an invoice', () => {
+        const parentReport = {reportID: '2', type: CONST.REPORT.TYPE.INVOICE} as Report;
+        const report = {reportID: '1', parentReportID: '2', parentReportActionID: 'action1', type: CONST.REPORT.TYPE.CHAT} as Report;
+        expect(getReportForHeader(report, parentReport)).toBe(parentReport);
+    });
+
+    it('returns undefined when report is undefined', () => {
+        expect(getReportForHeader(undefined, undefined)).toBeUndefined();
     });
 });
