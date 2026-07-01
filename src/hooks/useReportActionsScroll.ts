@@ -186,9 +186,9 @@ function useReportActionsScroll({
             : undefined;
     const shouldFocusToTopOnMount = shouldBeAlignedToTop && !initialScrollKey;
     const [shouldAutoscrollToBottom, setShouldAutoscrollToBottom] = useState(shouldFocusToTopOnMount);
-    const [shouldDebounceTracking, setShouldDebounceTracking] = useState(!!initialScrollKey);
+    const [shouldDisablePillTracking, setShouldDisablePillTracking] = useState(!!initialScrollKey);
 
-    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, isActionBadgeAboveViewport, trackVerticalScrolling, onViewableItemsChanged} =
+    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, isActionBadgeAboveViewport, trackVerticalScrolling, onViewableItemsChanged, updatePillVisibility} =
         useReportUnreadMessageScrollTracking({
             reportID,
             currentVerticalScrollingOffsetRef: scrollOffsetRef,
@@ -196,7 +196,7 @@ function useReportActionsScroll({
             hasNewerActions,
             unreadMarkerReportActionIndex,
             isInverted: true,
-            shouldDebounceTracking,
+            shouldDisablePillTracking,
             onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
                 scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
             },
@@ -356,9 +356,12 @@ function useReportActionsScroll({
 
     // Data is ready at the moment FlashList finishes its first render.
     const onLoad = () => {
-        if (shouldDebounceTracking) {
+        if (shouldDisablePillTracking) {
             // Wait one frame so the initial positioning can settle, then disable it.
-            requestAnimationFrame(() => setShouldDebounceTracking(false));
+            requestAnimationFrame(() => {
+                setShouldDisablePillTracking(false);
+                updatePillVisibility();
+            });
         }
         if (!shouldFocusToTopOnMount) {
             return;
