@@ -10,11 +10,13 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {OnboardingCompanySize} from '@libs/actions/Welcome/OnboardingFlow';
 import {getPreviousOnboardingRoute} from '@libs/getOnboardingStepCounter';
 import Navigation from '@libs/Navigation/Navigation';
+import {getVisibleJoinablePoliciesCount} from '@libs/OnboardingUtils';
 import {setOnboardingCompanySize} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,6 +42,8 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [purposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
+    const {isBetaEnabled} = usePermissions();
+    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
 
     const onboardingFlowContext = useMemo(
         () => ({
@@ -49,12 +53,13 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
             purposeSelected: purposeSelected ?? undefined,
             isMergeAccountStepSkipped: onboardingValues?.isMergeAccountStepSkipped,
             isAccountValidated: !!account?.validated,
-            hasJoinablePolicies: Object.keys(joinablePolicies ?? {}).length > 0,
+            hasJoinablePolicies: getVisibleJoinablePoliciesCount(joinablePolicies, canUseSubmit2026) > 0,
         }),
         [
             account?.hasAccessibleDomainPolicies,
             account?.isFromPublicDomain,
             account?.validated,
+            canUseSubmit2026,
             joinablePolicies,
             onboardingValues?.isMergeAccountStepSkipped,
             onboardingValues?.signupQualifier,
