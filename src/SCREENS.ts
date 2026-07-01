@@ -506,6 +506,7 @@ const SCREENS = {
     WORKSPACE: {
         ACCOUNTING: {
             ROOT: 'Policy_Accounting',
+            QUICKBOOKS_ONLINE_SETUP: 'Policy_Accounting_Quickbooks_Online_Setup',
             QUICKBOOKS_ONLINE_IMPORT: 'Policy_Accounting_Quickbooks_Online_Import',
             QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS: 'Policy_Accounting_Quickbooks_Online_Import_Chart_Of_Accounts',
             QUICKBOOKS_ONLINE_CLASSES: 'Policy_Accounting_Quickbooks_Online_Import_Classes',
@@ -566,6 +567,7 @@ const SCREENS = {
             QUICKBOOKS_DESKTOP_CUSTOMERS: 'Policy_Accounting_Quickbooks_Desktop_Import_Customers',
             QUICKBOOKS_DESKTOP_CUSTOMERS_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Desktop_Import_Customers_Displayed_As',
             QUICKBOOKS_DESKTOP_ITEMS: 'Policy_Accounting_Quickbooks_Desktop_Import_Items',
+            XERO_SETUP: 'Policy_Accounting_Xero_Setup',
             XERO_IMPORT: 'Policy_Accounting_Xero_Import',
             CLAIM_OFFER: 'Policy_Accounting_Claim_Offer',
             XERO_ORGANIZATION: 'Policy_Accounting_Xero_Customers',

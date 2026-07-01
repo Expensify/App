@@ -62,7 +62,6 @@ function useSearchOverlay({
     const session = useSession();
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
-    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
     const [isSearchReady, setIsSearchReady] = useState(() => !hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH) && !Navigation.getIsFullscreenPreInsertedUnderRHP());
@@ -117,7 +116,6 @@ function useSearchOverlay({
             type: queryJSON.type,
             groupBy: validGroupBy,
             shouldUseStrictDefaultExpenseColumns,
-            policyCategories,
             fallbackPolicyID: policyForMovingExpensesID,
         });
     })();
