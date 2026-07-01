@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -89,7 +89,7 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
             keyForList: String(accountID),
             accountID,
             login: details?.login ?? '',
-            text: formatPhoneNumber(getDisplayNameOrDefault(details)),
+            text: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
             alternateText: formatPhoneNumber(details?.login ?? ''),
             icons: [
                 {

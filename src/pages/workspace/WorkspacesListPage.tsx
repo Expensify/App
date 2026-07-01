@@ -25,7 +25,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
@@ -112,7 +112,7 @@ function WorkspacesListPage() {
                 ownerAccountID,
                 ownerLogin: ownerDetails ? ownerDetails.login : undefined,
                 ownerAvatar: ownerDetails ? ownerDetails.avatar : undefined,
-                ownerName: ownerDetails ? getDisplayNameOrDefault(ownerDetails) : undefined,
+                ownerName: ownerDetails ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate}) : undefined,
                 iconType: policy.nonMemberDetails.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                 icon: policy.nonMemberDetails.avatar ? policy.nonMemberDetails.avatar : getDefaultWorkspaceAvatar(policy.name),
                 action: () => null,
@@ -138,7 +138,7 @@ function WorkspacesListPage() {
                 isDeleted: policy.isPendingDelete,
                 ownerLogin: ownerDetails ? ownerDetails.login : undefined,
                 ownerAvatar: ownerDetails ? ownerDetails.avatar : undefined,
-                ownerName: ownerDetails ? getDisplayNameOrDefault(ownerDetails) : undefined,
+                ownerName: ownerDetails ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate}) : undefined,
                 iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                 icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
                 pendingAction: policy.pendingAction,

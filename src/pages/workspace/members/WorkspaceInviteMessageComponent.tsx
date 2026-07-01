@@ -25,7 +25,7 @@ import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
-import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     canMemberAssignElevatedRole,
     canMemberAssignRole,
@@ -124,7 +124,7 @@ function WorkspaceInviteMessageComponent({
     const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
     const memberNames = Object.values(personalDetailsOfInvitedEmails)
         .map((personalDetail) => {
-            const displayName = getDisplayNameOrDefault(personalDetail, '', false);
+            const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, defaultValue: '', shouldFallbackToHidden: false, translate});
             if (displayName) {
                 return displayName;
             }
@@ -331,7 +331,12 @@ function WorkspaceInviteMessageComponent({
                             />
                             {!!shouldShowApproverRow && (
                                 <MenuItemWithTopDescription
-                                    title={getDisplayNameOrDefault(approverDetails, workspaceInviteApproverDraft, false)}
+                                    title={temporaryGetDisplayNameOrDefault({
+                                        passedPersonalDetails: approverDetails,
+                                        defaultValue: workspaceInviteApproverDraft,
+                                        shouldFallbackToHidden: false,
+                                        translate,
+                                    })}
                                     description={translate('workflowsPage.approver')}
                                     shouldShowRightIcon
                                     onPress={navigateToApproverPage}
