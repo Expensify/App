@@ -84,6 +84,11 @@ type ReportSubmitToPopoverHostProps = {
     anchorAlignment?: AnchorAlignment;
 };
 
+type ReportSubmitToPopoverMeasurableAnchorProps = {
+    children: React.ReactNode;
+    style?: StyleProp<ViewStyle>;
+};
+
 /**
  * Renders a single submit-to popover for Search. List rows register their button anchors here so we do not mount
  * a Modal inside each FlashList cell (iOS only showed the backdrop when the modal lived in a recycled row).
@@ -280,7 +285,7 @@ function ReportSubmitToPopoverRootWithLocalPopover({reportID, onSubmitSuccess, a
 }
 
 /** Binds submit-to measurements to children only — use under {@link ReportSubmitToPopoverRoot}. */
-function ReportSubmitToPopoverMeasurableAnchor({children, wrapperStyle}: {children: React.ReactNode; wrapperStyle?: StyleProp<ViewStyle>}) {
+function ReportSubmitToPopoverMeasurableAnchor({children, style}: ReportSubmitToPopoverMeasurableAnchorProps) {
     const anchorRef = useContext(ReportSubmitToPopoverAnchorRefContext);
 
     if (!anchorRef) {
@@ -291,7 +296,7 @@ function ReportSubmitToPopoverMeasurableAnchor({children, wrapperStyle}: {childr
         <View
             ref={anchorRef}
             collapsable={false}
-            style={wrapperStyle}
+            style={style}
         >
             {children}
         </View>
@@ -306,7 +311,7 @@ function ReportSubmitToPopoverAnchor({reportID, onSubmitSuccess, anchorAlignment
             onSubmitSuccess={onSubmitSuccess}
             anchorAlignment={anchorAlignment}
         >
-            <ReportSubmitToPopoverMeasurableAnchor wrapperStyle={wrapperStyle}>{children}</ReportSubmitToPopoverMeasurableAnchor>
+            <ReportSubmitToPopoverMeasurableAnchor style={wrapperStyle}>{children}</ReportSubmitToPopoverMeasurableAnchor>
         </ReportSubmitToPopoverRoot>
     );
 }
