@@ -2002,6 +2002,8 @@ const CONST = {
             CENTERED_DURATION_OUT_WEB: 80,
             NARROW_SLIDE_DURATION_IN_WEB: 300,
             NARROW_SLIDE_DURATION_OUT_WEB: 200,
+            OVERLAY_FADE_IN_WEB: 150,
+            OVERLAY_FADE_OUT_WEB: 150,
         },
         RHP_ENTER_OFFSET_PX_WEB: 60,
     },

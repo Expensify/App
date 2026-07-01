@@ -41,7 +41,9 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
                     if (ReportActionComposeFocusManager.isFocused()) {
                         return false;
                     }
-                    if (shouldReturnFocus) {
+                    // Function form defers the decision to restore time.
+                    const shouldReturn = typeof shouldReturnFocus === 'function' ? shouldReturnFocus() : shouldReturnFocus;
+                    if (shouldReturn) {
                         return element;
                     }
                     return false;

@@ -2812,6 +2812,21 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: 'black',
         },
 
+        overlayPortalHost: {
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            pointerEvents: 'none',
+        },
+
+        overlayCenteringTransform: {
+            transform: 'translateX(-50%)',
+        },
+
         reportActionContextMenuMiniButton: {
             height: 28,
             width: 28,

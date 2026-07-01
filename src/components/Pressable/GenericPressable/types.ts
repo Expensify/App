@@ -164,7 +164,8 @@ type PressableProps = RNPressableProps &
         ref?: PressableRef;
     };
 
-type PressableRef = ForwardedRef<HTMLDivElement | View | RNText | undefined>;
+type PressableRefElement = HTMLDivElement | View | RNText;
+type PressableRef = ForwardedRef<PressableRefElement | undefined>;
 
 export default PressableProps;
-export type {PressableRef};
+export type {PressableRef, PressableRefElement};
