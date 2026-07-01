@@ -11,6 +11,9 @@ type LoginFormProps = {
     /** Whether the content is visible. */
     isVisible: boolean;
 
+    /** Called with the normalized login immediately before starting sign in. */
+    onSignInAttempt?: (login: string) => void;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<InputHandle>;
 };

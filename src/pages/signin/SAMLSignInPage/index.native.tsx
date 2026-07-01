@@ -18,12 +18,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function SAMLSignInPage() {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [showNavigation, shouldShowNavigation] = useState(true);
     const [SAMLUrl, setSAMLUrl] = useState('');
     const {translate} = useLocalize();
     const hasOpenedAuthSession = useRef(false);
+    const hasConsumedSAMLCallback = useRef(false);
 
     const handleExitSAMLFlow = useCallback(() => {
         Navigation.isNavigationReady().then(() => {
@@ -61,7 +61,12 @@ function SAMLSignInPage() {
                 Log.hmmm('SAMLSignInPage - Failed to parse JSON parameter', {error: parseError});
             }
 
-            if (!account?.isLoading && credentials?.login && shortLivedAuthToken) {
+            if (credentials?.login && shortLivedAuthToken) {
+                if (hasConsumedSAMLCallback.current) {
+                    return;
+                }
+
+                hasConsumedSAMLCallback.current = true;
                 Log.info('SAMLSignInPage - Successfully received shortLivedAuthToken. Signing in...');
                 signInWithShortLivedAuthToken(shortLivedAuthToken, true);
                 return;
@@ -75,7 +80,7 @@ function SAMLSignInPage() {
                 Navigation.navigate(ROUTES.HOME);
             });
         },
-        [credentials?.login, account?.isLoading, translate],
+        [credentials?.login, translate],
     );
 
     useEffect(() => {

@@ -11,6 +11,7 @@ import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -55,6 +56,7 @@ type RenderOption = {
     shouldShowValidateCodeForm: boolean;
     shouldShowChooseSSOOrMagicCode: boolean;
     shouldInitiateSAMLLogin: boolean;
+    shouldClearStaleSAMLSignInData: boolean;
     shouldShowWelcomeHeader: boolean;
     shouldShowWelcomeText: boolean;
     shouldShouldSignUpWelcomeForm: boolean;
@@ -67,6 +69,7 @@ type GetRenderOptionsParams = {
     isPrimaryLogin: boolean;
     isUsingMagicCode: boolean;
     hasInitiatedSAMLLogin: boolean;
+    hasPendingSAMLRedirect: boolean;
     shouldShowAnotherLoginPageOpenedMessage: boolean;
     credentials: OnyxEntry<Credentials>;
     isAccountValidated?: boolean;
@@ -79,6 +82,7 @@ type GetRenderOptionsParams = {
  * @param isPrimaryLogin
  * @param isUsingMagicCode
  * @param hasInitiatedSAMLLogin
+ * @param hasPendingSAMLRedirect
  * @param hasEmailDeliveryFailure
  * @param hasSMSDeliveryFailure
  */
@@ -89,6 +93,7 @@ function getRenderOptions({
     isPrimaryLogin,
     isUsingMagicCode,
     hasInitiatedSAMLLogin,
+    hasPendingSAMLRedirect,
     shouldShowAnotherLoginPageOpenedMessage,
     credentials,
     isAccountValidated,
@@ -100,15 +105,9 @@ function getRenderOptions({
     const hasSMSDeliveryFailure = !!account?.smsDeliveryFailureStatus?.hasSMSDeliveryFailure;
 
     // True, if the user has SAML required, and we haven't yet initiated SAML for their account
-    const shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && !!account.isLoading;
+    const shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && (!!account.isLoading || hasPendingSAMLRedirect);
     const shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode;
-
-    // SAML required users may reload the login page after having already entered their login details, in which
-    // case we want to clear their sign in data so they don't end up in an infinite loop redirecting back to their
-    // SSO provider's login page
-    if (hasLogin && isSAMLRequired && !shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin && !account.isLoading) {
-        clearSignInData();
-    }
+    const shouldClearStaleSAMLSignInData = hasLogin && isSAMLRequired && !shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin && !account.isLoading && !hasPendingSAMLRedirect;
 
     // Show the Welcome form if a user is signing up for a new account in a domain that is not controlled
     const shouldShouldSignUpWelcomeForm = !!credentials?.login && !isAccountValidated && !account?.accountExists && !account?.domainControlled;
@@ -137,6 +136,7 @@ function getRenderOptions({
         shouldShowValidateCodeForm,
         shouldShowChooseSSOOrMagicCode,
         shouldInitiateSAMLLogin,
+        shouldClearStaleSAMLSignInData,
         shouldShowWelcomeHeader,
         shouldShowWelcomeText,
         shouldShouldSignUpWelcomeForm,
@@ -173,25 +173,33 @@ function SignInPage({ref}: SignInPageProps) {
     /** This state is needed to keep track of whether the user has been directed to their SSO provider's login page and
      *  if we need to clear their sign in details so they can enter a login */
     const [hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin] = useState(false);
+    const [pendingSAMLRedirectLogin, setPendingSAMLRedirectLogin] = useState<string | undefined>();
+    const previousCredentialsLogin = usePrevious(credentials?.login);
 
     const isClientTheLeader = !!activeClients && isClientTheLeaderActiveClientManager();
     // We need to show "Another login page is opened" message if the page isn't active and visible
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowAnotherLoginPageOpenedMessage = Visibility.isVisible() && !isClientTheLeader;
 
+    const hasCredentialsLoginChanged = !!credentials?.login && !!previousCredentialsLogin && previousCredentialsLogin !== credentials.login;
+    const shouldResetSAMLLoginState = !credentials?.login || hasCredentialsLoginChanged;
+
     useEffect(() => {
-        if (credentials?.login) {
+        if (!shouldResetSAMLLoginState) {
             return;
         }
 
-        // If we don't have a login set, reset the user's SAML login preferences
+        setPendingSAMLRedirectLogin(undefined);
+
         if (isUsingMagicCode) {
             setIsUsingMagicCode(false);
         }
         if (hasInitiatedSAMLLogin) {
             setHasInitiatedSAMLLogin(false);
         }
-    }, [credentials?.login, isUsingMagicCode, setIsUsingMagicCode, hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin]);
+    }, [shouldResetSAMLLoginState, isUsingMagicCode, setIsUsingMagicCode, hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin]);
+
+    const hasPendingSAMLRedirect = !!credentials?.login && pendingSAMLRedirectLogin === credentials.login;
 
     const {
         shouldShowLoginForm,
@@ -201,6 +209,7 @@ function SignInPage({ref}: SignInPageProps) {
         shouldShowValidateCodeForm,
         shouldShowChooseSSOOrMagicCode,
         shouldInitiateSAMLLogin,
+        shouldClearStaleSAMLSignInData,
         shouldShowWelcomeHeader,
         shouldShowWelcomeText,
         shouldShouldSignUpWelcomeForm,
@@ -211,15 +220,41 @@ function SignInPage({ref}: SignInPageProps) {
         isPrimaryLogin: !account?.primaryLogin || account.primaryLogin === credentials?.login,
         isUsingMagicCode,
         hasInitiatedSAMLLogin,
+        hasPendingSAMLRedirect,
         shouldShowAnotherLoginPageOpenedMessage,
         credentials,
         isAccountValidated,
     });
 
-    if (shouldInitiateSAMLLogin) {
-        setHasInitiatedSAMLLogin(true);
-        Navigation.isNavigationReady().then(() => Navigation.navigate(ROUTES.SAML_SIGN_IN));
-    }
+    useEffect(() => {
+        if (!shouldInitiateSAMLLogin) {
+            return;
+        }
+
+        let ignore = false;
+
+        Navigation.isNavigationReady().then(() => {
+            if (ignore) {
+                return;
+            }
+
+            setHasInitiatedSAMLLogin(true);
+            setPendingSAMLRedirectLogin(undefined);
+            Navigation.navigate(ROUTES.SAML_SIGN_IN);
+        });
+
+        return () => {
+            ignore = true;
+        };
+    }, [shouldInitiateSAMLLogin]);
+
+    useEffect(() => {
+        if (!shouldClearStaleSAMLSignInData) {
+            return;
+        }
+
+        clearSignInData();
+    }, [shouldClearStaleSAMLSignInData]);
 
     let welcomeHeader = '';
     let welcomeText = '';
@@ -264,8 +299,12 @@ function SignInPage({ref}: SignInPageProps) {
         Log.warn('SignInPage in unexpected state!');
     }
 
-    const navigateFocus = () => {
+    const scrollSignInPageToTop = () => {
         signInPageLayoutRef.current?.scrollPageToTop();
+    };
+
+    const navigateFocus = () => {
+        scrollSignInPageToTop();
         loginFormRef.current?.clearDataAndFocus();
     };
 
@@ -310,7 +349,8 @@ function SignInPage({ref}: SignInPageProps) {
                         ref={loginFormRef}
                         isVisible={shouldShowLoginForm}
                         submitBehavior={isAccountValidated === false ? 'blurAndSubmit' : 'submit'}
-                        scrollPageToTop={signInPageLayoutRef.current?.scrollPageToTop}
+                        scrollPageToTop={scrollSignInPageToTop}
+                        onSignInAttempt={setPendingSAMLRedirectLogin}
                     />
                     {shouldShouldSignUpWelcomeForm && <SignUpWelcomeForm />}
                     {shouldShowValidateCodeForm && (
