@@ -15,7 +15,7 @@ function registerPusherReinitializeHandler(handler: PusherReinitializeHandler | 
 
 function requestPusherReinitialize(params?: PusherReinitializeHandlerParams): Promise<void> {
     if (!registeredHandler) {
-        Log.warn('[requestPusherReinitialize] No handler registered, skipping Pusher reinit', {params});
+        Log.warn('[requestPusherReinitialize] No handler registered, skipping Pusher reinitialization', {params});
         return Promise.resolve();
     }
 
