@@ -216,9 +216,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createFilteredPoliciesInfoSelector(currentUserPersonalDetails?.email)}, [
-        currentUserPersonalDetails?.email,
-    ]);
+    const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createFilteredPoliciesInfoSelector(currentUserPersonalDetails?.email)});
     const {showConfirmModal} = useConfirmModal();
     const isPolicyAdmin = useMemo(() => isPolicyAdminUtil(policy), [policy]);
     const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtil(report?.policyID, policy), [report?.policyID, policy]);

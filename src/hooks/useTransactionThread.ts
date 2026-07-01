@@ -48,13 +48,9 @@ function useTransactionThread({reportID, report, allReportActions, isOffline}: U
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
 
-    const [transactionThreadReportActions] = useOnyx(
-        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-        {
-            selector: (reportActions) => selectTransactionThreadReportActions(!!canPerformWriteAction, transactionThreadReportID, reportActions),
-        },
-        [canPerformWriteAction, transactionThreadReportID],
-    );
+    const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {
+        selector: (reportActions: OnyxEntry<ReportActions>) => selectTransactionThreadReportActions(!!canPerformWriteAction, transactionThreadReportID, reportActions),
+    });
 
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
 

@@ -123,7 +123,7 @@ function MoneyRequestReportPreviewContent({
     );
     // Pass `transactionIDs` as a dependency so the selector re-runs once the transactions hydrate (otherwise
     // it stays closed over the initial empty list and violations would never be selected on first load).
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: selectTransactionViolations}, [transactionIDs]);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: selectTransactionViolations});
     // `hasOnceLoadedReportActions` becomes true before transactions populate fully,
     // so we defer the loading state update to ensure transactions are loaded
     const shouldShowLoadingDeferred = useDeferredValue(shouldShowLoading);

@@ -2,6 +2,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
 import type {EmitterSubscription, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -28,7 +29,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import {doesPersonalDetailExistSelector, personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
-import type {BankAccountList, Policy} from '@src/types/onyx';
+import type {BankAccountList, PersonalDetailsList, Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
 import type {AnchorPosition, ContinueActionParams, DomRect, KYCWallProps, PaymentMethod} from './types';
@@ -68,8 +69,14 @@ function KYCWall({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [employeeLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)}, [iouReport?.ownerAccountID]);
-    const [doesSubmitterPersonalDetailExist] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: doesPersonalDetailExistSelector(iouReport?.ownerAccountID)}, [iouReport?.ownerAccountID]);
+    const ownerAccountID = iouReport?.ownerAccountID;
+    const employeeLoginSelector = useCallback((personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsLoginSelector(ownerAccountID)(personalDetailsList), [ownerAccountID]);
+    const [employeeLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: employeeLoginSelector});
+    const doesSubmitterPersonalDetailExistSelector = useCallback(
+        (personalDetailsList: OnyxEntry<PersonalDetailsList>) => doesPersonalDetailExistSelector(ownerAccountID)(personalDetailsList),
+        [ownerAccountID],
+    );
+    const [doesSubmitterPersonalDetailExist] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: doesSubmitterPersonalDetailExistSelector});
 
     const {formatPhoneNumber, translate} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();

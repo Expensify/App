@@ -35,8 +35,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
         () => (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS ? selectedTransactionIDs : Object.keys(selectedTransactions)),
         [route.name, selectedTransactionIDs, selectedTransactions],
     );
-    const violationsSelector = useMemo(() => transactionViolationsByIDsSelector(relevantTransactionIDs), [relevantTransactionIDs]);
-    const [selectedTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: violationsSelector}, [violationsSelector]);
+    const [selectedTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(relevantTransactionIDs)});
     const {isOffline} = useNetwork();
 
     const selectedTransactionsList = Object.values(selectedTransactions);

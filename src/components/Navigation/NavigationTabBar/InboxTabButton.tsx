@@ -88,13 +88,11 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
         return getStringParam(route?.params, 'reportActionID');
     });
 
-    const [doesLastReportExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lastReportRouteReportID}`, {selector: doesLastReportExistSelector}, [lastReportRouteReportID]);
+    const [doesLastReportExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lastReportRouteReportID}`, {selector: doesLastReportExistSelector});
 
-    const doesLastReportActionExistSelector = makeDoesLastReportActionExistSelector(lastReportRouteReportActionID);
-    const [doesLastReportActionExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${lastReportRouteReportID}`, {selector: doesLastReportActionExistSelector}, [
-        lastReportRouteReportID,
-        lastReportRouteReportActionID,
-    ]);
+    const [doesLastReportActionExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${lastReportRouteReportID}`, {
+        selector: (reportActions: OnyxEntry<ReportActions>) => makeDoesLastReportActionExistSelector(lastReportRouteReportActionID)(reportActions),
+    });
 
     const navigateToChats = () => {
         if (selectedTab === NAVIGATION_TABS.INBOX) {

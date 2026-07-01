@@ -122,15 +122,13 @@ function TransactionListItemInner<TItem extends ListItem>({
 
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
     const [transactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`);
-    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(transactionItem?.report?.ownerAccountID)}, [
-        transactionItem?.report?.ownerAccountID,
-    ]);
+    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(transactionItem?.report?.ownerAccountID)});
     const [transaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`);
     const [transactionViolationsForRow] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`);
-    const parentReportActionSelector = (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${transactionItem?.reportAction?.reportActionID}`];
-    const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionItem.reportID)}`, {selector: parentReportActionSelector}, [
-        transactionItem,
-    ]);
+    const parentReportActionID = transactionItem?.reportAction?.reportActionID;
+    const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionItem.reportID)}`, {
+        selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${parentReportActionID}`],
+    });
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [parentChatReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID)}`);
     const [chatReportActions] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID ?? snapshotReport?.parentReportID)}`);

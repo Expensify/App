@@ -1,4 +1,4 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getPolicyByCustomUnitID} from '@libs/PolicyUtils';
 import {isExpenseUnreported} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -35,8 +35,7 @@ type UsePolicyForTransactionResult = {
 function usePolicyForTransaction({transaction, reportPolicyID, action, iouType, policyDraft, isPerDiemRequest}: UsePolicyForTransactionParams): UsePolicyForTransactionResult {
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
 
-    const customUnitID = transaction?.comment?.customUnit?.customUnitID;
-    const [customUnitPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => getPolicyByCustomUnitID(transaction, policies)}, [customUnitID]);
+    const [customUnitPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies: OnyxCollection<Policy>) => getPolicyByCustomUnitID(transaction, policies)});
 
     const [reportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${reportPolicyID}`);
 

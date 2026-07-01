@@ -41,7 +41,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {doesPersonalDetailExistSelector, personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
-import type {DismissedProductTraining} from '@src/types/onyx';
+import type {DismissedProductTraining, PersonalDetailsList} from '@src/types/onyx';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
@@ -68,9 +68,17 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isReportLastVisibleArchived = useReportIsArchived(report?.parentReportID);
-    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)}, [report?.ownerAccountID]);
-    const [doesSubmitterPersonalDetailExist] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: doesPersonalDetailExistSelector(report?.ownerAccountID)}, [report?.ownerAccountID]);
-    const [managerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.managerID)}, [report?.managerID]);
+    const ownerAccountID = report?.ownerAccountID;
+    const managerID = report?.managerID;
+    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsLoginSelector(ownerAccountID)(personalDetailsList),
+    });
+    const [doesSubmitterPersonalDetailExist] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => doesPersonalDetailExistSelector(ownerAccountID)(personalDetailsList),
+    });
+    const [managerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsLoginSelector(managerID)(personalDetailsList),
+    });
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);

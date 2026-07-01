@@ -38,20 +38,9 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportAttributes = useReportAttributes();
 
-    const getSortedAllReportActionsSelector = useCallback(
-        (allReportActions: OnyxEntry<ReportActions>): ReportAction[] => {
-            return getSortedReportActionsForDisplay(allReportActions, ifUserCanPerformWriteAction, true, undefined, reportID);
-        },
-        [ifUserCanPerformWriteAction, reportID],
-    );
-
-    const [sortedAllReportActions] = useOnyx(
-        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        {
-            selector: getSortedAllReportActionsSelector,
-        },
-        [getSortedAllReportActionsSelector],
-    );
+    const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        selector: (allReportActions: OnyxEntry<ReportActions>): ReportAction[] => getSortedReportActionsForDisplay(allReportActions, ifUserCanPerformWriteAction, true, undefined, reportID),
+    });
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, undefined, true);
     const participantPersonalDetailList = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails));
 

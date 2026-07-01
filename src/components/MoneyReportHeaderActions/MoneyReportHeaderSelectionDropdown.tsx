@@ -2,6 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -40,6 +41,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import type {PersonalDetailsList} from '@src/types/onyx';
 
 const PAYMENT_ICONS = ['Send', 'ThumbsUp', 'Cash', 'ArrowRight'] as const;
 
@@ -66,7 +68,10 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
-    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)}, [moneyRequestReport?.ownerAccountID]);
+    const ownerAccountID = moneyRequestReport?.ownerAccountID;
+    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsLoginSelector(ownerAccountID)(personalDetailsList),
+    });
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);

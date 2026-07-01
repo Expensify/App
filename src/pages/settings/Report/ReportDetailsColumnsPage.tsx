@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import ColumnsSettingsList from '@components/ColumnsSettingsList';
 import type {SearchCustomColumnIds} from '@components/Search/types';
@@ -41,16 +41,14 @@ function ReportDetailsColumnsPage() {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     // Selector keeps re-renders scoped to this report's transactions. We intentionally return undefined
     // while the collection is loading so the caller can distinguish "loading" from "no transactions".
-    const reportTransactionsSelector = useCallback(
-        (transactions: OnyxCollection<Transaction>): Transaction[] | undefined => {
+    const [reportTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (transactions: OnyxCollection<Transaction>): Transaction[] | undefined => {
             if (!transactions) {
                 return undefined;
             }
             return Object.values(transactions).filter((transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID);
         },
-        [reportID],
-    );
-    const [reportTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: reportTransactionsSelector}, [reportTransactionsSelector]);
+    });
     const currentUserDetails = useCurrentUserPersonalDetails();
 
     const allTypeCustomColumns = Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS) as SearchCustomColumnIds[];

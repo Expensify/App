@@ -1,6 +1,6 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {conciergePersonalDetailSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -70,14 +70,14 @@ function ReportActionItemParentAction({
     const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
     const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(report?.ownerAccountID)});
 
-    const getLinkedTransactionRouteError = useCallback((transaction: OnyxEntry<Transaction>) => {
-        return transaction?.errorFields?.route;
-    }, []);
+    const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        selector: (transaction: OnyxEntry<Transaction>) => {
+            return transaction?.errorFields?.route;
+        },
+    });
 
-    const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {selector: getLinkedTransactionRouteError});
-
-    const ancestorReportNameValuePairsSelector = useCallback(
-        (allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>) => {
+    const [ancestorsReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+        selector: (allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>) => {
             if (!allReportNameValuePairs) {
                 return {};
             }
@@ -88,16 +88,7 @@ function ReportActionItemParentAction({
             }
             return ancestorReportNameValuePairs;
         },
-        [ancestors],
-    );
-
-    const [ancestorsReportNameValuePairs] = useOnyx(
-        ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-        {
-            selector: ancestorReportNameValuePairsSelector,
-        },
-        [ancestors],
-    );
+    });
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);

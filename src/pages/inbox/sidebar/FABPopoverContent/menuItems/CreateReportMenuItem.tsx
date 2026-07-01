@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useCreateReport from '@hooks/useCreateReport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -57,9 +57,12 @@ function CreateReportMenuItem() {
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-    const chatEnabledPaidGroupPolicies = (policies: Parameters<typeof chatEnabledPaidGroupPoliciesSelector>[0]) => chatEnabledPaidGroupPoliciesSelector(policies, session?.email);
+    const chatEnabledPaidGroupPolicies = useCallback(
+        (policies: Parameters<typeof chatEnabledPaidGroupPoliciesSelector>[0]) => chatEnabledPaidGroupPoliciesSelector(policies, session?.email),
+        [session?.email],
+    );
 
-    const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: chatEnabledPaidGroupPolicies}, [session?.email]);
+    const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: chatEnabledPaidGroupPolicies});
 
     const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy);
 

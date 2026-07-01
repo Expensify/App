@@ -1,4 +1,3 @@
-import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {extractCollectionItemID} from '@libs/CollectionUtils';
 import {isChatRoom, isPolicyExpenseChat, isPolicyRelatedReport, isTaskReport} from '@libs/ReportUtils';
@@ -25,8 +24,8 @@ function useTransactionViolationOfWorkspace(policyID?: string) {
         }
     }
 
-    const transactionViolationSelector = useCallback(
-        (violations: OnyxCollection<TransactionViolations>) => {
+    const [transactionViolations, transactionViolationsResult] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
+        selector: (violations: OnyxCollection<TransactionViolations>) => {
             if (!violations) {
                 return {};
             }
@@ -46,16 +45,7 @@ function useTransactionViolationOfWorkspace(policyID?: string) {
 
             return filteredViolations;
         },
-        [transactionIDSet],
-    );
-
-    const [transactionViolations, transactionViolationsResult] = useOnyx(
-        ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-        {
-            selector: transactionViolationSelector,
-        },
-        [transactionIDSet],
-    );
+    });
 
     return {
         reportsToArchive,

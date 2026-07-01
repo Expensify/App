@@ -63,17 +63,9 @@ function useResetBankAccountModal({
     const bankAccountID = achData?.bankAccountID;
     const bankShortName = `${achData?.addressName ?? ''} ${(achData?.accountNumber ?? '').slice(-4)}`;
 
-    const lastPaymentMethodSelector = useCallback(
-        (paymentMethods: OnyxEntry<OnyxTypes.LastPaymentMethod>) => (policyID ? (paymentMethods?.[policyID] as OnyxTypes.LastPaymentMethodType) : undefined),
-        [policyID],
-    );
-    const [lastPaymentMethod] = useOnyx(
-        ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-        {
-            selector: lastPaymentMethodSelector,
-        },
-        [lastPaymentMethodSelector],
-    );
+    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
+        selector: (paymentMethods: OnyxEntry<OnyxTypes.LastPaymentMethod>) => (policyID ? (paymentMethods?.[policyID] as OnyxTypes.LastPaymentMethodType) : undefined),
+    });
 
     const handleConfirm = () => {
         if (isNonUSDWorkspace) {

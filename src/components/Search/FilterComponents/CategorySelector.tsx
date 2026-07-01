@@ -26,24 +26,18 @@ function CategorySelector({value = [], policyIDs = [], selectionListTextInputSty
         return {text: category, value: category};
     });
 
-    const availableNonPersonalPolicyCategoriesSelector = (policyCategories: OnyxCollection<PolicyCategories>) =>
-        Object.fromEntries(
-            Object.entries(policyCategories ?? {}).filter(([key, categories]) => {
-                if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${personalPolicyID}`) {
-                    return false;
-                }
-                const availableCategories = Object.values(categories ?? {}).filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-                return availableCategories.length > 0;
-            }),
-        );
-
-    const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(
-        ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
-        {
-            selector: availableNonPersonalPolicyCategoriesSelector,
-        },
-        [availableNonPersonalPolicyCategoriesSelector],
-    );
+    const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
+        selector: (policyCategories: OnyxCollection<PolicyCategories>) =>
+            Object.fromEntries(
+                Object.entries(policyCategories ?? {}).filter(([key, categories]) => {
+                    if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${personalPolicyID}`) {
+                        return false;
+                    }
+                    const availableCategories = Object.values(categories ?? {}).filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+                    return availableCategories.length > 0;
+                }),
+            ),
+    });
     const selectedPoliciesCategories: PolicyCategory[] = Object.keys(allPolicyCategories ?? {})
         .filter((key) => policyIDs.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`)?.includes(key))
         .map((key) => Object.values(allPolicyCategories?.[key] ?? {}))

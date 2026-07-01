@@ -170,8 +170,8 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
     const canManageCardFreeze = isCardHolder && !!currentCard && !isAccountLocked;
 
-    const policySelector = useCallback(
-        (allPolicies: OnyxCollection<Policy>): Policy | undefined => {
+    const [policyForCurrentCard] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (allPolicies: OnyxCollection<Policy>): Policy | undefined => {
             const workspaceAccountID = Number(currentCard?.fundID);
             if (!workspaceAccountID || Number.isNaN(workspaceAccountID)) {
                 return undefined;
@@ -179,9 +179,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
             return Object.values(allPolicies ?? {}).find((policy) => policy?.policyAccountID === workspaceAccountID);
         },
-        [currentCard?.fundID],
-    );
-    const [policyForCurrentCard] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policySelector}, [policySelector]);
+    });
     const policyIDForCurrentCard = policyForCurrentCard?.id;
     const isWorkspaceAdmin = isPolicyAdmin(policyForCurrentCard, session?.email);
     const canUnfreezeCard = canManageCardFreeze && (frozenByAccountID === session?.accountID || isWorkspaceAdmin);

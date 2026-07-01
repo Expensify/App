@@ -106,8 +106,9 @@ function GroupHeader({
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionReportID}`);
     const [oneTransactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionChildReportID}`);
     const [oneTransaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${oneTransactionID}`);
-    const parentReportActionSelector = (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.reportAction?.reportActionID}`];
-    const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionReportID}`, {selector: parentReportActionSelector}, [oneTransactionItem]);
+    const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionReportID}`, {
+        selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.reportAction?.reportActionID}`],
+    });
     const transactionPreviewData: TransactionPreviewData = useMemo(
         () => ({
             hasParentReport: !!parentReport,

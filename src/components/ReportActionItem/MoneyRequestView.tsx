@@ -208,8 +208,8 @@ function MoneyRequestView({
     const reportAttributes = useReportAttributes();
 
     // When this component is used when merging from the search page, we might not have the parent report stored in the main collection
-    let [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
-    parentReport = parentReport ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
+    const [parentReportFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
+    const parentReport = parentReportFromOnyx ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(parentReport?.reportID)}`);
 
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`);
@@ -504,22 +504,23 @@ function MoneyRequestView({
 
     // Trip rooms are the grandparent report, so check that first before scanning the collection.
     const grandparentReportID = parentReport?.parentReportID;
-    const tripRoomReportSelector = (reports: OnyxCollection<OnyxTypes.Report>) => {
-        if (!transactionTripID || !reports) {
-            return undefined;
-        }
-        const grandparent = grandparentReportID ? reports[`${ONYXKEYS.COLLECTION.REPORT}${grandparentReportID}`] : undefined;
-        const match =
-            grandparent?.tripData?.tripID === transactionTripID ? grandparent : Object.values(reports).find((candidateReport) => candidateReport?.tripData?.tripID === transactionTripID);
-        if (!match?.reportID) {
-            return undefined;
-        }
-        return {
-            reportID: match.reportID,
-            name: getReportName(match, reportAttributes) || match.reportName,
-        };
-    };
-    const [tripRoomInfo] = originalUseOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: tripRoomReportSelector}, [transactionTripID, grandparentReportID, reportAttributes]);
+    const [tripRoomInfo] = originalUseOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports: OnyxCollection<OnyxTypes.Report>) => {
+            if (!transactionTripID || !reports) {
+                return undefined;
+            }
+            const grandparent = grandparentReportID ? reports[`${ONYXKEYS.COLLECTION.REPORT}${grandparentReportID}`] : undefined;
+            const match =
+                grandparent?.tripData?.tripID === transactionTripID ? grandparent : Object.values(reports).find((candidateReport) => candidateReport?.tripData?.tripID === transactionTripID);
+            if (!match?.reportID) {
+                return undefined;
+            }
+            return {
+                reportID: match.reportID,
+                name: getReportName(match, reportAttributes) || match.reportName,
+            };
+        },
+    });
     const tripRoomReportID = tripRoomInfo?.reportID;
     const tripRoomName = tripRoomInfo?.name;
     const shouldShowTripRoomLink = !!tripRoomReportID && !!tripRoomName;

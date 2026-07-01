@@ -1,4 +1,4 @@
-import {useCallback, useMemo} from 'react';
+import {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -35,21 +35,12 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
         return actionsReportID;
     }, [isEditing, iouType, report?.reportID, report?.parentReportID]);
 
-    const getReportActionSelector = useCallback(
-        (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => {
+    const [reportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`, {
+        selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             return reportActions?.[`${report?.parentReportActionID || reportActionID}`];
         },
-        [report?.parentReportActionID, reportActionID],
-    );
-
-    const [reportAction] = useOnyx(
-        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`,
-        {
-            selector: getReportActionSelector,
-        },
-        [getReportActionSelector],
-    );
+    });
 
     const {isProduction} = useEnvironment();
 
