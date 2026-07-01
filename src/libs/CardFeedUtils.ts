@@ -632,6 +632,16 @@ function getCardFeedsForDisplayPerPolicy(
 }
 
 /**
+ * Narrows a raw company-feed object key (widened to `string` by `Object.entries`) to `CardFeedWithNumber`.
+ * This is not a full type guard that validates the key against the union — it only asserts that a non-empty
+ * key belongs to `CardFeedWithNumber` (the map is keyed by that union at runtime), and rejects empty keys.
+ * Used to avoid an unsafe `as` assertion when iterating the feed map.
+ */
+function isCardFeedWithNumber(feedKey: string): feedKey is CardFeedWithNumber {
+    return !!feedKey;
+}
+
+/**
  * Returns the company card feeds that should be visible to the current user in the feed selector,
  * enumerated exactly once per feed (keyed by `${fundID}_${feed}`).
  *
@@ -645,14 +655,6 @@ function getCardFeedsForDisplayPerPolicy(
  *
  * Note: "Expensify Card" feeds are not included (handled by the Expensify card selector).
  */
-/**
- * Type guard narrowing a raw company-feed object key (typed `string` by `Object.entries`) back to the
- * `CardFeedWithNumber` union it is keyed by at runtime, avoiding an unsafe `as` assertion. Empty keys are rejected.
- */
-function isCardFeedWithNumber(feedKey: string): feedKey is CardFeedWithNumber {
-    return !!feedKey;
-}
-
 function getVisibleCompanyCardFeedsForSelector(
     allCardFeeds: OnyxCollection<CardFeeds>,
     translate: LocalizedTranslate,
