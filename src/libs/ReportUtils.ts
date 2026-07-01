@@ -5054,6 +5054,15 @@ function canEditMultipleTransactions(
     return true;
 }
 
+function canUnreportedPerDiemBeMoved(transaction: OnyxEntry<Transaction>, policies: OnyxCollection<Policy>): boolean {
+    if (!isPerDiemRequest(transaction)) {
+        return true;
+    }
+    const perDiemPolicy = getPolicyByCustomUnitID(transaction, policies);
+    const perDiemCustomUnit = getPerDiemCustomUnit(perDiemPolicy);
+    return !!perDiemPolicy?.arePerDiemRatesEnabled && !isEmptyObject(perDiemCustomUnit?.rates);
+}
+
 /**
  * Checks if the current user can edit the provided property of an expense
  *
