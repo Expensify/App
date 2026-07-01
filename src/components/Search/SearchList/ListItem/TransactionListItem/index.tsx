@@ -117,6 +117,8 @@ function TransactionListItemInner<TItem extends ListItem>({
 
     // Fetch policy categories directly from Onyx since they are not included in the search snapshot
     const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
+    // Fetch policy tags directly from Onyx (not in the snapshot) so the Tag GL code cell can resolve.
+    const [policyTagLists] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
 
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
     const [transactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`);
@@ -246,6 +248,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         transactionPreviewData,
         exportedReportActions,
         policyCategories,
+        policyTagLists,
         nonPersonalAndWorkspaceCards,
         isAttendeesEnabledForMovingPolicy,
     };

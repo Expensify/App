@@ -25,8 +25,17 @@ import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
-import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getDefaultApprover, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isControlPolicy, isSubmitPolicy, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/PolicyUtils';
+import {temporaryGetDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {
+    canMemberAssignElevatedRole,
+    canMemberAssignRole,
+    getDefaultApprover,
+    getMemberAccountIDsForWorkspace,
+    goBackFromInvalidPolicy,
+    isControlPolicy,
+    isSubmitPolicy,
+    tryNavigateToSubmitWorkspaceUpgrade,
+} from '@libs/PolicyUtils';
 import {getAllPolicyExpenseChatReportActions} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import {getSearchParamFromPath} from '@libs/Url';
@@ -86,9 +95,15 @@ function WorkspaceInviteMessageComponent({
     const [invitedEmailsToAccountIDsDraft, invitedEmailsToAccountIDsDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`);
     const [workspaceInviteMessageDraft, workspaceInviteMessageDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${policyID}`);
     const [workspaceInviteRoleDraftFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`);
+    const currentUserLogin = currentUserPersonalDetails.login ?? '';
+    const canManageUserRole = canMemberAssignRole(policy, currentUserLogin, CONST.POLICY.ROLE.USER);
+    const canChangeInviteRole = !isSubmitPolicy(policy) && canMemberAssignElevatedRole(policy, currentUserLogin);
+    const fallbackInviteRole = canManageUserRole ? CONST.POLICY.ROLE.USER : CONST.POLICY.ROLE.AUDITOR;
+    const draftInviteRole =
+        workspaceInviteRoleDraftFromOnyx && canMemberAssignRole(policy, currentUserLogin, workspaceInviteRoleDraftFromOnyx) ? workspaceInviteRoleDraftFromOnyx : fallbackInviteRole;
     // Submit workspaces only allow inviting editors, so default the invite role accordingly when no draft is set.
     // The backend ignores any other role for Submit workspaces, but defaulting here keeps the UI honest before submit.
-    const workspaceInviteRoleDraft = workspaceInviteRoleDraftFromOnyx ?? (isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : CONST.POLICY.ROLE.USER);
+    const workspaceInviteRoleDraft = isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : draftInviteRole;
     const defaultApprover = getDefaultApprover(policy);
     const [approverDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`);
     const workspaceInviteApproverDraft = approverDraft ?? defaultApprover;
@@ -238,7 +253,8 @@ function WorkspaceInviteMessageComponent({
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
             fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
         >
             <ScreenWrapper
@@ -304,7 +320,8 @@ function WorkspaceInviteMessageComponent({
                             <MenuItemWithTopDescription
                                 title={translate(`workspace.common.roleName`, workspaceInviteRoleDraft)}
                                 description={translate('common.role')}
-                                shouldShowRightIcon
+                                shouldShowRightIcon={canChangeInviteRole}
+                                interactive={canChangeInviteRole}
                                 onPress={() => {
                                     if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias, Navigation.getActiveRoute())) {
                                         return;
