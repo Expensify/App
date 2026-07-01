@@ -3,6 +3,7 @@ title: View Your Plan and Subscription
 description: See your current workspace plan and subscription details.
 keywords: [New Expensify, current plan, view plan, pricing, billing rate, per member, Collect, Control, billing owner, subscription]
 internalScope: Audience is billing owners. Covers how to view the current Workspace plan and billing rate under Account > Subscription. Does not cover how to change, enable, or configure a plan or subscription.
+retrievalIntent: How to view your current plan and subscription.
 contentType: task
 platform: new
 ---
