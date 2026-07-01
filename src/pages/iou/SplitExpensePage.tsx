@@ -123,10 +123,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     // `effectivePolicy` is undefined for a self-DM split on the personal (P2P) rate, so fall back to the
     // moving-expenses policy to detect whether a workspace with selectable rates exists.
     const policyWithAvailableRates = effectivePolicy ?? policyForMovingExpenses;
-    // When the user belongs to more than one eligible workspace, `usePolicyForMovingExpenses` returns no
-    // resolved policy (`shouldSelectPolicy: true`) because it can't decide which one — but enabled rates do
-    // exist across those workspaces, so treat that as available to keep blocking the P2P split correctly.
-    const hasAvailableEnabledRates = shouldSelectPolicy || Object.keys(DistanceRequestUtils.getMileageRates(policyWithAvailableRates)).length > 0;
+    // When the user belongs to more than one eligible workspace, `usePolicyForMovingExpenses` can't resolve a
+    // default (`shouldSelectPolicy: true`). Derive availability from the actual enabled rates across all
+    // policies rather than `shouldSelectPolicy` alone — otherwise the P2P split is blocked with no rate to pick.
+    const hasAvailableEnabledRates =
+        Object.keys(DistanceRequestUtils.getMileageRates(policyWithAvailableRates)).length > 0 ||
+        (shouldSelectPolicy && Object.values(allPolicies ?? {}).some((policyItem) => Object.keys(DistanceRequestUtils.getMileageRates(policyItem)).length > 0));
 
     const normalizedBackTo = backTo?.replace(/^\//, '');
     const isSearchBackToRoute = normalizedBackTo?.startsWith(ROUTES.SEARCH_ROOT.route) ?? false;
