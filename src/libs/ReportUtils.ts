@@ -3067,7 +3067,7 @@ function hasOutstandingChildRequest(
         // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
         const invoiceReceiverPolicy = getPolicy(invoiceReceiverPolicyID);
         return (
-            (isPayer(currentUserAccountIDParam, currentUserEmailParam, iouReport, bankAccountList, policy, false) &&
+            ((isInvoiceReport(iouReport) || isPayer(currentUserAccountIDParam, currentUserEmailParam, iouReport, bankAccountList, policy, false)) &&
                 canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserEmailParam, currentUserAccountIDParam, transactions, undefined, undefined, invoiceReceiverPolicy)) ||
             canApproveIOU(iouReport, policy, reportMetadata, currentUserAccountIDParam, transactions) ||
             canSubmitAndIsAwaitingForCurrentUser(

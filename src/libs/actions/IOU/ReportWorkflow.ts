@@ -300,7 +300,8 @@ function getBadgeFromIOUReport(
 ): ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined {
     const isReportPayer = isPayerReportUtils(currentUserAccountID, currentUserLogin, iouReport, undefined, policy, false);
     const canBePaidNow =
-        isReportPayer && canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, undefined, undefined, invoiceReceiverPolicy);
+        (isInvoiceReportReportUtils(iouReport) || isReportPayer) &&
+        canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, undefined, undefined, invoiceReceiverPolicy);
     if (canBePaidNow) {
         return CONST.REPORT.ACTION_BADGE.PAY;
     }
@@ -309,7 +310,8 @@ function getBadgeFromIOUReport(
     // should not pin the report in the LHN.
     const canPayElsewhereActor = isPayerReportUtils(currentUserAccountID, currentUserLogin, iouReport, undefined, policy, true);
     const canBePaidElsewhere =
-        canPayElsewhereActor && canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, true, undefined, invoiceReceiverPolicy);
+        (isInvoiceReportReportUtils(iouReport) || canPayElsewhereActor) &&
+        canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, true, undefined, invoiceReceiverPolicy);
     if (canBePaidElsewhere) {
         return hasOnlyNonReimbursableTransactions(iouReport?.reportID) ? undefined : CONST.REPORT.ACTION_BADGE.PAY;
     }
