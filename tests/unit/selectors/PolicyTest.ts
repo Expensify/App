@@ -1,6 +1,7 @@
 import {
     activeAdminPoliciesSelector,
     adminPoliciesConnectedToQBDSelector,
+    createHasWorkspaceToSubmitToSelector,
     createOwnedPaidPoliciesCountsSelector,
     hasMultipleOutputCurrenciesSelector,
     hasOnlyPersonalPoliciesSelector,
@@ -480,5 +481,91 @@ describe('hasOnlyPersonalPoliciesSelector', () => {
         };
 
         expect(hasOnlyPersonalPoliciesSelector(policies)).toBe(false);
+    });
+});
+
+describe('createHasWorkspaceToSubmitToSelector', () => {
+    const USER_LOGIN = 'user@test.com';
+
+    it('returns false when there are no policies', () => {
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)({})).toBe(false);
+    });
+
+    it('returns false when policies are undefined', () => {
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)(undefined)).toBe(false);
+    });
+
+    it('returns true when there is an active paid group policy the user has a role in', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.ADMIN}),
+        };
+
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)(policies)).toBe(true);
+    });
+
+    it('returns false when the only policy is personal (not a paid group)', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {type: CONST.POLICY.TYPE.PERSONAL, role: CONST.POLICY.ROLE.ADMIN}),
+        };
+
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)(policies)).toBe(false);
+    });
+
+    it('returns false when the only paid group policy is pending deletion', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.ADMIN, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+        };
+
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)(policies)).toBe(false);
+    });
+
+    it('returns false when the user has no role in the paid group policy', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {type: CONST.POLICY.TYPE.TEAM, role: undefined, employeeList: {}}),
+        };
+
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)(policies)).toBe(false);
+    });
+
+    it("resolves the user's access from the policy employeeList when no global role is set", () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {
+                type: CONST.POLICY.TYPE.TEAM,
+                role: undefined,
+                employeeList: {[USER_LOGIN]: {email: USER_LOGIN, role: CONST.POLICY.ROLE.USER, submitsTo: ''}},
+            }),
+        };
+
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)(policies)).toBe(true);
+        expect(createHasWorkspaceToSubmitToSelector('other@test.com')(policies)).toBe(false);
+    });
+
+    it('returns false when login is undefined and policies rely on the employeeList', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {
+                type: CONST.POLICY.TYPE.TEAM,
+                role: undefined,
+                employeeList: {[USER_LOGIN]: {email: USER_LOGIN, role: CONST.POLICY.ROLE.USER, submitsTo: ''}},
+            }),
+        };
+
+        expect(createHasWorkspaceToSubmitToSelector(undefined)(policies)).toBe(false);
+    });
+
+    it('returns false for a Submit (submit2026) workspace when the SUBMIT_2026 beta is disabled', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {type: CONST.POLICY.TYPE.SUBMIT, role: CONST.POLICY.ROLE.USER}),
+        };
+
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)(policies)).toBe(false);
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN, false)(policies)).toBe(false);
+    });
+
+    it('returns true for a Submit (submit2026) workspace when the SUBMIT_2026 beta is enabled', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {type: CONST.POLICY.TYPE.SUBMIT, role: CONST.POLICY.ROLE.USER}),
+        };
+
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN, true)(policies)).toBe(true);
     });
 });

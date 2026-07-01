@@ -17,6 +17,7 @@ import {
     getChildTransactions,
     getOriginalTransactionWithSplitInfo,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
+    isSplitChildTransaction,
     shouldRedirectDeleteToSplitExpenseEdit,
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -49,6 +50,8 @@ type DeleteTransactionsResult =
           action: 'deleted';
           deletedTransactionThreadReportIDs: string[];
       };
+
+type TransactionWithAction = {transactionID: string; action?: ReportAction; transaction?: Transaction};
 
 function redistributeRemainingPerDiemSplitExpenses(splitExpenses: SplitExpense[], total: number, currency: string): SplitExpense[] {
     const lastSplitIndex = splitExpenses.length - 1;
@@ -203,7 +206,11 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                         return acc;
                     }
 
-                    if (isExpenseSplit && originalTransactionID) {
+                    const transactionCurrentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
+                    const isMovedExpenseSplitChild =
+                        !isExpenseSplit && !!originalTransactionID && isSplitChildTransaction(transaction) && !originalTransaction?.comment?.splits && isIOUReport(transactionCurrentReport);
+
+                    if ((isExpenseSplit || isMovedExpenseSplitChild) && originalTransactionID) {
                         acc.splitTransactionsByOriginalTransactionID[originalTransactionID] ??= [];
                         acc.splitTransactionsByOriginalTransactionID[originalTransactionID].push(item);
                     } else {
@@ -213,8 +220,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     return acc;
                 },
                 {splitTransactionsByOriginalTransactionID: {}, nonSplitTransactions: []} as {
-                    splitTransactionsByOriginalTransactionID: Record<string, Array<{transactionID: string; action?: ReportAction; transaction?: Transaction}>>;
-                    nonSplitTransactions: Array<{transactionID: string; action?: ReportAction; transaction?: Transaction}>;
+                    splitTransactionsByOriginalTransactionID: Record<string, TransactionWithAction[]>;
+                    nonSplitTransactions: TransactionWithAction[];
                 },
             );
 

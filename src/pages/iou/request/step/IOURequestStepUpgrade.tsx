@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createNewReport} from '@libs/actions/Report';
@@ -54,6 +55,7 @@ function IOURequestStepUpgrade({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
     const activePolicy = useActivePolicy();
+    const personalPolicy = usePersonalPolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
 
@@ -256,12 +258,16 @@ function IOURequestStepUpgrade({
         }
 
         const email = currentUserPersonalDetails?.email ?? '';
+        // In the split-expense flow inherit the user's chosen default currency (personal policy
+        // `outputCurrency`) rather than the geo-derived `localCurrencyCode`.
+        const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
+        const upgradeCurrency = (isSplitExpense ? personalPolicy?.outputCurrency : undefined) ?? currentUserPersonalDetails?.localCurrencyCode ?? '';
         const policyData = Policy.createWorkspace({
             policyOwnerEmail: undefined,
             policyName: Policy.generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
             policyID: undefined,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
-            currency: currentUserPersonalDetails?.localCurrencyCode ?? '',
+            currency: upgradeCurrency,
             featuresMap: [
                 {
                     id: CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED,

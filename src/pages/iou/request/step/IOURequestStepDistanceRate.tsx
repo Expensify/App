@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -67,6 +68,7 @@ function IOURequestStepDistanceRate({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const {policy: policyForTransaction} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType, policyDraft});
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
 
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
@@ -91,7 +93,8 @@ function IOURequestStepDistanceRate({
             : undefined;
     const availablePaidPolicies = isEditingSplit ? getGroupPaidPolicies(allPolicies ?? {}) : [];
     const fallbackAvailablePolicy = isEditingSplit && !isP2PRate && !policyForTransaction && !policyByCustomUnitID && !policyByCustomUnitRateID ? availablePaidPolicies.at(0) : undefined;
-    const policy = policyForTransaction ?? policyByCustomUnitID ?? policyByCustomUnitRateID ?? fallbackAvailablePolicy;
+    const fallbackMovingExpensesPolicy = isEditingSplit ? policyForMovingExpenses : undefined;
+    const policy = policyForTransaction ?? policyByCustomUnitID ?? policyByCustomUnitRateID ?? fallbackMovingExpensesPolicy ?? fallbackAvailablePolicy;
     const isDistanceRequest = isDistanceRequestTransactionUtils(currentTransaction);
     const {getCurrencySymbol} = useCurrencyListActions();
     const isPolicyExpenseChat = isGroupPolicyByType(reportPolicyType);

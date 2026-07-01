@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getIsWorkspacesOnlyForTransaction, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {endSpan} from '@libs/telemetry/activeSpans';
-import {getRequestType, isFromCreditCardImport, isPerDiemRequest, isTimeRequest as isTimeRequestUtil} from '@libs/TransactionUtils';
+import {getRequestType, isFromCreditCardImport, isPerDiemRequest, isSplitChildTransaction, isTimeRequest as isTimeRequestUtil} from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import {navigateToStartStepIfScanFileCannotBeRead} from '@userActions/IOU/Receipt';
 import CONST from '@src/CONST';
@@ -116,8 +116,11 @@ function IOURequestStepParticipants({
         navigateToStartMoneyRequestStep(iouRequestType, iouTypeValue, initialTransactionID, reportID, action);
     };
 
-    // In new flow - the amount step is skipped, so we need to include the recents for all the cases.
-    const isWorkspacesOnly = isNewManualExpenseFlowEnabled ? false : getIsWorkspacesOnlyForTransaction(initialTransaction, iouRequestType);
+    // Split expenses can only be submitted to a workspace, so restrict the recipient list to workspaces.
+    // Otherwise, in the new flow the amount step is skipped, so we need to include the recents for all the cases.
+    const isWorkspacesOnly =
+        (action === CONST.IOU.ACTION.SUBMIT && isSplitChildTransaction(initialTransaction)) ||
+        (isNewManualExpenseFlowEnabled ? false : getIsWorkspacesOnlyForTransaction(initialTransaction, iouRequestType));
     const selectedParticipant = isSplitRequest ? undefined : participants?.find((participant) => participant.selected && !participant.isSender);
     // Participants with a reportID are found in the list and highlighted via initiallySelectedReportID.
     // Those without one (e.g. users to invite who don't have an account yet) must be passed explicitly

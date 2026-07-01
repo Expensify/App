@@ -3720,6 +3720,27 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(false);
         });
     });
+
+    describe('isSplitContainerTransaction', () => {
+        it('returns true when the transaction lives in SPLIT_REPORT_ID (hidden container)', () => {
+            const transaction = generateTransaction({reportID: CONST.REPORT.SPLIT_REPORT_ID});
+            expect(TransactionUtils.isSplitContainerTransaction(transaction)).toBe(true);
+        });
+
+        it('returns false for a transaction in a normal report (e.g. restored original)', () => {
+            const transaction = generateTransaction({reportID: '123456'});
+            expect(TransactionUtils.isSplitContainerTransaction(transaction)).toBe(false);
+        });
+
+        it('returns false for an unreported transaction', () => {
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+            expect(TransactionUtils.isSplitContainerTransaction(transaction)).toBe(false);
+        });
+
+        it('returns false for undefined', () => {
+            expect(TransactionUtils.isSplitContainerTransaction(undefined)).toBe(false);
+        });
+    });
 });
 
 describe('getSupersededPendingCardTransactionIDs', () => {
