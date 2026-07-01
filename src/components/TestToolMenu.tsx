@@ -6,7 +6,6 @@ import useOnyx from '@hooks/useOnyx';
 import {useSidebarOrderedReportsActions} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isUsingStagingApi} from '@libs/ApiUtils';
-import Growl from '@libs/Growl';
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
 import {setIsDebugModeEnabled, setShouldShowBranchNameInTitle, setShouldUseStagingServer} from '@userActions/User';
@@ -99,25 +98,6 @@ function TestToolMenu() {
                             small
                             text={translate('initialSettingsPage.troubleshoot.clearleftHandNavCache')}
                             onPress={clearLHNCache}
-                        />
-                    </TestToolRow>
-
-                    {/* TEMP (remove before merging PR1): previews the action-less error growl exactly as the Onfido flow shows it. */}
-                    <TestToolRow title="Preview Onfido error growl">
-                        <Button
-                            small
-                            text="Show"
-                            onPress={() => Growl.error(translate('onfidoStep.genericError'), 10000)}
-                        />
-                    </TestToolRow>
-
-                    {/* TEMP (remove before merging PR1): previews the new action ("View") growl to compare padding variants. */}
-                    <TestToolRow title="Preview action growl">
-                        <Button
-                            small
-                            text="Show"
-                            // eslint-disable-next-line no-console
-                            onPress={() => Growl.success('Expense created', undefined, {label: 'View', onPress: () => console.log('[growl-test] View pressed')})}
                         />
                     </TestToolRow>
 
