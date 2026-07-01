@@ -230,7 +230,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
     return (
         <ActionableItemButtons
             items={actionableItemButtons}
-            layout={isActionableTrackExpense(action) || isPhrasalConciergeOptions ? 'vertical' : 'horizontal'}
+            layout={isActionableTrackExpense(action) || isConciergeOptions ? 'vertical' : 'horizontal'}
             shouldUseLocalization={!isPhrasalConciergeOptions}
             primaryTextNumberOfLines={actionableButtonsNoLines}
             styles={{

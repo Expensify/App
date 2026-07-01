@@ -29,8 +29,10 @@ function ActionableItemButtons(props: ActionableItemButtonsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    const isHorizontal = props.layout === 'horizontal';
+
     return (
-        <View style={[styles.gap2, styles.mt2, props.layout === 'horizontal' ? styles.flexRow : [styles.flexColumn, styles.alignItemsStart]]}>
+        <View style={[styles.gap2, styles.mt2, isHorizontal ? [styles.flexRow, styles.flexWrap] : [styles.flexColumn, styles.alignItemsStart]]}>
             {props.items?.map((item) => (
                 <Button
                     key={item.key}
@@ -38,7 +40,10 @@ function ActionableItemButtons(props: ActionableItemButtonsProps) {
                     text={props.shouldUseLocalization ? translate(item.text as TranslationPaths) : item.text}
                     medium
                     success={item.isPrimary}
-                    innerStyles={props.styles?.button}
+                    // Let a button that is wider than the viewport shrink/clamp to the available width instead of overflowing horizontally...
+                    style={isHorizontal ? [styles.flexShrink1, styles.mw100] : undefined}
+                    // ...and stretch the inner content so the label reflows to the clamped width and wraps to multiple lines (without this, the label stays content-sized on a single line and overflows the clamped button)
+                    innerStyles={isHorizontal ? [props.styles?.button, styles.alignItemsStretch] : props.styles?.button}
                     primaryTextNumberOfLines={props.primaryTextNumberOfLines}
                     textStyles={props.styles?.text}
                 />
