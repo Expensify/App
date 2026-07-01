@@ -241,7 +241,7 @@ function Search({
     const isDataLoaded = shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON);
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
-console.log('query json', queryJSON)
+
     const deferHeavySearchWork = useCallback(
         (useDoubleFrame = false) => {
             setShouldDeferHeavySearchWork(true);

@@ -104,7 +104,6 @@ function shouldOptimisticallyUpdateSearch(
     const matchesSubmitQuery =
         submitQueryJSON?.similarSearchHash === currentSearchQueryJSON.similarSearchHash && expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.DRAFTS](iouReport);
 
-    console.log('query json hash', unapprovedCashSimilarSearchHash)
     const matchesApproveQuery =
         approveQueryJSON?.similarSearchHash === currentSearchQueryJSON.similarSearchHash && expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING](iouReport);
 
