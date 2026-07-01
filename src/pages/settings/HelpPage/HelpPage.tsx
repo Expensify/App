@@ -95,7 +95,7 @@ function HelpPage() {
         description: hasActiveItem ? undefined : translate('initialSettingsPage.helpPage.conciergeChatDescription'),
         icon: icons.ConciergeAvatar,
         iconType: CONST.ICON_TYPE_AVATAR,
-        onPress: openConciergeAnywhere,
+        onPress: () => openConciergeAnywhere(),
         shouldShowRightIcon: true,
         wrapperStyle: [styles.sectionMenuItemTopDescription],
         sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.CONCIERGE_CHAT,
