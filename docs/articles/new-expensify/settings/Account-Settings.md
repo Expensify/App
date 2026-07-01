@@ -114,7 +114,7 @@ High contrast mode increases the visual contrast of UI elements, making text and
 2. Click **Theme**.
 3. Toggle **High contrast mode** on.
 
-You can also enable high contrast mode from from the [login page](https://new.expensify.com/Home) by selecting **Enable high contrast**.
+You can also enable high contrast mode from the [login page](https://new.expensify.com/) by selecting **Enable high contrast**.
 
 ## How to update personal information
 
