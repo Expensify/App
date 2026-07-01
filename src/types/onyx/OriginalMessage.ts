@@ -822,6 +822,9 @@ type OriginalMessagePolicyChangeLog = {
 /** Amount operators for spend rules */
 type SpendRuleAmountOperator = typeof CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN | typeof CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO;
 
+/** Currency operators for spend rules */
+type SpendRuleCurrencyOperator = typeof CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO | typeof CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO;
+
 /** Model of an Expensify card spend rule change log action (add, update, or remove) */
 type OriginalMessageSpendRuleChangeLog = {
     /** Spend rule action */
@@ -841,6 +844,24 @@ type OriginalMessageSpendRuleChangeLog = {
 
     /** Previous list of categories when a spend rule was updated */
     oldCategories?: string[];
+
+    /** Currencies included in the spend rule */
+    currencies?: Array<{
+        /** Operator (`eq` for "is", `ne` for "is not") */
+        operator: SpendRuleCurrencyOperator;
+
+        /** Currency value */
+        value: string[];
+    }>;
+
+    /** Old currencies included in the spend rule */
+    oldCurrencies?: Array<{
+        /** Operator (`eq` for "is", `ne` for "is not") */
+        operator: SpendRuleCurrencyOperator;
+
+        /** Currency value */
+        value: string[];
+    }>;
 
     /** Max-amount filters in a spend rule */
     amounts?: Array<{
