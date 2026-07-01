@@ -102,20 +102,24 @@ function ChartTooltip({label, amount, percentage, chartWidth, initialTooltipPosi
      * even when the main container is clamped to the edges.
      */
     const pointerStyle = useAnimatedStyle(() => {
+        const {x} = initialTooltipPosition.get();
+
         if (placement === 'right') {
+            const width = tooltipMeasuredWidth.get();
+            const clampedLeft = clampRightPlacementTooltipLeft(x, chartWidth, width);
+            const relativeOffset = x - clampedLeft - VictoryTheme.tooltip.pointerWidth;
+
             return {
-                transform: [{translateX: -VictoryTheme.tooltip.pointerWidth}],
+                transform: [{translateX: relativeOffset}],
             };
         }
-
-        const {x} = initialTooltipPosition.get();
 
         const relativeOffset = x - clampedCenter.get();
 
         return {
             transform: [{translateX: relativeOffset}],
         };
-    }, [initialTooltipPosition, placement]);
+    }, [initialTooltipPosition, placement, chartWidth]);
 
     return (
         <Animated.View
