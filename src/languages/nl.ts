@@ -513,6 +513,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Editor',
         restrictions: 'Beperkingen',
+        tagGLCode: 'GL-code labelen',
         off: 'Uit',
     },
     socials: {
@@ -6324,9 +6325,17 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 one: 'Workspace-beheerder maken',
                 other: 'Workspace-beheerders maken',
             }),
+            makeGroupAdmin: () => ({
+                one: 'Admin maken',
+                other: 'Beheerders maken',
+            }),
             makeAuditor: () => ({
                 one: 'Auditeur maken',
                 other: 'Auditors aanmaken',
+            }),
+            makePeopleAdmin: () => ({
+                one: 'People-beheerder maken',
+                other: 'People-beheerders maken',
             }),
             selectAll: 'Alles selecteren',
             error: {
@@ -6360,6 +6369,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             syncWithHR: (providerName: string) => `Synchroniseren met ${providerName}`,
             makeCardAdmin: () => ({one: 'Kaartbeheerder maken', other: 'Kaartbeheerders maken'}),
             cardAdmins: 'Kaartbeheerders',
+            peopleAdmins: 'People-beheerders',
             members: 'Leden',
         },
         card: {
@@ -9264,6 +9274,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         resolvedDuplicates: 'dubbeling opgelost',
         companyCardRequired: 'Bedrijfspaskaarten vereist',
         noRoute: 'Selecteer een geldig adres',
+        customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `Tarief is alleen geldig van ${startDate} tot ${endDate}`,
+        customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Tarief is alleen geldig vanaf ${startDate}`,
+        customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Tarief is alleen geldig tot ${endDate}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} is verplicht`,

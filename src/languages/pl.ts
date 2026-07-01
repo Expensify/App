@@ -513,6 +513,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Edytor',
         restrictions: 'Ograniczenia',
+        tagGLCode: 'Oznacz kod GL',
         off: 'Wyłączone',
     },
     socials: {
@@ -6315,9 +6316,17 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 one: 'Ustaw jako administratora przestrzeni roboczej',
                 other: 'Ustaw jako administratorów przestrzeni roboczej',
             }),
+            makeGroupAdmin: () => ({
+                one: 'Ustaw jako administratora',
+                other: 'Ustaw jako administratorów',
+            }),
             makeAuditor: () => ({
                 one: 'Ustaw jako audytora',
                 other: 'Utwórz audytorów',
+            }),
+            makePeopleAdmin: () => ({
+                one: 'Ustaw jako administratora osób',
+                other: 'Ustaw administratorów osób',
             }),
             selectAll: 'Zaznacz wszystko',
             error: {
@@ -6351,6 +6360,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             syncWithHR: (providerName: string) => `Synchronizuj z ${providerName}`,
             makeCardAdmin: () => ({one: 'Ustaw jako administratora karty', other: 'Ustaw administratorów kart'}),
             cardAdmins: 'Administratorzy kart',
+            peopleAdmins: 'Administratorzy osób',
             members: 'Członkowie',
         },
         card: {
@@ -9246,6 +9256,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         resolvedDuplicates: 'rozwiązano duplikat',
         companyCardRequired: 'Wymagane zakupy kartą firmową',
         noRoute: 'Wybierz prawidłowy adres',
+        customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `Stawka jest ważna tylko od ${startDate} do ${endDate}`,
+        customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Stawka jest ważna tylko od ${startDate}`,
+        customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Stawka jest ważna tylko do ${endDate}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `Pole ${fieldName} jest wymagane`,

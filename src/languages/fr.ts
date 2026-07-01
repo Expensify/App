@@ -514,6 +514,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Éditeur',
         restrictions: 'Restrictions',
+        tagGLCode: 'Taguer le code GL',
         off: 'Désactivé',
     },
     socials: {
@@ -6378,9 +6379,17 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 one: 'Nommer administrateur de l’espace de travail',
                 other: 'Nommer des administrateurs de l’espace de travail',
             }),
+            makeGroupAdmin: () => ({
+                one: 'Nommer administrateur',
+                other: 'Nommer des administrateurs',
+            }),
             makeAuditor: () => ({
                 one: 'Nommer auditeur',
                 other: 'Créer des auditeurs',
+            }),
+            makePeopleAdmin: () => ({
+                one: 'Nommer administrateur des personnes',
+                other: 'Nommer des administrateurs des personnes',
             }),
             selectAll: 'Tout sélectionner',
             error: {
@@ -6414,6 +6423,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             syncWithHR: (providerName: string) => `Synchroniser avec ${providerName}`,
             makeCardAdmin: () => ({one: 'Nommer administrateur de carte', other: 'Nommer des administrateurs de carte'}),
             cardAdmins: 'Administrateurs de cartes',
+            peopleAdmins: 'Administrateurs des personnes',
             members: 'Membres',
         },
         card: {
@@ -9338,6 +9348,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         resolvedDuplicates: 'a résolu le doublon',
         companyCardRequired: 'Achats par carte d’entreprise obligatoires',
         noRoute: 'Veuillez sélectionner une adresse valide',
+        customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `Le taux n’est valable que du ${startDate} au ${endDate}`,
+        customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Le taux n’est valable qu’à partir du ${startDate}`,
+        customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Le taux n’est valable que jusqu’au ${endDate}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} est obligatoire`,

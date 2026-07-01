@@ -2097,12 +2097,6 @@ type MoneyRequestNavigatorParamList = {
         backToReport?: string;
         reportActionID?: string;
     };
-    [SCREENS.MONEY_REQUEST.CREATE_VERIFY_ACCOUNT]: {
-        action: IOUAction;
-        iouType: IOUType;
-        transactionID: string;
-        reportID: string;
-    };
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE]: {
         action: IOUAction;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
@@ -2122,12 +2116,6 @@ type MoneyRequestNavigatorParamList = {
         backTo?: Routes;
         participantsAutoAssigned?: string;
         backToReport?: string;
-    };
-    [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION_VERIFY_ACCOUNT]: {
-        action: IOUAction;
-        iouType: IOUType;
-        transactionID: string;
-        reportID: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_SCAN]: {
         action: IOUAction;
@@ -2785,6 +2773,8 @@ type WorkspaceSplitNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.PER_DIEM]: {
         policyID: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.WORKFLOWS]: {
         policyID: string;
@@ -3015,6 +3005,8 @@ type ShareNavigatorParamList = {
 };
 
 type PublicScreensParamList = SharedScreensParamList & {
+    // Hosts the public SignInPage (see PublicScreens), mirroring the authenticated top-level navigator name.
+    [NAVIGATORS.TAB_NAVIGATOR]: NavigatorScreenParams<TabNavigatorParamList>;
     [SCREENS.UNLINK_LOGIN]: {
         accountID?: string;
         validateCode?: string;
