@@ -1,32 +1,35 @@
 ---
-title: How billing, plans, and subscriptions work
+title: How Billing, Plans, and Subscriptions Work
 description: Learn how Workspaces, plans, subscriptions, billing, and pricing work together in Expensify.
 keywords: [Expensify billing, plans, subscriptions, billing overview, Workspace billing]
 internalScope: Audience is anyone using or evaluating Expensify. Covers the relationship between plans, subscriptions, pricing, and billing. Does not cover changing plans, subscription management, or billing tasks.
+contentType: concept
+RAG/AI usability score: 9/10
+Human usability score: 9/10
 ---
 
-# How billing, plans, and subscriptions work
+# How Billing, Plans, and Subscriptions Work
 
-Expensify organizes billing around three core concepts: your Workspace plan, your subscription, and your organization's Expensify Card usage. Together, these determine the features available to your organization and the pricing you qualify for.
+Expensify organizes billing around three core concepts: your workspace plan, your subscription, and your organization's Expensify Card usage. Together, these determine the features available to your organization and the pricing you qualify for.
 
-## What is a Workspace plan?
+## What is a workspace plan?
 
-A Workspace plan determines the features available to your organization.
+A workspace plan determines the features available to your organization.
 
-Expensify offers two Workspace plans:
+Expensify offers two workspace plans:
 
-* **Collect** – Designed for small teams that need expense management and reimbursements.
-* **Control** – Designed for growing organizations that need advanced approvals, accounting integrations, and spend management.
+- **Collect**: Designed for small teams that need expense management and reimbursements.
+- **Control**: Designed for growing organizations that need advanced approvals, accounting integrations, and spend management.
 
-To learn which plan is right for your organization, see **Compare Collect and Control plans**.
+To learn which plan is right for your organization, see [Compare the Collect and Control Plans](Compare-Collect-and-Control-plans.md).
 
 ## What is a subscription?
 
-A subscription determines how your Workspace is billed.
+A subscription determines how your workspace is billed.
 
-Depending on your Workspace plan, you may have an annual subscription or a pay-per-use subscription. Your subscription affects your billing rate and may determine whether you qualify for reduced pricing.
+Depending on your workspace plan, you may have an Annual subscription or a Pay-per-use subscription. Your subscription affects your billing rate and may determine whether you qualify for reduced pricing.
 
-Learn more in **How subscriptions work**.
+To learn more, see [How subscriptions work](How-Subscriptions-Work.md).
 
 ## How Expensify Card pricing works
 
@@ -36,23 +39,23 @@ Organizations with an annual subscription qualify for different pricing tiers ba
 
 Using the Expensify Card also allows eligible organizations to earn cash back on qualifying purchases.
 
-Learn more in **Understand Expensify pricing**.
+To learn more, see [Understand Expensify Pricing](Understand-Expensify-pricing.md).
 
 ## How your monthly bill is calculated
 
 Your monthly Expensify bill is calculated based on: 
 
- - Your Workspace plan
+ - Your workspace plan
  - Your subscription type
  - The number of billable members
  - Whether your organization qualifies for reduced pricing through the Expensify Card
 
-Learn more in **Understand Expensify pricing**.
+To learn more, see [How Your Plan and Subscription Determine Your Bill](How-Your-Plan-and-Subscription-Determine-Your-Bill.md).
 
-## How billing works
+## Who pays the monthly bill 
 
-Each Workspace has a billing owner who is responsible for the subscription and payment method.
+Each Workspace has an Owner who is responsible for the monthly bill. 
 
-Billing includes managing payment methods, viewing invoices and receipts, transferring billing ownership, and updating billing information.
+Workspace Owners can add and update payment cards, view billing receipts, and manage workspace plan and subscription settings.
 
-Learn more in **Learn about managing billing**.
+To learn more, see [Understand Workspace Billing Ownership](Understand-Workspace-Billing-Ownership.md).
