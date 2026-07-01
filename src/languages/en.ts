@@ -879,7 +879,7 @@ const translations = {
         joinThread: 'Join thread',
         leaveThread: 'Leave thread',
         copyOnyxData: 'Copy Onyx data',
-        copyAgentZeroRequestID: 'Copy AgentZero request ID',
+        viewAgentZeroTrace: 'View AgentZero trace',
         flagAsOffensive: 'Flag as offensive',
         menu: 'Menu',
     },
