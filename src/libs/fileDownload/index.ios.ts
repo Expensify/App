@@ -45,7 +45,7 @@ function downloadFile(fileUrl: string, fileName: string) {
     }).fetch('GET', fileUrl);
 }
 
-const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?: string, formData?: FormData, onDownloadFailed?: () => void) => {
+const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?: string, formData?: FormData, onDownloadFailed?: () => void, appendTimestamp = true) => {
     const fetchOptions: RequestInit = {
         method: 'POST',
         body: formData,
@@ -63,7 +63,8 @@ const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?:
             return response.text();
         })
         .then((fileData) => {
-            const finalFileName = appendTimeToFileName(fileName ?? 'Expensify');
+            const resolvedFileName = fileName ?? 'Expensify';
+            const finalFileName = appendTimestamp ? appendTimeToFileName(resolvedFileName) : resolvedFileName;
             const expensifyDir = `${RNFS.DocumentDirectoryPath}/Expensify`;
             const localPath = `${expensifyDir}/${finalFileName}`;
             return RNFS.mkdir(expensifyDir).then(() => {
@@ -125,12 +126,13 @@ function downloadVideo(fileUrl: string, fileName: string): Promise<PhotoIdentifi
 /**
  * Download the file based on type(image, video, other file types)for iOS
  */
-const fileDownload: FileDownload = (translate, fileUrl, fileName, successMessage, _, formData, requestType, onDownloadFailed) =>
+const fileDownload: FileDownload = (translate, fileUrl, fileName, successMessage, _, formData, requestType, onDownloadFailed, shouldUnlink, appendTimestamp = true) =>
     new Promise((resolve) => {
         let fileDownloadPromise;
         const fileType = getFileType(fileUrl);
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and since fileName can be an empty string we want to default to `FileUtils.getFileName(url)`
-        const attachmentName = appendTimeToFileName(fileName || getFileName(fileUrl));
+        const resolvedFileName = fileName || getFileName(fileUrl);
+        const attachmentName = appendTimestamp ? appendTimeToFileName(resolvedFileName) : resolvedFileName;
 
         switch (fileType) {
             case CONST.ATTACHMENT_FILE_TYPE.IMAGE:
@@ -141,7 +143,7 @@ const fileDownload: FileDownload = (translate, fileUrl, fileName, successMessage
                 break;
             default:
                 if (requestType === CONST.NETWORK.METHOD.POST) {
-                    fileDownloadPromise = postDownloadFile(translate, fileUrl, fileName, formData, onDownloadFailed);
+                    fileDownloadPromise = postDownloadFile(translate, fileUrl, fileName, formData, onDownloadFailed, appendTimestamp);
                     break;
                 }
 

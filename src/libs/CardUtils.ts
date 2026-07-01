@@ -1045,6 +1045,18 @@ function getDefaultCardName(cardholder?: string) {
     return `${cardholder}'s card`;
 }
 
+/** Resolves a company card's custom name, preferring the shared workspace NVP over the personal NVP. */
+function getCompanyCardCustomName(
+    cardID: string | number | undefined,
+    sharedCardCustomNames: OnyxEntry<Record<string, string>>,
+    customCardNames: OnyxEntry<Record<string, string>>,
+): string | undefined {
+    if (!cardID) {
+        return undefined;
+    }
+    return sharedCardCustomNames?.[cardID] ?? customCardNames?.[cardID];
+}
+
 /** Returns the date option for a card assignment — CUSTOM when not editing, or the existing option when editing. */
 function getCardAssignmentDateOption(isEditing: boolean | undefined, existingDateOption?: string): ValueOf<typeof CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS> {
     if (!isEditing) {
@@ -1962,6 +1974,7 @@ export {
     hasOnlyOneCardToAssign,
     checkIfNewFeedConnected,
     getDefaultCardName,
+    getCompanyCardCustomName,
     getCardAssignmentDateOption,
     getCardAssignmentStartDate,
     getDomainOrWorkspaceAccountID,

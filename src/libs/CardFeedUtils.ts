@@ -448,16 +448,6 @@ function getSelectedCardsFromFeeds(cards: CardList | undefined, workspaceCardFee
     return [...new Set(selectedCards)];
 }
 
-const generateSelectedCards = (
-    cardList: CardList | undefined,
-    workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined,
-    feeds: string[] | undefined,
-    cards: string[] | undefined,
-) => {
-    const selectedCards = getSelectedCardsFromFeeds(cardList, workspaceCardFeeds, feeds);
-    return [...new Set([...selectedCards, ...(cards ?? [])])];
-};
-
 /**
  * Returns the wire-level country segment used in the Search feed filter token for a card. We only
  * care about Travel Invoicing feed country segment since it has its own
@@ -731,11 +721,9 @@ export {
     buildCardsData,
     getCardFeedNamesWithType,
     buildCardFeedsData,
-    generateSelectedCards,
     getSelectedCardsFromFeeds,
     getFeedInfo,
     getLinkedPolicyName,
-    getDomainFeedData,
     getCardFeedsForDisplay,
     getExpensifyCardFeedsForDisplay,
     getCardFeedsForDisplayPerPolicy,

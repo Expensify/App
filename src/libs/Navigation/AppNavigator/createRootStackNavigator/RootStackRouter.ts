@@ -12,20 +12,17 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import {
     handleDismissModalAction,
     handleNavigatingToModalFromModal,
-    handleOpenDomainSplitAction,
-    handleOpenWorkspaceSplitAction,
     handlePushFullscreenAction,
     handleRemoveFullscreenUnderRHP,
     handleReplaceFullscreenUnderRHP,
     handleReplaceReportsSplitNavigatorAction,
     handleToggleMfaModalNavigatorWithHistoryAction,
+    handleToggleModalWithHistoryAction,
     handleToggleSidePanelWithHistoryAction,
 } from './GetStateForActionHandlers';
 import syncBrowserHistory from './syncBrowserHistory';
 import type {
     DismissModalActionType,
-    OpenDomainSplitActionType,
-    OpenWorkspaceSplitActionType,
     PreloadActionType,
     PushActionType,
     RemoveFullscreenUnderRHPActionType,
@@ -34,16 +31,9 @@ import type {
     RootStackNavigatorAction,
     RootStackNavigatorRouterOptions,
     ToggleMfaModalNavigatorWithHistoryActionType,
+    ToggleModalWithHistoryActionType,
     ToggleSidePanelWithHistoryActionType,
 } from './types';
-
-function isOpenWorkspaceSplitAction(action: RootStackNavigatorAction): action is OpenWorkspaceSplitActionType {
-    return action.type === CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
-}
-
-function isOpenDomainSplitAction(action: RootStackNavigatorAction): action is OpenDomainSplitActionType {
-    return action.type === CONST.NAVIGATION.ACTION_TYPE.OPEN_DOMAIN_SPLIT;
-}
 
 function isPushAction(action: RootStackNavigatorAction): action is PushActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH;
@@ -71,6 +61,10 @@ function isToggleSidePanelWithHistoryAction(action: RootStackNavigatorAction): a
 
 function isToggleMfaModalNavigatorWithHistoryAction(action: RootStackNavigatorAction): action is ToggleMfaModalNavigatorWithHistoryActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.TOGGLE_MFA_MODAL_NAVIGATOR_WITH_HISTORY;
+}
+
+function isToggleModalWithHistoryAction(action: RootStackNavigatorAction): action is ToggleModalWithHistoryActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.TOGGLE_MODAL_WITH_HISTORY;
 }
 
 function isPreloadAction(action: RootStackNavigatorAction): action is PreloadActionType {
@@ -156,12 +150,8 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
                 return handleToggleMfaModalNavigatorWithHistoryAction(state, action);
             }
 
-            if (isOpenWorkspaceSplitAction(action)) {
-                return handleOpenWorkspaceSplitAction(state, action, configOptions, stackRouter);
-            }
-
-            if (isOpenDomainSplitAction(action)) {
-                return handleOpenDomainSplitAction(state, action, configOptions, stackRouter);
+            if (isToggleModalWithHistoryAction(action)) {
+                return handleToggleModalWithHistoryAction(state, action);
             }
 
             if (isDismissModalAction(action)) {

@@ -37,7 +37,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getWorkflowApprovalsUnavailable, hasTags, isAttendeeTrackingEnabled, isControlPolicy} from '@libs/PolicyUtils';
+import {arePolicyRulesEnabled, getWorkflowApprovalsUnavailable, hasTags, isAttendeeTrackingEnabled, isControlPolicy} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -377,7 +377,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                         />
                     )}
 
-                    {!!policy?.areRulesEnabled && (
+                    {arePolicyRulesEnabled(policy, policyCategories) && (
                         <>
                             <View style={[styles.mh5, styles.pt3, styles.borderTop]}>
                                 <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.rules.categoryRules.title')}</Text>
