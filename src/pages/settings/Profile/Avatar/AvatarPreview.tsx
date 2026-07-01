@@ -74,7 +74,7 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
     } else {
         avatarURL = currentUserPersonalDetails?.avatar ?? '';
     }
-    // Weather avatar view & edit options should be hidden. False if user uploaded their own avatar.
+    // Whether avatar view & edit options should be hidden. False if user uploaded their own avatar.
     const shouldHideAvatarEdit =
         (!imageData.uri &&
             (isCatalogAvatar(currentUserPersonalDetails?.avatar) ||

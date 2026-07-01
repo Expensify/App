@@ -90,7 +90,6 @@ function Avatar({
 
     // Read the color and initials directly from the generated letter-avatar URL.
     const letterAvatarParts = parseLetterAvatarURL(source);
-    const shouldRenderLetterAvatar = !isWorkspace && !!letterAvatarParts;
 
     let optimizedSource = source;
     const localFromCatalog = findLocalAvatarForURL(source);
@@ -118,7 +117,7 @@ function Avatar({
         iconColors = null;
     }
 
-    if (shouldRenderLetterAvatar && letterAvatarParts) {
+    if (!isWorkspace && letterAvatarParts) {
         return (
             <View
                 style={[containerStyles, styles.pointerEventsNone]}
