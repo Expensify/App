@@ -515,6 +515,8 @@ const translations: TranslationDeepObject<typeof en> = {
         restrictions: 'Restrizioni',
         tagGLCode: 'Tag codice GL',
         off: 'Disattivato',
+        unableToDisplayChart: 'Impossibile visualizzare il grafico',
+        webGLNotSupported: 'Il tuo browser non supporta WebGL. Abilitalo oppure passa a un altro browser.',
     },
     socials: {
         podcast: 'Seguici su Podcast',

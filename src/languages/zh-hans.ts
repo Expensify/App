@@ -510,6 +510,8 @@ const translations: TranslationDeepObject<typeof en> = {
         restrictions: '限制',
         tagGLCode: '标记总账代码',
         off: '关',
+        unableToDisplayChart: '无法显示图表',
+        webGLNotSupported: '您的浏览器不支持 WebGL。请启用该功能或更换浏览器。',
     },
     socials: {
         podcast: '在播客上关注我们',
