@@ -94,6 +94,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
     const shouldOpenParentReportInCurrentTab = !isSelfDM(parentReport);
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine() && (wideRHPRouteKeys.length === 0 || isSmallScreenWidth);
+    const shouldDisplayNarrowVersion = shouldDisplayButtonsInSeparateLine;
 
     const getStatusIcon: (src: IconAsset) => ReactNode = (src) => (
         <Icon
@@ -171,7 +172,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
                 shouldEnableDetailPageNavigation
                 openParentReportInCurrentTab={shouldOpenParentReportInCurrentTab}
             >
-                {!shouldDisplayButtonsInSeparateLine && (
+                {!shouldDisplayButtonsInSeparateLine && !statusBarProps && (
                     <MoneyRequestHeaderActions
                         reportID={reportID}
                         onBackButtonPress={onBackButtonPress}
@@ -181,21 +182,32 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
                     <MoneyRequestReportTransactionsNavigation
                         currentTransactionID={transaction.transactionID}
                         isFromReviewDuplicates={isFromReviewDuplicates}
+                        shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
                     />
                 )}
             </HeaderWithBackButton>
             {shouldDisplayButtonsInSeparateLine && (
-                <MoneyRequestHeaderActions
-                    reportID={reportID}
-                    onBackButtonPress={onBackButtonPress}
-                />
+                <View style={styles.mtn1}>
+                    <MoneyRequestHeaderActions
+                        reportID={reportID}
+                        onBackButtonPress={onBackButtonPress}
+                    />
+                </View>
             )}
             {!!statusBarProps && (
-                <View style={[styles.ph5, styles.pb3]}>
-                    <MoneyRequestHeaderStatusBar
-                        icon={statusBarProps.icon}
-                        description={statusBarProps.description}
-                    />
+                <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3, styles.mtn1]}>
+                    <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
+                        <MoneyRequestHeaderStatusBar
+                            icon={statusBarProps.icon}
+                            description={statusBarProps.description}
+                        />
+                    </View>
+                    {!shouldDisplayButtonsInSeparateLine && (
+                        <MoneyRequestHeaderActions
+                            reportID={reportID}
+                            onBackButtonPress={onBackButtonPress}
+                        />
+                    )}
                 </View>
             )}
             <HeaderLoadingBar />

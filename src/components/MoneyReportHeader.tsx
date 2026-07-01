@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -22,6 +22,8 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import MoneyReportHeaderActions from './MoneyReportHeaderActions';
 import MoneyReportHeaderModals from './MoneyReportHeaderModals';
 import MoneyReportHeaderMoreContent from './MoneyReportHeaderMoreContent';
+import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestReportNavigation';
+import MoneyRequestReportTransactionsNavigation from './MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
 import {PaymentAnimationsProvider} from './PaymentAnimationsContext';
 import {useSearchSelectionActions} from './Search/SearchContext';
 
@@ -72,14 +74,52 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
 
     const transactions = Object.values(reportTransactions);
 
+    const [activeTransactionIDs] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
+
+    // When the user opens a one-transaction parent report from the flat Spend > Expenses list, the report-level
+    // carousel (search-based) is inactive (search type is EXPENSE, not EXPENSE_REPORT). Fall back to the
+    // transaction carousel, anchored on the parent's single transaction, so navigating ◄/► pages through the
+    // expenses the user was browsing. The carousel itself handles routing to either the parent report (for
+    // other one-tx parents) or the transaction thread (for multi-tx parents).
+    const singleTransactionID = transactions.length === 1 ? transactions.at(0)?.transactionID : undefined;
+
+    // For multi-tx parents we don't have a single transaction to anchor on, but if the parent was
+    // navigated to from a broader carousel (the no-thread fallback in MoneyRequestReportTransactionsNavigation
+    // passes `anchorTransactionID`), use that transaction as the carousel anchor so the user can keep paging
+    // the broader list.
+    //
+    // We intentionally do NOT fall back to "the first of this report's transactions in the active list". The
+    // transaction carousel is a single-expense (SEARCH_REPORT) concept: its ◄/► handlers navigate the current
+    // screen via Navigation.setParams. When the user opens a full multi-transaction report from the header, the
+    // report renders on SEARCH_MONEY_REQUEST_REPORT; a generic fallback there would surface the carousel and
+    // paging would setParams to a sibling that renders empty ("No expenses yet"). Viewing a full report is a
+    // report-level context, so we leave carousel navigation to MoneyRequestReportNavigation. This fallback is
+    // also unnecessary now that the carousel's no-thread path opens a single-expense thread (never a full
+    // report body), so we only ever reach a multi-transaction report body by opening it explicitly.
+    const anchorTransactionIDFromRoute = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? route.params.anchorTransactionID : undefined;
+    const multiTxAnchorTransactionID = useMemo(() => {
+        if (singleTransactionID) {
+            return undefined;
+        }
+        // Trust the route hint as long as it's part of the active carousel list. We don't also require it to be in
+        // this report's `transactions` because when arriving from a search-based carousel the parent report's
+        // transactions may not be in the live collection yet, which would otherwise hide the carousel entirely.
+        if (anchorTransactionIDFromRoute && activeTransactionIDs?.includes(anchorTransactionIDFromRoute)) {
+            return anchorTransactionIDFromRoute;
+        }
+        return undefined;
+    }, [singleTransactionID, anchorTransactionIDFromRoute, activeTransactionIDs]);
+    const carouselAnchorTransactionID = singleTransactionID ?? multiTxAnchorTransactionID;
+    const shouldShowTransactionNavigation = !!carouselAnchorTransactionID && !!activeTransactionIDs?.includes(carouselAnchorTransactionID);
+
     const styles = useThemeStyles();
 
     const {isWideRHPDisplayedOnWideLayout, isSuperWideRHPDisplayedOnWideLayout} = useResponsiveLayoutOnWideRHP();
 
     const shouldShowHeaderButtonsInHeaderRow = isInLandscapeMode || !shouldDisplayNarrowVersion || isWideRHPDisplayedOnWideLayout || isSuperWideRHPDisplayedOnWideLayout;
     const isReportInRHP = route.name !== SCREENS.REPORT;
-    const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
     const isReportInSearch = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT;
+    const shouldDisplaySearchRouter = !isReportInRHP || (isSmallScreenWidth && !isReportInSearch);
 
     const backTo = (route.params as {backTo?: Route} | undefined)?.backTo;
 
@@ -128,27 +168,35 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 shouldEnableDetailPageNavigation
                 openParentReportInCurrentTab
             >
-                {shouldShowHeaderButtonsInHeaderRow && (
-                    <MoneyReportHeaderActions
-                        reportID={reportIDProp}
-                        primaryAction={primaryAction}
-                        isReportInSearch={isReportInSearch}
-                        backTo={backTo}
-                    />
-                )}
+                {isReportInSearch &&
+                    (shouldShowTransactionNavigation && carouselAnchorTransactionID ? (
+                        <MoneyRequestReportTransactionsNavigation
+                            currentTransactionID={carouselAnchorTransactionID}
+                            shouldDisplayNarrowVersion={!shouldShowHeaderButtonsInHeaderRow}
+                        />
+                    ) : (
+                        <MoneyRequestReportNavigation
+                            reportID={reportIDProp}
+                            shouldDisplayNarrowVersion={!shouldShowHeaderButtonsInHeaderRow}
+                        />
+                    ))}
             </HeaderWithBackButton>
             {!shouldShowHeaderButtonsInHeaderRow && (
-                <View style={[styles.w100, styles.flexColumn]}>
+                <View style={styles.mtn1}>
                     <MoneyReportHeaderActions
                         reportID={reportIDProp}
                         primaryAction={primaryAction}
                         isReportInSearch={isReportInSearch}
                         backTo={backTo}
                     />
-                    <MoneyReportHeaderMoreContent reportID={reportIDProp} />
                 </View>
             )}
-            {shouldShowHeaderButtonsInHeaderRow && <MoneyReportHeaderMoreContent reportID={reportIDProp} />}
+            <MoneyReportHeaderMoreContent
+                reportID={reportIDProp}
+                primaryAction={primaryAction}
+                backTo={backTo}
+                shouldShowHeaderButtonsInHeaderRow={shouldShowHeaderButtonsInHeaderRow}
+            />
             <HeaderLoadingBar />
         </View>
     );

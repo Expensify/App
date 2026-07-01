@@ -2623,6 +2623,10 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
         reportID: string;
         reportActionID?: string;
+        // Set by the transaction carousel when navigating into a multi-tx parent that lacks an
+        // existing thread. Tells MoneyReportHeader which of the parent's transactions to anchor
+        // the transaction carousel on, so the user can keep paging through the broader carousel.
+        anchorTransactionID?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };

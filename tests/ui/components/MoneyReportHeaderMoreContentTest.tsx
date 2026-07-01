@@ -89,26 +89,54 @@ describe('MoneyReportHeaderMoreContent', () => {
 
     it('renders the next step bar for a Submit workspace', () => {
         mockPolicyType(CONST.POLICY.TYPE.SUBMIT);
-        render(<MoneyReportHeaderMoreContent reportID={TEST_REPORT_ID} />);
+        render(
+            <MoneyReportHeaderMoreContent
+                reportID={TEST_REPORT_ID}
+                primaryAction=""
+                backTo={undefined}
+                shouldShowHeaderButtonsInHeaderRow={false}
+            />,
+        );
         expect(mockedNextStepBar).toHaveBeenCalled();
     });
 
     it('renders the next step bar for a paid (team) workspace', () => {
         mockPolicyType(CONST.POLICY.TYPE.TEAM);
-        render(<MoneyReportHeaderMoreContent reportID={TEST_REPORT_ID} />);
+        render(
+            <MoneyReportHeaderMoreContent
+                reportID={TEST_REPORT_ID}
+                primaryAction=""
+                backTo={undefined}
+                shouldShowHeaderButtonsInHeaderRow={false}
+            />,
+        );
         expect(mockedNextStepBar).toHaveBeenCalled();
     });
 
     it('does not render the next step bar for a personal workspace', () => {
         mockPolicyType(CONST.POLICY.TYPE.PERSONAL);
-        render(<MoneyReportHeaderMoreContent reportID={TEST_REPORT_ID} />);
+        render(
+            <MoneyReportHeaderMoreContent
+                reportID={TEST_REPORT_ID}
+                primaryAction=""
+                backTo={undefined}
+                shouldShowHeaderButtonsInHeaderRow={false}
+            />,
+        );
         expect(mockedNextStepBar).not.toHaveBeenCalled();
     });
 
     it('does not render the next step bar when a status bar is shown', () => {
         mockPolicyType(CONST.POLICY.TYPE.SUBMIT);
         mockedStatusBar.mockReturnValue({shouldShowStatusBar: true, statusBarType: CONST.REPORT.STATUS_BAR_TYPE.ON_HOLD});
-        render(<MoneyReportHeaderMoreContent reportID={TEST_REPORT_ID} />);
+        render(
+            <MoneyReportHeaderMoreContent
+                reportID={TEST_REPORT_ID}
+                primaryAction=""
+                backTo={undefined}
+                shouldShowHeaderButtonsInHeaderRow={false}
+            />,
+        );
         expect(mockedNextStepBar).not.toHaveBeenCalled();
     });
 });

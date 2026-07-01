@@ -90,7 +90,7 @@ function RecentlyAddedSection() {
         // Each row opens a single-expense view that always lands in (Wide) RHP on both layouts so the carousel
         // arrows are available. Marking the report as an expense lets the RHP open wide immediately, before its
         // data loads, instead of flickering from narrow to wide.
-        setActiveTransactionIDs(siblingTransactionIDs, siblingDescriptorsByTransactionID).then(() => {
+        setActiveTransactionIDs(siblingTransactionIDs, undefined, siblingDescriptorsByTransactionID).then(() => {
             markReportIDAsExpense(reportID);
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: ROUTES.HOME}));
         });

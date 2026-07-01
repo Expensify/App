@@ -506,6 +506,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '上一年',
         nextYear: '明年',
         avatar: '头像',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `第 ${current} 项（共 ${total} 项）`,
         editor: '编辑',
         restrictions: '限制',
         tagGLCode: '标记总账代码',

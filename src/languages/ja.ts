@@ -510,6 +510,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '前年',
         nextYear: '来年',
         avatar: 'アバター',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${total} 件中 ${current} 件目`,
         editor: '編集者',
         restrictions: '制限',
         tagGLCode: 'GL コードにタグを付ける',

@@ -365,6 +365,8 @@ const translations = {
         automatic: 'Automatic',
         showing: 'Showing',
         of: 'of',
+        // @context Carousel pagination counter showing the current item's position out of the total (e.g. "3 of 50").
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} of ${total}`,
         default: 'Default',
         update: 'Update',
         member: 'Member',

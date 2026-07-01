@@ -462,6 +462,7 @@ const translations: TranslationDeepObject<typeof en> = {
         goToConcierge: 'Ir a Concierge',
         allSet: '¡Todo listo!',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} de ${total}`,
         editor: 'Editor',
         restrictions: 'Restricciones',
         tagGLCode: 'Etiquetar código GL',
