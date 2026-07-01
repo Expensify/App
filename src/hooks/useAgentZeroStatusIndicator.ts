@@ -1,3 +1,5 @@
+import {getNewestReportActionSelector} from '@selectors/ReportAction';
+import type {NewestReportAction} from '@selectors/ReportAction';
 import {getAgentZeroProcessingLabel} from '@selectors/ReportNameValuePairs';
 import {useCallback, useEffect, useRef, useState, useSyncExternalStore} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -8,7 +10,6 @@ import type {ReasoningEntry} from '@libs/AgentZeroReasoningStore';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportNameValuePairs} from '@src/types/onyx';
-import type {ReportActions} from '@src/types/onyx/ReportAction';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -17,11 +18,6 @@ type AgentZeroStatusState = {
     isProcessing: boolean;
     reasoningHistory: ReasoningEntry[];
     statusLabel: string;
-};
-
-type NewestReportAction = {
-    reportActionID: string;
-    actorAccountID?: number;
 };
 
 /**
@@ -41,35 +37,6 @@ const MAX_INDICATOR_DURATION_MS = OPTIMISTIC_MAX_AGE_MS;
 const MIN_DISPLAY_TIME = 300; // ms
 // Debounce delay for server label updates
 const DEBOUNCE_DELAY = 150; // ms
-
-/**
- * Selector that extracts the newest report action ID and actor from the report actions collection.
- *
- * Sorts by `created` timestamp (ISO strings compare chronologically), with reportActionID as a
- * tiebreaker. reportActionID alone is unreliable because optimistic actions use random IDs, so
- * a purely numeric comparison can rank them ahead of real server actions.
- */
-function selectNewestReportAction(reportActions: OnyxEntry<ReportActions>): NewestReportAction | undefined {
-    if (!reportActions) {
-        return undefined;
-    }
-    const actions = Object.values(reportActions).filter(Boolean);
-    if (actions.length === 0) {
-        return undefined;
-    }
-    const newest = actions.reduce((a, b) => {
-        const createdA = a.created ?? '';
-        const createdB = b.created ?? '';
-        if (createdA !== createdB) {
-            return createdA > createdB ? a : b;
-        }
-        return a.reportActionID > b.reportActionID ? a : b;
-    });
-    return {
-        reportActionID: newest.reportActionID,
-        actorAccountID: newest.actorAccountID,
-    };
-}
 
 /**
  * Hook to manage the AgentZero status indicator for a single agent in a chat where AgentZero
@@ -92,7 +59,7 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
     const [serverLabel] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: serverLabelSelector});
 
     // Track the newest report action so we can fetch missed actions and detect actual Concierge replies.
-    const [newestReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: selectNewestReportAction});
+    const [newestReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: getNewestReportActionSelector});
     const newestReportActionRef = useRef<NewestReportAction | undefined>(newestReportAction);
     useEffect(() => {
         newestReportActionRef.current = newestReportAction;

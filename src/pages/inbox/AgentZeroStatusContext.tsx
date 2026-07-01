@@ -1,5 +1,6 @@
 import {getCustomAgentParticipantAccountID, getReportParticipantAccountIDs} from '@selectors/AgentZeroChat';
 import {getReportChatType} from '@selectors/Report';
+import {getNewestReportActionSelector} from '@selectors/ReportAction';
 import {agentZeroProcessingAgentIDsSelector} from '@selectors/ReportNameValuePairs';
 import {accountIDSelector} from '@selectors/Session';
 import React, {createContext, useContext, useEffect} from 'react';
@@ -8,10 +9,10 @@ import useOnyx from '@hooks/useOnyx';
 import {clearConciergeThinkingKickoff, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
 import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
 import type {ReasoningEntry} from '@libs/AgentZeroReasoningStore';
+import {isDM} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Report from '@src/types/onyx/Report';
-import type {ReportActions} from '@src/types/onyx/ReportAction';
 
 type AgentZeroStatusState = {
     /**
@@ -28,33 +29,18 @@ type AgentZeroStatusActions = {
     kickoffWaitingIndicator: () => void;
 };
 
-type NewestReportAction = {
-    reportActionID: string;
-    replyActorAccountID?: number;
+type ReportMeta = {
+    chatType: Report['chatType'];
+    isDM: boolean;
+    participantAccountIDs: number[];
 };
 
-function newestReportActionSelector(actions: OnyxEntry<ReportActions>): NewestReportAction | undefined {
-    const list = Object.values(actions ?? {}).filter(Boolean);
-    if (list.length === 0) {
-        return undefined;
-    }
-    const newest = list.reduce((a, b) => {
-        const createdA = a.created ?? '';
-        const createdB = b.created ?? '';
-        if (createdA !== createdB) {
-            return createdA > createdB ? a : b;
-        }
-        return a.reportActionID > b.reportActionID ? a : b;
-    });
-
+function reportMetaSelector(report: OnyxEntry<Report>): ReportMeta {
     return {
-        reportActionID: newest.reportActionID,
-        replyActorAccountID: newest.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT ? newest.actorAccountID : undefined,
+        chatType: getReportChatType(report),
+        isDM: isDM(report),
+        participantAccountIDs: getReportParticipantAccountIDs(report),
     };
-}
-
-function isDMReportSelector(report: OnyxEntry<Report>): boolean {
-    return report?.type === CONST.REPORT.TYPE.CHAT && !report.chatType && !report.parentReportID && !report.parentReportActionID;
 }
 
 const defaultState: AgentZeroStatusState = {
@@ -77,9 +63,8 @@ const AgentZeroStatusActionsContext = createContext<AgentZeroStatusActions>(defa
  * server-side in `Account::formatNewDotPersonalDetails`).
  */
 function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{reportID: string | undefined}>) {
-    const [chatType] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportChatType});
-    const [isDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: isDMReportSelector});
-    const [participantAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportParticipantAccountIDs});
+    const [reportMeta] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportMetaSelector});
+    const {chatType, isDM: isDMReport = false, participantAccountIDs} = reportMeta ?? {};
     const [agentParticipantAccountID] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: getCustomAgentParticipantAccountID(participantAccountIDs)});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
@@ -119,7 +104,7 @@ function AgentZeroStatusGate({
     // When the agent's reply (ADDCOMMENT) lands before the server's indicator-clear NVP update,
     // the thinking bubble would remain visible briefly. Suppress any agent whose reply is already
     // the newest action in the report so the bubble hides as soon as the reply renders.
-    const [newestReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: newestReportActionSelector});
+    const [newestReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: getNewestReportActionSelector});
 
     // One reasoning Pusher subscription per report (not per agent). The handler in Report
     // actions routes each event to the right agent's reasoning history by its actorAccountID.
@@ -164,8 +149,8 @@ function AgentZeroStatusGate({
     // can arrive up to ~250ms after the reply Pusher event, leaving the bubble visible on top of
     // the completed response. Dropping the agent here as soon as their ADDCOMMENT lands prevents
     // that flash without waiting for the NVP clear.
-    if (newestReportAction?.replyActorAccountID !== undefined) {
-        candidateIDs.delete(newestReportAction.replyActorAccountID);
+    if (newestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && newestReportAction.actorAccountID !== undefined) {
+        candidateIDs.delete(newestReportAction.actorAccountID);
     }
     // Render Concierge's bubble first, then any custom agents ascending by accountID — a stable,
     // intentional order instead of relying on Set insertion order.
