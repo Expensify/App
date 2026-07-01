@@ -9284,6 +9284,7 @@ ${reportName}`,
             changesBasedOn: '这会根据你使用 Expensify 卡的情况以及下方的订阅选项而变化。',
             collectBillingDescription: 'Collect 工作区按每位成员每月计费，无需年度承诺。',
             pricing: '定价',
+            editSubscription: '编辑订阅',
         },
         cancelSubscription: {
             title: '取消订阅',

@@ -9543,6 +9543,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             changesBasedOn: 'Isso muda de acordo com o uso do seu Cartão Expensify e as opções de assinatura abaixo.',
             collectBillingDescription: 'Os espaços de trabalho Collect são cobrados mensalmente por membro, sem compromisso anual.',
             pricing: 'Preços',
+            editSubscription: 'Editar assinatura',
         },
         cancelSubscription: {
             title: 'Cancelar assinatura',
