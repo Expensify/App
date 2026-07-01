@@ -91,7 +91,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
 
     const handleGoToConcierge = () => {
         onClose();
-        openConciergeAnywhere();
+        openConciergeAnywhere({forceConcierge: true});
     };
 
     const handleDownloadFile = () => {
