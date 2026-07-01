@@ -14,7 +14,6 @@ import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 
 type VictoryChartLabelsProps = LabelItem & {
     timezone?: SelectedTimezone;
-    barWidth?: number;
 };
 
 type ProcessedLine = {
@@ -44,7 +43,6 @@ function VictoryChartLabel({
     verticalAnchor = 'middle',
     angle = 0,
     timezone,
-    barWidth,
 }: VictoryChartLabelsProps) {
     const typefaces = useChartTypefaces();
     const theme = useTheme();
@@ -103,7 +101,7 @@ function VictoryChartLabel({
         });
     }
 
-    const tickX = x + (textAnchor === 'end' && barWidth !== undefined ? barWidth / 2 : 0);
+    const tickX = x;
     const labelY = y;
     const correction = rotatedLabelCenterCorrection(
         getSkiaLineMetrics(processedLines.lines.at(0)?.lineFont ?? null).ascent,

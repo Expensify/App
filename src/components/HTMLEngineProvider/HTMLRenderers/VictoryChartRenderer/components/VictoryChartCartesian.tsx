@@ -24,8 +24,7 @@ type VictoryChartCartesianProps = {
  * Labels and legend overlays are handled internally via `renderOutside`.
  */
 function VictoryChartCartesian({explicitSize, headless}: VictoryChartCartesianProps) {
-    const {tnode, data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, labelItems, legendItems, barWidth, barSeriesCount, chartContentStyles} =
-        useVictoryChartContext();
+    const {tnode, data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, labelItems, legendItems, chartContentStyles} = useVictoryChartContext();
     const theme = useTheme();
     const timezone = useCurrentTimezone();
     const designWidth = getChartDesignWidth(explicitSize, chartContentStyles.width);
@@ -61,7 +60,6 @@ function VictoryChartCartesian({explicitSize, headless}: VictoryChartCartesianPr
                             <VictoryChartLabel
                                 key={`label-${labelItem.x}-${labelItem.y}-${timezone}`}
                                 {...labelItem}
-                                barWidth={barSeriesCount === 1 ? barWidth : undefined}
                                 timezone={timezone}
                             />
                         ))}
