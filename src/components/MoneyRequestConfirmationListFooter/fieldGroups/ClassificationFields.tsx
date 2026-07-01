@@ -105,7 +105,7 @@ function ClassificationFields({
     isCompactMode,
     fieldVisibility,
 }: ClassificationFieldsProps) {
-    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm} = useConfirmationFields();
+    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isNewManualExpenseFlowEnabled} = useConfirmationFields();
 
     return (
         <>
@@ -131,6 +131,7 @@ function ClassificationFields({
                     shouldDisplayFieldError={errorState.shouldDisplayFieldError}
                     didConfirm={didConfirm}
                     isReadOnly={isReadOnly}
+                    isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
                     formError={errorState.formError}
                     clearFormErrors={errorState.clearFormErrors}
                     transactionID={transactionID}
