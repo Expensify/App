@@ -298,6 +298,13 @@ const tests = [
         },
     },
     {
+        query: 'bankAccount:42',
+        expected: {
+            autocomplete: {key: 'bankAccount', value: '42', start: 12, length: 2, negated: false},
+            ranges: [{key: 'bankAccount', value: '42', negated: false, start: 12, length: 2}],
+        },
+    },
+    {
         query: 'receipt-type:ereceipt',
         expected: {
             autocomplete: {
