@@ -23,5 +23,5 @@ function getVisibleJoinablePoliciesCount(joinablePolicies: OnyxEntry<JoinablePol
     return Object.values(joinablePolicies ?? {}).filter((policy) => policy.policyType !== CONST.POLICY.TYPE.SUBMIT || canUseSubmit2026).length;
 }
 
-export {isTrackOnboardingChoice, getVisibleJoinablePoliciesCount};
+export {getVisibleJoinablePoliciesCount};
 export default isTrackOnboardingChoice;
