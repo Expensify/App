@@ -1,4 +1,4 @@
-import reportByIDsSelector, {getReportAttributeByID, reportNamesByReportIDsSelector, reportNameSelector} from '@selectors/Attributes';
+import reportByIDsSelector, {reportNamesByReportIDsSelector, reportNameSelector} from '@selectors/Attributes';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 
@@ -33,36 +33,6 @@ describe('ReportAttributesSelector', () => {
         it('should skip report IDs that do not exist in attributes', () => {
             const result = reportByIDsSelector([reportID, '999'])(attributes);
             expect(result).toMatchObject({[reportID]: {reportName: 'Test Report'}});
-        });
-    });
-
-    describe('getReportAttributeByID', () => {
-        const reportID = '1';
-        const reportAttributes: ReportAttributes = {
-            reportName: 'Test Report',
-            isEmpty: false,
-            brickRoadStatus: undefined,
-            requiresAttention: false,
-            reportErrors: {},
-        };
-        const map: Record<string, ReportAttributes> = {
-            [reportID]: reportAttributes,
-        };
-
-        it('should return the entry for an existing reportID', () => {
-            expect(getReportAttributeByID(map, reportID)).toBe(reportAttributes);
-        });
-
-        it('should return undefined when reportID is undefined', () => {
-            expect(getReportAttributeByID(map, undefined)).toBeUndefined();
-        });
-
-        it('should return undefined when the map is undefined', () => {
-            expect(getReportAttributeByID(undefined, reportID)).toBeUndefined();
-        });
-
-        it('should return undefined when reportID does not exist in the map', () => {
-            expect(getReportAttributeByID(map, '999')).toBeUndefined();
         });
     });
 

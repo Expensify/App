@@ -1,6 +1,5 @@
 import {useRoute} from '@react-navigation/native';
 import {accountGuideDetailsSelector} from '@selectors/Account';
-import {getReportAttributeByID} from '@selectors/Attributes';
 import {isOptimisticPersonalDetailSelector} from '@selectors/PersonalDetails';
 import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
 import {isPast} from 'date-fns';
@@ -31,7 +30,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePolicy from '@hooks/usePolicy';
-import useReportAttributes from '@hooks/useReportAttributes';
+import useReportAttributes, {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
@@ -151,6 +150,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const reportHeaderData = (!isTaskReport && !isChatThread && report?.parentReportID) || isParentInvoiceAndIsChatThread ? parentReport : report;
     const isParentOneTransactionThread = isOneTransactionThread(parentReport, grandParentReport, grandParentReportAction);
     const parentNavigationReport = isParentOneTransactionThread ? parentReport : reportHeaderData;
+    const derivedParentReportName = useDerivedReportNameByReportID(parentNavigationReport?.parentReportID);
     const isReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.reportID);
     const reportHeaderDataPolicy = usePolicy(reportHeaderData?.policyID);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -166,13 +166,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         ? getReportStatusTooltipTranslation({stateNum: reportHeaderData?.stateNum, statusNum: reportHeaderData?.statusNum, translate})
         : undefined;
     const isParentReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.parentReportID);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(
-        parentNavigationReport,
-        policy,
-        conciergeReportID,
-        getReportAttributeByID(reportAttributes, parentNavigationReport?.parentReportID)?.reportName,
-        isParentReportHeaderDataArchived,
-    );
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(parentNavigationReport, policy, conciergeReportID, derivedParentReportName, isParentReportHeaderDataArchived);
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(parentReportAction);
     const humanAgentName = getHumanAgentFirstName(parentReportAction, personalDetails);
     const reportDescription = StringUtils.lineBreaksToSpaces(Parser.htmlToText(getReportDescription(report)));

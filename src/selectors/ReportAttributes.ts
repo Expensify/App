@@ -30,11 +30,7 @@ const reportNamesByReportIDsSelector =
             return acc;
         }, {});
 
-function getReportAttributeByID(reportAttributes: OnyxEntry<ReportAttributesDerivedValue['reports']>, reportID: string | undefined): ReportAttributes | undefined {
-    return reportID ? reportAttributes?.[reportID] : undefined;
-}
-
 const reportNameSelector = (attributes: OnyxEntry<ReportAttributesDerivedValue>, reportID: string | undefined) => (reportID ? attributes?.reports?.[reportID]?.reportName : undefined);
 
-export {getReportAttributeByID, reportNameSelector, reportNamesByReportIDsSelector};
+export {reportNameSelector, reportNamesByReportIDsSelector};
 export default reportByIDsSelector;
