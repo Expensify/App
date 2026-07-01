@@ -1,6 +1,5 @@
 import React from 'react';
 import Button from '@components/ButtonComposed/Button';
-import ButtonDoubleLineText from '@components/ButtonComposed/primitives/ButtonDoubleLineText';
 import ButtonIcon from '@components/ButtonComposed/primitives/ButtonIcon';
 import ButtonKeyboardShortcut from '@components/ButtonComposed/primitives/ButtonKeyboardShortcut';
 import type {ButtonTextProps} from '@components/ButtonComposed/primitives/ButtonText';
@@ -56,7 +55,6 @@ function LinkButtonText({children, numberOfLines, style, hoverStyle}: ButtonText
  * Like `Button`, content is composed via children using the same primitives:
  *   - `LinkButton.Icon`
  *   - `LinkButton.Text`
- *   - `LinkButton.DoubleLineText`
  *   - `LinkButton.KeyboardShortcut`
  *
  * @example
@@ -85,7 +83,6 @@ function LinkButtonComponent({innerStyles = [], children, ...rest}: LinkButtonPr
 const LinkButton = Object.assign(LinkButtonComponent, {
     Icon: ButtonIcon,
     Text: LinkButtonText,
-    DoubleLineText: ButtonDoubleLineText,
     KeyboardShortcut: ButtonKeyboardShortcut,
 });
 

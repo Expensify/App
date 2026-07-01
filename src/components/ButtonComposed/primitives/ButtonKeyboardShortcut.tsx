@@ -3,6 +3,7 @@ import {useCallback, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import validateSubmitShortcut from '@components/Button/validateSubmitShortcut';
 import type {ButtonKeyboardShortcutProps} from '@components/ButtonComposed/types';
+import withNavigationFallback from '@components/withNavigationFallback';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import CONST from '@src/CONST';
@@ -59,4 +60,4 @@ function ButtonKeyboardShortcut({
     return null;
 }
 
-export default ButtonKeyboardShortcut;
+export default withNavigationFallback(ButtonKeyboardShortcut);

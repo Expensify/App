@@ -681,7 +681,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                 shouldAlwaysShowDropdownMenu
                 customText={translate('workspace.common.selected', {count: selectedEmployees.length})}
-                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                buttonSize={CONST.BUTTON_SIZE.MEDIUM}
                 onPress={() => null}
                 options={getBulkActionsButtonOptions()}
                 isSplitButton={false}

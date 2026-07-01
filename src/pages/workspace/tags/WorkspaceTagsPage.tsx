@@ -731,7 +731,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 onPress={() => null}
                 shouldAlwaysShowDropdownMenu
                 isSplitButton={false}
-                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                buttonSize={CONST.BUTTON_SIZE.MEDIUM}
                 customText={translate('workspace.common.selected', {count: selectedTagKeys.length})}
                 options={options}
                 style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}

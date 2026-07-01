@@ -133,7 +133,7 @@ function ExportWithDropdownMenu({
             options={dropdownOptions}
             style={[shouldUseNarrowLayout && styles.flexGrow1]}
             wrapperStyle={flattenedWrapperStyle}
-            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+            buttonSize={CONST.BUTTON_SIZE.MEDIUM}
             sentryLabel={sentryLabel}
         />
     );

@@ -131,7 +131,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
             }}
             pressOnEnter
             success={!!hasActiveScheduledCall}
-            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+            buttonSize={CONST.BUTTON_SIZE.MEDIUM}
             options={options}
             shouldUseOptionIcon
             isSplitButton={false}
