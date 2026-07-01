@@ -1072,19 +1072,19 @@ function getAllPolicyValues<T extends OnyxCollectionKey>(
 }
 
 function getAllPolicyValuesMap<T extends OnyxCollectionKey>(
-    {value: policyID, isNegated}: PolicyIDFilter,
+    policyID: PolicyIDFilter | undefined,
     key: T,
     policyData: OnyxCollection<OnyxCollectionValuesMapping[T]>,
 ): OnyxCollection<OnyxCollectionValuesMapping[T]> {
-    if (!policyData || !policyID) {
+    if (!policyData || !policyID || !policyID.value) {
         return {};
     }
 
-    if (isNegated) {
+    if (policyID.isNegated) {
         return Object.keys(policyData).reduce(
             (acc, curr) => {
                 const id = curr.replace(key, '');
-                if (!policyID.includes(id) && policyData[curr]) {
+                if (!policyID.value?.includes(id) && policyData[curr]) {
                     acc[curr] = policyData[curr];
                 }
                 return acc;
@@ -1093,7 +1093,7 @@ function getAllPolicyValuesMap<T extends OnyxCollectionKey>(
         );
     }
 
-    return policyID.reduce(
+    return policyID.value.reduce(
         (acc, curr) => {
             if (policyData?.[`${key}${curr}`]) {
                 acc[`${key}${curr}`] = policyData?.[`${key}${curr}`];

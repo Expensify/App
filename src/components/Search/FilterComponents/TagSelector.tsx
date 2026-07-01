@@ -14,29 +14,29 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import MultiSelect from './MultiSelect';
 
 type TagSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
-    policyID: PolicyIDFilter;
+    policyID: PolicyIDFilter | undefined;
 };
 
 function TagSelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: TagSelectorProps) {
     const {translate, localeCompare} = useLocalize();
     const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
 
-    const selectedPoliciesTagLists = Object.keys(allPolicyTagLists ?? {})
-        .filter((key) => {
-            const isSelected = policyID.value?.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`)?.includes(key);
-            return policyID.isNegated ? !isSelected : isSelected;
-        })
-        ?.map((key) => getTagNamesFromTagsLists(allPolicyTagLists?.[key] ?? {}))
-        .flat();
-
     const tagItems = [{text: translate('search.noTag'), value: CONST.SEARCH.TAG_EMPTY_VALUE as string}];
     const uniqueTagNames = new Set<string>();
-    if (!policyID.value?.length) {
+    if (!policyID?.value?.length) {
         const tagListsUnpacked = Object.values(allPolicyTagLists ?? {}).filter((item) => !!item);
         for (const tag of tagListsUnpacked.map(getTagNamesFromTagsLists).flat()) {
             uniqueTagNames.add(tag);
         }
-    } else if (selectedPoliciesTagLists.length > 0) {
+    } else {
+        const selectedPoliciesTagLists = Object.keys(allPolicyTagLists ?? {})
+            .filter((key) => {
+                const isSelected = policyID.value?.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`)?.includes(key);
+                return policyID.isNegated ? !isSelected : isSelected;
+            })
+            .map((key) => getTagNamesFromTagsLists(allPolicyTagLists?.[key] ?? {}))
+            .flat();
+
         for (const tag of selectedPoliciesTagLists) {
             uniqueTagNames.add(tag);
         }

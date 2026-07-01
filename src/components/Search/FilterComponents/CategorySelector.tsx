@@ -13,7 +13,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import MultiSelect from './MultiSelect';
 
 type CategorySelectorProps = SearchFilterCommonProps<string[] | undefined> & {
-    policyID: PolicyIDFilter;
+    policyID: PolicyIDFilter | undefined;
 };
 
 function CategorySelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: CategorySelectorProps) {
@@ -45,22 +45,23 @@ function CategorySelector({value = [], policyID, selectionListTextInputStyle, se
         },
         [availableNonPersonalPolicyCategoriesSelector],
     );
-    const selectedPoliciesCategories: PolicyCategory[] = Object.keys(allPolicyCategories ?? {})
-        .filter((key) => {
-            const isSelected = policyID.value?.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`)?.includes(key);
-            return policyID.isNegated ? !isSelected : isSelected;
-        })
-        .map((key) => Object.values(allPolicyCategories?.[key] ?? {}))
-        .flat();
 
     const categoryItems = [{text: translate('search.noCategory'), value: CONST.SEARCH.CATEGORY_EMPTY_VALUE as string}];
     const uniqueCategoryNames = new Set<string>();
-    if (!policyID.value?.length) {
+    if (!policyID?.value?.length) {
         const categories = Object.values(allPolicyCategories ?? {}).flatMap((policyCategories) => Object.values(policyCategories ?? {}));
         for (const category of categories) {
             uniqueCategoryNames.add(category.name);
         }
-    } else if (selectedPoliciesCategories.length > 0) {
+    } else {
+        const selectedPoliciesCategories: PolicyCategory[] = Object.keys(allPolicyCategories ?? {})
+            .filter((key) => {
+                const isSelected = policyID.value?.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`)?.includes(key);
+                return policyID.isNegated ? !isSelected : isSelected;
+            })
+            .map((key) => Object.values(allPolicyCategories?.[key] ?? {}))
+            .flat();
+
         for (const category of selectedPoliciesCategories) {
             uniqueCategoryNames.add(category.name);
         }

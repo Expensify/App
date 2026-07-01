@@ -141,7 +141,7 @@ function FilterComponents({filterKey, value, type, policyID, selectionListTextIn
             return (
                 <Component
                     value={typeof value === 'object' ? value : undefined}
-                    policyID={policyID ?? {value: undefined, isNegated: false}}
+                    policyID={policyID}
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
                     autoFocus={autoFocus}

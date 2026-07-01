@@ -22,7 +22,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import MultiSelect from './MultiSelect';
 
 type ExportedToSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
-    policyID: PolicyIDFilter;
+    policyID: PolicyIDFilter | undefined;
 };
 
 const STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL: Record<string, string> = {
@@ -91,7 +91,7 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
             });
 
         const usedPickerValueKeys = new Set(connectedIntegrationPickerItems.map((item) => item.value));
-        const policiesToLoadTemplatesFrom = policyID.value?.length ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies) : Object.values(policies ?? {});
+        const policiesToLoadTemplatesFrom = policyID?.value?.length ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies) : Object.values(policies ?? {});
         const exportTemplatesFromPolicies = policiesToLoadTemplatesFrom.flatMap((policy) => getExportTemplates([], {}, translate, policy, false));
         const exportTemplatesFromAccount = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, undefined, true);
         const allExportTemplates = [...exportTemplatesFromAccount, ...exportTemplatesFromPolicies];

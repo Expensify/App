@@ -2335,13 +2335,13 @@ function getValidConnectedIntegration(policy: Policy | undefined, connectionName
  * @param policies - Collection of policies to get connected integrations.
  * @param policyIDs - Policy IDs to filter by. When provided, only integrations from these policies are included.
  */
-function getConnectedIntegrationNamesForPolicies(policies: OnyxCollection<Policy> | undefined, policyID: PolicyIDFilter): Set<string> {
+function getConnectedIntegrationNamesForPolicies(policies: OnyxCollection<Policy> | undefined, policyID: PolicyIDFilter | undefined): Set<string> {
     if (!policies) {
         return new Set();
     }
 
     const connectedIntegrationNames = new Set<string>();
-    const hasWorkspaceFilter = !!policyID.value?.length;
+    const hasWorkspaceFilter = !!policyID?.value?.length;
     const policiesToCheck = hasWorkspaceFilter ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies) : Object.values(policies);
 
     for (const policy of policiesToCheck) {

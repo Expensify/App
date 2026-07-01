@@ -10,7 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import MultiSelect from './MultiSelect';
 
 type TaxRateSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
-    policyID: PolicyIDFilter;
+    policyID: PolicyIDFilter | undefined;
 };
 
 function TaxRateSelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: TaxRateSelectorProps) {

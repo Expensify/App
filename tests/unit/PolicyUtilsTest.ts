@@ -2634,11 +2634,11 @@ describe('PolicyUtils', () => {
 
     describe('getConnectedIntegrationNamesForPolicies', () => {
         it('returns empty Set when policies is undefined', () => {
-            expect(getConnectedIntegrationNamesForPolicies(undefined, {value: undefined, isNegated: false})).toEqual(new Set());
+            expect(getConnectedIntegrationNamesForPolicies(undefined, undefined)).toEqual(new Set());
         });
 
         it('returns empty Set when policies is empty object', () => {
-            expect(getConnectedIntegrationNamesForPolicies({}, {value: undefined, isNegated: false})).toEqual(new Set());
+            expect(getConnectedIntegrationNamesForPolicies({}, undefined)).toEqual(new Set());
         });
 
         it('returns Set with connection name when policy has verified connection', () => {
@@ -2653,7 +2653,7 @@ describe('PolicyUtils', () => {
             const policies: OnyxCollection<Policy> = {
                 [`${ONYXKEYS.COLLECTION.POLICY}1`]: policyWithXero,
             };
-            expect(getConnectedIntegrationNamesForPolicies(policies, {value: undefined, isNegated: false})).toEqual(new Set([CONST.POLICY.CONNECTIONS.NAME.XERO]));
+            expect(getConnectedIntegrationNamesForPolicies(policies, undefined)).toEqual(new Set([CONST.POLICY.CONNECTIONS.NAME.XERO]));
         });
 
         it('filters by policyIDs when provided', () => {
