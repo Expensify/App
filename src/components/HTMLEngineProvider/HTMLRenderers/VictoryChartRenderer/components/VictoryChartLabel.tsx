@@ -82,11 +82,11 @@ function VictoryChartLabel({
         },
         {lines: [] as ProcessedLine[], y},
     );
-    return processedLines.lines.map(({lineX, lineY, line, lineFont, lineColor, lineWidth}, index) => {
-        const angleRad = (angle * Math.PI) / 180;
-        const {ascent, descent} = getSkiaLineMetrics(lineFont);
 
-        if (angleRad === 0) {
+    const angleRad = (angle * Math.PI) / 180;
+
+    if (angleRad === 0) {
+        return processedLines.lines.map(({lineX, lineY, line, lineFont, lineColor, lineWidth}) => {
             const anchoredX = computeTextAnchorPosition(lineX, lineWidth, textAnchor);
             const anchoredY = computeTextAnchorPosition(lineY, processedLines.y - y, verticalAnchor);
 
@@ -100,33 +100,40 @@ function VictoryChartLabel({
                     color={lineColor}
                 />
             );
-        }
+        });
+    }
 
-        if (index > 0) {
-            return null;
-        }
+    const tickX = x + (textAnchor === 'end' && barWidth !== undefined ? barWidth / 2 : 0);
+    const labelY = y;
+    const correction = rotatedLabelCenterCorrection(
+        getSkiaLineMetrics(processedLines.lines.at(0)?.lineFont ?? null).ascent,
+        getSkiaLineMetrics(processedLines.lines.at(0)?.lineFont ?? null).descent,
+        angleRad,
+    );
 
-        const tickX = lineX + (textAnchor === 'end' && barWidth !== undefined ? barWidth / 2 : 0);
-        const labelY = y;
-        const correction = rotatedLabelCenterCorrection(ascent, descent, angleRad);
-        const textX = computeTextAnchorPosition(tickX, lineWidth, textAnchor);
+    return (
+        <Group
+            key={`rotated-text-${x}-${y}`}
+            origin={vec(tickX, labelY)}
+            transform={[{translateX: correction}, {rotate: -angleRad}]}
+        >
+            {processedLines.lines.map(({lineX, lineY, line, lineFont, lineColor, lineWidth}) => {
+                const {ascent} = getSkiaLineMetrics(lineFont);
+                const textX = computeTextAnchorPosition(tickX, lineWidth, textAnchor);
 
-        return (
-            <Group
-                key={`text-${lineX}-${lineY}`}
-                origin={vec(tickX, labelY)}
-                transform={[{translateX: correction}, {rotate: -angleRad}]}
-            >
-                <SkText
-                    x={textX}
-                    y={labelY - ascent}
-                    text={line}
-                    font={lineFont}
-                    color={lineColor}
-                />
-            </Group>
-        );
-    });
+                return (
+                    <SkText
+                        key={`rotated-line-${lineX}-${lineY}-${line}`}
+                        x={textX}
+                        y={lineY - ascent}
+                        text={line}
+                        font={lineFont}
+                        color={lineColor}
+                    />
+                );
+            })}
+        </Group>
+    );
 }
 
 export default VictoryChartLabel;

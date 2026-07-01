@@ -170,6 +170,7 @@ type ProcessNodeResult = {
     labelItems: LabelItem[];
     legendItems: LegendItem[];
     barWidth?: number;
+    barSeriesCount?: number;
 };
 
 /** Partial slice produced by a single per-tag parser before merging. */

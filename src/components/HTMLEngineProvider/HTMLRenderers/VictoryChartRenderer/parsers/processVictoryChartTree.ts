@@ -23,6 +23,7 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
     const labelItems: ProcessNodeResult['labelItems'] = [];
     const legendItems: ProcessNodeResult['legendItems'] = [];
     let barWidth: ProcessNodeResult['barWidth'];
+    let barSeriesCount = tnode.tagName === 'victorybar' ? 1 : 0;
 
     const parser = PARSER_REGISTRY[tnode.tagName ?? ''];
     if (parser) {
@@ -80,6 +81,7 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         labelItems,
         legendItems,
         barWidth,
+        barSeriesCount,
     };
 
     for (const child of tnode.children) {
@@ -112,6 +114,7 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         if (childResult.barWidth !== undefined) {
             barWidth = childResult.barWidth;
         }
+        barSeriesCount += childResult.barSeriesCount ?? 0;
     }
 
     const resolvedPadding = adjustHorizontalChartPadding({
@@ -128,6 +131,7 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         labelItems,
         legendItems,
         barWidth,
+        barSeriesCount,
     });
 
     return {
@@ -144,6 +148,7 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         labelItems,
         legendItems,
         barWidth,
+        barSeriesCount,
     };
 }
 

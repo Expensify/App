@@ -18,12 +18,14 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
     const isHorizontal = rootProcessedResult?.isHorizontal;
     const isDependentAxis = 'dependentaxis' in tnode.attributes && tnode.attributes.dependentaxis !== 'false';
     const orientation = parseAttributeAsString(tnode.attributes.orientation);
-    const tickCount = parseAttributeAsNumber(tnode.attributes.tickcount) ?? 0;
+    const tickCount = parseAttributeAsNumber(tnode.attributes.tickcount);
     const rawTickValues = parseAttributeAsNumberArray(tnode.attributes.tickvalues);
     const rawTickFormat = parseAttributeAsStringArray(tnode.attributes.tickformat);
     const tickFormat = Array.isArray(rawTickFormat) ? rawTickFormat : undefined;
     const hasExplicitTickValues = Array.isArray(rawTickValues) && rawTickValues.length > 0;
     const tickValues = hasExplicitTickValues ? rawTickValues : tickFormat?.map((_, index) => index);
+    const isCategoryAxis = !isDependentAxis;
+    const resolvedTickCount = tickCount ?? (isHorizontal && isCategoryAxis ? (tickValues?.length ?? 0) : 0);
 
     const formatLabel = (label: string | number) => {
         if (!tickFormat) {
@@ -57,7 +59,7 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
         return isHorizontal
             ? {
                   xAxis: {
-                      tickCount,
+                      tickCount: resolvedTickCount,
                       tickValues,
                       formatXLabel: formatLabel,
                       axisSide: orientation === 'right' ? 'top' : 'bottom',
@@ -71,7 +73,7 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
             : {
                   yAxis: [
                       {
-                          tickCount,
+                          tickCount: resolvedTickCount,
                           tickValues,
                           formatYLabel: formatLabel,
                           axisSide: orientation === 'right' ? 'right' : 'left',
@@ -88,7 +90,7 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
         ? {
               yAxis: [
                   {
-                      tickCount,
+                      tickCount: resolvedTickCount,
                       tickValues,
                       formatYLabel: formatLabel,
                       axisSide: orientation === 'top' ? 'right' : 'left',
@@ -102,7 +104,7 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
           }
         : {
               xAxis: {
-                  tickCount,
+                  tickCount: resolvedTickCount,
                   tickValues,
                   formatXLabel: formatLabel,
                   axisSide: orientation === 'top' ? 'top' : 'bottom',
