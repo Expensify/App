@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearTaxRateFieldError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
@@ -37,6 +38,7 @@ function WorkspaceEditTaxPage({
 }: WorkspaceEditTaxPageBaseProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const policyData = usePolicyData(policyID);
     const currentTaxID = getCurrentTaxID(policy, taxID);
     const currentTaxRate = currentTaxID && policy?.taxRates?.taxes?.[currentTaxID];
     const {showConfirmModal} = useConfirmModal();
@@ -71,7 +73,7 @@ function WorkspaceEditTaxPage({
         if (!policyID) {
             return;
         }
-        deletePolicyTaxes(policy, [taxID], localeCompare);
+        deletePolicyTaxes(policyData, [taxID], localeCompare);
         Navigation.goBack();
     };
 
