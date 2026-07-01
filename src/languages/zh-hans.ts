@@ -151,6 +151,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanning: '正在扫描',
         analyzing: '正在分析…',
         thinking: 'Concierge 正在思考...',
+        agentThinking: '正在思考...',
         addCardTermsOfService: 'Expensify 服务条款',
         perPerson: '每人',
         phone: '电话',
