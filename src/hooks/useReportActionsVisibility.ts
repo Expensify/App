@@ -1,11 +1,12 @@
 import {reportVisibleActionsSelector} from '@selectors/ReportAction';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import {isCreatedAction, isDeletedParentAction, isIOUActionMatchingTransactionList, isReportActionVisible} from '@libs/ReportActionsUtils';
+import {isCreatedAction, isCurrentUserPendingAddAction, isDeletedParentAction, isIOUActionMatchingTransactionList, isReportActionVisible} from '@libs/ReportActionsUtils';
 import {isConciergeChatReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 import useConciergeSidePanelReportActions from './useConciergeSidePanelReportActions';
+import useCurrentSessionUserActionIDs from './useCurrentSessionUserActionIDs';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsInSidePanel from './useIsInSidePanel';
 import useLocalize from './useLocalize';
@@ -71,9 +72,19 @@ function useReportActionsVisibility({
     const {sessionStartTime: sidePanelSessionStartTime} = useSidePanelState();
     const sessionStartTime = isConciergeSidePanel ? sidePanelSessionStartTime : (mainDMSessionStartTime ?? null);
 
+    // IDs of the current user's own messages captured while optimistic in this session. Retained after
+    // their pendingAction clears so a clock-skewed just-sent message keeps counting as current-session.
+    const currentSessionUserActionIDs = useCurrentSessionUserActionIDs(allReportActions, currentUserAccountID, sessionStartTime);
+
     const hasUserSentMessage =
         isConciergeHiddenHistory && sessionStartTime
-            ? allReportActions.some((action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created >= sessionStartTime)
+            ? allReportActions.some(
+                  (action) =>
+                      !isCreatedAction(action) &&
+                      (isCurrentUserPendingAddAction(action, currentUserAccountID) ||
+                          currentSessionUserActionIDs.has(action.reportActionID) ||
+                          (action.actorAccountID === currentUserAccountID && action.created >= sessionStartTime)),
+              )
             : false;
 
     const {transactions: reportTransactions, isLoaded: areTransactionsLoaded} = useTransactionsAndViolationsForReport(reportID);
@@ -111,6 +122,7 @@ function useReportActionsVisibility({
             hasOlderActions,
             sessionStartTime,
             currentUserAccountID,
+            currentSessionUserActionIDs,
             greetingText: translate('common.concierge.greeting'),
             loadOlderChats,
             isConciergeMainDM,

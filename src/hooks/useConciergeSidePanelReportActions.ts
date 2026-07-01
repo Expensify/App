@@ -1,7 +1,7 @@
 import {useCallback, useLayoutEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
-import {isCreatedAction} from '@libs/ReportActionsUtils';
+import {isCreatedAction, isCurrentUserPendingAddAction} from '@libs/ReportActionsUtils';
 import {buildConciergeGreetingReportAction} from '@libs/ReportUtils';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -14,6 +14,7 @@ type UseConciergeSidePanelReportActionsParams = {
     hasOlderActions: boolean;
     sessionStartTime: string | null;
     currentUserAccountID: number;
+    currentSessionUserActionIDs: Set<string>;
     greetingText: string;
     loadOlderChats: (force?: boolean) => void;
     isConciergeMainDM?: boolean;
@@ -32,6 +33,7 @@ function useConciergeSidePanelReportActions({
     hasOlderActions,
     sessionStartTime,
     currentUserAccountID,
+    currentSessionUserActionIDs,
     greetingText,
     loadOlderChats,
     isConciergeMainDM,
@@ -124,12 +126,16 @@ function useConciergeSidePanelReportActions({
             return undefined;
         }
         return reportActions.reduce<string | undefined>((earliest, action) => {
-            if (isCreatedAction(action) || action.created < sessionStartTime || action.actorAccountID !== currentUserAccountID) {
+            const isCurrentSessionUserMessage =
+                !isCreatedAction(action) &&
+                action.actorAccountID === currentUserAccountID &&
+                (isCurrentUserPendingAddAction(action, currentUserAccountID) || currentSessionUserActionIDs.has(action.reportActionID) || action.created >= sessionStartTime);
+            if (!isCurrentSessionUserMessage) {
                 return earliest;
             }
             return !earliest || action.created < earliest ? action.created : earliest;
         }, undefined);
-    }, [isConciergeMainDM, showConciergeSidePanelWelcome, isConciergeHiddenHistory, hasUserSentMessage, sessionStartTime, reportActions, currentUserAccountID]);
+    }, [isConciergeMainDM, showConciergeSidePanelWelcome, isConciergeHiddenHistory, hasUserSentMessage, sessionStartTime, reportActions, currentUserAccountID, currentSessionUserActionIDs]);
 
     const isCurrentSessionAction = useCallback(
         (action: OnyxTypes.ReportAction): boolean => {
@@ -137,14 +143,24 @@ function useConciergeSidePanelReportActions({
                 return false;
             }
             if (isConciergeMainDM) {
-                return isCreatedAction(action) || action.created >= sessionStartTime;
+                return (
+                    isCreatedAction(action) ||
+                    isCurrentUserPendingAddAction(action, currentUserAccountID) ||
+                    currentSessionUserActionIDs.has(action.reportActionID) ||
+                    action.created >= sessionStartTime
+                );
             }
             if (!firstUserMessageCreated) {
                 return false;
             }
-            return isCreatedAction(action) || (action.created >= sessionStartTime && action.created >= firstUserMessageCreated);
+            return (
+                isCreatedAction(action) ||
+                isCurrentUserPendingAddAction(action, currentUserAccountID) ||
+                currentSessionUserActionIDs.has(action.reportActionID) ||
+                (action.created >= sessionStartTime && action.created >= firstUserMessageCreated)
+            );
         },
-        [sessionStartTime, isConciergeMainDM, firstUserMessageCreated],
+        [sessionStartTime, isConciergeMainDM, firstUserMessageCreated, currentUserAccountID, currentSessionUserActionIDs],
     );
 
     const filterActions = useCallback(
