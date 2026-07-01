@@ -2,8 +2,10 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {TupleToUnion} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {BankName} from '@components/Icon/BankIconsUtils';
@@ -144,7 +146,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const illustrations = useMemoizedLazyIllustrations(['Workflows']);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Info', 'Plus']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Info', 'Plus', 'Table']);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply a correct padding style
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -287,6 +289,44 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
     }, [policy, route.params.policyID, availableMembers, usedApproverEmails, canAccessSubmit2026Features, navigateToSubmitWorkspaceApprovalsUpgrade]);
+
+    // Reuses the Members spreadsheet importer (it already maps the `submitsTo` / `approvesTo` columns) so approval
+    // workflows can be bulk-imported directly from the Workflows page.
+    const importWorkflowsAction = useCallback(() => {
+        if (isAccountLocked) {
+            showLockedAccountModal();
+            return;
+        }
+        if (isOffline) {
+            showConfirmModal({
+                title: translate('common.youAppearToBeOffline'),
+                prompt: translate('common.thisFeatureRequiresInternet'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+                shouldHandleNavigationBack: true,
+            });
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_IMPORT.getRoute(route.params.policyID));
+    }, [isAccountLocked, showLockedAccountModal, isOffline, showConfirmModal, translate, route.params.policyID]);
+
+    const approvalSecondaryActions = useMemo<Array<DropdownOption<ValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>>>(
+        () => [
+            {
+                icon: expensifyIcons.Plus,
+                text: translate('workflowsPage.addApprovalButton'),
+                onSelected: addApprovalAction,
+                value: CONST.POLICY.SECONDARY_ACTIONS.ADD_APPROVAL_WORKFLOW,
+            },
+            {
+                icon: expensifyIcons.Table,
+                text: translate('spreadsheet.importWorkflows'),
+                onSelected: importWorkflowsAction,
+                value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
+            },
+        ],
+        [expensifyIcons.Plus, expensifyIcons.Table, translate, addApprovalAction, importWorkflowsAction],
+    );
 
     const isHRAdvancedModeEnabled = isHRAdvancedMode(policy);
     const hrFinalApproverEmail = getHRFinalApprover(policy) ?? undefined;
@@ -488,6 +528,20 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 },
                 subMenuItems: (
                     <>
+                        {!shouldBlockApprovalWorkflowEditing && canWriteApprovals && (
+                            <View style={[styles.flexRow, styles.justifyContentEnd, styles.mt6, styles.mbn3]}>
+                                <ButtonWithDropdownMenu
+                                    success={false}
+                                    onPress={() => {}}
+                                    shouldAlwaysShowDropdownMenu
+                                    customText={translate('common.more')}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.MORE_DROPDOWN}
+                                    options={approvalSecondaryActions}
+                                    isSplitButton={false}
+                                    wrapperStyle={styles.flexGrow0}
+                                />
+                            </View>
+                        )}
                         {isDEWEnabled && (
                             <View style={[styles.border, shouldUseNarrowLayout ? styles.p3 : styles.p4, styles.mt6, styles.mbn3, styles.flexRow, styles.alignItemsCenter]}>
                                 <Icon
@@ -564,18 +618,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                             <WorkflowsLoadMoreCard
                                 count={hiddenWorkflowsCount}
                                 onPress={() => setIsWorkflowListExpanded(true)}
-                            />
-                        )}
-                        {!shouldBlockApprovalWorkflowEditing && canWriteApprovals && (
-                            <MenuItem
-                                title={translate('workflowsPage.addApprovalButton')}
-                                titleStyle={styles.textStrong}
-                                icon={expensifyIcons.Plus}
-                                iconHeight={20}
-                                iconWidth={20}
-                                style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                                onPress={addApprovalAction}
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.ADD_APPROVAL}
                             />
                         )}
                     </>
@@ -805,7 +847,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         searchFilteredWorkflows.length,
         displayedWorkflows,
         hiddenWorkflowsCount,
-        addApprovalAction,
+        approvalSecondaryActions,
         isOffline,
         isPolicyAdmin,
         displayNameForAuthorizedPayer,

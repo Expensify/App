@@ -3864,6 +3864,7 @@ const CONST = {
             SETTINGS: 'settings',
             EXPORT: 'export',
             SYNC_WITH_HR: 'syncWithHR',
+            ADD_APPROVAL_WORKFLOW: 'addApprovalWorkflow',
         },
         MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
@@ -8330,6 +8331,7 @@ const CONST = {
             WORKFLOWS: {
                 AUTO_REPORTING_FREQUENCY: 'WorkspaceWorkflows-AutoReportingFrequency',
                 ADD_APPROVAL: 'WorkspaceWorkflows-AddApproval',
+                MORE_DROPDOWN: 'WorkspaceWorkflows-MoreDropdown',
                 LOAD_MORE_APPROVALS: 'WorkspaceWorkflows-LoadMoreApprovals',
                 BANK_ACCOUNT: 'WorkspaceWorkflows-BankAccount',
                 ADD_BANK_ACCOUNT: 'WorkspaceWorkflows-AddBankAccount',

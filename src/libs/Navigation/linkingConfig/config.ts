@@ -926,6 +926,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBERS_IMPORT]: {
                             path: ROUTES.WORKSPACE_MEMBERS_IMPORT.route,
                         },
+                        [SCREENS.WORKSPACE.WORKFLOWS_IMPORT]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_IMPORT.route,
+                        },
                         [SCREENS.WORKSPACE.MEMBERS_IMPORTED]: {
                             path: ROUTES.WORKSPACE_MEMBERS_IMPORTED.route,
                         },
