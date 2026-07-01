@@ -9,6 +9,7 @@ import type {OnyxUpdateManagerUtilsMock} from '@userActions/OnyxUpdateManager/ut
 import type {ApplyUpdatesMock} from '@userActions/OnyxUpdateManager/utils/__mocks__/applyUpdates';
 import * as ApplyUpdatesImport from '@userActions/OnyxUpdateManager/utils/applyUpdates';
 import * as OnyxUpdatesImport from '@userActions/OnyxUpdates';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import OnyxUpdateMockUtils from '../utils/OnyxUpdateMockUtils';
@@ -486,6 +487,36 @@ describe('OnyxUpdateManager', () => {
 
             reconnectSpy.mockRestore();
         });
+    });
+
+    it('should stop re-fetching missing updates once GetMissingOnyxMessages stops advancing the client', async () => {
+        // Simulate a server that keeps reporting a gap it never closes: the fetched update has a
+        // previousUpdateID ahead of the client, so it is saved but never applied and the client stays at 1.
+        App.mockValues.missingOnyxUpdatesToBeApplied = [OnyxUpdateMockUtils.createUpdate(3, [], 5)];
+
+        // Fire the same gap update repeatedly and sequentially (each cycle settles before the next), like the prod loop.
+        for (let i = 0; i < CONST.MAX_CONSECUTIVE_STALLED_GAP_FETCHES; i++) {
+            OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+            await OnyxUpdateManager.queryPromise;
+        }
+
+        const callsAtThreshold = App.getMissingOnyxUpdates.mock.calls.length;
+        expect(callsAtThreshold).toBeGreaterThan(0);
+
+        // Once the client has stalled for MAX_CONSECUTIVE_STALLED_GAP_FETCHES cycles, further identical
+        // cycles must back off and fire no more fetches.
+        for (let i = 0; i < 3; i++) {
+            OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+            await OnyxUpdateManager.queryPromise;
+        }
+        expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(callsAtThreshold);
+
+        // When the client finally advances, the guard resets and a fresh gap is fetched again.
+        await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 5);
+        await waitForBatchedUpdates();
+        OnyxUpdateManager.handleMissingOnyxUpdates(update7);
+        await OnyxUpdateManager.queryPromise;
+        expect(App.getMissingOnyxUpdates.mock.calls.length).toBeGreaterThan(callsAtThreshold);
     });
 
     it('should apply deferred updates after fetching pending updates', () => {
