@@ -22,6 +22,7 @@ import {
     isExpenseReport,
     isIndividualInvoiceRoom,
     isInvoiceReport as isInvoiceReportReportUtils,
+    isIOUReport,
     updateReportPreview,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -518,6 +519,85 @@ function getPayMoneyRequestParams({
     };
 }
 
+/**
+ * Cancels a P2P "send money" wallet payment that is waiting for the receiver to set up their wallet. The
+ * sender (payer) can do this while the payment is held; it returns the held funds. These reports have no
+ * policy, approval flow, or next step, so we only reverse the optimistic IOU report state.
+ */
+function cancelSendMoneyPayment(iouReport: OnyxTypes.Report, chatReport: OnyxTypes.Report, currentUserAccountIDParam: number) {
+    const optimisticIOUCancelAction = buildOptimisticCancelPaymentReportAction(iouReport.reportID, -(iouReport.total ?? 0), iouReport.currency ?? '', currentUserAccountIDParam);
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+            value: {
+                [optimisticIOUCancelAction.reportActionID]: optimisticIOUCancelAction as OnyxTypes.ReportAction,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                isWaitingOnBankAccount: false,
+                isCancelledIOU: true,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                lastVisibleActionCreated: optimisticIOUCancelAction.created,
+                lastMessageText: getReportActionText(optimisticIOUCancelAction),
+                lastMessageHtml: getReportActionHtml(optimisticIOUCancelAction),
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+            value: {
+                [optimisticIOUCancelAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+            value: {
+                [optimisticIOUCancelAction.reportActionID]: {
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                isWaitingOnBankAccount: iouReport.isWaitingOnBankAccount,
+                isCancelledIOU: false,
+                stateNum: iouReport.stateNum,
+                statusNum: iouReport.statusNum,
+            },
+        },
+    ];
+
+    API.write(
+        WRITE_COMMANDS.CANCEL_PAYMENT,
+        {
+            iouReportID: iouReport.reportID,
+            chatReportID: chatReport.reportID,
+            managerAccountID: iouReport.managerID ?? CONST.DEFAULT_NUMBER_ID,
+            reportActionID: optimisticIOUCancelAction.reportActionID,
+        },
+        {optimisticData, successData, failureData},
+    );
+
+    notifyNewAction(iouReport.reportID, undefined, true);
+}
+
 function cancelPayment(
     expenseReport: OnyxEntry<OnyxTypes.Report>,
     chatReport: OnyxTypes.Report,
@@ -528,6 +608,15 @@ function cancelPayment(
     hasViolations: boolean,
 ) {
     if (isEmptyObject(expenseReport)) {
+        return;
+    }
+
+    // A P2P "send money" payment waiting for the receiver to set up their wallet has no policy, approval
+    // flow, or next step, so it is cancelled through a simplified path that just reverses the optimistic IOU
+    // report state and lets the backend return the held funds. Other IOU reports (e.g. a money request paid
+    // elsewhere) keep using the standard path below.
+    if (isIOUReport(expenseReport) && expenseReport.isWaitingOnBankAccount) {
+        cancelSendMoneyPayment(expenseReport, chatReport, currentUserAccountIDParam);
         return;
     }
 

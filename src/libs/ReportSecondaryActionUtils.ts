@@ -386,6 +386,23 @@ function isUnapproveAction(currentUserLogin: string, currentUserAccountID: numbe
     return isReportApprover;
 }
 
+// Pay actions are at the report level, not per transaction.
+function getReportPayActions(reportID: string): ReportAction[] {
+    return Object.values(getAllReportActions(reportID)).filter((action): action is ReportAction => !!action && isPayAction(action));
+}
+
+// Whether every pay action on the report has a payment type the predicate accepts. Returns false when there are
+// no pay actions, since the payment type cannot be determined.
+function everyPayActionHasPaymentType(payActions: ReportAction[], matchesPaymentType: (paymentType: string | undefined) => boolean): boolean {
+    return (
+        payActions.length > 0 &&
+        payActions.every((action) => {
+            const originalMessage = getOriginalMessage(action);
+            return !!originalMessage && 'paymentType' in originalMessage && matchesPaymentType(originalMessage.paymentType);
+        })
+    );
+}
+
 function isCancelPaymentAction(
     currentAccountID: number,
     currentUserEmail: string,
@@ -395,32 +412,36 @@ function isCancelPaymentAction(
     policy?: Policy,
 ): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
+    const isIOUReport = isIOUReportUtils(report);
 
-    if (!isExpenseReport) {
+    if (!isExpenseReport && !isIOUReport) {
         return false;
     }
 
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isPayer = isPayerUtils(currentAccountID, currentUserEmail, report, bankAccountList, policy, false);
+
+    // A P2P "send money" payment made with the Expensify wallet that is waiting for the receiver to set up their
+    // wallet is held until they onboard. The sender (payer) can cancel it while it is waiting, which returns the
+    // held funds.
+    if (isIOUReport) {
+        if (!isPayer || !report.isWaitingOnBankAccount) {
+            return false;
+        }
+
+        const payActions = getReportPayActions(report.reportID);
+        return everyPayActionHasPaymentType(payActions, (paymentType) => paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
+    }
+
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     if (!isAdmin || !isPayer) {
         return false;
     }
 
-    // Get all report actions for this report and filter for pay actions
-    // Pay actions are at the report level, not per transaction
-    const allReportActions = getAllReportActions(report.reportID);
-    const allActionsArray = Object.values(allReportActions);
-    const payActions = allActionsArray.filter((action): action is ReportAction => !!action && isPayAction(action));
+    const payActions = getReportPayActions(report.reportID);
 
     // Check if payment was made via bank account (not elsewhere)
-    // If no pay actions exist, we can't determine the payment type, so we assume it was NOT a bank payment
-    const isPaidViaBankAccount =
-        payActions.length > 0 &&
-        payActions.every((action) => {
-            const originalMessage = getOriginalMessage(action);
-            return originalMessage && 'paymentType' in originalMessage && originalMessage.paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
-        });
+    const isPaidViaBankAccount = everyPayActionHasPaymentType(payActions, (paymentType) => paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
 
     // For reports marked as paid elsewhere or when we can't determine payment type, show cancel button
     if (report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED && !isPaidViaBankAccount) {
