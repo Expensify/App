@@ -18,6 +18,7 @@ import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfter
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat, getReportOrDraftReport, isMoneyRequestReport as isMoneyRequestReportReportUtils, isSelfDM} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
@@ -251,7 +252,7 @@ function handleMoneyRequestStepDistanceNavigation({
             const {amount, merchant} = buildDistanceAmountAndMerchant({isManualDistance, distance, unit, transaction, policy, translate});
             setMoneyRequestMerchant(transactionID, merchant, false);
             const distanceDefaultTaxCode = getDefaultTaxCode(policy, transaction);
-            const distanceTaxCode = (transaction?.taxCode ? transaction.taxCode : distanceDefaultTaxCode) ?? '';
+            const distanceTaxCode = resolveCurrentTaxCode(policy, (transaction?.taxCode ? transaction.taxCode : distanceDefaultTaxCode) ?? '');
             const distanceTaxAmount = transaction?.taxAmount ?? 0;
             const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
             const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;

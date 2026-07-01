@@ -10,6 +10,7 @@ import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
@@ -590,7 +591,21 @@ function getSendInvoiceInformation({
     senderPolicyTags,
     delegateAccountID,
 }: SendInvoiceOptions): SendInvoiceInformation {
-    const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, taxValue, billable, comment, participants} = transaction ?? {};
+    const {
+        amount = 0,
+        currency = '',
+        created = '',
+        merchant = '',
+        category = '',
+        tag = '',
+        taxCode: transactionTaxCode = '',
+        taxAmount = 0,
+        taxValue,
+        billable,
+        comment,
+        participants,
+    } = transaction ?? {};
+    const taxCode = resolveCurrentTaxCode(policy, transactionTaxCode);
     const trimmedComment = (comment?.comment ?? '').trim();
     const senderWorkspaceID = participants?.find((participant) => participant?.isSender)?.policyID;
     const receiverParticipant: Participant | InvoiceReceiver | undefined =

@@ -17,6 +17,7 @@ import Permissions from '@libs/Permissions';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {
     arePolicyRulesEnabled,
+    getCurrentTaxID,
     getDistanceRateCustomUnitRate,
     getMatchingVendorByID,
     getPerDiemRateCustomUnitRate,
@@ -356,7 +357,8 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
             if (!taxCode || !policyTaxRates) {
                 return !taxCode;
             }
-            const matchingTaxRate = policyTaxRates[taxCode];
+            const currentTaxCode = getCurrentTaxID({taxRates: {taxes: policyTaxRates}}, taxCode) ?? taxCode;
+            const matchingTaxRate = policyTaxRates[currentTaxCode];
             if (!matchingTaxRate) {
                 return false;
             }
@@ -632,7 +634,7 @@ const ViolationsUtils = {
         const isPerDiemRequest = TransactionUtils.isPerDiemRequest(updatedTransaction);
         const isTimeRequest = TransactionUtils.isTimeRequest(updatedTransaction);
         const isPolicyTrackTaxEnabled = isTaxTrackingEnabled(true, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
-        const isTaxInPolicy = Object.keys(policy.taxRates?.taxes ?? {}).some((key) => key === updatedTransaction.taxCode);
+        const isTaxInPolicy = !!updatedTransaction.taxCode && !!getCurrentTaxID(policy, updatedTransaction.taxCode);
 
         const amount = hasValidModifiedAmount(updatedTransaction) ? Number(updatedTransaction.modifiedAmount) : updatedTransaction.amount;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
