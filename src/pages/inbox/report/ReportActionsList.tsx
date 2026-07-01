@@ -254,8 +254,9 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         flushPendingScrollToBottom,
         shouldBeAlignedToTop,
         shouldFocusToTopOnMount,
-        initialScrollKey,
-        shouldAutoscrollToBottom,
+        initialScrollIndex,
+        initialScrollIndexParams,
+        maintainVisibleContentPosition,
         onLoad,
     } = useReportActionsScroll({
         reportID,
@@ -263,6 +264,9 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         transactionThreadReport,
         parentReportAction,
         sortedVisibleReportActions,
+        renderedVisibleReportActions,
+        keyExtractor,
+        hasScrolledOverThreshold,
         markNewestActionAsRead,
         completeSkippedMarkAsRead,
         unreadMarkerReportActionID,
@@ -300,8 +304,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         });
     };
 
-    const shouldMaintainVisibleContentPosition = hasScrolledOverThreshold || shouldFocusToTopOnMount;
-
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.
      * This is so that it will not be conflicting with header's separator line.
@@ -331,22 +333,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report);
     }, [parentReportAction, renderedVisibleReportActions, report]);
 
-    // Precompute a reportActionID -> index map so renderItem can resolve the real index in O(1)
-    // instead of scanning renderedVisibleReportActions with indexOf on every render.
-    const actionIndexMap = useMemo(() => {
-        const map = new Map<string, number>();
-        for (const [i, action] of renderedVisibleReportActions.entries()) {
-            map.set(action.reportActionID, i);
-        }
-        return map;
-    }, [renderedVisibleReportActions]);
-
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
-            // Use the action's actual index in sortedVisibleReportActions rather than the FlashList-provided index,
-            // because useFlashListScrollKey may slice the data for deep-link scroll positioning, making the
-            // FlashList index offset from the full array and causing wrong displayAsGroup computation.
-            const safeIndex = actionIndexMap.get(reportAction.reportActionID) ?? index;
             const shouldDisableContextMenuForConciergeDraft = draftReportActionID === reportAction.reportActionID;
 
             return (
@@ -360,8 +348,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                         chatReport={chatReportStable}
                         linkedReportActionID={linkedReportActionID}
                         displayAsGroup={
-                            !isConsecutiveChronosAutomaticTimerAction(renderedVisibleReportActions, safeIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
-                            isConsecutiveActionMadeByPreviousActor(renderedVisibleReportActions, safeIndex, isOffline)
+                            !isConsecutiveChronosAutomaticTimerAction(renderedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
+                            isConsecutiveActionMadeByPreviousActor(renderedVisibleReportActions, index, isOffline)
                         }
                         shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                         shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
@@ -384,7 +372,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
             );
         },
         [
-            actionIndexMap,
             draftReportActionID,
             firstVisibleReportActionID,
             hasPreviousMessages,
@@ -508,14 +495,10 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                         contentOffset: shouldFocusToTopOnMount ? {x: 0, y: windowHeight} : undefined,
                     }}
                     getItemType={(item) => item.actionName}
-                    shouldMaintainVisibleContentPosition={shouldMaintainVisibleContentPosition}
-                    initialScrollIndex={shouldFocusToTopOnMount ? renderedVisibleReportActions.length - 1 : undefined}
-                    initialScrollIndexParams={shouldFocusToTopOnMount ? {viewOffset: windowHeight} : undefined}
-                    maintainVisibleContentPosition={
-                        shouldAutoscrollToBottom ? {autoscrollToBottomThreshold: CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD, animateAutoScrollToBottom: false} : undefined
-                    }
+                    initialScrollIndex={initialScrollIndex}
+                    initialScrollIndexParams={initialScrollIndexParams}
+                    maintainVisibleContentPosition={maintainVisibleContentPosition}
                     onLoad={onLoad}
-                    initialScrollKey={initialScrollKey}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);
                     }}
