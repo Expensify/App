@@ -98,6 +98,12 @@ const ONYXKEYS = {
     /** Odometer draft stored for the Save for later flow */
     ODOMETER_DRAFT: 'odometerDraft',
 
+    /** Input image handed to the avatar crop screen */
+    AVATAR_CROP_DRAFT: 'avatarCropDraft',
+
+    /** Cropped image the avatar crop screen writes back for its opener */
+    AVATAR_CROP_RESULT: 'avatarCropResult',
+
     /** Contains all the info for Tasks */
     TASK: 'task',
 
@@ -1443,6 +1449,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_GPS_IN_PROGRESS_MODAL_OPEN]: boolean;
     [ONYXKEYS.GPS_DRAFT_DETAILS]: OnyxTypes.GpsDraftDetails;
     [ONYXKEYS.ODOMETER_DRAFT]: OnyxTypes.OdometerDraft;
+    [ONYXKEYS.AVATAR_CROP_DRAFT]: OnyxTypes.AvatarCropDraft;
+    [ONYXKEYS.AVATAR_CROP_RESULT]: OnyxTypes.AvatarCropResult;
     [ONYXKEYS.FULLSCREEN_VISIBILITY]: boolean;
     [ONYXKEYS.NETWORK]: OnyxTypes.Network;
     [ONYXKEYS.NEW_GROUP_CHAT_DRAFT]: OnyxTypes.NewGroupChatDraft;
