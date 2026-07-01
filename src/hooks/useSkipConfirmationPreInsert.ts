@@ -41,10 +41,10 @@ function useSkipConfirmationPreInsert(shouldSkipConfirmation: boolean, reportID:
                 clearTimeout(timerRef.current);
                 timerRef.current = null;
             }
-            if (!Navigation.getIsFullscreenPreInsertedUnderRHP()) {
-                return;
+            if (Navigation.getIsFullscreenPreInsertedUnderRHP()) {
+                Navigation.removePreInsertedFullscreenIfNeeded();
             }
-            Navigation.removePreInsertedFullscreenIfNeeded();
+            hasPreInsertedReport.current = false;
         };
     }, [shouldSkipConfirmation, reportID]);
 }
