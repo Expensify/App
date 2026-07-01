@@ -25,7 +25,7 @@ const CREATED_ACTION_ID = 'created-action-333';
 const REPORT_PREVIEW_ACTION_ID = 'preview-action-444';
 const THREAD_REPORT_ID = 'thread-555';
 
-/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */ 
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 
 function buildMockIouAction(iouReportID: string): OptimisticIOUReportAction {
     return {
