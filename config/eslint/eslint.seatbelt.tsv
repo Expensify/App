@@ -1487,7 +1487,6 @@
 "../../tests/actions/BankAccountsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/actions/DomainTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	20
 "../../tests/actions/EnforceActionExportRestrictions.ts"	"no-restricted-imports"	1
-"../../tests/actions/IOU/BuildOnyxDataForMoneyRequestTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	17
 "../../tests/actions/IOU/CreateDraftTransactionTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/IOU/GetMoneyRequestInformationTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/actions/IOU/MoneyRequestBuilderTest.ts"	"no-restricted-imports"	1
