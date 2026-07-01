@@ -32,12 +32,6 @@ const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze({});
 // Shared immutable map used in hot paths that only read from the instance.
 const EMPTY_MAP = new Map<string, string>();
-const EMPTY_TODOS_REPORT_COUNTS = Object.freeze({
-    submit: 0,
-    approve: 0,
-    pay: 0,
-    export: 0,
-});
 
 // Using 28 days to align with OldDot and because all months are guaranteed to be at least 28 days.
 const MONTH_DAYS = Object.freeze([...Array(28).keys()].map((i) => i + 1));
@@ -268,9 +262,9 @@ const CONST = {
     POPOVER_DROPDOWN_WIDTH: 334,
     POPOVER_DROPDOWN_MIN_HEIGHT: 0,
     POPOVER_DROPDOWN_MAX_HEIGHT: 416,
+    POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT: 416,
     POPOVER_MENU_MAX_HEIGHT: 496,
     POPOVER_MENU_MAX_HEIGHT_MOBILE: 432,
-    MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD: 8,
     POPOVER_DATE_WIDTH: 338,
     POPOVER_DATE_RANGE_WIDTH: 672,
     POPOVER_DATE_MAX_HEIGHT: 366,
@@ -1242,7 +1236,6 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     EMPTY_MAP,
-    EMPTY_TODOS_REPORT_COUNTS,
     DEFAULT_NUMBER_ID,
     DEFAULT_MISSING_ID,
     DEFAULT_COUNTRY_CODE,
@@ -1320,7 +1313,7 @@ const CONST = {
     COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/Import-Company-Card-Transactions-From-a-Spreadsheet',
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#formulas',
     CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules',
-    CONFIGURE_APPROVAL_WORKFLOWS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Configure-approval-workflows',
+    CONFIGURE_APPROVAL_WORKFLOWS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Add-Approvals#configure-approval-workflows',
     SELECT_WORKFLOWS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Add-or-Act-As-a-Copilot',
     CUSTOM_AGENTS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/ai-agents/Create-and-Use-Custom-Agents',
@@ -1751,7 +1744,6 @@ const CONST = {
             THREAD_DISABLED: ['CREATED'],
             LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD: 2000,
             ACTION_VISIBLE_THRESHOLD: 250,
-            LINKED_MESSAGE_OFFSET: 40,
             MAX_GROUPING_TIME: 300000,
         },
         CANCEL_PAYMENT_REASONS: {
@@ -1952,6 +1944,10 @@ const CONST = {
         MAX_LINES_LANDSCAPE_MODE: 2,
         // The minimum height needed to enable the full screen composer
         FULL_COMPOSER_MIN_HEIGHT: 60,
+        // Max number of animation frames to wait for the composer's clearWorklet ref to re-attach before giving up.
+        // The composer lives on an RNSScreen that react-native-screens freezes while another screen (e.g. the
+        // attachment preview) is on top, so its imperative handle can be briefly missing right after navigating back.
+        CLEAR_WORKLET_MAX_RETRIES: 60,
         /**
          * TestIDs for the main report composer vs inline message editor (E2E / integration tests only).
          * See tests/ui/ReportActionMessageEditLayoutTest.tsx
@@ -2360,6 +2356,9 @@ const CONST = {
         BAD_GATEWAY: 502,
         GATEWAY_TIMEOUT: 504,
         UNKNOWN_ERROR: 520,
+    },
+    HTTP_HEADER_NAMES: {
+        AUTH_TOKEN: 'authToken',
     },
     ERROR: {
         XHR_FAILED: 'xhrFailed',
@@ -4702,6 +4701,7 @@ const CONST = {
             BLOCK: 'block',
         },
         NOUN: {
+            CURRENCY: 'currency',
             MERCHANT: 'merchant',
             SPEND_CATEGORY: 'spendCategory',
         },
@@ -5860,6 +5860,10 @@ const CONST = {
         // Fake history entry used to keep browser Back behavior correct after revealing a route under an RHP.
         // addRootHistoryRouterExtension owns when this is added, carried forward, and removed.
         CUSTOM_HISTORY_ENTRY_REVEAL_PADDING: 'CUSTOM_HISTORY-REVEAL_PADDING',
+        // Prefix for the back-guard history entry pushed by a `shouldHandleNavigationBack` Modal. Each
+        // modal instance appends `${CUSTOM_HISTORY_ENTRY_MODAL}:${modalId}` to the root state.history so
+        // browser Back closes the modal; the per-instance tag lets nested modals close one at a time.
+        CUSTOM_HISTORY_ENTRY_MODAL: 'CUSTOM_HISTORY-MODAL',
         ACTION_TYPE: {
             REPLACE: 'REPLACE',
             PUSH: 'PUSH',
@@ -5875,12 +5879,11 @@ const CONST = {
             DISMISS_MODAL: 'DISMISS_MODAL',
             REPLACE_FULLSCREEN_UNDER_RHP: 'REPLACE_FULLSCREEN_UNDER_RHP',
             REMOVE_FULLSCREEN_UNDER_RHP: 'REMOVE_FULLSCREEN_UNDER_RHP',
-            OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
-            OPEN_DOMAIN_SPLIT: 'OPEN_DOMAIN_SPLIT',
             PUSH_PARAMS: 'PUSH_PARAMS',
             REPLACE_PARAMS: 'REPLACE_PARAMS',
             TOGGLE_SIDE_PANEL_WITH_HISTORY: 'TOGGLE_SIDE_PANEL_WITH_HISTORY',
             TOGGLE_MFA_MODAL_NAVIGATOR_WITH_HISTORY: 'TOGGLE_MFA_MODAL_NAVIGATOR_WITH_HISTORY',
+            TOGGLE_MODAL_WITH_HISTORY: 'TOGGLE_MODAL_WITH_HISTORY',
         },
     },
     TIME_PERIOD: {
@@ -5923,18 +5926,11 @@ const CONST = {
     DOT_INDICATOR_TEST_ID: 'DotIndicator',
     ANIMATED_COLLAPSIBLE_CONTENT_TEST_ID: 'animated-collapsible-content',
 
-    CHAT_HEADER_LOADER_HEIGHT: 36,
-
     HORIZONTAL_SPACER: {
         DEFAULT_BORDER_BOTTOM_WIDTH: 1,
         DEFAULT_MARGIN_VERTICAL: 8,
         HIDDEN_MARGIN_VERTICAL: 4,
         HIDDEN_BORDER_BOTTOM_WIDTH: 0,
-    },
-
-    LIST_COMPONENTS: {
-        HEADER: 'header',
-        FOOTER: 'footer',
     },
 
     MISSING_TRANSLATION: 'MISSING TRANSLATION',
@@ -6495,6 +6491,9 @@ const CONST = {
                 EXPORTED_TO: {column: this.TABLE_COLUMNS.EXPORTED_TO, search: true, reportView: false},
                 ACTION: {column: this.TABLE_COLUMNS.ACTION, search: true, reportView: false},
                 WITHDRAWAL_ID: {column: this.TABLE_COLUMNS.WITHDRAWAL_ID, search: true, reportView: true},
+                SUBMITTER_USER_ID: {column: this.TABLE_COLUMNS.SUBMITTER_USER_ID, search: true, reportView: true},
+                SUBMITTER_PAYROLL_ID: {column: this.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID, search: true, reportView: true},
+                ORDER_DEAL_NUMBERS: {column: this.TABLE_COLUMNS.ORDER_DEAL_NUMBERS, search: true, reportView: true},
             };
         },
         get TYPE_CUSTOM_COLUMNS() {
@@ -6521,6 +6520,9 @@ const CONST = {
                     REPORT_ID: this.TABLE_COLUMNS.REPORT_ID,
                     BASE_62_REPORT_ID: this.TABLE_COLUMNS.BASE_62_REPORT_ID,
                     AMOUNT: this.TABLE_COLUMNS.TOTAL,
+                    SUBMITTER_USER_ID: this.TABLE_COLUMNS.SUBMITTER_USER_ID,
+                    SUBMITTER_PAYROLL_ID: this.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
+                    ORDER_DEAL_NUMBERS: this.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
                     EXPORTED_ICON: this.TABLE_COLUMNS.EXPORTED_TO,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
@@ -6728,6 +6730,9 @@ const CONST = {
             TAX_CODE: 'taxCode',
             CATEGORY_GL_CODE: 'categoryGLCode',
             WITHDRAWAL_ID: 'withdrawalID',
+            SUBMITTER_USER_ID: 'submitterUserID',
+            SUBMITTER_PAYROLL_ID: 'submitterPayrollID',
+            ORDER_DEAL_NUMBERS: 'orderDealNumbers',
             AVATAR: 'avatar',
             STATUS: 'status',
             EXPENSES: 'expenses',
@@ -6805,6 +6810,7 @@ const CONST = {
             TAX_RATE: 'taxRate',
             CARD_ID: 'cardID',
             FEED: 'feed',
+            BANK_ACCOUNT: 'bankAccount',
             REPORT_ID: 'reportID',
             KEYWORD: 'keyword',
             IN: 'in',
@@ -6881,6 +6887,7 @@ const CONST = {
             TAX_RATE: 'tax-rate',
             CARD_ID: 'card',
             FEED: 'feed',
+            BANK_ACCOUNT: 'bank-account',
             REPORT_ID: 'report-id',
             KEYWORD: 'keyword',
             IN: 'in',
@@ -6982,12 +6989,6 @@ const CONST = {
         },
         get CUSTOM_DATE_MODIFIERS() {
             return [this.DATE_MODIFIERS.ON, this.DATE_MODIFIERS.BEFORE, this.DATE_MODIFIERS.AFTER] as const;
-        },
-        DATE_FILTER_SUB_PAGE: {
-            ON: 'on',
-            AFTER: 'after',
-            BEFORE: 'before',
-            RANGE: 'range',
         },
         AMOUNT_MODIFIERS: {
             LESS_THAN: 'LessThan',
@@ -7927,12 +7928,14 @@ const CONST = {
             SORTABLE_HEADER: 'Search-SortableHeader',
             UNREPORTED_EXPENSE_LIST_ITEM: 'UnreportedExpenseListItem',
         },
+        EXPENSE_RULES: {
+            TABLE_ROW: 'ExpenseRules-TableRow',
+        },
         TABLE: {
             EDITABLE_CELL: 'Table-EditableCell',
         },
         REPORT: {
             FLOATING_MESSAGE_COUNTER: 'Report-FloatingMessageCounter',
-            LIST_BOUNDARY_LOADER_RETRY: 'Report-ListBoundaryLoaderRetry',
             SEND_BUTTON: 'Report-SendButton',
             ATTACHMENT_PICKER_CREATE_BUTTON: 'Report-AttachmentPickerCreateButton',
             ATTACHMENT_PICKER_EXPAND_BUTTON: 'Report-AttachmentPickerExpandButton',
@@ -7995,6 +7998,7 @@ const CONST = {
             FLAG_AS_OFFENSIVE: 'ContextMenu-FlagAsOffensive',
             DOWNLOAD: 'ContextMenu-Download',
             COPY_ONYX_DATA: 'ContextMenu-CopyOnyxData',
+            COPY_AGENT_ZERO_REQUEST_ID: 'ContextMenu-CopyAgentZeroRequestID',
             DEBUG: 'ContextMenu-Debug',
             DELETE: 'ContextMenu-Delete',
             MENU: 'ContextMenu-Menu',
@@ -8369,6 +8373,7 @@ const CONST = {
                 CHOOSE_SPEND_RULE: 'WorkspaceExpensifyCard-ChooseSpendRule',
             },
             PER_DIEM: {
+                ROW: 'WorkspacePerDiem-Row',
                 MORE_DROPDOWN: 'WorkspacePerDiem-MoreDropdown',
                 BULK_ACTIONS_DROPDOWN: 'WorkspacePerDiem-BulkActionsDropdown',
             },

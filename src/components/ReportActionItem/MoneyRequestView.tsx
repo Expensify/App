@@ -201,6 +201,7 @@ function MoneyRequestView({
     const {getReportRHPActiveRoute} = useActiveRoute();
     const {showConfirmModal} = useConfirmModal();
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
+    const [loginToAccountIDMap] = useOnyx(ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP);
 
     const {currentSearchResults} = useSearchResultsContext();
     const reportAttributes = useReportAttributes();
@@ -317,7 +318,7 @@ function MoneyRequestView({
     const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
 
     const rawActualAttendees = isFromMergeTransaction && updatedTransaction ? updatedTransaction.comment?.attendees : transactionAttendees;
-    const actualAttendees = enrichAndSortAttendees(rawActualAttendees, personalDetailsList, localeCompare);
+    const actualAttendees = enrichAndSortAttendees(rawActualAttendees, loginToAccountIDMap, personalDetailsList, localeCompare);
 
     // Use the updated transaction amount in merge flow to have correct positive/negative sign
     const actualAmount = isFromMergeTransaction && updatedTransaction ? updatedTransaction.amount : transactionAmount;
@@ -478,7 +479,21 @@ function MoneyRequestView({
     const shouldShowAttendees = shouldShowAttendeesTransactionUtils(iouType, policy);
 
     const transactionVendor = transaction?.comment?.vendor;
-    const transactionVendorName = findVendorByID(policy, transactionVendor?.externalID)?.name ?? '';
+
+    // The title prefers any matched vendor name (active vendor-matching integration first, then a
+    // permissive cross-connection lookup). When no connection has the vendor any more, fall back to
+    // the raw externalID so admins still see a stable identifier for what was assigned — the red
+    // INACTIVE_VENDOR violation (from ViolationsUtils, scoped to the active integration) provides
+    // the "Vendor no longer valid" indicator separately.
+    // TODO: once the vendor's display name is persisted on the transaction (TransactionCommentVendor.name),
+    // prefer that over the externalID fallback so the title always shows a human-readable label.
+    const matchedVendorName = findVendorByID(policy, transactionVendor?.externalID)?.name;
+    let transactionVendorName = '';
+    if (matchedVendorName) {
+        transactionVendorName = matchedVendorName;
+    } else if (transactionVendor?.externalID) {
+        transactionVendorName = transactionVendor.externalID;
+    }
     const shouldShowVendor = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)) && !(updatedTransaction?.reimbursable ?? !!transactionReimbursable) && !isInvoice;
 
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
@@ -1404,9 +1419,9 @@ function MoneyRequestView({
                                     <UserPills
                                         users={actualAttendees.map((a) => ({
                                             avatar: a?.avatarUrl,
-                                            displayName: a?.displayName ?? a?.login ?? a?.email ?? '',
+                                            displayName: a?.displayName ?? a?.email ?? '',
                                             accountID: a?.accountID,
-                                            email: a?.email ?? a?.login,
+                                            email: a?.email,
                                         }))}
                                         maxVisible={canEdit ? undefined : actualAttendees.length}
                                     />

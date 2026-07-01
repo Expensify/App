@@ -147,6 +147,18 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         translationKey: 'common.withdrawalID',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
+        translationKey: 'workspace.common.customField1',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
+        translationKey: 'workspace.common.customField2',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
+        translationKey: 'common.internationalReimbursementIDs',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
         translationKey: groupBy ? 'common.total' : 'iou.amount',
         canEdit: true,
@@ -271,6 +283,18 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
         translationKey: 'common.total',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
+        translationKey: 'workspace.common.customField1',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
+        translationKey: 'workspace.common.customField2',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
+        translationKey: 'common.internationalReimbursementIDs',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,

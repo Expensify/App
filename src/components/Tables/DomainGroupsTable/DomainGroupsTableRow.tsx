@@ -60,7 +60,6 @@ export default function DomainGroupsTableRow({item, rowIndex, shouldUseNarrowTab
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
-            skeletonReasonAttributes={{context: 'domainGroupsTableRow'}}
             offlineWithFeedback={{
                 errors: item.errors,
                 pendingAction: item.pendingAction,

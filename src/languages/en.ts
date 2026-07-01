@@ -415,6 +415,7 @@ const translations = {
         reportID: 'Report ID',
         longReportID: 'Long Report ID',
         withdrawalID: 'Withdrawal ID',
+        internationalReimbursementIDs: 'International reimbursement IDs',
         withdrawalStatus: 'Withdrawal status',
         bankAccounts: 'Bank accounts',
         chooseFile: 'Choose file',
@@ -877,6 +878,7 @@ const translations = {
         joinThread: 'Join thread',
         leaveThread: 'Leave thread',
         copyOnyxData: 'Copy Onyx data',
+        copyAgentZeroRequestID: 'Copy AgentZero request ID',
         flagAsOffensive: 'Flag as offensive',
         menu: 'Menu',
     },
@@ -1401,6 +1403,9 @@ const translations = {
             other: 'Are you sure that you want to delete these reports?',
         }),
         settledExpensify: 'Paid',
+        paidStatusMarkedAsPaid: 'Marked as paid',
+        paidStatusWithdrawing: 'Withdrawing',
+        paidStatusConfirmed: 'Confirmed',
         done: 'Done',
         deleted: 'Deleted',
         settledElsewhere: 'Paid elsewhere',
@@ -1721,6 +1726,10 @@ const translations = {
         },
         moveExpenses: 'Move to report',
         moveExpensesError: "You can't move per diem expenses to reports on other workspaces, because the per diem rates may differ between workspaces.",
+        submitReportTo: {
+            sendExpense: 'Send your expense to anyone',
+            sendExpenseSubtitle: 'Invite anyone to Expensify by using their email address or phone number.',
+        },
         changeApprover: {
             title: 'Change approver',
             header: (workflowSettingLink: string) =>
@@ -6397,6 +6406,10 @@ const translations = {
                 one: 'Make workspace admin',
                 other: 'Make workspace admins',
             }),
+            makeGroupAdmin: () => ({
+                one: 'Make admin',
+                other: 'Make admins',
+            }),
             makeAuditor: () => ({
                 one: 'Make auditor',
                 other: 'Make auditors',
@@ -6934,7 +6947,7 @@ const translations = {
                 optionFixedDistanceHelp: 'Remove the same commute distance from each claim. Best for members who submit one claim per workday.',
                 distanceLabel: 'Distance',
                 errors: {
-                    distanceMustBePositive: 'Distance must be greater than 0.',
+                    distanceMustBePositive: 'Distance must be a positive whole number.',
                 },
             },
             distance: 'Distance',
@@ -8001,6 +8014,8 @@ const translations = {
                 under: 'under',
             },
             amountFilter: ({operator, amount}: {operator: string; amount: string}) => `amounts ${operator} ${amount}`,
+            allowedCurrencyFilters: ({currencies}: {currencies: string}) => `currencies ${currencies}`,
+            blockedCurrencyFilters: ({currencies}: {currencies: string}) => `currencies not in ${currencies}`,
             theCard: 'the card',
             multipleCards: ({count}: {count: number}) => ({
                 one: '1 card',
@@ -8040,6 +8055,11 @@ const translations = {
                 bodySpendCategoryValueOnly: ({value}: {value: string}) => `'${value}'`,
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `${adjective} spend category from '${oldValue}' to '${newValue}'` : `spend category from '${oldValue}' to '${newValue}'`,
+                bodyCurrency: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} currency '${value}'` : `currency '${value}'`),
+                bodyCurrencyValueOnly: ({value}: {value: string}) => `'${value}'`,
+                bodyCurrencyChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} currency from '${oldValue}' to '${newValue}'` : `currency from '${oldValue}' to '${newValue}'`,
+                bodyCurrencyRestriction: 'the currency restriction',
                 bodyMaxAmount: 'max amount',
                 bodyMaxAmountSet: ({value}: {value: string}) => `max amount to ${value}`,
                 bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `max amount from ${oldValue} to ${newValue}`,
@@ -8592,6 +8612,10 @@ const translations = {
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `All ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `All CSV Imported Cards${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
+            },
+            bankAccount: {
+                banks: 'Bank accounts',
+                closedBankAccounts: 'Closed bank accounts',
             },
             reportField: (name: string, value: string) => `${name} is ${value}`,
             current: 'Current',
@@ -9424,10 +9448,6 @@ const translations = {
         takeMeToExpensifyClassic: 'Take me to Expensify Classic',
         goBackJustOnce: 'Go back just once',
     },
-    listBoundary: {
-        errorMessage: 'An error occurred while loading more messages',
-        tryAgain: 'Try again',
-    },
     systemMessage: {
         mergedWithCashTransaction: 'matched a receipt to this transaction',
     },
@@ -9886,7 +9906,7 @@ const translations = {
     },
     export: {
         basicExport: 'Basic export',
-        currentView: 'Export current view',
+        currentView: 'Current view',
         reportLevelExport: 'All Data - report level',
         expenseLevelExport: 'All Data - expense level',
         exportInProgress: 'Export in progress',
