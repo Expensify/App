@@ -3,6 +3,7 @@ import React, {useContext, useEffect, useEffectEvent, useLayoutEffect, useRef, u
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
+import {useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
@@ -14,14 +15,14 @@ import useOnyx from '@hooks/useOnyx';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTodoCounts from '@hooks/useTodoCounts';
+import type {TodoCounts} from '@hooks/useTodoCounts';
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getItemBadgeText, getSectionBadgeText} from '@libs/SearchUIUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import todosReportCountsSelector from '@src/selectors/Todos';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SavedSearchList from './SavedSearchList';
 import SearchTypeMenuAccordion from './SearchTypeMenuAccordion';
@@ -37,7 +38,7 @@ type SectionParams = {
     hash: number | undefined;
     activeItemIndex: number;
     sectionStartIndex: number;
-    reportCounts: NonNullable<ReturnType<typeof todosReportCountsSelector>>;
+    reportCounts: TodoCounts;
     areAllSectionsExpanded: boolean;
     onItemPress: (query: string) => void;
     onCollapsed: (isCollapsed: boolean) => void;
@@ -77,6 +78,8 @@ function Section({section, hash, activeItemIndex, sectionStartIndex, reportCount
         return () => onUnmount();
     }, []);
 
+    const isSavedSearchesSection = section.translationPath === 'search.savedSearchesMenuItemTitle';
+
     return (
         <SearchTypeMenuAccordion
             isExpanded={isExpanded}
@@ -89,12 +92,13 @@ function Section({section, hash, activeItemIndex, sectionStartIndex, reportCount
             title={translate(section.translationPath)}
             badgeText={getSectionBadgeText(section.translationPath, reportCounts)}
         >
-            {section.translationPath === 'search.savedSearchesMenuItemTitle' ? (
+            {isSavedSearchesSection && (
                 <SavedSearchList
                     hash={hash}
                     areAllSectionsExpanded={areAllSectionsExpanded}
                 />
-            ) : (
+            )}
+            {!isSavedSearchesSection &&
                 section.menuItems.map((item, itemIndex) => {
                     const flattenedIndex = sectionStartIndex + itemIndex;
                     const focused = activeItemIndex === flattenedIndex;
@@ -110,8 +114,7 @@ function Section({section, hash, activeItemIndex, sectionStartIndex, reportCount
                             onPress={() => onItemPress(item.searchQuery)}
                         />
                     );
-                })
-            )}
+                })}
         </SearchTypeMenuAccordion>
     );
 }
@@ -124,8 +127,11 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
     const {singleExecution} = useSingleExecution();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {typeMenuSections, activeItemIndex} = useSearchTypeMenuSections({hash, similarSearchHash, sortBy, sortOrder, type});
+    const {isVisuallyCollapsed} = useSearchSidebarCollapse();
     const [isSearchDataLoaded, isSearchDataLoadedResult] = useOnyx(ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED);
-    const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
+    // Intentionally left enabled (no focus freeze): the wide menu renders in the search navigator's ExtraContent
+    // slot, where useIsFocused() does not track visibility, so freezing on it would be unreliable.
+    const {counts: reportCounts} = useTodoCounts();
 
     const route = useRoute();
     const scrollViewRef = useRef<RNScrollView>(null);
@@ -190,7 +196,10 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
                 )}
 
                 {areSuggestedSearchesLoading ? (
-                    <SuggestedSearchSkeleton sectionCount={nonExpenseReportsSections.length || 2} />
+                    <SuggestedSearchSkeleton
+                        sectionCount={nonExpenseReportsSections.length || 2}
+                        shouldHideLabels={isVisuallyCollapsed}
+                    />
                 ) : (
                     nonExpenseReportsSections.map((section, index) => (
                         <Section

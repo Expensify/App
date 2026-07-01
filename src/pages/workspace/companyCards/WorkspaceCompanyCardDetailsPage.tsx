@@ -1,3 +1,4 @@
+import {companyCardCustomNamesSelector} from '@selectors/Card';
 import {format, parseISO} from 'date-fns';
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -20,6 +21,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isUsingStagingApi} from '@libs/ApiUtils';
@@ -27,6 +29,7 @@ import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {
     getCardFeedIcon,
     getCardFeedTextColor,
+    getCompanyCardCustomName,
     getCompanyCardFeed,
     getCompanyFeeds,
     getDefaultCardName,
@@ -37,7 +40,7 @@ import {
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -70,6 +73,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const {showConfirmModal} = useConfirmModal();
 
     const policy = usePolicy(policyID);
+    const {canWrite: canWriteCompanyCards} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
@@ -94,11 +98,12 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const card = feedScopedCard ?? (isCardBeingUnassigned ? globalCard : undefined);
 
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
-    const displayName = getDisplayNameOrDefault(cardholder);
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: cardholder, translate});
     const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card);
 
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feedName]);
+    const [sharedCardCustomNames] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`, {selector: companyCardCustomNamesSelector});
     const plaidUrl = getPlaidInstitutionIconUrl(feedName);
 
     // Show "Break connection" only when Mock Bank requests target non-production APIs.
@@ -139,6 +144,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -182,14 +188,16 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, 'lastScrape', true)}
                     >
                         <CardDetailsActionButtons>
-                            <CardDetailsActionButton
-                                text={translate('workspace.moreFeatures.companyCards.updateCard')}
-                                icon={expensifyIcons.Sync}
-                                onPress={updateCard}
-                                isDisabled={isOffline || card?.isLoadingLastUpdated}
-                                isLoading={card?.isLoadingLastUpdated}
-                                style={styles.flexShrink0}
-                            />
+                            {canWriteCompanyCards && (
+                                <CardDetailsActionButton
+                                    text={translate('workspace.moreFeatures.companyCards.updateCard')}
+                                    icon={expensifyIcons.Sync}
+                                    onPress={updateCard}
+                                    isDisabled={isOffline || card?.isLoadingLastUpdated}
+                                    isLoading={card?.isLoadingLastUpdated}
+                                    style={styles.flexShrink0}
+                                />
+                            )}
                             <CardDetailsActionButton
                                 text={translate('workspace.common.viewTransactions')}
                                 icon={expensifyIcons.MoneySearch}
@@ -206,10 +214,11 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                     >
                         <MenuItemWithTopDescription
                             description={translate('workspace.moreFeatures.companyCards.cardName')}
-                            title={customCardNames?.[cardID] ?? getDefaultCardName(cardholder?.firstName)}
-                            shouldShowRightIcon
+                            title={getCompanyCardCustomName(cardID, sharedCardCustomNames, customCardNames) ?? getDefaultCardName(cardholder?.displayName)}
+                            shouldShowRightIcon={canWriteCompanyCards}
                             brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_CARD_NAME.getRoute(policyID, cardID, feedName))}
+                            interactive={canWriteCompanyCards}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.CARD_NAME}
                         />
                     </OfflineWithFeedback>
@@ -235,8 +244,10 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             <MenuItemWithTopDescription
                                 description={exportMenuItem.description}
                                 title={exportMenuItem.title}
-                                shouldShowRightIcon
+                                numberOfLinesTitle={2}
+                                shouldShowRightIcon={canWriteCompanyCards}
                                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID, feedName, backTo))}
+                                interactive={canWriteCompanyCards}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.CARD_EXPORT}
                             />
                         </OfflineWithFeedback>
@@ -250,13 +261,14 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         <MenuItemWithTopDescription
                             description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
                             title={card?.scrapeMinDate ? format(parseISO(card.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : ''}
-                            shouldShowRightIcon
+                            shouldShowRightIcon={canWriteCompanyCards}
                             brickRoadIndicator={card?.errorFields?.scrapeMinDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_TRANSACTION_START_DATE.getRoute(policyID, cardID, feedName))}
+                            interactive={canWriteCompanyCards}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.TRANSACTION_START_DATE}
                         />
                     </OfflineWithFeedback>
-                    {shouldShowBreakConnection && (
+                    {canWriteCompanyCards && shouldShowBreakConnection && (
                         <MenuItem
                             icon={expensifyIcons.Trashcan}
                             disabled={isOffline || card?.isLoadingLastUpdated}
@@ -264,28 +276,30 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             onPress={breakConnection}
                         />
                     )}
-                    <MenuItem
-                        icon={expensifyIcons.RemoveMembers}
-                        title={translate('workspace.moreFeatures.companyCards.unassignCard')}
-                        style={styles.mb1}
-                        onPress={() => {
-                            showConfirmModal({
-                                shouldSetModalVisibility: false,
-                                title: translate('workspace.moreFeatures.companyCards.unassignCard'),
-                                prompt: translate('workspace.moreFeatures.companyCards.unassignCardDescription'),
-                                confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
-                                cancelText: translate('common.cancel'),
-                                danger: true,
-                            }).then((result) => {
-                                if (result.action !== ModalActions.CONFIRM) {
-                                    return;
-                                }
+                    {canWriteCompanyCards && (
+                        <MenuItem
+                            icon={expensifyIcons.RemoveMembers}
+                            title={translate('workspace.moreFeatures.companyCards.unassignCard')}
+                            style={styles.mb1}
+                            onPress={() => {
+                                showConfirmModal({
+                                    shouldSetModalVisibility: false,
+                                    title: translate('workspace.moreFeatures.companyCards.unassignCard'),
+                                    prompt: translate('workspace.moreFeatures.companyCards.unassignCardDescription'),
+                                    confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
+                                    cancelText: translate('common.cancel'),
+                                    danger: true,
+                                }).then((result) => {
+                                    if (result.action !== ModalActions.CONFIRM) {
+                                        return;
+                                    }
 
-                                unassignCard();
-                            });
-                        }}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.UNASSIGN_CARD}
-                    />
+                                    unassignCard();
+                                });
+                            }}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.UNASSIGN_CARD}
+                        />
+                    )}
                 </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

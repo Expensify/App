@@ -2,12 +2,13 @@ import type {ValueOf} from 'type-fest';
 import {useMoneyReportTransactionThread} from '@components/MoneyReportTransactionThreadContext';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {isGroupPolicy} from '@libs/PolicyUtils';
 import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {isExpenseReport as isExpenseReportUtils} from '@libs/ReportUtils';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 import useReportIsArchived from './useReportIsArchived';
@@ -23,6 +24,7 @@ function useReportPrimaryAction(reportID: string | undefined): ValueOf<typeof CO
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`);
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)}, [moneyRequestReport?.ownerAccountID]);
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
     );
@@ -32,7 +34,7 @@ function useReportPrimaryAction(reportID: string | undefined): ValueOf<typeof CO
 
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
 
-    if (isExpenseReportUtils(moneyRequestReport) && !isPaidGroupPolicy(policy)) {
+    if (isExpenseReportUtils(moneyRequestReport) && !isGroupPolicy(policy)) {
         return '';
     }
 
@@ -59,6 +61,7 @@ function useReportPrimaryAction(reportID: string | undefined): ValueOf<typeof CO
         reportMetadata,
         isChatReportArchived,
         invoiceReceiverPolicy,
+        ownerLogin,
     });
 }
 

@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
@@ -23,14 +24,17 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type DismissedProductTraining from '@src/types/onyx/DismissedProductTraining';
+import AgentRulesSection from './AgentRulesSection';
 import IndividualExpenseRulesSection from './IndividualExpenseRulesSection';
 import MerchantRulesSection from './MerchantRulesSection';
+import PolicyRulesPageRevamp from './PolicyRulesPageRevamp';
 
 type PolicyRulesPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.RULES>;
 
 const agentsRulesBannerDismissedSelector = (value: OnyxEntry<DismissedProductTraining>): boolean => !!value?.[CONST.AGENTS_RULES_BANNER];
 
-function PolicyRulesPage({route}: PolicyRulesPageProps) {
+function PolicyRulesPage(props: PolicyRulesPageProps) {
+    const {route} = props;
     const {translate} = useLocalize();
     const {policyID} = route.params;
     const policy = usePolicy(policyID);
@@ -38,7 +42,9 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['Rules']);
+    const {canWrite: canWriteRules, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const [isAgentsRulesBannerDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: agentsRulesBannerDismissedSelector});
 
@@ -47,14 +53,23 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
     }, [policyID]);
 
     useEffect(() => {
+        // PolicyRulesPageRevamp fetches rules on its own mount — skip here to avoid duplicate OpenPolicyRulesPage calls.
+        if (isRulesRevampEnabled) {
+            return;
+        }
         fetchRules();
-    }, [fetchRules]);
+    }, [fetchRules, isRulesRevampEnabled]);
+
+    if (isRulesRevampEnabled) {
+        return <PolicyRulesPageRevamp {...props} />;
+    }
 
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
         >
             <WorkspacePageWithSections
                 testID="PolicyRulesPage"
@@ -63,6 +78,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
                 icon={illustrations.Rules}
+                policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
                 shouldShowNotFoundPage={false}
                 shouldShowLoading={false}
                 addBottomSafeAreaPadding
@@ -73,16 +89,43 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                             title={translate('workspace.rules.agentsPromoBanner.title')}
                             subtitle={translate('workspace.rules.agentsPromoBanner.subtitle')}
                             ctaText={translate('workspace.rules.agentsPromoBanner.cta')}
-                            onCtaPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID))}
+                            onCtaPress={() => {
+                                if (!canWriteRules) {
+                                    showReadOnlyModal();
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.RULES_AGENT_NEW.getRoute(policyID));
+                            }}
                             ctaSentryLabel={CONST.SENTRY_LABEL.AGENTS_RULES_BANNER.CTA}
                             onDismiss={() => dismissProductTraining(CONST.AGENTS_RULES_BANNER, true)}
                             dismissSentryLabel={CONST.SENTRY_LABEL.AGENTS_RULES_BANNER.DISMISS}
                             style={[styles.mh5, styles.mb5]}
                         />
                     )}
-                    <IndividualExpenseRulesSection policyID={policyID} />
-                    <MerchantRulesSection policyID={policyID} />
-                    {!!policy?.areExpensifyCardsEnabled && <SpendRulesSection policyID={policyID} />}
+                    <IndividualExpenseRulesSection
+                        policyID={policyID}
+                        canWriteRules={canWriteRules}
+                        withReadOnlyFallback={withReadOnlyFallback}
+                    />
+                    <MerchantRulesSection
+                        policyID={policyID}
+                        canWriteRules={canWriteRules}
+                        showReadOnlyModal={showReadOnlyModal}
+                    />
+                    {!!policy?.areExpensifyCardsEnabled && (
+                        <SpendRulesSection
+                            policyID={policyID}
+                            canWriteRules={canWriteRules}
+                            showReadOnlyModal={showReadOnlyModal}
+                        />
+                    )}
+                    {isCustomAgentBetaEnabled && (
+                        <AgentRulesSection
+                            policyID={policyID}
+                            canWriteRules={canWriteRules}
+                            showReadOnlyModal={showReadOnlyModal}
+                        />
+                    )}
                 </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>

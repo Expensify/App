@@ -443,6 +443,9 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'welcomeMessage':
         case 'origin':
         case 'originalID':
+        case 'submitterUserID':
+        case 'submitterPayrollID':
+        case 'orderDealNumbers':
             return validateString(value);
         case 'hasOutstandingChildRequest':
         case 'hasOutstandingChildTask':
@@ -579,6 +582,9 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 type: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 policyID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                submitterUserID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                submitterPayrollID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                orderDealNumbers: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 avatarUrl: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 chatType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasOutstandingChildRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -972,6 +978,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'groupCurrency':
         case 'transactionType':
         case 'transactionThreadReportID':
+        case 'mcc':
         case 'withdrawalID':
             return validateString(value);
         case 'created':
@@ -1068,10 +1075,12 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     defaultP2PRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     distanceUnit: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    rateAutoUpdated: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     odometerStart: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     odometerEnd: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     odometerStartImage: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     odometerEndImage: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    tripID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     attendees: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     amount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1112,6 +1121,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     cardID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     status: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     hasEReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    mcc: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     mccGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     modifiedMCCGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     originalAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1194,6 +1204,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 odometerEnd: 'number',
                 odometerStartImage: 'object',
                 odometerEndImage: 'object',
+                tripID: 'string',
             });
         case 'accountant':
             return validateObject<ObjectElement<Transaction, 'accountant'>>(value, {
@@ -1205,13 +1216,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 email: 'string',
                 displayName: 'string',
                 avatarUrl: 'string',
-                accountID: 'number',
-                text: 'string',
-                login: 'string',
-                searchText: 'string',
-                selected: 'boolean',
-                iouType: CONST.IOU.TYPE,
-                reportID: 'string',
             });
         case 'modifiedWaypoints':
             return validateObject<ObjectElement<Transaction, 'modifiedWaypoints'>>(

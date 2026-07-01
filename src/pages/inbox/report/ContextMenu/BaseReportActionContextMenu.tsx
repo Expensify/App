@@ -1,9 +1,8 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
 import type {RefObject} from 'react';
 import React, {memo, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, View as ViewType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -14,6 +13,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useEnvironment from '@hooks/useEnvironment';
@@ -27,7 +27,6 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useRestoreInputFocus from '@hooks/useRestoreInputFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -108,6 +107,9 @@ type BaseReportActionContextMenuProps = {
 
     /** Function to update emoji picker state */
     setIsEmojiPickerActive?: (state: boolean) => void;
+
+    /** Whether to add bottom safe area padding for edge-to-edge modal content */
+    enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
 };
 
 function BaseReportActionContextMenu({
@@ -124,6 +126,7 @@ function BaseReportActionContextMenu({
     checkIfContextMenuActive,
     disabledActions = [],
     setIsEmojiPickerActive,
+    enableEdgeToEdgeBottomSafeAreaPadding = false,
 }: BaseReportActionContextMenuProps) {
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -154,7 +157,8 @@ function BaseReportActionContextMenu({
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(isMini, shouldUseNarrowLayout);
     const {isOffline} = useNetwork();
-    const {isProduction} = useEnvironment();
+    const {isProduction, isDevelopment, environment} = useEnvironment();
+    const isStaging = environment === CONST.ENVIRONMENT.STAGING;
     const threeDotRef = useRef<View>(null);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
@@ -181,7 +185,7 @@ function BaseReportActionContextMenu({
     // Needed to compute the one-transaction thread for the context menu's report so isUnreadChat is correct
     // for expense/IOU reports shown directly in the LHN (where unread state is based on the thread's lastVisibleActionCreated).
     const [reportChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
-    const lhnOneTransactionThreadReportID = getOneTransactionThreadReportID(report, reportChatReport, reportActions);
+    const lhnOneTransactionThreadReportID = getOneTransactionThreadReportID(report, reportChatReport, reportActions, isOffline);
     const [lhnOneTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(lhnOneTransactionThreadReportID)}`);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`);
     const harvestReportOriginalID = getNonEmptyStringOnyxID(getHarvestOriginalReportID(reportNameValuePairs?.origin, reportNameValuePairs?.originalID));
@@ -232,14 +236,16 @@ function BaseReportActionContextMenu({
     const isChildReportArchived = useReportIsArchived(childReport?.reportID);
     const isParentReportArchived = useReportIsArchived(childReport?.parentReportID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.parentReportID}`);
-    const iouTransactionID = (getOriginalMessage(moneyRequestAction ?? reportAction) as OriginalMessageIOU)?.IOUTransactionID;
+    const iouTransactionID = (getOriginalMessage(moneyRequestAction ?? reportAction) as OriginalMessageIOU | undefined)?.IOUTransactionID;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
-    const iouReportID = (getOriginalMessage(moneyRequestAction ?? reportAction) as OriginalMessageIOU)?.IOUReportID;
+    const [iouTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(iouTransactionID)}`);
+    const iouReportID = (moneyRequestAction ?? reportAction)?.reportID;
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
     const [moneyRequestPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
     const {transactions} = useTransactionsAndViolationsForReport(childReport?.reportID);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -286,6 +292,8 @@ function BaseReportActionContextMenu({
                 isOffline: !!isOffline,
                 isMini,
                 isProduction,
+                isDevelopment,
+                isStaging,
                 moneyRequestReport,
                 moneyRequestAction,
                 moneyRequestPolicy,
@@ -328,17 +336,13 @@ function BaseReportActionContextMenu({
      */
     const interceptAnonymousUser = (callback: () => void, isAnonymousAction = false) => {
         if (isAnonymousUser() && !isAnonymousAction) {
-            hideContextMenu(false);
-
-            InteractionManager.runAfterInteractions(() => {
+            hideContextMenu(false, () => {
                 signOutAndRedirectToSignIn();
             });
         } else {
             callback();
         }
     };
-
-    useRestoreInputFocus(isVisible);
 
     const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<View | null>) => {
         showContextMenu({
@@ -370,13 +374,15 @@ function BaseReportActionContextMenu({
     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
     const card = useGetExpensifyCardFromReportAction({reportAction: (reportAction ?? null) as ReportAction, policyID});
 
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding, style: wrapperStyle});
+
     return (
         (isVisible || shouldKeepOpen || !isMini) && (
             <FocusTrapForModal active={!isMini && !isSmallScreenWidth && (isVisible || shouldKeepOpen)}>
                 <CompactMenuContext.Provider value>
                     <View
                         ref={contentRef}
-                        style={wrapperStyle}
+                        style={bottomSafeAreaPaddingStyle}
                     >
                         {filteredContextMenuActions.map((contextAction, index) => {
                             const closePopup = !isMini;
@@ -400,6 +406,7 @@ function BaseReportActionContextMenu({
                                 card,
                                 originalReport,
                                 isTryNewDotNVPDismissed,
+                                isTrackIntentUser,
                                 childReport,
                                 movedFromReport,
                                 movedToReport,
@@ -418,6 +425,7 @@ function BaseReportActionContextMenu({
                                 currentUserPersonalDetails,
                                 encryptedAuthToken,
                                 iouTransaction,
+                                iouTransactionViolations,
                                 bankAccountList,
                                 isOffline,
                                 conciergeReportID,

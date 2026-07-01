@@ -5,6 +5,8 @@ import {Animated} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+import {isMobileChrome, isMobileSafari} from '@libs/Browser';
 import variables from '@styles/variables';
 
 type EnterAnimation = {kind: 'slide-and-fade'; distancePx: number} | {kind: 'slide-from-width'} | {kind: 'fade'} | {kind: 'none'};
@@ -20,7 +22,12 @@ type ModalCardStyleInterpolator = (props: ModalCardStyleInterpolatorProps) => St
 const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
+    const styles = useThemeStyles();
     const {sidePanelOffset, sidePanelNVP, isSidePanelTransitionEnded} = useSidePanelState();
+
+    // Narrow mobile browsers compositing the stacked, transparent modal cards can flicker mid-slide on low-end devices.
+    // Hardening the animated card (opaque background + dedicated compositor layer) avoids that glitch while keeping the animation.
+    const shouldHardenAnimatedCardForMobileBrowser = (isMobileChrome() || isMobileSafari()) && shouldUseNarrowLayout;
 
     const modalCardStyleInterpolator: ModalCardStyleInterpolator = ({
         props: {
@@ -60,6 +67,10 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
             }),
             inverted,
         );
+
+        if (shouldHardenAnimatedCardForMobileBrowser) {
+            Object.assign(cardStyle, styles.appBG, styles.willChangeTransform);
+        }
 
         cardStyle.transform = [{translateX}];
 

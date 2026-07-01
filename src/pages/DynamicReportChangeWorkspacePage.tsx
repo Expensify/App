@@ -8,13 +8,13 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {WorkspaceListItemType} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
-import useAllPolicyExpenseChatReportActions from '@hooks/useAllPolicyExpenseChatReportActions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useParentReportAction from '@hooks/useParentReportAction';
 import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactions from '@hooks/useReportTransactions';
@@ -26,6 +26,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {ReportChangeWorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {isPolicyAdmin, isPolicyMember} from '@libs/PolicyUtils';
 import {
+    getAllPolicyExpenseChatReportActions,
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
     isIOUReport,
@@ -39,7 +40,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import {doesPersonalDetailExistSelector, personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {DismissedProductTraining} from '@src/types/onyx';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
@@ -59,6 +60,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const reportTransactions = useReportTransactions(reportID);
 
+    const reportPreviewAction = useParentReportAction(report);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
@@ -67,6 +69,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isReportLastVisibleArchived = useReportIsArchived(report?.parentReportID);
     const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)}, [report?.ownerAccountID]);
+    const [doesSubmitterPersonalDetailExist] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: doesPersonalDetailExistSelector(report?.ownerAccountID)}, [report?.ownerAccountID]);
     const [managerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.managerID)}, [report?.managerID]);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const {isBetaEnabled} = usePermissions();
@@ -77,7 +80,8 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const filteredReportActions = useAllPolicyExpenseChatReportActions();
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const navigateBackFromChangeWorkspacePath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_CHANGE_WORKSPACE.path);
 
     const selectPolicy = (policyID?: string) => {
@@ -90,6 +94,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             return;
         }
         Navigation.goBack(navigateBackFromChangeWorkspacePath);
+        const filteredReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
         if (isIOUReport(reportID)) {
             const invite = moveIOUReportToPolicyAndInviteSubmitter(
                 report,
@@ -98,6 +103,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 filteredReportActions,
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 submitterLogin,
+                doesSubmitterPersonalDetailExist ?? false,
                 reportTransactions,
             );
             if (!invite?.policyExpenseChatReportID) {
@@ -113,6 +119,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 report,
                 parentReport,
                 policy,
+                personalDetails: {[report.ownerAccountID]: {accountID: report.ownerAccountID}},
                 currentUser: {
                     accountID: currentUserPersonalDetails.accountID,
                     displayName: currentUserPersonalDetails.displayName,
@@ -129,6 +136,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 isReportLastVisibleArchived,
                 reportNextStep,
                 reportActionsList: filteredReportActions,
+                reportPreviewAction,
             });
             return;
         }
@@ -139,12 +147,14 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             policy,
             currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: session?.email ?? '',
+            ownerLogin: submitterLogin,
             managerLogin,
             hasViolationsParam: hasViolations,
             isChangePolicyTrainingModalDismissed,
             isASAPSubmitBetaEnabled,
             reportNextStep,
             isReportLastVisibleArchived,
+            reportPreviewAction,
         });
     };
 

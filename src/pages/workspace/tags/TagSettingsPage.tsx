@@ -15,6 +15,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicyData from '@hooks/usePolicyData';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -23,6 +24,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {isDisablingOrDeletingLastEnabledTag} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
+    arePolicyRulesEnabled,
     getCleanedTagName,
     getTagApproverRule,
     getTagListByOrderWeight,
@@ -52,6 +54,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const {showConfirmModal} = useConfirmModal();
     const policyData = usePolicyData(policyID);
     const {policy, tags: policyTags} = policyData;
+    const {canWrite: canWriteTags, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
     const policyTag = getTagListByOrderWeight(policyTags, orderWeight);
     const {environmentURL} = useEnvironment();
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
@@ -138,6 +141,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.TAGS}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -170,7 +174,9 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                                         isOn={currentPolicyTag.enabled}
                                         accessibilityLabel={translate('workspace.tags.enableTag')}
                                         onToggle={updateWorkspaceTagEnabled}
-                                        showLockIcon={shouldPreventDisableOrDelete}
+                                        disabled={!canWriteTags}
+                                        disabledAction={withReadOnlyFallback()}
+                                        showLockIcon={!canWriteTags || shouldPreventDisableOrDelete}
                                     />
                                 </View>
                             </View>
@@ -181,8 +187,8 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                             title={getCleanedTagName(currentPolicyTag.name)}
                             description={translate(`common.name`)}
                             onPress={navigateToEditTag}
-                            interactive={!hasDependentTags}
-                            shouldShowRightIcon={!hasDependentTags}
+                            interactive={canWriteTags && !hasDependentTags}
+                            shouldShowRightIcon={canWriteTags && !hasDependentTags}
                         />
                     </OfflineWithFeedback>
                     {(!hasDependentTags || !!currentPolicyTag?.['GL Code']) && (
@@ -192,13 +198,13 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                                 title={currentPolicyTag?.['GL Code']}
                                 onPress={navigateToEditGlCode}
                                 iconRight={hasAccountingConnections ? expensifyIcons.Lock : undefined}
-                                interactive={!hasAccountingConnections && !hasDependentTags}
-                                shouldShowRightIcon={!hasDependentTags}
+                                interactive={canWriteTags && !hasAccountingConnections && !hasDependentTags}
+                                shouldShowRightIcon={canWriteTags && !hasDependentTags}
                             />
                         </OfflineWithFeedback>
                     )}
 
-                    {!!policy?.areRulesEnabled && !isMultiLevelTags && (
+                    {arePolicyRulesEnabled(policy, policyData.categories) && !isMultiLevelTags && (
                         <>
                             <View style={[styles.mh5, styles.mv3, styles.pt3, styles.borderTop]}>
                                 <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.tags.tagRules')}</Text>
@@ -207,7 +213,8 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                                 title={approverText}
                                 description={translate(`workspace.tags.approverDescription`)}
                                 onPress={navigateToEditTagApprover}
-                                shouldShowRightIcon
+                                interactive={canWriteTags}
+                                shouldShowRightIcon={canWriteTags}
                                 disabled={approverDisabled}
                                 helperText={
                                     approverDisabled
@@ -219,7 +226,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                         </>
                     )}
 
-                    {shouldShowDeleteMenuItem && (
+                    {canWriteTags && shouldShowDeleteMenuItem && (
                         <MenuItem
                             icon={expensifyIcons.Trashcan}
                             title={translate('common.delete')}

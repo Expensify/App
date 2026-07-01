@@ -219,6 +219,16 @@ function NumberWithSymbolForm({
         end: currentNumber.length,
     });
 
+    // When the prop resets to empty, mirror that in internal state so the field doesn't stay stuck at "0.00".
+    useEffect(() => {
+        if (number !== '') {
+            return;
+        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing internal state to an externally-driven prop reset (Onyx); mirrors the existing pattern in this file
+        setCurrentNumber('');
+        setSelection({start: 0, end: 0});
+    }, [number]);
+
     const forwardDeletePressedRef = useRef(false);
     // The ref is used to ignore any onSelectionChange event that happens while we are updating the selection manually in setNewNumber
     const willSelectionBeUpdatedManually = useRef(false);
@@ -322,6 +332,9 @@ function NumberWithSymbolForm({
 
         const strippedNumber = stripCommaFromAmount(withLeadingZero);
         const isForwardDelete = currentNumber.length > strippedNumber.length && forwardDeletePressedRef.current;
+
+        willSelectionBeUpdatedManually.current = true;
+        numberRef.current = strippedNumber;
         setCurrentNumber(strippedNumber);
         setSelection(getNewSelection(selection, isForwardDelete ? strippedNumber.length : currentNumber.length, strippedNumber.length));
         onInputChange?.(strippedNumber);
@@ -337,8 +350,9 @@ function NumberWithSymbolForm({
 
     // Modifies the number to match changed decimals.
     useEffect(() => {
-        // If the number supports decimals, we can return
-        if (validateAmount(currentNumber, decimals, maxLength, allowNegativeInput || allowFlippingAmount)) {
+        // If the field is intentionally empty (e.g. new manual expense flow before the user enters an amount)
+        // or the current number is already valid for the new decimal count, nothing to do.
+        if (number === '' || validateAmount(currentNumber, decimals, maxLength, allowNegativeInput || allowFlippingAmount)) {
             return;
         }
 
@@ -421,6 +435,22 @@ function NumberWithSymbolForm({
 
     const formattedNumber = replaceAllDigits(currentNumber, toLocaleDigit);
 
+    const handleSelectionChange = (selectionStart: number, selectionEnd: number) => {
+        if (shouldIgnoreSelectionWhenUpdatedManually && willSelectionBeUpdatedManually.current) {
+            willSelectionBeUpdatedManually.current = false;
+            return;
+        }
+        if (!shouldUpdateSelection) {
+            return;
+        }
+        // When the number is updated in setNewNumber on iOS, in onSelectionChange formattedNumber stores the number before the update. Using numberRef allows us to read the updated number
+        const maxSelection = numberRef.current?.length ?? formattedNumber.length;
+        numberRef.current = undefined;
+        const start = Math.min(selectionStart, maxSelection);
+        const end = Math.min(selectionEnd, maxSelection);
+        setSelection({start, end});
+    };
+
     // Calculate dynamic font size based on the total length of the amount display
     const dynamicAmountStyle = useMemo(() => {
         const totalLength = formattedNumber.length + (hideSymbol ? 0 : symbol.length) + (isNegative ? 1 : 0);
@@ -433,8 +463,24 @@ function NumberWithSymbolForm({
      */
     const handleFlipPress = useCallback(() => {
         // Toggle the minus sign prefix in the value
-        const newValue = currentNumber.startsWith('-') ? currentNumber.slice(1) : `-${currentNumber}`;
+        const isRemovingSign = currentNumber.startsWith('-');
+        const newValue = isRemovingSign ? currentNumber.slice(1) : `-${currentNumber}`;
+        // Guard the manual selection update the same way setNewNumber/setFormattedNumber do: on native the
+        // controlled TextInput can emit onSelectionChange with the stale selection while the value update is
+        // applied, which would write the old cursor position back and undo the shift below. numberRef lets
+        // handleSelectionChange read the updated value length when computing maxSelection.
+        willSelectionBeUpdatedManually.current = true;
+        numberRef.current = newValue;
         setCurrentNumber(newValue);
+        // Shift the cursor by the length of the toggled sign so it stays in the same logical position
+        // relative to the digits (e.g. on an empty field {0,0} -> {1,1}, placing the cursor after the "-").
+        // Without this the cursor stays before the "-", so typing produces an invalid string like "5-" that
+        // validateAmount rejects, making the entered number disappear.
+        const offset = isRemovingSign ? -1 : 1;
+        setSelection((prevSelection) => ({
+            start: Math.max(prevSelection.start + offset, 0),
+            end: Math.max(prevSelection.end + offset, 0),
+        }));
         onInputChange?.(newValue);
     }, [currentNumber, onInputChange]);
 
@@ -450,9 +496,11 @@ function NumberWithSymbolForm({
                     <Button
                         small
                         icon={icons.PlusMinus}
+                        iconAccessibilityLabel={translate('iou.flip')}
                         onPress={handleFlipPress}
                         onMouseDown={(e) => e.preventDefault()}
                         iconWrapperStyles={styles.justifyContentCenter}
+                        text={translate('iou.flip')}
                         accessibilityLabel={translate('iou.flip')}
                         isDisabled={disabled}
                     />
@@ -492,6 +540,8 @@ function NumberWithSymbolForm({
                 accessibilityLabel={label}
                 value={formattedNumber}
                 onChangeText={setFormattedNumber}
+                selection={selection}
+                onSelectionChange={(e) => handleSelectionChange(e.nativeEvent.selection.start, e.nativeEvent.selection.end)}
                 ref={(newRef: BaseTextInputRef | null) => {
                     if (typeof ref === 'function') {
                         ref(newRef);
@@ -542,21 +592,7 @@ function NumberWithSymbolForm({
             hideSymbol={hideSymbol}
             symbolPosition={symbolPosition}
             selection={selection}
-            onSelectionChange={(selectionStart, selectionEnd) => {
-                if (shouldIgnoreSelectionWhenUpdatedManually && willSelectionBeUpdatedManually.current) {
-                    willSelectionBeUpdatedManually.current = false;
-                    return;
-                }
-                if (!shouldUpdateSelection) {
-                    return;
-                }
-                // When the number is updated in setNewNumber on iOS, in onSelectionChange formattedNumber stores the number before the update. Using numberRef allows us to read the updated number
-                const maxSelection = numberRef.current?.length ?? formattedNumber.length;
-                numberRef.current = undefined;
-                const start = Math.min(selectionStart, maxSelection);
-                const end = Math.min(selectionEnd, maxSelection);
-                setSelection({start, end});
-            }}
+            onSelectionChange={handleSelectionChange}
             onKeyPress={textInputKeyPress}
             isSymbolPressable={isSymbolPressable && !shouldWrapInputInContainer}
             symbolTextStyle={[symbolTextStyle, shouldUseDynamicFontSize ? dynamicAmountStyle : undefined]}
@@ -617,6 +653,7 @@ function NumberWithSymbolForm({
                                 <Button
                                     small
                                     icon={icons.PlusMinus}
+                                    iconAccessibilityLabel={translate('iou.flip')}
                                     onPress={toggleNegative}
                                     style={styles.minWidth18}
                                     iconWrapperStyles={styles.justifyContentCenter}
@@ -722,6 +759,7 @@ function NumberWithSymbolForm({
                     <Button
                         small
                         icon={icons.PlusMinus}
+                        iconAccessibilityLabel={translate('iou.flip')}
                         onPress={toggleNegative}
                         style={styles.minWidth18}
                         iconWrapperStyles={styles.justifyContentCenter}

@@ -3,7 +3,9 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry, OnyxMergeCollectionInput} from 'react-native-onyx';
 import '@libs/actions/IOU/MoneyRequest';
 import {handleNavigateAfterExpenseCreate} from '@libs/actions/IOU/NavigationHelpers';
+import {addPendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransactions';
 import {createSplitsAndOnyxData} from '@libs/actions/IOU/Split';
+import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import {rand64} from '@libs/NumberUtils';
@@ -57,6 +59,11 @@ jest.mock('@src/libs/actions/Report', () => {
 });
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
+jest.mock('@libs/actions/IOU/PendingNewTransactions', () => ({
+    addPendingNewTransactionIDs: jest.fn(),
+    deletePendingNewTransactionIDs: jest.fn(),
+    isOneToTwoTransactionTransition: jest.fn(() => false),
+}));
 // In production, requestMoney defers its API.write() call until the target screen's
 // content lays out (or a safety timeout fires). In tests there is no target component
 // to flush the deferred write, so we bypass the deferral by executing the callback immediately.
@@ -721,6 +728,151 @@ describe('actions/IOU', () => {
             const recentlyUsedTagsUpdate = result.onyxData.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
 
             expect(recentlyUsedTagsUpdate?.value).toMatchObject({[tagListName]: [tagName]});
+        });
+    });
+
+    describe('Pending new transaction ID registration in updateSplitTransactionsFromSplitExpensesFlow', () => {
+        const EXPENSE_REPORT_ID = 'expense-report-1';
+        const ORIGINAL_TX_ID = 'orig-tx-1';
+
+        function buildBaseParams(overrides: Record<string, unknown> = {}) {
+            return {
+                allTransactionsList: {},
+                allReportsList: {},
+                allReportActionsList: {},
+                allReportNameValuePairsList: {},
+                transactionData: {
+                    reportID: EXPENSE_REPORT_ID,
+                    originalTransactionID: ORIGINAL_TX_ID,
+                    splitExpenses: [] as SplitExpense[],
+                    splitExpensesTotal: undefined,
+                },
+                policyCategories: undefined,
+                policy: undefined,
+                policyRecentlyUsedCategories: undefined,
+                iouReport: undefined,
+                firstIOU: undefined,
+                isASAPSubmitBetaEnabled: false,
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL, displayName: 'Rory', avatar: '', fallbackIcon: ''},
+                transactionViolations: {},
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                iouReportNextStep: undefined,
+                betas: [],
+                policyTags: {},
+                personalDetails: undefined,
+                transactionReport: {reportID: 'tx-report-1', parentReportID: 'parent-report-1'},
+                expenseReport: {reportID: EXPENSE_REPORT_ID, parentReportID: 'parent-report-1', chatReportID: 'chat-report-1'},
+                isOffline: false,
+                ...overrides,
+            };
+        }
+
+        it('registers new split transaction IDs for highlighting', async () => {
+            // Given two brand-new split expenses (not yet in allTransactionsList)
+            const params = buildBaseParams({
+                transactionData: {
+                    reportID: EXPENSE_REPORT_ID,
+                    originalTransactionID: ORIGINAL_TX_ID,
+                    splitExpenses: [
+                        {transactionID: 'new-tx-1', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-tx-2', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                    ],
+                    splitExpensesTotal: 1000,
+                },
+            });
+
+            // When saving the split
+            updateSplitTransactionsFromSplitExpensesFlow(params);
+            await waitForBatchedUpdates();
+
+            // Then both new IDs are registered for the highlight animation
+            expect(addPendingNewTransactionIDs).toHaveBeenCalledWith(EXPENSE_REPORT_ID, 'new-tx-1');
+            expect(addPendingNewTransactionIDs).toHaveBeenCalledWith(EXPENSE_REPORT_ID, 'new-tx-2');
+        });
+
+        it('skips transaction IDs that already exist as child transactions', async () => {
+            // Given one existing child transaction already in allTransactionsList
+            const existingChildTx = {
+                transactionID: 'existing-tx-1',
+                reportID: EXPENSE_REPORT_ID,
+                comment: {originalTransactionID: ORIGINAL_TX_ID, source: CONST.IOU.TYPE.SPLIT},
+            };
+            const params = buildBaseParams({
+                allTransactionsList: {[`${ONYXKEYS.COLLECTION.TRANSACTION}existing-tx-1`]: existingChildTx},
+                transactionData: {
+                    reportID: EXPENSE_REPORT_ID,
+                    originalTransactionID: ORIGINAL_TX_ID,
+                    splitExpenses: [
+                        {transactionID: 'existing-tx-1', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-tx-2', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                    ],
+                    splitExpensesTotal: 1000,
+                },
+            });
+
+            // When saving the split
+            updateSplitTransactionsFromSplitExpensesFlow(params);
+            await waitForBatchedUpdates();
+
+            // Then only the genuinely new ID is registered; the existing one is skipped
+            expect(addPendingNewTransactionIDs).not.toHaveBeenCalledWith(EXPENSE_REPORT_ID, 'existing-tx-1');
+            expect(addPendingNewTransactionIDs).toHaveBeenCalledWith(EXPENSE_REPORT_ID, 'new-tx-2');
+        });
+
+        it('skips registration during a reverse split operation', async () => {
+            // Given one existing child transaction (triggers isReverseSplitOperation when splitExpenses.length === 1)
+            const existingChildTx = {
+                transactionID: 'child-tx-1',
+                reportID: EXPENSE_REPORT_ID,
+                comment: {originalTransactionID: ORIGINAL_TX_ID, source: CONST.IOU.TYPE.SPLIT},
+            };
+            // The single split expense has a new ID — without the isReverseSplitOperation guard it would be registered
+            const params = buildBaseParams({
+                allTransactionsList: {[`${ONYXKEYS.COLLECTION.TRANSACTION}child-tx-1`]: existingChildTx},
+                transactionData: {
+                    reportID: EXPENSE_REPORT_ID,
+                    originalTransactionID: ORIGINAL_TX_ID,
+                    splitExpenses: [{transactionID: 'new-merged-tx', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 1000, created: '2024-01-01'}],
+                    splitExpensesTotal: 1000,
+                },
+            });
+
+            // When saving (this is a reverse split: 1 expense, existing children present, no UNREPORTED_REPORT_ID txs)
+            updateSplitTransactionsFromSplitExpensesFlow(params);
+            await waitForBatchedUpdates();
+
+            // Then nothing is registered — no highlight for reverse splits
+            expect(addPendingNewTransactionIDs).not.toHaveBeenCalled();
+        });
+
+        it('skips registration when the expense report will become empty after the split', async () => {
+            // Given the only transaction in expenseReport is a child of originalTransaction
+            const childTx = {
+                transactionID: 'child-tx-1',
+                reportID: EXPENSE_REPORT_ID,
+                comment: {originalTransactionID: ORIGINAL_TX_ID, source: CONST.IOU.TYPE.SPLIT},
+            };
+            // All new split expenses move to a different report, so expenseReport becomes empty
+            const params = buildBaseParams({
+                allTransactionsList: {[`${ONYXKEYS.COLLECTION.TRANSACTION}child-tx-1`]: childTx},
+                transactionData: {
+                    reportID: EXPENSE_REPORT_ID,
+                    originalTransactionID: ORIGINAL_TX_ID,
+                    splitExpenses: [
+                        {transactionID: 'new-tx-1', reportID: 'other-report-1', statusNum: 0, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-tx-2', reportID: 'other-report-2', statusNum: 0, amount: 500, created: '2024-01-01'},
+                    ],
+                    splitExpensesTotal: 1000,
+                },
+            });
+
+            // When saving
+            updateSplitTransactionsFromSplitExpensesFlow(params);
+            await waitForBatchedUpdates();
+
+            // Then nothing is registered — the list navigates away before any highlight could render
+            expect(addPendingNewTransactionIDs).not.toHaveBeenCalled();
         });
     });
 });

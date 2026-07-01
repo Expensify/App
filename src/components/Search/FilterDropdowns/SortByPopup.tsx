@@ -5,7 +5,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ListFilterWrapper from '@components/Search/FilterComponents/ListFilterViewWrapper';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
 import {useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
-import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
+import type {SearchGroupBy, SearchQueryJSON, SearchSortBy} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -60,7 +60,7 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
         isSelected: item.value === selectedItem,
     }));
 
-    const onSortChange = (column: SearchColumnType) => {
+    const onSortChange = (column: SearchSortBy) => {
         clearSelectedTransactions();
         const newQuery = buildSearchQueryString({...queryJSON, sortBy: column});
         onSort();
@@ -71,7 +71,7 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
     };
 
     const updateSelectedItem = (item: ListItem) => {
-        setSelectedItem(item.keyForList as SearchColumnType);
+        setSelectedItem(item.keyForList as SearchSortBy);
     };
 
     const applyChanges = () => {

@@ -2,9 +2,13 @@
  * Centralized styles and layout constants for the chart components.
  */
 import colors from '@styles/theme/colors';
+import {CHART_FONT_FAMILY_NAMES} from './utils/chartFontConstants';
 
-/** Font families used by all chart label components (Paragraph API multi-font fallback). */
-const CHART_FONT_FAMILIES = ['ExpensifyNeue', 'NotoSansSymbols', 'NotoSansSCMonths'];
+/** Shade groups in the palette */
+const CHART_PALETTE_SHADES = [400, 600, 300, 500, 700] as const;
+
+/** Hues cycling within each shade group */
+const CHART_PALETTE_HUES = ['yellow', 'tangerine', 'pink', 'green', 'ice', 'blue'] as const;
 
 /**
  * Expensify Chart Color Palette.
@@ -15,14 +19,11 @@ const CHART_FONT_FAMILIES = ['ExpensifyNeue', 'NotoSansSymbols', 'NotoSansSCMont
  * Within each shade, hues cycle: Yellow, Tangerine, Pink, Green, Ice, Blue.
  */
 const CHART_PALETTE: string[] = (() => {
-    const shades = [400, 600, 300, 500, 700] as const;
-    const hues = ['yellow', 'tangerine', 'pink', 'green', 'ice', 'blue'] as const;
-
     const palette: string[] = [];
 
     // Generate the 30 unique combinations (5 shades × 6 hues)
-    for (const shade of shades) {
-        for (const hue of hues) {
+    for (const shade of CHART_PALETTE_SHADES) {
+        for (const hue of CHART_PALETTE_HUES) {
             const colorKey = `${hue}${shade}`;
             if (colors[colorKey]) {
                 palette.push(colors[colorKey]);
@@ -44,17 +45,22 @@ function getChartColor(index: number): string {
     return CHART_PALETTE.at(index % CHART_PALETTE.length) ?? colors.black;
 }
 
-/** Index of the default single-color chart color (blue400). */
-const DEFAULT_CHART_COLOR_INDEX = 5;
+/** Index of the default single-color chart color (green400). */
+const DEFAULT_CHART_COLOR_INDEX = 3;
+
+/** Index of the default dot color (green500) */
+const DEFAULT_CHART_DOT_COLOR_INDEX = DEFAULT_CHART_COLOR_INDEX + CHART_PALETTE_HUES.length * 3;
 
 const VictoryTheme = {
     colors: {
         palette: CHART_PALETTE,
         /** Default color used for single-color charts (e.g., line chart, single-color bar chart) */
         default: getChartColor(DEFAULT_CHART_COLOR_INDEX),
+        /** Default dot color for line chart data points, one shade darker than the line */
+        defaultDot: getChartColor(DEFAULT_CHART_DOT_COLOR_INDEX),
         getColor: getChartColor,
     },
-    fontFamilies: CHART_FONT_FAMILIES,
+    fontFamilies: Array.from(CHART_FONT_FAMILY_NAMES),
     axis: {
         /** Number of Y-axis ticks (including zero) */
         tickCount: 5,
@@ -68,8 +74,6 @@ const VictoryTheme = {
         padding: {top: 5, left: 5, right: 5, bottom: 5},
     },
     tooltip: {
-        /** Fraction of the pie radius at which the tooltip is anchored for each slice. */
-        pieRadiusDistance: 2 / 3,
         /** The height of the chart tooltip pointer */
         pointerHeight: 4,
         /** The width of the chart tooltip pointer */
@@ -78,11 +82,18 @@ const VictoryTheme = {
     pie: {
         /** Starting angle for pie chart (0 = 3 o'clock, -90 = 12 o'clock) */
         startAngle: -90,
+        /** Ratio of the inner radius to the outer radius, creating the donut hole (0 = full pie, 1 = no fill) */
+        innerRadiusRatio: 0.8,
+        /** Gap between pie slices in degrees */
+        padAngle: 1,
     },
 } as const;
 
 /** Minimum height for the chart content area (bars, Y-axis, grid lines) */
 const CHART_CONTENT_MIN_HEIGHT = 250;
+
+/** Pixel height of the y-scale output range inside CartesianChart (content height minus base axis padding). */
+const CHART_Y_SCALE_HEIGHT = CHART_CONTENT_MIN_HEIGHT - VictoryTheme.axis.padding.top - VictoryTheme.axis.padding.bottom;
 
 /** Supported label rotation angles in degrees */
 const LABEL_ROTATIONS = {
@@ -116,6 +127,7 @@ const GLYPH_PADDING = 4;
 
 export {
     CHART_CONTENT_MIN_HEIGHT,
+    CHART_Y_SCALE_HEIGHT,
     LABEL_ROTATIONS,
     SIN_45,
     LABEL_PADDING,

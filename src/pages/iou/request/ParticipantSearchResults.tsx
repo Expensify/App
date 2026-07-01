@@ -1,5 +1,5 @@
 import lodashPick from 'lodash/pick';
-import React, {useEffect} from 'react';
+import React, {useContext, useEffect} from 'react';
 import type {Ref} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
@@ -7,6 +7,7 @@ import ContactPermissionModal from '@components/ContactPermissionModal';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
@@ -31,10 +32,11 @@ import {formatSectionsFromSearchTerm, getHeaderMessage, getParticipantsOption, g
 import type {Option} from '@libs/OptionsListUtils';
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionWithKey} from '@libs/OptionsListUtils/types';
-import {getActiveAdminWorkspaces, isPaidGroupPolicy as isPaidGroupPolicyUtil} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, isGroupPolicy as isGroupPolicyUtil} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {isInvoiceRoom} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
 import {getInvoicePrimaryWorkspace} from '@userActions/Policy/Policy';
 import {searchUserInServer} from '@userActions/Report';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -74,8 +76,8 @@ type ParticipantSearchResultsProps = {
     /** Whether the platform is native (iOS/Android) */
     isNative: boolean;
 
-    /** Whether this is a corporate card transaction */
-    isCorporateCardTransaction: boolean;
+    /** Whether this is a transaction from a credit card import */
+    isTransactionFromCreditCardImport: boolean;
 
     /** Forwarded ref for the SelectionList — used by the parent's useImperativeHandle */
     selectionListRef: Ref<SelectionListWithSectionsHandle | null>;
@@ -100,6 +102,9 @@ type ParticipantSearchResultsProps = {
 
     /** Callback to handle restricted participant selection */
     onRestrictedParticipantSelected?: () => void;
+
+    /** Callback to dismiss the participant picker overlay before the referral banner navigates, so the referral RHP isn't covered */
+    onCloseParticipantPicker?: () => void;
 };
 
 function ParticipantSearchResults({
@@ -110,7 +115,7 @@ function ParticipantSearchResults({
     isPerDiemRequest,
     isTimeRequest,
     isNative,
-    isCorporateCardTransaction,
+    isTransactionFromCreditCardImport,
     selectionListRef,
     textInputAutoFocus,
     setTextInputAutoFocus,
@@ -119,6 +124,7 @@ function ParticipantSearchResults({
     initiallySelectedReportID,
     shouldMoveSelectedToTop = false,
     onRestrictedParticipantSelected,
+    onCloseParticipantPicker,
 }: ParticipantSearchResultsProps) {
     const getParticipantOptionKey = (option: Partial<Participant>) => option.reportID ?? option.accountID?.toString() ?? option.login ?? option.phoneNumber ?? '';
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -138,13 +144,19 @@ function ParticipantSearchResults({
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserLogin = currentUserPersonalDetails.login;
     const reportAttributesDerived = useReportAttributes();
     const privateIsArchivedMap = usePrivateIsArchivedMap();
+
+    // When the surrounding ScreenWrapper runs in edge-to-edge mode (e.g. the new manual expense flow's ParticipantPicker),
+    // it does not apply bottom safe area padding itself, so the fixed footer must consume it. Otherwise the footer
+    // (referral banner / Next button) renders behind the system navigation bar.
+    const screenWrapperStatusContext = useContext(ScreenWrapperStatusContext);
+    const addBottomSafeAreaPadding = !(screenWrapperStatusContext?.isSafeAreaBottomPaddingApplied ?? false);
 
     // Policy and billing data — owned here, used for getValidOptionsConfig and billing gate in onSelectRow
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -157,7 +169,7 @@ function ParticipantSearchResults({
 
     const {isDismissed: isDismissedReferralBanner} = useDismissedReferralBanners({referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE});
 
-    const isPaidGroupPolicy = isPaidGroupPolicyUtil(policy);
+    const isGroupPolicy = isGroupPolicyUtil(policy);
     const activeAdminWorkspaces = getActiveAdminWorkspaces(allPolicies, currentUserLogin);
 
     const getValidOptionsConfig = {
@@ -165,7 +177,7 @@ function ParticipantSearchResults({
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK,
         excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
-        includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isCorporateCardTransaction,
+        includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport,
         includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
         action,
         shouldSeparateSelfDMChat: iouType !== CONST.IOU.TYPE.INVOICE,
@@ -174,7 +186,7 @@ function ParticipantSearchResults({
         isPerDiemRequest,
         isTimeRequest,
         showRBR: false,
-        preferPolicyExpenseChat: isPaidGroupPolicy,
+        preferPolicyExpenseChat: isGroupPolicy,
         preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
@@ -216,7 +228,7 @@ function ParticipantSearchResults({
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, contactState} = useSearchSelector({
         selectionMode: isIOUSplit ? CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI : CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-        includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isCorporateCardTransaction,
+        includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         includeRecentReports: true,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
@@ -425,6 +437,7 @@ function ParticipantSearchResults({
                 isDismissedReferralBanner={isDismissedReferralBanner}
                 onConfirmSelection={handleConfirmSelection}
                 onNewWorkspace={() => onFinish()}
+                onCloseParticipantPicker={onCloseParticipantPicker}
             />
         );
 
@@ -513,6 +526,7 @@ function ParticipantSearchResults({
                     />
                 }
                 footerContent={footerContent}
+                addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                 listEmptyContent={EmptySelectionListContentWithPermission}
                 shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                 shouldShowTextInput

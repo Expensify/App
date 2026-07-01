@@ -5,6 +5,7 @@ import FixedFooter from '@components/FixedFooter';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -17,6 +18,7 @@ type CertiniaPrerequisitesStepProps = SubPageProps & {
 function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect}: CertiniaPrerequisitesStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
 
     const isLastStep = currentPageName === CONST.CERTINIA_PREREQUISITES.PAGE_NAME.OAUTH;
 
@@ -27,18 +29,28 @@ function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect}: Certini
         ? ('workspace.certinia.prerequisites.connectButton' as TranslationPaths)
         : (`workspace.certinia.prerequisites.${currentPageName}Confirm` as TranslationPaths);
 
-    const bundleInstallHref = CONST.CERTINIA_FFA_BUNDLE_INSTALL_URL.PRODUCTION;
-
     let stepContent;
     if (currentPageName === pageNames.INSTALL_BUNDLE) {
         stepContent = (
             <View style={[styles.flex1, styles.mb3, styles.ph5]}>
-                <RenderHTML
-                    html={translate('workspace.certinia.prerequisites.installBundleDescription', {
-                        href: bundleInstallHref,
-                        version: CONST.CERTINIA_FFA_BUNDLE_VERSION,
-                    })}
-                />
+                <View>
+                    <Text style={[styles.textStrong, styles.mb2]}>{translate('workspace.certinia.prerequisites.installBundlePSAHeader')}</Text>
+                    <RenderHTML
+                        html={translate('workspace.certinia.prerequisites.installBundlePSADescription', {
+                            href: CONST.CERTINIA_PSA_BUNDLE_INSTALL_URL.PRODUCTION,
+                            version: CONST.CERTINIA_PSA_BUNDLE_VERSION,
+                        })}
+                    />
+                </View>
+                <View style={styles.mt5}>
+                    <Text style={[styles.textStrong, styles.mb2]}>{translate('workspace.certinia.prerequisites.installBundleFFAHeader')}</Text>
+                    <RenderHTML
+                        html={translate('workspace.certinia.prerequisites.installBundleFFADescription', {
+                            href: CONST.CERTINIA_FFA_BUNDLE_INSTALL_URL.PRODUCTION,
+                            version: CONST.CERTINIA_FFA_BUNDLE_VERSION,
+                        })}
+                    />
+                </View>
             </View>
         );
     } else if (currentPageName === pageNames.SETUP_CONTACTS) {
@@ -69,13 +81,17 @@ function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect}: Certini
         <View style={styles.flex1}>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate(titleKey)}</Text>
             {stepContent}
-            <FixedFooter style={[styles.mtAuto]}>
+            <FixedFooter
+                style={[styles.mtAuto]}
+                addBottomSafeAreaPadding
+            >
                 <Button
                     success
                     large
                     style={[styles.w100]}
                     onPress={isLastStep ? onConnect : onNext}
                     text={translate(buttonKey)}
+                    isDisabled={isLastStep && isOffline}
                     pressOnEnter
                 />
             </FixedFooter>
