@@ -2868,4 +2868,7 @@ export type {
     RilletExportDate,
     RilletVendor,
     RilletAccount,
+    RilletCoding,
+    RilletConnectionsConfig,
+    RilletExport,
 };
