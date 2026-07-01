@@ -1,3 +1,5 @@
+import Log from '@libs/Log';
+
 type PusherReinitializeHandlerParams = {
     accountID?: number;
     email?: string;
@@ -12,7 +14,12 @@ function registerPusherReinitializeHandler(handler: PusherReinitializeHandler | 
 }
 
 function requestPusherReinitialize(params?: PusherReinitializeHandlerParams): Promise<void> {
-    return registeredHandler?.(params) ?? Promise.resolve();
+    if (!registeredHandler) {
+        Log.warn('[requestPusherReinitialize] No handler registered, skipping Pusher reinit', {params});
+        return Promise.resolve();
+    }
+
+    return registeredHandler(params);
 }
 
 export {registerPusherReinitializeHandler, requestPusherReinitialize};
