@@ -2,14 +2,15 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
+import type {FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,6 +19,7 @@ import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
 import type {AgentAvatarID} from '@libs/Avatars/AgentAvatarCatalog';
 import {isMobile} from '@libs/Browser';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
+import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -29,7 +31,9 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddAgentForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import {PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE, SUBMIT_BUTTON_HEIGHT} from './const';
 import {clearPendingAvatar, getPendingAvatar, setInitialPresetID, setNavigationToken, setReturnRoute} from './pendingAgentAvatarStore';
+import scrollToMultilineInput from './scrollToMultilineInput';
 
 type AddAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
 
@@ -38,7 +42,10 @@ function AddAgentPage({route}: AddAgentPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
-    const shouldUseScrollableLayout = useIsInLandscapeMode() || (isMobile() && windowWidth > windowHeight);
+    const {isKeyboardActive} = useKeyboardState();
+    const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
+    const shouldUseScrollableLayout = isInLandscapeMode || (isMobile() && windowWidth > windowHeight);
+    const shouldShrinkPromptInput = shouldUseScrollableLayout && isKeyboardActive;
     const {displayName} = useCurrentUserPersonalDetails();
     const defaultAgentName = displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined;
     const defaultPrompt = translate('addAgentPage.defaultPrompt');
@@ -102,6 +109,9 @@ function AddAgentPage({route}: AddAgentPageProps) {
         Navigation.goBack();
     };
 
+    const formWrapperRef = useRef<FormRef>(null);
+    const handleInputFocus = () => scrollToMultilineInput(formWrapperRef, shouldUseScrollableLayout);
+
     return (
         <ScreenWrapper
             testID={AddAgentPage.displayName}
@@ -109,10 +119,12 @@ function AddAgentPage({route}: AddAgentPageProps) {
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight={shouldUseScrollableLayout}
         >
-            <HeaderWithBackButton
-                title={translate('addAgentPage.title')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <CollapsibleHeaderOnKeyboard collapsibleHeaderOffset={SUBMIT_BUTTON_HEIGHT}>
+                <HeaderWithBackButton
+                    title={translate('addAgentPage.title')}
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+            </CollapsibleHeaderOnKeyboard>
             <FormProvider
                 formID={ONYXKEYS.FORMS.ADD_AGENT_FORM}
                 onSubmit={handleSubmit}
@@ -123,6 +135,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
                 submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
                 shouldHideFixErrorsAlert
                 enabledWhenOffline
+                ref={formWrapperRef}
             >
                 <View style={[styles.flex1, styles.flexColumn, styles.gap5]}>
                     <View style={[styles.alignItemsCenter]}>
@@ -147,7 +160,11 @@ function AddAgentPage({route}: AddAgentPageProps) {
                         spellCheck={false}
                         defaultValue={defaultAgentName}
                     />
-                    <View style={[styles.flex1, shouldUseScrollableLayout && styles.minHeight42]}>
+                    <View
+                        style={
+                            shouldShrinkPromptInput ? {height: PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} : [styles.flex1, shouldUseScrollableLayout ? styles.minHeight42 : undefined]
+                        }
+                    >
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.PROMPT}
@@ -156,10 +173,11 @@ function AddAgentPage({route}: AddAgentPageProps) {
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={defaultPrompt}
                             multiline
-                            containerStyles={[styles.flex1]}
-                            touchableInputWrapperStyle={[styles.flex1]}
-                            textInputContainerStyles={[styles.flex1]}
+                            containerStyles={[styles.h100]}
+                            touchableInputWrapperStyle={[styles.h100]}
+                            textInputContainerStyles={[styles.flex0]}
                             inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
+                            onFocus={handleInputFocus}
                         />
                     </View>
                 </View>

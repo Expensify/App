@@ -1,21 +1,27 @@
 import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useRef} from 'react';
 import {Platform, View} from 'react-native';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {updateAgentPrompt} from '@libs/actions/Agent';
+import {isMobile} from '@libs/Browser';
+import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE, SUBMIT_BUTTON_HEIGHT} from '@pages/settings/Agents/const';
+import scrollToMultilineInput from '@pages/settings/Agents/scrollToMultilineInput';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -26,7 +32,11 @@ type EditPromptPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, 
 function EditPromptPage({route}: EditPromptPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const shouldUseScrollableLayout = useIsInLandscapeMode();
+    const {windowWidth, windowHeight} = useWindowDimensions();
+    const {isKeyboardActive} = useKeyboardState();
+    const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
+    const shouldUseScrollableLayout = isInLandscapeMode || (isMobile() && windowWidth > windowHeight);
+    const shouldShrinkPromptInput = shouldUseScrollableLayout && isKeyboardActive;
     const accountID = route.params.accountID;
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
 
@@ -62,6 +72,9 @@ function EditPromptPage({route}: EditPromptPageProps) {
         handleSubmit({[INPUT_IDS.PROMPT]: textarea.value.trim()});
     });
 
+    const formWrapperRef = useRef<FormRef>(null);
+    const handleInputFocus = () => scrollToMultilineInput(formWrapperRef, shouldUseScrollableLayout);
+
     return (
         <ScreenWrapper
             testID={EditPromptPage.displayName}
@@ -69,10 +82,12 @@ function EditPromptPage({route}: EditPromptPageProps) {
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight={shouldUseScrollableLayout}
         >
-            <HeaderWithBackButton
-                title={translate('editAgentPromptPage.title')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <CollapsibleHeaderOnKeyboard collapsibleHeaderOffset={SUBMIT_BUTTON_HEIGHT}>
+                <HeaderWithBackButton
+                    title={translate('editAgentPromptPage.title')}
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+            </CollapsibleHeaderOnKeyboard>
             <FormProvider
                 formID={ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM}
                 validate={validate}
@@ -86,8 +101,11 @@ function EditPromptPage({route}: EditPromptPageProps) {
                 shouldValidateOnChange
                 shouldValidateOnBlur
                 keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
+                ref={formWrapperRef}
             >
-                <View style={[styles.flex1, shouldUseScrollableLayout && styles.minHeight42]}>
+                <View
+                    style={shouldShrinkPromptInput ? {height: PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} : [styles.flex1, shouldUseScrollableLayout ? styles.minHeight42 : undefined]}
+                >
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.PROMPT}
@@ -96,10 +114,11 @@ function EditPromptPage({route}: EditPromptPageProps) {
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={Str.htmlDecode(agentPrompt?.prompt ?? '')}
                         multiline
-                        containerStyles={[styles.flex1]}
-                        touchableInputWrapperStyle={[styles.flex1]}
-                        textInputContainerStyles={[styles.flex1]}
+                        containerStyles={[styles.h100]}
+                        touchableInputWrapperStyle={[styles.h100]}
+                        textInputContainerStyles={[styles.flex0]}
                         inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
+                        onFocus={handleInputFocus}
                     />
                 </View>
             </FormProvider>
