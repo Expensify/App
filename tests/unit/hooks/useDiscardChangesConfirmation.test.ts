@@ -196,6 +196,24 @@ describe('useDiscardChangesConfirmation (web)', () => {
             expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         });
 
+        it('lets the confirmed re-dispatch through even before the restore echo arrives', async () => {
+            renderDiscardHook(() => true);
+
+            invokeBeforeRemove('RESET');
+            dispatchPopstate();
+
+            let redeliveredEvent: MockBeforeRemoveEvent | undefined;
+            mockNavigationDispatch.mockImplementation(() => {
+                redeliveredEvent = createBeforeRemoveEvent('RESET');
+                mockBeforeRemoveCallback?.(redeliveredEvent);
+            });
+
+            await resolveModalWith('CONFIRM');
+
+            expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'RESET'});
+            expect(redeliveredEvent?.defaultPrevented).toBe(false);
+        });
+
         it('starts a fresh flow after cancelling', async () => {
             renderDiscardHook(() => true);
 
@@ -282,13 +300,13 @@ describe('useDiscardChangesConfirmation (web)', () => {
         it('suppresses the prompt while a save is in progress, and re-arms when notified it ended', () => {
             const {result} = renderDiscardHook(() => true);
 
-            act(() => result.current.notifySaving());
+            act(() => result.current.suppressDiscardPrompt());
             const duringSave = invokeBeforeRemove('RESET');
 
             expect(duringSave.defaultPrevented).toBe(false);
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
 
-            act(() => result.current.notifySaving(false));
+            act(() => result.current.suppressDiscardPrompt(false));
             const afterSave = invokeBeforeRemove('RESET');
 
             expect(afterSave.defaultPrevented).toBe(true);

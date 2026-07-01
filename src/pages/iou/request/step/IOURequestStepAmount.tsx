@@ -19,9 +19,9 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
-import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExistingTransactionID} from '@libs/IOUUtils';
+import {getAmountHasUnsavedChanges} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, shouldEnableNegative} from '@libs/ReportUtils';
 import {getRequestType, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
@@ -122,12 +122,16 @@ function IOURequestStepAmount({
     const [selectedCurrency, setSelectedCurrency] = useState(originalCurrency);
     const decimals = getCurrencyDecimals(selectedCurrency || CONST.CURRENCY.USD);
 
-    const {notifySaving} = useDiscardChangesConfirmation({
-        getHasUnsavedChanges: () => {
-            const typedAmount = amountFormRef.current?.getNumber() ?? '';
-            const typedAmountInBackendUnits = typedAmount ? convertToBackendAmount(Number.parseFloat(typedAmount)) : 0;
-            return typedAmountInBackendUnits !== transactionAmount || selectedCurrency !== originalCurrency;
-        },
+    const isAmountCreateEntry = !backTo && !isEditing;
+    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () =>
+            getAmountHasUnsavedChanges({
+                typedAmount: amountFormRef.current?.getNumber() ?? '',
+                committedAmount: transactionAmount,
+                isCreateEntry: isAmountCreateEntry,
+                selectedCurrency,
+                originalCurrency,
+            }),
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
         },
@@ -171,7 +175,7 @@ function IOURequestStepAmount({
     };
 
     const handleSubmit = ({amount, paymentMethod}: {amount: string; paymentMethod?: PaymentMethodType}) => {
-        notifySaving();
+        suppressDiscardPrompt();
         submitAmount({
             report,
             transaction,
