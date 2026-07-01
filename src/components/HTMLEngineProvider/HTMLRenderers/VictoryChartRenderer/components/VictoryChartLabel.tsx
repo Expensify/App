@@ -103,7 +103,7 @@ function VictoryChartLabel({
         });
     }
 
-    const tickX = x - (textAnchor === 'end' && barWidth !== undefined ? barWidth / 2 : 0);
+    const tickX = x + (textAnchor === 'end' && barWidth !== undefined ? barWidth / 2 : 0);
     const labelY = y;
     const correction = rotatedLabelCenterCorrection(
         getSkiaLineMetrics(processedLines.lines.at(0)?.lineFont ?? null).ascent,
