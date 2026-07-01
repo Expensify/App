@@ -181,6 +181,7 @@ function useReportActionsScroll({
                 scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
             },
             actionBadgeTargetIndex,
+            shouldBeAlignedToTop,
         });
 
     const {isScrollToBottomEnabled, setIsScrollToBottomEnabled, completeLiveTailPruneAfterScrollToBottom} = useReportActionsNewActionLiveTail({
