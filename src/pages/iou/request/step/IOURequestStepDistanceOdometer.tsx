@@ -1,8 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -513,9 +512,7 @@ function IOURequestStepDistanceOdometer({
     };
 
     const restoreLastInputFocus = useCallback(() => {
-        InteractionManager.runAfterInteractions(() => {
-            lastFocusedInputRef.current?.focus();
-        });
+        lastFocusedInputRef.current?.focus();
     }, []);
 
     useDiscardChangesConfirmation({

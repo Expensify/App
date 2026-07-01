@@ -514,6 +514,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Éditeur',
         restrictions: 'Restrictions',
+        tagGLCode: 'Taguer le code GL',
         off: 'Désactivé',
     },
     socials: {
@@ -6376,6 +6377,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 one: 'Nommer administrateur de l’espace de travail',
                 other: 'Nommer des administrateurs de l’espace de travail',
             }),
+            makeGroupAdmin: () => ({
+                one: 'Nommer administrateur',
+                other: 'Nommer des administrateurs',
+            }),
             makeAuditor: () => ({
                 one: 'Nommer auditeur',
                 other: 'Créer des auditeurs',
@@ -8337,7 +8342,14 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `règle de dépense provenant de ${cards}`,
                 composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} sur ${cards}`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} de ${cards}`,
+                bodyCurrencyValueOnly: ({value}: {value: string}) => `'${value}'`,
+                bodyCurrency: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `Devise ${adjective} « ${value} »` : `devise « ${value} »`),
+                bodyCurrencyChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `Devise ${adjective} de « ${oldValue} » à « ${newValue} »` : `devise de « ${oldValue} » à « ${newValue} »`,
+                bodyCurrencyRestriction: 'la restriction de devise',
             },
+            allowedCurrencyFilters: ({currencies}: {currencies: string}) => `devises ${currencies}`,
+            blockedCurrencyFilters: ({currencies}: {currencies: string}) => `devises ne figurant pas dans ${currencies}`,
         },
         updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
             `a modifié le taux de taxe par défaut de la catégorie « ${categoryName} » en « ${newTax} » (auparavant « ${oldTax} »)`,

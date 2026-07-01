@@ -294,16 +294,19 @@ function getLoginByAccountID(accountID: number | undefined, personalDetails: Ony
  * Given a list of accountIDs, find the associated personal detail and return related logins.
  *
  * @param accountIDs Array of user accountIDs
+ * @param personalDetailsList Record of user personal details, indexed by user id
  * @returns Array of logins according to passed accountIDs
  */
-function getLoginsByAccountIDs(accountIDs: number[]): string[] {
-    return accountIDs.reduce((foundLogins: string[], accountID) => {
-        const currentLogin = getLoginByAccountID(accountID);
-        if (currentLogin) {
-            foundLogins.push(currentLogin);
-        }
-        return foundLogins;
-    }, []);
+function getLoginsByAccountIDs(accountIDs: number[] | undefined, personalDetailsList: OnyxEntry<PersonalDetailsList> = allPersonalDetails): string[] {
+    return (
+        accountIDs?.reduce((foundLogins: string[], accountID) => {
+            const currentLogin = getLoginByAccountID(accountID, personalDetailsList);
+            if (currentLogin) {
+                foundLogins.push(currentLogin);
+            }
+            return foundLogins;
+        }, []) ?? []
+    );
 }
 
 /**
