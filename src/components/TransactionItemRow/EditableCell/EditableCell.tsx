@@ -1,4 +1,4 @@
-import React, {useDeferredValue, useEffect, useId, useState} from 'react';
+import React, {useDeferredValue, useEffect, useId, useRef, useState} from 'react';
 import type {ReactNode, RefObject} from 'react';
 import {View} from 'react-native';
 import Pencil from '@assets/images/pencil.svg';
@@ -67,6 +67,7 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     const {setIsEditingCell, setFocusedCellId} = useEditingCellActions();
     const {wasRecentlyEditingCell} = useEditingCellState();
     const isInteractive = useDeferredValue(true, false);
+    const isCellHoveredRef = useRef(false);
 
     useEffect(() => {
         if (!isEditable || !isEditing) {
@@ -96,7 +97,7 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
         }
 
         const animationFrame = requestAnimationFrame(() => {
-            if (isEditIconFocused) {
+            if (isEditIconFocused || isCellHoveredRef.current) {
                 setShouldSuppressEditIconHover(false);
                 return;
             }
@@ -120,6 +121,12 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     };
 
     const handleCellHoverIn = () => {
+        isCellHoveredRef.current = true;
+        setShouldSuppressEditIconHover(false);
+    };
+
+    const handleCellHoverOut = () => {
+        isCellHoveredRef.current = false;
         setShouldSuppressEditIconHover(false);
     };
 
@@ -163,7 +170,10 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     }
 
     return (
-        <Hoverable onHoverIn={handleCellHoverIn}>
+        <Hoverable
+            onHoverIn={handleCellHoverIn}
+            onHoverOut={handleCellHoverOut}
+        >
             {(isCellHovered) => {
                 const shouldShowEditIcon = isEditIconFocused || (!wasRecentlyEditingCell && !shouldSuppressEditIconHover && isCellHovered);
 
