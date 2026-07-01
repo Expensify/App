@@ -257,8 +257,9 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         flushPendingScrollToBottom,
         shouldBeAlignedToTop,
         shouldFocusToTopOnMount,
-        initialScrollKey,
-        shouldAutoscrollToBottom,
+        initialScrollIndex,
+        initialScrollIndexParams,
+        maintainVisibleContentPosition,
         onLoad,
     } = useReportActionsScroll({
         reportID,
@@ -266,6 +267,9 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         transactionThreadReport,
         parentReportAction,
         sortedVisibleReportActions,
+        renderedVisibleReportActions,
+        keyExtractor,
+        hasScrolledOverThreshold,
         markNewestActionAsRead,
         completeSkippedMarkAsRead,
         unreadMarkerReportActionID,
@@ -302,8 +306,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
             },
         });
     };
-
-    const shouldMaintainVisibleContentPosition = hasScrolledOverThreshold || shouldFocusToTopOnMount;
 
     // Same-screen report switches reuse this instance; per-report one-shot flags must not leak across reports.
     useEffect(() => {
@@ -463,27 +465,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     if (!report) {
         return <ReportActionsSkeletonView />;
     }
-
-    // Decide where the list should be positioned on mount.
-    // 1. If we're opening a linked message (initialScrollKey), find that action in the list and scroll it to the top
-    //    of the viewport (viewPosition: 1) with a small offset so the message above is partly visible.
-    // 2. Otherwise, if the report should be opened at top (ex: for transaction threads), scroll to the top message and offset by
-    //    the window height so we land at top of the top message for sure.
-    const targetIndex = initialScrollKey ? renderedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKey) : -1;
-    let initialScrollIndex: number | undefined;
-    let initialScrollIndexParams: {viewPosition?: number; viewOffset?: number} | undefined;
-    if (targetIndex > 0) {
-        initialScrollIndex = targetIndex;
-        initialScrollIndexParams = {viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET};
-    } else if (shouldFocusToTopOnMount) {
-        initialScrollIndex = renderedVisibleReportActions.length - 1;
-        initialScrollIndexParams = {viewOffset: windowHeight};
-    }
-
-    const maintainVisibleContentPosition = {
-        disabled: !shouldMaintainVisibleContentPosition,
-        ...(shouldAutoscrollToBottom ? {autoscrollToBottomThreshold: CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD, animateAutoScrollToBottom: false} : {}),
-    };
 
     return (
         <>
