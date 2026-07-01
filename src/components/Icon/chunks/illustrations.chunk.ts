@@ -153,6 +153,7 @@ import HeadSet from '@assets/images/simple-illustrations/simple-illustration__he
 import Hourglass from '@assets/images/simple-illustrations/simple-illustration__hourglass.svg';
 import HouseMoney from '@assets/images/simple-illustrations/simple-illustration__house-money.svg';
 import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
+import HouseWithMap from '@assets/images/simple-illustrations/simple-illustration__housewithmap.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
 import LifeRing from '@assets/images/simple-illustrations/simple-illustration__lifering.svg';
 import Lightbulb from '@assets/images/simple-illustrations/simple-illustration__lightbulb.svg';
@@ -400,6 +401,7 @@ const Illustrations = {
     HeadSet,
     Hourglass,
     House,
+    HouseWithMap,
     HouseMoney,
     LifeRing,
     Lightbulb,

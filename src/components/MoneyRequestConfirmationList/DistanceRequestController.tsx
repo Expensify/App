@@ -1,5 +1,6 @@
 import {useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {CommuterExclusionData} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -41,6 +42,7 @@ type DistanceRequestControllerProps = {
     selectedParticipantsProp: Participant[];
     setFormError: (error: TranslationPaths | '') => void;
     clearFormErrors: (errors: string[]) => void;
+    commuterExclusionData?: CommuterExclusionData;
 };
 
 /**
@@ -74,6 +76,7 @@ function DistanceRequestController({
     selectedParticipantsProp,
     setFormError,
     clearFormErrors,
+    commuterExclusionData,
 }: DistanceRequestControllerProps) {
     const {translate, toLocaleDigit} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
@@ -138,10 +141,10 @@ function DistanceRequestController({
         if (isReadOnly) {
             return;
         }
-        const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
-        setMoneyRequestAmount(transactionID, amount, currency ?? '');
+        // Use the (commuter-exclusion-aware) reimbursable amount so the seeded amount matches what the backend will calculate.
+        setMoneyRequestAmount(transactionID, distanceRequestAmount, currency ?? '');
         isFirstUpdatedDistanceAmount.current = true;
-    }, [distance, rate, isReadOnly, unit, transactionID, currency, isDistanceRequest]);
+    }, [distanceRequestAmount, isReadOnly, transactionID, currency, isDistanceRequest]);
 
     useEffect(() => {
         if (!shouldCalculateDistanceAmount || !transactionID || isReadOnly) {
@@ -218,6 +221,7 @@ function DistanceRequestController({
         */
         setMoneyRequestPendingFields(transactionID, {waypoints: isDistanceRequestWithPendingRoute ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null});
 
+        // When commuter exclusion applies, getDistanceMerchant shows the reimbursable distance in the merchant text
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(
             hasRoute,
             distance,
@@ -228,6 +232,7 @@ function DistanceRequestController({
             toLocaleDigit,
             getCurrencySymbol,
             isManualDistanceRequest,
+            commuterExclusionData,
         );
         setMoneyRequestMerchant(transactionID, distanceMerchant, true);
     }, [
@@ -245,6 +250,7 @@ function DistanceRequestController({
         isReadOnly,
         getCurrencySymbol,
         isManualDistanceRequest,
+        commuterExclusionData,
     ]);
 
     return null;

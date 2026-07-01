@@ -266,17 +266,29 @@ function MoneyRequestConfirmationList({
     const subRates = transaction?.comment?.customUnit?.subRates ?? [];
     const prevSubRates = usePrevious(subRates);
 
-    const {defaultRate, mileageRate, unit, rate, currency, prevCurrency, distance, shouldCalculateDistanceAmount, hasRoute, isDistanceRequestWithPendingRoute, distanceRequestAmount} =
-        useDistanceRequestState({
-            transaction,
-            policy,
-            policyID,
-            policyForMovingExpenses,
-            isMovingTransactionFromTrackExpense,
-            isDistanceRequest,
-            iouAmount,
-            iouCurrencyCode,
-        });
+    const {
+        defaultRate,
+        mileageRate,
+        unit,
+        rate,
+        currency,
+        prevCurrency,
+        distance,
+        shouldCalculateDistanceAmount,
+        hasRoute,
+        isDistanceRequestWithPendingRoute,
+        distanceRequestAmount,
+        commuterExclusionData,
+    } = useDistanceRequestState({
+        transaction,
+        policy,
+        policyID,
+        policyForMovingExpenses,
+        isMovingTransactionFromTrackExpense,
+        isDistanceRequest,
+        iouAmount,
+        iouCurrencyCode,
+    });
 
     const shouldShowRateAutoUpdatedTooltip =
         isDistanceRequest && !!transaction?.comment?.customUnit?.rateAutoUpdated && !!transaction.created && DistanceRequestUtils.isRateEligibleForDate(mileageRate, transaction.created);
@@ -541,7 +553,7 @@ function MoneyRequestConfirmationList({
                 isPolicyExpenseChat={isPolicyExpenseChat}
                 expenseMode={{isDistance: isDistanceRequest, isTime: isTimeRequest, isInvoice: isTypeInvoice, isPerDiem: isPerDiemRequest}}
                 distanceFlags={{isManualDistanceRequest, isOdometerDistanceRequest, isGPSDistanceRequest}}
-                distanceData={{distance, hasRoute, unit, rate, distanceRateName: mileageRate.name, distanceRateCurrency: currency, shouldShowRateAutoUpdatedTooltip}}
+                distanceData={{distance, hasRoute, unit, rate, distanceRateName: mileageRate.name, distanceRateCurrency: currency, shouldShowRateAutoUpdatedTooltip, commuterExclusionData}}
                 amountDisplay={{amount: amountToBeUsed, formattedAmount, formattedAmountPerAttendee}}
                 requiredFlags={{isCategoryRequired, isMerchantRequired, isDescriptionRequired}}
                 visibilityFlags={{
@@ -611,6 +623,7 @@ function MoneyRequestConfirmationList({
                 currentUserAccountID={currentUserPersonalDetails.accountID}
                 setFormError={setFormError}
                 clearFormErrors={clearFormErrors}
+                commuterExclusionData={commuterExclusionData}
             />
             <SplitBillController
                 transaction={transaction}

@@ -286,7 +286,10 @@ function useConfirmationValidation({
                 return {errorKey: 'iou.error.genericSmartscanFailureMessage', shouldSetDidConfirmSplit: true};
             }
 
-            if (isEditingSplitBill && iouAmount === 0) {
+            // Allow zero-amount submission when a workspace commuter exclusion has fully consumed the distance
+            // (commuterExclusion >= quantity), since the user can still legitimately submit such an expense.
+            const hasCommuterExclusion = (transaction?.comment?.customUnit?.commuterExclusion ?? 0) > 0;
+            if (isEditingSplitBill && iouAmount === 0 && !hasCommuterExclusion) {
                 return {errorKey: 'iou.error.invalidAmount'};
             }
 

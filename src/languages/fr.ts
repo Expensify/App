@@ -516,6 +516,7 @@ const translations: TranslationDeepObject<typeof en> = {
         restrictions: 'Restrictions',
         tagGLCode: 'Taguer le code GL',
         off: 'Désactivé',
+        commuter: 'navetteur',
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -8232,18 +8233,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a supprimé « ${prohibitedExpense} » des dépenses interdites`,
         commuterExclusions: {
             changedToFixedDistance: 'a modifié l’exclusion des trajets domicile-travail en une distance fixe par demande',
-            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
-                const isSingular = distance === 1;
-                let unitLabel: string;
-                if (unit === 'mi') {
-                    unitLabel = isSingular ? 'mile' : 'miles';
-                } else {
-                    unitLabel = isSingular ? 'kilomètre' : 'kilomètres';
-                }
-                return `définir l’exclusion de distance fixe à ${distance} ${unitLabel} par demande`;
-            },
-            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
-                `a modifié l’exclusion de distance fixe à ${newDistance} ${unit} par demande (auparavant ${oldDistance} ${unit})`,
+            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `définir l’exclusion de distance fixe à ${formattedDistance} par demande`,
+            changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
+                `a modifié l’exclusion de distance fixe à ${formattedNewDistance} par demande (auparavant ${formattedOldDistance})`,
             disabled: 'désactivé exclure les trajets domicile-travail pour les taux de distance',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
@@ -9043,6 +9035,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         error: {
             selectSuggestedAddress: 'Veuillez sélectionner une adresse suggérée ou utiliser la position actuelle',
+            mapOrGpsDistanceRequired: {
+                title: 'Distance carte ou GPS requise',
+                description: 'Cet espace de travail requiert des dépenses de distance soit basées sur une carte, soit suivies par GPS.',
+            },
         },
         odometer: {
             startReading: 'Commencer la lecture',
@@ -9059,6 +9055,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             cameraAccessRequired: "L'accès à l'appareil photo est requis pour prendre des photos.",
             snapPhotoStart: '<muted-text-label>Prenez une photo de votre compteur kilométrique au <strong>début</strong> de votre trajet.</muted-text-label>',
             snapPhotoEnd: '<muted-text-label>Prenez une photo de votre compteur kilométrique à la <strong>fin</strong> de votre trajet.</muted-text-label>',
+        },
+        commuterExclusion: {
+            original: 'Original',
+            removedCommuterDistance: ({formattedDistance}: {formattedDistance: string}) => `Supprimé ${formattedDistance}`,
+            systemMessage: ({formattedDistance, workspaceDistanceSettingsLink}: {formattedDistance: string; workspaceDistanceSettingsLink: string}) =>
+                `${formattedDistance} supprimé en fonction des <a href="${workspaceDistanceSettingsLink}">paramètres de distance de l'espace de travail</a>.`,
         },
     },
     gps: {

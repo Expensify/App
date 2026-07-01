@@ -7,6 +7,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import DistanceWithCommuterExclusion from '@components/DistanceWithCommuterExclusion';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
@@ -565,7 +566,25 @@ function MoneyRequestView({
         getCurrencySymbol,
         isOffline,
     );
-    const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, undefined, isManualDistanceRequest);
+
+    const distanceUnitValue = transaction?.comment?.customUnit?.distanceUnit ?? unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    const commuterExclusionBreakdown = DistanceRequestUtils.getCommuterExclusionData(transaction, policy, distance, distanceUnitValue);
+    const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, undefined, isManualDistanceRequest, commuterExclusionBreakdown);
+    let distanceToDisplayDescription = translate('common.distance');
+    let distanceToDisplaySubtitle;
+
+    if (commuterExclusionBreakdown) {
+        const {commuterExclusion, reimbursableDistance} = commuterExclusionBreakdown;
+        const originalDistanceFormatted = DistanceRequestUtils.getFormattedDistanceInUnits(reimbursableDistance + commuterExclusion, distanceUnitValue, translate);
+        distanceToDisplayDescription = `${translate('common.distance')} ${CONST.DOT_SEPARATOR} ${translate('distance.commuterExclusion.original')}: ${originalDistanceFormatted}`;
+        distanceToDisplaySubtitle = (
+            <DistanceWithCommuterExclusion
+                commuterExclusion={commuterExclusion}
+                distanceUnit={distanceUnitValue}
+            />
+        );
+    }
+
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
     let amountTitle = formattedTransactionAmount?.toString() || '';
     if (isTransactionScanning) {
@@ -884,8 +903,9 @@ function MoneyRequestView({
         <>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints') ?? getPendingFieldAction('merchant')}>
                 <MenuItemWithTopDescription
-                    description={translate('common.distance')}
+                    description={distanceToDisplayDescription}
                     title={distanceToDisplay}
+                    furtherDetailsComponent={distanceToDisplaySubtitle}
                     numberOfLinesTitle={2}
                     interactive={canEditDistance}
                     shouldShowRightIcon={canEditDistance}

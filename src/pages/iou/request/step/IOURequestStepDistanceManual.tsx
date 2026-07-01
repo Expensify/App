@@ -7,10 +7,12 @@ import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -62,6 +64,8 @@ function IOURequestStepDistanceManual({
     currentUserPersonalDetails,
 }: IOURequestStepDistanceManualProps) {
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
+    const illustrations = useMemoizedLazyIllustrations(['HouseWithMap']);
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
@@ -281,6 +285,25 @@ function IOURequestStepDistanceManual({
     };
 
     const submitAndNavigateToNextPage = () => {
+        // Workspaces with commuter exclusions configured require map-based distance, since the
+        // exclusion is computed off the mapped route. Block manual entry for these workspaces.
+        if (policy?.commuterExclusions) {
+            showConfirmModal({
+                title: translate('distance.error.mapOrGpsDistanceRequired.title'),
+                titleStyles: styles.textHeadline,
+                prompt: translate('distance.error.mapOrGpsDistanceRequired.description'),
+                promptStyles: styles.textSupporting,
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+                shouldShowDismissIcon: true,
+                image: illustrations.HouseWithMap,
+                shouldUseSuccessStyleForConfirm: true,
+                shouldFitImageToContainer: true,
+                imageStyles: styles.commuterExclusionStaticIllustration,
+            });
+            return;
+        }
+
         const value = numberFormRef.current?.getNumber() ?? '';
 
         if (!value.length || parseFloat(value) <= 0) {

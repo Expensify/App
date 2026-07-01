@@ -50,6 +50,13 @@ function DistanceRequestStartPage({
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const isTrackDistanceExpense = iouType === CONST.IOU.TYPE.TRACK;
 
+    const [shouldHideManualAndOdometerTabs] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (allPolicies) => {
+            const policies = Object.values(allPolicies ?? {}).filter((p) => !!p?.id && p.type !== CONST.POLICY.TYPE.PERSONAL);
+            return policies.length > 0 && policies.every((p) => !!p?.commuterExclusions);
+        },
+    });
+
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.trackDistance'),
@@ -139,16 +146,18 @@ function DistanceRequestStartPage({
                                 </TabScreenWithFocusTrapWrapper>
                             )}
                         </TopTab.Screen>
-                        <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MANUAL}>
-                            {() => (
-                                <TabScreenWithFocusTrapWrapper>
-                                    <IOURequestStepDistanceManual
-                                        route={route}
-                                        navigation={navigation}
-                                    />
-                                </TabScreenWithFocusTrapWrapper>
-                            )}
-                        </TopTab.Screen>
+                        {!shouldHideManualAndOdometerTabs && (
+                            <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MANUAL}>
+                                {() => (
+                                    <TabScreenWithFocusTrapWrapper>
+                                        <IOURequestStepDistanceManual
+                                            route={route}
+                                            navigation={navigation}
+                                        />
+                                    </TabScreenWithFocusTrapWrapper>
+                                )}
+                            </TopTab.Screen>
+                        )}
                         <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_GPS}>
                             {() => (
                                 <TabScreenWithFocusTrapWrapper>
@@ -159,16 +168,18 @@ function DistanceRequestStartPage({
                                 </TabScreenWithFocusTrapWrapper>
                             )}
                         </TopTab.Screen>
-                        <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_ODOMETER}>
-                            {() => (
-                                <TabScreenWithFocusTrapWrapper>
-                                    <IOURequestStepDistanceOdometer
-                                        route={route}
-                                        navigation={navigation}
-                                    />
-                                </TabScreenWithFocusTrapWrapper>
-                            )}
-                        </TopTab.Screen>
+                        {!shouldHideManualAndOdometerTabs && (
+                            <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_ODOMETER}>
+                                {() => (
+                                    <TabScreenWithFocusTrapWrapper>
+                                        <IOURequestStepDistanceOdometer
+                                            route={route}
+                                            navigation={navigation}
+                                        />
+                                    </TabScreenWithFocusTrapWrapper>
+                                )}
+                            </TopTab.Screen>
+                        )}
                     </OnyxTabNavigator>
                 </View>
             </ScreenWrapper>

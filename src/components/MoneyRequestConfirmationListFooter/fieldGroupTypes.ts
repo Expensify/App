@@ -8,6 +8,13 @@ type AmountDisplay = {
     formattedAmountPerAttendee: string;
 };
 
+/** Commuter exclusion breakdown data */
+type CommuterExclusionData = {
+    commuterExclusion: number;
+    reimbursableDistance: number;
+    distanceUnit: Unit;
+} | null;
+
 /** Distance-rate metadata threaded into Distance/Rate fields */
 type DistanceData = {
     distance: number;
@@ -17,6 +24,7 @@ type DistanceData = {
     distanceRateName: string | undefined;
     distanceRateCurrency: string;
     shouldShowRateAutoUpdatedTooltip?: boolean;
+    commuterExclusionData?: CommuterExclusionData;
 };
 
 /** Distance-mode discriminators (manual / odometer / GPS) */
@@ -90,4 +98,17 @@ type ReceiptOptions = {
     onPDFPassword?: () => void;
 };
 
-export type {AmountDisplay, CompactControls, CompactState, DistanceData, DistanceFlags, ErrorState, ExpenseMode, ReceiptOptions, RequiredFlags, ToggleHandlers, VisibilityFlags};
+export type {
+    AmountDisplay,
+    CompactControls,
+    CompactState,
+    CommuterExclusionData,
+    DistanceData,
+    DistanceFlags,
+    ErrorState,
+    ExpenseMode,
+    ReceiptOptions,
+    RequiredFlags,
+    ToggleHandlers,
+    VisibilityFlags,
+};

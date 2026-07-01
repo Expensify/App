@@ -91,12 +91,20 @@ function useDistanceRequestState({
 
     const distance = getDistanceInMeters(transaction, unit);
     const prevDistance = usePrevious(distance);
-    const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance || prevCurrency !== currency || prevUnit !== unit);
+
+    // When a commuter exclusion applies, the reimbursable amount is based on the distance remaining after the exclusion.
+    const amountUnit = unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    const commuterExclusionData = DistanceRequestUtils.getCommuterExclusionData(transaction, policy, distance, amountUnit);
+    const reimbursableDistanceInMeters = commuterExclusionData ? DistanceRequestUtils.convertToDistanceInMeters(commuterExclusionData.reimbursableDistance, amountUnit) : distance;
+
+    // Recalculate when the route/rate changes, or whenever a commuter exclusion applies so the reimbursable amount is used.
+    const shouldCalculateDistanceAmount =
+        isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance || prevCurrency !== currency || prevUnit !== unit || !!commuterExclusionData);
 
     const hasRoute = hasRouteUtil(transaction, isDistanceRequest);
     const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate) && !isMovingTransactionFromTrackExpense;
 
-    const distanceRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
+    const distanceRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(reimbursableDistanceInMeters, amountUnit, rate ?? 0);
 
     return {
         policyDraft,
@@ -118,6 +126,7 @@ function useDistanceRequestState({
         hasRoute,
         isDistanceRequestWithPendingRoute,
         distanceRequestAmount,
+        commuterExclusionData,
     };
 }
 

@@ -3,6 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {CommuterExclusionData} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
@@ -10,9 +11,10 @@ import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getDistanceUnitLabel, getFormattedDistanceInUnits} from './DistanceDisplayUtils';
 import getStoredDefaultP2PMileageRate from './getStoredDefaultP2PMileageRate';
-import {replaceAllDigits} from './MoneyRequestUtils';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getUnitRateValue} from './PolicyUtils';
+import replaceAllDigits from './replaceAllDigits';
 import {getCurrency, getRateID, isCustomUnitRateIDForP2P, isExpenseUnreported} from './TransactionUtils';
 
 type MileageRate = {
@@ -213,6 +215,8 @@ function getRateForExpenseDisplay(
  * @param rate Expensable amount allowed per unit
  * @param translate Translate function
  * @param useShortFormUnit If true, the unit will be returned in short form (e.g., "mi", "km").
+ * @param isZeroDistanceAllowed If true, a zero distance is formatted instead of returning an empty string.
+ * @param commuterExclusionData When provided, the reimbursable distance (after the commuter exclusion) is displayed instead of the full route distance.
  * @returns A string that describes the distance traveled
  */
 function getDistanceForDisplay(
@@ -223,25 +227,19 @@ function getDistanceForDisplay(
     translate: LocaleContextProps['translate'],
     useShortFormUnit?: boolean,
     isZeroDistanceAllowed?: boolean,
+    commuterExclusionData?: CommuterExclusionData,
 ): string {
-    if (!hasRoute || !unit) {
+    const displayUnit = unit ?? commuterExclusionData?.distanceUnit;
+    if (!hasRoute || !displayUnit) {
         return translate('iou.fieldPending');
     }
 
-    if (!distanceInMeters && !isZeroDistanceAllowed) {
+    const distanceToDisplayInMeters = commuterExclusionData ? convertToDistanceInMeters(commuterExclusionData.reimbursableDistance, displayUnit) : distanceInMeters;
+    if (!distanceToDisplayInMeters && !isZeroDistanceAllowed && !commuterExclusionData) {
         return '';
     }
 
-    const distanceInUnits = getRoundedDistanceInUnits(distanceInMeters, unit);
-    if (useShortFormUnit) {
-        return `${distanceInUnits} ${unit}`;
-    }
-
-    const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
-    const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
-    const unitString = distanceInUnits === '1' ? singularDistanceUnit : distanceUnit;
-
-    return `${distanceInUnits} ${unitString}`;
+    return getFormattedDistanceInUnits(convertDistanceUnit(distanceToDisplayInMeters, displayUnit), displayUnit, translate, useShortFormUnit);
 }
 
 function getDistanceForDisplayLabel(distanceInMeters: number, unit: Unit): string {
@@ -257,6 +255,7 @@ function getDistanceForDisplayLabel(distanceInMeters: number, unit: Unit): strin
  * @param currency The currency associated with the rate
  * @param translate Translate function
  * @param toLocaleDigit Function to convert to localized digit
+ * @param commuterExclusionData When provided, the reimbursable distance (after the commuter exclusion) is shown instead of the full route distance.
  * @returns A string that describes the distance traveled and the rate used for expense calculation
  */
 function getDistanceMerchant(
@@ -269,16 +268,17 @@ function getDistanceMerchant(
     toLocaleDigit: LocaleContextProps['toLocaleDigit'],
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
     isZeroDistanceAllowed?: boolean,
+    commuterExclusionData?: CommuterExclusionData,
 ): string {
     if (!hasRoute || !rate) {
         return translate('iou.fieldPending');
     }
 
-    if (!distanceInMeters && !isZeroDistanceAllowed) {
+    if (!distanceInMeters && !isZeroDistanceAllowed && !commuterExclusionData) {
         return '';
     }
 
-    const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate, true, isZeroDistanceAllowed);
+    const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate, true, isZeroDistanceAllowed, commuterExclusionData);
     const ratePerUnit = getFormattedRateValue(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, undefined, true);
 
     return `${distanceInUnits} ${CONST.DISTANCE_MERCHANT_SEPARATOR} ${ratePerUnit}`;
@@ -325,6 +325,60 @@ function roundDistanceAmount(distanceInUnits: number, rate: number): number {
  */
 function getDistanceRequestAmount(distance: number, unit: Unit, rate: number): number {
     return roundDistanceAmount(convertDistanceUnit(distance, unit), rate);
+}
+
+/**
+ * Computes the commuter exclusion breakdown (in display units) for a distance request.
+ *
+ * Prefers values already stored on the transaction (set optimistically or by the backend),
+ * otherwise previews the exclusion from the policy's commuter exclusion configuration.
+ *
+ * @param transaction - The distance transaction being confirmed/edited
+ * @param policy - The policy the expense belongs to
+ * @param distanceInMeters - The full route distance in meters
+ * @param distanceUnit - The display unit (mi/km) the breakdown is expressed in
+ * @returns The commuter exclusion and reimbursable distance, or null when no exclusion applies
+ */
+function getCommuterExclusionData(
+    transaction: OnyxEntry<Transaction>,
+    policy: OnyxEntry<Policy>,
+    distanceInMeters: number,
+    distanceUnit: Unit,
+): {commuterExclusion: number; reimbursableDistance: number; distanceUnit: Unit} | null {
+    const customUnit = transaction?.comment?.customUnit;
+
+    // Prefer the stored quantity; fall back to converting the route distance for route-based
+    // requests whose quantity hasn't resolved yet.
+    let quantityInUnit = customUnit?.quantity ?? 0;
+    if (quantityInUnit <= 0 && distanceInMeters > 0) {
+        quantityInUnit = convertDistanceUnit(distanceInMeters, distanceUnit);
+    }
+
+    let commuterExclusion = customUnit?.commuterExclusion;
+    let reimbursableDistance = customUnit?.reimbursableDistance;
+
+    if (!commuterExclusion && policy?.commuterExclusions) {
+        const exclusionConfig = policy.commuterExclusions;
+        if (exclusionConfig.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE && quantityInUnit > 0) {
+            const fixedDistanceUnit: Unit =
+                exclusionConfig.fixedDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS : CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+            const fixedDistance = convertDistanceUnit(convertToDistanceInMeters(exclusionConfig.fixedDistance ?? 0, fixedDistanceUnit), distanceUnit);
+            if (fixedDistance > 0) {
+                commuterExclusion = Math.min(fixedDistance, quantityInUnit);
+                reimbursableDistance = Math.max(0, quantityInUnit - commuterExclusion);
+            }
+        }
+    }
+
+    if (!commuterExclusion || commuterExclusion <= 0) {
+        return null;
+    }
+
+    return {
+        commuterExclusion,
+        reimbursableDistance: reimbursableDistance ?? Math.max(0, quantityInUnit - commuterExclusion),
+        distanceUnit,
+    };
 }
 
 /**
@@ -663,15 +717,18 @@ export default {
     getDefaultMileageRate,
     getDistanceMerchant,
     getDistanceRequestAmount,
+    getCommuterExclusionData,
     getFormattedRateValue,
     getMileageRates,
     getDistanceForDisplay,
+    getFormattedDistanceInUnits,
     getRoundedDistanceInUnits,
     getRateForP2P,
     getCustomUnitRateID,
     convertToDistanceInMeters,
     getTaxableAmount,
     getDistanceUnit,
+    getDistanceUnitLabel,
     getUpdatedDistanceUnit,
     getRate,
     getRateByCustomUnitRateID,
