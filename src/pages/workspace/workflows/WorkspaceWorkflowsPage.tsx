@@ -122,9 +122,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const {showConfirmModal} = useConfirmModal();
-    // The backend sends areApprovalsLockedByExpensifyCard so the approval toggle can lock without the page
-    // loading any Expensify Card data.
-    const isSmartLimitEnabled = policy?.areApprovalsLockedByExpensifyCard ?? false;
+    const [isSmartLimitEnabled = false] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_APPROVALS_LOCKED_BY_EXPENSIFY_CARD}${route.params.policyID}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);

@@ -2337,9 +2337,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Expensify Card feature is enabled */
         areExpensifyCardsEnabled?: boolean;
 
-        /** Whether the approval toggle is locked because an active Expensify Card uses Smart Limit */
-        areApprovalsLockedByExpensifyCard?: boolean;
-
         /** Whether the workflows feature is enabled */
         areWorkflowsEnabled?: boolean;
 
