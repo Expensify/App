@@ -1,7 +1,7 @@
 ---
 title: Getting Started with the Spend Page
 description: Learn how to use the Spend page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
-keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters]
+keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total]
 ---
 
 The Spend page in New Expensify gives you a full list of your reports and related expenses. From the Spend page you can explore, filter, and export your expense data.
@@ -88,6 +88,37 @@ Each row represents an expense and includes:
 
 ---
 
+# How to change the currency of the total spend on the Spend page
+
+When you select one or more expenses on the **Spend** page, a footer appears showing the number of selected **Expenses** and the **Total spend**. You can convert the **Total spend** to a different currency to see the combined value of expenses that were created in different currencies.
+
+## What the total spend footer shows
+
+- **Expenses:** the number of expenses currently selected.
+- **Total spend:** the combined amount of the selected expenses, shown with a currency code.
+
+The total is shown in your default currency until you choose a different one.
+
+## How to change the total spend currency
+
+1. On the **Spend** page, select one or more expenses using the checkboxes.
+2. In the footer, click the currency shown next to the **Total spend** amount.
+3. In the currency picker, search for and select the currency you want.
+4. Click **Apply**.
+
+The **Total spend** amount updates to show the converted value in the currency you selected. Click **Reset** in the picker to return to your default currency.
+
+## When the total spend currency picker is disabled
+
+The currency picker can't be opened in these cases:
+
+- You're **offline**, because converted totals require a refresh from Expensify.
+- The totals are still loading.
+- You've selected a **grouped** row (such as a report) rather than individual expenses.
+- Your selection includes expenses that aren't yet loaded (for example, expenses from a later page after scrolling).
+
+---
+
 ## How to apply filters in New Expensify
 
 Web:
@@ -157,4 +188,7 @@ Previews update **in real time** as expenses are added or removed. Deleted repor
 
 ## Can someone comment on a report?
 Yes. When someone comments, a Comments section appears in the preview, and the layout adjusts to accommodate the discussion.
+
+## Why can't I change the total spend currency?
+The currency picker is disabled when you're offline, while totals are loading, when a grouped row (such as a report) is selected, or when your selection includes expenses that aren't yet loaded. Reconnect, load the expenses, or select individual expenses to enable it.
 
