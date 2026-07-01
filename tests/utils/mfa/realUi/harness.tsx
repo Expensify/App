@@ -30,9 +30,8 @@ function MfaControlsCapture() {
 }
 
 /**
- * Mounts the real provider stack and the real MFA modal navigator the app renders in production. No
- * SafeAreaProvider: the global `react-native-safe-area-context` mock returns fixed insets/frame from
- * plain hooks, so nothing in the tree needs a provider above it.
+ * Mounts the production MFA providers and modal navigator. The global safe-area mock provides fixed
+ * values without a `SafeAreaProvider`.
  */
 function renderMfaUi() {
     controlsHolder.current = undefined;
@@ -56,17 +55,12 @@ function getMfaControls(): MfaUiControls {
 type MfaEventType = MfaEvent['type'];
 type MfaEventExecutor = () => Promise<void>;
 
-/** The confirm button's testID on the outcome screen (see OutcomeScreenBase). Queried instead of the visible label. */
+/** This stable testID keeps the test independent of translated button text. */
 const CONFIRM_BUTTON_TEST_ID = 'MultifactorAuthenticationOutcomeConfirmButton';
 
 /**
- * Maps each machine event to the gesture (or system step) that produces it in production. The model
- * walk drives the real UI through this dictionary, one entry per event.
- *
- * Not every event is a DOM gesture in this slice. `INIT` is fired by an external consumer through the
- * public API (no button inside the MFA modal starts a flow), and `MODAL_CLOSED` is the navigator's
- * teardown signal rather than a user action, so here we run the exact callback the navigator handed us.
- * `satisfies Record<MfaEventType, ...>` makes a new machine event a compile error until it gets an executor.
+ * `INIT` enters through the public API, while `MODAL_CLOSED` runs the navigator's teardown callback.
+ * `satisfies Record<MfaEventType, ...>` requires an explicit executor for every machine event.
  */
 /* eslint-disable @typescript-eslint/naming-convention -- keys mirror the machine's event type union. */
 const mfaEventExecutors = {
@@ -75,8 +69,8 @@ const mfaEventExecutors = {
             await getMfaControls().executeScenario(MFA_TEST_SCENARIO_NAME);
         });
         await waitForBatchedUpdatesWithAct();
-        // The transparent initial screen's onLayout does not fire in jsdom. Calling the exact handler it
-        // wires runs the buffered push to the outcome screen, just like a real layout pass.
+        // The initial screen's `onLayout` does not fire in jsdom, so the test calls the same handler to flush the
+        // buffered navigation.
         act(() => handleInitialScreenLayout());
         await waitForBatchedUpdatesWithAct();
     },

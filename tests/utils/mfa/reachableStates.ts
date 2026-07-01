@@ -7,10 +7,8 @@ function getSettleableLeafStates(node: AnyStateNode): SettleableLeafState[] {
     if (children.length > 0) {
         return children.flatMap(getSettleableLeafStates);
     }
-    // A leaf with an `always` transition is treated as a transient router that leaves on entry and never
-    // settles. This assumes the machine convention that `always` on a leaf is unconditional (the current
-    // `preparing` router is). A GUARDED `always` that can fail to fire would settle and should count as a
-    // leaf; revisit this (and cover parent-level `always`) before adding conditional routers.
+    // This machine uses leaf-level `always` transitions only as unconditional routers, so those leaves cannot
+    // settle. Revisit this rule before adding guarded or parent-level `always` transitions.
     if ((node.always?.length ?? 0) > 0) {
         return [];
     }

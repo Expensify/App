@@ -10,28 +10,25 @@ import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine
 import {resetMfaNavigation} from '@components/MultifactorAuthentication/mfaNavigation';
 import CONST from '@src/CONST';
 
-// Forces a wide layout so the navigator renders the backdrop overlay the assertions use as the mounted marker.
+// This mock forces a wide layout so the navigator renders the backdrop used as the mounted marker.
 jest.mock('@hooks/useResponsiveLayout');
-// Drops the dev-only Stately inspector wiring, leaving the real useInspectedMachine to fall back to plain useMachine.
-// `inspect: undefined` is exactly what @libs/XStateInspector returns in a non-dev build.
+// This mock disables the dev-only Stately inspector so `useInspectedMachine` falls back to `useMachine`.
 jest.mock('@libs/XStateInspector', () => ({__esModule: true, default: {inspect: undefined}}));
-// Native / WebAuthn biometrics are out of scope for the modal-lifecycle contract.
+// Native and WebAuthn biometrics are outside the modal lifecycle contract.
 jest.mock('@components/MultifactorAuthentication/biometrics/useBiometrics', () => require('tests/utils/mfa/realUi/mocks').biometricsHookMock());
-// Browser/Android back-history wiring is a separate concern from the machine <-> UI contract.
+// Browser and Android history synchronization is outside the contract between the machine and UI.
 jest.mock('@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHistory', () => require('tests/utils/mfa/realUi/mocks').syncHistoryMock());
-// Reuses the shared Navigation mock and overrides the transition methods the MFA flow drives.
+// This mock reuses the shared Navigation implementation and overrides the transition methods used by the MFA flow.
 jest.mock('@libs/Navigation/Navigation', () => require('tests/utils/mfa/realUi/mocks').navigationMock());
 
-// The queryable markers each state asserts against. `OutcomeScreenBase` is the success or failure screen's
-// testID; the backdrop's `Close` label only renders while the MFA navigator is mounted.
+// These UI markers distinguish the closed, closing, and outcome states. `OutcomeScreenBase` identifies the
+// outcome screen, while the backdrop's `Close` label exists only when the MFA navigator is mounted.
 const OUTCOME_SCREEN_TEST_ID = 'OutcomeScreenBase';
 const MODAL_OVERLAY_LABEL = 'Close';
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
-// The TestModel config maps each event to a UI gesture and each state to a per-state assertion. State
-// keys are dot-path values matched with `matchesState`, so they can target any depth, such as the
-// settled success leaf `open.outcome.success` rather than just the `open` parent.
+// Dot-path state keys let `matchesState` target nested leaves such as `open.outcome.success`.
 const testConfig = {
     events: mfaEventExecutors,
     states: {
@@ -50,12 +47,10 @@ const testConfig = {
     },
 };
 
-// getShortestPaths reaches every state. The lifecycle paths add the MODAL_CLOSED teardown that they skip.
 const walkedPaths = getWalkedPaths();
 
-// TestModel's own `path.description` embeds the full serialized event (scenario config, React nodes, INIT
-// payload). Name the test from the driven event TYPES only, dropping the synthetic `xstate.init` step
-// that the graph prepends (its runtime type is not part of the MfaEvent union, hence the widened param).
+// `path.description` serializes the complete event payload, so test names use only driven event types.
+// The synthetic `xstate.init` event is excluded because it is not part of `MfaEvent`.
 const INIT_STEP_EVENT_TYPE = 'xstate.init';
 function describeDrivenEvents(steps: ReadonlyArray<{event: {type: string}}>): string {
     const drivenEventTypes = steps.map((step) => step.event.type).filter((type) => type !== INIT_STEP_EVENT_TYPE);
@@ -81,10 +76,8 @@ describe('the real MFA modal follows the machine', () => {
     }
 });
 
-// Loud UI-walk counterpart to everyStateReachable: every settleable leaf must be the endpoint of a path we
-// actually drive. The walk only asserts states a generated path reaches, so a leaf that stops being reached
-// (e.g. a future guard needs a payload the bare-synthesized event lacks) would silently drop its coverage.
-// Asserting reachability over walkedPaths turns that silent drop into a failure that names the leaf.
+// This check requires every settleable leaf to end a path that the UI walk drives. If a generated path
+// stops reaching a leaf, the failure identifies that leaf explicitly.
 describe('the UI walk reaches every settleable leaf', () => {
     const walkedLeafValues = walkedPaths.map((path) => path.state.value);
 
