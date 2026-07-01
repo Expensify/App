@@ -25,9 +25,8 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import AppNavigator from './AppNavigator';
-import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import {cleanPreservedNavigatorStates, clearPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import getNavigationBaseTheme from './getNavigationBaseTheme';
 import createDynamicRoute from './helpers/dynamicRoutesUtils/createDynamicRoute';
 import getActiveTabName from './helpers/getActiveTabName';
@@ -225,6 +224,10 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return;
         }
 
+        // Drop the previous session's preserved navigator states. Otherwise restoreTabNavigatorRoutes
+        // reattaches the prior TAB_NAVIGATOR subtree to the public sign-in route (which shares that name).
+        clearPreservedNavigatorStates();
+
         const stateToReset = getStateToResetAfterLogout(navigationRef.getRootState());
         if (!stateToReset) {
             return;
@@ -234,9 +237,9 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             navigationRef.reset(stateToReset);
         } catch (error) {
             // A synthesized reset state can be rejected by RN; fall back to a known-valid
-            // SCREENS.HOME (PublicScreens maps "/" → SignInPage) instead of leaving a blank screen.
+            // TAB_NAVIGATOR (PublicScreens maps "/" → SignInPage) instead of leaving a blank screen.
             Log.alert('[NavigationRoot] Post-logout navigation reset failed', {error: String(error)});
-            navigationRef.reset({index: 0, routes: [{name: SCREENS.HOME}]});
+            navigationRef.reset({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
         }
     }, [authenticated, previousAuthenticated]);
 
