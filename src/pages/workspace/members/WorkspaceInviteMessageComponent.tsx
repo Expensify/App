@@ -25,7 +25,7 @@ import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
-import {temporaryGetDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     canMemberAssignElevatedRole,
     canMemberAssignRole,

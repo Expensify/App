@@ -34,7 +34,7 @@ import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWo
 import {getAllCardsForWorkspace, getCardFeedIcon, getCardFeedWithDomainID, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {temporaryGetDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
+import {getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {canMemberAssignRole, canMemberManageMemberWithRole, canMemberWrite, isControlPolicy, isPolicyApprover, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
