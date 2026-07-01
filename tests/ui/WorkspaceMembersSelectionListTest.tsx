@@ -9,7 +9,7 @@ const mockUseState = React.useState;
 const mockPolicy = {
     owner: 'owner@example.com',
     employeeList: Object.fromEntries(
-        Array.from({length: CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD + 2}, (_, index) => [
+        Array.from({length: CONST.STANDARD_LIST_ITEM_LIMIT + 2}, (_, index) => [
             `user${index}@example.com`,
             {
                 email: `user${index}@example.com`,
@@ -19,7 +19,7 @@ const mockPolicy = {
     ),
 };
 const mockPersonalDetails = Object.fromEntries(
-    Array.from({length: CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD + 2}, (_, index) => [
+    Array.from({length: CONST.STANDARD_LIST_ITEM_LIMIT + 2}, (_, index) => [
         index + 1,
         {
             accountID: index + 1,
