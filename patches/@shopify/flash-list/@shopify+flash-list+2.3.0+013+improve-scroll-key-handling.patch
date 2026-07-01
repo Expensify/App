@@ -49,10 +49,21 @@ index 3b69234..41bfb84 100644
          }
          else {
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
-index 18e59ce..17c8063 100644
+index 18e59ce..9d211fb 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
-@@ -566,10 +566,45 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+@@ -25,6 +25,10 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+     const isUnmounted = useUnmountFlag();
+     const [_, setRenderId] = useState(0);
+     const pauseOffsetCorrection = useRef(false);
++    // Latest offset computed by applyInitialScrollIndex. The deferred (setTimeout) re-scroll reads this at
++    // fire-time instead of the value it closed over, so a stale timeout scheduled by an earlier commit can't
++    // snap back to an outdated offset after a newer commit.
++    const latestInitialScrollOffsetRef = useRef(0);
+     // True while a `scrollToIndex` / `scrollToOffset` smooth scroll is in
+     // flight. Cleared exactly once on `isMomentumEnd` via
+     // `notifyProgrammaticScrollSettled`.
+@@ -566,18 +570,55 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
              }, 500);
              pauseOffsetCorrection.current = true;
              const additionalOffset = (_c = initialScrollIndexParams === null || initialScrollIndexParams === void 0 ? void 0 : initialScrollIndexParams.viewOffset) !== null && _c !== void 0 ? _c : 0;
@@ -99,6 +110,29 @@ index 18e59ce..17c8063 100644
 +                    }
 +                }
 +            }
++            latestInitialScrollOffsetRef.current = offset;
              handlerMethods.scrollToOffset({
                  offset,
                  animated: false,
+                 skipFirstItemOffset: false,
+             });
++
+             setTimeout(() => {
+                 handlerMethods.scrollToOffset({
+-                    offset,
++                    offset: latestInitialScrollOffsetRef.current,
+                     animated: false,
+                     skipFirstItemOffset: false,
+                 });
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useUnmountAwareCallbacks.js b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useUnmountAwareCallbacks.js
+index 0209a71..16dcfad 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useUnmountAwareCallbacks.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useUnmountAwareCallbacks.js
+@@ -37,6 +37,7 @@ export function useUnmountAwareAnimationFrame() {
+     // Cancel all animation frame requests on unmount
+     useEffect(() => {
+         return () => {
++            console.log('UNMOUNT', requestIds)
+             requestIds.forEach((id) => cancelAnimationFrame(id));
+             requestIds.clear();
+         };
