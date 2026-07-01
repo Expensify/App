@@ -369,7 +369,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
-    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -684,7 +683,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 type: exportSearchType,
                 groupBy: getValidGroupBy(queryJSON?.groupBy),
                 shouldUseStrictDefaultExpenseColumns: currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && !!queryJSON && isDefaultExpensesQuery(queryJSON),
-                policyCategories,
                 fallbackPolicyID: policyForMovingExpensesID,
             });
 
@@ -701,7 +699,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 exportColumnLabels: JSON.stringify(exportColumnLabels),
             };
         },
-        [accountID, currentSearchKey, exportSearchData, exportSearchType, policyCategories, policyForMovingExpensesID, queryJSON, translate, visibleColumns],
+        [accountID, currentSearchKey, exportSearchData, exportSearchType, policyForMovingExpensesID, queryJSON, translate, visibleColumns],
     );
 
     const handleCSVExport = useCallback(

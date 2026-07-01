@@ -513,6 +513,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'アバター',
         editor: '編集者',
         restrictions: '制限',
+        tagGLCode: 'GL コードにタグを付ける',
         off: 'オフ',
     },
     socials: {
@@ -6266,6 +6267,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             makeAdmin: () => ({
                 one: 'ワークスペース管理者にする',
                 other: 'ワークスペース管理者にする',
+            }),
+            makeGroupAdmin: () => ({
+                one: '管理者にする',
+                other: '管理者にする',
             }),
             makeAuditor: () => ({
                 one: '監査担当者に設定',

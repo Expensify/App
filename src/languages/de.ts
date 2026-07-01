@@ -514,6 +514,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Editor',
         restrictions: 'Beschränkungen',
+        tagGLCode: 'GL-Code taggen',
         off: 'Aus',
     },
     socials: {
@@ -6351,6 +6352,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             makeAdmin: () => ({
                 one: 'Als Workspace-Admin festlegen',
                 other: 'Workspace-Admins ernennen',
+            }),
+            makeGroupAdmin: () => ({
+                one: 'Als Admin festlegen',
+                other: 'Admins ernennen',
             }),
             makeAuditor: () => ({
                 one: 'Zum Prüfer machen',

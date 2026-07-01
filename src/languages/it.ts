@@ -514,6 +514,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Editor',
         restrictions: 'Restrizioni',
+        tagGLCode: 'Tag codice GL',
         off: 'Disattivato',
     },
     socials: {
@@ -6339,6 +6340,10 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             makeAdmin: () => ({
                 one: 'Rendi amministratore dello spazio di lavoro',
                 other: 'Rendi amministratori dello spazio di lavoro',
+            }),
+            makeGroupAdmin: () => ({
+                one: 'Rendi amministratore',
+                other: 'Rendi amministratori',
             }),
             makeAuditor: () => ({
                 one: 'Rendi revisore',

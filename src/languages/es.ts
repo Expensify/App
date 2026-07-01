@@ -465,6 +465,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
         editor: 'Editor',
         restrictions: 'Restricciones',
+        tagGLCode: 'Etiquetar código GL',
         off: 'Desactivado',
     },
     socials: {
@@ -6182,6 +6183,10 @@ ${amount} para ${merchant} - ${date}`,
             makeAdmin: () => ({
                 one: 'Hacer administrador del espacio de trabajo',
                 other: 'Convertir en administradores del espacio de trabajo',
+            }),
+            makeGroupAdmin: () => ({
+                one: 'Hacer administrador',
+                other: 'Convertir en administradores',
             }),
             makeAuditor: () => ({
                 one: 'Convertir en auditor',

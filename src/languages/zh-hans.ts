@@ -509,6 +509,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: '头像',
         editor: '编辑',
         restrictions: '限制',
+        tagGLCode: '标记总账代码',
         off: '关',
     },
     socials: {
@@ -6147,6 +6148,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             makeAdmin: () => ({
                 one: '设为工作区管理员',
                 other: '设为工作区管理员',
+            }),
+            makeGroupAdmin: () => ({
+                one: '设为管理员',
+                other: '设为管理员',
             }),
             makeAuditor: () => ({
                 one: '设为审计员',

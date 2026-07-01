@@ -513,6 +513,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Editor',
         restrictions: 'Beperkingen',
+        tagGLCode: 'GL-code labelen',
         off: 'Uit',
     },
     socials: {
@@ -6321,6 +6322,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             makeAdmin: () => ({
                 one: 'Workspace-beheerder maken',
                 other: 'Workspace-beheerders maken',
+            }),
+            makeGroupAdmin: () => ({
+                one: 'Admin maken',
+                other: 'Beheerders maken',
             }),
             makeAuditor: () => ({
                 one: 'Auditeur maken',
