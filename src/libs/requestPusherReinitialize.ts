@@ -1,4 +1,4 @@
-import Log from '@libs/Log';
+import Log from './Log';
 
 type PusherReinitializeHandlerParams = {
     accountID?: number;
