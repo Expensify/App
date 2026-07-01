@@ -3,6 +3,7 @@ title: Change your workspace plan
 description: Switch a workspace between the Collect and Control plans from the workspace's Plan type setting.
 keywords: [New Expensify, change workspace plan, switch plan, Collect plan, Control plan, plan type, upgrade, downgrade, upgrade to Control, downgrade to Collect, workspace admin]
 internalScope: Audience is workspace Owners. Covers how to switch a workspace between the Collect and Control plans. Does not cover the differences between the plans or how to change a subscription.
+retrievalIntent: How to switch a workspace between Collect and Control.
 contentType: task
 platform: new
 ---
