@@ -588,6 +588,11 @@ const DYNAMIC_ROUTES = {
         path: 'tags-settings',
         entryScreens: [SCREENS.WORKSPACE.TAGS],
     },
+    WORKSPACE_EDIT_TAGS: {
+        path: 'workspace-edit-tags/:orderWeight',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_TAGS_SETTINGS, SCREENS.WORKSPACE.TAG_LIST_VIEW],
+        getRoute: (orderWeight: number) => `workspace-edit-tags/${orderWeight}`,
+    },
     WORKSPACE_CATEGORY_CREATE: {
         path: 'category-new',
         entryScreens: [SCREENS.WORKSPACE.CATEGORIES],
@@ -595,6 +600,23 @@ const DYNAMIC_ROUTES = {
     WORKSPACE_TAG_CREATE: {
         path: 'tag-create',
         entryScreens: [SCREENS.WORKSPACE.TAGS],
+    },
+    WORKSPACE_TAG_SETTINGS: {
+        path: 'workspace-tag-settings/:orderWeight/:tagName',
+        entryScreens: [SCREENS.WORKSPACE.TAGS, SCREENS.WORKSPACE.TAG_LIST_VIEW],
+        getRoute: (orderWeight: number, tagName: string) => `workspace-tag-settings/${orderWeight}/${encodeURIComponent(tagName)}`,
+    },
+    WORKSPACE_TAG_APPROVER: {
+        path: 'workspace-tag-approver',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_TAG_SETTINGS],
+    },
+    WORKSPACE_TAG_GL_CODE: {
+        path: 'workspace-tag-gl-code',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_TAG_SETTINGS],
+    },
+    WORKSPACE_TAG_EDIT: {
+        path: 'workspace-tag-edit',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_TAG_SETTINGS],
     },
     SPEND_CATEGORY_SELECTOR: {
         path: 'spend-category-selector/:groupID',
@@ -707,9 +729,9 @@ const DYNAMIC_ROUTES = {
         getRoute: (orderWeight: number, tagName: string) => `tag-settings/${orderWeight}/${encodeURIComponent(tagName)}`,
     },
     SETTINGS_TAGS_EDIT: {
-        path: 'edit/:orderWeight',
+        path: 'settings-tags-edit/:orderWeight',
         entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT, SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_SETTINGS, SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW],
-        getRoute: (orderWeight: number) => `edit/${orderWeight}`,
+        getRoute: (orderWeight: number) => `settings-tags-edit/${orderWeight}`,
     },
     SETTINGS_TAG_EDIT: {
         path: 'tag-edit/:orderWeight/:tagName',
@@ -2586,36 +2608,9 @@ const ROUTES = {
             return `workspaces/${policyID}/tags` as const;
         },
     },
-    WORKSPACE_EDIT_TAGS: {
-        route: 'workspaces/:policyID/tags/:orderWeight/edit',
-
-        getRoute: (policyID: string, orderWeight: number, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/tags/${orderWeight}/edit` as const, backTo),
-    },
-    WORKSPACE_TAG_EDIT: {
-        route: 'workspaces/:policyID/tag/:orderWeight/:tagName/edit',
-        getRoute: (policyID: string, orderWeight: number, tagName: string) => `workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/edit` as const,
-    },
-    WORKSPACE_TAG_SETTINGS: {
-        route: 'workspaces/:policyID/tag/:orderWeight/:tagName',
-        getRoute: (policyID: string, orderWeight: number, tagName: string, parentTagsFilter?: string) => {
-            let queryParams = '';
-            if (parentTagsFilter) {
-                queryParams += `?parentTagsFilter=${parentTagsFilter}`;
-            }
-            return `workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}${queryParams}` as const;
-        },
-    },
-    WORKSPACE_TAG_APPROVER: {
-        route: 'workspaces/:policyID/tag/:orderWeight/:tagName/approver',
-        getRoute: (policyID: string, orderWeight: number, tagName: string) => `workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/approver` as const,
-    },
     WORKSPACE_TAG_LIST_VIEW: {
         route: 'workspaces/:policyID/tag-list/:orderWeight',
         getRoute: (policyID: string, orderWeight: number) => `workspaces/${policyID}/tag-list/${orderWeight}` as const,
-    },
-    WORKSPACE_TAG_GL_CODE: {
-        route: 'workspaces/:policyID/tag/:orderWeight/:tagName/gl-code',
-        getRoute: (policyID: string, orderWeight: number, tagName: string) => `workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/gl-code` as const,
     },
     WORKSPACE_TAGS_IMPORT: {
         route: 'workspaces/:policyID/tags/import',

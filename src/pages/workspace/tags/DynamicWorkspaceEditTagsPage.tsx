@@ -11,22 +11,23 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getCleanedTagName, getTagListName, isMultiLevelTags} from '@libs/PolicyUtils';
+import {getCleanedTagName, getTagListName} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {renamePolicyTagList} from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyTagNameForm';
 
-type WorkspaceEditTagsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_EDIT>;
+type DynamicWorkspaceEditTagsPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_TAGS_EDIT>
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_EDIT>;
 
-function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
+function DynamicWorkspaceEditTagsPage({route}: DynamicWorkspaceEditTagsPageProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -34,8 +35,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
     const tagListName = getTagListName(policyTags, orderWeight);
     const {inputCallbackRef} = useAutoFocusInput();
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_EDIT;
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAGS_EDIT.path);
-    const isMultiLevelTagsEnabled = isMultiLevelTags(policyTags);
+    const backPath = useDynamicBackPath(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAGS_EDIT.path : DYNAMIC_ROUTES.WORKSPACE_EDIT_TAGS.path);
 
     const validateTagName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM> = {};
@@ -52,15 +52,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
     };
 
     const goBackToTagsSettings = () => {
-        if (isQuickSettingsFlow) {
-            Navigation.goBack(backPath);
-            return;
-        }
-        Navigation.goBack(
-            isMultiLevelTagsEnabled
-                ? ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(route?.params?.policyID, orderWeight)
-                : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAGS_SETTINGS.path, ROUTES.WORKSPACE_TAGS.getRoute(route?.params?.policyID)),
-        );
+        Navigation.goBack(backPath);
     };
 
     const updateTagListName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
@@ -79,7 +71,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID="WorkspaceEditTagsPage"
+                testID="DynamicWorkspaceEditTagsPage"
             >
                 <HeaderWithBackButton
                     title={translate(`workspace.tags.customTagName`)}
@@ -113,4 +105,4 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
     );
 }
 
-export default WorkspaceEditTagsPage;
+export default DynamicWorkspaceEditTagsPage;
