@@ -383,6 +383,10 @@ function Search({
             return;
         }
 
+        if (hasErrors) {
+            return;
+        }
+
         handleSearch({
             queryJSON,
             searchKey: currentSearchKey,
@@ -394,7 +398,7 @@ function Search({
 
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleSearch, isOffline, offset, queryJSON, currentSearchKey, shouldCalculateTotals, validGroupBy]);
+    }, [handleSearch, hasErrors, isOffline, offset, queryJSON, currentSearchKey, shouldCalculateTotals, validGroupBy]);
 
     useEffect(() => {
         if (!shouldRetrySearchWithTotalsOrGroupedRef.current || searchResults?.search?.isLoading || (!shouldCalculateTotals && !validGroupBy)) {
