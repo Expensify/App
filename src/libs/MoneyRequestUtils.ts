@@ -240,7 +240,14 @@ function getWaypointsHasUnsavedChanges(
     currentWaypoints: WaypointCollection | undefined,
     isCreateEntry: boolean,
 ): boolean {
-    return isCreateEntry ? doesMoneyRequestDraftHaveUserInput(transaction) : haveWaypointAddressesChanged(committedWaypoints, currentWaypoints);
+    if (isCreateEntry) {
+        return doesMoneyRequestDraftHaveUserInput(transaction);
+    }
+    // No committed baseline yet (splits skip the backup; a normal edit's async backup may not have landed) — treat as unchanged.
+    if (!committedWaypoints) {
+        return false;
+    }
+    return haveWaypointAddressesChanged(committedWaypoints, currentWaypoints);
 }
 
 export {

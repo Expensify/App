@@ -200,7 +200,6 @@ describe('useDiscardChangesConfirmation (web)', () => {
             renderDiscardHook(() => true);
 
             invokeBeforeRemove('RESET');
-            // Only the go(1) has fired — restoreState is still 'restoring', its echo popstate not yet delivered
             dispatchPopstate();
 
             let redeliveredEvent: MockBeforeRemoveEvent | undefined;
@@ -211,7 +210,6 @@ describe('useDiscardChangesConfirmation (web)', () => {
 
             await resolveModalWith('CONFIRM');
 
-            // The intentional replay must not be swallowed by the restore guard mid-restore
             expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'RESET'});
             expect(redeliveredEvent?.defaultPrevented).toBe(false);
         });

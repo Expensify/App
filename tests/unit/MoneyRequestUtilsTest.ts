@@ -413,5 +413,9 @@ describe('getWaypointsHasUnsavedChanges (distance map)', () => {
         it('does not flag when the waypoints are unchanged', () => {
             expect(getWaypointsHasUnsavedChanges(undefined, waypointsA, waypointsA, false)).toBe(false);
         });
+
+        it('does not flag when the committed baseline is missing', () => {
+            expect(getWaypointsHasUnsavedChanges(undefined, undefined, waypointsA, false)).toBe(false);
+        });
     });
 });

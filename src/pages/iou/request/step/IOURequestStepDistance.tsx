@@ -158,7 +158,14 @@ function IOURequestStepDistance({
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, currentTransaction);
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
-        getHasUnsavedChanges: () => getWaypointsHasUnsavedChanges(transaction, transactionBackup?.comment?.waypoints, waypoints, isCreatingNewRequest),
+        // Split edits skip the transaction backup, so their pre-edit route lives in `originalSplitTransactionDraft`.
+        getHasUnsavedChanges: () =>
+            getWaypointsHasUnsavedChanges(
+                transaction,
+                isEditingSplit ? originalSplitTransactionDraft?.comment?.waypoints : transactionBackup?.comment?.waypoints,
+                waypoints,
+                isCreatingNewRequest,
+            ),
     });
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
