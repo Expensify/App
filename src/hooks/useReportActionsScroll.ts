@@ -186,6 +186,7 @@ function useReportActionsScroll({
             : undefined;
     const shouldFocusToTopOnMount = shouldBeAlignedToTop && !initialScrollKey;
     const [shouldAutoscrollToBottom, setShouldAutoscrollToBottom] = useState(shouldFocusToTopOnMount);
+    const [shouldDebounceTracking, setShouldDebounceTracking] = useState(!!initialScrollKey);
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, isActionBadgeAboveViewport, trackVerticalScrolling, onViewableItemsChanged} =
         useReportUnreadMessageScrollTracking({
@@ -195,6 +196,7 @@ function useReportActionsScroll({
             hasNewerActions,
             unreadMarkerReportActionIndex,
             isInverted: true,
+            shouldDebounceTracking,
             onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
                 scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
             },
@@ -353,14 +355,18 @@ function useReportActionsScroll({
     };
 
     // Data is ready at the moment FlashList finishes its first render.
-    // Wait one frame so the initial autoscroll-to-top can settle, then disable it.
     const onLoad = () => {
+        if (shouldDebounceTracking) {
+            // Wait one frame so the initial positioning can settle, then disable it.
+            requestAnimationFrame(() => setShouldDebounceTracking(false));
+        }
         if (!shouldFocusToTopOnMount) {
             return;
         }
         if (!reportLoadingState?.hasOnceLoadedReportActions && !isOffline) {
             return;
         }
+        // Wait one frame so the initial autoscroll-to-top can settle, then disable it.
         requestAnimationFrame(() => setShouldAutoscrollToBottom(false));
     };
     const prevHasOnceLoadedReportActions = usePrevious(reportLoadingState?.hasOnceLoadedReportActions);

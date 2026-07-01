@@ -2,6 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
+import useDebounce from '@hooks/useDebounce';
 import CONST from '@src/CONST';
 
 type Args = {
@@ -28,6 +29,9 @@ type Args = {
 
     /** The index of the action badge target report action in the sorted visible actions list (-1 if none) */
     actionBadgeTargetIndex?: number;
+
+    /** If should debounce tracking, used during inital linked message positioning */
+    shouldDebounceTracking?: boolean;
 };
 
 export default function useReportUnreadMessageScrollTracking({
@@ -39,6 +43,7 @@ export default function useReportUnreadMessageScrollTracking({
     unreadMarkerReportActionIndex,
     isInverted,
     actionBadgeTargetIndex = -1,
+    shouldDebounceTracking = false,
 }: Args) {
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
     const [isActionBadgeAboveViewport, setIsActionBadgeAboveViewport] = useState(false);
@@ -103,6 +108,8 @@ export default function useReportUnreadMessageScrollTracking({
             setIsFloatingMessageCounterVisible(false);
         }
     };
+
+    const debouncedTrackVerticalScrolling = useDebounce(trackVerticalScrolling, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME);
 
     const onViewableItemsChanged = useCallback(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
         if (!ref.current.isFocused) {
@@ -172,7 +179,7 @@ export default function useReportUnreadMessageScrollTracking({
         isFloatingMessageCounterVisible,
         setIsFloatingMessageCounterVisible,
         isActionBadgeAboveViewport,
-        trackVerticalScrolling,
+        trackVerticalScrolling: shouldDebounceTracking ? debouncedTrackVerticalScrolling : trackVerticalScrolling,
         onViewableItemsChanged,
     };
 }
