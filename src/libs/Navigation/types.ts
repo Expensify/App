@@ -341,6 +341,14 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE_MESSAGE_ROLE]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.DYNAMIC_RECEIPT_PARTNERS_INVITE]: {
+        policyID: string;
+        integration: string;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RECEIPT_PARTNERS_INVITE_EDIT]: {
+        policyID: string;
+        integration: string;
+    };
     [SCREENS.WORKSPACE.INVITE_MESSAGE_APPROVER]: {
         policyID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
@@ -1443,17 +1451,13 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
+    [SCREENS.WORKSPACE.DYNAMIC_EXPENSIFY_CARD_DETAILS]: {
         policyID: string;
         cardID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS]: {
         policyID: string;
         cardID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_NAME]: {
         policyID: string;
@@ -2742,23 +2746,11 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE]: {
-        policyID: string;
-        integration: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-    };
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT]: {
         policyID: string;
         integration: ValueOf<typeof CONST.POLICY.RECEIPT_PARTNERS.NAME>;
     };
 
-    [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT]: {
-        policyID: string;
-        integration: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-    };
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_COMPANY_CARDS_ADD_NEW]: {
         policyID: string;
     };

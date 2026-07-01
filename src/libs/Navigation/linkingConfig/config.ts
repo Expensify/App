@@ -815,6 +815,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.route,
                         },
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW]: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_EXPENSIFY_CARD_DETAILS]: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.path,
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE]: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.path,
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.route,
@@ -875,9 +876,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE.route,
-                        },
-                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
-                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.route,
                         },
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_COMPANY_CARDS_ADD_NEW]: DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path,
                         [SCREENS.WORKSPACE.COMPANY_CARDS_IMPORT_SPREADSHEET]: {
@@ -958,25 +956,23 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.INVITE_MESSAGE_APPROVER]: {
                             path: ROUTES.WORKSPACE_INVITE_MESSAGE_APPROVER.route,
                         },
-                        [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE]: {
-                            path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE.route,
-                        },
+                        [SCREENS.WORKSPACE.DYNAMIC_RECEIPT_PARTNERS_INVITE]: DYNAMIC_ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE.path,
                         [SCREENS.WORKSPACE.RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT]: {
                             path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT.route,
                         },
-                        [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT]: {
-                            path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT.route,
+                        [SCREENS.WORKSPACE.DYNAMIC_RECEIPT_PARTNERS_INVITE_EDIT]: {
+                            path: DYNAMIC_ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT.path,
                             screens: {
                                 [CONST.TAB.RECEIPT_PARTNERS.ALL]: {
-                                    path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT_ALL,
+                                    path: CONST.TAB.RECEIPT_PARTNERS.ALL,
                                     exact: true,
                                 },
                                 [CONST.TAB.RECEIPT_PARTNERS.LINKED]: {
-                                    path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT_LINKED,
+                                    path: CONST.TAB.RECEIPT_PARTNERS.LINKED,
                                     exact: true,
                                 },
                                 [CONST.TAB.RECEIPT_PARTNERS.OUTSTANDING]: {
-                                    path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT_OUTSTANDING,
+                                    path: CONST.TAB.RECEIPT_PARTNERS.OUTSTANDING,
                                     exact: true,
                                 },
                             },
@@ -2368,6 +2364,10 @@ const normalizedConfigs = Object.keys(config.screens)
         {} as Record<Screen, RouteConfig>,
     );
 
-const screensWithOnyxTabNavigator = collectScreensWithTabNavigator(config.screens as Record<string, ScreenConfigEntry>);
+const {
+    screensWithTabNavigator: screensWithOnyxTabNavigator,
+    dynamicTabPatternToTabPaths,
+    dynamicTabScreensByHost,
+} = collectScreensWithTabNavigator(config.screens as Record<string, ScreenConfigEntry>);
 
-export {normalizedConfigs, config, screensWithOnyxTabNavigator};
+export {normalizedConfigs, config, screensWithOnyxTabNavigator, dynamicTabPatternToTabPaths, dynamicTabScreensByHost};

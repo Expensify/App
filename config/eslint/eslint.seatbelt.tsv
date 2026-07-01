@@ -1390,7 +1390,7 @@
 "../../src/pages/workspace/members/WorkspaceOwnerChangeErrorPage.tsx"	"react-hooks/refs"	2
 "../../src/pages/workspace/members/WorkspaceOwnerChangeSuccessPage.tsx"	"react-hooks/refs"	2
 "../../src/pages/workspace/members/WorkspaceOwnerPaymentCardForm.tsx"	"react-hooks/set-state-in-effect"	2
-"../../src/pages/workspace/receiptPartners/EditInviteReceiptPartnerPolicyPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/pages/workspace/receiptPartners/DynamicEditInviteReceiptPartnerPolicyPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/receiptPartners/WorkspaceReceiptPartnersPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/reports/TypeSelector/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/tags/WorkspaceTagsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3

@@ -1,3 +1,4 @@
+
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {navigateAfterOnboarding} from '@libs/navigateAfterOnboarding';
