@@ -9,8 +9,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
+import {isGroupPolicy} from '@libs/PolicyUtils';
 import {isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -45,10 +46,8 @@ function MoneyReportHeaderMoreContent({reportID, primaryAction, backTo, shouldSh
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const {shouldShowStatusBar, statusBarType} = useMoneyReportHeaderStatusBar(reportID, moneyRequestReport?.chatReportID);
 
-    const policyType = policy?.type;
-    const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
-    const shouldShowNextStep = isFromPaidPolicy && !isInvoiceReport && !shouldShowStatusBar;
+    const shouldShowNextStep = isGroupPolicy(policy) && !isInvoiceReport && !shouldShowStatusBar;
     const hasStatusOrNextStep = shouldShowNextStep || !!statusBarType;
     const shouldRenderActionsInRow = shouldShowHeaderButtonsInHeaderRow;
 
@@ -96,7 +95,7 @@ function MoneyReportHeaderMoreContentBody({
     const {iouTransactionID} = useMoneyReportTransactionThread();
 
     return (
-        <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3, styles.mtn1]}>
+        <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3, styles.mtn1, shouldShowNextStep && styles.pt0]}>
             <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
                 {shouldShowNextStep && <MoneyReportHeaderNextStep reportID={reportID} />}
                 <MoneyReportHeaderStatusBarSection

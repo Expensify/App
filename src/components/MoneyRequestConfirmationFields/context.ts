@@ -35,6 +35,9 @@ type ConfirmationFieldsContextValue = {
 
     /** Scrolls the surface so an inline field's input is not hidden behind the keyboard when focused (new manual expense flow). */
     scrollFocusedInputIntoView?: (input: MeasurableInput) => void;
+
+    /** Submits the whole expense. Used by inline inputs to keep Enter-to-confirm on hardware-keyboard setups (new manual expense flow). */
+    onSubmitForm?: () => void;
 };
 
 const ConfirmationFieldsContext = createContext<ConfirmationFieldsContextValue | null>(null);

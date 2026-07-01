@@ -395,6 +395,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reportID: 'Berichts-ID',
         longReportID: 'Langer Bericht-ID',
         withdrawalID: 'Auszahlungs-ID',
+        internationalReimbursementIDs: 'Internationale Erstattungs-IDs',
         withdrawalStatus: 'Auszahlungsstatus',
         bankAccounts: 'Bankkonten',
         chooseFile: 'Datei auswählen',
@@ -514,6 +515,7 @@ const translations: TranslationDeepObject<typeof en> = {
         currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} von ${total}`,
         editor: 'Editor',
         restrictions: 'Beschränkungen',
+        tagGLCode: 'GL-Code taggen',
         off: 'Aus',
     },
     socials: {
@@ -843,6 +845,7 @@ const translations: TranslationDeepObject<typeof en> = {
         joinThread: 'Thread beitreten',
         leaveThread: 'Thread verlassen',
         copyOnyxData: 'Onyx-Daten kopieren',
+        copyAgentZeroRequestID: 'AgentZero-Anfrage-ID kopieren',
         flagAsOffensive: 'Als anstößig melden',
         menu: 'Menü',
     },
@@ -1342,6 +1345,9 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Möchten Sie diese Berichte wirklich löschen?',
         }),
         settledExpensify: 'Bezahlt',
+        paidStatusMarkedAsPaid: 'Als bezahlt markiert',
+        paidStatusWithdrawing: 'Abhebung läuft',
+        paidStatusConfirmed: 'Bestätigt',
         done: 'Fertig',
         settledElsewhere: 'Anderswo bezahlt',
         individual: 'Einzelperson',
@@ -1661,6 +1667,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Zum Bericht verschieben',
         moveExpensesError: 'Sie können Pauschalspesen nicht in Berichte anderer Arbeitsbereiche verschieben, da die Pauschalsätze je nach Arbeitsbereich unterschiedlich sein können.',
+        submitReportTo: {
+            sendExpense: 'Senden Sie Ihre Ausgabe an jede beliebige Person',
+            sendExpenseSubtitle: 'Laden Sie jede beliebige Person zu Expensify ein, indem Sie ihre E-Mail-Adresse oder Telefonnummer verwenden.',
+        },
         changeApprover: {
             title: 'Genehmigende Person ändern',
             header: (workflowSettingLink: string) =>
@@ -6344,6 +6354,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 one: 'Als Workspace-Admin festlegen',
                 other: 'Workspace-Admins ernennen',
             }),
+            makeGroupAdmin: () => ({
+                one: 'Als Admin festlegen',
+                other: 'Admins ernennen',
+            }),
             makeAuditor: () => ({
                 one: 'Zum Prüfer machen',
                 other: 'Prüfende hinzufügen',
@@ -6788,7 +6802,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 optionFixedDistanceTitle: 'Eine feste Entfernung pro Antrag ausschließen',
                 optionFixedDistanceHelp: 'Ziehen Sie die gleiche Pendelstrecke von jeder Abrechnung ab. Am besten für Mitglieder geeignet, die eine Abrechnung pro Arbeitstag einreichen.',
                 distanceLabel: 'Entfernung',
-                errors: {distanceMustBePositive: 'Die Entfernung muss größer als 0 sein.'},
+                errors: {distanceMustBePositive: 'Die Entfernung muss eine positive ganze Zahl sein.'},
             },
             distance: 'Entfernung',
             centrallyManage: 'Tarife zentral verwalten, in Meilen oder Kilometern nachverfolgen und eine Standardkategorie festlegen.',
@@ -8295,7 +8309,14 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `Ausgaberegel von ${cards}`,
                 composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} auf ${cards}`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} von ${cards}`,
+                bodyCurrency: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} Währung „${value}“` : `Währung „${value}“`),
+                bodyCurrencyValueOnly: ({value}: {value: string}) => `'${value}'`,
+                bodyCurrencyChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} Währung von „${oldValue}“ zu „${newValue}“` : `Währung von „${oldValue}“ zu „${newValue}“`,
+                bodyCurrencyRestriction: 'die Währungsbeschränkung',
             },
+            allowedCurrencyFilters: ({currencies}: {currencies: string}) => `Währungen ${currencies}`,
+            blockedCurrencyFilters: ({currencies}: {currencies: string}) => `Währungen, die nicht in ${currencies} sind`,
         },
         updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
             `hat den Standardsteuersatz der Kategorie „${categoryName}“ auf „${newTax}“ geändert (zuvor „${oldTax}“)`,
@@ -8504,6 +8525,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Alle importierten CSV-Karten${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 travelInvoicing: 'Konsolidierte Reiseabrechnung',
             },
+            bankAccount: {banks: 'Bankkonten', closedBankAccounts: 'Geschlossene Bankkonten'},
             reportField: (name: string, value: string) => `${name} ist ${value}`,
             current: 'Aktuell',
             past: 'Vergangenes',
@@ -9347,10 +9369,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         takeMeToExpensifyClassic: 'Bring mich zu Expensify Classic',
         goBackJustOnce: 'Nur dieses Mal zurück',
     },
-    listBoundary: {
-        errorMessage: 'Beim Laden weiterer Nachrichten ist ein Fehler aufgetreten',
-        tryAgain: 'Erneut versuchen',
-    },
     systemMessage: {
         mergedWithCashTransaction: 'hat eine Quittung mit dieser Transaktion abgeglichen',
     },
@@ -9818,7 +9836,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         expenseLevelExport: 'Alle Daten – Ausgabenebene',
         exportInProgress: 'Export wird ausgeführt',
         conciergeWillSend: 'Concierge wird dir die Datei in Kürze senden.',
-        currentView: 'Aktuelle Ansicht exportieren',
+        currentView: 'Aktuelle Ansicht',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

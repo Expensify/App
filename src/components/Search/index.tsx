@@ -1,4 +1,4 @@
-import {useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
+import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -68,16 +68,19 @@ import {
 import {cancelSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isTransactionPendingDelete, shouldShowAttendees} from '@libs/TransactionUtils';
-import Navigation from '@navigation/Navigation';
+import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
 import type {SaveSearch} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type SearchResults from '@src/types/onyx/SearchResults';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import ExpenseFlatSearchView from './ExpenseFlatSearchView';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
@@ -126,6 +129,7 @@ function Search({
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
 
     const {isOffline} = useNetwork();
+    const prevIsOffline = usePrevious(isOffline);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth, isLargeScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -162,6 +166,7 @@ function Search({
     const isAttendeesEnabledForMovingPolicy = shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policyForMovingExpenses);
 
     const [, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, offset === 0);
@@ -217,6 +222,7 @@ function Search({
         showPendingExpensePlaceholder,
         shouldDeferHeavySearchWork,
         setShouldDeferHeavySearchWork,
+        hasPendingWriteOnMountRef,
         skipDeferralOnFocusRef,
         rearmTracking,
     } = useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions});
@@ -354,7 +360,27 @@ function Search({
     const shouldRetrySearchWithTotalsOrGroupedRef = useRef(false);
 
     useEffect(() => {
-        if (offset === 0 || offset === searchResults?.search?.offset || !isFocused || isOffline || searchResults?.search?.isLoading) {
+        const focusedRoute = findFocusedRoute(navigationRef.getRootState());
+        const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT;
+
+        const comingBackOnlineWithNoResults = prevIsOffline && !isOffline && isEmptyObject(searchResults?.data);
+        if (!comingBackOnlineWithNoResults && ((!isFocused && !isMigratedModalDisplayed) || isOffline)) {
+            return;
+        }
+
+        // When mounting after the pre-insert fast path, the deferred write hasn't
+        // been flushed yet. Triggering a search now would race with the CREATE
+        // API call and return stale results that overwrite the optimistic row.
+        // Skip this call; the optimistic data from flushDeferredWrite will populate
+        // the list, and the next user-driven search will refresh from the server.
+        if (hasPendingWriteOnMountRef.current.hasPendingWriteOnMount && hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+            return;
+        }
+
+        if (searchResults?.search?.isLoading) {
+            if (validGroupBy || (shouldCalculateTotals && searchResults?.search?.count === undefined)) {
+                shouldRetrySearchWithTotalsOrGroupedRef.current = true;
+            }
             return;
         }
 
@@ -362,21 +388,14 @@ function Search({
             queryJSON,
             searchKey: currentSearchKey,
             offset,
-            shouldCalculateTotals: false,
+            shouldCalculateTotals,
             prevReportsLength: filteredDataLength,
-            isLoading: false,
+            isLoading: !!searchResults?.search?.isLoading,
         });
-    }, [currentSearchKey, filteredDataLength, handleSearch, isFocused, isOffline, offset, queryJSON, searchResults?.search?.isLoading, searchResults?.search?.offset]);
 
-    useEffect(() => {
-        if (!searchResults?.search?.isLoading) {
-            return;
-        }
-
-        if (validGroupBy || (shouldCalculateTotals && searchResults?.search?.count === undefined)) {
-            shouldRetrySearchWithTotalsOrGroupedRef.current = true;
-        }
-    }, [searchResults?.search?.isLoading, searchResults?.search?.count, shouldCalculateTotals, validGroupBy]);
+        // We don't need to run the effect on change of isFocused.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [handleSearch, isOffline, offset, queryJSON, currentSearchKey, shouldCalculateTotals, validGroupBy]);
 
     useEffect(() => {
         if (!shouldRetrySearchWithTotalsOrGroupedRef.current || searchResults?.search?.isLoading || (!shouldCalculateTotals && !validGroupBy)) {
@@ -785,7 +804,8 @@ function Search({
                 return;
             }
 
-            // Re-arm pending expense skeleton for subsequent creations while Search stays mounted.
+            // Re-arm pending expense skeleton for subsequent creations while Search
+            // stays mounted (the original hasPendingWriteOnMountRef only covers the first).
             if (hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH) && !showPendingExpensePlaceholder) {
                 wasRearmedRef.current = true;
                 rearmTracking();
@@ -1000,7 +1020,8 @@ function Search({
     }
 
     const searchTableHeader = !shouldShowTableHeader ? undefined : (
-        <View style={[!isTask && styles.pr9, styles.flex1]}>
+        // Match the rows' trailing arrow spacing so the header columns line up with them.
+        <View style={[!isTask && styles.pr8, styles.flex1]}>
             <SearchTableHeader
                 canSelectMultiple={canSelectMultiple}
                 columns={columnsToShow}
@@ -1103,6 +1124,7 @@ function Search({
                             hasLoadedAllTransactions={hasLoadedAllTransactions}
                             isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                            policyTags={policyTags}
                             isActionColumnWide={isTask || hasDeletedTransaction}
                         />
                     )}
