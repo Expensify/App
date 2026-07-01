@@ -1,4 +1,5 @@
 import {getUnsupportedReportFieldFormulaParts, hasFormulaPartsInInitialValue, isReportFieldNameExisting} from '@libs/WorkspaceReportFieldUtils';
+import CONST from '@src/CONST';
 import type {PolicyReportField} from '@src/types/onyx/Policy';
 
 describe('WorkspaceReportFieldUtils.hasFormulaPartsInInitialValue', () => {
@@ -99,5 +100,17 @@ describe('WorkspaceReportFieldUtils.isReportFieldNameExisting', () => {
     it('should return true when field name exists with different case', () => {
         expect(isReportFieldNameExisting(fieldList, 'FIELD1')).toBe(true);
         expect(isReportFieldNameExisting(fieldList, 'field1')).toBe(true);
+    });
+
+    it('should ignore the default title field when checking for duplicates', () => {
+        const fieldListWithTitle: Record<string, PolicyReportField> = {
+            [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {name: 'title', type: 'text'} as PolicyReportField,
+            field1: {name: 'Field1', type: 'text'} as PolicyReportField,
+        };
+
+        expect(isReportFieldNameExisting(fieldListWithTitle, 'title')).toBe(false);
+        expect(isReportFieldNameExisting(fieldListWithTitle, 'Title')).toBe(false);
+        expect(isReportFieldNameExisting(fieldListWithTitle, 'TITLE')).toBe(false);
+        expect(isReportFieldNameExisting(fieldListWithTitle, 'Field1')).toBe(true);
     });
 });
