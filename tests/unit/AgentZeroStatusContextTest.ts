@@ -15,6 +15,9 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const mockTranslate = jest.fn((key: string) => {
     if (key === 'common.thinking') {
+        return 'Concierge is thinking...';
+    }
+    if (key === 'common.agentThinking') {
         return 'Thinking...';
     }
     return key;
@@ -149,6 +152,18 @@ describe('AgentZeroStatusContext', () => {
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(true);
             expect(result.current.statusLabel).toBe(serverLabel);
+        });
+
+        it('should keep the default Concierge server thinking label for Concierge chats', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+                agentZeroProcessingRequestIndicator: 'Concierge is thinking...',
+            });
+
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), {wrapper});
+
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+            expect(result.current.statusLabel).toBe('Concierge is thinking...');
         });
 
         it('should return empty status when server label is cleared', async () => {
@@ -329,7 +344,7 @@ describe('AgentZeroStatusContext', () => {
             // Then it should show optimistic processing state with waiting label
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(true);
-            expect(result.current.statusLabel).toBe('Thinking...');
+            expect(result.current.statusLabel).toBe('Concierge is thinking...');
         });
 
         it('should not trigger waiting state if server label already exists', async () => {
@@ -385,7 +400,7 @@ describe('AgentZeroStatusContext', () => {
             });
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(true);
-            expect(result.current.statusLabel).toBe('Thinking...');
+            expect(result.current.statusLabel).toBe('Concierge is thinking...');
 
             act(() => {
                 jest.advanceTimersByTime(120000);
@@ -412,7 +427,7 @@ describe('AgentZeroStatusContext', () => {
             });
 
             expect(result.current.isProcessing).toBe(true);
-            expect(result.current.statusLabel).toBe('Thinking...');
+            expect(result.current.statusLabel).toBe('Concierge is thinking...');
         });
 
         it('should keep indicator visible while server label is active within the safety window', async () => {
@@ -460,7 +475,7 @@ describe('AgentZeroStatusContext', () => {
             });
             await waitForBatchedUpdates();
 
-            expect(result.current.statusLabel).toBe('Thinking...');
+            expect(result.current.statusLabel).toBe('Concierge is thinking...');
 
             // When a server label arrives
             const serverLabel = 'Concierge is looking up categories...';
@@ -631,7 +646,7 @@ describe('AgentZeroStatusContext', () => {
             });
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(true);
-            expect(result.current.statusLabel).toBe('Thinking...');
+            expect(result.current.statusLabel).toBe('Concierge is thinking...');
 
             // Server SET arrives — display switches to server label, but optimistic floor
             // stays alive so we survive a subsequent flicker.
@@ -650,7 +665,7 @@ describe('AgentZeroStatusContext', () => {
             // flicker. Authoritative clears (reply detection / safety timeout / reconnect)
             // are the only paths that drop it.
             expect(result.current.isProcessing).toBe(true);
-            expect(result.current.statusLabel).toBe('Thinking...');
+            expect(result.current.statusLabel).toBe('Concierge is thinking...');
             expect(safetyTimerId).not.toBeNull();
         });
     });
@@ -660,7 +675,7 @@ describe('AgentZeroStatusContext', () => {
             // After kickoff, the display prefers the server label once it arrives, but the
             // optimistic counter stays alive as a floor. If the server CLEAR happens without
             // a corresponding Concierge reply (flicker between processing phases), display
-            // falls back to the optimistic "Thinking..." label rather than blanking out.
+            // falls back to the optimistic "Concierge is thinking..." label rather than blanking out.
 
             const {result} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
@@ -671,7 +686,7 @@ describe('AgentZeroStatusContext', () => {
             });
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(true);
-            expect(result.current.statusLabel).toBe('Thinking...');
+            expect(result.current.statusLabel).toBe('Concierge is thinking...');
 
             // When the server sets a label (processing started)
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
@@ -747,7 +762,7 @@ describe('AgentZeroStatusContext', () => {
             });
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(true);
-            expect(result.current.statusLabel).toBe('Thinking...');
+            expect(result.current.statusLabel).toBe('Concierge is thinking...');
 
             // Backend starts processing → server label arrives
             const serverLabel = 'Processing your request...';
@@ -863,7 +878,7 @@ describe('AgentZeroStatusContext', () => {
             });
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(true);
-            expect(result.current.statusLabel).toBe('Thinking...');
+            expect(result.current.statusLabel).toBe('Concierge is thinking...');
             expect(safetyCallback).not.toBeNull();
 
             // When the safety timeout fires at 120s — should hard-clear
@@ -994,7 +1009,7 @@ describe('AgentZeroStatusContext', () => {
 
             // Indicator stays visible so the safety timer keeps running until reply or timeout
             expect(result.current.isProcessing).toBe(true);
-            expect(result.current.statusLabel).toBe('Thinking...');
+            expect(result.current.statusLabel).toBe('Concierge is thinking...');
         });
 
         it('should clear indicator after reconnect when a Concierge reply finally arrives', async () => {
@@ -1069,7 +1084,7 @@ describe('AgentZeroStatusContext', () => {
 
             // Then the indicator should appear and NOT be cleared by the pre-existing Concierge action
             expect(result.current.isProcessing).toBe(true);
-            expect(result.current.statusLabel).toBe('Thinking...');
+            expect(result.current.statusLabel).toBe('Concierge is thinking...');
             expect(mockClearAgentZeroProcessingIndicator).not.toHaveBeenCalled();
         });
 
@@ -1158,7 +1173,7 @@ describe('AgentZeroStatusContext', () => {
             });
             await waitForBatchedUpdates();
             expect(firstResult.current.isProcessing).toBe(true);
-            expect(firstResult.current.statusLabel).toBe('Thinking...');
+            expect(firstResult.current.statusLabel).toBe('Concierge is thinking...');
 
             // User navigates to another chat — ReportScreen unmounts
             unmount();
@@ -1170,7 +1185,7 @@ describe('AgentZeroStatusContext', () => {
 
             // The indicator should still be showing on remount
             expect(secondResult.current.isProcessing).toBe(true);
-            expect(secondResult.current.statusLabel).toBe('Thinking...');
+            expect(secondResult.current.statusLabel).toBe('Concierge is thinking...');
         });
 
         it('should bump startedAt on each kickoff so the safety window measures from the most recent', () => {

@@ -214,10 +214,11 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
         const hasServerLabel = !!serverLabel;
 
         let targetLabel = '';
+        const thinkingLabel = translate(agentAccountID === CONST.ACCOUNT_ID.CONCIERGE ? 'common.thinking' : 'common.agentThinking');
         if (hasServerLabel) {
             targetLabel = serverLabel ?? '';
         } else if (pendingOptimisticRequests > 0) {
-            targetLabel = translate('common.thinking');
+            targetLabel = thinkingLabel;
         }
 
         // (Re)arm the safety timer whenever this agent is active — a server label arrived (lease
