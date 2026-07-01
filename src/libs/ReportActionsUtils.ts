@@ -60,7 +60,7 @@ import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDy
 import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForCurrentContext';
 import {getIsOffline, subscribe as subscribeNetworkState} from './NetworkState';
 import Parser from './Parser';
-import {arePersonalDetailsMissing, createPersonalDetailsLookupByAccountID, getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
+import {arePersonalDetailsMissing, getEffectiveDisplayName, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
 import type {getReportName} from './ReportNameUtils';
 import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
@@ -477,8 +477,17 @@ function getMarkedReimbursedMessage(translate: LocalizedTranslate, reportAction:
     return translate('iou.paidElsewhere', {comment: originalMessage?.message?.trim()});
 }
 
-function getReimbursedMessage(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>, reportOwnerAccountID: number | undefined, currentUserAccountID?: number): string {
+function getReimbursedMessage(
+    translate: LocalizedTranslate,
+    reportAction: OnyxInputOrEntry<ReportAction>,
+    reportOwnerAccountID: number | undefined,
+    submitterLoginParam: string | undefined,
+    actorLoginParam: string | undefined,
+    currentUserAccountID?: number,
+): string {
     const effectiveCurrentUserAccountID = currentUserAccountID ?? deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const submitterLogin = submitterLoginParam ?? '';
+    const actorLogin = actorLoginParam ?? '';
     const originalMessage = getOriginalMessage(reportAction) as OriginalMessageReimbursed | undefined;
 
     // Auth stores the payment method as `method`; the openReport path maps it to `paymentMethod` via getDisplayInformation().
@@ -505,14 +514,12 @@ function getReimbursedMessage(translate: LocalizedTranslate, reportAction: OnyxI
 
     const {debitBankAccountLast4, creditBankAccountLast4, expectedDate, isInvoiceOrBill, isSubmitterAddingBankAccount, stripePaymentType} = originalMessage;
 
+    // The openReport path provides `debitBankAccountLast4`; real-time Pusher payloads carry the raw masked `accountNumber` instead.
+    const effectiveDebitBankAccountLast4 = debitBankAccountLast4 ?? originalMessage.accountNumber?.slice(-4);
+
     // Resolve submitter from report owner
     const submitterAccountID = reportOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const submitterLogin = getPersonalDetailsByIDs({accountIDs: [submitterAccountID], currentUserAccountID: effectiveCurrentUserAccountID}).at(0)?.login ?? '';
     const isCurrentUser = submitterAccountID === effectiveCurrentUserAccountID;
-
-    // Resolve actor from action
-    const actorAccountID = reportAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const actorLogin = getPersonalDetailsByIDs({accountIDs: [actorAccountID], currentUserAccountID: effectiveCurrentUserAccountID}).at(0)?.login ?? '';
 
     const isAutomation = !!reportAction?.delegateAccountID;
 
@@ -541,8 +548,8 @@ function getReimbursedMessage(translate: LocalizedTranslate, reportAction: OnyxI
     if (isAutomation) {
         message += ` ${translate('iou.reimbursedOnBehalfOf', actorLogin.toLowerCase())}`;
     }
-    if (debitBankAccountLast4) {
-        message += ` ${translate('iou.reimbursedFromBankAccount', debitBankAccountLast4)}`;
+    if (effectiveDebitBankAccountLast4) {
+        message += ` ${translate('iou.reimbursedFromBankAccount', effectiveDebitBankAccountLast4)}`;
     }
     return message + paymentSuffix;
 }
@@ -801,14 +808,29 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
 }
 
 /**
+ * Predicate for IOU actions of type `create`. Used by `getCombinedReportActions` to drop
+ * preview cards we never want to show (on single-transaction reports normally, and on
+ * SendMoney reports where a `type=create` can only be a phantom from OpenReport's orphan path).
+ */
+function isIOUCreateAction(action: ReportAction): boolean {
+    return isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE;
+}
+
+/**
  * Returns a sorted and filtered list of report actions from a report and it's associated child
  * transaction thread report in order to correctly display reportActions from both reports in the one-transaction report view.
  */
 function getCombinedReportActions(reportActions: ReportAction[], transactionThreadReportID: string | null, transactionThreadReportActions: ReportAction[], isSelfDM = false): ReportAction[] {
     const isSentMoneyReport = reportActions.some((action) => isSentMoneyReportAction(action));
 
-    // We don't want to combine report actions of transaction thread in iou report of send money request because we display the transaction report of send money request as a normal thread
-    if (!transactionThreadReportID || isSentMoneyReport) {
+    // SendMoney reports never legitimately have a `type=create` IOU action — drop any that appear,
+    // since they can only be phantoms synthesized by OpenReport's orphan-thread path.
+    if (isSentMoneyReport) {
+        return reportActions.filter((action) => !isIOUCreateAction(action));
+    }
+
+    // Nothing to combine when there's no transaction thread.
+    if (!transactionThreadReportID) {
         return reportActions;
     }
 
@@ -829,14 +851,16 @@ function getCombinedReportActions(reportActions: ReportAction[], transactionThre
 
     // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
     const filteredReportActions = [...filteredParentReportActions, ...filteredTransactionThreadReportActions].filter((action) => {
+        if (isIOUCreateAction(action)) {
+            return false;
+        }
         if (!isMoneyRequestAction(action)) {
             return true;
         }
-        const actionType = getOriginalMessage(action)?.type ?? '';
         if (isSelfDM) {
-            return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE;
+            return true;
         }
-        return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK;
+        return getOriginalMessage(action)?.type !== CONST.IOU.REPORT_ACTION_TYPE.TRACK;
     });
 
     return getSortedReportActions(filteredReportActions, true);
@@ -1574,7 +1598,7 @@ function withDEWRoutedActionsObject(reportActions: OnyxEntry<ReportActions>): On
 }
 
 /**
- * This method returns the report actions that are ready for display in the ReportActionsView.
+ * This method returns the report actions that are ready for display in the ReportActionsList.
  * The report actions need to be sorted by created timestamp first, and reportActionID second
  * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
  * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
@@ -1987,6 +2011,8 @@ function isReportActionAttachment(reportAction: OnyxInputOrEntry<ReportAction>):
 function getMemberChangeMessageElements(
     translate: LocalizedTranslate,
     reportAction: OnyxEntry<ReportAction>,
+    actorDetails: OnyxEntry<PersonalDetails>,
+    targetAccountDetailsList: OnyxEntry<PersonalDetailsList>,
     getReportNameCallback: typeof getReportName,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): readonly MemberChangeMessageElement[] {
@@ -2004,17 +2030,15 @@ function getMemberChangeMessageElements(
     }
 
     if (isLeaveAction) {
-        verb = getPolicyChangeLogEmployeeLeftMessage(translate, reportAction);
+        verb = getPolicyChangeLogEmployeeLeftMessage(translate, reportAction, actorDetails);
     }
 
     const originalMessage = getOriginalMessage(reportAction);
     const targetAccountIDs: number[] = originalMessage?.targetAccountIDs ?? [];
-    const personalDetails = getPersonalDetailsByIDs({accountIDs: targetAccountIDs, currentUserAccountID: 0});
-    const personalDetailsMap = createPersonalDetailsLookupByAccountID(personalDetails);
 
     const mentionElements = targetAccountIDs.map((accountID): MemberChangeMessageUserMentionElement => {
-        const personalDetail = personalDetailsMap[accountID];
-        const handleText = getEffectiveDisplayName(formatPhoneNumber, personalDetail) ?? translate('common.hidden');
+        const personalDetail = targetAccountDetailsList?.[accountID];
+        const handleText = personalDetail ? getEffectiveDisplayName(formatPhoneNumber, personalDetail) : translate('common.hidden');
 
         return {
             kind: 'userMention',
@@ -2332,10 +2356,19 @@ function getDynamicExternalWorkflowApproveFailedActionMessage(translate: Localiz
 function getMemberChangeMessageFragment(
     translate: LocalizedTranslate,
     reportAction: OnyxEntry<ReportAction>,
+    actorDetails: OnyxEntry<PersonalDetails>,
+    targetAccountDetailsList: OnyxEntry<PersonalDetailsList>,
     getReportNameCallback: typeof getReportName,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): Message {
-    const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(translate, reportAction, getReportNameCallback, reportAttributes);
+    const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(
+        translate,
+        reportAction,
+        actorDetails,
+        targetAccountDetailsList,
+        getReportNameCallback,
+        reportAttributes,
+    );
     const html = messageElements
         .map((messageElement) => {
             switch (messageElement.kind) {
@@ -2457,18 +2490,20 @@ function hasRequestFromCurrentAccount(report: OnyxEntry<Report>, currentAccountI
  * @param reportAction
  * @returns the actionable mention whisper message.
  */
-function getActionableMentionWhisperMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER>>): string {
+function getActionableMentionWhisperMessage(
+    translate: LocalizedTranslate,
+    reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER>>,
+    targetAccountDetails: OnyxEntry<PersonalDetailsList>,
+): string {
     if (!reportAction) {
         return '';
     }
     const originalMessage = getOriginalMessage(reportAction);
     const targetAccountIDs: number[] = originalMessage?.inviteeAccountIDs ?? [];
-    const personalDetails = getPersonalDetailsByIDs({accountIDs: targetAccountIDs, currentUserAccountID: 0});
-    const personalDetailsMap = createPersonalDetailsLookupByAccountID(personalDetails);
 
     const mentionElements = targetAccountIDs.map((accountID): string => {
-        const personalDetail = personalDetailsMap[accountID];
-        const displayName = getEffectiveDisplayName(formatPhoneNumber, personalDetail);
+        const personalDetail = targetAccountDetails?.[accountID];
+        const displayName = personalDetail ? getEffectiveDisplayName(formatPhoneNumber, personalDetail) : undefined;
         const handleText = isEmpty(displayName) ? translate('common.hidden') : displayName;
         return `<mention-user accountID=${accountID}>@${handleText}</mention-user>`;
     });
@@ -2873,16 +2908,17 @@ function getPolicyChangeLogUpdateEmployee(translate: LocalizedTranslate, reportA
     return buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate, originalMessage?.field, originalMessage?.oldValue, originalMessage?.newValue, email);
 }
 
-function getPolicyChangeLogEmployeeLeftMessage(translate: LocalizedTranslate, reportAction: ReportAction, useName = false): string {
-    if (!isLeavePolicyAction(reportAction)) {
-        return '';
-    }
+function getPolicyChangeLogEmployeeLeftMessage(
+    translate: LocalizedTranslate,
+    reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY>,
+    actorDetails: OnyxEntry<PersonalDetails>,
+    useName = false,
+): string {
     const originalMessage = getOriginalMessage(reportAction);
-    const personalDetails = getPersonalDetailsByIDs({accountIDs: reportAction.actorAccountID ? [reportAction.actorAccountID] : [], currentUserAccountID: 0})?.at(0);
     if (!!originalMessage && !originalMessage.email) {
-        originalMessage.email = personalDetails?.login;
+        originalMessage.email = actorDetails?.login;
     }
-    const nameOrEmail = useName && !!personalDetails?.firstName ? `${personalDetails?.firstName}:` : (originalMessage?.email ?? '');
+    const nameOrEmail = useName && !!actorDetails?.firstName ? `${actorDetails?.firstName}:` : (originalMessage?.email ?? '');
     const formattedNameOrEmail = formatPhoneNumber(nameOrEmail);
     return translate('report.actions.type.leftWorkspace', formattedNameOrEmail);
 }
@@ -4013,12 +4049,7 @@ function getUpdatedApprovalRuleMessage(translate: LocalizedTranslate, reportActi
     return getReportActionText(reportAction);
 }
 
-function getRemovedFromApprovalChainMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN>>) {
-    const originalMessage = getOriginalMessage(reportAction);
-    const submittersNames = getPersonalDetailsByIDs({
-        accountIDs: originalMessage?.submittersAccountIDs ?? [],
-        currentUserAccountID: deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
-    }).map(({displayName, login}) => displayName ?? login ?? 'Unknown Submitter');
+function getRemovedFromApprovalChainMessage(translate: LocalizedTranslate, submittersNames: string[]) {
     return translate('workspaceActions.removedFromApprovalWorkflow', {submittersNames, count: submittersNames.length});
 }
 
@@ -4180,6 +4211,39 @@ function getUpdatedTimeRateMessage(translate: LocalizedTranslate, reportAction: 
 
     if (newRate !== undefined && oldRate !== undefined) {
         return translate('workspaceActions.updatedTimeRate', newRateText, oldRateText);
+    }
+
+    return getReportActionText(reportAction);
+}
+
+function getUpdatedCommuterExclusionsMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_COMMUTER_EXCLUSIONS)) {
+        return getReportActionText(reportAction);
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const updatedField = originalMessage?.updatedField;
+
+    if (updatedField === CONST.POLICY.COMMUTER_EXCLUSION_TYPE.METHOD) {
+        const newMethod = originalMessage?.newValue;
+        if (newMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE) {
+            return translate('workspaceActions.commuterExclusions.changedToFixedDistance');
+        }
+    }
+
+    if (updatedField === CONST.POLICY.COMMUTER_EXCLUSION_TYPE.FIXED_DISTANCE) {
+        const newValue = typeof originalMessage?.newValue === 'number' ? originalMessage.newValue : Number(originalMessage?.newValue ?? 0);
+        const unit = originalMessage?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+
+        if (originalMessage?.oldValue == null) {
+            return translate('workspaceActions.commuterExclusions.setFixedDistance', {distance: newValue, unit});
+        }
+
+        const oldValue = typeof originalMessage.oldValue === 'number' ? originalMessage.oldValue : Number(originalMessage.oldValue);
+        return translate('workspaceActions.commuterExclusions.changedFixedDistance', {newDistance: newValue, oldDistance: oldValue, unit});
+    }
+
+    if (updatedField === CONST.POLICY.COMMUTER_EXCLUSION_TYPE.DISABLED) {
+        return translate('workspaceActions.commuterExclusions.disabled');
     }
 
     return getReportActionText(reportAction);
@@ -4741,6 +4805,7 @@ export {
     isDeletedAction,
     isDeletedParentAction,
     isMemberChangeAction,
+    isLeavePolicyAction,
     isExportIntegrationAction,
     isIntegrationMessageAction,
     isMessageDeleted,
@@ -4854,6 +4919,7 @@ export {
     getWorkspaceCustomUnitRateAddedMessage,
     getSendMoneyFlowAction,
     getUpdatedProhibitedExpensesMessage,
+    getUpdatedCommuterExclusionsMessage,
     getWorkspaceTagUpdateMessage,
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceReportFieldDeleteMessage,

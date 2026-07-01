@@ -1956,6 +1956,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {...getWidthStyle(variables.w92)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE:
+            case CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE:
                 columnWidth = {...getWidthStyle(variables.w130), ...styles.flex1};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
@@ -1978,6 +1979,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.FEED:
             case CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT:
             case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
+            case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID:
+            case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID:
+            case CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS:
             case CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME:
             case CONST.SEARCH.TABLE_COLUMNS.CARD:
             case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
@@ -2112,15 +2116,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             styleObj[key] = null;
             return styleObj;
         }, {} as Nullable<K>) as K,
-    getFeatureTrainingCarouselDotStyle: (size: number, color: string, isActive: boolean): ViewStyle => ({
-        width: size,
-        height: size,
-        borderRadius: size / 2,
-        marginHorizontal: size,
-        backgroundColor: color,
-        opacity: isActive ? 1 : 0.3,
-    }),
-
     getScrollableFeatureTrainingModalStyles: (
         insets: EdgeInsets,
         isKeyboardOpen = false,

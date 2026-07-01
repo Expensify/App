@@ -1,6 +1,7 @@
 const oldRoutes: Record<string, string> = {
     /* eslint-disable @typescript-eslint/naming-convention */
-    '/settings/*/category/*/edit': '/settings/$1/category/$2/category-edit',
+    '/settings/*/category/*/edit': '/settings/$1/categories/category-settings/$2/category-edit',
+    '/settings/*/category/*': '/settings/$1/categories/category-settings/$2',
     '/settings/*/tags/*/edit': '/settings/$1/tags/settings/edit/$2',
     '/settings/*/tags/new': '/settings/$1/tags/tag-new',
     '/settings/*/tag/*/*/edit': '/settings/$1/tags/tag-settings/$2/$3/tag-edit/$2/$3',
@@ -27,6 +28,8 @@ const oldRoutes: Record<string, string> = {
     '/workspaces/*/overview/address': '/workspaces/$1/overview/workspace-address',
     '/workspaces/*/categories/settings': '/workspaces/$1/categories/categories-settings',
     '/workspaces/*/categories/new': '/workspaces/$1/categories/category-new',
+    '/workspaces/*/tags/settings': '/workspaces/$1/tags/tags-settings',
+    '/workspaces/*/tags/new': '/workspaces/$1/tags/tag-create',
     '/settings/*/categories/settings': '/settings/$1/categories/manage-settings',
     '/settings/*/categories/new': '/settings/$1/categories/category-create',
     '/workspaces/*/accounting/*/card-reconciliation/account': '/workspaces/$1/accounting/$2/card-reconciliation/account-reconciliation-settings',
@@ -51,6 +54,20 @@ const oldRoutes: Record<string, string> = {
     '/a/*/avatar': '/avatar/$1',
     '/settings/profile/contact-methods/verify': '/settings/profile/contact-methods/verify-account',
     '/home-page': '/home',
+    '/workspace/confirmation/currency': '/workspaces/workspace/confirmation/currency',
+    '/workspace/confirmation': '/workspaces/workspace/confirmation',
+    '/settings/wallet/enable-payments/plaid*': '/settings/wallet/enable-payments/add-bank-account/plaid$1',
+    '/settings/wallet/enable-payments/bank-account-confirmation*': '/settings/wallet/enable-payments/add-bank-account/confirmation$1',
+    '/settings/wallet/enable-payments/legal-name*': '/settings/wallet/enable-payments/personal-info/legal-name$1',
+    '/settings/wallet/enable-payments/date-of-birth*': '/settings/wallet/enable-payments/personal-info/date-of-birth$1',
+    '/settings/wallet/enable-payments/address*': '/settings/wallet/enable-payments/personal-info/address$1',
+    '/settings/wallet/enable-payments/phone-number*': '/settings/wallet/enable-payments/personal-info/phone-number$1',
+    '/settings/wallet/enable-payments/ssn*': '/settings/wallet/enable-payments/personal-info/ssn$1',
+    '/settings/wallet/enable-payments/personal-info-confirmation*': '/settings/wallet/enable-payments/personal-info/confirmation$1',
+    // 'fees*' must not use a bare wildcard - it would also match the new 'fees-and-terms' page and append a duplicate segment on every navigation
+    '/settings/wallet/enable-payments/fees': '/settings/wallet/enable-payments/fees-and-terms/fees',
+    '/settings/wallet/enable-payments/fees/*': '/settings/wallet/enable-payments/fees-and-terms/fees/$1',
+    '/settings/wallet/enable-payments/terms*': '/settings/wallet/enable-payments/fees-and-terms/terms$1',
     /* eslint-enable @typescript-eslint/naming-convention */
 };
 

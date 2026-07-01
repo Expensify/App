@@ -1,27 +1,25 @@
 import {groupsSelector} from '@selectors/Domain';
 import type {DomainSecurityGroupWithID} from '@selectors/Domain';
-import {useEffect, useState} from 'react';
-import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
-import type {MemberOption} from '@pages/domain/BaseDomainMembersPage';
+import type {FilterConfig, IsItemInFilterCallback} from '@components/Table';
+import type {DomainMemberRowData, DomainMembersTableFilterKey} from '@components/Tables/DomainMembersTable';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
+const ALL_MEMBERS_VALUE = 'all';
+
 type UseDomainGroupFilterResult = {
-    /** Pre-filter function for useSearchResults that filters members by the selected groups. */
-    groupPreFilter: (item: MemberOption) => boolean;
+    /** Filter configuration for the domain members table group filter. */
+    filterConfig?: FilterConfig<DomainMembersTableFilterKey>;
 
-    /** All group dropdown options. */
-    groupOptions: Array<MultiSelectItem<string>>;
+    /** Callback to determine whether a member matches the active group filter. */
+    isItemInFilter?: IsItemInFilterCallback<DomainMemberRowData>;
 
-    /** The currently selected groups. */
-    selectedGroups: Array<MultiSelectItem<string>>;
+    /** Whether the group filter should be shown. */
+    shouldShowGroupFilter: boolean;
 
-    /** Handler for when the user changes the group selection. */
-    handleGroupChange: (items: Array<MultiSelectItem<string>>) => void;
-
-    /** Display label for the dropdown button. */
-    dropdownLabel: string;
+    /** Whether the group column should be shown in the table. */
+    shouldShowGroupColumn: boolean;
 
     /** The raw security groups from Onyx, needed for per-row group name display. */
     groups: DomainSecurityGroupWithID[] | undefined;
@@ -32,49 +30,44 @@ function useDomainGroupFilter(domainAccountID: number): UseDomainGroupFilterResu
 
     const [groups] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: groupsSelector});
 
-    const [selectedGroups, setSelectedGroups] = useState<Array<MultiSelectItem<string>>>([]);
+    const allMembersLabel = translate('domain.members.allMembers');
+    const shouldShowGroupFilter = (groups?.length ?? 0) > 1;
+    const shouldShowGroupColumn = (groups?.length ?? 0) > 0;
 
-    const groupOptions: Array<MultiSelectItem<string>> = (groups ?? []).map((group) => ({text: group.details.name ?? '', value: group.id}));
+    const filterConfig: FilterConfig<DomainMembersTableFilterKey> | undefined = !shouldShowGroupFilter
+        ? undefined
+        : {
+              group: {
+                  label: allMembersLabel,
+                  filterType: 'single-select',
+                  options: [{label: allMembersLabel, value: ALL_MEMBERS_VALUE}, ...(groups ?? []).map((group) => ({label: group.details.name ?? '', value: group.id}))],
+                  default: ALL_MEMBERS_VALUE,
+              },
+          };
 
-    // If any selected groups disappear from Onyx (e.g. during rollback/refresh), remove them
-    // from state so they cannot silently reactivate if the same group ID reappears later.
-    useEffect(() => {
-        if (selectedGroups.length === 0) {
-            return;
-        }
-        const valid = selectedGroups.filter((selectedGroup) => groups?.some((group) => group.id === selectedGroup.value));
-        if (valid.length !== selectedGroups.length) {
-            setSelectedGroups(valid);
-        }
-    }, [groups, selectedGroups]);
+    const isItemInFilter: IsItemInFilterCallback<DomainMemberRowData> | undefined = !shouldShowGroupFilter
+        ? undefined
+        : (item, filterValues) => {
+              const filterValue = filterValues.at(0);
 
-    let selectedGroupMemberIDs: Set<number> | null = null;
-    if (selectedGroups.length > 0) {
-        selectedGroupMemberIDs = new Set<number>();
-        for (const selectedGroup of selectedGroups) {
-            const securityGroup = groups?.find((group) => group.id === selectedGroup.value);
-            if (!securityGroup) {
-                continue;
-            }
-            for (const memberKey of Object.keys(securityGroup.details.shared)) {
-                const memberID = Number(memberKey);
-                if (!Number.isNaN(memberID)) {
-                    selectedGroupMemberIDs.add(memberID);
-                }
-            }
-        }
-    }
+              if (!filterValue || filterValue === ALL_MEMBERS_VALUE) {
+                  return true;
+              }
 
-    const groupPreFilter = (item: MemberOption) => !selectedGroupMemberIDs || selectedGroupMemberIDs.has(item.accountID);
+              const matchedGroup = groups?.find((group) => group.id === filterValue);
 
-    const dropdownLabel = `${translate('common.group')}: ${selectedGroups.length > 0 ? selectedGroups.map((g) => g.text).join(', ') : translate('common.all')}`;
+              if (!matchedGroup) {
+                  return true;
+              }
+
+              return String(item.accountID) in matchedGroup.details.shared;
+          };
 
     return {
-        groupPreFilter,
-        groupOptions,
-        selectedGroups,
-        handleGroupChange: setSelectedGroups,
-        dropdownLabel,
+        filterConfig,
+        isItemInFilter,
+        shouldShowGroupFilter,
+        shouldShowGroupColumn,
         groups,
     };
 }
