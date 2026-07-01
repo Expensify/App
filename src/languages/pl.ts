@@ -4741,7 +4741,7 @@ ${amount} dla ${merchant} - ${date}`,
             bankAccountDescription: 'Wybierz, skąd wysyłać czeki.',
             creditCardAccount: 'Konto karty kredytowej',
             travelInvoicingDescription: 'Wydatki na podróże zostaną wyeksportowane jako obciążenia karty kredytowej na konto QuickBooks Online wskazane poniżej.',
-            companyCardsLocationEnabledDescription:
+            companyCardsLocationTagDescription:
                 'QuickBooks Online nie obsługuje lokalizacji w eksportach rachunków od dostawców, gdy lokalizacje są importowane jako tagi. Ponieważ w tym obszarze roboczym masz lokalizacje importowane jako tagi, ta opcja eksportu jest niedostępna.',
             outOfPocketTaxEnabledDescription:
                 'QuickBooks Online nie obsługuje podatków przy eksporcie zapisów w dzienniku. Ponieważ masz włączone podatki w swoim obszarze roboczym, ta opcja eksportu jest niedostępna.',

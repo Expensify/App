@@ -4629,7 +4629,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             bankAccountDescription: '选择从哪里寄送支票。',
             creditCardAccount: '信用卡账户',
             travelInvoicingDescription: '差旅费用将作为信用卡费用导出到下面指定的 QuickBooks Online 账户。',
-            companyCardsLocationEnabledDescription: '当地点作为标签导入时，QuickBooks Online 不支持在供应商账单导出中使用地点。由于你的工作区中已将地点作为标签导入，因此此导出选项不可用。',
+            companyCardsLocationTagDescription: '当地点作为标签导入时，QuickBooks Online 不支持在供应商账单导出中使用地点。由于你的工作区中已将地点作为标签导入，因此此导出选项不可用。',
             outOfPocketTaxEnabledDescription: 'QuickBooks Online 不支持在日记账分录导出中包含税费。由于你已在工作区中启用税费功能，因此无法使用此导出选项。',
             outOfPocketTaxEnabledError: '启用税费时无法使用日记账分录。请选择其他导出选项。',
             advancedConfig: {
