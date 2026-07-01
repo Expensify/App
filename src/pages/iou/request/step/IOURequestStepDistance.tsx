@@ -314,6 +314,8 @@ function IOURequestStepDistance({
     }, [backTo]);
 
     const navigateBackAfterSave = useCallback(() => {
+        // Suppress the discard prompt — otherwise `beforeRemove` treats this post-save navigation as an abandoned dirty edit.
+        suppressDiscardPrompt();
         // When editing an individual split, the previous RHP screen is the edit-split page the user
         // wants to return to — `closeRHPFlow` would tear it down too. Use `goBack` so the RHP stays
         // open at the edit-split page.
@@ -322,7 +324,7 @@ function IOURequestStepDistance({
             return;
         }
         Navigation.closeRHPFlow();
-    }, [isEditingSplit, backTo]);
+    }, [isEditingSplit, backTo, suppressDiscardPrompt]);
 
     // In the edit flow this page is rendered inside an OnyxTabNavigator. The header back honors an
     // explicit `backTo` (e.g. the edit-split page) and otherwise leaves the whole flow.
