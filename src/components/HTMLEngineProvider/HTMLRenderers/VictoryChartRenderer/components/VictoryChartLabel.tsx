@@ -2,6 +2,7 @@ import {Group, Skia, Text as SkText, vec} from '@shopify/react-native-skia';
 import type {Color, SkFont} from '@shopify/react-native-skia';
 import React from 'react';
 import {useChartTypefaces} from '@components/Charts/context/ChartFontsContext';
+import {rotatedLabelCenterCorrection} from '@components/Charts/utils';
 import getChartSkiaTypeface from '@components/Charts/utils/getChartSkiaTypeface';
 import type {LabelItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import computeTextAnchorPosition from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeTextAnchorPosition';
@@ -79,33 +80,47 @@ function VictoryChartLabel({
         },
         {lines: [] as ProcessedLine[], y},
     );
-    return processedLines.lines.map(({lineX, lineY, line, lineFont, lineColor, lineWidth}) => {
-        const anchoredX = computeTextAnchorPosition(lineX, lineWidth, textAnchor);
-        const anchoredY = computeTextAnchorPosition(lineY, processedLines.y - y, verticalAnchor);
+    return processedLines.lines.map(({lineX, lineY, line, lineFont, lineColor, lineWidth}, index) => {
         const angleRad = (angle * Math.PI) / 180;
-
-        const textNode = (
-            <SkText
-                key={`text-${lineX}-${lineY}`}
-                x={anchoredX}
-                y={anchoredY}
-                text={line}
-                font={lineFont}
-                color={lineColor}
-            />
-        );
+        const {ascent, descent} = getSkiaLineMetrics(lineFont);
 
         if (angleRad === 0) {
-            return textNode;
+            const anchoredX = computeTextAnchorPosition(lineX, lineWidth, textAnchor);
+            const anchoredY = computeTextAnchorPosition(lineY, processedLines.y - y, verticalAnchor);
+
+            return (
+                <SkText
+                    key={`text-${lineX}-${lineY}`}
+                    x={anchoredX}
+                    y={anchoredY}
+                    text={line}
+                    font={lineFont}
+                    color={lineColor}
+                />
+            );
         }
+
+        if (index > 0) {
+            return null;
+        }
+
+        const labelY = y;
+        const correction = rotatedLabelCenterCorrection(ascent, descent, angleRad);
+        const textX = computeTextAnchorPosition(lineX, lineWidth, textAnchor);
 
         return (
             <Group
                 key={`text-${lineX}-${lineY}`}
-                origin={vec(lineX, lineY)}
-                transform={[{rotate: -angleRad}]}
+                origin={vec(lineX, labelY)}
+                transform={[{translateX: correction}, {rotate: -angleRad}]}
             >
-                {textNode}
+                <SkText
+                    x={textX}
+                    y={labelY - ascent}
+                    text={line}
+                    font={lineFont}
+                    color={lineColor}
+                />
             </Group>
         );
     });
