@@ -35,20 +35,26 @@ function DynamicPaymentCardCurrencySelectorPage() {
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM_DRAFT);
     const [addCardFormDraft] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM_DRAFT);
     const preferredCurrency = usePreferredCurrency();
+    const canUseEurBilling = isBetaEnabled(CONST.BETAS.EUR_BILLING);
 
-    const currentCurrency = ((isChangeBillingCurrencyFlow ? formDraft?.[INPUT_IDS.CURRENCY] : addCardFormDraft?.currency) ?? preferredCurrency) as Currency;
+    // A user can only pick EUR into the draft while the beta is on (the list below filters it out otherwise), so only the
+    // preferred-currency fallback needs gating: without the beta, fall back to a currency the list actually offers instead
+    // of a hidden EUR. Change-billing keeps the existing card's real currency.
+    const addCardDefaultCurrency = !canUseEurBilling && preferredCurrency === CONST.PAYMENT_CARD_CURRENCY.EUR ? CONST.PAYMENT_CARD_CURRENCY.USD : preferredCurrency;
+    const currentCurrency = (isChangeBillingCurrencyFlow ? (formDraft?.[INPUT_IDS.CURRENCY] ?? preferredCurrency) : (addCardFormDraft?.currency ?? addCardDefaultCurrency)) as Currency;
 
-    const currencyOptions = useMemo(() => {
-        const canUseEurBilling = isBetaEnabled(CONST.BETAS.EUR_BILLING);
-        return (Object.keys(CONST.PAYMENT_CARD_CURRENCY) as Currency[])
-            .filter((currency) => currency !== CONST.PAYMENT_CARD_CURRENCY.EUR || canUseEurBilling)
-            .map((currency) => ({
-                text: currency,
-                value: currency,
-                keyForList: currency,
-                isSelected: currency === currentCurrency,
-            }));
-    }, [currentCurrency, isBetaEnabled]);
+    const currencyOptions = useMemo(
+        () =>
+            (Object.keys(CONST.PAYMENT_CARD_CURRENCY) as Currency[])
+                .filter((currency) => currency !== CONST.PAYMENT_CARD_CURRENCY.EUR || canUseEurBilling)
+                .map((currency) => ({
+                    text: currency,
+                    value: currency,
+                    keyForList: currency,
+                    isSelected: currency === currentCurrency,
+                })),
+        [currentCurrency, canUseEurBilling],
+    );
 
     return (
         <ScreenWrapper

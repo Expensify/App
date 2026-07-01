@@ -164,6 +164,30 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
         expect(capturedData.find((option) => option.isSelected)?.value).toBe('NZD');
     });
 
+    it('clamps a EUR preferred currency to USD in the add payment card flow when the beta is disabled', () => {
+        mockUseDynamicBackPath.mockReturnValue('settings/subscription/add-payment-card');
+        // No add-card draft, so usePreferredCurrency resolves to the billing card currency (EUR).
+        mockOnyx(undefined, undefined, 'EUR');
+
+        render(<DynamicPaymentCardCurrencySelectorPage />);
+
+        const currencies = capturedData.map((option) => option.value);
+        expect(currencies).not.toContain('EUR');
+        expect(capturedData.find((option) => option.isSelected)?.value).toBe('USD');
+    });
+
+    it('does not clamp a EUR preferred currency in the change-billing flow (keeps the existing card currency)', () => {
+        // Default back path is change-billing; preferred currency resolves to the existing EUR card.
+        mockOnyx(undefined, undefined, 'EUR');
+
+        render(<DynamicPaymentCardCurrencySelectorPage />);
+
+        // EUR is still filtered out of the options when the beta is off, but the current value is NOT clamped to USD
+        // (unlike the add-card flow), so USD must not be pre-selected.
+        expect(capturedData.find((option) => option.value === 'USD')?.isSelected).toBe(false);
+        expect(capturedData.find((option) => option.isSelected)).toBeUndefined();
+    });
+
     it('writes only the change-billing draft (not the add-card draft) on select in the change-billing flow', () => {
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
