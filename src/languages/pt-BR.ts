@@ -512,6 +512,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Editor',
         restrictions: 'Restrições',
+        tagGLCode: 'Marcar código GL',
         off: 'Desligado',
     },
     socials: {
@@ -6313,6 +6314,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             makeAdmin: () => ({
                 one: 'Tornar admin do workspace',
                 other: 'Tornar admins do workspace',
+            }),
+            makeGroupAdmin: () => ({
+                one: 'Tornar admin',
+                other: 'Tornar admins',
             }),
             makeAuditor: () => ({
                 one: 'Tornar auditor',

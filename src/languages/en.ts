@@ -526,6 +526,7 @@ const translations = {
         year: 'Year',
         quarter: 'Quarter',
         restrictions: 'Restrictions',
+        tagGLCode: 'Tag GL code',
         concierge: {
             greeting: 'Hi there, how can I help?',
             showHistory: 'Show history',
@@ -6405,6 +6406,10 @@ const translations = {
             makeAdmin: () => ({
                 one: 'Make workspace admin',
                 other: 'Make workspace admins',
+            }),
+            makeGroupAdmin: () => ({
+                one: 'Make admin',
+                other: 'Make admins',
             }),
             makeAuditor: () => ({
                 one: 'Make auditor',

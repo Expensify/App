@@ -513,6 +513,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Edytor',
         restrictions: 'Ograniczenia',
+        tagGLCode: 'Oznacz kod GL',
         off: 'Wyłączone',
     },
     socials: {
@@ -6313,6 +6314,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             makeAdmin: () => ({
                 one: 'Ustaw jako administratora przestrzeni roboczej',
                 other: 'Ustaw jako administratorów przestrzeni roboczej',
+            }),
+            makeGroupAdmin: () => ({
+                one: 'Ustaw jako administratora',
+                other: 'Ustaw jako administratorów',
             }),
             makeAuditor: () => ({
                 one: 'Ustaw jako audytora',
