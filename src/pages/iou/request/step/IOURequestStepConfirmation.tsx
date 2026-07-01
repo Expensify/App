@@ -41,6 +41,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getIsWorkspacesOnlyForTransaction,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
+    isSelfDMSoleDestination,
     navigateToStartMoneyRequestStep,
     resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
@@ -447,10 +448,16 @@ function IOURequestStepConfirmation({
 
     const hasPreInsertFired = useRef(false);
     const isTransactionReady = !!transaction;
-    const selfDMReportID = iouType === CONST.IOU.TYPE.TRACK ? findSelfDMReportID() : undefined;
+    // A sole recipient that resolves to the current user means the expense is tracked in the self-DM, even when the
+    // route iouType hasn't been converted to TRACK yet (new manual expense flow). In that case the destination must be
+    // the self-DM, not the route report, so the post-create navigation lands the user in the report the expense was
+    // actually created in. This mirrors the same self-DM decision used by useExpenseSubmission.
+    const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
+    const selfDMReportID = iouType === CONST.IOU.TYPE.TRACK || isSelfDMDestination ? findSelfDMReportID() : undefined;
     const isMRReport = isMoneyRequestReport(report);
-    const destinationReportID =
-        backToReport ?? (isPerDiemRequest && isMRReport && Navigation.getTopmostReportId() !== report?.reportID ? report?.chatReportID : report?.reportID) ?? selfDMReportID;
+    const shouldUsePerDiemChatReport = isPerDiemRequest && isMRReport && Navigation.getTopmostReportId() !== report?.reportID;
+    const routeDestinationReportID = shouldUsePerDiemChatReport ? report?.chatReportID : report?.reportID;
+    const destinationReportID = backToReport ?? (isSelfDMDestination ? selfDMReportID : routeDestinationReportID) ?? selfDMReportID;
     const [destinationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
 
     useEffect(() => {

@@ -376,6 +376,31 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
 
             expect(mockTrackExpenseAction).toHaveBeenCalledWith(expect.objectContaining({existingTransaction: params.transactions.at(0)}));
         });
+
+        // Regression test for #94282: an expense whose sole recipient is the current user must be a self-DM track
+        // expense, even when the route iouType hasn't been converted to TRACK yet (new manual flow). Otherwise it
+        // falls through to requestMoney and the backend rejects it ("you cannot request money from yourself").
+        it('routes an expense whose only recipient is the current user through trackExpense, not requestMoney', async () => {
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.CREATE,
+                        participants: [{accountID: CURRENT_USER_ACCOUNT_ID, login: 'me@test.com', selected: true}],
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockTrackExpenseAction).toHaveBeenCalledTimes(1);
+            expect(mockRequestMoneyAction).not.toHaveBeenCalled();
+            // The self-DM is forced as the chat target (route report is cleared) so the action defaults to the self-DM.
+            expect(mockTrackExpenseAction).toHaveBeenCalledWith(expect.objectContaining({report: undefined}));
+        });
     });
 
     describe('per diem path', () => {
