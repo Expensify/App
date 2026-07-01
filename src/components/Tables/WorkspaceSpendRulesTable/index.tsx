@@ -8,7 +8,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import WorkspaceSpendRulesTableRow from './WorkspaceSpendRulesTableRow';
 import type {SpendRuleTableItem} from './WorkspaceSpendRulesTableRow';
 
@@ -80,8 +79,6 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
         />
     );
 
-    const shouldShowSearchBar = rulesData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-
     const isEmpty = rulesData.length === 0;
 
     return (
@@ -102,7 +99,7 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
             {isEmpty && !!emptyStateContent && <View style={[styles.flex1, styles.mnh0]}>{emptyStateContent}</View>}
             {!isEmpty && (
                 <>
-                    {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.rules.spendRules.findRule')} />}
+                    <Table.FilterBar label={translate('workspace.rules.spendRules.findRule')} />
                     <Table.Header />
                     <Table.Body />
                 </>

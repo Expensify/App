@@ -32,8 +32,7 @@ import type {TableData, TableHandle, TableMethods, TableProps} from './types';
  * - `<Table>` - The parent component that manages state and provides context
  * - `<Table.Header>` - Renders sortable column headers
  * - `<Table.Body>` - Renders the data rows using FlashList
- * - `<Table.SearchBar>` - Renders a search input that filters data
- * - `<Table.FilterButtons>` - Renders dropdown filter buttons
+ * - `<Table.FilterBar>` - Renders a search input that filters data
  *
  * ## Middleware Architecture
  *
@@ -87,7 +86,7 @@ import type {TableData, TableHandle, TableMethods, TableProps} from './types';
  *     return a[columnKey].localeCompare(b[columnKey]) * multiplier;
  *   }}
  * >
- *   <Table.SearchBar />
+ *   <Table.FilterBar />
  *   <Table.Header />
  *   <Table.Body />
  * </Table>
@@ -97,7 +96,7 @@ import type {TableData, TableHandle, TableMethods, TableProps} from './types';
  * ```tsx
  * const filterConfig: FilterConfig = {
  *   status: {
- *     filterType: 'single-select',
+ *     filterType: 'singleSelect',
  *     options: [
  *       { label: 'All', value: 'all' },
  *       { label: 'Active', value: 'active' },
@@ -118,7 +117,6 @@ import type {TableData, TableHandle, TableMethods, TableProps} from './types';
  *     return filterValues.includes(item.status);
  *   }}
  * >
- *   <Table.FilterButtons />
  *   <Table.Header />
  *   <Table.Body />
  * </Table>

@@ -11,7 +11,7 @@ import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import WorkspacesEmptyStateComponent from '@pages/workspace/WorkspacesEmptyStateComponent';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
 import type {CopySettingsEligibleTargets} from '@src/selectors/Policy';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import WorkspaceRow from './WorkspaceTableRow';
@@ -132,7 +132,7 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
             ListEmptyComponent={WorkspacesEmptyStateComponent}
             keyExtractor={(row, index) => `${row.policyID}-${index}`}
         >
-            {workspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.common.findWorkspace')} />}
+            <Table.FilterBar label={translate('workspace.common.findWorkspace')} />
             <Table.Header />
             <Table.Body />
         </Table>

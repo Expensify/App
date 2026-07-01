@@ -7,7 +7,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import WorkspaceExpenseDefaultsTableRow from './WorkspaceExpenseDefaultsTableRow';
 import type {ExpenseDefaultTableItem} from './WorkspaceExpenseDefaultsTableRow';
 
@@ -78,7 +77,6 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
         />
     );
 
-    const shouldShowSearchBar = rulesData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const isEmpty = rulesData.length === 0;
 
     return (
@@ -99,7 +97,7 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
             {isEmpty && emptyStateContent}
             {(!isEmpty || !emptyStateContent) && (
                 <>
-                    {shouldShowSearchBar && !isEmpty && <Table.SearchBar label={translate('workspace.rules.expenseDefaultsTable.findRule')} />}
+                    <Table.FilterBar label={translate('workspace.rules.expenseDefaultsTable.findRule')} />
                     <Table.Header />
                     <Table.Body />
                 </>

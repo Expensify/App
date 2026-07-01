@@ -8,6 +8,9 @@ import CONST from '@src/CONST';
 import BasePopup from './BasePopup';
 
 type SingleSelectPopupProps<T> = {
+    /** Whether to show the label in the popup or not */
+    showLabel?: boolean;
+
     /** The label to show when in an overlay on mobile */
     label?: string;
 
@@ -59,6 +62,7 @@ function SingleSelectPopup<T extends string>({
     style,
     selectionListStyle,
     itemHeight,
+    showLabel,
     shouldShowList = true,
 }: SingleSelectPopupProps<T>) {
     const [selectedItem, setSelectedItem] = useState(value);
@@ -76,6 +80,7 @@ function SingleSelectPopup<T extends string>({
     return (
         <BasePopup
             label={label}
+            showLabel={showLabel}
             onReset={resetChanges}
             onApply={applyChanges}
             onBackButtonPress={onBackButtonPress}
