@@ -8,7 +8,6 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
-    IntroSelected,
     PersonalDetails,
     PersonalDetailsList,
     Policy,
@@ -28,7 +27,6 @@ import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNum
 import {translateLocal} from './Localize';
 // eslint-disable-next-line import/no-cycle
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
-import isTrackOnboardingChoice from './OnboardingUtils';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, isPolicyAdmin, isPolicyFieldListEmpty} from './PolicyUtils';
@@ -175,7 +173,7 @@ type ComputeReportName = {
     report?: Report;
     reports?: OnyxCollection<Report>;
     policies?: OnyxCollection<Policy>;
-    transactions?: OnyxCollection<Transaction>;
+    transactions: OnyxCollection<Transaction>;
     allReportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     allPolicyTags?: OnyxCollection<PolicyTagLists>;
     personalDetailsList?: PersonalDetailsList;
@@ -185,6 +183,7 @@ type ComputeReportName = {
     // TODO: Make this required when https://github.com/Expensify/App/issues/66411 is done
     conciergeReportID?: string;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
+    isTrackIntentUser: boolean | undefined;
 };
 
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
@@ -194,15 +193,6 @@ Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
         allPersonalDetails = value;
-    },
-});
-
-let introSelected: OnyxEntry<IntroSelected>;
-// eslint-disable-next-line rulesdir/no-onyx-connect -- NextStepUtils is a pure utility called from action files that cannot use hooks
-Onyx.connect({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (value) => {
-        introSelected = value;
     },
 });
 
@@ -436,6 +426,7 @@ function computeReportNameBasedOnReportAction(
     parentReport: Report | undefined,
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
     reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
+    isTrackIntentUser: boolean | undefined,
 ): string | undefined {
     if (!parentReportAction) {
         return undefined;
@@ -451,7 +442,7 @@ function computeReportNameBasedOnReportAction(
         }
         if (
             shouldShowMarkAsDone({
-                isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice),
+                isTrackIntentUser,
                 policy: reportPolicy,
                 report: parentReport,
             })
@@ -839,10 +830,10 @@ function computeChatThreadReportName(
     report: Report,
     reports: OnyxCollection<Report>,
     currentUserLogin: string,
+    transactions: OnyxCollection<Transaction>,
     parentReportAction?: ReportAction,
     policyTags?: OnyxEntry<PolicyTagLists>,
     policy?: OnyxEntry<Policy>,
-    transactions?: OnyxCollection<Transaction>,
 ): string | undefined {
     if (!isChatThread(report)) {
         return undefined;
@@ -857,15 +848,11 @@ function computeChatThreadReportName(
     if (!isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction)) {
         const linkedTransactionID = getLinkedTransactionID(parentReportAction);
         const linkedTransaction = linkedTransactionID ? transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`] : undefined;
-        let linkedTransactions: Transaction[] | undefined;
-        if (transactions) {
-            linkedTransactions = linkedTransaction ? [linkedTransaction] : [];
-        }
         const linkedTransactionReport = linkedTransaction?.reportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedTransaction.reportID}`] : undefined;
         let formattedName = getTransactionReportName({
             translate,
             reportAction: parentReportAction,
-            transactions: linkedTransactions,
+            linkedTransaction,
             report: linkedTransactionReport,
         });
 
@@ -937,6 +924,7 @@ function computeReportName({
     allPolicyTags,
     conciergeReportID,
     reportAttributes,
+    isTrackIntentUser,
 }: ComputeReportName): string {
     if (!report?.reportID) {
         return '';
@@ -955,6 +943,7 @@ function computeReportName({
         parentReport,
         personalDetailsList,
         reportAttributes,
+        isTrackIntentUser,
     );
 
     if (parentReportActionBasedName) {
@@ -980,6 +969,7 @@ function computeReportName({
             currentUserLogin,
             conciergeReportID,
             reportAttributes,
+            isTrackIntentUser,
         });
         return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isOriginalReportDeleted(parentReportAction, originalReport), translateLocal);
     }
@@ -999,10 +989,10 @@ function computeReportName({
         report,
         reports ?? {},
         currentUserLogin ?? '',
+        transactions,
         parentReportAction,
         policyTags,
         reportPolicy,
-        transactions,
     );
     if (chatThreadReportName) {
         return chatThreadReportName;

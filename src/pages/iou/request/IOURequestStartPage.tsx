@@ -11,6 +11,7 @@ import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResetIOUType from '@hooks/useResetIOUType';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,10 +24,12 @@ import {
     getActivePoliciesWithExpenseChatAndTimeEnabled,
     getPerDiemCustomUnit,
     isControlPolicy,
+    isPerDiemEnabled,
     isTimeTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
+import {cancelTracking} from '@libs/telemetry/submitFollowUpAction';
 import {isScanRequest} from '@libs/TransactionUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
@@ -113,7 +116,7 @@ function IOURequestStartPage({
     );
     const doesPerDiemPolicyExist = policiesWithPerDiemEnabledAndHasRates.length > 0;
     const moreThanOnePerDiemExist = policiesWithPerDiemEnabledAndHasRates.length > 1;
-    const hasCurrentPolicyPerDiemEnabled = isControlPolicy(policy) && !!policy?.arePerDiemRatesEnabled;
+    const hasCurrentPolicyPerDiemEnabled = isControlPolicy(policy) && isPerDiemEnabled(policy);
     const hasCurrentPolicyTimeTrackingEnabled = policy ? isTimeTrackingEnabled(policy) : false;
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const hasPolicyPerDiemRates = !isEmptyObject(perDiemCustomUnit?.rates);
@@ -162,6 +165,9 @@ function IOURequestStartPage({
         return undefined;
     }, [transaction?.iouRequestType, isStaleTransactionDraft, shouldUseTab, selectedTab, availableTabs]);
 
+    const {isBetaEnabled} = usePermissions();
+    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
+
     const resetIOUTypeIfChanged = useResetIOUType({
         reportID,
         report,
@@ -172,6 +178,7 @@ function IOURequestStartPage({
         iouType,
         policy,
         skipKeyboardDismissForPerDiem: true,
+        isNewManualExpenseFlowEnabled,
     });
 
     useEffect(() => {
@@ -185,6 +192,17 @@ function IOURequestStartPage({
     }, []);
 
     const navigateBack = () => {
+        // In the new manual expense beta the confirmation is embedded with its header hidden,
+        // so this back button is the only way to abandon the flow. Cancel any active span
+        // unconditionally (mirrors IOURequestStepConfirmation.navigateBack). No-op when no
+        // tracking session is active.
+        cancelTracking();
+
+        // Restore the pre-inserted fullscreen tab while the RHP is still on top so the clean
+        // REMOVE_FULLSCREEN_UNDER_RHP branch is used. Otherwise closeRHPFlow pops the RHP first and the
+        // confirmation's unmount cleanup restores the original tab a frame later, briefly flashing the
+        // pre-inserted Search/Spend tab. This is a no-op when nothing was pre-inserted.
+        Navigation.removePreInsertedFullscreenIfNeeded();
         Navigation.closeRHPFlow();
     };
 
@@ -206,7 +224,17 @@ function IOURequestStartPage({
     const shouldShowWorkspaceSelectForPerDiem = moreThanOnePerDiemExist && !hasCurrentPolicyPerDiemEnabled;
 
     let manualTabContent: React.ReactNode;
-    if (isScanRequest(transaction)) {
+    if (!isNewManualExpenseFlowEnabled) {
+        manualTabContent = (
+            <IOURequestStepAmountWithTransactionOnly
+                shouldKeepUserInput
+                route={route}
+                navigation={navigation}
+                report={report}
+                reportDraft={reportDraft}
+            />
+        );
+    } else if (isScanRequest(transaction)) {
         // When switching from the Scan tab, the shared draft is briefly still a scan request (with the uploaded
         // receipt) until the tab-switch reset rebuilds it as manual. Mounting the embedded confirmation against that
         // stale scan draft does throwaway work (scan loader, reading the receipt blob and a heavy first render) that
@@ -231,14 +259,14 @@ function IOURequestStartPage({
             allPolicies={iouType === CONST.IOU.TYPE.INVOICE ? allPolicies : undefined}
         >
             <ScreenWrapper
-                shouldEnableKeyboardAvoidingView
+                shouldEnableKeyboardAvoidingView={isNewManualExpenseFlowEnabled}
                 shouldEnableMaxHeight={selectedTab === CONST.TAB_REQUEST.PER_DIEM}
                 shouldEnableMinHeight={canUseTouchScreen()}
                 testID="IOURequestStartPage"
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}
             >
-                {/* The confirmation screen is shown on the start page for the manual tab, so we do not want to disable the drag and drop provider in that case */}
-                <DragAndDropProvider isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN && selectedTab !== CONST.TAB_REQUEST.MANUAL}>
+                {/* If the new manual expense flow is enabled, the confirmation screen is shown on the start page, so we do not want to disable the drag and drop provider in that case */}
+                <DragAndDropProvider isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN && !(isNewManualExpenseFlowEnabled && selectedTab === CONST.TAB_REQUEST.MANUAL)}>
                     <View style={styles.flex1}>
                         <FocusTrapContainerElement
                             onContainerElementChanged={setHeaderWithBackButtonContainerElement}

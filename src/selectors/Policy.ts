@@ -2,10 +2,11 @@ import escapeRegExp from 'lodash/escapeRegExp';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
-import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
+import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
 
 type ReusablePolicyConnectionName =
     | typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE
@@ -66,6 +67,64 @@ const createCopySettingsEligibleTargetsSelector =
             }
         }
         return {adminNonPersonal, corporateOnly};
+    };
+
+type WorkspaceListPolicy = Pick<Policy, 'id' | 'name' | 'type' | 'role' | 'ownerAccountID' | 'avatarURL' | 'pendingAction' | 'errors'> & {
+    /** Whether the policy is optimistically pending deletion */
+    isPendingDelete: boolean;
+
+    /** Whether the current user has a pending request to join the policy */
+    isJoinRequestPending: boolean;
+
+    /** Projection of policyDetailsForNonMembers for join-request-pending policies */
+    nonMemberDetails?: Pick<PolicyDetailsForNonMembers, 'name' | 'type' | 'ownerAccountID' | 'avatar'> & {policyID: string};
+};
+
+/**
+ * Creates a selector returning a light, flat projection of the policies shown on the workspaces list,
+ * so the page doesn't re-render when deep, frequently mutated policy fields change (isLoading* flags,
+ * employeeList, customUnits, connections, etc.).
+ */
+const createWorkspaceListPoliciesSelector =
+    (currentUserLogin: string | undefined) =>
+    (policies: OnyxCollection<Policy>): WorkspaceListPolicy[] => {
+        const result: WorkspaceListPolicy[] = [];
+        for (const policy of Object.values(policies ?? {})) {
+            if (!policy || !shouldShowPolicy(policy, true, currentUserLogin)) {
+                continue;
+            }
+
+            const isJoinRequestPending = !!policy.isJoinRequestPending && !!policy.policyDetailsForNonMembers;
+            let nonMemberDetails: WorkspaceListPolicy['nonMemberDetails'];
+            if (isJoinRequestPending) {
+                const nonMemberEntry = Object.entries(policy.policyDetailsForNonMembers ?? {}).at(0);
+                if (nonMemberEntry) {
+                    const [nonMemberPolicyID, details] = nonMemberEntry;
+                    nonMemberDetails = {
+                        policyID: nonMemberPolicyID,
+                        name: details.name,
+                        type: details.type,
+                        ownerAccountID: details.ownerAccountID,
+                        avatar: details.avatar,
+                    };
+                }
+            }
+
+            result.push({
+                id: policy.id,
+                name: policy.name,
+                type: policy.type,
+                role: policy.role,
+                ownerAccountID: policy.ownerAccountID,
+                avatarURL: policy.avatarURL,
+                pendingAction: policy.pendingAction,
+                errors: policy.errors,
+                isPendingDelete: isPendingDeletePolicy(policy),
+                isJoinRequestPending,
+                nonMemberDetails,
+            });
+        }
+        return result;
     };
 
 const activeAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin);
@@ -187,6 +246,34 @@ const iouRequestPolicyCollectionSelector = (policies: OnyxCollection<Policy>): O
     return result;
 };
 
+type FilteredPoliciesInfo = {
+    /** Number of policies that should be shown to the user (short-circuited at 2) */
+    filteredPoliciesCount: number;
+
+    /** ID of the first policy that should be shown to the user */
+    firstPolicyID: string | undefined;
+};
+
+const createFilteredPoliciesInfoSelector =
+    (email: string | undefined) =>
+    (policies: OnyxCollection<Policy>): FilteredPoliciesInfo => {
+        let filteredPoliciesCount = 0;
+        let firstPolicyID: string | undefined;
+        for (const policy of Object.values(policies ?? {})) {
+            if (!policy || !shouldShowPolicy(policy, false, email)) {
+                continue;
+            }
+            if (filteredPoliciesCount === 0) {
+                firstPolicyID = policy.id;
+            }
+            filteredPoliciesCount++;
+            if (filteredPoliciesCount > 1) {
+                break;
+            }
+        }
+        return {filteredPoliciesCount, firstPolicyID};
+    };
+
 const hasOnlyPersonalPoliciesSelector = (policies: OnyxCollection<Policy>): boolean => {
     return !Object.values(policies ?? {}).some((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 };
@@ -301,6 +388,8 @@ export {
     ownerPoliciesSelector,
     createOwnedPaidPoliciesCountsSelector,
     createCopySettingsEligibleTargetsSelector,
+    createFilteredPoliciesInfoSelector,
+    createWorkspaceListPoliciesSelector,
     activeAdminPoliciesSelector,
     hasActiveAdminPoliciesSelector,
     createPoliciesForDomainCardsSelector,
