@@ -1,101 +1,99 @@
+import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import {View} from 'react-native';
-import ConnectionLayout from '@components/ConnectionLayout';
+import type {ListItem} from '@components/SelectionList/types';
+import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearRilletErrorField, updateRilletEnableNewCategories, updateRilletFieldMapping, updateRilletSyncTaxRates} from '@libs/actions/connections/Rillet';
+import {clearRilletErrorField} from '@libs/actions/connections/Rillet';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import {settingsPendingAction} from '@libs/PolicyUtils';
-import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import Navigation from '@libs/Navigation/Navigation';
+import {getAdminEmployees, isExpensifyTeam, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
-import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
-function RilletImportPage({policy}: WithPolicyConnectionsProps) {
+type ExporterListItem = ListItem & {
+    value: string;
+};
+
+function RilletPreferredExporterPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
+    const policyOwner = policy?.owner;
     const rilletConfig = policy?.connections?.rillet?.config;
-    const rilletData = policy?.connections?.rillet?.data;
+    const exporter = rilletConfig?.export?.exporter ?? policyOwner;
+    const exporters = getAdminEmployees(policy);
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.getRoute(policyID) : undefined;
+
+    const data: ExporterListItem[] =
+        policyOwner && isEmpty(exporters)
+            ? [
+                  {
+                      value: policyOwner,
+                      text: policyOwner,
+                      keyForList: policyOwner,
+                      isSelected: exporter === policyOwner,
+                  },
+              ]
+            : (exporters?.reduce<ExporterListItem[]>((options, exporterItem) => {
+                  if (!exporterItem.email) {
+                      return options;
+                  }
+
+                  // Don't show guides if the current user is not a guide themselves or an Expensify employee
+                  if (isExpensifyTeam(exporterItem.email) && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin)) {
+                      return options;
+                  }
+
+                  options.push({
+                      value: exporterItem.email,
+                      text: exporterItem.email,
+                      keyForList: exporterItem.email,
+                      isSelected: exporter === exporterItem.email,
+                  });
+                  return options;
+              }, []) ?? []);
+
+    const headerContent = (
+        <View style={[styles.pb2, styles.ph5]}>
+            <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.accounting.exportPreferredExporterNote')}</Text>
+            <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.accounting.exportPreferredExporterSubNote')}</Text>
+        </View>
+    );
+
+    const selectExporter = (item: ExporterListItem) => {
+        if (item.value !== exporter && policyID) {
+            // updateRilletExporter(policyID, item.value, exporter);
+        }
+        Navigation.goBack(backPath);
+    };
 
     return (
-        <ConnectionLayout
-            displayName="RilletImportPage"
-            headerTitle="workspace.accounting.import"
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+        <SelectionScreen
             policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            contentContainerStyle={styles.pb2}
-            titleStyle={styles.ph5}
+            displayName="RilletPreferredExporterPage"
+            title="workspace.accounting.preferredExporter"
+            data={data}
+            headerContent={headerContent}
+            onSelectRow={selectExporter}
+            shouldSingleExecuteRowSelect
+            initiallyFocusedOptionKey={exporter}
+            onBackButtonPress={() => Navigation.goBack(backPath)}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.RILLET}
-        >
-            <ToggleSettingOptionRow
-                title={translate('workspace.accounting.accounts')}
-                subtitle={translate('workspace.rillet.accountTypesDescription')}
-                switchAccessibilityLabel={translate('workspace.accounting.accounts')}
-                shouldPlaceSubtitleBelowSwitch
-                wrapperStyle={[styles.mv3, styles.mh5]}
-                isActive
-                onToggle={() => {}}
-                disabled
-            />
-            <ToggleSettingOptionRow
-                title={translate('workspace.rillet.enableNewAccountsTitle')}
-                subtitle={translate('workspace.rillet.enableNewAccountsDescription')}
-                switchAccessibilityLabel={translate('workspace.rillet.enableNewAccountsTitle')}
-                shouldPlaceSubtitleBelowSwitch
-                wrapperStyle={[styles.mv3, styles.mh5]}
-                isActive={rilletConfig?.enableNewCategories ?? false}
-                onToggle={() => policyID && updateRilletEnableNewCategories(policyID, !rilletConfig?.enableNewCategories, rilletConfig?.enableNewCategories)}
-                pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES], rilletConfig?.pendingFields)}
-                errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES)}
-                onCloseError={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES)}
-            />
-            <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
-            <View style={[styles.mv3, styles.mh5]}>
-                <Text>{translate('workspace.rillet.dimensionsImport')}</Text>
-            </View>
-            {rilletData?.fields.map((field) => (
-                <ToggleSettingOptionRow
-                    key={field.id}
-                    title={field.name}
-                    switchAccessibilityLabel={field.name}
-                    shouldPlaceSubtitleBelowSwitch
-                    wrapperStyle={[styles.mv3, styles.mh5]}
-                    isActive={rilletConfig?.coding.fieldMappings[field.id] === CONST.RILLET_MAPPING_VALUE.TAG}
-                    onToggle={() =>
-                        policyID &&
-                        updateRilletFieldMapping(
-                            policyID,
-                            field.id,
-                            rilletConfig?.coding.fieldMappings[field.id] === CONST.RILLET_MAPPING_VALUE.TAG ? CONST.RILLET_MAPPING_VALUE.NONE : CONST.RILLET_MAPPING_VALUE.TAG,
-                            rilletConfig?.coding.fieldMappings[field.id],
-                        )
-                    }
-                    pendingAction={settingsPendingAction([`${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`], rilletConfig?.pendingFields)}
-                    errors={getLatestErrorField(rilletConfig ?? {}, `${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`)}
-                    onCloseError={() => policyID && clearRilletErrorField(policyID, `${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`)}
-                />
-            ))}
-            {!!rilletData?.taxRates.length && (
-                <>
-                    <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
-                    <ToggleSettingOptionRow
-                        title={translate('workspace.taxes.taxRates')}
-                        switchAccessibilityLabel={translate('workspace.taxes.taxRates')}
-                        shouldPlaceSubtitleBelowSwitch
-                        wrapperStyle={[styles.mv3, styles.mh5]}
-                        isActive={rilletConfig?.coding.syncTaxRates ?? false}
-                        onToggle={() => policyID && updateRilletSyncTaxRates(policyID, !rilletConfig?.coding.syncTaxRates, rilletConfig?.coding.syncTaxRates)}
-                        pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.SYNC_TAX_RATES], rilletConfig?.pendingFields)}
-                        errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.SYNC_TAX_RATES)}
-                        onCloseError={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.SYNC_TAX_RATES)}
-                    />
-                </>
-            )}
-        </ConnectionLayout>
+            pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.EXPORTER], rilletConfig?.pendingFields)}
+            errors={getLatestErrorField(rilletConfig, CONST.RILLET_CONFIG.EXPORTER)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.EXPORTER)}
+        />
     );
 }
 
-export default withPolicyConnections(RilletImportPage);
+export default withPolicyConnections(RilletPreferredExporterPage);
