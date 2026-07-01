@@ -12673,7 +12673,9 @@ class Git {
         }
         try {
             console.log(`🔄 Fetching missing ref: ${ref}`);
-            await exec(`git fetch ${remote} ${ref} --no-tags --depth=1 --quiet`);
+            // Only shallow-fetch in CI; a local --depth=1 fetch would convert a full clone into a shallow one.
+            const depthArg = IS_CI ? ' --depth=1' : '';
+            await exec(`git fetch ${remote} ${ref} --no-tags${depthArg} --quiet`);
             // Verify the ref is now available
             if (!this.isValidRef(ref)) {
                 throw new Error(`Reference ${ref} is still not valid after fetching from remote ${remote}`);
@@ -12687,7 +12689,9 @@ class Git {
         const baseRefName = GITHUB_BASE_REF ?? 'main';
         // Fetch the main branch from the specified remote (or locally) to ensure it's available
         if (IS_CI || remote) {
-            await exec(`git fetch ${remote ?? 'origin'} ${baseRefName} --no-tags --depth=1`);
+            // Only shallow-fetch in CI; a local --depth=1 fetch would convert a full clone into a shallow one.
+            const depthArg = IS_CI ? ' --depth=1' : '';
+            await exec(`git fetch ${remote ?? 'origin'} ${baseRefName} --no-tags${depthArg}`);
         }
         // In CI, use a simpler approach - just use the remote main branch directly
         // This avoids issues with shallow clones and merge-base calculations
