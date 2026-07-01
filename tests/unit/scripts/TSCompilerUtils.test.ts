@@ -144,3 +144,103 @@ const translations = {
     expect(dotPath).toBe("common.save");
   });
 });
+
+describe("incremental plural key injection", () => {
+  const tsPrinter = ts.createPrinter({ removeComments: true });
+
+  it("preserves the arrow function wrapper when injecting at the collapsed parent path", () => {
+    const sourceFile = createSourceFile();
+    const templateNode = findTemplateInPluralOther(sourceFile);
+
+    expect(templateNode).toBeDefined();
+
+    const dotPath = TSCompilerUtils.buildDotNotationPath(
+      templateNode as ts.Node,
+    );
+    expect(dotPath).toBe("policyCopyChangeLog.codingRules");
+
+    const codingRulesProperty = findFirstNode(
+      sourceFile,
+      (node): node is ts.PropertyAssignment =>
+        ts.isPropertyAssignment(node) &&
+        ts.isIdentifier(node.name) &&
+        node.name.text === "codingRules",
+    );
+
+    expect(codingRulesProperty).toBeDefined();
+
+    const translatedInitializer = TSCompilerUtils.parseCodeStringToAST(
+      tsPrinter
+        .printNode(
+          ts.EmitHint.Expression,
+          codingRulesProperty.initializer,
+          sourceFile,
+        )
+        .replace("merchant rules", "reglas de comercio"),
+    );
+
+    const targetObject = ts.factory.createObjectLiteralExpression([
+      ts.factory.createPropertyAssignment(
+        "policyCopyChangeLog",
+        ts.factory.createObjectLiteralExpression([
+          ts.factory.createPropertyAssignment(
+            "codingRules",
+            ts.factory.createIdentifier("undefined as never"),
+          ),
+        ]),
+      ),
+    ]);
+
+    const injected = TSCompilerUtils.injectDeepObjectValue(
+      targetObject,
+      dotPath as string,
+      translatedInitializer,
+    );
+    const injectedText = tsPrinter.printNode(
+      ts.EmitHint.Unspecified,
+      injected,
+      sourceFile,
+    );
+
+    expect(injectedText).toMatch(/\(\s*\{\s*sourcePolicyName\s*\}/);
+    expect(injectedText).toMatch(/=>\s*\(\{/);
+    expect(injectedText).not.toMatch(/codingRules:\s*\{one:/);
+  });
+
+  it("flattens plural keys when leaf paths are injected separately", () => {
+    const sourceFile = createSourceFile();
+    const oneValue = TSCompilerUtils.parseCodeStringToAST(
+      "`copiou 1 regra de comerciante de ${sourcePolicyName}`",
+    );
+    const otherValue = TSCompilerUtils.parseCodeStringToAST(
+      "(count: number) => `copiou ${count} regras de comerciante de ${sourcePolicyName}`",
+    );
+
+    let targetObject = ts.factory.createObjectLiteralExpression([
+      ts.factory.createPropertyAssignment(
+        "policyCopyChangeLog",
+        ts.factory.createObjectLiteralExpression([]),
+      ),
+    ]);
+
+    targetObject = TSCompilerUtils.injectDeepObjectValue(
+      targetObject,
+      "policyCopyChangeLog.codingRules.one",
+      oneValue,
+    );
+    targetObject = TSCompilerUtils.injectDeepObjectValue(
+      targetObject,
+      "policyCopyChangeLog.codingRules.other",
+      otherValue,
+    );
+
+    const injectedText = tsPrinter.printNode(
+      ts.EmitHint.Unspecified,
+      targetObject,
+      sourceFile,
+    );
+
+    expect(injectedText).toMatch(/codingRules:\s*\{\s*one:/);
+    expect(injectedText).not.toMatch(/\(\s*\{\s*sourcePolicyName\s*\}/);
+  });
+});
