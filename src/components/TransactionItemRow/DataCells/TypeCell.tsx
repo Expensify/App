@@ -50,7 +50,7 @@ const getTypeIcon = (
 
 function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: TransactionDataCellProps) {
     const {translate} = useLocalize();
-    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: (cardList) => (transactionItem.cardID ? cardList?.[transactionItem.cardID] : undefined)});
+    const [card] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: (cardList) => (transactionItem.cardID ? cardList?.[transactionItem.cardID] : undefined)});
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Car',
