@@ -17,6 +17,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useRelevantSortedActions from '@hooks/useRelevantSortedActions';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
@@ -68,12 +69,14 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
     const report: OnyxEntry<ReportType> = useReportOrReportDraft(reportOrAccountID);
+    const reportIDs = useMemo(() => [report?.reportID], [report?.reportID]);
+    const sortedActions = useRelevantSortedActions(reportIDs);
     const privateIsArchived = useReportIsArchived(report?.reportID);
     const ancestors = useAncestors(report);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const displayReport = useMemo(
-        () => getReportDisplayOption(report, unknownUserDetails, personalDetails, privateIsArchived, policy, reportAttributesDerived),
-        [report, unknownUserDetails, personalDetails, privateIsArchived, reportAttributesDerived, policy],
+        () => getReportDisplayOption(report, unknownUserDetails, personalDetails, privateIsArchived, policy, sortedActions, reportAttributesDerived),
+        [report, unknownUserDetails, personalDetails, privateIsArchived, policy, sortedActions, reportAttributesDerived],
     );
 
     const shouldShowAttachment = !isTextShared;

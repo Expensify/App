@@ -1232,6 +1232,7 @@ function createOption({
                           reportAttributesDerived,
                           policyTags,
                           conciergeReportID,
+                          sortedActions,
                       },
                   );
 
@@ -1287,6 +1288,8 @@ function getReportOption(
     reportDraft: OnyxEntry<Report>,
     policyTags?: OnyxCollection<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
+    // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
+    sortedActions?: Record<string, ReportAction[]>,
 ): OptionData {
     const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDraft);
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
@@ -1306,6 +1309,7 @@ function getReportOption(
         policyTags: reportPolicyTags,
         visibleReportActionsData,
         conciergeReportID,
+        sortedActions,
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -1344,6 +1348,7 @@ function getReportDisplayOption(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     privateIsArchived: boolean | undefined,
     policy: OnyxEntry<Policy>,
+    sortedActions: Record<string, ReportAction[]> | undefined,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxEntry<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
@@ -1363,6 +1368,7 @@ function getReportDisplayOption(
         reportAttributesDerived,
         policyTags,
         visibleReportActionsData,
+        sortedActions,
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
