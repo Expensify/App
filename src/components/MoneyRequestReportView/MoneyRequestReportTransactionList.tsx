@@ -465,14 +465,17 @@ function MoneyRequestReportTransactionList({
         if (!shouldGroupTransactions) {
             return [];
         }
+        // Grouped layouts sort each section by the active column only, so a scanning expense stays in its normal
+        // position within its section (matching Classic). Only the ungrouped table pins scanning rows to the top.
+        const transactionsForGrouping = resolveTransactionCardFields([...transactions].sort(compareTransactionsByColumn), cardList, translate);
         if (currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG) {
-            return groupTransactionsByTag(resolvedTransactions, report, localeCompare);
+            return groupTransactionsByTag(transactionsForGrouping, report, localeCompare);
         }
-        return groupTransactionsByCategory(resolvedTransactions, report, localeCompare);
+        return groupTransactionsByCategory(transactionsForGrouping, report, localeCompare);
         // groupTransactionsByTag() and groupTransactionsByCategory() use the full report object to perform a null check.
         // We skip including the report as a dependency to avoid unnecessary re-renders as it changes often and we only need to recalculate when currency changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [resolvedTransactions, currentGroupBy, report?.reportID, report?.currency, localeCompare, shouldGroupTransactions]);
+    }, [transactions, compareTransactionsByColumn, cardList, translate, currentGroupBy, report?.reportID, report?.currency, localeCompare, shouldGroupTransactions]);
 
     const visualOrderTransactionIDs = useMemo(() => {
         if (!shouldGroupTransactions || groupedTransactions.length === 0) {
