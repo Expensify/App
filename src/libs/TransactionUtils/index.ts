@@ -1377,6 +1377,13 @@ function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolea
 }
 
 /**
+ * Determine whether a transaction is made with a travel invoicing card via the server-provided card name, which works even when the card is not in the viewer's card list.
+ */
+function isTravelCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    return transaction?.cardName === CONST.COMPANY_CARDS.CARD_NAME.TRAVEL;
+}
+
+/**
  * Determine whether a transaction is made with a centrally managed card (Expensify or Company Card).
  */
 function isManagedCardTransaction(transaction: OnyxEntry<Pick<Transaction, 'managedCard'>>): boolean {
@@ -3119,6 +3126,7 @@ export {
     hasPendingDistanceReceiptRegeneration,
     isExpensifyCardTransaction,
     isManagedCardTransaction,
+    isTravelCardTransaction,
     isDuplicate,
     isPending,
     hasOnlyPendingCardTransactions,
