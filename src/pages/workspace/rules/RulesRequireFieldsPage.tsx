@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -141,12 +141,13 @@ function RulesRequireFieldsPage({
                     addOfflineIndicatorBottomSafeAreaPadding
                 >
                     <Button
-                        success
-                        large
-                        text={translate('workspace.rules.requireFields.save')}
+                        variant="success"
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={handleSave}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_SAVE}
-                    />
+                    >
+                        <Button.Text>{translate('workspace.rules.requireFields.save')}</Button.Text>
+                    </Button>
                 </FixedFooter>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

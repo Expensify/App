@@ -2,7 +2,7 @@ import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import AvatarCropModal from '@components/AvatarCropModal/AvatarCropModal';
 import AvatarSelector from '@components/AvatarSelector';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -17,6 +17,7 @@ import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
 import {updateAvatar} from '@userActions/PersonalDetails';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {AvatarCaptureHandle} from './AvatarCapture/types';
 import AvatarPreview from './AvatarPreview';
@@ -181,13 +182,18 @@ function EditUserAvatarContent() {
                     />
                 )}
                 <Button
-                    large
-                    success
-                    text={translate('common.save')}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                    variant="success"
                     isDisabled={!isDirty}
                     onPress={onPress}
-                    pressOnEnter
-                />
+                >
+                    <Button.KeyboardShortcut
+                        pressOnEnter
+                        onPress={onPress}
+                        isDisabled={!isDirty}
+                    />
+                    <Button.Text>{translate('common.save')}</Button.Text>
+                </Button>
             </FixedFooter>
 
             <AvatarCropModal

@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FixedFooter from '@components/FixedFooter';
 import Icon from '@components/Icon';
@@ -29,6 +29,8 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
     const policyID = policy?.id ?? '-1';
     const config = policy?.connections?.intacct?.config;
     const userDimensions = policy?.connections?.intacct?.config?.mappings?.dimensions ?? [];
+
+    const addUserDefinedDimension = () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADD_USER_DIMENSION.getRoute(policyID));
 
     return (
         <ConnectionLayout
@@ -113,12 +115,16 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                 addBottomSafeAreaPadding
             >
                 <Button
-                    success
-                    text={translate('workspace.intacct.addUserDefinedDimension')}
-                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADD_USER_DIMENSION.getRoute(policyID))}
-                    pressOnEnter
-                    large
-                />
+                    variant="success"
+                    onPress={addUserDefinedDimension}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                >
+                    <Button.KeyboardShortcut
+                        pressOnEnter
+                        onPress={addUserDefinedDimension}
+                    />
+                    <Button.Text>{translate('workspace.intacct.addUserDefinedDimension')}</Button.Text>
+                </Button>
             </FixedFooter>
         </ConnectionLayout>
     );

@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ConfirmModal from '@components/ConfirmModal';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -118,16 +118,25 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
     };
 
     const itemRightSideComponent = (item: ListItem) => {
+        const onUnsharePress = () => setUnshareUser({login: item?.login, text: item?.text});
+        const isUnshareButtonLoading = isLoading && unsharedBankAccountData?.email === item?.login;
+
         return (
             <Button
-                isLoading={isLoading && unsharedBankAccountData?.email === item?.login}
-                small
+                isLoading={isUnshareButtonLoading}
+                size={CONST.BUTTON_SIZE.SMALL}
                 isDisabled={isLoading}
-                danger
-                text={translate('common.unshare')}
-                onPress={() => setUnshareUser({login: item?.login, text: item?.text})}
-                pressOnEnter
-            />
+                variant="danger"
+                onPress={onUnsharePress}
+            >
+                <Button.KeyboardShortcut
+                    pressOnEnter
+                    onPress={onUnsharePress}
+                    isDisabled={isLoading}
+                    isLoading={isUnshareButtonLoading}
+                />
+                <Button.Text>{translate('common.unshare')}</Button.Text>
+            </Button>
         );
     };
 

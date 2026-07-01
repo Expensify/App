@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -81,6 +81,10 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
         hasResultOfFetchingSetupLink,
     };
 
+    const navigateToFirstSync = () => {
+        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRIGGER_FIRST_SYNC.getRoute(policyID));
+    };
+
     const children = (
         <>
             {shouldShowError && (
@@ -119,12 +123,16 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                         addBottomSafeAreaPadding
                     >
                         <Button
-                            success
-                            text={translate('common.done')}
-                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRIGGER_FIRST_SYNC.getRoute(policyID))}
-                            pressOnEnter
-                            large
-                        />
+                            variant="success"
+                            onPress={navigateToFirstSync}
+                            size={CONST.BUTTON_SIZE.LARGE}
+                        >
+                            <Button.KeyboardShortcut
+                                pressOnEnter
+                                onPress={navigateToFirstSync}
+                            />
+                            <Button.Text>{translate('common.done')}</Button.Text>
+                        </Button>
                     </FixedFooter>
                 </View>
             )}

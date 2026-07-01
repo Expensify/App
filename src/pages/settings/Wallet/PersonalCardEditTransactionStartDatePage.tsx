@@ -4,7 +4,7 @@ import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DatePicker from '@components/DatePicker';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -116,12 +116,16 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
                     addBottomSafeAreaPadding
                     footerContent={
                         <Button
-                            success
-                            large
-                            pressOnEnter
-                            text={translate('common.save')}
+                            variant="success"
+                            size={CONST.BUTTON_SIZE.LARGE}
                             onPress={submit}
-                        />
+                        >
+                            <Button.KeyboardShortcut
+                                pressOnEnter
+                                onPress={submit}
+                            />
+                            <Button.Text>{translate('common.save')}</Button.Text>
+                        </Button>
                     }
                     listFooterContent={
                         dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM ? (

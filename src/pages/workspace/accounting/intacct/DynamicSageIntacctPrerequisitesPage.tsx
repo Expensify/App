@@ -2,7 +2,7 @@ import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
@@ -34,6 +34,8 @@ function DynamicSageIntacctPrerequisitesPage({route}: DynamicSageIntacctPrerequi
     const popoverAnchor = useRef<View | RNText | null>(null);
     const policyID: string = route.params.policyID;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SAGE_INTACCT_PREREQUISITES.path);
+
+    const navigateToEnterCredentials = () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.getRoute(policyID));
 
     const menuItems = useMemo(
         () => [
@@ -107,12 +109,16 @@ function DynamicSageIntacctPrerequisitesPage({route}: DynamicSageIntacctPrerequi
                 addBottomSafeAreaPadding
             >
                 <Button
-                    success
-                    text={translate('common.next')}
-                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.getRoute(policyID))}
-                    pressOnEnter
-                    large
-                />
+                    variant="success"
+                    onPress={navigateToEnterCredentials}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                >
+                    <Button.KeyboardShortcut
+                        pressOnEnter
+                        onPress={navigateToEnterCredentials}
+                    />
+                    <Button.Text>{translate('common.next')}</Button.Text>
+                </Button>
             </FixedFooter>
         </ScreenWrapper>
     );

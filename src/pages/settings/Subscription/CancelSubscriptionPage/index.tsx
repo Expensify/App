@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FeedbackSurvey from '@components/FeedbackSurvey';
 import FixedFooter from '@components/FixedFooter';
@@ -95,11 +95,12 @@ function CancelSubscriptionPage() {
                                 </View>
                                 <FixedFooter style={styles.ph0}>
                                     <Button
-                                        success
-                                        text={translate('common.done')}
+                                        variant="success"
                                         onPress={() => Navigation.goBack()}
-                                        large
-                                    />
+                                        size={CONST.BUTTON_SIZE.LARGE}
+                                    >
+                                        <Button.Text>{translate('common.done')}</Button.Text>
+                                    </Button>
                                 </FixedFooter>
                             </View>
                         )}
@@ -114,11 +115,12 @@ function CancelSubscriptionPage() {
                                 </View>
                                 <FixedFooter style={styles.ph0}>
                                     <Button
-                                        success
-                                        text={translate('common.done')}
+                                        variant="success"
                                         onPress={() => Navigation.goBack()}
-                                        large
-                                    />
+                                        size={CONST.BUTTON_SIZE.LARGE}
+                                    >
+                                        <Button.Text>{translate('common.done')}</Button.Text>
+                                    </Button>
                                 </FixedFooter>
                             </View>
                         )}
