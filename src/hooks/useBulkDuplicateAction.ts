@@ -55,7 +55,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
     }
 
     const handleDuplicate = () => {
-        const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
+        const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id, allReports);
 
         bulkDuplicateExpenses({
             transactionIDs: selectedTransactionsKeys,
