@@ -21,13 +21,13 @@ Anyone can use search operators when filtering data in features like expenses, r
 
 ## Where to enter search operators in Expensify
 
-Enter search operators in the search bar that opens from the **Search** icon (🔍):
+Enter search operators in the search bar that opens from the **Search** icon.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Spend**.
-2. Select the **Search** icon (🔍) in the top-right corner.
+2. Select the **Search** icon in the top-right corner.
 3. Type your query using search operators. Start typing after `:` to see autocomplete suggestions.
 
-The search bar on the **Spend** page filters your current results by keyword only. Anything you type there is matched as a keyword, even if it looks like an operator. To filter with operators, open the search bar from the **Search** icon (🔍).
+The search bar on the **Spend** page filters your current results by keyword only. Anything you type there is matched as a keyword, even if it looks like an operator. To filter with operators, open the search bar from the **Search** icon.
 
 ---
 
@@ -225,8 +225,3 @@ If the search operator isn’t recognized, the system will ignore it and return 
 ## Do I need to use quotes for everything?
 
 Only use quotes for values that include spaces or exact phrases, like `description:"client lunch"` or `in:"#general"`.
-
-## Why don’t my search operators work in the Spend page search bar?
-
-The search bar on the **Spend** page filters your current results by keyword only, so anything you type there—including text formatted like an operator—is matched as a keyword. To run an operator-based search, open the search bar from the **Search** icon (🔍).
-
