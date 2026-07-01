@@ -128,7 +128,7 @@ function DetailsStep({policyID, cardFeeds, workspaceAccountID}: DetailsStepProps
                             role={CONST.ROLE.PRESENTATION}
                             containerStyles={[styles.mb6]}
                             ref={inputCallbackRef}
-                            defaultValue={addNewCard?.data.feedDetails?.processorID}
+                            defaultValue={addNewCard?.data?.feedDetails?.processorID}
                         />
                         <InputWrapper
                             InputComponent={TextInput}
@@ -136,7 +136,7 @@ function DetailsStep({policyID, cardFeeds, workspaceAccountID}: DetailsStepProps
                             label={translate('workspace.companyCards.addNewCard.feedDetails.vcf.bankLabel')}
                             role={CONST.ROLE.PRESENTATION}
                             containerStyles={[styles.mb6]}
-                            defaultValue={addNewCard?.data.feedDetails?.bankID}
+                            defaultValue={addNewCard?.data?.feedDetails?.bankID}
                         />
                         <InputWrapper
                             InputComponent={TextInput}
@@ -144,7 +144,7 @@ function DetailsStep({policyID, cardFeeds, workspaceAccountID}: DetailsStepProps
                             label={translate('workspace.companyCards.addNewCard.feedDetails.vcf.companyLabel')}
                             role={CONST.ROLE.PRESENTATION}
                             containerStyles={[styles.mb6]}
-                            defaultValue={addNewCard?.data.feedDetails?.companyID}
+                            defaultValue={addNewCard?.data?.feedDetails?.companyID}
                         />
                     </>
                 );
@@ -157,7 +157,7 @@ function DetailsStep({policyID, cardFeeds, workspaceAccountID}: DetailsStepProps
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mb6]}
                         ref={inputCallbackRef}
-                        defaultValue={addNewCard?.data.feedDetails?.distributionID}
+                        defaultValue={addNewCard?.data?.feedDetails?.distributionID}
                     />
                 );
             case CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX:
@@ -169,7 +169,7 @@ function DetailsStep({policyID, cardFeeds, workspaceAccountID}: DetailsStepProps
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mb6]}
                         ref={inputCallbackRef}
-                        defaultValue={addNewCard?.data.feedDetails?.deliveryFileName}
+                        defaultValue={addNewCard?.data?.feedDetails?.deliveryFileName}
                     />
                 );
             default:

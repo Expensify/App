@@ -32,6 +32,7 @@ import {
     getCardHintText,
     getCardsByCardholderName,
     getCardSettings,
+    getCompanyCardCustomName,
     getCompanyCardDescription,
     getCompanyCardFeed,
     getCompanyFeeds,
@@ -2376,7 +2377,7 @@ describe('CardUtils', () => {
                 }),
             };
             const description = getCardDescription(card, translateLocal);
-            expect(description).toBe('Travel invoicing');
+            expect(description).toBe('Consolidated Travel Billing');
         });
 
         it('should return the correct card description for personal card', () => {
@@ -2415,7 +2416,7 @@ describe('CardUtils', () => {
                 }),
             };
             const description = getCardDescriptionForSearchTable(card, translateLocal, 'John Doe');
-            expect(description).toBe('Travel invoicing');
+            expect(description).toBe('Consolidated Travel Billing');
         });
 
         it('should return normal description for non-travel Expensify cards', () => {
@@ -4635,5 +4636,26 @@ describe('CardArtworkColors drift detection', () => {
         const actual = extractBackgroundFill(svg);
         expect(actual).not.toBeNull();
         expect(CARD_FEED_COLORS[key].background).toBe(actual);
+    });
+});
+
+describe('getCompanyCardCustomName', () => {
+    const sharedCardCustomNames = {'1234': 'Shared name'};
+    const customCardNames = {'1234': 'Personal name', '5678': 'Other personal name'};
+
+    it('returns undefined when cardID is not provided', () => {
+        expect(getCompanyCardCustomName(undefined, sharedCardCustomNames, customCardNames)).toBeUndefined();
+    });
+
+    it('prefers the shared NVP name over the personal NVP name', () => {
+        expect(getCompanyCardCustomName('1234', sharedCardCustomNames, customCardNames)).toBe('Shared name');
+    });
+
+    it('falls back to the personal NVP name when the shared NVP has no entry', () => {
+        expect(getCompanyCardCustomName('5678', sharedCardCustomNames, customCardNames)).toBe('Other personal name');
+    });
+
+    it('returns undefined when neither NVP has a name for the card', () => {
+        expect(getCompanyCardCustomName('9999', sharedCardCustomNames, customCardNames)).toBeUndefined();
     });
 });

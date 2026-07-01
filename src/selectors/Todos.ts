@@ -1,70 +1,5 @@
-import {shallowEqual} from 'fast-equals';
 import type {OnyxEntry} from 'react-native-onyx';
-import CONST from '@src/CONST';
-import type {FlaggedExpensesDerivedValue, TodosDerivedValue} from '@src/types/onyx';
-
-const EMPTY_TODOS_SINGLE_REPORT_IDS = Object.freeze({
-    [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: undefined,
-    [CONST.SEARCH.SEARCH_KEYS.APPROVE]: undefined,
-    [CONST.SEARCH.SEARCH_KEYS.PAY]: undefined,
-    [CONST.SEARCH.SEARCH_KEYS.EXPORT]: undefined,
-});
-
-const todosReportCountsSelector = (todos: OnyxEntry<TodosDerivedValue>) => {
-    if (!todos) {
-        return undefined;
-    }
-
-    return {
-        [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: todos.reportsToSubmit.length,
-        [CONST.SEARCH.SEARCH_KEYS.APPROVE]: todos.reportsToApprove.length,
-        [CONST.SEARCH.SEARCH_KEYS.PAY]: todos.reportsToPay.length,
-        [CONST.SEARCH.SEARCH_KEYS.EXPORT]: todos.reportsToExport.length,
-    };
-};
-
-type SingleReportIDs = {
-    [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: string | undefined;
-    [CONST.SEARCH.SEARCH_KEYS.APPROVE]: string | undefined;
-    [CONST.SEARCH.SEARCH_KEYS.PAY]: string | undefined;
-    [CONST.SEARCH.SEARCH_KEYS.EXPORT]: string | undefined;
-};
-
-// Manual memoization: singleReportIDs is used as a whole object in useMemo dependency arrays
-// in ForYouSection, so referential stability is needed to avoid cascading re-computation.
-// todosReportCountsSelector doesn't need this because its values are immediately destructured
-// into primitive variables (submitCount, approveCount, etc.).
-let previousSingleReportIDs: SingleReportIDs = EMPTY_TODOS_SINGLE_REPORT_IDS as SingleReportIDs;
-
-const todosSingleReportIDsSelector = (todos: OnyxEntry<TodosDerivedValue>) => {
-    if (!todos) {
-        return EMPTY_TODOS_SINGLE_REPORT_IDS;
-    }
-
-    const submitReportID = todos.reportsToSubmit.length === 1 ? todos.reportsToSubmit.at(0)?.reportID : undefined;
-    const approveReportID = todos.reportsToApprove.length === 1 ? todos.reportsToApprove.at(0)?.reportID : undefined;
-    const payReportID = todos.reportsToPay.length === 1 ? todos.reportsToPay.at(0)?.reportID : undefined;
-    const exportReportID = todos.reportsToExport.length === 1 ? todos.reportsToExport.at(0)?.reportID : undefined;
-
-    if (!submitReportID && !approveReportID && !payReportID && !exportReportID) {
-        previousSingleReportIDs = EMPTY_TODOS_SINGLE_REPORT_IDS;
-        return EMPTY_TODOS_SINGLE_REPORT_IDS;
-    }
-
-    const newValue = {
-        [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: submitReportID,
-        [CONST.SEARCH.SEARCH_KEYS.APPROVE]: approveReportID,
-        [CONST.SEARCH.SEARCH_KEYS.PAY]: payReportID,
-        [CONST.SEARCH.SEARCH_KEYS.EXPORT]: exportReportID,
-    };
-
-    if (shallowEqual(previousSingleReportIDs, newValue)) {
-        return previousSingleReportIDs;
-    }
-
-    previousSingleReportIDs = newValue;
-    return newValue;
-};
+import type {FlaggedExpensesDerivedValue} from '@src/types/onyx';
 
 type FlaggedExpensesReview = {
     /** Total number of flagged expenses */
@@ -84,9 +19,8 @@ const EMPTY_FLAGGED_EXPENSES_REVIEW: FlaggedExpensesReview = Object.freeze({
     transactionIDs: [],
 }) as FlaggedExpensesReview;
 
-// Manual memoization mirrors `todosSingleReportIDsSelector`: ForYouSection's useMemo dependency
-// list consumes the returned object as a whole, so we need referential stability across
-// equivalent derived snapshots to avoid cascading re-renders on every Onyx churn.
+// Manual memoization: ForYouSection's useMemo dependency list consumes the returned object as a whole,
+// so we need referential stability across equivalent derived snapshots to avoid cascading re-renders on every Onyx churn.
 let previousFlaggedExpensesReview: FlaggedExpensesReview = EMPTY_FLAGGED_EXPENSES_REVIEW;
 
 const flaggedExpensesReviewSelector = (flaggedExpensesValue: OnyxEntry<FlaggedExpensesDerivedValue>): FlaggedExpensesReview => {
@@ -123,5 +57,4 @@ const flaggedExpensesReviewSelector = (flaggedExpensesValue: OnyxEntry<FlaggedEx
     return newValue;
 };
 
-export default todosReportCountsSelector;
-export {EMPTY_FLAGGED_EXPENSES_REVIEW, EMPTY_TODOS_SINGLE_REPORT_IDS, flaggedExpensesReviewSelector, todosSingleReportIDsSelector};
+export {EMPTY_FLAGGED_EXPENSES_REVIEW, flaggedExpensesReviewSelector};
