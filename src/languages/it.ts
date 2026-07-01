@@ -982,6 +982,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Portafoglio',
             },
+            addVirtualCardPersonalDetails: {
+                title: 'Aggiungi i tuoi dati personali',
+                subtitle: 'Aggiungi i tuoi dati per visualizzare e iniziare a usare la tua Carta Expensify.',
+                cta: 'Aggiungi dettagli',
+            },
             enterSignerInfo: {title: 'Informazioni del firmatario necessarie', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Conto bancario ${bankAccountLastFour}`},
         },
         announcements: 'Annunci',
@@ -2510,6 +2515,10 @@ const translations: TranslationDeepObject<typeof en> = {
         cardInactive: 'Inattivo',
         assignedCards: 'Carte',
         assignedCardsDescription: 'Le transazioni delle carte assegnate si sincronizzano automaticamente.',
+        addVirtualCardPersonalDetails: {
+            subtitle: 'Inserisci i tuoi dati personali per iniziare a usare la tua carta',
+            cta: 'Aggiungi dettagli',
+        },
         expensifyCard: 'Carta Expensify',
         walletActivationPending: 'Stiamo verificando le tue informazioni. Riprova tra qualche minuto!',
         walletActivationFailed: 'Sfortunatamente, il tuo portafoglio non può essere abilitato in questo momento. Chatta con Concierge per ulteriore assistenza.',
@@ -5723,6 +5732,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             changeCardMonthlyLimitTypeWarning: (limit: number | string) =>
                 `Se cambi il tipo di limite di questa carta a Mensile, le nuove transazioni verranno rifiutate perché il limite mensile di ${limit} è già stato raggiunto.`,
             addShippingDetails: 'Aggiungi dettagli di spedizione',
+            addPersonalDetails: 'Aggiungi dati personali',
             issuedCard: (assignee: string) => `ha emesso una Carta Expensify per ${assignee}! La carta arriverà entro 2-3 giorni lavorativi.`,
             issuedCardNoShippingDetails: (assignee: string) => `ha assegnato a ${assignee} una Carta Expensify! La carta sarà spedita una volta confermati i dettagli di spedizione.`,
             issuedCardVirtual: (assignee: string, link: string) => `ha emesso una Carta Expensify virtuale per ${assignee}! Puoi usare subito il ${link}.`,

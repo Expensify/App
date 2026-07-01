@@ -980,6 +980,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Portemonnee',
             },
+            addVirtualCardPersonalDetails: {
+                title: 'Voeg je persoonlijke gegevens toe',
+                subtitle: 'Voeg je gegevens toe om je Expensify Kaart te bekijken en te gaan gebruiken.',
+                cta: 'Details toevoegen',
+            },
             enterSignerInfo: {title: 'Ondertekenaargegevens vereist', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bankrekening ${bankAccountLastFour}`},
         },
         announcements: 'Aankondigingen',
@@ -2507,6 +2512,10 @@ const translations: TranslationDeepObject<typeof en> = {
         cardInactive: 'Inactief',
         assignedCards: 'Kaarten',
         assignedCardsDescription: 'Transacties van toegewezen kaarten worden automatisch gesynchroniseerd.',
+        addVirtualCardPersonalDetails: {
+            subtitle: 'Voer uw persoonlijke gegevens in om uw kaart te gebruiken',
+            cta: 'Details toevoegen',
+        },
         expensifyCard: 'Expensify Kaart',
         walletActivationPending: 'We controleren je gegevens. Kom over een paar minuten terug!',
         walletActivationFailed: 'Helaas kan je wallet op dit moment niet worden ingeschakeld. Chat met Concierge voor verdere hulp.',
@@ -5712,6 +5721,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             changeCardMonthlyLimitTypeWarning: (limit: number | string) =>
                 `Als je het limiettype van deze kaart wijzigt naar Maandelijks, worden nieuwe transacties geweigerd omdat de maandelijkse limiet van ${limit} al is bereikt.`,
             addShippingDetails: 'Verzendgegevens toevoegen',
+            addPersonalDetails: 'Persoonlijke gegevens toevoegen',
             issuedCard: (assignee: string) => `heeft ${assignee} een Expensify Kaart uitgegeven! De kaart wordt binnen 2-3 werkdagen bezorgd.`,
             issuedCardNoShippingDetails: (assignee: string) => `heeft ${assignee} een Expensify Kaart uitgegeven! De kaart wordt verstuurd zodra de verzendgegevens zijn bevestigd.`,
             issuedCardVirtual: (assignee: string, link: string) => `heeft ${assignee} een virtuele Expensify Kaart uitgegeven! De ${link} kan meteen worden gebruikt.`,
