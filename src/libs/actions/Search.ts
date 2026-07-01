@@ -814,12 +814,6 @@ function clearSaveAsNewViewQuery() {
     Onyx.set(ONYXKEYS.SEARCH_SAVE_AS_NEW_VIEW_QUERY, null);
 }
 
-/** Abandons any in-progress edits and re-executes the saved view's original query. */
-function cancelSavedViewEdits(editingSavedView: EditingSavedSearch) {
-    Onyx.set(ONYXKEYS.SEARCH_EDITING_SAVED_VIEW, null);
-    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: editingSavedView.query, name: editingSavedView.name}));
-}
-
 /** Saves the edited filters back onto the view, passing the old hash as previousHash so the backend updates it in place. */
 function saveSavedViewEdits({queryJSON, editingSavedView}: {queryJSON: Readonly<SearchQueryJSON>; editingSavedView: EditingSavedSearch}) {
     // Re-auto-name auto-named views (name === query) to the edited query; keep custom names.
@@ -1874,7 +1868,6 @@ export {
     exitSavedViewEditMode,
     setSaveAsNewViewQuery,
     clearSaveAsNewViewQuery,
-    cancelSavedViewEdits,
     saveSavedViewEdits,
 };
 export type {TransactionPreviewData};
