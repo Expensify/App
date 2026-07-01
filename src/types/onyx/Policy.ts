@@ -2865,4 +2865,5 @@ export type {
     ZenefitsConnectionConfig,
     Vendor,
     AgentRule,
+    RilletExportDate,
 };
