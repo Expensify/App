@@ -1,11 +1,13 @@
 import React from 'react';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import {updateDraftFlagForReviewRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import {getFlagForReviewFormFromCategory} from '@libs/FlagForReviewRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
@@ -21,6 +23,8 @@ type FlagForReviewRuleCategoryPageBaseProps = {
 function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForReviewRuleCategoryPageBaseProps) {
     const isEditing = !!categoryName;
     const policy = usePolicy(policyID);
+    const {getCurrencyDecimals} = useCurrencyListActions();
+    const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
@@ -41,7 +45,9 @@ function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForRevi
     const backToRoute = isEditing ? ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName) : ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID);
 
     const onSave = (value?: string) => {
-        updateDraftFlagForReviewRule({[INPUT_IDS.CATEGORY]: value});
+        const selectedCategory = value ? policyCategories?.[value] : undefined;
+
+        updateDraftFlagForReviewRule(selectedCategory ? getFlagForReviewFormFromCategory(selectedCategory, getCurrencyDecimals, policyCurrency) : {[INPUT_IDS.CATEGORY]: value});
     };
 
     return (

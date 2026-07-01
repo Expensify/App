@@ -41,7 +41,7 @@ import RulesExpenseDefaultsTab from './tabs/RulesExpenseDefaultsTab';
 import RulesFlagForReviewTab from './tabs/RulesFlagForReviewTab';
 import RulesGeneralTab from './tabs/RulesGeneralTab';
 import RulesRequireFieldsTab from './tabs/RulesRequireFieldsTab';
-import type RulesTableTabActions from './tabs/types';
+import useRulesTableBulkActions from './tabs/useRulesTableBulkActions';
 
 const RULES_TAB = CONST.TAB.RULES;
 
@@ -89,7 +89,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const lastSelectedTabStr = lastSelectedTab as string | undefined;
     const activeTab: RulesTab = lastSelectedTabStr && isRulesTab(lastSelectedTabStr) ? lastSelectedTabStr : RULES_TAB.GENERAL;
     const [selectedRuleKeysByTab, setSelectedRuleKeysByTab] = useState<Partial<Record<Exclude<RulesTab, typeof RULES_TAB.GENERAL>, string[]>>>({});
-    const [tableTabActions, setTableTabActions] = useState<RulesTableTabActions | null>(null);
 
     const {showConfirmModal} = useConfirmModal();
 
@@ -135,12 +134,16 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const handleExpenseDefaultSelectionChange = useCallback((selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.EXPENSE_DEFAULTS, selectedRowKeys), [updateTabSelectionKeys]);
     const handleRequireFieldsRuleSelectionChange = useCallback((selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.REQUIRE_FIELDS, selectedRowKeys), [updateTabSelectionKeys]);
     const handleFlagForReviewRuleSelectionChange = useCallback((selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.FLAG_FOR_REVIEW, selectedRowKeys), [updateTabSelectionKeys]);
-    const handleTableTabActionsChange = useCallback((actions: RulesTableTabActions | null) => {
-        setTableTabActions(actions);
-    }, []);
+
+    const {selectedRuleKeys, getFilteredSelectedKeys, deleteSelectedForActiveTab} = useRulesTableBulkActions({
+        policyID,
+        activeTab,
+        selectedRuleKeysByTab,
+        canWriteRules,
+        clearTableSelection,
+    });
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
-    const selectedRuleKeys = tableTabActions?.filteredSelectedKeys ?? [];
     const hasSelectedRules = selectedRuleKeys.length > 0;
     const isTableTab =
         activeTab === RULES_TAB.CARD_RESTRICTIONS || activeTab === RULES_TAB.EXPENSE_DEFAULTS || activeTab === RULES_TAB.REQUIRE_FIELDS || activeTab === RULES_TAB.FLAG_FOR_REVIEW;
@@ -175,7 +178,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                         return;
                     }
 
-                    tableTabActions?.deleteSelected();
+                    deleteSelectedForActiveTab();
                 },
             },
         ];
@@ -250,13 +253,9 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     };
 
     const headerButtons = getHeaderContent();
-    const selectedKeysForActiveTab = isTableSelectionTab(activeTab) ? (selectedRuleKeysByTab[activeTab] ?? []) : [];
     const sharedTableTabProps = {
         policyID,
         canWriteRules,
-        selectedKeys: selectedKeysForActiveTab,
-        onActionsChange: handleTableTabActionsChange,
-        onClearSelection: clearTableSelection,
     };
 
     return (
@@ -315,18 +314,21 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                 {activeTab === RULES_TAB.CARD_RESTRICTIONS && (
                                     <RulesCardRestrictionsTab
                                         {...sharedTableTabProps}
+                                        selectedKeys={getFilteredSelectedKeys(RULES_TAB.CARD_RESTRICTIONS)}
                                         onSelectionChange={handleSpendRuleSelectionChange}
                                     />
                                 )}
                                 {activeTab === RULES_TAB.EXPENSE_DEFAULTS && (
                                     <RulesExpenseDefaultsTab
                                         {...sharedTableTabProps}
+                                        selectedKeys={getFilteredSelectedKeys(RULES_TAB.EXPENSE_DEFAULTS)}
                                         onSelectionChange={handleExpenseDefaultSelectionChange}
                                     />
                                 )}
                                 {activeTab === RULES_TAB.REQUIRE_FIELDS && (
                                     <RulesRequireFieldsTab
                                         {...sharedTableTabProps}
+                                        selectedKeys={getFilteredSelectedKeys(RULES_TAB.REQUIRE_FIELDS)}
                                         onSelectionChange={handleRequireFieldsRuleSelectionChange}
                                         showReadOnlyModal={showReadOnlyModal}
                                     />
@@ -334,6 +336,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                 {activeTab === RULES_TAB.FLAG_FOR_REVIEW && (
                                     <RulesFlagForReviewTab
                                         {...sharedTableTabProps}
+                                        selectedKeys={getFilteredSelectedKeys(RULES_TAB.FLAG_FOR_REVIEW)}
                                         onSelectionChange={handleFlagForReviewRuleSelectionChange}
                                         showReadOnlyModal={showReadOnlyModal}
                                     />

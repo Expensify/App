@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React from 'react';
 import WorkspaceRequireFieldsTable from '@components/Tables/WorkspaceRequireFieldsTable';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -8,25 +8,21 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import Navigation from '@libs/Navigation/Navigation';
-import {deleteRequireFieldsRule, getRequireFieldsTableData} from '@libs/RequireFieldsRulesUtils';
+import {getRequireFieldsTableData} from '@libs/RequireFieldsRulesUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import RulesTabEmptyState from './RulesTabEmptyState';
-import type RulesTableTabActions from './types';
 
 type RulesRequireFieldsTabProps = {
     policyID: string;
     canWriteRules: boolean;
     selectedKeys: string[];
     onSelectionChange: (selectedRowKeys: string[]) => void;
-    onActionsChange: (actions: RulesTableTabActions | null) => void;
-    onClearSelection: () => void;
     showReadOnlyModal: () => void;
 };
 
-function RulesRequireFieldsTab({policyID, canWriteRules, selectedKeys, onSelectionChange, onActionsChange, onClearSelection, showReadOnlyModal}: RulesRequireFieldsTabProps) {
+function RulesRequireFieldsTab({policyID, canWriteRules, selectedKeys, onSelectionChange, showReadOnlyModal}: RulesRequireFieldsTabProps) {
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -37,14 +33,6 @@ function RulesRequireFieldsTab({policyID, canWriteRules, selectedKeys, onSelecti
     const [policyCategoriesOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const arePolicyCategoriesLoading = !!policy?.areCategoriesEnabled && policyCategoriesOnyx === undefined;
 
-    useEffect(() => {
-        if (!policy?.areCategoriesEnabled || policyCategoriesOnyx !== undefined) {
-            return;
-        }
-
-        openPolicyCategoriesPage(policyID);
-    }, [policy?.areCategoriesEnabled, policyCategoriesOnyx, policyID]);
-
     const requireFieldsTableData = getRequireFieldsTableData({
         policy,
         policyCategories: arePolicyCategoriesLoading ? undefined : policyData.categories,
@@ -54,21 +42,6 @@ function RulesRequireFieldsTab({policyID, canWriteRules, selectedKeys, onSelecti
         isOffline,
         onNavigate: Navigation.navigate,
     });
-    const validKeys = new Set(requireFieldsTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
-    const filteredSelectedKeys = canWriteRules ? selectedKeys.filter((key) => validKeys.has(key)) : [];
-
-    const deleteSelected = useCallback(() => {
-        for (const ruleKey of filteredSelectedKeys) {
-            deleteRequireFieldsRule(policyData, ruleKey);
-        }
-        onClearSelection();
-    }, [filteredSelectedKeys, onClearSelection, policyData]);
-
-    useEffect(() => {
-        onActionsChange({filteredSelectedKeys, deleteSelected});
-
-        return () => onActionsChange(null);
-    }, [deleteSelected, filteredSelectedKeys, onActionsChange]);
 
     const handleNewRequireFieldsRule = () => {
         if (!canWriteRules) {
@@ -94,7 +67,7 @@ function RulesRequireFieldsTab({policyID, canWriteRules, selectedKeys, onSelecti
         <WorkspaceRequireFieldsTable
             rulesData={requireFieldsTableData}
             selectionEnabled={canWriteRules}
-            selectedKeys={filteredSelectedKeys}
+            selectedKeys={selectedKeys}
             onRowSelectionChange={onSelectionChange}
             emptyStateContent={arePolicyCategoriesLoading ? undefined : requireFieldsEmptyState}
         />

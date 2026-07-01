@@ -421,7 +421,7 @@ function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: st
     const isRemoving = !areCommentsRequired;
     const optimisticCategoryData = isRemoving
         ? {
-              pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+              pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
               pendingFields: {
                   areCommentsRequired: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
               },
@@ -557,7 +557,7 @@ function removePolicyCategoryReceiptsRequired(policyData: PolicyData, categoryNa
     const originalMaxAmountNoReceipt = policyData.categories[categoryName]?.maxAmountNoReceipt;
     const policyCategoriesOptimisticData = {
         [categoryName]: {
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             pendingFields: {
                 maxAmountNoReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             },
@@ -686,7 +686,7 @@ function removePolicyCategoryItemizedReceiptsRequired(policyData: PolicyData, ca
     const originalMaxAmountNoItemizedReceipt = policyData.categories[categoryName]?.maxAmountNoItemizedReceipt;
     const policyCategoriesOptimisticData = {
         [categoryName]: {
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             pendingFields: {
                 maxAmountNoItemizedReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             },
@@ -1601,7 +1601,7 @@ function setPolicyCategoryMaxAmount(
     const isRemoving = maxExpenseAmount === '';
     const optimisticCategoryData = isRemoving
         ? {
-              pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+              pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
               pendingFields: {
                   maxExpenseAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                   expenseLimitType: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -1813,7 +1813,7 @@ function setPolicyCategoryAttendeesRequired(policyID: string, categoryName: stri
     const isRemoving = !areAttendeesRequired;
     const optimisticCategoryData = isRemoving
         ? {
-              pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+              pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
               pendingFields: {
                   areAttendeesRequired: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
               },
