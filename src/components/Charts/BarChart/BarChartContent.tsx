@@ -4,9 +4,9 @@ import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import type {CartesianChartRenderArg, ChartBounds, PointsArray, Scale} from 'victory-native';
-import {Bar, CartesianChart} from 'victory-native';
+import {Bar, BarGroup, CartesianChart} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import BAR_INNER_PADDING from '@components/Charts/barChartConstants';
+import BAR_INNER_PADDING, {MAX_HORIZONTAL_CHART_HEIGHT, MIN_BAR_ROW_HEIGHT} from '@components/Charts/barChartConstants';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
@@ -21,19 +21,27 @@ import {
     useDynamicYDomain,
     useLabelHitTesting,
 } from '@components/Charts/hooks';
-import {estimateVerticalBarChartGeometry, getYAxisLabelWidth, VERTICAL_BAR_BASE_DOMAIN_PADDING} from '@components/Charts/utils';
+import {
+    estimateVerticalBarChartGeometry,
+    getCategoryLabelWidth,
+    getFontLineMetrics,
+    getYAxisLabelWidth,
+    measureTextWidth,
+    truncateCategoryLabels,
+    VERTICAL_BAR_BASE_DOMAIN_PADDING,
+} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
+import ScrollView from '@components/ScrollView';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import type {CartesianChartProps, ChartDataPoint} from '..';
-import HorizontalBarChartContent from './HorizontalBarChartContent';
 
-/** Extra pixel spacing between the chart boundary and the data range, applied per side (Victory's `domainPadding` prop)
- * We need bottom: 1 for proper display of the bottom label
- */
+/** Extra pixel spacing between the chart boundary and the data range, applied per side (Victory's `domainPadding` prop) */
 const BASE_DOMAIN_PADDING = VERTICAL_BAR_BASE_DOMAIN_PADDING;
+const HORIZONTAL_DOMAIN_PADDING = {top: 24, bottom: 24, right: 24, left: 0};
+const VALUE_AXIS_DOMAIN_PADDING = {top: 32, bottom: 1, left: 0, right: 0};
 
 type BarChartProps = CartesianChartProps & {
     /** Callback when a bar is pressed */
@@ -50,11 +58,17 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
     const [chartWidth, setChartWidth] = useState(0);
     const defaultBarColor = VictoryTheme.colors.default;
 
-    const chartData = data.map((point, index) => ({
+    const verticalChartData = data.map((point, index) => ({
         x: index,
         y: point.total,
     }));
 
+    const horizontalChartData = data.map((point, index) => ({
+        x: point.total,
+        y: index,
+    }));
+
+    const categoryIndices = data.map((_, index) => index);
     const yAxisDomain = useDynamicYDomain(data);
 
     const handleBarPress = (index: number) => {
@@ -84,7 +98,6 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
     const paddingScale = orientationBarAreaWidth > 0 ? orientationBarAreaWidth / (orientationBarAreaWidth + totalDomainPadding) : 0;
 
     const originalLabels = data.map((p) => p.label);
-
     const measurements = useChartLabelMeasurements(data, fontManager, variables.iconSizeExtraSmall);
 
     const {labelRotation, labelSkipInterval, truncatedLabelWidths, xAxisLabelHeight, regularLabelMaxWidth, firstLabelMaxWidth, lastLabelMaxWidth, ellipsisWidth, shouldUseHorizontalBars} =
@@ -100,9 +113,14 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
             preferHorizontalBars: true,
         });
 
-    const barWidth = useSharedValue(0);
+    const isHorizontalLayout = shouldUseHorizontalBars;
+    const truncatedCategoryLabels = truncateCategoryLabels(originalLabels, measurements.labelWidths, measurements.ellipsisWidth);
+
+    const verticalBarWidth = useSharedValue(0);
+    const barHeight = useSharedValue(0);
     const chartBottom = useSharedValue(0);
     const yZero = useSharedValue(0);
+    const xZero = useSharedValue(0);
 
     const {isCursorOverLabel, findLabelCursorX, updateTickPositions} = useLabelHitTesting({
         fontManager,
@@ -113,45 +131,85 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
         chartBottom,
     });
 
-    const handleChartBoundsChange = (bounds: ChartBounds) => {
+    const handleVerticalChartBoundsChange = (bounds: ChartBounds) => {
         const domainWidth = bounds.right - bounds.left;
         const calculatedBarWidth = ((1 - BAR_INNER_PADDING) * domainWidth) / data.length;
-        barWidth.set(calculatedBarWidth);
+        verticalBarWidth.set(calculatedBarWidth);
         yZero.set(0);
     };
 
-    const checkIsOverBar = (args: HitTestArgs) => {
+    const handleHorizontalChartBoundsChange = (bounds: ChartBounds) => {
+        const domainHeight = bounds.bottom - bounds.top;
+        const plotHeight = domainHeight - HORIZONTAL_DOMAIN_PADDING.top - HORIZONTAL_DOMAIN_PADDING.bottom;
+        const slotHeight = data.length > 1 ? plotHeight / (data.length - 1) : plotHeight;
+        const calculatedBarHeight = (1 - BAR_INNER_PADDING) * slotHeight;
+        barHeight.set(calculatedBarHeight);
+    };
+
+    const checkIsOverVerticalBar = (args: HitTestArgs) => {
         'worklet';
 
-        const currentBarWidth = barWidth.get();
+        const currentBarWidth = verticalBarWidth.get();
         const currentYZero = yZero.get();
         if (currentBarWidth === 0) {
             return false;
         }
         const barLeft = args.targetX - currentBarWidth / 2;
         const barRight = args.targetX + currentBarWidth / 2;
-
         const barTop = Math.min(args.targetY, currentYZero);
-        const barBottom = Math.max(args.targetY, currentYZero);
+        const barBottomY = Math.max(args.targetY, currentYZero);
 
-        return args.cursorX >= barLeft && args.cursorX <= barRight && args.cursorY >= barTop && args.cursorY <= barBottom;
+        return args.cursorX >= barLeft && args.cursorX <= barRight && args.cursorY >= barTop && args.cursorY <= barBottomY;
     };
 
-    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition} = useChartInteractions({
+    const checkIsOverHorizontalBar = (args: HitTestArgs) => {
+        'worklet';
+
+        const currentBarHeight = barHeight.get();
+        const currentXZero = xZero.get();
+        if (currentBarHeight === 0) {
+            return false;
+        }
+
+        const barLeft = Math.min(args.targetX, currentXZero);
+        const barRight = Math.max(args.targetX, currentXZero);
+        const barTop = args.targetY - currentBarHeight / 2;
+        const barBottomY = args.targetY + currentBarHeight / 2;
+
+        return args.cursorX >= barLeft && args.cursorX <= barRight && args.cursorY >= barTop && args.cursorY <= barBottomY;
+    };
+
+    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, tooltipPlacement} = useChartInteractions({
         handlePress: handleBarPress,
-        checkIsOver: checkIsOverBar,
-        isCursorOverLabel,
-        resolveLabelTouchX: findLabelCursorX,
-        chartBottom,
-        yZero,
+        checkIsOver: isHorizontalLayout ? checkIsOverHorizontalBar : checkIsOverVerticalBar,
+        ...(isHorizontalLayout
+            ? {
+                  nearestPointAxis: 'y' as const,
+                  tooltipPlacement: 'right' as const,
+                  xZero,
+              }
+            : {
+                  isCursorOverLabel,
+                  resolveLabelTouchX: findLabelCursorX,
+                  chartBottom,
+                  yZero,
+              }),
     });
 
-    const handleScaleChange = (xScale: Scale, yScale: Scale) => {
+    const handleVerticalScaleChange = (xScale: Scale, yScale: Scale) => {
         yZero.set(yScale(0));
         updateTickPositions(xScale, data.length);
         setPointPositions(
-            chartData.map((point) => xScale(point.x)),
-            chartData.map((point) => yScale(point.y)),
+            verticalChartData.map((point) => xScale(point.x)),
+            verticalChartData.map((point) => yScale(point.y)),
+        );
+    };
+
+    const handleHorizontalScaleChange = (xScale: Scale, yScale: Scale) => {
+        xZero.set(xScale(0));
+        setPointPositions(
+            horizontalChartData.map((point) => xScale(point.x)),
+            horizontalChartData.map((point) => yScale(point.y)),
         );
     };
 
@@ -159,7 +217,7 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
         cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',
     }));
 
-    const renderBar = (point: PointsArray[number], chartBounds: ChartBounds, barCount: number) => {
+    const renderVerticalBar = (point: PointsArray[number], chartBounds: ChartBounds, barCount: number) => {
         const dataIndex = point.xValue as number;
         const dataPoint = data.at(dataIndex);
         const barColor = useSingleColor ? defaultBarColor : VictoryTheme.colors.getColor(dataIndex);
@@ -182,7 +240,7 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
         );
     };
 
-    const renderOutside = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
+    const renderVerticalOutside = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
         if (!fontManager || xAxisLabelHeight === undefined) {
             return null;
         }
@@ -221,14 +279,71 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
         );
     };
 
-    const labelSpace = VictoryTheme.axis.labelGap + (xAxisLabelHeight ?? 0);
-    const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
-    const yAxisLabelWidth = getYAxisLabelWidth(data, formatValue, fontManager, variables.iconSizeExtraSmall, BASE_DOMAIN_PADDING);
-    const chartPadding = {
-        ...VictoryTheme.axis.padding,
-        bottom: labelSpace + VictoryTheme.axis.padding.bottom,
-        left: yAxisLabelWidth + GLYPH_PADDING,
+    const renderHorizontalOutside = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
+        if (!fontManager) {
+            return null;
+        }
+
+        const valueLabels = args.xTicks.map(formatValue);
+        const valueLabelWidths = valueLabels.map((label) => measureTextWidth(label, fontManager, variables.iconSizeExtraSmall));
+
+        return (
+            <>
+                <ChartYAxisLabels
+                    yTicks={categoryIndices}
+                    labels={truncatedCategoryLabels}
+                    yScale={args.yScale}
+                    chartBounds={args.chartBounds}
+                    fontSize={variables.iconSizeExtraSmall}
+                    fontManager={fontManager}
+                    labelColor={theme.textSupporting}
+                />
+                <ChartXAxisLabels
+                    labels={valueLabels}
+                    labelWidths={valueLabelWidths}
+                    regularLabelMaxWidth={Infinity}
+                    firstLabelMaxWidth={Infinity}
+                    lastLabelMaxWidth={Infinity}
+                    ellipsisWidth={measureTextWidth('...', fontManager, variables.iconSizeExtraSmall)}
+                    labelRotation={0}
+                    labelSkipInterval={1}
+                    fontSize={variables.iconSizeExtraSmall}
+                    fontManager={fontManager}
+                    labelColor={theme.textSupporting}
+                    xScale={(index) => args.xScale(args.xTicks.at(index) ?? 0)}
+                    chartBoundsBottom={args.chartBounds.bottom}
+                />
+            </>
+        );
     };
+
+    const verticalLabelSpace = VictoryTheme.axis.labelGap + (xAxisLabelHeight ?? 0);
+    const verticalChartStyle = {
+        height: CHART_CONTENT_MIN_HEIGHT + verticalLabelSpace,
+    };
+    const verticalYAxisLabelWidth = getYAxisLabelWidth(data, formatValue, fontManager, variables.iconSizeExtraSmall, BASE_DOMAIN_PADDING);
+    const verticalChartPadding = {
+        ...VictoryTheme.axis.padding,
+        bottom: verticalLabelSpace + VictoryTheme.axis.padding.bottom,
+        left: verticalYAxisLabelWidth + GLYPH_PADDING,
+    };
+
+    const horizontalCategoryLabelWidth = getCategoryLabelWidth(truncatedCategoryLabels, fontManager, variables.iconSizeExtraSmall);
+    const horizontalValueLabelWidth = getYAxisLabelWidth(data, formatValue, fontManager, variables.iconSizeExtraSmall, VALUE_AXIS_DOMAIN_PADDING);
+    const {ascent, descent} = fontManager ? getFontLineMetrics(fontManager, variables.iconSizeExtraSmall) : {ascent: 0, descent: 0};
+    const horizontalXAxisLabelHeight = ascent + descent + VictoryTheme.axis.labelGap;
+    const horizontalContentHeight = Math.max(
+        CHART_CONTENT_MIN_HEIGHT,
+        data.length * MIN_BAR_ROW_HEIGHT + VictoryTheme.axis.padding.top + VictoryTheme.axis.padding.bottom + horizontalXAxisLabelHeight,
+    );
+    const needsHorizontalScroll = horizontalContentHeight > MAX_HORIZONTAL_CHART_HEIGHT;
+    const horizontalChartPadding = {
+        ...VictoryTheme.axis.padding,
+        left: horizontalCategoryLabelWidth + GLYPH_PADDING,
+        bottom: horizontalXAxisLabelHeight + VictoryTheme.axis.padding.bottom,
+        right: horizontalValueLabelWidth + GLYPH_PADDING,
+    };
+    const horizontalChartStyle = {height: horizontalContentHeight};
 
     if (isLoading || !fontManager) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
@@ -250,57 +365,65 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
         return null;
     }
 
-    if (shouldUseHorizontalBars) {
-        return (
-            <Animated.View
-                onLayout={handleLayout}
-                style={styles.chartContent}
-            >
-                <HorizontalBarChartContent
-                    data={data}
-                    isLoading={isLoading}
-                    yAxisUnit={yAxisUnit}
-                    yAxisUnitPosition={yAxisUnitPosition}
-                    useSingleColor={useSingleColor}
-                    onBarPress={onBarPress}
-                />
-            </Animated.View>
-        );
-    }
-
-    return (
-        <Animated.View
-            onLayout={handleLayout}
-            style={styles.chartContent}
-        >
+    if (isHorizontalLayout) {
+        const horizontalChartBody = (
             <GestureDetector gesture={customGestures}>
-                <Animated.View style={[styles.chartContent, dynamicChartStyle, cursorStyle]}>
+                <Animated.View
+                    onLayout={handleLayout}
+                    style={[styles.chartContent, horizontalChartStyle, cursorStyle]}
+                >
                     {chartWidth > 0 && (
                         <CartesianChart
                             xKey="x"
-                            padding={chartPadding}
                             yKeys={['y']}
-                            domainPadding={domainPadding}
-                            onChartBoundsChange={handleChartBoundsChange}
-                            onScaleChange={handleScaleChange}
-                            renderOutside={renderOutside}
+                            padding={horizontalChartPadding}
+                            domain={{
+                                y: [0, Math.max(1, data.length - 1)],
+                                ...(yAxisDomain ? {x: yAxisDomain} : {}),
+                            }}
+                            domainPadding={HORIZONTAL_DOMAIN_PADDING}
+                            onChartBoundsChange={handleHorizontalChartBoundsChange}
+                            onScaleChange={handleHorizontalScaleChange}
+                            renderOutside={renderHorizontalOutside}
                             xAxis={{
-                                tickCount: data.length,
-                                lineWidth: VictoryTheme.axis.xLineWidth,
+                                tickCount: VictoryTheme.axis.tickCount,
+                                lineWidth: VictoryTheme.axis.yLineWidth,
+                                lineColor: theme.border,
+                                labelOffset: VictoryTheme.axis.labelGap,
                             }}
                             yAxis={[
                                 {
-                                    tickCount: VictoryTheme.axis.tickCount,
-                                    lineWidth: VictoryTheme.axis.yLineWidth,
-                                    lineColor: theme.border,
-                                    labelOffset: VictoryTheme.axis.labelGap,
-                                    domain: yAxisDomain,
+                                    tickCount: 0,
+                                    lineWidth: VictoryTheme.axis.xLineWidth,
                                 },
                             ]}
                             frame={{lineWidth: 0}}
-                            data={chartData}
+                            data={horizontalChartData}
                         >
-                            {({points, chartBounds}) => points.y.map((point) => renderBar(point, chartBounds, points.y.length))}
+                            {({points, chartBounds}) => (
+                                <BarGroup
+                                    chartBounds={chartBounds}
+                                    withinGroupPadding={BAR_INNER_PADDING}
+                                    isHorizontal
+                                    roundedCorners={{topRight: 8, bottomRight: 8}}
+                                >
+                                    {useSingleColor
+                                        ? [
+                                              <BarGroup.Bar
+                                                  key="horizontal-bars-single-color"
+                                                  points={points.y}
+                                                  color={defaultBarColor}
+                                              />,
+                                          ]
+                                        : points.y.map((point, index) => (
+                                              <BarGroup.Bar
+                                                  key={`horizontal-bar-${data.at(index)?.label ?? index}`}
+                                                  points={[point]}
+                                                  color={VictoryTheme.colors.getColor(index)}
+                                              />
+                                          ))}
+                                </BarGroup>
+                            )}
                         </CartesianChart>
                     )}
                     <ChartTooltipLayer
@@ -310,10 +433,71 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
                         formatValue={formatValue}
                         chartWidth={chartWidth}
                         initialTooltipPosition={initialTooltipPosition}
+                        placement={tooltipPlacement}
                     />
                 </Animated.View>
             </GestureDetector>
-        </Animated.View>
+        );
+
+        if (!needsHorizontalScroll) {
+            return horizontalChartBody;
+        }
+
+        return (
+            <ScrollView
+                style={styles.chartHorizontalScroll}
+                nestedScrollEnabled
+                showsVerticalScrollIndicator
+            >
+                {horizontalChartBody}
+            </ScrollView>
+        );
+    }
+
+    return (
+        <GestureDetector gesture={customGestures}>
+            <Animated.View
+                onLayout={handleLayout}
+                style={[styles.chartContent, verticalChartStyle, cursorStyle]}
+            >
+                {chartWidth > 0 && (
+                    <CartesianChart
+                        xKey="x"
+                        padding={verticalChartPadding}
+                        yKeys={['y']}
+                        domainPadding={domainPadding}
+                        onChartBoundsChange={handleVerticalChartBoundsChange}
+                        onScaleChange={handleVerticalScaleChange}
+                        renderOutside={renderVerticalOutside}
+                        xAxis={{
+                            tickCount: data.length,
+                            lineWidth: VictoryTheme.axis.xLineWidth,
+                        }}
+                        yAxis={[
+                            {
+                                tickCount: VictoryTheme.axis.tickCount,
+                                lineWidth: VictoryTheme.axis.yLineWidth,
+                                lineColor: theme.border,
+                                labelOffset: VictoryTheme.axis.labelGap,
+                                domain: yAxisDomain,
+                            },
+                        ]}
+                        frame={{lineWidth: 0}}
+                        data={verticalChartData}
+                    >
+                        {({points, chartBounds}) => points.y.map((point) => renderVerticalBar(point, chartBounds, points.y.length))}
+                    </CartesianChart>
+                )}
+                <ChartTooltipLayer
+                    matchedIndex={matchedIndex}
+                    isTooltipActive={isTooltipActive}
+                    data={data}
+                    formatValue={formatValue}
+                    chartWidth={chartWidth}
+                    initialTooltipPosition={initialTooltipPosition}
+                />
+            </Animated.View>
+        </GestureDetector>
     );
 }
 
