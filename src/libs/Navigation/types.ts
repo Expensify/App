@@ -2652,19 +2652,15 @@ type TravelNavigatorParamList = {
         isTestAccount?: string;
         redirectUrl?: string;
     };
-    [SCREENS.TRAVEL.TRIP_SUMMARY]: {
+    [SCREENS.TRAVEL.DYNAMIC_TRIP_SUMMARY]: {
         reportID: string;
         transactionID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: string;
     };
-    [SCREENS.TRAVEL.TRIP_DETAILS]: {
+    [SCREENS.TRAVEL.DYNAMIC_TRIP_DETAILS]: {
         reportID: string;
         transactionID: string;
         sequenceIndex: number;
         pnr: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: string;
     };
     [SCREENS.TRAVEL.DYNAMIC_TCS]: {
         domain?: string;
