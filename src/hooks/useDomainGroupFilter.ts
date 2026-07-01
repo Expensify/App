@@ -2,11 +2,10 @@ import {groupsSelector} from '@selectors/Domain';
 import type {DomainSecurityGroupWithID} from '@selectors/Domain';
 import type {FilterConfig, IsItemInFilterCallback} from '@components/Table';
 import type {DomainMemberRowData, DomainMembersTableFilterKey} from '@components/Tables/DomainMembersTable';
+import {sortAlphabetically} from '@libs/OptionsListUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
-
-const ALL_MEMBERS_VALUE = 'all';
 
 type UseDomainGroupFilterResult = {
     /** Filter configuration for the domain members table group filter. */
@@ -26,41 +25,48 @@ type UseDomainGroupFilterResult = {
 };
 
 function useDomainGroupFilter(domainAccountID: number): UseDomainGroupFilterResult {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
 
     const [groups] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: groupsSelector});
 
-    const allMembersLabel = translate('domain.members.allMembers');
     const shouldShowGroupFilter = (groups?.length ?? 0) > 1;
     const shouldShowGroupColumn = (groups?.length ?? 0) > 0;
+
+    const groupFilterOptions = sortAlphabetically(
+        (groups ?? []).map((group) => ({
+            label: group.details.name ?? '',
+            value: group.id,
+        })),
+        'label',
+        localeCompare,
+    );
 
     const filterConfig: FilterConfig<DomainMembersTableFilterKey> | undefined = !shouldShowGroupFilter
         ? undefined
         : {
               group: {
-                  label: allMembersLabel,
-                  filterType: 'single-select',
-                  options: [{label: allMembersLabel, value: ALL_MEMBERS_VALUE}, ...(groups ?? []).map((group) => ({label: group.details.name ?? '', value: group.id}))],
-                  default: ALL_MEMBERS_VALUE,
+                  label: translate('common.group'),
+                  filterType: 'multi-select',
+                  options: groupFilterOptions,
               },
           };
 
     const isItemInFilter: IsItemInFilterCallback<DomainMemberRowData> | undefined = !shouldShowGroupFilter
         ? undefined
         : (item, filterValues) => {
-              const filterValue = filterValues.at(0);
-
-              if (!filterValue || filterValue === ALL_MEMBERS_VALUE) {
+              if (filterValues.length === 0) {
                   return true;
               }
 
-              const matchedGroup = groups?.find((group) => group.id === filterValue);
+              for (const filterValue of filterValues) {
+                  const matchedGroup = groups?.find((group) => group.id === filterValue);
 
-              if (!matchedGroup) {
-                  return true;
+                  if (matchedGroup && String(item.accountID) in matchedGroup.details.shared) {
+                      return true;
+                  }
               }
 
-              return String(item.accountID) in matchedGroup.details.shared;
+              return false;
           };
 
     return {

@@ -39,8 +39,6 @@ type DomainMembersTableProps = {
     EmptyStateComponent: React.ReactElement;
 };
 
-const ALL_MEMBERS_VALUE = 'all';
-
 /**
  * Clears stale group filter values when the filter is hidden or the selected group disappears from Onyx.
  */
@@ -49,18 +47,19 @@ function DomainMembersGroupFilterSync({shouldShowGroupFilter, groupOptionValuesK
     const groupFilterValue = activeFilters.group;
 
     useEffect(() => {
-        const activeGroupFilter = typeof groupFilterValue === 'string' ? groupFilterValue : undefined;
+        const activeGroupFilters = Array.isArray(groupFilterValue) ? groupFilterValue.filter((value): value is string => typeof value === 'string') : [];
         const groupOptionValues = groupOptionValuesKey ? groupOptionValuesKey.split(',') : [];
 
         if (!shouldShowGroupFilter) {
-            if (activeGroupFilter && activeGroupFilter !== ALL_MEMBERS_VALUE) {
-                tableMethods.updateFilter({key: 'group', value: ALL_MEMBERS_VALUE});
+            if (activeGroupFilters.length > 0) {
+                tableMethods.updateFilter({key: 'group', value: []});
             }
             return;
         }
 
-        if (activeGroupFilter && activeGroupFilter !== ALL_MEMBERS_VALUE && !groupOptionValues.includes(activeGroupFilter)) {
-            tableMethods.updateFilter({key: 'group', value: ALL_MEMBERS_VALUE});
+        const validFilters = activeGroupFilters.filter((filter) => groupOptionValues.includes(filter));
+        if (validFilters.length !== activeGroupFilters.length) {
+            tableMethods.updateFilter({key: 'group', value: validFilters});
         }
     }, [shouldShowGroupFilter, groupOptionValuesKey, groupFilterValue, tableMethods]);
 
@@ -158,9 +157,9 @@ export default function DomainMembersTable({
                         groupOptionValuesKey={groupOptionValuesKey}
                     />
                     {shouldShowGroupFilter && (
-                        <View style={[styles.mh5, styles.mb3]}>
-                            <Table.FilterButtons />
-                        </View>
+                        <Table.FilterButtons
+                            style={[styles.mh5, styles.mb3, styles.flexShrink1, styles.mnw0, styles.overflowHidden, shouldUseNarrowTableLayout ? styles.mw100 : styles.mw50]}
+                        />
                     )}
                     {shouldShowSearchBar && <Table.SearchBar label={translate('domain.members.findMember')} />}
                     <Table.Header />
