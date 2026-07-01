@@ -3,6 +3,7 @@ import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import CONST from '@src/CONST';
 import * as UserAvatarUtils from '@src/libs/UserAvatarUtils';
+import type {PersonalDetailsList} from '@src/types/onyx';
 
 describe('UserAvatarUtils', () => {
     describe('getAvatar', () => {
@@ -295,6 +296,62 @@ describe('UserAvatarUtils', () => {
         it('should prioritize avatarURL over accountID and email', () => {
             const name = UserAvatarUtils.getDefaultAvatarName({accountID: 1, accountEmail: 'test@example.com', avatarURL: 'https://example.com/default-avatar_20.png'});
             expect(name).toBe('default-avatar_20');
+        });
+    });
+
+    describe('buildUserIcon', () => {
+        const ACCOUNT_ID = 42;
+        const personalDetails: PersonalDetailsList = {
+            [ACCOUNT_ID]: {accountID: ACCOUNT_ID, login: 'john@example.com', avatar: 'https://example.com/uploaded-avatar.png'},
+        };
+
+        it('should resolve the avatar from personal details when available', () => {
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const icon = UserAvatarUtils.buildUserIcon(ACCOUNT_ID, personalDetails, avatars.current);
+
+            expect(icon).toEqual({
+                id: ACCOUNT_ID,
+                type: CONST.ICON_TYPE_AVATAR,
+                source: 'https://example.com/uploaded-avatar.png',
+                name: 'john@example.com',
+                fallbackIcon: undefined,
+            });
+        });
+
+        it('should fall back to the default fallback avatar when the account has no avatar', () => {
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const icon = UserAvatarUtils.buildUserIcon(ACCOUNT_ID, {[ACCOUNT_ID]: {accountID: ACCOUNT_ID, login: 'john@example.com'}}, avatars.current);
+
+            expect(icon.source).toBe(avatars.current.FallbackAvatar);
+        });
+
+        it('should fall back to the default fallback avatar when the account is missing from personal details', () => {
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const icon = UserAvatarUtils.buildUserIcon(ACCOUNT_ID, {}, avatars.current);
+
+            expect(icon.source).toBe(avatars.current.FallbackAvatar);
+            expect(icon.name).toBe('');
+        });
+
+        it('should use the invited email as the name when the account has no login', () => {
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const icon = UserAvatarUtils.buildUserIcon(ACCOUNT_ID, {}, avatars.current, {invitedEmail: 'invited@example.com'});
+
+            expect(icon.name).toBe('invited@example.com');
+        });
+
+        it('should not compute a custom fallback icon by default', () => {
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const icon = UserAvatarUtils.buildUserIcon(ACCOUNT_ID, personalDetails, avatars.current);
+
+            expect(icon.fallbackIcon).toBeUndefined();
+        });
+
+        it('should compute a deterministic custom fallback icon when requested', () => {
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const icon = UserAvatarUtils.buildUserIcon(ACCOUNT_ID, {}, avatars.current, {invitedEmail: 'invited@example.com', shouldUseCustomFallbackAvatar: true});
+
+            expect(icon.fallbackIcon).toBe(UserAvatarUtils.getDefaultAvatar({accountID: ACCOUNT_ID, accountEmail: 'invited@example.com', defaultAvatars: avatars.current}));
         });
     });
 });

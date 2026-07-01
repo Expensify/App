@@ -1,11 +1,16 @@
 import {md5} from 'expensify-common';
+import type {OnyxEntry} from 'react-native-onyx';
+import type useDefaultAvatars from '@hooks/useDefaultAvatars';
 import CONST from '@src/CONST';
+import type {PersonalDetailsList} from '@src/types/onyx';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {findAvatarIDFromURL, findCatalogMatchForURL, findLocalAvatarForURL} from './Avatars/AvatarLookup';
 import {DEFAULT_LETTER_AVATAR_SCHEME, isLetterAvatarSchemeKey, LETTER_AVATAR_SCHEMES} from './Avatars/letterAvatarPalette';
 import type {LetterAvatarColorStyle} from './Avatars/letterAvatarPalette';
 import {DEFAULT_AVATAR_PREFIX, USER_AVATARS} from './Avatars/UserAvatarCatalog';
 import type {DefaultAvatarIDs} from './Avatars/UserAvatarCatalog.types';
+import {addSMSDomainIfPhoneNumber} from './PhoneNumber';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
 
@@ -306,7 +311,37 @@ function getSmallSizeAvatar(args: GetAvatarArgsType & DefaultAvatarsType): Avata
     return `${source.substring(0, lastPeriodIndex)}_128${source.substring(lastPeriodIndex)}`;
 }
 
+type DefaultAvatars = ReturnType<typeof useDefaultAvatars>;
+
+type BuildUserIconOptions = {
+    /** Email tied to an invited (not-yet-registered) account, used as a fallback name and for the deterministic fallback avatar */
+    invitedEmail?: string;
+
+    /** Whether to compute a deterministic fallback avatar from the account email/ID */
+    shouldUseCustomFallbackAvatar?: boolean;
+};
+
+/**
+ * Resolves a single account ID into an avatar {@link Icon} using the personal-details context and the default-avatar set.
+ * Shared by `UserAvatar` (single) and `UsersAvatar` (multiple) so the resolution stays in one place.
+ */
+function buildUserIcon(
+    accountID: number,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    defaultAvatars: DefaultAvatars,
+    {invitedEmail, shouldUseCustomFallbackAvatar = false}: BuildUserIconOptions = {},
+): Icon {
+    return {
+        id: accountID,
+        type: CONST.ICON_TYPE_AVATAR,
+        source: personalDetails?.[accountID]?.avatar ?? defaultAvatars.FallbackAvatar,
+        name: personalDetails?.[accountID]?.login ?? invitedEmail ?? '',
+        fallbackIcon: shouldUseCustomFallbackAvatar ? getDefaultAvatar({accountID, accountEmail: addSMSDomainIfPhoneNumber(invitedEmail ?? ''), defaultAvatars}) : undefined,
+    };
+}
+
 export {
+    buildUserIcon,
     getAvatar,
     getAvatarURL,
     getDefaultAvatar,

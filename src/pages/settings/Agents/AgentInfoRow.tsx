@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import ReportActionAvatars from '@components/ReportActionAvatars';
+import UserAvatar from '@components/Avatars/UserAvatar';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,11 +27,11 @@ function AgentInfoRow({accountID, displayName, login, isPendingDeletion = false}
 
     return (
         <>
-            <ReportActionAvatars
-                accountIDs={[accountID]}
+            <UserAvatar
+                accountID={accountID}
                 size={CONST.AVATAR_SIZE.LARGE_NORMAL}
                 shouldShowTooltip={false}
-                singleAvatarContainerStyle={[StyleUtils.getWidthAndHeightStyle(variables.avatarSizeLargeNormal)]}
+                containerStyle={[StyleUtils.getWidthAndHeightStyle(variables.avatarSizeLargeNormal)]}
             />
             <View style={[styles.flex1, styles.gap1]}>
                 <Text

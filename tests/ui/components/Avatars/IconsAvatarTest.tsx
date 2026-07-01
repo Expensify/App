@@ -2,7 +2,7 @@ import {render, screen} from '@testing-library/react-native';
 import {View as MockedAvatarData} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import SearchReportAvatar from '@components/ReportActionAvatars/SearchReportAvatar';
+import IconsAvatar from '@components/Avatars/IconsAvatar';
 import {getDefaultWorkspaceAvatar, getIcons} from '@libs/ReportUtils';
 import {getSearchReportAvatarProps} from '@libs/SearchUIUtils';
 import type {AvatarSource} from '@libs/UserUtils';
@@ -12,12 +12,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {actionR14932} from '../../__mocks__/reportData/actions';
-import personalDetails from '../../__mocks__/reportData/personalDetails';
-import {policy420A} from '../../__mocks__/reportData/policies';
-import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/reports';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+import {actionR14932} from '../../../../__mocks__/reportData/actions';
+import personalDetails from '../../../../__mocks__/reportData/personalDetails';
+import {policy420A} from '../../../../__mocks__/reportData/policies';
+import {chatReportR14932, iouReportR14932} from '../../../../__mocks__/reportData/reports';
+import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../../../utils/waitForBatchedUpdatesWithAct';
 
 type AvatarData = {
     uri: string;
@@ -33,6 +33,7 @@ const parseSource = (source: AvatarSource | IconAsset): string => {
         return source;
     }
     if (typeof source === 'object' && 'name' in source) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         return source.name as string;
     }
     if (typeof source === 'object' && 'uri' in source) {
@@ -199,11 +200,12 @@ const onyxState = {
 /* --- Helpers --- */
 
 function renderSearchReportAvatar(props: {primaryAvatar?: Icon; secondaryAvatar?: Icon; avatarType?: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE>; reportID: string}) {
+    const icons = [props.primaryAvatar, props.secondaryAvatar].filter((icon) => icon !== undefined);
     return render(
-        <SearchReportAvatar
-            primaryAvatar={props.primaryAvatar}
-            secondaryAvatar={props.secondaryAvatar}
-            avatarType={props.avatarType ?? CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE}
+        <IconsAvatar
+            icons={icons}
+            avatarType={props.avatarType}
+            size={CONST.AVATAR_SIZE.DEFAULT}
             shouldShowTooltip={false}
             subscriptAvatarBorderColor="transparent"
             reportID={props.reportID}
@@ -217,9 +219,11 @@ async function retrieveAvatarData(props: {primaryAvatar?: Icon; secondaryAvatar?
     await waitForBatchedUpdatesWithAct();
 
     const images = screen.queryAllByTestId('MockedAvatarData');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     const fragments = screen.queryAllByTestId('ReportActionAvatars-', {exact: false}).map((fragment) => fragment.props.testID as string);
 
     return {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         images: images.map((img) => img.props.dataSet as AvatarData),
         fragments,
     };
@@ -372,6 +376,20 @@ describe('SearchReportAvatar', () => {
             const singleAvatar = images.find((img) => img.parent === 'ReportActionAvatars-SingleAvatar');
             expect(singleAvatar).toBeDefined();
             expect(singleAvatar?.uri).toBe(USER_AVATAR);
+        });
+    });
+
+    describe('infers the layout from icon count when avatarType is omitted', () => {
+        const expenseIcons = getIcons(expenseReport, formatPhoneNumber, personalDetails, null, '', -1, policy);
+
+        it('infers a single avatar from a single icon', async () => {
+            const {images} = await retrieveAvatarData({primaryAvatar: expenseIcons.at(0), reportID: expenseReport.reportID});
+            expect(images.some((img) => img.parent === 'ReportActionAvatars-SingleAvatar')).toBe(true);
+        });
+
+        it('infers a diagonal layout from two icons', async () => {
+            const {fragments} = await retrieveAvatarData({primaryAvatar: expenseIcons.at(0), secondaryAvatar: expenseIcons.at(1), reportID: expenseReport.reportID});
+            expect(fragments.some((fragment) => fragment.startsWith('ReportActionAvatars-MultipleAvatars'))).toBe(true);
         });
     });
 
