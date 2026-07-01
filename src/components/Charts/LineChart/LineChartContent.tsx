@@ -48,7 +48,7 @@ type LineChartProps = CartesianChartProps & {
 function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress}: LineChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const fontMgr = useChartFontManager();
+    const fontManager = useChartFontManager();
     const [chartWidth, setChartWidth] = useState(0);
     const [plotAreaWidth, setPlotAreaWidth] = useState(0);
     const [boundsLeft, setBoundsLeft] = useState(0);
@@ -76,7 +76,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
 
     const chartBottom = useSharedValue(0);
 
-    const measurements = useChartLabelMeasurements(data, fontMgr, variables.iconSizeExtraSmall);
+    const measurements = useChartLabelMeasurements(data, fontManager, variables.iconSizeExtraSmall);
     const {lineHeight, firstLabelWidth, lastLabelWidth, maxLabelWidth, labelWidths} = measurements;
 
     const {formatValue} = useChartLabelFormats({
@@ -85,7 +85,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
         unitPosition: yAxisUnitPosition,
     });
 
-    const yAxisLabelWidth = getYAxisLabelWidth(data, formatValue, fontMgr, variables.iconSizeExtraSmall, BASE_DOMAIN_PADDING);
+    const yAxisLabelWidth = getYAxisLabelWidth(data, formatValue, fontManager, variables.iconSizeExtraSmall, BASE_DOMAIN_PADDING);
 
     const tickSpacing = plotAreaWidth > 0 && data.length > 0 ? plotAreaWidth / data.length : 0;
     const chartPaddingLeft = yAxisLabelWidth + GLYPH_PADDING;
@@ -116,7 +116,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
 
     const {labelRotation, labelSkipInterval, truncatedLabelWidths, xAxisLabelHeight, regularLabelMaxWidth, firstLabelMaxWidth, lastLabelMaxWidth, ellipsisWidth} = useChartLabelLayout({
         data,
-        fontMgr,
+        fontManager,
         fontSize: variables.iconSizeExtraSmall,
         tickSpacing,
         labelAreaWidth: plotAreaWidth,
@@ -128,7 +128,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     const originalLabels = data.map((p) => p.label);
 
     const {isCursorOverLabel, findLabelCursorX, updateTickPositions} = useLabelHitTesting({
-        fontMgr,
+        fontManager,
         fontSize: variables.iconSizeExtraSmall,
         truncatedLabelWidths,
         labelRotation,
@@ -186,7 +186,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                     radius={DOT_RADIUS}
                     color={VictoryTheme.colors.defaultDot}
                 />
-                {xAxisLabelHeight !== undefined && !!fontMgr && (
+                {xAxisLabelHeight !== undefined && !!fontManager && (
                     <ChartXAxisLabels
                         labels={originalLabels}
                         labelWidths={labelWidths}
@@ -197,19 +197,19 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                         labelRotation={labelRotation}
                         labelSkipInterval={labelSkipInterval}
                         fontSize={variables.iconSizeExtraSmall}
-                        fontMgr={fontMgr}
+                        fontManager={fontManager}
                         labelColor={theme.textSupporting}
                         xScale={args.xScale}
                         chartBoundsBottom={chartBoundsBottom}
                     />
                 )}
-                {!!fontMgr && (
+                {!!fontManager && (
                     <ChartYAxisLabels
                         yTicks={args.yTicks}
                         yScale={args.yScale}
                         chartBounds={args.chartBounds}
                         fontSize={variables.iconSizeExtraSmall}
-                        fontMgr={fontMgr}
+                        fontManager={fontManager}
                         labelColor={theme.textSupporting}
                         formatValue={formatValue}
                         leftAlign
@@ -227,8 +227,8 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
         left: chartPaddingLeft,
     };
 
-    if (isLoading || !fontMgr) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'LineChartContent', isLoading, isFontLoading: !fontMgr};
+    if (isLoading || !fontManager) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'LineChartContent', isLoading, isFontLoading: !fontManager};
         return (
             <View style={styles.chartActivityIndicator}>
                 <ActivityIndicator
