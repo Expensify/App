@@ -30,7 +30,7 @@ type Args = {
     /** The index of the action badge target report action in the sorted visible actions list (-1 if none) */
     actionBadgeTargetIndex?: number;
 
-    /** If should debounce tracking, used during inital linked message positioning */
+    /** If should debounce tracking, used during initial linked message positioning */
     shouldDebounceTracking?: boolean;
 };
 
