@@ -189,6 +189,18 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/travel/upgrade?backTo=/home')).toBe('/travel/travel-upgrade?backTo=/home');
     });
 
+    it('redirects old travel workspace confirmation path to dynamic route', () => {
+        expect(getMatchingNewRoute('/travel/upgrade/workspace/confirmation')).toBe('/travel/travel-upgrade/workspace-confirmation');
+        expect(getMatchingNewRoute('/travel/upgrade/workspace/confirmation?backTo=/travel/travel-upgrade')).toBe(
+            '/travel/travel-upgrade/workspace-confirmation?backTo=/travel/travel-upgrade',
+        );
+    });
+
+    it('redirects old travel verify account path to dynamic route', () => {
+        expect(getMatchingNewRoute('/travel/verify-account')).toBe('/travel/travel-verify-account');
+        expect(getMatchingNewRoute('/travel/verify-account?domain=company.com&policyID=123')).toBe('/travel/travel-verify-account?domain=company.com&policyID=123');
+    });
+
     it('redirects legacy profile avatar path to new avatar route', () => {
         expect(getMatchingNewRoute('/a/123/avatar')).toBe('/avatar/123');
     });
