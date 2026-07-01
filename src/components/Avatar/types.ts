@@ -75,8 +75,6 @@ type AvatarBranchCommonProps = {
 
     /** Denotes whether it is an avatar or a workspace avatar */
     type: AvatarType;
-
-
 };
 
 export type {AvatarCommonProps, ResolvedAvatar, AvatarBranchCommonProps};
