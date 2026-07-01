@@ -100,7 +100,13 @@ function IOURequestStepWaypoint({
 
     const locationBias = useLocationBias(allWaypoints, userLocation);
     const waypointAddress = currentWaypoint.address ?? '';
+    // When the transaction draft exists but has no waypoints yet, async initialization
+    // is still in progress (startDistanceRequest sets a stub before initMoneyRequest runs).
+    // Do not treat this transient state as an invalid waypoint index.
+    const isDraftInitializing = action === CONST.IOU.ACTION.CREATE && !isEditing && !lodashIsEmpty(currentTransaction) && waypointCount === 0;
+
     const shouldDisableEditor =
+        !isDraftInitializing &&
         isFocused &&
         (Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount || (filledWaypointCount < 2 && parsedWaypointIndex >= waypointCount));
 
