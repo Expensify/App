@@ -254,4 +254,47 @@ describe('getBestMatchingPath', () => {
             '/workspaces/p123/accounting/quickbooks-online/advanced/quickbooks-online-autosync?backTo=/x',
         );
     });
+
+    it('redirects legacy workspace company card details paths to dynamic routes', () => {
+        expect(getMatchingNewRoute('/workspaces/D56D50B841F69B0E/company-cards/oauth.mockbank.com%2322298108/6421535706958904')).toBe(
+            '/workspaces/D56D50B841F69B0E/company-cards/company-card-details/oauth.mockbank.com%2322298108/6421535706958904',
+        );
+        expect(getMatchingNewRoute('/workspaces/p123/company-cards/oauth.chase%2099999/456/edit/export')).toBe(
+            '/workspaces/p123/company-cards/company-card-details/oauth.chase%2099999/456/edit/export',
+        );
+    });
+
+    it('does not rewrite already-migrated workspace company card details paths', () => {
+        expect(getMatchingNewRoute('/workspaces/D56D50B841F69B0E/company-cards/company-card-details/oauth.mockbank.com%2322298108/6421535706958904')).toBe(
+            '/workspaces/D56D50B841F69B0E/company-cards/company-card-details/oauth.mockbank.com%2322298108/6421535706958904',
+        );
+        expect(getMatchingNewRoute('/workspaces/p123/company-cards/company-card-details/oauth.chase%2099999/456/edit/export')).toBe(
+            '/workspaces/p123/company-cards/company-card-details/oauth.chase%2099999/456/edit/export',
+        );
+    });
+
+    it('does not rewrite workspace company card static child pages', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/company-cards/oauth.chase%2099999/456/edit/name')).toBe('/workspaces/p123/company-cards/oauth.chase%2099999/456/edit/name');
+        expect(getMatchingNewRoute('/workspaces/p123/company-cards/oauth.chase%2099999/456/edit/transaction-start-date')).toBe(
+            '/workspaces/p123/company-cards/oauth.chase%2099999/456/edit/transaction-start-date',
+        );
+        expect(getMatchingNewRoute('/workspaces/p123/company-cards/oauth.chase%2099999/broken-card-feed-connection')).toBe(
+            '/workspaces/p123/company-cards/oauth.chase%2099999/broken-card-feed-connection',
+        );
+        expect(getMatchingNewRoute('/workspaces/p123/company-cards/oauth.chase%2099999/assign-card/456/card-selection')).toBe(
+            '/workspaces/p123/company-cards/oauth.chase%2099999/assign-card/456/card-selection',
+        );
+    });
+
+    it('does not rewrite dynamic assign-card assignee paths', () => {
+        expect(getMatchingNewRoute('/workspaces/D56D50B841F69B0E/company-cards/assign-card/oauth.mockbank.com%2322298108/Mock%20Credit%20Card%20-%201234/assignee')).toBe(
+            '/workspaces/D56D50B841F69B0E/company-cards/assign-card/oauth.mockbank.com%2322298108/Mock%20Credit%20Card%20-%201234/assignee',
+        );
+    });
+
+    it('redirects corrupted company-card-details assign-card paths to the correct dynamic assign route', () => {
+        expect(
+            getMatchingNewRoute('/workspaces/D56D50B841F69B0E/company-cards/company-card-details/assign-card/oauth.mockbank.com%2322298108/Mock%20Credit%20Card%20-%201234/assignee'),
+        ).toBe('/workspaces/D56D50B841F69B0E/company-cards/assign-card/oauth.mockbank.com%2322298108/Mock%20Credit%20Card%20-%201234/assignee');
+    });
 });
