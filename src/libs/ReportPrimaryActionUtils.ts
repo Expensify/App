@@ -92,6 +92,7 @@ type IsPrimaryPayActionParams = {
     invoiceReceiverPolicy?: Policy;
     reportActions?: ReportAction[];
     isSecondaryAction?: boolean;
+    canNonPayerAdminPay?: boolean;
 };
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived: boolean) {
@@ -207,6 +208,7 @@ function isPrimaryPayAction({
     invoiceReceiverPolicy,
     reportActions,
     isSecondaryAction,
+    canNonPayerAdminPay,
 }: IsPrimaryPayActionParams) {
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
@@ -216,6 +218,8 @@ function isPrimaryPayAction({
         return false;
     }
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, report, bankAccountList, policy, false);
+    const canPayReport =
+        isReportPayer || (canNonPayerAdminPay && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && isPolicyAdminPolicyUtils(policy));
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);
@@ -231,7 +235,7 @@ function isPrimaryPayAction({
     const {reimbursableSpend, nonReimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
     if (
-        isReportPayer &&
+        canPayReport &&
         isExpenseReport &&
         arePaymentsEnabled &&
         isReportFinished &&
@@ -246,7 +250,7 @@ function isPrimaryPayAction({
 
     const isIOUReport = isIOUReportUtils(report);
 
-    if (isIOUReport && isReportPayer && reimbursableSpend > 0) {
+    if (isIOUReport && canPayReport && reimbursableSpend > 0) {
         return true;
     }
 
@@ -533,6 +537,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
             isChatReportArchived,
             invoiceReceiverPolicy,
             reportActions,
+            canNonPayerAdminPay: true,
         }) &&
         !allExpensesHeld
     ) {

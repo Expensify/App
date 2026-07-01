@@ -169,7 +169,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const delegateAccountID = useDelegateAccountID();
     const {accountID: currentUserAccountID, email: currentUserEmail = '', login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const isUserReimburser = policy?.achAccount?.reimburser !== undefined && account?.primaryLogin !== undefined && policy?.achAccount?.reimburser === account?.primaryLogin;
+    const isUserReimburser = account?.primaryLogin !== undefined && (policy?.achAccount?.reimburser ?? policy?.owner) === account?.primaryLogin;
     const {approvalWorkflows, availableMembers, usedApproverEmails} = useMemo(
         () =>
             convertPolicyEmployeesToApprovalWorkflows({
@@ -186,10 +186,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const isAdvanceApproval = (approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1) && isControlPolicy(policy);
     const updateApprovalMode = isAdvanceApproval ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
-    const displayNameForAuthorizedPayer = useMemo(
-        () => getDisplayNameOrDefault(getPersonalDetailByEmail(policy?.achAccount?.reimburser ?? ''), policy?.achAccount?.reimburser),
-        [policy?.achAccount?.reimburser],
-    );
+    const policyReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
+    const displayNameForAuthorizedPayer = useMemo(() => getDisplayNameOrDefault(getPersonalDetailByEmail(policyReimburserEmail ?? ''), policyReimburserEmail), [policyReimburserEmail]);
 
     const isNonUSDWorkspace = policy?.outputCurrency !== CONST.CURRENCY.USD;
     const achData = reimbursementAccount?.achData;
@@ -377,6 +375,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const isBusinessBankAccountLocked = state === CONST.BANK_ACCOUNT.STATE.LOCKED;
 
         const shouldShowBankAccount = (!!isBankAccountFullySetup || !!bankAccountConnectedToWorkspace) && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+        const shouldShowPayer = shouldShowBankAccount || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
         const bankAccountPendingAction = bankAccountConnectedToWorkspace?.pendingAction;
         const isBankAccountPendingDelete = bankAccountPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
@@ -625,7 +624,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                               let newReimbursementChoice;
                               if (!isEnabled) {
                                   newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
-                              } else if (!!policy?.achAccount && !isCurrencySupportedForDirectReimbursement((policy?.outputCurrency ?? '') as CurrencyType)) {
+                              } else if (
+                                  (!isBankAccountFullySetup && !bankAccountConnectedToWorkspace) ||
+                                  !isCurrencySupportedForDirectReimbursement((policy?.outputCurrency ?? '') as CurrencyType)
+                              ) {
                                   newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
                               } else {
                                   newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
@@ -750,7 +752,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                           />
                                       )
                                   )}
-                                  {shouldShowBankAccount && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && (
+                                  {shouldShowPayer && (
                                       <OfflineWithFeedback
                                           pendingAction={policy?.pendingFields?.reimburser}
                                           shouldDisableOpacity={isOffline && !!policy?.pendingFields?.reimbursementChoice && !!policy?.pendingFields?.reimburser}
