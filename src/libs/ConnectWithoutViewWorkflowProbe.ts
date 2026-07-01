@@ -13,3 +13,5 @@ Onyx.connectWithoutView({
 export default function getProbeEmail(): string | undefined {
     return email;
 }
+
+// touch: trigger synchronize event for workflow test
