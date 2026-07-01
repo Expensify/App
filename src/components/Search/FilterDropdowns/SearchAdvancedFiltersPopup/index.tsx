@@ -11,15 +11,13 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {exitSavedViewEditMode, saveSavedViewEdits, setSaveAsNewViewQuery} from '@libs/actions/Search';
+import {cancelSavedViewEdits, saveSavedViewEdits} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {canSaveEditedView} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {EditingSavedSearch} from '@src/types/onyx';
 import AmountFilterContentPopupWrapper from './AmountFilterContentPopupWrapper';
 import CommonFilterContentPopupWrapper from './CommonFilterContentPopupWrapper';
@@ -47,42 +45,30 @@ function SearchAdvancedFiltersPopup({queryJSON, editingSavedView, closeOverlay}:
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
 
-    const {updateFilterQueryParams, getUpdatedFilterFormValues, buildFilterQueryString, setFilterQueryParams} = useUpdateFilterQuery(queryJSON);
+    const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
 
     const isEditingSavedView = !!editingSavedView;
 
-    // In edit mode the filters are a draft: changes don't touch the active search until Save, so clicking outside leaves
-    // the saved view unchanged. The draft starts from the view's filters (the active search is the view while editing).
-    const [draftValues, setDraftValues] = useState<Partial<SearchAdvancedFiltersForm>>(searchAdvancedFiltersForm ?? {});
-    const displayValues = isEditingSavedView ? draftValues : searchAdvancedFiltersForm;
-    const onFilterChange = isEditingSavedView ? (values: Partial<SearchAdvancedFiltersForm>) => setDraftValues((prev) => getUpdatedFilterFormValues(prev, values)) : updateFilterQueryParams;
+    // Editing a view applies filter changes to the active search live (the table updates behind the popover); the footer
+    // only appears once the live query differs from the view (and isn't already another saved view).
+    const shouldShowEditFooter = isEditingSavedView && canSaveEditedView(savedSearches, queryJSON.hash);
 
-    const draftQueryJSON = isEditingSavedView ? buildSearchQueryJSON(buildFilterQueryString(draftValues)) : undefined;
-    // Only show the footer once the draft is saveable (changed from the view and not already another saved view).
-    const shouldShowEditFooter = isEditingSavedView && canSaveEditedView(savedSearches, draftQueryJSON?.hash);
-
-    // The draft never touches the active search, so leaving edit mode just clears the flag (nothing to revert).
+    // The live edits already changed the active search, so cancelling re-executes the view's original query to restore it.
     const onCancel = () => {
-        exitSavedViewEditMode();
+        if (editingSavedView) {
+            cancelSavedViewEdits(editingSavedView);
+        }
         closeOverlay?.();
     };
 
     const onSaveAsNewView = () => {
-        const queryString = buildFilterQueryString(draftValues);
-        if (!queryString) {
-            return;
-        }
-        // Carry the draft to the save page without changing the active search (it stays on the view until saved).
-        setSaveAsNewViewQuery(queryString);
         closeOverlay?.();
         Navigation.navigate(ROUTES.SEARCH_SAVE);
     };
 
     const onSaveEdits = () => {
-        if (editingSavedView && draftQueryJSON) {
-            // Apply the draft to the active search and persist it onto the view.
-            setFilterQueryParams(draftValues);
-            saveSavedViewEdits({queryJSON: draftQueryJSON, editingSavedView});
+        if (editingSavedView) {
+            saveSavedViewEdits({queryJSON, editingSavedView});
         }
         closeOverlay?.();
     };
@@ -97,8 +83,8 @@ function SearchAdvancedFiltersPopup({queryJSON, editingSavedView, closeOverlay}:
             <View style={[styles.flexRow, masterDetailRowStyle]}>
                 <FilterList
                     style={[styles.typeFiltersPopupContainer]}
-                    type={displayValues?.type}
-                    policyID={displayValues?.policyID}
+                    type={searchAdvancedFiltersForm?.type}
+                    policyID={searchAdvancedFiltersForm?.policyID}
                     selectedFilter={selectedFilter}
                     onHoverIn={setSelectedFilter}
                     onFocus={setSelectedFilter}
@@ -108,7 +94,7 @@ function SearchAdvancedFiltersPopup({queryJSON, editingSavedView, closeOverlay}:
                     style={[styles.filterContentContainer]}
                 >
                     <SearchAdvancedFiltersContent
-                        values={displayValues}
+                        values={searchAdvancedFiltersForm}
                         filterKey={selectedFilter}
                         policyIDQuery={queryJSON.policyID}
                         components={{
@@ -118,7 +104,7 @@ function SearchAdvancedFiltersPopup({queryJSON, editingSavedView, closeOverlay}:
                             Date: DateFilterContentPopupWrapper,
                             ReportField: ReportFieldFilterContentPopupWrapper,
                         }}
-                        onChange={onFilterChange}
+                        onChange={updateFilterQueryParams}
                     />
                 </View>
             </View>

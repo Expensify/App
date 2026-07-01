@@ -804,6 +804,12 @@ function exitSavedViewEditMode() {
     Onyx.set(ONYXKEYS.SEARCH_EDITING_SAVED_VIEW, null);
 }
 
+/** Cancels "Edit filters" mode and re-executes the view's original query so the table returns to the saved filters. */
+function cancelSavedViewEdits(editingSavedView: EditingSavedSearch) {
+    Onyx.set(ONYXKEYS.SEARCH_EDITING_SAVED_VIEW, null);
+    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: editingSavedView.query, name: editingSavedView.name}));
+}
+
 /** Carries the edited query to the save page for the narrow "Save as new view" flow (without changing the active search). */
 function setSaveAsNewViewQuery(query: string) {
     Onyx.set(ONYXKEYS.SEARCH_SAVE_AS_NEW_VIEW_QUERY, query);
@@ -1866,6 +1872,7 @@ export {
     resolveSearchPayPaymentMethod,
     enterSavedViewEditMode,
     exitSavedViewEditMode,
+    cancelSavedViewEdits,
     setSaveAsNewViewQuery,
     clearSaveAsNewViewQuery,
     saveSavedViewEdits,
