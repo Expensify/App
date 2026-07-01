@@ -1,4 +1,4 @@
-import reportByIDsSelector, {reportNameSelector, getReportAttributeByID} from '@selectors/ReportAttributes';
+import reportByIDsSelector, {getReportAttributeByID, reportNamesByReportIDsSelector, reportNameSelector} from '@selectors/Attributes';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 
@@ -65,7 +65,41 @@ describe('ReportAttributesSelector', () => {
             expect(getReportAttributeByID(map, '999')).toBeUndefined();
         });
     });
-    
+
+    describe('reportNamesByReportIDsSelector', () => {
+        const reportID1 = '1';
+        const reportID2 = '2';
+        const reportAttributes: ReportAttributes = {
+            reportName: 'Test Report',
+            isEmpty: false,
+            brickRoadStatus: undefined,
+            requiresAttention: false,
+            reportErrors: {},
+        };
+        const attributes: OnyxEntry<ReportAttributesDerivedValue> = {
+            reports: {
+                [reportID1]: reportAttributes,
+                [reportID2]: {...reportAttributes, reportName: 'Second Report'},
+            },
+            locale: 'en',
+        };
+
+        it('should return only the reportName for the matching report IDs', () => {
+            const result = reportNamesByReportIDsSelector([reportID1, reportID2])(attributes);
+            expect(result).toEqual({[reportID1]: {reportName: 'Test Report'}, [reportID2]: {reportName: 'Second Report'}});
+        });
+
+        it('should skip undefined and non-existent report IDs', () => {
+            const result = reportNamesByReportIDsSelector([reportID1, undefined, '999'])(attributes);
+            expect(result).toEqual({[reportID1]: {reportName: 'Test Report'}});
+        });
+
+        it('should return an empty object when attributes is undefined', () => {
+            const result = reportNamesByReportIDsSelector([reportID1])(undefined);
+            expect(result).toEqual({});
+        });
+    });
+
     describe('reportNameSelector', () => {
         const reportID = '1';
         const reportAttributes: ReportAttributes = {
