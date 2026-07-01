@@ -26,6 +26,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject, ImagePickerResponse as FileResponse} from '@src/types/utils/Attachment';
 import type IconAsset from '@src/types/utils/IconAsset';
 import launchCamera from './launchCamera/launchCamera';
+import processAssets from './processAssets';
 import type AttachmentPickerProps from './types';
 
 const EXTENSION_TO_NATIVE_TYPE: Record<string, string> = {
@@ -214,68 +215,56 @@ function AttachmentPicker({
                     }
 
                     const processedAssets: Asset[] = [];
-                    let processedCount = 0;
 
-                    const checkAllProcessed = () => {
-                        processedCount++;
-                        if (processedCount === assets.length) {
-                            resolve(processedAssets.length > 0 ? processedAssets : undefined);
+                    const processAsset = async (asset: Asset): Promise<void> => {
+                        if (!asset.uri) {
+                            return;
+                        }
+
+                        if (!asset.type?.startsWith('image')) {
+                            // Ensure the asset has proper fileName and type
+                            processedAssets.push(processAssetWithFallbacks(asset));
+                            return;
+                        }
+
+                        try {
+                            const isHEIC = await verifyFileFormat({fileUri: asset.uri, formatSignatures: CONST.HEIC_SIGNATURES});
+                            // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
+                            if (!isHEIC || !asset.uri) {
+                                // Ensure the asset has proper fileName and type for non-HEIC images
+                                processedAssets.push(processAssetWithFallbacks(asset));
+                                return;
+                            }
+
+                            try {
+                                const manipulatedImage = await ImageManipulator.manipulate(asset.uri).renderAsync();
+                                const manipulationResult = await manipulatedImage.saveAsync({format: SaveFormat.JPEG});
+                                const uri = manipulationResult.uri;
+                                const convertedAsset = {
+                                    uri,
+                                    name: uri
+                                        .substring(uri.lastIndexOf('/') + 1)
+                                        .split('?')
+                                        .at(0),
+                                    type: 'image/jpeg',
+                                    width: manipulationResult.width,
+                                    height: manipulationResult.height,
+                                };
+                                processedAssets.push(convertedAsset);
+                            } catch (error) {
+                                Log.warn('Failed to convert HEIC image, falling back to original', {error: error instanceof Error ? error.message : String(error)});
+                                processedAssets.push(processAssetWithFallbacks(asset));
+                            }
+                        } catch (error) {
+                            showGeneralAlert(error instanceof Error ? error.message : 'An unknown error occurred');
                         }
                     };
 
-                    for (const asset of assets) {
-                        if (!asset.uri) {
-                            checkAllProcessed();
-                            continue;
-                        }
-
-                        if (asset.type?.startsWith('image')) {
-                            verifyFileFormat({fileUri: asset.uri, formatSignatures: CONST.HEIC_SIGNATURES})
-                                .then((isHEIC) => {
-                                    // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
-                                    if (isHEIC && asset.uri) {
-                                        ImageManipulator.manipulate(asset.uri)
-                                            .renderAsync()
-                                            .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.JPEG}))
-                                            .then((manipulationResult) => {
-                                                const uri = manipulationResult.uri;
-                                                const convertedAsset = {
-                                                    uri,
-                                                    name: uri
-                                                        .substring(uri.lastIndexOf('/') + 1)
-                                                        .split('?')
-                                                        .at(0),
-                                                    type: 'image/jpeg',
-                                                    width: manipulationResult.width,
-                                                    height: manipulationResult.height,
-                                                };
-                                                processedAssets.push(convertedAsset);
-                                                checkAllProcessed();
-                                            })
-                                            .catch((error: Error) => {
-                                                Log.warn('Failed to convert HEIC image, falling back to original', {error: error.message});
-                                                const fallbackAsset = processAssetWithFallbacks(asset);
-                                                processedAssets.push(fallbackAsset);
-                                                checkAllProcessed();
-                                            });
-                                    } else {
-                                        // Ensure the asset has proper fileName and type for non-HEIC images
-                                        const processedAsset = processAssetWithFallbacks(asset);
-                                        processedAssets.push(processedAsset);
-                                        checkAllProcessed();
-                                    }
-                                })
-                                .catch((error: Error) => {
-                                    showGeneralAlert(error.message ?? 'An unknown error occurred');
-                                    checkAllProcessed();
-                                });
-                        } else {
-                            // Ensure the asset has proper fileName and type
-                            const processedAsset = processAssetWithFallbacks(asset);
-                            processedAssets.push(processedAsset);
-                            checkAllProcessed();
-                        }
-                    }
+                    // `processAssets` is resolved by file extension: sequential on iOS to avoid OOMing on
+                    // concurrent HEIC decodes (see processAssets/index.ios.ts), concurrent elsewhere (per #93846).
+                    processAssets(assets, processAsset)
+                        .then(() => resolve(processedAssets.length > 0 ? processedAssets : undefined))
+                        .catch(reject);
                 });
             }),
         [fileLimit, showGeneralAlert, translate, type],
