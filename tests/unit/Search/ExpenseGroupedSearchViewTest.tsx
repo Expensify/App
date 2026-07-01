@@ -143,17 +143,17 @@ const STABLE_QUERY_JSON: SearchQueryJSON = {
 
 const STABLE_COLUMNS: SearchColumnType[] = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.ACTION];
 
-/** Builds group rows, each carrying child transactions; `deletedTxns` marks transaction indices as pending-delete. */
-function createMockGroupData(groups: Array<{txns: number; deletedTxns?: Set<number>}>): SearchListItem[] {
+/** Builds group rows, each carrying child transactions; `deletedTransactions` marks transaction indices as pending-delete. */
+function createMockGroupData(groups: Array<{transactionCount: number; deletedTransactions?: Set<number>}>): SearchListItem[] {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test fixtures are intentionally partial group rows
     return groups.map((group, i) => ({
         keyForList: `group-${i}`,
         cardID: i,
         action: CONST.SEARCH.ACTION_TYPES.VIEW,
-        transactions: Array.from({length: group.txns}, (_, j) => ({
+        transactions: Array.from({length: group.transactionCount}, (_, j) => ({
             keyForList: `txn-${i}-${j}`,
             transactionID: `${i}-${j}`,
-            pendingAction: group.deletedTxns?.has(j) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : undefined,
+            pendingAction: group.deletedTransactions?.has(j) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : undefined,
         })),
     })) as unknown as SearchListItem[];
 }
@@ -177,7 +177,7 @@ type RenderOverrides = {
 };
 
 function renderView(overrides: RenderOverrides = {}) {
-    const data = overrides.data ?? createMockGroupData([{txns: 1}, {txns: 1}, {txns: 1}]);
+    const data = overrides.data ?? createMockGroupData([{transactionCount: 1}, {transactionCount: 1}, {transactionCount: 1}]);
 
     function Wrapper() {
         const onSelectRow = useCallback((item: SearchListItem) => overrides.onSelectRow?.(item), []);
@@ -249,13 +249,13 @@ afterEach(() => Onyx.clear());
 describe('ExpenseGroupedSearchView', () => {
     it('does not exceed the max render count on initial mount with stable props', async () => {
         let renderCount = 0;
-        renderView({data: createMockGroupData(Array.from({length: 100}, () => ({txns: 1}))), onRenderCount: () => (renderCount += 1)});
+        renderView({data: createMockGroupData(Array.from({length: 100}, () => ({transactionCount: 1}))), onRenderCount: () => (renderCount += 1)});
         await waitForBatchedUpdates();
         expect(renderCount).toBeLessThanOrEqual(MAX_INITIAL_RENDER_COUNT);
     });
 
     it('renders one row per group item', async () => {
-        renderView({data: createMockGroupData([{txns: 2}, {txns: 1}, {txns: 3}])});
+        renderView({data: createMockGroupData([{transactionCount: 2}, {transactionCount: 1}, {transactionCount: 3}])});
         await waitForBatchedUpdates();
         expect(screen.queryAllByTestId(/^row-group-/)).toHaveLength(3);
     });
@@ -265,7 +265,7 @@ describe('ExpenseGroupedSearchView', () => {
         // One transaction selected -> not all-checked.
         mockSelectedTransactions.current = selectKeys('txn-0-0');
         renderView({
-            data: createMockGroupData([{txns: 2}, {txns: 1, deletedTxns: new Set([0])}]),
+            data: createMockGroupData([{transactionCount: 2}, {transactionCount: 1, deletedTransactions: new Set([0])}]),
             canSelectMultiple: true,
             tableHeaderVisible: true,
             hasLoadedAllTransactions: true,
@@ -280,7 +280,7 @@ describe('ExpenseGroupedSearchView', () => {
     it('marks select-all checked when every selectable transaction is selected', async () => {
         mockSelectedTransactions.current = selectKeys('txn-0-0', 'txn-0-1');
         renderView({
-            data: createMockGroupData([{txns: 2}, {txns: 1, deletedTxns: new Set([0])}]),
+            data: createMockGroupData([{transactionCount: 2}, {transactionCount: 1, deletedTransactions: new Set([0])}]),
             canSelectMultiple: true,
             tableHeaderVisible: true,
             hasLoadedAllTransactions: true,
@@ -294,7 +294,7 @@ describe('ExpenseGroupedSearchView', () => {
 
     it('toggles selection on row tap while in mobile selection mode, instead of navigating', async () => {
         const onSelectRow = jest.fn();
-        renderView({data: createMockGroupData([{txns: 1}, {txns: 1}]), isMobileSelectionModeEnabled: true, onSelectRow});
+        renderView({data: createMockGroupData([{transactionCount: 1}, {transactionCount: 1}]), isMobileSelectionModeEnabled: true, onSelectRow});
         await waitForBatchedUpdates();
 
         act(() => mockRowSelect['group-0']?.());
@@ -305,7 +305,7 @@ describe('ExpenseGroupedSearchView', () => {
 
     it('navigates on row tap when not in mobile selection mode', async () => {
         const onSelectRow = jest.fn();
-        renderView({data: createMockGroupData([{txns: 1}, {txns: 1}]), isMobileSelectionModeEnabled: false, onSelectRow});
+        renderView({data: createMockGroupData([{transactionCount: 1}, {transactionCount: 1}]), isMobileSelectionModeEnabled: false, onSelectRow});
         await waitForBatchedUpdates();
 
         act(() => mockRowSelect['group-0']?.());
