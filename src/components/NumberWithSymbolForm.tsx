@@ -356,8 +356,12 @@ function NumberWithSymbolForm({
             return;
         }
 
-        // If the number doesn't support decimals, we can strip the decimals
-        setNewNumber(stripDecimalsFromAmount(currentNumber));
+        // If the new decimal count can't fit the current number, truncate to the new decimal
+        // precision instead of dropping the fractional part entirely (avoids silent data loss,
+        // e.g. 125.567 becoming 125.56 rather than 125 when decimals goes from 3 to 2).
+        const decimalIndex = currentNumber.indexOf('.');
+        const truncatedNumber = decimals > 0 && decimalIndex !== -1 ? currentNumber.slice(0, decimalIndex + 1 + decimals) : stripDecimalsFromAmount(currentNumber);
+        setNewNumber(truncatedNumber);
 
         // we want to update only when decimals change.
         // eslint-disable-next-line react-hooks/exhaustive-deps
