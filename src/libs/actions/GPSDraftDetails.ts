@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import {addressFromGpsPoint, calculateTrimmedEndPoint, coordinatesToString} from '@libs/GPSDraftDetailsUtils';
 import {GPS_DISTANCE_INTERVAL_METERS} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import {updateGpsTripNotificationDistance} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -99,6 +100,8 @@ function resumeGpsTrip(gpsDraftDetails: OnyxEntry<GpsDraftDetails>) {
     Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {
         gpsPoints: newGpsPoints,
         isTracking: true,
+        modifiedDistance: null,
+        trimmedEndPoint: null,
     });
 }
 
@@ -164,4 +167,47 @@ function addGpsPoints(gpsDraftDetails: OnyxEntry<GpsDraftDetails>, newGpsPoints:
     return newCapturedPoints;
 }
 
-export {resetGPSDraftDetails, initGpsDraft, setStartWaypointAddress, setEndWaypointAddress, addGpsPoints, setIsTracking, resumeGpsTrip, removeLastSegment, updateGpsPoints};
+async function applyTrimmedTrip(gpsDraftDetails: GpsDraftDetails, targetDistanceMeters: number, isOffline: boolean) {
+    const trimmedEndPoint = calculateTrimmedEndPoint(gpsDraftDetails.gpsPoints, targetDistanceMeters);
+
+    if (!trimmedEndPoint) {
+        return;
+    }
+
+    let address: GPSPoint['address'] | null | undefined;
+    if (!isOffline) {
+        const addressValue = await addressFromGpsPoint(trimmedEndPoint);
+        if (addressValue != null) {
+            address = {value: addressValue, type: 'address'};
+        }
+    }
+
+    if (!address) {
+        address = {value: coordinatesToString(trimmedEndPoint), type: 'coordinates'};
+    }
+
+    Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {
+        modifiedDistance: targetDistanceMeters,
+        trimmedEndPoint: {...trimmedEndPoint, address},
+    });
+}
+
+function resetTripTrim() {
+    Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {
+        modifiedDistance: null,
+        trimmedEndPoint: null,
+    });
+}
+export {
+    resetGPSDraftDetails,
+    initGpsDraft,
+    setStartWaypointAddress,
+    setEndWaypointAddress,
+    addGpsPoints,
+    setIsTracking,
+    resumeGpsTrip,
+    removeLastSegment,
+    applyTrimmedTrip,
+    resetTripTrim,
+    updateGpsPoints,
+};

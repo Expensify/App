@@ -371,6 +371,7 @@ const SCREENS = {
         STEP_DISTANCE_GPS: 'Money_Request_Step_Distance_GPS',
         STEP_DISTANCE_ODOMETER: 'Money_Request_Step_Distance_Odometer',
         ODOMETER_IMAGE: 'Money_Request_Odometer_Image',
+        GPS_TRIP_EDIT: 'Money_Request_GPS_Trip_Edit',
         RECEIPT_PREVIEW: 'Money_Request_Receipt_preview',
         ODOMETER_PREVIEW: 'Money_Request_Odometer_Preview',
         STEP_TIME_RATE: 'Money_Request_Step_Time_Rate',

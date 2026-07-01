@@ -3702,6 +3702,12 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        sliderBarFilled: {
+            backgroundColor: theme.success,
+            height: '100%',
+            borderRadius: variables.sliderBarHeight / 2,
+        },
+
         screenCenteredContainer: {
             flex: 1,
             justifyContent: 'center',

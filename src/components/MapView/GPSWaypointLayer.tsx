@@ -27,24 +27,18 @@ function GPSWaypointLayer({waypoints, belowLayerID}: GPSWaypointLayerProps) {
 
     const waypointFeatures = !waypoints?.length
         ? []
-        : waypoints.flatMap((waypoint) => {
-              if (!waypoint.markerType) {
-                  return [];
-              }
-
-              return [
-                  {
-                      type: 'Feature' as const,
-                      geometry: {
-                          type: 'Point' as const,
-                          coordinates: waypoint.coordinate,
-                      },
-                      properties: {
-                          icon: WAYPOINT_ICON_NAMES[waypoint.markerType],
-                      },
+        : waypoints.flatMap((waypoint) => [
+              {
+                  type: 'Feature' as const,
+                  geometry: {
+                      type: 'Point' as const,
+                      coordinates: waypoint.coordinate,
                   },
-              ];
-          });
+                  properties: {
+                      icon: WAYPOINT_ICON_NAMES[waypoint.markerType],
+                  },
+              },
+          ]);
 
     if (waypointFeatures.length === 0) {
         return null;

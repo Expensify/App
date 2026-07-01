@@ -6,6 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import {getEffectiveDistance} from '@libs/GPSDraftDetailsUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -23,7 +24,7 @@ function DistanceCounter({unit}: DistanceCounterProps) {
 
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
 
-    const distance = DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails?.distanceInMeters ?? 0, unit).toFixed(1);
+    const distance = DistanceRequestUtils.convertDistanceUnit(getEffectiveDistance(gpsDraftDetails), unit).toFixed(1);
 
     return (
         <MenuItemWithTopDescription
