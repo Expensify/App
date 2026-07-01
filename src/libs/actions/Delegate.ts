@@ -14,6 +14,8 @@ import Log from '@libs/Log';
 import {clearPreservedSearchNavigatorStates} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import Pusher from '@libs/Pusher';
+import {requestPusherReinitialize} from '@libs/requestPusherReinitialize';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -213,21 +215,24 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                 })
                 .then(() => {
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
+                    Pusher.disconnect();
                     return clearOnyxForDelegateTransition();
                 })
                 .then(() => {
-                    return openApp().then(() => {
-                        if (!CONFIG.IS_HYBRID_APP || !policyID) {
+                    return openApp()
+                        .then(() => requestPusherReinitialize({accountID: response.accountID, email: response.email}))
+                        .then(() => {
+                            if (!CONFIG.IS_HYBRID_APP || !policyID) {
+                                return true;
+                            }
+                            HybridAppModule.switchAccount({
+                                newDotCurrentAccountEmail: email,
+                                authToken: restrictedToken,
+                                policyID,
+                                accountID: String(session?.accountID ?? CONST.DEFAULT_NUMBER_ID),
+                            });
                             return true;
-                        }
-                        HybridAppModule.switchAccount({
-                            newDotCurrentAccountEmail: email,
-                            authToken: restrictedToken,
-                            policyID,
-                            accountID: String(session?.accountID ?? CONST.DEFAULT_NUMBER_ID),
                         });
-                        return true;
-                    });
                 });
         })
         .catch((error) => {
@@ -813,6 +818,9 @@ function restoreDelegateSession({authToken, encryptedAuthToken, accountID, email
     })
         .then(() => {
             NetworkStore.setAuthToken(authToken ?? null);
+            // Disconnect Pusher before the transition so it cannot keep pushing updates for the delegate
+            // account; it is reinitialized for the restored account after `openApp()`. See Expensify/App#93265.
+            Pusher.disconnect();
             return clearOnyxForDelegateTransition();
         })
         .then(() => {
@@ -827,6 +835,8 @@ function restoreDelegateSession({authToken, encryptedAuthToken, accountID, email
 
             return openApp();
         })
+        // Reinitialize Pusher for the restored account so realtime updates resume on the correct session.
+        .then(() => requestPusherReinitialize({accountID, email}))
         .then(() => {
             // Keep OldDot in sync with NewDot. Without this, OD remains on the delegate session
             // after a reauth-driven restoration (e.g. expired delegate token, invalidateAuthToken),
