@@ -3,7 +3,7 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 /**
  * Defers `active` from `false` to `true` until after navigation transitions finish, once `ready` becomes true.
- * Unlike `startTransition`/`useDeferredValue`, the update runs as a plain, non-preemptible render, so it can't be
+ * Unlike `startTransition`/`useDeferredValue`, the update runs as a plain, synchronous render that can't be
  * interrupted and redone by a competing update.
  */
 function useRunAfterTransitions(ready: boolean): boolean {
