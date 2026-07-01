@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import {RenderHTMLConfigProvider, RenderHTMLSource} from 'react-native-render-html';
 import type {RenderersProps} from 'react-native-render-html';
 import useHasTextAncestor from '@hooks/useHasTextAncestor';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Parser from '@libs/Parser';
 import BulletItemRenderer from './HTMLEngineProvider/HTMLRenderers/BulletItemRenderer';
@@ -44,6 +45,7 @@ function RenderHTML({html: htmlParam, onLinkPress, onConciergeLinkPress, isSelec
         throw new Error('RenderHTML must not be rendered inside a <Text> component, as it will break the layout on iOS. Render it as a sibling instead.');
     }
 
+    const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const html = useMemo(() => {
         return (
@@ -88,7 +90,7 @@ function RenderHTML({html: htmlParam, onLinkPress, onConciergeLinkPress, isSelec
 
     return onLinkPress || onConciergeLinkPress ? (
         <RenderHTMLConfigProvider
-            defaultTextProps={{selectable: isSelectable ?? true, allowFontScaling: false}}
+            defaultTextProps={{selectable: isSelectable ?? true, allowFontScaling: false, style: styles.overflowVisible}}
             renderersProps={renderersProps}
             renderers={renderers}
         >
