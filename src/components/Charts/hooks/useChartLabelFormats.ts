@@ -11,14 +11,14 @@ type UseChartLabelFormatsProps = {
     labelSkipInterval?: number;
     labelRotation?: LabelRotation;
     truncatedLabels?: string[];
-    fontMgr?: SkTypefaceFontProvider | null;
+    fontManager?: SkTypefaceFontProvider | null;
 };
 
-export default function useChartLabelFormats({data, unit, unitPosition = 'left', labelSkipInterval = 1, labelRotation = 0, truncatedLabels, fontMgr}: UseChartLabelFormatsProps) {
+export default function useChartLabelFormats({data, unit, unitPosition = 'left', labelSkipInterval = 1, labelRotation = 0, truncatedLabels, fontManager}: UseChartLabelFormatsProps) {
     const {numberFormat} = useLocalize();
 
     const displayUnit = typeof unit === 'string' ? unit : unit?.value;
-    const unitToDisplay = fontMgr && !canFontRenderText(displayUnit, fontMgr) ? (unit as UnitWithFallback)?.fallback : displayUnit;
+    const unitToDisplay = fontManager && !canFontRenderText(displayUnit, fontManager) ? (unit as UnitWithFallback)?.fallback : displayUnit;
     const formatValue = (value: number) => {
         const formatted = numberFormat(value);
         if (!unitToDisplay) {
