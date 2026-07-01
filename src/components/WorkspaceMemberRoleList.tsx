@@ -6,7 +6,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {canMemberAssignRole, isControlPolicy} from '@libs/PolicyUtils';
+import {canMemberAssignRole} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
@@ -80,22 +80,7 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
         },
     ];
 
-    const isPolicyControl = isControlPolicy(policy);
-    const availableRoleItems: ListItemType[] = workspaceRoles.filter((item) => {
-        if (item.value === CONST.POLICY.ROLE.AUDITOR && !isPolicyControl) {
-            return false;
-        }
-        if (item.value === CONST.POLICY.ROLE.CARD_ADMIN && !isPolicyControl) {
-            return false;
-        }
-        if (item.value === CONST.POLICY.ROLE.PEOPLE_ADMIN && !isPolicyControl) {
-            return false;
-        }
-        if (item.value === CONST.POLICY.ROLE.PAYMENTS_ADMIN && !isPolicyControl) {
-            return false;
-        }
-        return canMemberAssignRole(policy, currentUserLogin, item.value);
-    });
+    const availableRoleItems: ListItemType[] = workspaceRoles.filter((item) => canMemberAssignRole(policy, currentUserLogin, item.value));
 
     return (
         <>

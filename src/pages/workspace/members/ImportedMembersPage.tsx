@@ -14,7 +14,7 @@ import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberAssignRole, canMemberManageMemberWithRole, isControlPolicy as isControlPolicyUtil, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {canMemberAssignElevatedRole, canMemberAssignRole, canMemberManageMemberWithRole, isControlPolicy as isControlPolicyUtil, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,7 +34,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const canManageAuditorRole = canMemberAssignRole(policy, currentUserLogin, CONST.POLICY.ROLE.AUDITOR);
+    const canAssignElevatedRoles = canMemberAssignElevatedRole(policy, currentUserLogin);
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const {containsHeader = true} = spreadsheet ?? {};
@@ -44,7 +44,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         {text: translate('common.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
         {text: translate('common.email'), value: CONST.CSV_IMPORT_COLUMNS.EMAIL, isRequired: true},
     ];
-    if (canManageAuditorRole) {
+    if (canAssignElevatedRoles) {
         columnRoles.push({text: translate('common.role'), value: CONST.CSV_IMPORT_COLUMNS.ROLE});
     }
     columnRoles.push(
@@ -150,13 +150,13 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             let role = isPolicyMember ? (policy?.employeeList?.[email]?.role ?? '') : '';
             const importedRole = membersRoles?.[containsHeader ? index + 1 : index];
             const canManageCurrentRole = !isPolicyMember || canMemberManageMemberWithRole(policy, currentUserLogin, role);
-            if (canManageAuditorRole && membersRolesColumn !== -1 && importedRole && canManageCurrentRole && canMemberAssignRole(policy, currentUserLogin, importedRole)) {
+            if (canAssignElevatedRoles && membersRolesColumn !== -1 && importedRole && canManageCurrentRole && canMemberAssignRole(policy, currentUserLogin, importedRole)) {
                 role = importedRole;
             }
-            if (canManageAuditorRole && membersRolesColumn !== -1 && !role) {
+            if (canAssignElevatedRoles && membersRolesColumn !== -1 && !role) {
                 isRoleMissing = true;
             }
-            if (!canManageAuditorRole && !role) {
+            if (!canAssignElevatedRoles && !role) {
                 role = CONST.POLICY.ROLE.USER;
             }
             let submitsTo = '';

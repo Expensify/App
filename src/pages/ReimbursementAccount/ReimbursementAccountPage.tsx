@@ -100,6 +100,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const {isOffline} = useNetwork();
     const requestorStepRef = useRef<View>(null);
     const hasRequestedNewBankAccountRef = useRef(false);
+    const hasClearedStalePlaidErrorsRef = useRef(false);
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
     const achData = reimbursementAccount?.achData;
@@ -297,6 +298,14 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
     useEffect(
         () => {
+            const isOnPlaidBankAccountStep = currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && achData?.subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
+
+            // Reset the "stale errors cleared" guard whenever we leave the Plaid bank account step, so the next
+            // fresh entry into the Plaid step clears any old errors exactly once.
+            if (!isOnPlaidBankAccountStep) {
+                hasClearedStalePlaidErrorsRef.current = false;
+            }
+
             // Check for network change from offline to online
             if (prevIsOffline && !isOffline && prevReimbursementAccount && prevReimbursementAccount.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 fetchData(true);
@@ -319,8 +328,10 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
             const currentStepRouteParam = getStepToOpenFromRouteParams(route, hasConfirmedUSDCurrency);
             if (currentStepRouteParam === currentStep) {
-                // If the user is connecting online with plaid, reset any bank account errors so we don't persist old data from a potential previous connection
-                if (currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && achData?.subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+                // If the user is connecting online with plaid, reset any bank account errors so we don't persist old data from a potential previous connection.
+                // Guard with a ref so this only happens once per Plaid-step entry.
+                if (isOnPlaidBankAccountStep && !hasClearedStalePlaidErrorsRef.current) {
+                    hasClearedStalePlaidErrorsRef.current = true;
                     hideBankAccountErrors();
                 }
 

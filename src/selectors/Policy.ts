@@ -2,10 +2,11 @@ import escapeRegExp from 'lodash/escapeRegExp';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
-import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
+import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
 
 type ReusablePolicyConnectionName =
     | typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE
@@ -37,6 +38,93 @@ const createOwnedPaidPoliciesCountsSelector =
             total: ownedPaidPolicies.length,
             active: ownedPaidPolicies.filter((policy) => !isPendingDeletePolicy(policy)).length,
         };
+    };
+
+type CopySettingsEligibleTargets = {
+    /** IDs of non-personal policies administered by the user that can be copy-settings targets */
+    adminNonPersonal: string[];
+
+    /** Subset of adminNonPersonal limited to corporate (Control) policies */
+    corporateOnly: string[];
+};
+
+/**
+ * Creates a selector returning only the policy IDs eligible as copy-settings targets,
+ * so subscribers don't re-render when anything else on the policy collection changes.
+ */
+const createCopySettingsEligibleTargetsSelector =
+    (currentUserLogin: string | undefined) =>
+    (policies: OnyxCollection<Policy>): CopySettingsEligibleTargets => {
+        const adminNonPersonal: string[] = [];
+        const corporateOnly: string[] = [];
+        for (const policy of Object.values(policies ?? {})) {
+            if (!policy || policy.type === CONST.POLICY.TYPE.PERSONAL || !isPolicyAdmin(policy, currentUserLogin) || isPendingDeletePolicy(policy)) {
+                continue;
+            }
+            adminNonPersonal.push(policy.id);
+            if (policy.type === CONST.POLICY.TYPE.CORPORATE) {
+                corporateOnly.push(policy.id);
+            }
+        }
+        return {adminNonPersonal, corporateOnly};
+    };
+
+type WorkspaceListPolicy = Pick<Policy, 'id' | 'name' | 'type' | 'role' | 'ownerAccountID' | 'avatarURL' | 'pendingAction' | 'errors'> & {
+    /** Whether the policy is optimistically pending deletion */
+    isPendingDelete: boolean;
+
+    /** Whether the current user has a pending request to join the policy */
+    isJoinRequestPending: boolean;
+
+    /** Projection of policyDetailsForNonMembers for join-request-pending policies */
+    nonMemberDetails?: Pick<PolicyDetailsForNonMembers, 'name' | 'type' | 'ownerAccountID' | 'avatar'> & {policyID: string};
+};
+
+/**
+ * Creates a selector returning a light, flat projection of the policies shown on the workspaces list,
+ * so the page doesn't re-render when deep, frequently mutated policy fields change (isLoading* flags,
+ * employeeList, customUnits, connections, etc.).
+ */
+const createWorkspaceListPoliciesSelector =
+    (currentUserLogin: string | undefined) =>
+    (policies: OnyxCollection<Policy>): WorkspaceListPolicy[] => {
+        const result: WorkspaceListPolicy[] = [];
+        for (const policy of Object.values(policies ?? {})) {
+            if (!policy || !shouldShowPolicy(policy, true, currentUserLogin)) {
+                continue;
+            }
+
+            const isJoinRequestPending = !!policy.isJoinRequestPending && !!policy.policyDetailsForNonMembers;
+            let nonMemberDetails: WorkspaceListPolicy['nonMemberDetails'];
+            if (isJoinRequestPending) {
+                const nonMemberEntry = Object.entries(policy.policyDetailsForNonMembers ?? {}).at(0);
+                if (nonMemberEntry) {
+                    const [nonMemberPolicyID, details] = nonMemberEntry;
+                    nonMemberDetails = {
+                        policyID: nonMemberPolicyID,
+                        name: details.name,
+                        type: details.type,
+                        ownerAccountID: details.ownerAccountID,
+                        avatar: details.avatar,
+                    };
+                }
+            }
+
+            result.push({
+                id: policy.id,
+                name: policy.name,
+                type: policy.type,
+                role: policy.role,
+                ownerAccountID: policy.ownerAccountID,
+                avatarURL: policy.avatarURL,
+                pendingAction: policy.pendingAction,
+                errors: policy.errors,
+                isPendingDelete: isPendingDeletePolicy(policy),
+                isJoinRequestPending,
+                nonMemberDetails,
+            });
+        }
+        return result;
     };
 
 const activeAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin);
@@ -271,6 +359,8 @@ export {
     createAllPolicyReportFieldsSelector,
     ownerPoliciesSelector,
     createOwnedPaidPoliciesCountsSelector,
+    createCopySettingsEligibleTargetsSelector,
+    createWorkspaceListPoliciesSelector,
     activeAdminPoliciesSelector,
     hasActiveAdminPoliciesSelector,
     createPoliciesForDomainCardsSelector,
@@ -290,4 +380,4 @@ export {
     createAdminPoliciesSelector,
     isAdminForPolicyByIDSelector,
 };
-export type {ReusablePolicyConnectionName};
+export type {ReusablePolicyConnectionName, CopySettingsEligibleTargets};

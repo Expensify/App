@@ -11,7 +11,6 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {confirmReadyToOpenApp} from '@userActions/App';
 import {startMoneyRequest} from '@userActions/IOU/MoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,7 +27,6 @@ function SubmitExpensePage() {
 
     useFocusEffect(() => {
         interceptAnonymousUser(() => {
-            confirmReadyToOpenApp();
             Navigation.isNavigationReady().then(() => {
                 if (isUnmounted.current) {
                     return;

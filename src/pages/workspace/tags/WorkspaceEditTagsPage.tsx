@@ -11,6 +11,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getCleanedTagName, getTagListName, isMultiLevelTags} from '@libs/PolicyUtils';
@@ -56,7 +57,9 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
             return;
         }
         Navigation.goBack(
-            isMultiLevelTagsEnabled ? ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(route?.params?.policyID, orderWeight) : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID),
+            isMultiLevelTagsEnabled
+                ? ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(route?.params?.policyID, orderWeight)
+                : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAGS_SETTINGS.path, ROUTES.WORKSPACE_TAGS.getRoute(route?.params?.policyID)),
         );
     };
 

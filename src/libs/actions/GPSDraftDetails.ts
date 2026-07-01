@@ -58,6 +58,14 @@ function updateGpsPoints(gpsPoints: GPSPoint[][]) {
 }
 
 function removeLastSegment(gpsPoints: GPSPoint[][]) {
+    // Clear the last segment instead of removing it if there is only one segment
+    if (gpsPoints.length === 1) {
+        Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {
+            gpsPoints: [[]],
+        });
+        return;
+    }
+
     const newGpsPoints = [...gpsPoints];
     newGpsPoints.pop();
 

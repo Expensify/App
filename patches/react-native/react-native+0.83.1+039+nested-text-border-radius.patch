@@ -194,7 +194,7 @@ new file mode 100644
 index 0000000..8194ea7
 --- /dev/null
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
-@@ -0,0 +1,125 @@
+@@ -0,0 +1,117 @@
 +/* Copyright (c) Meta Platforms, Inc. and affiliates.
 + *
 + * This source code is licensed under the MIT license found in the
@@ -215,7 +215,7 @@ index 0000000..8194ea7
 + * borderRadius is 0, this draws a plain rectangle identical to [ReactBackgroundColorSpan].
 + *
 + * For multiline spans, only the outer corners are rounded: left corners on the first line, right
-+ * corners on the last line (flipped for RTL).
++ * corners on the last line.
 + */
 +internal class ReactBackgroundDrawSpan(
 +    @ColorInt private val backgroundColor: Int,
@@ -282,8 +282,7 @@ index 0000000..8194ea7
 +      } else {
 +        val isFirstLine = line == startLine
 +        val isLastLine = line == endLine
-+        val rtl = layout.getParagraphDirection(line) == Layout.DIR_RIGHT_TO_LEFT
-+        drawSelectiveRoundRect(canvas, rectF, isFirstLine, isLastLine, rtl)
++        drawSelectiveRoundRect(canvas, rectF, isFirstLine, isLastLine)
 +      }
 +    }
 +  }
@@ -293,19 +292,12 @@ index 0000000..8194ea7
 +      rect: RectF,
 +      isFirstLine: Boolean,
 +      isLastLine: Boolean,
-+      rtl: Boolean,
 +  ) {
-+    // For LTR: first line rounds left corners, last line rounds right corners.
-+    // For RTL: first line rounds right corners, last line rounds left corners.
-+    val roundStart = isFirstLine
-+    val roundEnd = isLastLine
-+    val roundLeft = if (rtl) roundEnd else roundStart
-+    val roundRight = if (rtl) roundStart else roundEnd
-+
-+    val topLeft = if (roundLeft) borderTopLeftRadius else 0f
-+    val bottomLeft = if (roundLeft) borderBottomLeftRadius else 0f
-+    val topRight = if (roundRight) borderTopRightRadius else 0f
-+    val bottomRight = if (roundRight) borderBottomRightRadius else 0f
++    // First line rounds left corners, last line rounds right corners.
++    val topLeft = if (isFirstLine) borderTopLeftRadius else 0f
++    val bottomLeft = if (isFirstLine) borderBottomLeftRadius else 0f
++    val topRight = if (isLastLine) borderTopRightRadius else 0f
++    val bottomRight = if (isLastLine) borderBottomRightRadius else 0f
 +
 +    val radii =
 +        floatArrayOf(
@@ -670,7 +662,7 @@ index 0000000..3ca52ac
 + * for inline text spans that have the RCTTextBorderRadius attribute set.
 + *
 + * For multiline spans, only the outer corners are rounded: left corners on the
-+ * first line rect, right corners on the last line rect (flipped for RTL).
++ * first line rect, right corners on the last line rect.
 + */
 +@interface RCTTextLayoutManagerWithBorderRadius : NSLayoutManager
 +
@@ -679,10 +671,10 @@ index 0000000..3ca52ac
 +NS_ASSUME_NONNULL_END
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
 new file mode 100644
-index 0000000..fd401a9
+index 0000000..de879555fcff8965cbae03765ff445258880db95
 --- /dev/null
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
-@@ -0,0 +1,116 @@
+@@ -0,0 +1,132 @@
 +/*
 + * Copyright (c) Meta Platforms, Inc. and affiliates.
 + *
@@ -743,17 +735,33 @@ index 0000000..fd401a9
 +    [self enumerateLineFragmentsForGlyphRange:spanGlyphRange
 +                                   usingBlock:^(CGRect lineRect, CGRect usedRect, NSTextContainer *tc, NSRange lineGlyphRange, BOOL *s) {
 +      NSRange intersected = NSIntersectionRange(spanGlyphRange, lineGlyphRange);
-+      CGRect spanRect = [self boundingRectForGlyphRange:intersected inTextContainer:tc];
++      if (intersected.length == 0) {
++        lineIdx++;
++        return;
++      }
 +
-+      // Container coords → view coords
-+      spanRect.origin.x += origin.x;
-+      spanRect.origin.y += origin.y;
++      CGPoint startLoc = [self locationForGlyphAtIndex:intersected.location];
 +
-+      // Shrink height to em-box (font.lineHeight = ascender + |descender|, no leading).
-+      // This creates a leading-sized gap between adjacent line backgrounds, matching web CSS.
++      // Horizontal: hug the glyphs via caret positions (mirrors Android's getPrimaryHorizontal).
++      // boundingRectForGlyphRange includes trailing-whitespace/inter-glyph advance that scales
++      // with font size, which bleeds visibly past large (heading) text.
++      NSUInteger endGlyph = NSMaxRange(intersected);
++      CGFloat endX = (endGlyph < NSMaxRange(lineGlyphRange))
++          ? [self locationForGlyphAtIndex:endGlyph].x          // start of next glyph = tight right edge
++          : CGRectGetMaxX(usedRect) - lineRect.origin.x;       // span runs to line end → trailing-ws-trimmed edge
++
++      CGRect spanRect;
++      spanRect.origin.x = lineRect.origin.x + startLoc.x + origin.x;
++      spanRect.size.width = endX - startLoc.x;
++
++      // Vertical: usedRect fallback for the font==nil case, then font metrics override.
++      // font.lineHeight = ascender + |descender|, no leading. This creates a leading-sized gap
++      // between adjacent line backgrounds, matching web CSS.
++      spanRect.origin.y = usedRect.origin.y + origin.y;
++      spanRect.size.height = usedRect.size.height;
++
 +      if (font && intersected.length > 0) {
-+          CGPoint glyphLoc = [self locationForGlyphAtIndex:intersected.location];
-+          CGFloat baseline = lineRect.origin.y + origin.y + glyphLoc.y;
++          CGFloat baseline = lineRect.origin.y + origin.y + startLoc.y;
 +          spanRect.origin.y = baseline - font.ascender;
 +          spanRect.size.height = font.lineHeight;
 +      }

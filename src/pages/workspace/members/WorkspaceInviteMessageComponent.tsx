@@ -27,6 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
+    canMemberAssignElevatedRole,
     canMemberAssignRole,
     getDefaultApprover,
     getMemberAccountIDsForWorkspace,
@@ -96,7 +97,7 @@ function WorkspaceInviteMessageComponent({
     const [workspaceInviteRoleDraftFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`);
     const currentUserLogin = currentUserPersonalDetails.login ?? '';
     const canManageUserRole = canMemberAssignRole(policy, currentUserLogin, CONST.POLICY.ROLE.USER);
-    const canChangeInviteRole = !isSubmitPolicy(policy) && canMemberAssignRole(policy, currentUserLogin, CONST.POLICY.ROLE.AUDITOR);
+    const canChangeInviteRole = !isSubmitPolicy(policy) && canMemberAssignElevatedRole(policy, currentUserLogin);
     const fallbackInviteRole = canManageUserRole ? CONST.POLICY.ROLE.USER : CONST.POLICY.ROLE.AUDITOR;
     const draftInviteRole =
         workspaceInviteRoleDraftFromOnyx && canMemberAssignRole(policy, currentUserLogin, workspaceInviteRoleDraftFromOnyx) ? workspaceInviteRoleDraftFromOnyx : fallbackInviteRole;
@@ -184,6 +185,7 @@ function WorkspaceInviteMessageComponent({
             policyMemberAccountIDs,
             workspaceInviteRoleDraft,
             formatPhoneNumber,
+            allPersonalDetails,
             {
                 accountID: currentUserPersonalDetails?.accountID,
                 displayName: currentUserPersonalDetails?.displayName,
