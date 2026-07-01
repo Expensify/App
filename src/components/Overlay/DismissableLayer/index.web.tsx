@@ -1,4 +1,4 @@
-import React, {use, useEffect, useRef, useState, useSyncExternalStore} from 'react';
+import React, {useEffect, useRef, useState, useSyncExternalStore} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import useAriaHideSiblings from '@components/Overlay/hooks/useAriaHideSiblings';
@@ -14,7 +14,6 @@ import {PortalContext} from '@components/Overlay/PortalContext';
 import type {PortalContextValue} from '@components/Overlay/PortalContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
-import LayerDepthContext from './LayerDepthContext';
 import type {DismissableLayerProps} from './types';
 
 function nodeContains(node: AnchorNode | null, target: Node): boolean {
@@ -22,9 +21,7 @@ function nodeContains(node: AnchorNode | null, target: Node): boolean {
     return host?.contains(target) ?? false;
 }
 
-function useLayerStack(kind: DismissableLayerKind, trackTopOfKind?: boolean): {isTop: boolean; isTopOfKind: boolean; myDepth: number} {
-    const parentDepth = use(LayerDepthContext);
-    const myDepth = parentDepth + 1;
+function useLayerStack(kind: DismissableLayerKind, trackTopOfKind?: boolean): {isTop: boolean; isTopOfKind: boolean} {
     const [entry] = useState<DismissableLayerEntry>(() => ({
         kind,
         mountId: nextLayerMountId(),
@@ -41,7 +38,7 @@ function useLayerStack(kind: DismissableLayerKind, trackTopOfKind?: boolean): {i
         () => (trackTopOfKind ? selectTopLayerOfKind(dismissableLayerStore.getServerSnapshot(), kind) : null),
     );
     useEffect(() => pushDismissableLayer(entry), [entry]);
-    return {isTop: top === entry, isTopOfKind: trackTopOfKind === true && topOfKind === entry, myDepth};
+    return {isTop: top === entry, isTopOfKind: trackTopOfKind === true && topOfKind === entry};
 }
 
 function useDismissableLayerWorker(
@@ -119,41 +116,28 @@ function useDismissableLayerWorker(
     return {containerRef, portalContextValue};
 }
 
-function LayerHost({
-    containerRef,
-    portalContextValue,
-    depth,
-    children,
-}: {
-    containerRef: React.RefObject<View | null>;
-    portalContextValue: PortalContextValue;
-    depth: number;
-    children: ReactNode;
-}) {
+function LayerHost({containerRef, portalContextValue, children}: {containerRef: React.RefObject<View | null>; portalContextValue: PortalContextValue; children: ReactNode}) {
     const styles = useThemeStyles();
     return (
         <PortalContext value={portalContextValue}>
-            <LayerDepthContext value={depth}>
-                <View
-                    ref={containerRef}
-                    style={styles.flex1}
-                    pointerEvents="none"
-                >
-                    {children}
-                </View>
-            </LayerDepthContext>
+            <View
+                ref={containerRef}
+                style={styles.flex1}
+                pointerEvents="none"
+            >
+                {children}
+            </View>
         </PortalContext>
     );
 }
 
 function DismissableLayer(props: DismissableLayerProps) {
-    const {isTop, myDepth} = useLayerStack('floating');
+    const {isTop} = useLayerStack('floating');
     const {containerRef, portalContextValue} = useDismissableLayerWorker(props, {isEscapeActive: isTop, isPointerOutsideActive: isTop});
     return (
         <LayerHost
             containerRef={containerRef}
             portalContextValue={portalContextValue}
-            depth={myDepth}
         >
             {props.children}
         </LayerHost>
@@ -161,7 +145,7 @@ function DismissableLayer(props: DismissableLayerProps) {
 }
 
 function ModalLayer(props: DismissableLayerProps) {
-    const {isTop, isTopOfKind, myDepth} = useLayerStack('modal', true);
+    const {isTop, isTopOfKind} = useLayerStack('modal', true);
     const {containerRef, portalContextValue} = useDismissableLayerWorker(props, {isEscapeActive: isTop, isPointerOutsideActive: false});
     useBodyScrollLock(isTopOfKind);
     useAriaHideSiblings(containerRef, isTopOfKind);
@@ -169,7 +153,6 @@ function ModalLayer(props: DismissableLayerProps) {
         <LayerHost
             containerRef={containerRef}
             portalContextValue={portalContextValue}
-            depth={myDepth}
         >
             {props.children}
         </LayerHost>
@@ -177,14 +160,13 @@ function ModalLayer(props: DismissableLayerProps) {
 }
 
 function FloatingLayer(props: DismissableLayerProps) {
-    const {isTop, myDepth} = useLayerStack('floating');
+    const {isTop} = useLayerStack('floating');
     const isCovered = useIsModalCovering();
     const {containerRef, portalContextValue} = useDismissableLayerWorker(props, {isEscapeActive: isTop && !isCovered, isPointerOutsideActive: isTop});
     return (
         <LayerHost
             containerRef={containerRef}
             portalContextValue={portalContextValue}
-            depth={myDepth}
         >
             {props.children}
         </LayerHost>

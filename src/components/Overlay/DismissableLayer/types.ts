@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
+import type {EscapeBehavior} from '@components/Overlay/libs/dismissableLayerStore';
 import type {AnchorNode} from '@components/Overlay/libs/measureAnchor';
-import type {EscapeBehavior} from '@components/Overlay/libs/overlayStore';
 
 type DismissableLayerProps = {
     /** Called when Escape is pressed while this layer is topmost; call `event.preventDefault()` to keep it open */

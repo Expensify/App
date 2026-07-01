@@ -1,5 +1,6 @@
 import createExternalStore from './createExternalStore';
-import type {EscapeBehavior} from './overlayStore';
+
+type EscapeBehavior = 'dismiss' | 'ignore';
 
 type DismissableLayerKind = 'modal' | 'floating';
 
@@ -66,4 +67,4 @@ const dismissableLayerStore = {
 
 export default dismissableLayerStore;
 export {pushDismissableLayer, nextLayerMountId, selectTopLayer, selectTopLayerOfKind};
-export type {DismissableLayerEntry, DismissableLayerKind};
+export type {DismissableLayerEntry, DismissableLayerKind, EscapeBehavior};

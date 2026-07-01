@@ -2,7 +2,7 @@ import {useLayoutEffect} from 'react';
 import type {RefObject} from 'react';
 import asHostElement from '@components/Overlay/libs/asHostElement';
 import type {AnchorNode} from '@components/Overlay/libs/measureAnchor';
-import {OVERLAY_PORTAL_DATASET_KEY, OVERLAY_TOP_LAYER_DATASET_KEY} from '@components/Overlay/libs/portalMarkers';
+import {OVERLAY_PORTAL_DATASET_KEY} from '@components/Overlay/libs/portalMarkers';
 
 type SavedAttrs = {
     priorAriaHidden: string | null;
@@ -109,8 +109,7 @@ function useAriaHideSiblings(containerRef: RefObject<AnchorNode | null>, isActiv
                 if (child === ownPortalRoot || acquired.has(child)) {
                     continue;
                 }
-                const isOverlayPortal =
-                    child instanceof HTMLElement && (child.dataset[OVERLAY_PORTAL_DATASET_KEY] !== undefined || child.dataset[OVERLAY_TOP_LAYER_DATASET_KEY] !== undefined);
+                const isOverlayPortal = child instanceof HTMLElement && child.dataset[OVERLAY_PORTAL_DATASET_KEY] !== undefined;
                 if (isOverlayPortal) {
                     // eslint-disable-next-line no-bitwise -- compareDocumentPosition returns a bitmask; the & is the standard way to test DOCUMENT_POSITION_FOLLOWING.
                     const followsOwnPortal = (ownPortalRoot.compareDocumentPosition(child) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;

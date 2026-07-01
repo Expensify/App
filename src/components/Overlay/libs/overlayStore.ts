@@ -1,11 +1,11 @@
 import CONST from '@src/CONST';
 import type ModalType from '@src/types/utils/ModalType';
 import createExternalStore from './createExternalStore';
+import type {EscapeBehavior} from './dismissableLayerStore';
 import type {AnchorNode} from './measureAnchor';
 
 type PopoverKind = typeof CONST.MODAL.MODAL_TYPE.POPOVER;
 type ModalKind = Exclude<ModalType, PopoverKind>;
-type EscapeBehavior = 'dismiss' | 'ignore';
 
 type OverlayAnchor = AnchorNode | null;
 
@@ -74,4 +74,4 @@ const overlayStore = {
 
 export default overlayStore;
 export {upsertOverlayEntry, removeOverlayEntry, isPopoverEntry};
-export type {OverlayEntry, ModalOverlayEntry, PopoverOverlayEntry, EscapeBehavior};
+export type {OverlayEntry, ModalOverlayEntry, PopoverOverlayEntry};
