@@ -20,11 +20,13 @@ function AvatarCropPage() {
     const isLiveCrop = !!draft?.uri && isActiveCropToken(draft.token);
 
     // Dismiss when there's nothing to crop, or when this is a refreshed/restored crop with no live opener.
+    // Wait for navigation to be ready: on a cold web refresh this effect can fire before the navigation
+    // container is initialized, in which case a bare goBack() is dropped and the loader hangs forever.
     useEffect(() => {
         if (isLoadingDraft || isLiveCrop) {
             return;
         }
-        Navigation.goBack();
+        Navigation.isNavigationReady().then(() => Navigation.goBack());
     }, [isLoadingDraft, isLiveCrop]);
 
     // Make sure the input draft is cleaned up no matter how the screen is left (back gesture, hardware back, save).
