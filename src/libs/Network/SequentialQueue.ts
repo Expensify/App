@@ -18,7 +18,7 @@ import {flushQueue, isEmpty} from '@libs/actions/QueuedOnyxUpdates';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
-import {getIsOffline as isOfflineNetwork} from '@libs/NetworkState';
+import {getDBTimeWithSkew, getIsOffline as isOfflineNetwork} from '@libs/NetworkState';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
 import CONST from '@src/CONST';
@@ -27,6 +27,8 @@ import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyOnyxUpdate, AnyRequest, ConflictData} from '@src/types/onyx/Request';
 
 let shouldFailAllRequests: boolean;
+const reportsWithProcessedOfflineComments = new Map<string, string>();
+const OFFLINE_COMMENT_COMMANDS = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
 // Use connectWithoutView since this is for network data and don't affect to any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
@@ -170,6 +172,24 @@ function process(): Promise<void> {
         return Promise.resolve();
     }
 
+    // Offline ReadNewestAction carries a stale lastReadTime from when the user opened the report
+    // offline. If the user also sent messages offline, those messages get server-assigned timestamps
+    // that are later than the stale lastReadTime, causing the report to appear unread after reconnect.
+    // Only bump when we know the same report had offline comments processed earlier in this queue flush.
+    if (requestToProcess.command === WRITE_COMMANDS.READ_NEWEST_ACTION && requestToProcess.initiatedOffline) {
+        const reportID = requestToProcess.data?.reportID;
+        if (typeof reportID === 'string' && reportsWithProcessedOfflineComments.has(reportID)) {
+            const recordedTime = reportsWithProcessedOfflineComments.get(reportID);
+            if (recordedTime) {
+                requestToProcess.data = {
+                    ...requestToProcess.data,
+                    lastReadTime: recordedTime,
+                };
+            }
+            reportsWithProcessedOfflineComments.delete(reportID);
+        }
+    }
+
     Log.info('[SequentialQueue] Starting to process request', false, {
         command: requestToProcess.command,
         isRollback: requestToProcess.isRollback ?? false,
@@ -179,6 +199,37 @@ function process(): Promise<void> {
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
     currentRequestPromise = processWithMiddleware(requestToProcess, true)
         .then((response) => {
+            // Track offline comments so we can reconcile the following ReadNewestAction.
+            if (requestToProcess.initiatedOffline && OFFLINE_COMMENT_COMMANDS.has(requestToProcess.command)) {
+                const reportID = requestToProcess.data?.reportID;
+                if (typeof reportID === 'string') {
+                    let serverTimestamp = '';
+                    // The report's lastVisibleActionCreated in the server response carries the server-assigned
+                    // timestamp of the just-processed offline comment, which is what we need to reconcile.
+                    for (const update of response?.onyxData ?? []) {
+                        if (update.key !== `${ONYXKEYS.COLLECTION.REPORT}${reportID}`) {
+                            continue;
+                        }
+                        const value: unknown = update.value;
+                        if (value && typeof value === 'object' && 'lastVisibleActionCreated' in value) {
+                            const lastVisibleActionCreated = value.lastVisibleActionCreated;
+                            if (typeof lastVisibleActionCreated === 'string' && lastVisibleActionCreated > serverTimestamp) {
+                                serverTimestamp = lastVisibleActionCreated;
+                            }
+                        }
+                    }
+
+                    if (!serverTimestamp) {
+                        serverTimestamp = getDBTimeWithSkew();
+                    }
+
+                    const currentMax = reportsWithProcessedOfflineComments.get(reportID) ?? '';
+                    if (serverTimestamp > currentMax) {
+                        reportsWithProcessedOfflineComments.set(reportID, serverTimestamp);
+                    }
+                }
+            }
+
             Log.info('[SequentialQueue] Request processed successfully', false, {
                 command: requestToProcess.command,
                 shouldPauseQueue: response?.shouldPauseQueue ?? false,
