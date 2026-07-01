@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -9,6 +10,7 @@ import {searchUserInServer} from '@libs/actions/Report';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {filterOption, getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Participant} from '@src/types/onyx/IOU';
@@ -18,6 +20,18 @@ import DelegatorList from './DelegatorList';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import UserListItem from './SelectionList/ListItem/UserListItem';
 import SelectionList from './SelectionList/SelectionListWithSections';
+
+/** Returns the row subtitle as the national phone form for phone delegates, or `fallback`/login for emails. */
+function getDelegateAlternateText(login: string | undefined, fallback: string | undefined): string {
+    const sanitizedLogin = Str.removeSMSDomain(login ?? '');
+    if (sanitizedLogin) {
+        const parsed = parsePhoneNumber(sanitizedLogin);
+        if (parsed.valid && parsed.number?.national) {
+            return parsed.number.national;
+        }
+    }
+    return fallback ?? sanitizedLogin;
+}
 
 type BaseVacationDelegateSelectionComponentProps = {
     /** Current vacation delegate */
@@ -86,20 +100,21 @@ function BaseVacationDelegateSelectionComponent({
         const delegateOption =
             currentVacationDelegate && delegatePersonalDetails
                 ? {
-                      ...delegatePersonalDetails,
-                      text: delegatePersonalDetails?.displayName ?? currentVacationDelegate,
+                      ...(delegatePersonalDetails ?? {}),
+                      text: Str.removeSMSDomain(delegatePersonalDetails?.displayName ?? currentVacationDelegate),
                       alternateText: delegatePersonalDetails?.login ?? currentVacationDelegate,
                       login: delegatePersonalDetails.login ?? currentVacationDelegate,
                       keyForList: `vacationDelegate-${delegatePersonalDetails.login}`,
                       isDisabled: false,
                       isSelected: true,
                       shouldShowSubscript: undefined,
+                      accountID: delegatePersonalDetails?.accountID ?? CONST.DEFAULT_MISSING_ID,
                       icons: [
                           {
                               source: delegatePersonalDetails?.avatar ?? icons.FallbackAvatar,
                               name: formatPhoneNumber(delegatePersonalDetails?.login ?? ''),
                               type: CONST.ICON_TYPE_AVATAR,
-                              id: delegatePersonalDetails?.accountID,
+                              id: delegatePersonalDetails?.accountID ?? CONST.DEFAULT_MISSING_ID,
                           },
                       ],
                   }
@@ -146,7 +161,7 @@ function BaseVacationDelegateSelectionComponent({
         data: (section.data ?? []).map((option) => ({
             ...option,
             text: option.text ?? '',
-            alternateText: option.alternateText ?? option.login ?? undefined,
+            alternateText: getDelegateAlternateText(option.login, option.alternateText),
             keyForList: option.keyForList ?? '',
             isDisabled: option.isDisabled ?? undefined,
             isSelected: option.isSelected ?? undefined,

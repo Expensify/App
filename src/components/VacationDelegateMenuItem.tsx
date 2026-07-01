@@ -1,9 +1,10 @@
+import {Str} from 'expensify-common';
 import React from 'react';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePersonalDetailsByLogin from '@hooks/usePersonalDetailsByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
 import CONST from '@src/CONST';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
@@ -41,8 +42,11 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
 
     const hasVacationDelegate = !!vacationDelegate?.delegate;
     const vacationDelegatePersonalDetails = personalDetailsByLogin[vacationDelegate?.delegate?.toLowerCase() ?? ''];
-    const formattedDelegateLogin = formatPhoneNumber(vacationDelegatePersonalDetails?.login ?? '');
-    const fallbackVacationDelegateLogin = formattedDelegateLogin === '' ? vacationDelegate?.delegate : formattedDelegateLogin;
+
+    const delegateLogin = Str.removeSMSDomain(vacationDelegatePersonalDetails?.login ?? vacationDelegate?.delegate ?? '');
+    const delegateDisplayName = Str.removeSMSDomain(vacationDelegatePersonalDetails?.displayName ?? delegateLogin);
+    const parsedDelegatePhone = parsePhoneNumber(delegateLogin);
+    const delegateDescription = parsedDelegatePhone.valid && parsedDelegatePhone.number?.national ? parsedDelegatePhone.number.national : delegateLogin;
 
     return hasVacationDelegate ? (
         <>
@@ -54,8 +58,8 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
                 onClose={onCloseError}
             >
                 <MenuItem
-                    title={vacationDelegatePersonalDetails?.displayName ?? fallbackVacationDelegateLogin}
-                    description={fallbackVacationDelegateLogin}
+                    title={delegateDisplayName}
+                    description={delegateDescription}
                     avatarID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
                     icon={vacationDelegatePersonalDetails?.avatar ?? icons.FallbackAvatar}
                     iconType={CONST.ICON_TYPE_AVATAR}
