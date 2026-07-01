@@ -44,6 +44,7 @@ import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPendingReceiptRequests} from '@libs/savePendingReceiptsToGallery';
 import {useIsAgentAccount} from '@libs/SessionUtils';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -222,16 +223,43 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         });
     };
 
+    const showSaveReceiptsModal = (pendingReceiptCount: number) => {
+        return showConfirmModal({
+            title: translate('initialSettingsPage.saveReceiptsConfirmation.title'),
+            prompt: translate('initialSettingsPage.saveReceiptsConfirmation.prompt', {count: pendingReceiptCount}),
+            confirmText: translate('initialSettingsPage.saveReceiptsConfirmation.confirm'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+        });
+    };
+
     const signOut = async (shouldForceSignout = false) => {
-        if ((!network.isOffline && !isTrackingGPS) || shouldForceSignout) {
+        if (shouldForceSignout) {
             return signOutAndRedirectToSignIn();
         }
 
-        // When offline, warn the user that any actions they took while offline will be lost if they sign out
-        const result = await showSignOutModal();
-        if (result.action !== ModalActions.CONFIRM) {
-            return;
+        // `getPendingReceiptRequests` is platform-split: it returns `[]` on web via its default implementation, so no runtime platform gate is needed here.
+        const pendingReceiptCount = getPendingReceiptRequests().length;
+        const shouldWarnBeforeSignOut = network.isOffline || isTrackingGPS;
+
+        if (!shouldWarnBeforeSignOut && pendingReceiptCount === 0) {
+            return signOutAndRedirectToSignIn();
         }
+
+        if (shouldWarnBeforeSignOut) {
+            const result = await showSignOutModal();
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+        }
+
+        if (pendingReceiptCount > 0) {
+            const result = await showSaveReceiptsModal(pendingReceiptCount);
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+        }
+
         if (isTrackingGPS) {
             stopGpsTripNotification();
             stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) => console.error('[GPS distance request] Failed to stop location tracking', error));
