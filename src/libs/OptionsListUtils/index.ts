@@ -3058,6 +3058,10 @@ function formatSectionsFromSearchTerm(
     shouldGetOptionDetails = false,
     filteredWorkspaceChats: SearchOptionData[] = [],
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+    // Resolves a single report by ID instead of receiving the whole reports collection, so callers only subscribe to the reports they actually need.
+    // TODO: This default falls back to the module-level Onyx.connect() cache. Make `getReportByID` required and remove the fallback once
+    // every caller passes it and the Onyx.connect() for ONYXKEYS.COLLECTION.REPORT is removed (https://github.com/Expensify/App/issues/66378)
+    getReportByID: (reportID: string | undefined) => OnyxEntry<Report> = (reportID) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`],
 ): SectionForSearchTerm {
     // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
@@ -3071,8 +3075,7 @@ function formatSectionsFromSearchTerm(
                     ? selectedOptions.map((participant) => {
                           const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
                           if (isReportPolicyExpenseChat) {
-                              // TODO: This allReports usage is temporary and will be removed once the full Onyx.connect() refactor is complete (https://github.com/Expensify/App/issues/66378)
-                              const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
+                              const expenseReport = getReportByID(participant.reportID);
                               const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
                               const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
                               return getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, expenseReport, expenseReportPolicy, reportAttributesDerived);
@@ -3104,8 +3107,7 @@ function formatSectionsFromSearchTerm(
                 ? selectedParticipantsWithoutDetails.map((participant) => {
                       const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
                       if (isReportPolicyExpenseChat) {
-                          // TODO: This allReports usage is temporary and will be removed once the full Onyx.connect() refactor is complete (https://github.com/Expensify/App/issues/66378)
-                          const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
+                          const expenseReport = getReportByID(participant.reportID);
                           const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
                           const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
                           return getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, expenseReport, expenseReportPolicy, reportAttributesDerived);
