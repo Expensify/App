@@ -160,6 +160,7 @@ function getAccountingIntegrationData(
                     CONST.XERO_CONFIG.BILL_STATUS,
                     CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT,
                     CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT,
+                    CONST.XERO_CONFIG.DEFAULT_CONTACT,
                 ],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.XERO)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID)),

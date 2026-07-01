@@ -2300,6 +2300,87 @@ describe('ModifiedExpenseMessage', () => {
                     expect(result).toEqual('set the vendor to "v-deleted"');
                 });
             });
+
+            describe('Xero supplier changes (R4)', () => {
+                // Xero policy with two named supplier contacts. The resolver reads
+                // `connections.xero.data.contacts` (keyed Record), and the label switches to
+                // "supplier" instead of "vendor" because the policy is on Xero.
+                const policyWithXeroSuppliers: Policy = {
+                    id: 'p-1',
+                    name: 'My Workspace',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    owner: 'test@example.com',
+                    outputCurrency: CONST.CURRENCY.USD,
+                    isPolicyExpenseChatEnabled: true,
+                    connections: {
+                        xero: {
+                            config: {isConfigured: true},
+                            data: {
+                                contacts: {
+                                    xcAcme: {id: 'xcAcme', name: 'Acme Xero', email: 'acme@example.com'},
+                                    xcOffice: {id: 'xcOffice', name: 'Office Supplies Xero', email: 'office@example.com'},
+                                },
+                            },
+                        },
+                    },
+                } as unknown as Policy;
+
+                it('renders "set the supplier to X" for a Xero workspace when the supplier is set for the first time', () => {
+                    const reportAction = {
+                        ...createRandomReportAction(1),
+                        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                        originalMessage: {
+                            vendor: {externalID: 'xcAcme', isManuallySet: true},
+                        },
+                    };
+                    const result = getForReportAction({
+                        translate: translateLocal,
+                        reportAction,
+                        policy: policyWithXeroSuppliers,
+                        policyTags: undefined,
+                        currentUserLogin: CURRENT_USER_LOGIN,
+                    });
+                    expect(result).toEqual('set the supplier to "Acme Xero"');
+                });
+
+                it('renders "changed the supplier to Y (previously X)" when the supplier is changed on a Xero workspace', () => {
+                    const reportAction = {
+                        ...createRandomReportAction(1),
+                        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                        originalMessage: {
+                            oldVendor: {externalID: 'xcAcme', isManuallySet: false},
+                            vendor: {externalID: 'xcOffice', isManuallySet: true},
+                        },
+                    };
+                    const result = getForReportAction({
+                        translate: translateLocal,
+                        reportAction,
+                        policy: policyWithXeroSuppliers,
+                        policyTags: undefined,
+                        currentUserLogin: CURRENT_USER_LOGIN,
+                    });
+                    expect(result).toEqual('changed the supplier to "Office Supplies Xero" (previously "Acme Xero")');
+                });
+
+                it('falls back to rendering the externalID for a Xero supplier no longer in the contacts list', () => {
+                    const reportAction = {
+                        ...createRandomReportAction(1),
+                        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                        originalMessage: {
+                            vendor: {externalID: 'xcDeleted', isManuallySet: false},
+                        },
+                    };
+                    const result = getForReportAction({
+                        translate: translateLocal,
+                        reportAction,
+                        policy: policyWithXeroSuppliers,
+                        policyTags: undefined,
+                        currentUserLogin: CURRENT_USER_LOGIN,
+                    });
+                    expect(result).toEqual('set the supplier to "xcDeleted"');
+                });
+            });
         });
     });
 });

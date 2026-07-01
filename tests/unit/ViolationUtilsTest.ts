@@ -111,6 +111,13 @@ const inactiveVendorViolation = {
     showInReview: true,
 };
 
+const inactiveSupplierViolation = {
+    name: CONST.VIOLATIONS.INACTIVE_VENDOR,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
+    data: {isSupplierViolation: true},
+};
+
 const smartScanFailedViolation = {
     name: CONST.VIOLATIONS.SMARTSCAN_FAILED,
     type: CONST.VIOLATION_TYPES.WARNING,
@@ -2771,6 +2778,202 @@ describe('getViolationsOnyxData', () => {
 
             // Then the existing violation is not stripped — stripping it pre-hydration would briefly hide a legitimate violation
             expect(result.value).toContainEqual(inactiveVendorViolation);
+        });
+
+        describe('Xero (R4)', () => {
+            // Sentinel for "Xero connected, contacts not yet synced". Explicit symbol avoids the
+            // default-parameter trap where `undefined` would fall back to the populated default.
+            const XERO_CONTACTS_UNSYNCED = Symbol('XERO_CONTACTS_UNSYNCED');
+            const policyWithXeroVendorFeature = (
+                contacts: Record<string, {id: string; name: string; email: string}> | typeof XERO_CONTACTS_UNSYNCED = {
+                    xcActive: {id: 'xcActive', name: 'Acme Xero', email: 'acme@example.com'},
+                },
+            ) =>
+                ({
+                    requiresTag: false,
+                    requiresCategory: false,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                            config: {isConfigured: true},
+                            data: contacts === XERO_CONTACTS_UNSYNCED ? {} : {contacts},
+                        },
+                    },
+                }) as unknown as Policy;
+
+            it('adds the violation with isSupplierViolation flag when the Xero supplier ID is not in the synced contacts list', () => {
+                // Xero is the active matching source — the violation must carry the isSupplierViolation
+                // flag so the render layer uses the "Supplier no longer valid" copy that matches the
+                // rest of the Xero UI (picker, default-supplier row).
+                policy = policyWithXeroVendorFeature();
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', isManuallySet: true}};
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                expect(result.value).toEqual(expect.arrayContaining([inactiveSupplierViolation]));
+            });
+
+            it('backfills isSupplierViolation on an existing server-fired violation when Xero is the active matching source', () => {
+                // The backend can fire `inactiveVendor` directly (e.g. after a supplier deletion +
+                // sync) — that violation has no `data.isSupplierViolation` flag, so the render
+                // layer would default to the "Vendor" wording even though the rest of the Xero UI
+                // shows "Supplier". The reconciliation pass must stamp the flag on existing
+                // violations so the copy matches.
+                policy = policyWithXeroVendorFeature();
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', isManuallySet: true}};
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations: [inactiveVendorViolation],
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                expect(result.value).toEqual(expect.arrayContaining([inactiveSupplierViolation]));
+                expect(result.value).not.toContainEqual(inactiveVendorViolation);
+            });
+
+            it('strips a stale isSupplierViolation flag when the active matching source switched back from Xero to QBO', () => {
+                // Dual-connected: QBO is in CC export mode (now the active matching source), Xero
+                // is also connected with supplier data. An existing violation still carries the
+                // supplier flag from when Xero was previously active. The reconciliation must
+                // strip the stale flag so the render layer renders "Vendor" copy that matches the
+                // QBO picker, not the stale "Supplier" wording.
+                const xeroPolicyContacts = {xcActive: {id: 'xcActive', name: 'Acme Xero', email: 'acme@example.com'}};
+                policy = {
+                    requiresTag: false,
+                    requiresCategory: false,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                            data: {vendors: [{id: 'v-active', name: 'Acme QBO', currency: 'USD'}]},
+                        },
+                        [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                            config: {isConfigured: true},
+                            data: {contacts: xeroPolicyContacts},
+                        },
+                    },
+                } as unknown as Policy;
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations: [inactiveSupplierViolation],
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                expect(result.value).toContainEqual(inactiveVendorViolation);
+                expect(result.value).not.toContainEqual(inactiveSupplierViolation);
+            });
+
+            it('removes an existing violation when the Xero supplier is restored in the contacts list', () => {
+                policy = policyWithXeroVendorFeature();
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcActive', isManuallySet: true}};
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations: [inactiveVendorViolation],
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                expect(result.value).not.toContainEqual(inactiveVendorViolation);
+            });
+
+            it('does NOT add the violation when Xero contacts have not synced yet (data.contacts undefined) — the guardrail', () => {
+                // Integration-Server hasn't populated suppliers for the workspace yet. We don't
+                // know the supplier list, so we must not flag the existing transaction vendor as
+                // missing. Otherwise every matched transaction would falsely flag inactive between
+                // the beta flip and the first supplier sync.
+                policy = policyWithXeroVendorFeature(XERO_CONTACTS_UNSYNCED);
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcAnything', isManuallySet: true}};
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                expect(result.value).not.toContainEqual(inactiveVendorViolation);
+            });
+
+            it('does NOT remove a server-fired violation while Xero contacts are unsynced (avoids stripping the server signal during the sync gap)', () => {
+                // Mirror of the prior test from the inverse angle: when contacts are unknown and a
+                // server-fired inactiveVendor violation is already on the transaction, the App
+                // must preserve it rather than wiping it during the sync gap.
+                policy = policyWithXeroVendorFeature(XERO_CONTACTS_UNSYNCED);
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcActive', isManuallySet: true}};
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations: [inactiveVendorViolation],
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                expect(result.value).toEqual(expect.arrayContaining([inactiveVendorViolation]));
+            });
+
+            it('does not add the violation when the vendorMatching beta is disabled, even with Xero connected', () => {
+                isBetaEnabledSpy.mockImplementation(() => false);
+                policy = policyWithXeroVendorFeature();
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', isManuallySet: true}};
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                expect(result.value).not.toContainEqual(inactiveVendorViolation);
+            });
+
+            it('still fires for a missing QBO vendor when both QBO and Xero are connected but Xero contacts are unsynced (regression — dual-connection state)', () => {
+                // QBO is the active matching source (Credit Card export). Xero is also connected —
+                // e.g. an admin started setting up Xero but Integration-Server hasn't synced
+                // contacts yet. The guardrail must only fire when Xero is the active source; here
+                // QBO owns the vendor list, so a QBO vendor ID that isn't in the QBO vendor list
+                // must still flag inactive.
+                policy = {
+                    requiresTag: false,
+                    requiresCategory: false,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                            data: {vendors: [{id: 'v-active', name: 'Acme QBO', currency: 'USD'}]},
+                        },
+                        [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                            config: {},
+                            data: {},
+                        },
+                    },
+                } as unknown as Policy;
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                expect(result.value).toEqual(expect.arrayContaining([inactiveVendorViolation]));
+            });
         });
     });
     describe('shouldRemoveRejectedExpenseViolation (move transaction / explicit removal)', () => {

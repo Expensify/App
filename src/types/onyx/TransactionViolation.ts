@@ -116,6 +116,9 @@ type TransactionViolationData = {
     /** List of fields that failed to scan (e.g., ["merchant", "date", "amount"]) */
     missingFields?: string[];
 
+    /** True when the violation should render Xero "Supplier" wording instead of the default "Vendor" copy */
+    isSupplierViolation?: boolean;
+
     /** Start date of the rate's valid range (for customUnitRateOutOfDateRange) */
     startDate?: string;
 

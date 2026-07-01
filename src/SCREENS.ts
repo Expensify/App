@@ -585,6 +585,7 @@ const SCREENS = {
             DYNAMIC_XERO_EXPORT_PREFERRED_EXPORTER_SELECT: 'Dynamic_Workspace_Accounting_Xero_Export_Preferred_Exporter_Select',
             XERO_BILL_PAYMENT_ACCOUNT_SELECTOR: 'Policy_Accounting_Xero_Bill_Payment_Account_Selector',
             DYNAMIC_XERO_EXPORT_BANK_ACCOUNT_SELECT: 'Dynamic_Policy_Accounting_Xero_Export_Bank_Account_Select',
+            DYNAMIC_XERO_NON_REIMBURSABLE_DEFAULT_CONTACT_SELECT: 'Dynamic_Policy_Accounting_Xero_Non_Reimbursable_Default_Contact_Select',
             NETSUITE_IMPORT_MAPPING: 'Policy_Accounting_NetSuite_Import_Mapping',
             NETSUITE_IMPORT_CUSTOM_FIELD: 'Policy_Accounting_NetSuite_Import_Custom_Field',
             NETSUITE_IMPORT_CUSTOM_FIELD_VIEW: 'Policy_Accounting_NetSuite_Import_Custom_Field_View',
