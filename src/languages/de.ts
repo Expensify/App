@@ -6287,6 +6287,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 accountingMismatch: ({part}: {part: string}) =>
                     `Sie können ${part} nur kopieren, wenn alle Arbeitsbereiche dasselbe Buchhaltungssystem und dieselbe Unternehmensverbindung verwenden.`,
                 travelAddressMismatch: 'Sie können Reisen nur kopieren, wenn jeder ausgewählte Arbeitsbereich eine Unternehmensadresse hat.',
+                currencyBlockedByBankAccount:
+                    'Sie können die Währung nur kopieren, wenn jeder ausgewählte Workspace mit einem verbundenen Bankkonto die Währung des Quell-Workspace verwendet.',
             },
             confirmSettings: {
                 title: 'Stellen wir sicher, dass alles richtig aussieht.',

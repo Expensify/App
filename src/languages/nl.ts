@@ -6258,6 +6258,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 description: 'Selecteer de instellingen die je wilt overschrijven in je bestaande werkruimtes.',
                 accountingMismatch: ({part}: {part: string}) => `Je kunt ${part} alleen kopiëren als alle werkruimtes hetzelfde boekhoudsysteem en dezelfde bedrijfsverbinding gebruiken.`,
                 travelAddressMismatch: 'Je kunt reizen alleen kopiëren als elke geselecteerde werkruimte een bedrijfsadres heeft.',
+                currencyBlockedByBankAccount:
+                    'Je kunt de valuta alleen kopiëren als elke geselecteerde workspace met een gekoppelde bankrekening dezelfde valuta gebruikt als de bron-workspace.',
             },
             confirmSettings: {
                 title: 'Laten we controleren of alles er goed uitziet.',

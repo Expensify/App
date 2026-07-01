@@ -6277,6 +6277,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 accountingMismatch: ({part}: {part: string}) =>
                     `Puoi copiare ${part} solo se tutti gli spazi di lavoro usano lo stesso sistema di contabilità e la stessa connessione aziendale.`,
                 travelAddressMismatch: 'Puoi copiare i viaggi solo se ogni spazio di lavoro selezionato ha un indirizzo aziendale.',
+                currencyBlockedByBankAccount:
+                    'Puoi copiare la valuta solo se ogni spazio di lavoro selezionato con un conto bancario collegato utilizza la valuta dello spazio di lavoro di origine.',
             },
             confirmSettings: {
                 title: 'Assicuriamoci che sia tutto corretto.',

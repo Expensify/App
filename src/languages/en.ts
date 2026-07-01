@@ -6343,6 +6343,7 @@ const translations = {
                 description: 'Select the settings to overwrite on your existing workspaces.',
                 accountingMismatch: ({part}: {part: string}) => `You can only copy ${part} if all workspaces use the same accounting system and company connection.`,
                 travelAddressMismatch: 'You can only copy travel if every selected workspace has a company address.',
+                currencyBlockedByBankAccount: "You can only copy currency if every selected workspace with a connected bank account uses the source workspace's currency.",
             },
             confirmSettings: {
                 title: 'Let’s make sure everything looks right.',

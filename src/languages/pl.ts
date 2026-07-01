@@ -6250,6 +6250,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 accountingMismatch: ({part}: {part: string}) =>
                     `Możesz skopiować ${part} tylko wtedy, gdy wszystkie przestrzenie robocze używają tego samego systemu księgowego i połączenia z firmą.`,
                 travelAddressMismatch: 'Podróże możesz skopiować tylko wtedy, gdy każda wybrana przestrzeń robocza ma adres firmy.',
+                currencyBlockedByBankAccount: 'Możesz skopiować walutę tylko wtedy, gdy każde wybrane miejsce pracy z podłączonym kontem bankowym używa waluty miejsca pracy źródłowej.',
             },
             confirmSettings: {
                 title: 'Upewnijmy się, że wszystko wygląda poprawnie.',

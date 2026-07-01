@@ -6119,6 +6119,8 @@ ${amount} para ${merchant} - ${date}`,
                 accountingMismatch: ({part}: {part: string}) =>
                     `Solo puedes copiar ${part} si todos los espacios de trabajo usan el mismo sistema de contabilidad y la misma conexión de empresa.`,
                 travelAddressMismatch: 'Solo puedes copiar los viajes si cada espacio de trabajo seleccionado tiene una dirección de empresa.',
+                currencyBlockedByBankAccount:
+                    'Solo puedes copiar la divisa si todos los espacios de trabajo seleccionados con una cuenta bancaria conectada usan la divisa del espacio de trabajo de origen.',
             },
             confirmSettings: {
                 title: 'Vamos a asegurarnos de que todo se vea bien.',

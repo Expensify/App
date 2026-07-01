@@ -24,7 +24,10 @@ import {
     FEATURE_ROWS,
     getReceiptPartnersCopySettingsDescription,
     getTimeTrackingCopySettingsDescription,
+    hasCurrencyConflictWithAnyTarget,
     isCopyPolicySettingsPartEnabledOnSource,
+    isCurrencyBlockedByTargetBA,
+    needsCurrencyForWorkflows,
 } from '@libs/CopyPolicySettingsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -104,9 +107,15 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const formattedAddress = !isEmptyObject(sourcePolicy) && !isEmptyObject(sourcePolicy.address) ? formatAddressToString(sourcePolicy.address) : '';
     const workflows = getWorkflowRules(sourcePolicy, translate);
     const rules = getWorkspaceRules(sourcePolicy, translate);
+    const shouldShowCurrency = hasCurrencyConflictWithAnyTarget(sourcePolicy, targetPolicies);
+    const currencyBlockedByBA = isCurrencyBlockedByTargetBA(sourcePolicy, targetPolicies);
+    const currencyNeededForWorkflows = needsCurrencyForWorkflows(sourcePolicy, targetPolicies);
+    const hasOverviewContent = !!formattedAddress || !!sourcePolicy?.description;
 
     const sourceFeatureContext = {
         policy: sourcePolicy,
+        hasOverviewContent,
+        shouldShowCurrency,
         memberCount,
         categoriesCount,
         totalTags,
@@ -141,6 +150,9 @@ function CopyPolicySettingsSelectFeaturesPage() {
         if (part === 'travel') {
             return hasTargetWithoutAddress && !sourceHasAddress;
         }
+        if (part === 'currency') {
+            return currencyBlockedByBA;
+        }
         return false;
     };
 
@@ -151,26 +163,33 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const resolvedSelectedFeatures = selectedFeatures ?? copyPolicySettings?.parts ?? [];
     const selectedAvailableFeatures = resolvedSelectedFeatures.filter((part) => availablePartSet.has(part) && !isPartIncompatible(part));
     const isAccountingSelected = selectedAvailableFeatures.includes(CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
+    const isWorkflowsSelected = selectedAvailableFeatures.includes(CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
+    const isOverviewSelected = selectedAvailableFeatures.includes(CONST.POLICY.POLICY_FEATURE.OVERVIEW);
 
     const effectiveSelectedFeatures = isAccountingSelected
         ? Array.from(new Set<Part>([...selectedAvailableFeatures, ...CODING_PARTS_TIED_TO_CONNECTION.filter((part) => availablePartSet.has(part))]))
         : selectedAvailableFeatures;
 
-    const isOverviewSelected = selectedAvailableFeatures.includes(CONST.POLICY.POLICY_FEATURE.OVERVIEW);
+    const shouldIncludeCurrency = effectiveSelectedFeatures.length > 0 && !isPartIncompatible('currency') && (!shouldShowCurrency || (isWorkflowsSelected && currencyNeededForWorkflows));
+    if (shouldIncludeCurrency && !effectiveSelectedFeatures.includes('currency')) {
+        effectiveSelectedFeatures.push('currency');
+    }
 
     // Travel needs every target to have a company address. The source address only reaches a target
     // when "overview" is copied, so when a target lacks one require overview (and a source address to
     // copy). isPartIncompatible already hard-disables the case where the source has no address.
     const isTravelAddressMismatch = (part: Part): boolean => part === 'travel' && hasTargetWithoutAddress && !(isOverviewSelected && sourceHasAddress);
 
-    const isFeatureDisabled = (part: Part): boolean => isPartIncompatible(part) || (isAccountingSelected && isCodingPart(part)) || isTravelAddressMismatch(part);
+    const shouldSelectCurrency = (part: Part): boolean => part === 'currency' && isWorkflowsSelected && currencyNeededForWorkflows && !currencyBlockedByBA;
+    const isFeatureDisabled = (part: Part): boolean =>
+        isPartIncompatible(part) || (isAccountingSelected && isCodingPart(part)) || isTravelAddressMismatch(part) || shouldSelectCurrency(part);
 
     const getSourceDescription = (part: Part): string | undefined => {
         switch (part) {
-            case CONST.POLICY.POLICY_FEATURE.OVERVIEW: {
-                const currencyText = sourcePolicy?.outputCurrency ? `${sourcePolicy.outputCurrency} ${translate('common.currency')}` : '';
-                return [currencyText, formattedAddress].filter(Boolean).join(', ') || undefined;
-            }
+            case 'currency':
+                return sourcePolicy?.outputCurrency ?? undefined;
+            case CONST.POLICY.POLICY_FEATURE.OVERVIEW:
+                return formattedAddress || undefined;
             case CONST.POLICY.POLICY_FEATURE.MEMBERS:
                 return memberCount > 1 ? `${memberCount} ${translate('workspace.common.members').toLowerCase()}` : undefined;
             case 'reports':
@@ -220,6 +239,9 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const getAlternateText = (part: Part): string | undefined => {
         if (isTravelAddressMismatch(part)) {
             return translate('workspace.copyPolicySettings.selectSettings.travelAddressMismatch');
+        }
+        if (part === 'currency' && currencyBlockedByBA) {
+            return translate('workspace.copyPolicySettings.selectSettings.currencyBlockedByBankAccount');
         }
         if (isAccountingMismatch(part)) {
             return translate('workspace.copyPolicySettings.selectSettings.accountingMismatch', {
@@ -279,7 +301,6 @@ function CopyPolicySettingsSelectFeaturesPage() {
     };
 
     const onConfirm = () => {
-        const isWorkflowsSelected = effectiveSelectedFeatures.includes(CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
         const isMembersSelected = effectiveSelectedFeatures.includes(CONST.POLICY.POLICY_FEATURE.MEMBERS);
         const isMembersPartAvailable = availablePartSet.has(CONST.POLICY.POLICY_FEATURE.MEMBERS);
 

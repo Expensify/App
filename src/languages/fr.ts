@@ -6312,6 +6312,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 accountingMismatch: ({part}: {part: string}) =>
                     `Vous ne pouvez copier ${part} que si tous les espaces de travail utilisent le même système de comptabilité et la même connexion d’entreprise.`,
                 travelAddressMismatch: 'Vous ne pouvez copier les voyages que si chaque espace de travail sélectionné dispose d’une adresse d’entreprise.',
+                currencyBlockedByBankAccount:
+                    'Vous ne pouvez copier la devise que si chaque espace de travail sélectionné avec un compte bancaire connecté utilise la devise de l’espace de travail source.',
             },
             confirmSettings: {
                 title: 'Assurons-nous que tout est correct.',
