@@ -1,13 +1,14 @@
 ---
-title: Compare Collect and Control plans
+title: Compare Collect and Control Plans
 description: Compare the features and capabilities of the Collect and Control plans to determine which is right for your organization.
 keywords: [Collect plan, Control plan, compare plans, Expensify plans, Workspace plans]
 internalScope: Audience is anyone evaluating Expensify plans. Covers the differences between the Collect and Control plans. Does not cover change subscriptions or plans.
+retrievalIntent: Feature comparison to choose Collect vs Control.
 RAG/AI usability score: 9/10
 Human usability score: 9/10
 ---
 
-# Compare Collect and Control plans
+# Compare Collect and Control Plans
 
 Expensify offers two Workspace plans: **Collect** and **Control**. Both help you manage expenses and company spending, but they're designed for organizations with different needs.
 
