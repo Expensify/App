@@ -9788,11 +9788,16 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
     },
     submitPlanWelcomeModal: {
-        title: 'Odzyskaj pieniądze, za darmo',
-        description:
-            'Wybierz darmowy plan Submit, aby kodować wydatki, tworzyć raporty i przesyłać je do menedżera w celu zwrotu kosztów. Dostosuj kategorie i tagi, śledź przebieg i współpracuj ze swoimi współpracownikami.',
+        title: 'Chcesz DARMOWY plan dla pracownika?',
+        description: 'Nie czekaj, aż Twoja firma zacznie korzystać z Expensify. Stworzyliśmy darmowy plan specjalnie dla Ciebie:',
         confirmText: 'Wybierz darmowy plan',
         dismissText: 'Nie, dziękuję',
+        features: {
+            getReimbursed: 'Szybciej otrzymuj zwroty kosztów, bezpośrednio w Expensify',
+            buildReports: 'Twórz raporty wydatków w kilka sekund',
+            categorize: 'Kategoryzuj swoje wydatki',
+            inviteBoss: 'Zaproś swojego szefa, gdy będziesz gotowy',
+        },
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Rozpocznij <strong>tutaj!</strong></tooltip>',

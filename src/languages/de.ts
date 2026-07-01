@@ -9849,11 +9849,16 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
     },
     submitPlanWelcomeModal: {
-        title: 'Lass dir Geld zurückerstatten – kostenlos',
-        description:
-            'Hol dir den kostenlosen Submit-Tarif, um deine Ausgaben zu kategorisieren, Berichte zu erstellen und sie deinem Manager zur Erstattung einzureichen. Passe Kategorien und Tags an, erfasse Kilometer und arbeite mit deinem Team zusammen.',
+        title: 'Möchtest du einen KOSTENLOSEN Mitarbeitertarif?',
+        description: 'Warte nicht, bis dein Unternehmen Expensify einführt. Wir haben einen kostenlosen Tarif nur für dich entwickelt:',
         confirmText: 'Kostenlosen Tarif holen',
         dismissText: 'Nein, danke',
+        features: {
+            getReimbursed: 'Schneller erstattet werden – direkt in Expensify',
+            buildReports: 'Erstelle Ausgabenberichte in Sekunden',
+            categorize: 'Kategorisiere deine Ausgaben',
+            inviteBoss: 'Lade deinen Chef ein, wenn du bereit bist',
+        },
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Beginne <strong>hier!</strong></tooltip>',

@@ -9807,11 +9807,16 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
     },
     submitPlanWelcomeModal: {
-        title: 'Krijg je geld terug, gratis',
-        description:
-            'Kies het gratis Submit-abonnement om je onkosten te coderen, rapporten op te bouwen en ze bij je manager in te dienen voor terugbetaling. Pas categorieën en tags aan, houd kilometers bij en werk samen met je teamgenoten.',
+        title: 'Wil je een GRATIS werknemersabonnement?',
+        description: 'Wacht niet tot je bedrijf Expensify gaat gebruiken. We hebben een gratis abonnement speciaal voor jou gemaakt:',
         confirmText: 'Kies het gratis abonnement',
         dismissText: 'Nee, bedankt',
+        features: {
+            getReimbursed: 'Krijg sneller terugbetaald, direct in Expensify',
+            buildReports: 'Maak onkostenrapporten in enkele seconden',
+            categorize: 'Categoriseer je uitgaven',
+            inviteBoss: 'Nodig je baas uit wanneer je er klaar voor bent',
+        },
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Begin <strong>hier!</strong></tooltip>',

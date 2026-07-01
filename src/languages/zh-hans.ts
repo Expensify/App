@@ -9515,10 +9515,16 @@ ${reportName}`,
         },
     },
     submitPlanWelcomeModal: {
-        title: '免费获得报销',
-        description: '获取免费的 Submit 方案来为你的支出分类、创建报告并提交给经理进行报销。自定义类别和标签、记录里程，并与团队成员协作。',
+        title: '想要免费的员工方案吗？',
+        description: '无需等待公司启用 Expensify。我们专为你打造了一个免费方案：',
         confirmText: '获取免费方案',
         dismissText: '不用了，谢谢',
+        features: {
+            getReimbursed: '直接在 Expensify 中更快获得报销',
+            buildReports: '几秒钟即可创建费用报告',
+            categorize: '为你的支出分类',
+            inviteBoss: '准备好后即可邀请你的上司',
+        },
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>从<strong>这里</strong>开始！</tooltip>',

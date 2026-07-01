@@ -9837,11 +9837,16 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         },
     },
     submitPlanWelcomeModal: {
-        title: 'Fatti rimborsare, gratis',
-        description:
-            'Ottieni il piano Submit gratuito per codificare le tue spese, creare report e inviarli al tuo manager per il rimborso. Personalizza categorie e tag, monitora i chilometri e collabora con i tuoi colleghi.',
+        title: 'Vuoi un piano dipendente GRATUITO?',
+        description: 'Non aspettare che la tua azienda adotti Expensify. Abbiamo creato un piano gratuito apposta per te:',
         confirmText: 'Ottieni il piano gratuito',
         dismissText: 'No, grazie',
+        features: {
+            getReimbursed: 'Ottieni il rimborso più velocemente, direttamente in Expensify',
+            buildReports: 'Crea report di spesa in pochi secondi',
+            categorize: 'Categorizza le tue spese',
+            inviteBoss: 'Invita il tuo capo quando sei pronto',
+        },
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Inizia <strong>qui!</strong></tooltip>',

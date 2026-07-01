@@ -10004,11 +10004,16 @@ ${amount} para ${merchant} - ${date}`,
         },
     },
     submitPlanWelcomeModal: {
-        title: 'Consigue que te reembolsen, gratis',
-        description:
-            'Obtén el plan Submit gratuito para codificar tus gastos, crear informes y enviarlos a tu gerente para su reembolso. Personaliza categorías y etiquetas, registra el kilometraje y colabora con tus compañeros de equipo.',
+        title: '¿Quieres un plan de empleado GRATIS?',
+        description: 'No esperes a que tu empresa use Expensify. Creamos un plan gratuito solo para ti:',
         confirmText: 'Obtener el plan gratuito',
         dismissText: 'No, gracias',
+        features: {
+            getReimbursed: 'Recibe tus reembolsos más rápido, directamente en Expensify',
+            buildReports: 'Crea informes de gastos en segundos',
+            categorize: 'Clasifica tus gastos',
+            inviteBoss: 'Invita a tu jefe cuando estés listo',
+        },
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>¡Comienza <strong>aquí</strong>!</tooltip>',

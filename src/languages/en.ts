@@ -9925,11 +9925,16 @@ const translations = {
         },
     },
     submitPlanWelcomeModal: {
-        title: 'Get paid back, for free',
-        description:
-            'Get the free Submit plan to code your expenses, build reports, and submit them to your manager for reimbursement. Customize categories and tags, track mileage, and collaborate with your teammates.',
+        title: 'Want a FREE employee plan?',
+        description: "Don't wait for your company to get Expensify. We built a free plan just for you:",
         confirmText: 'Get the free plan',
         dismissText: 'No thanks',
+        features: {
+            getReimbursed: 'Get reimbursed faster, right in Expensify',
+            buildReports: 'Build expense reports in seconds',
+            categorize: 'Categorize your expenses',
+            inviteBoss: "Invite your boss when you're ready",
+        },
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room

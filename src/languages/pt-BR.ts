@@ -9792,11 +9792,16 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
     },
     submitPlanWelcomeModal: {
-        title: 'Seja reembolsado, de graça',
-        description:
-            'Escolha o plano Submit gratuito para codificar suas despesas, criar relatórios e enviá-los ao seu gerente para reembolso. Personalize categorias e tags, acompanhe a quilometragem e colabore com seus colegas de equipe.',
+        title: 'Quer um plano de funcionário GRÁTIS?',
+        description: 'Não espere sua empresa adotar o Expensify. Criamos um plano gratuito só para você:',
         confirmText: 'Obter o plano gratuito',
         dismissText: 'Não, obrigado',
+        features: {
+            getReimbursed: 'Seja reembolsado mais rápido, direto no Expensify',
+            buildReports: 'Crie relatórios de despesas em segundos',
+            categorize: 'Categorize suas despesas',
+            inviteBoss: 'Convide seu chefe quando estiver pronto',
+        },
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Comece <strong>aqui!</strong></tooltip>',

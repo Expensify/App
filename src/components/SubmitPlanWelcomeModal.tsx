@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -10,8 +11,17 @@ import {dismissProductTraining} from '@libs/actions/Welcome';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import CenteredModalLayout from './CenteredModalLayout';
 import FeatureTrainingContent from './FeatureTrainingContent';
+import Text from './Text';
+
+const FEATURE_TRANSLATION_KEYS: TranslationPaths[] = [
+    'submitPlanWelcomeModal.features.getReimbursed',
+    'submitPlanWelcomeModal.features.buildReports',
+    'submitPlanWelcomeModal.features.categorize',
+    'submitPlanWelcomeModal.features.inviteBoss',
+];
 
 function SubmitPlanWelcomeModal() {
     const {translate} = useLocalize();
@@ -51,9 +61,22 @@ function SubmitPlanWelcomeModal() {
                 onHelp={handleClose}
                 onClose={handleClose}
                 shouldCloseOnConfirm={false}
+                contentInnerContainerStyles={styles.mb5}
                 contentOuterContainerStyles={!shouldUseNarrowLayout && [styles.mt8, styles.mh8]}
                 shouldUseScrollView
-            />
+            >
+                <View style={[styles.gap2, styles.mt3]}>
+                    {FEATURE_TRANSLATION_KEYS.map((translationKey) => (
+                        <View
+                            key={translationKey}
+                            style={[styles.flexRow, styles.alignItemsStart]}
+                        >
+                            <Text style={styles.textSupporting}>{'\u2022  '}</Text>
+                            <Text style={[styles.textSupporting, styles.flex1]}>{translate(translationKey)}</Text>
+                        </View>
+                    ))}
+                </View>
+            </FeatureTrainingContent>
         </CenteredModalLayout>
     );
 }

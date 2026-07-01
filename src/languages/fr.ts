@@ -9881,11 +9881,16 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
     },
     submitPlanWelcomeModal: {
-        title: 'Faites-vous rembourser, gratuitement',
-        description:
-            'Obtenez le forfait Submit gratuit pour coder vos dépenses, créer des rapports et les soumettre à votre responsable pour remboursement. Personnalisez les catégories et les tags, suivez le kilométrage et collaborez avec vos collègues.',
+        title: 'Vous voulez un forfait employé GRATUIT ?',
+        description: "N'attendez pas que votre entreprise adopte Expensify. Nous avons créé un forfait gratuit rien que pour vous :",
         confirmText: 'Obtenir le forfait gratuit',
         dismissText: 'Non merci',
+        features: {
+            getReimbursed: 'Soyez remboursé plus vite, directement dans Expensify',
+            buildReports: 'Créez des rapports de dépenses en quelques secondes',
+            categorize: 'Catégorisez vos dépenses',
+            inviteBoss: 'Invitez votre responsable quand vous êtes prêt',
+        },
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Commencez <strong>ici&nbsp;!</strong></tooltip>',
