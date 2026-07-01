@@ -1,7 +1,6 @@
 import buildConfirmAction from '@components/MoneyRequestConfirmationList/confirmAction';
 import type {hasInvoicingDetails} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import type {Participant} from '@src/types/onyx/IOU';
 
 const mockNavigate = jest.fn();
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -12,8 +11,6 @@ jest.mock('@userActions/Policy/Policy', () => ({hasInvoicingDetails: jest.fn(() 
 
 type Params = Parameters<typeof buildConfirmAction>[0];
 
-const selectedParticipants = [{accountID: 1}] as unknown as Participant[];
-
 function makeBase(overrides: Partial<Params> = {}): Params {
     return {
         iouType: CONST.IOU.TYPE.SUBMIT,
@@ -22,7 +19,6 @@ function makeBase(overrides: Partial<Params> = {}): Params {
         reportID: 'report1',
         routeError: undefined,
         formError: '',
-        selectedParticipants,
         isDelegateAccessRestricted: false,
         validate: jest.fn(() => ({errorKey: null})),
         setFormError: jest.fn(),
@@ -43,7 +39,7 @@ describe('buildConfirmAction', () => {
         const params = makeBase();
         const handler = buildConfirmAction(params);
         handler({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
-        expect(params.onConfirm).toHaveBeenCalledWith(selectedParticipants);
+        expect(params.onConfirm).toHaveBeenCalledWith();
         expect(params.onSendMoney).not.toHaveBeenCalled();
     });
 

@@ -41,7 +41,7 @@ import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 
 // The values below are only consumed by submit-time helpers in this module, never during render.
 // Onyx.connectWithoutView is appropriate. If React components need these values, use useOnyx instead.
@@ -130,6 +130,13 @@ let reportAttributesDerivedValue: OnyxEntry<ReportAttributesDerivedValue>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
     callback: (value) => (reportAttributesDerivedValue = value),
+});
+
+let allPolicyTags: OnyxCollection<OnyxTypes.PolicyTagLists>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
+    waitForCollectionCallback: true,
+    callback: (value) => (allPolicyTags = value),
 });
 
 type SubmitAmountArgs = {
@@ -299,9 +306,14 @@ function submitAmount({
                     : getReportOption(participant, privateIsArchived, policy, allPersonalDetails, conciergeReportID, reportAttributesReports, reportDraft);
             });
             const backendAmount = convertToBackendAmount(Number.parseFloat(amount));
+            const isIouReport = isMoneyRequestReport(report);
+            const participant = participants.at(0);
+            const moneyRequestReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${isIouReport ? report?.reportID : undefined}`];
+            const participantReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant?.reportID}`];
+            const iouReportPolicyID = moneyRequestReport?.policyID ?? (!isMovingTransactionFromTrackExpense(action) && report?.policyID) ?? participantReport?.policyID;
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${iouReportPolicyID}`] ?? getEmptyObject<OnyxTypes.PolicyTagLists>();
 
             if (shouldSkipConfirmation) {
-                const participant = participants.at(0);
                 const defaultReimbursable = calculateDefaultReimbursable({
                     iouType,
                     policy,
@@ -364,7 +376,7 @@ function submitAmount({
                             participantParams: {
                                 payeeEmail: currentUserEmailParam,
                                 payeeAccountID: currentUserAccountIDParam,
-                                participant: participants.at(0) ?? {},
+                                participant: participant ?? {},
                             },
                             transactionParams: {
                                 amount: backendAmount,
@@ -392,7 +404,7 @@ function submitAmount({
                             report,
                             betas,
                             participantParams: {
-                                participant: participants.at(0) ?? {},
+                                participant: participant ?? {},
                                 payeeEmail: currentUserEmailParam,
                                 payeeAccountID: currentUserAccountIDParam,
                             },
@@ -405,6 +417,7 @@ function submitAmount({
                                 reimbursable: defaultReimbursable,
                                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                             },
+                            policyParams: {policyTagList: policyTags},
                             shouldGenerateTransactionThreadReport: false,
                             isASAPSubmitBetaEnabled,
                             currentUserAccountIDParam,
