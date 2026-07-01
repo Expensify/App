@@ -1218,7 +1218,7 @@ const translations: TranslationDeepObject<typeof en> = {
         approved: 'Zatwierdzono',
         cash: 'Gotówka',
         card: 'Karta',
-        original: 'Oryginał',
+        purchase: 'Zakup',
         split: 'Podziel',
         splitExpense: 'Podziel wydatek',
         splitDates: 'Podziel daty',
