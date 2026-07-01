@@ -47,7 +47,6 @@ export default function DomainAdminsTableRow({item, rowIndex, shouldUseNarrowTab
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
-            skeletonReasonAttributes={{context: 'domainAdminsTableRow'}}
             sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.ROW}
             offlineWithFeedback={{
                 errors: item.errors,

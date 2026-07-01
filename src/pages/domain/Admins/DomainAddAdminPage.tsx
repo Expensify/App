@@ -19,7 +19,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
-import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
@@ -28,6 +27,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsLoginsSelector} from '@src/selectors/PersonalDetails';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 type Sections = Section<OptionData>;
 
@@ -47,6 +48,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
     const [adminIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: adminAccountIDsSelector,
     });
+    const [adminLoginsByAccountIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginsSelector(adminIDs)});
 
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const didInvite = useRef<boolean>(false);
@@ -58,7 +60,6 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
     const excludedUsers: Record<string, boolean> = {
         ...CONST.EXPENSIFY_EMAILS_OBJECT,
     };
-    const adminLoginsByAccountIDs = getLoginsByAccountIDs(adminIDs ?? []);
     for (const login of adminLoginsByAccountIDs) {
         const smsDomain = addSMSDomainIfPhoneNumber(login);
         excludedUsers[smsDomain] = true;

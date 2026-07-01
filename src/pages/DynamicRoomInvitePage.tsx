@@ -73,7 +73,7 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
         ...CONST.EXPENSIFY_EMAILS_OBJECT,
     };
     const participantsAccountIDs = getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata);
-    const loginsByAccountIDs = getLoginsByAccountIDs(participantsAccountIDs);
+    const loginsByAccountIDs = getLoginsByAccountIDs(participantsAccountIDs, personalDetailsList);
     for (const login of loginsByAccountIDs) {
         const smsDomain = addSMSDomainIfPhoneNumber(login);
         excludedUsers[smsDomain] = true;
