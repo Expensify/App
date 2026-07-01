@@ -516,6 +516,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Éditeur',
         restrictions: 'Restrictions',
+        tagGLCode: 'Taguer le code GL',
         off: 'Désactivé',
     },
     socials: {
@@ -1350,6 +1351,9 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Êtes-vous sûr de vouloir supprimer ces rapports ?',
         }),
         settledExpensify: 'Payé',
+        paidStatusMarkedAsPaid: 'Marqué comme payé',
+        paidStatusWithdrawing: 'Retrait',
+        paidStatusConfirmed: 'Confirmé',
         done: 'Terminé',
         settledElsewhere: 'Payé ailleurs',
         individual: 'Individuel',
@@ -1670,6 +1674,10 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpenses: 'Déplacer vers le rapport',
         moveExpensesError:
             'Vous ne pouvez pas déplacer des frais de per diem vers des notes de frais d’autres espaces de travail, car les taux de per diem peuvent varier d’un espace de travail à l’autre.',
+        submitReportTo: {
+            sendExpense: 'Envoyez votre dépense à n’importe qui',
+            sendExpenseSubtitle: 'Invitez n’importe qui sur Expensify en utilisant son adresse e-mail ou son numéro de téléphone.',
+        },
         changeApprover: {
             title: 'Modifier l’approbateur',
             header: (workflowSettingLink: string) =>
@@ -6375,9 +6383,17 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 one: 'Nommer administrateur de l’espace de travail',
                 other: 'Nommer des administrateurs de l’espace de travail',
             }),
+            makeGroupAdmin: () => ({
+                one: 'Nommer administrateur',
+                other: 'Nommer des administrateurs',
+            }),
             makeAuditor: () => ({
                 one: 'Nommer auditeur',
                 other: 'Créer des auditeurs',
+            }),
+            makePeopleAdmin: () => ({
+                one: 'Nommer administrateur des personnes',
+                other: 'Nommer des administrateurs des personnes',
             }),
             selectAll: 'Tout sélectionner',
             error: {
@@ -6411,6 +6427,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             syncWithHR: (providerName: string) => `Synchroniser avec ${providerName}`,
             makeCardAdmin: () => ({one: 'Nommer administrateur de carte', other: 'Nommer des administrateurs de carte'}),
             cardAdmins: 'Administrateurs de cartes',
+            peopleAdmins: 'Administrateurs des personnes',
             members: 'Membres',
         },
         card: {
@@ -8336,7 +8353,14 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `règle de dépense provenant de ${cards}`,
                 composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} sur ${cards}`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} de ${cards}`,
+                bodyCurrencyValueOnly: ({value}: {value: string}) => `'${value}'`,
+                bodyCurrency: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `Devise ${adjective} « ${value} »` : `devise « ${value} »`),
+                bodyCurrencyChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `Devise ${adjective} de « ${oldValue} » à « ${newValue} »` : `devise de « ${oldValue} » à « ${newValue} »`,
+                bodyCurrencyRestriction: 'la restriction de devise',
             },
+            allowedCurrencyFilters: ({currencies}: {currencies: string}) => `devises ${currencies}`,
+            blockedCurrencyFilters: ({currencies}: {currencies: string}) => `devises ne figurant pas dans ${currencies}`,
         },
         updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
             `a modifié le taux de taxe par défaut de la catégorie « ${categoryName} » en « ${newTax} » (auparavant « ${oldTax} »)`,
@@ -9328,6 +9352,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         resolvedDuplicates: 'a résolu le doublon',
         companyCardRequired: 'Achats par carte d’entreprise obligatoires',
         noRoute: 'Veuillez sélectionner une adresse valide',
+        customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `Le taux n’est valable que du ${startDate} au ${endDate}`,
+        customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Le taux n’est valable qu’à partir du ${startDate}`,
+        customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Le taux n’est valable que jusqu’au ${endDate}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} est obligatoire`,
@@ -9388,10 +9415,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             'Nous serions ravis d’organiser un appel avec vous pour comprendre pourquoi. Vous pouvez réserver un appel avec l’un de nos chefs de produit senior pour discuter de vos besoins.',
         takeMeToExpensifyClassic: 'M’emmener vers Expensify Classic',
         goBackJustOnce: 'Revenir une seule fois',
-    },
-    listBoundary: {
-        errorMessage: 'Une erreur est survenue lors du chargement de messages supplémentaires',
-        tryAgain: 'Réessayer',
     },
     systemMessage: {
         mergedWithCashTransaction: 'a fait correspondre un reçu à cette transaction',

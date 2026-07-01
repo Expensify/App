@@ -14,6 +14,7 @@ import {isReceiptError} from '@libs/ErrorUtils';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {
     arePolicyRulesEnabled,
     getDistanceRateCustomUnitRate,
@@ -267,6 +268,14 @@ function getTagViolationMessagesForMultiLevelTags(tagName: string | undefined, e
     return errorIndexes.map((i) => translate('violations.someTagLevelsRequired', tagsWithIndexes[i]?.name)).join('. ');
 }
 
+function formatViolationDate(date?: string): string | undefined {
+    if (!date) {
+        return undefined;
+    }
+
+    return DateUtils.formatWithUTCTimeZone(date, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
+}
+
 /**
  * Extracts unique error messages from errors and actions
  */
@@ -309,7 +318,21 @@ function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: Repo
  * Returns true if the violation should be cleared, false if it should persist.
  */
 function getIsViolationFixed(violationError: string, params: ViolationFixParams): boolean {
-    const {category, tag, taxCode, taxValue, policyCategories, policyTagLists, policyTaxRates, iouAttendees, currentUserPersonalDetails, isAttendeeTrackingEnabled, isControlPolicy} = params;
+    const {
+        category,
+        tag,
+        taxCode,
+        taxValue,
+        policyCategories,
+        policyTagLists,
+        policyTaxRates,
+        iouAttendees,
+        currentUserPersonalDetails,
+        isAttendeeTrackingEnabled,
+        isControlPolicy,
+        mileageRate,
+        expenseDate,
+    } = params;
 
     const violationValidators: Record<string, () => boolean> = {
         [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY}`]: () => {
@@ -345,10 +368,78 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
             // Attendees violation is fixed if getIsMissingAttendeesViolation returns false
             return !getIsMissingAttendeesViolation(policyCategories, category, iouAttendees, currentUserPersonalDetails, isAttendeeTrackingEnabled, isControlPolicy);
         },
+        [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE}`]: () => {
+            if (!expenseDate || !mileageRate) {
+                return true;
+            }
+            return DistanceRequestUtils.isRateEligibleForDate(mileageRate, expenseDate);
+        },
     };
 
     const validator = violationValidators[violationError];
     return validator ? validator() : false;
+}
+
+/**
+ * Returns whether a violation should be shown when filtering to hard violations only.
+ * customUnitRateOutOfDateRange is a WARNING but must still render for date-bound mileage rates.
+ */
+function isHardViolationOrRateDateWarning(violation: TransactionViolation): boolean {
+    return violation.type === CONST.VIOLATION_TYPES.VIOLATION || violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE;
+}
+
+/**
+ * Syncs the customUnitRateOutOfDateRange violation with the current transaction rate and expense date.
+ * Adds, removes, or updates the violation so the rate field reflects the selected rate's date bounds.
+ */
+function syncCustomUnitRateOutOfDateRangeViolation(violations: TransactionViolation[], transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>): TransactionViolation[] {
+    if (!transaction || !TransactionUtils.isDistanceRequest(transaction)) {
+        return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE);
+    }
+
+    const customUnitRateID = transaction.comment?.customUnit?.customUnitRateID;
+    const expenseDate = TransactionUtils.getCreated(transaction);
+    const isOutOfDateRange = DistanceRequestUtils.isCustomUnitRateOutOfDateRange({customUnitRateID, policy, expenseDate});
+    const hasViolation = violations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE);
+
+    if (!isOutOfDateRange && !hasViolation) {
+        return violations;
+    }
+
+    if (!isOutOfDateRange) {
+        return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE);
+    }
+
+    if (!customUnitRateID) {
+        return violations;
+    }
+
+    const mileageRate = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID, policy});
+    const violationData = {
+        startDate: mileageRate?.startDate ?? undefined,
+        endDate: mileageRate?.endDate ?? undefined,
+    };
+
+    if (!hasViolation) {
+        return [
+            ...violations,
+            {
+                name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                type: CONST.VIOLATION_TYPES.WARNING,
+                showInReview: true,
+                data: violationData,
+            },
+        ];
+    }
+
+    return violations.map((violation) =>
+        violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE
+            ? {
+                  ...violation,
+                  data: violationData,
+              }
+            : violation,
+    );
 }
 
 const ViolationsUtils = {
@@ -368,6 +459,7 @@ const ViolationsUtils = {
         iouReport,
         isFromExpenseReport,
         shouldRemoveRejectedExpenseViolation,
+        distanceOriginalPolicy,
     }: {
         updatedTransaction: Transaction;
         transactionViolations: TransactionViolation[];
@@ -380,6 +472,7 @@ const ViolationsUtils = {
         iouReport?: OnyxEntry<Report>;
         isFromExpenseReport?: boolean;
         shouldRemoveRejectedExpenseViolation?: boolean;
+        distanceOriginalPolicy?: OnyxEntry<Policy>;
     }): OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> {
         const isScanning = TransactionUtils.isScanning(updatedTransaction);
         const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
@@ -529,12 +622,24 @@ const ViolationsUtils = {
         }
 
         const customUnitRateID = updatedTransaction?.comment?.customUnit?.customUnitRateID;
-        if (customUnitRateID && customUnitRateID.length > 0 && !isSelfDM) {
+        const isDistanceRequestForCustomUnit = TransactionUtils.isDistanceRequest(updatedTransaction);
+        if (customUnitRateID && customUnitRateID.length > 0 && (!isSelfDM || isDistanceRequestForCustomUnit)) {
             const isPerDiem = TransactionUtils.isPerDiemRequest(updatedTransaction);
-            const customRate = isPerDiem ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : getDistanceRateCustomUnitRate(policy, customUnitRateID);
+            let policyForCustomUnitRate = policy;
+
+            if (!isPerDiem && isDistanceRequestForCustomUnit && !getDistanceRateCustomUnitRate(policy, customUnitRateID)) {
+                policyForCustomUnitRate = distanceOriginalPolicy ?? policy;
+            }
+
+            const customRate = isPerDiem ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : getDistanceRateCustomUnitRate(policyForCustomUnitRate, customUnitRateID);
             if (customRate && customRate.enabled !== false) {
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
+                newTransactionViolations = syncCustomUnitRateOutOfDateRangeViolation(newTransactionViolations, updatedTransaction, policyForCustomUnitRate);
+            } else if (isSelfDM && isDistanceRequestForCustomUnit) {
+                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE});
+                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
             } else {
+                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE});
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
                     type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -633,28 +738,19 @@ const ViolationsUtils = {
         const attendees = convertAttendeesToArray(rawAttendees);
         const isAttendeeTrackingEnabled = isAttendeeTrackingEnabledForPolicy(policy);
         // Filter out the owner/creator when checking attendance count - expense is valid if at least one non-owner attendee is present
-        const ownerAccountID = iouReport?.ownerAccountID;
-        // Calculate attendees minus owner. When ownerAccountID is known, filter by accountID.
-        // When ownerAccountID is undefined (offline split where iouReport is unavailable),
-        // fallback to using login/email to identify the owner (similar to AttendeeUtils approach).
         let attendeesMinusOwnerCount: number;
-        if (ownerAccountID !== undefined) {
-            // Normal case: filter by accountID
-            attendeesMinusOwnerCount = attendees.filter((a) => a?.accountID !== ownerAccountID).length;
+        // Prefer the actual report owner's login; fall back to the current user when the report is unavailable (e.g. an offline-created expense)
+        const ownerLogin = getLoginByAccountID(iouReport?.ownerAccountID) ?? getCurrentUserEmail();
+        if (ownerLogin) {
+            // Filter by login or email to identify owner
+            attendeesMinusOwnerCount = attendees.filter((a) => {
+                const attendeeIdentifier = a?.email;
+                return attendeeIdentifier !== ownerLogin;
+            }).length;
         } else {
-            // Offline scenario: ownerAccountID unavailable, use login/email as fallback
-            const currentUserEmail = getCurrentUserEmail();
-            if (currentUserEmail) {
-                // Filter by login or email to identify owner
-                attendeesMinusOwnerCount = attendees.filter((a) => {
-                    const attendeeIdentifier = a?.login ?? a?.email;
-                    return attendeeIdentifier !== currentUserEmail;
-                }).length;
-            } else {
-                // Can't identify owner at all - if there are attendees, assume owner is one of them
-                // This means we need at least 2 attendees to have a non-owner attendee
-                attendeesMinusOwnerCount = Math.max(0, attendees.length - 1);
-            }
+            // Can't identify owner at all - if there are attendees, assume owner is one of them
+            // This means we need at least 2 attendees to have a non-owner attendee
+            attendeesMinusOwnerCount = Math.max(0, attendees.length - 1);
         }
 
         const shouldShowMissingAttendees =
@@ -845,6 +941,21 @@ const ViolationsUtils = {
                 return translate('violations.conversionSurcharge', surcharge);
             case 'customUnitOutOfPolicy':
                 return translate('violations.customUnitOutOfPolicy');
+            case CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE: {
+                const {startDate, endDate} = violation.data ?? {};
+                const formattedStartDate = formatViolationDate(startDate);
+                const formattedEndDate = formatViolationDate(endDate);
+                if (formattedStartDate && formattedEndDate) {
+                    return translate('violations.customUnitRateOutOfDateRange', {startDate: formattedStartDate, endDate: formattedEndDate});
+                }
+                if (formattedStartDate) {
+                    return translate('violations.customUnitRateOutOfDateRangeStartOnly', {startDate: formattedStartDate});
+                }
+                if (formattedEndDate) {
+                    return translate('violations.customUnitRateOutOfDateRangeEndOnly', {endDate: formattedEndDate});
+                }
+                return '';
+            }
             case 'duplicatedTransaction':
                 return translate('violations.duplicatedTransaction');
             case 'fieldRequired':
@@ -1045,6 +1156,6 @@ const ViolationsUtils = {
     },
 };
 
-export {getIsViolationFixed};
+export {getIsViolationFixed, isHardViolationOrRateDateWarning, syncCustomUnitRateOutOfDateRangeViolation};
 export default ViolationsUtils;
 export {filterReceiptViolations};

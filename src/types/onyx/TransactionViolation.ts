@@ -118,6 +118,12 @@ type TransactionViolationData = {
 
     /** True when the violation should render Xero "Supplier" wording instead of the default "Vendor" copy */
     isSupplierViolation?: boolean;
+
+    /** Start date of the rate's valid range (for customUnitRateOutOfDateRange) */
+    startDate?: string;
+
+    /** End date of the rate's valid range (for customUnitRateOutOfDateRange) */
+    endDate?: string;
 };
 
 /** Model of a transaction violation */

@@ -528,6 +528,7 @@ const translations = {
         year: 'Year',
         quarter: 'Quarter',
         restrictions: 'Restrictions',
+        tagGLCode: 'Tag GL code',
         concierge: {
             greeting: 'Hi there, how can I help?',
             showHistory: 'Show history',
@@ -1405,6 +1406,9 @@ const translations = {
             other: 'Are you sure that you want to delete these reports?',
         }),
         settledExpensify: 'Paid',
+        paidStatusMarkedAsPaid: 'Marked as paid',
+        paidStatusWithdrawing: 'Withdrawing',
+        paidStatusConfirmed: 'Confirmed',
         done: 'Done',
         deleted: 'Deleted',
         settledElsewhere: 'Paid elsewhere',
@@ -1725,6 +1729,10 @@ const translations = {
         },
         moveExpenses: 'Move to report',
         moveExpensesError: "You can't move per diem expenses to reports on other workspaces, because the per diem rates may differ between workspaces.",
+        submitReportTo: {
+            sendExpense: 'Send your expense to anyone',
+            sendExpenseSubtitle: 'Invite anyone to Expensify by using their email address or phone number.',
+        },
         changeApprover: {
             title: 'Change approver',
             header: (workflowSettingLink: string) =>
@@ -6405,6 +6413,10 @@ const translations = {
                 one: 'Make workspace admin',
                 other: 'Make workspace admins',
             }),
+            makeGroupAdmin: () => ({
+                one: 'Make admin',
+                other: 'Make admins',
+            }),
             makeAuditor: () => ({
                 one: 'Make auditor',
                 other: 'Make auditors',
@@ -6412,6 +6424,10 @@ const translations = {
             makeCardAdmin: () => ({
                 one: 'Make card admin',
                 other: 'Make card admins',
+            }),
+            makePeopleAdmin: () => ({
+                one: 'Make people admin',
+                other: 'Make people admins',
             }),
             selectAll: 'Select all',
             error: {
@@ -6427,6 +6443,7 @@ const translations = {
             allMembers: 'All members',
             admins: 'Workspace Admins',
             cardAdmins: 'Card Admins',
+            peopleAdmins: 'People Admins',
             approvers: 'Approvers',
             auditors: 'Auditors',
             editors: 'Editors',
@@ -8009,6 +8026,8 @@ const translations = {
                 under: 'under',
             },
             amountFilter: ({operator, amount}: {operator: string; amount: string}) => `amounts ${operator} ${amount}`,
+            allowedCurrencyFilters: ({currencies}: {currencies: string}) => `currencies ${currencies}`,
+            blockedCurrencyFilters: ({currencies}: {currencies: string}) => `currencies not in ${currencies}`,
             theCard: 'the card',
             multipleCards: ({count}: {count: number}) => ({
                 one: '1 card',
@@ -8048,6 +8067,11 @@ const translations = {
                 bodySpendCategoryValueOnly: ({value}: {value: string}) => `'${value}'`,
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `${adjective} spend category from '${oldValue}' to '${newValue}'` : `spend category from '${oldValue}' to '${newValue}'`,
+                bodyCurrency: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} currency '${value}'` : `currency '${value}'`),
+                bodyCurrencyValueOnly: ({value}: {value: string}) => `'${value}'`,
+                bodyCurrencyChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} currency from '${oldValue}' to '${newValue}'` : `currency from '${oldValue}' to '${newValue}'`,
+                bodyCurrencyRestriction: 'the currency restriction',
                 bodyMaxAmount: 'max amount',
                 bodyMaxAmountSet: ({value}: {value: string}) => `max amount to ${value}`,
                 bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `max amount from ${oldValue} to ${newValue}`,
@@ -9215,6 +9239,9 @@ const translations = {
         categoryOutOfPolicy: 'Category no longer valid',
         conversionSurcharge: (surcharge: number) => `Applied ${surcharge}% conversion surcharge`,
         customUnitOutOfPolicy: 'Rate not valid for this workspace',
+        customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `Rate is only valid from ${startDate} to ${endDate}`,
+        customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Rate is only valid from ${startDate}`,
+        customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Rate is only valid until ${endDate}`,
         duplicatedTransaction: 'Potential duplicate',
         fieldRequired: 'Report fields are required',
         futureDate: 'Future date not allowed',
@@ -9435,10 +9462,6 @@ const translations = {
         bookACallTextBottom: 'We’d be excited to get on a call with you to understand why. You can book a call with one of our senior product managers to discuss your needs.',
         takeMeToExpensifyClassic: 'Take me to Expensify Classic',
         goBackJustOnce: 'Go back just once',
-    },
-    listBoundary: {
-        errorMessage: 'An error occurred while loading more messages',
-        tryAgain: 'Try again',
     },
     systemMessage: {
         mergedWithCashTransaction: 'matched a receipt to this transaction',

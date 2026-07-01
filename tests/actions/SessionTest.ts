@@ -1,6 +1,7 @@
 // cspell:ignore SOMESECRETKEY
 import {beforeEach, jest, test} from '@jest/globals';
 import {openAuthSessionAsync} from 'expo-web-browser';
+import {clearTokenRefresh, removeFromAutoPrefetch} from 'react-native-nitro-fetch';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {openApp, reconnectApp} from '@libs/actions/App';
@@ -327,6 +328,20 @@ describe('Session', () => {
         await waitForBatchedUpdates();
 
         expect(getAllPersistedRequests().length).toBe(0);
+    });
+
+    test('SignOut should clear native startup prefetch state', async () => {
+        await TestHelper.signInWithTestUser();
+        setHasRadio(false);
+        await waitForBatchedUpdates();
+
+        await SessionUtil.signOut({authToken: 'testAuthToken'});
+
+        expect(clearTokenRefresh).toHaveBeenCalledWith('fetch');
+        expect(removeFromAutoPrefetch).toHaveBeenCalledWith(WRITE_COMMANDS.RECONNECT_APP);
+
+        setHasRadio(true);
+        await waitForBatchedUpdates();
     });
 
     describe('SignOutAndRedirectToSignIn', () => {

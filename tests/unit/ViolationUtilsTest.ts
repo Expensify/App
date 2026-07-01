@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Permissions from '@libs/Permissions';
 import {getTransactionViolations, hasWarningTypeViolation, isViolationDismissed} from '@libs/TransactionUtils';
-import ViolationsUtils, {filterReceiptViolations, getIsViolationFixed} from '@libs/Violations/ViolationsUtils';
+import ViolationsUtils, {filterReceiptViolations, getIsViolationFixed, isHardViolationOrRateDateWarning, syncCustomUnitRateOutOfDateRangeViolation} from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -266,6 +266,442 @@ describe('getViolationsOnyxData', () => {
             });
 
             expect(result.value).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+    });
+
+    describe('distance rate out of date range validation', () => {
+        const customUnitRateID = 'rate_id';
+
+        beforeEach(() => {
+            transactionViolations = [];
+            transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.DISTANCE;
+            transaction.created = '2025-06-15';
+            transaction.comment = {
+                ...transaction.comment,
+                customUnit: {
+                    ...(transaction?.comment?.customUnit ?? {}),
+                    customUnitRateID,
+                },
+            };
+            policy.customUnits = {
+                unitId: {
+                    attributes: {unit: 'mi'},
+                    customUnitID: 'unitId',
+                    defaultCategory: 'Car',
+                    enabled: true,
+                    name: 'Distance',
+                    rates: {
+                        [customUnitRateID]: {
+                            currency: 'USD',
+                            customUnitRateID,
+                            enabled: true,
+                            name: '2025 mileage',
+                            rate: 65.5,
+                            startDate: '2025-01-01',
+                            endDate: '2025-12-31',
+                        },
+                    },
+                },
+            };
+        });
+
+        it('should add the customUnitRateOutOfDateRange violation when the expense date is outside the rate bounds', () => {
+            transaction.created = '2026-06-15';
+
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+            expect(result.value).toContainEqual(
+                expect.objectContaining({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                    showInReview: true,
+                    data: {
+                        startDate: '2025-01-01',
+                        endDate: '2025-12-31',
+                    },
+                }),
+            );
+        });
+
+        it('should remove the customUnitRateOutOfDateRange violation when the expense date is within the rate bounds', () => {
+            transactionViolations = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                    showInReview: true,
+                    data: {
+                        startDate: '2025-01-01',
+                        endDate: '2025-12-31',
+                    },
+                },
+            ];
+
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+            expect(result.value).not.toContainEqual(
+                expect.objectContaining({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                }),
+            );
+        });
+
+        it('should not add the customUnitRateOutOfDateRange violation when the rate has no date bounds', () => {
+            policy.customUnits = {
+                unitId: {
+                    attributes: {unit: 'mi'},
+                    customUnitID: 'unitId',
+                    defaultCategory: 'Car',
+                    enabled: true,
+                    name: 'Distance',
+                    rates: {
+                        [customUnitRateID]: {
+                            currency: 'USD',
+                            customUnitRateID,
+                            enabled: true,
+                            name: 'Default Rate',
+                            rate: 65.5,
+                        },
+                    },
+                },
+            };
+            transaction.created = '2026-06-15';
+
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+            expect(result.value).not.toContainEqual(
+                expect.objectContaining({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                }),
+            );
+        });
+
+        it('should remove the customUnitRateOutOfDateRange violation when the rate is out of policy', () => {
+            transactionViolations = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                    showInReview: true,
+                    data: {
+                        startDate: '2025-01-01',
+                        endDate: '2025-12-31',
+                    },
+                },
+            ];
+            policy.customUnits = {
+                unitId: {
+                    attributes: {unit: 'mi'},
+                    customUnitID: 'unitId',
+                    defaultCategory: 'Car',
+                    enabled: true,
+                    name: 'Distance',
+                    rates: {
+                        [customUnitRateID]: {
+                            currency: 'USD',
+                            customUnitRateID,
+                            enabled: false,
+                            name: '2025 mileage',
+                            rate: 65.5,
+                            startDate: '2025-01-01',
+                            endDate: '2025-12-31',
+                        },
+                    },
+                },
+            };
+            transaction.created = '2026-06-15';
+
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+            expect(result.value).not.toContainEqual(
+                expect.objectContaining({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                }),
+            );
+            expect(result.value).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should add the customUnitRateOutOfDateRange violation for distance requests on self DM reports', () => {
+            transaction.created = '2026-06-15';
+
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                isSelfDM: true,
+            });
+
+            expect(result.value).toContainEqual(
+                expect.objectContaining({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                }),
+            );
+        });
+
+        it('should resolve the distance rate from its owning policy on self DM reports and not add customUnitOutOfPolicy', () => {
+            transaction.created = '2026-06-15';
+            transactionViolations = [customUnitOutOfPolicyViolation];
+            const wrongPolicy = {...policy, customUnits: {}};
+
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy: wrongPolicy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                isSelfDM: true,
+                distanceOriginalPolicy: policy,
+            });
+
+            expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+            expect(result.value).toContainEqual(
+                expect.objectContaining({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                }),
+            );
+        });
+
+        it('should not add customUnitOutOfPolicy for self DM distance requests when the rate cannot be resolved', () => {
+            transaction.created = '2026-06-15';
+            transactionViolations = [customUnitOutOfPolicyViolation];
+            const wrongPolicy = {...policy, customUnits: {}};
+
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy: wrongPolicy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                isSelfDM: true,
+            });
+
+            expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+            expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE}));
+        });
+
+        it('should remove the customUnitRateOutOfDateRange violation for non-distance requests', () => {
+            transactionViolations = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                    showInReview: true,
+                },
+            ];
+            transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.PER_DIEM;
+
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+            expect(result.value).not.toContainEqual(
+                expect.objectContaining({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                }),
+            );
+        });
+    });
+
+    describe('isHardViolationOrRateDateWarning', () => {
+        it('returns true for violation type violations', () => {
+            expect(
+                isHardViolationOrRateDateWarning({
+                    name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                }),
+            ).toBe(true);
+        });
+
+        it('returns true for customUnitRateOutOfDateRange warnings', () => {
+            expect(
+                isHardViolationOrRateDateWarning({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                }),
+            ).toBe(true);
+        });
+
+        it('returns false for other warning violations', () => {
+            expect(
+                isHardViolationOrRateDateWarning({
+                    name: CONST.VIOLATIONS.MODIFIED_AMOUNT,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                }),
+            ).toBe(false);
+        });
+    });
+
+    describe('syncCustomUnitRateOutOfDateRangeViolation', () => {
+        const customUnitRateID = 'rate_id';
+
+        beforeEach(() => {
+            transactionViolations = [];
+            transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.DISTANCE;
+            transaction.created = '2026-06-15';
+            transaction.comment = {
+                ...transaction.comment,
+                customUnit: {
+                    ...(transaction?.comment?.customUnit ?? {}),
+                    customUnitRateID,
+                },
+            };
+            policy.customUnits = {
+                unitId: {
+                    attributes: {unit: 'mi'},
+                    customUnitID: 'unitId',
+                    defaultCategory: 'Car',
+                    enabled: true,
+                    name: 'Distance',
+                    rates: {
+                        [customUnitRateID]: {
+                            currency: 'USD',
+                            customUnitRateID,
+                            enabled: true,
+                            name: '2025 mileage',
+                            rate: 65.5,
+                            startDate: '2025-01-01',
+                            endDate: '2025-12-31',
+                        },
+                    },
+                },
+            };
+        });
+
+        it('should add the customUnitRateOutOfDateRange violation when the expense date is outside the rate bounds', () => {
+            const result = syncCustomUnitRateOutOfDateRangeViolation(transactionViolations, transaction, policy);
+
+            expect(result).toContainEqual(
+                expect.objectContaining({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                    data: {
+                        startDate: '2025-01-01',
+                        endDate: '2025-12-31',
+                    },
+                }),
+            );
+        });
+
+        it('should remove the customUnitRateOutOfDateRange violation when the expense date is within the rate bounds', () => {
+            transaction.created = '2025-06-15';
+            transactionViolations = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                    showInReview: true,
+                    data: {
+                        startDate: '2025-01-01',
+                        endDate: '2025-12-31',
+                    },
+                },
+            ];
+
+            const result = syncCustomUnitRateOutOfDateRangeViolation(transactionViolations, transaction, policy);
+
+            expect(result).not.toContainEqual(
+                expect.objectContaining({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                }),
+            );
+        });
+
+        it('should update violation data when switching to a different out-of-bounds rate', () => {
+            const otherRateID = 'other_rate_id';
+            policy.customUnits = {
+                unitId: {
+                    attributes: {unit: 'mi'},
+                    customUnitID: 'unitId',
+                    defaultCategory: 'Car',
+                    enabled: true,
+                    name: 'Distance',
+                    rates: {
+                        [otherRateID]: {
+                            currency: 'USD',
+                            customUnitRateID: otherRateID,
+                            enabled: true,
+                            name: '2024 mileage',
+                            rate: 60,
+                            startDate: '2024-01-01',
+                            endDate: '2024-12-31',
+                        },
+                    },
+                },
+            };
+            transaction.comment = {
+                ...transaction.comment,
+                customUnit: {
+                    ...(transaction?.comment?.customUnit ?? {}),
+                    customUnitRateID: otherRateID,
+                },
+            };
+            transactionViolations = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                    showInReview: true,
+                    data: {
+                        startDate: '2025-01-01',
+                        endDate: '2025-12-31',
+                    },
+                },
+            ];
+
+            const result = syncCustomUnitRateOutOfDateRangeViolation(transactionViolations, transaction, policy);
+
+            expect(result).toContainEqual(
+                expect.objectContaining({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    data: {
+                        startDate: '2024-01-01',
+                        endDate: '2024-12-31',
+                    },
+                }),
+            );
         });
     });
 
@@ -1461,7 +1897,6 @@ describe('getViolationsOnyxData', () => {
         };
 
         const ownerAccountID = 123;
-        const otherAccountID = 456;
 
         let iouReport: Report;
 
@@ -1500,7 +1935,7 @@ describe('getViolationsOnyxData', () => {
 
         it('should add missingAttendees violation when only owner is an attendee', () => {
             transaction.comment = {
-                attendees: [{email: 'owner@example.com', displayName: 'Owner', avatarUrl: '', accountID: ownerAccountID}],
+                attendees: [{email: 'owner@example.com', displayName: 'Owner', avatarUrl: ''}],
             };
             const result = ViolationsUtils.getViolationsOnyxData({
                 updatedTransaction: transaction,
@@ -1519,8 +1954,8 @@ describe('getViolationsOnyxData', () => {
         it('should not add missingAttendees violation when there is at least one non-owner attendee', () => {
             transaction.comment = {
                 attendees: [
-                    {email: 'owner@example.com', displayName: 'Owner', avatarUrl: '', accountID: ownerAccountID},
-                    {email: 'other@example.com', displayName: 'Other', avatarUrl: '', accountID: otherAccountID},
+                    {email: 'owner@example.com', displayName: 'Owner', avatarUrl: ''},
+                    {email: 'other@example.com', displayName: 'Other', avatarUrl: ''},
                 ],
             };
             const result = ViolationsUtils.getViolationsOnyxData({
@@ -1541,8 +1976,8 @@ describe('getViolationsOnyxData', () => {
             transactionViolations = [missingAttendeesViolation];
             transaction.comment = {
                 attendees: [
-                    {email: 'owner@example.com', displayName: 'Owner', avatarUrl: '', accountID: ownerAccountID},
-                    {email: 'other@example.com', displayName: 'Other', avatarUrl: '', accountID: otherAccountID},
+                    {email: 'owner@example.com', displayName: 'Owner', avatarUrl: ''},
+                    {email: 'other@example.com', displayName: 'Other', avatarUrl: ''},
                 ],
             };
             const result = ViolationsUtils.getViolationsOnyxData({
@@ -1591,6 +2026,57 @@ describe('getViolationsOnyxData', () => {
                 iouReport,
             });
             expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
+        });
+
+        describe('owner identified via report ownerAccountID', () => {
+            const ownerLogin = 'owner@example.com';
+
+            beforeEach(async () => {
+                // Seed personal details so the report owner's accountID resolves to a login via getLoginByAccountID.
+                // This populates the allPersonalDetails cache that PersonalDetailsUtils reads from.
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ownerAccountID]: {accountID: ownerAccountID, login: ownerLogin}});
+                await waitForBatchedUpdates();
+            });
+
+            it('should not add missingAttendees violation for a single non-owner attendee when the owner is resolved from ownerAccountID', () => {
+                // The report owner (owner@example.com) is NOT in the attendee list, so the single attendee is a genuine
+                // non-owner. Without owner-aware identification, the count-based fallback would wrongly flag this as missing.
+                transactionViolations = [];
+                transaction.comment = {
+                    attendees: [{email: 'other@example.com', displayName: 'Other', avatarUrl: ''}],
+                };
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                    isSelfDM: false,
+                    iouReport,
+                });
+                expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
+            });
+
+            it('should add missingAttendees violation when the only attendee is the report owner resolved from ownerAccountID', () => {
+                transactionViolations = [];
+                transaction.comment = {
+                    attendees: [{email: ownerLogin, displayName: 'Owner', avatarUrl: ''}],
+                };
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                    isSelfDM: false,
+                    iouReport,
+                });
+                expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
+            });
         });
 
         describe('optimistic / offline scenarios (iouReport is undefined)', () => {
@@ -2851,6 +3337,57 @@ describe('getViolationTranslation', () => {
             expect(result).toBe('Distance exceeds the calculated route');
         });
     });
+
+    describe('customUnitRateOutOfDateRange violation', () => {
+        it('should return the formatted message when both start and end dates are present', () => {
+            const result = ViolationsUtils.getViolationTranslation({
+                violation: {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                    data: {
+                        startDate: '2025-01-01',
+                        endDate: '2025-12-31',
+                    },
+                },
+                translate: translateLocal,
+                convertToDisplayString,
+            });
+
+            expect(result).toBe('Rate is only valid from January 1, 2025 to December 31, 2025');
+        });
+
+        it('should return the formatted message when only the start date is present', () => {
+            const result = ViolationsUtils.getViolationTranslation({
+                violation: {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                    data: {
+                        startDate: '2025-01-01',
+                    },
+                },
+                translate: translateLocal,
+                convertToDisplayString,
+            });
+
+            expect(result).toBe('Rate is only valid from January 1, 2025');
+        });
+
+        it('should return the formatted message when only the end date is present', () => {
+            const result = ViolationsUtils.getViolationTranslation({
+                violation: {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                    data: {
+                        endDate: '2025-12-31',
+                    },
+                },
+                translate: translateLocal,
+                convertToDisplayString,
+            });
+
+            expect(result).toBe('Rate is only valid until December 31, 2025');
+        });
+    });
 });
 
 describe('getRBRMessages', () => {
@@ -3233,6 +3770,26 @@ describe('getIsViolationFixed', () => {
                 taxCode: 'CUSTOM_TAX',
                 taxValue: '15',
                 policyTaxRates: {CUSTOM_TAX: {name: '10%', value: '10'}},
+            });
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('violations.customUnitRateOutOfDateRange', () => {
+        it('should return true when the expense date is within the rate bounds', () => {
+            const result = getIsViolationFixed('violations.customUnitRateOutOfDateRange', {
+                ...defaultParams,
+                expenseDate: '2025-06-15',
+                mileageRate: {unit: 'mi', startDate: '2025-01-01', endDate: '2025-12-31'},
+            });
+            expect(result).toBe(true);
+        });
+
+        it('should return false when the expense date is outside the rate bounds', () => {
+            const result = getIsViolationFixed('violations.customUnitRateOutOfDateRange', {
+                ...defaultParams,
+                expenseDate: '2026-06-15',
+                mileageRate: {unit: 'mi', startDate: '2025-01-01', endDate: '2025-12-31'},
             });
             expect(result).toBe(false);
         });
