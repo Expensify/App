@@ -1,17 +1,20 @@
 ---
-title: Understand billing terms and definitions
-description: Learn what common subscription billing terms mean in New Expensify, including plans, subscriptions, members, seats, payment methods, and billing settings.
+title: Understand Billing Terms and Definitions
+description: Learn what common subscription billing terms mean in Expensify, including plans, subscriptions, members, seats, payment methods, and billing settings.
 keywords: [billing terms, billing glossary, subscription, plan, active member, unique member, seats, payment card, Expensify Card]
-internalScope: Audience is workspace billing owners. Explains the terminology used throughout subscription billing. Does not explain billing workflows, permissions, or troubleshooting.
+internalScope: Audience is workspace Owners. Explains the terminology used throughout subscription billing. Does not explain billing workflows or troubleshooting.
 contentType: topic
 platform: new
+note: because this is a terminology glossary, bolding of non-UI elements allowed and task-based headings are not required.
+RAG/AI usability score: 9/10
+Human usability score: 9/10
 ---
 
-# Understand billing terms and definitions
+# Understand Billing Terms and Definitions
 
 Subscription billing uses several terms to describe your workspace, subscription, and billing settings. Understanding these definitions makes it easier to interpret billing information, compare subscription options, and understand how your subscription is calculated.
 
-Most billing terminology is intended for **billing owners**, since only billing owners manage workspace subscriptions.
+Most billing terminology is intended for workspace  Owners, since only workspace Owners manage workspace subscriptions.
 
 ---
 
@@ -23,17 +26,19 @@ Every subscription includes both a **plan** and a **subscription type**.
 
 A **plan** determines which features are available for your workspace. Expensify currently offers two plans:
 
-* **Collect**
-* **Control**
+ - **Collect**
+ - **Control**
 
 A **subscription type** determines how you pay for your plan.
 
 Subscription types include:
 
-* **Annual**, which includes a 12-month commitment with discounted pricing.
-* **Pay-per-use**, which bills month-to-month with no annual commitment.
+ - **Annual**, which includes a 12-month commitment with discounted pricing.
+ - **Pay-per-use**, which bills month-to-month with no annual commitment.
 
 Your plan and subscription type are independent. For example, a Control workspace can use either an Annual or Pay-per-use subscription.
+
+To learn more, see [How Billing, Plans and Subscriptions Work](How-Billing-Plans-and-Subscriptions-Work.md).
 
 ---
 
@@ -41,15 +46,15 @@ Your plan and subscription type are independent. For example, a Control workspac
 
 A **member** is anyone who belongs to a workspace.
 
-How members affect billing depends on your plan.
-
 Collect subscriptions bill based on **unique members**, which includes every member in the workspace, regardless of whether they used Expensify during the billing period.
 
 Control subscriptions bill based on **active members**, which are members who performed billable activity during the billing period, such as creating, editing, submitting, approving, reimbursing, or exporting expense data.
 
-You may also see the term **Workspace Admin**, which refers to a member who manages workspace settings. Workspace Admins do not automatically manage subscription billing.
+You may also see the term **workspace Admin**, which refers to a member who manages workspace settings. 
 
-The **billing owner** is responsible for managing a workspace's subscription and payment method. To learn more about this role, see **Understand billing ownership**.
+The **workspace Owner** is responsible for managing a workspace's subscription and payment method. 
+
+<!-- LINK: Workspace member roles article when created -->
 
 ---
 
@@ -63,6 +68,8 @@ For annual subscriptions, **subscription size** (sometimes called **seats**) is 
 
 **Auto-increase annual seats** automatically increases your subscription size if your active member count exceeds your committed seats.
 
+To learn more, see [Manage Annual subscription settings](Manage-Annual-Subscription-Settings.md).
+
 ---
 
 ## Payment terminology
@@ -73,21 +80,10 @@ The **Expensify Card** is your company's corporate card for business spending. A
 
 You may also encounter the following billing terms:
 
-* **Credit balance** — prepaid Expensify credits that can be applied toward future subscription charges.
-* **Discount code** — a promotional code that applies an eligible discount to your subscription.
-* **Billing currency** — the currency used to charge your subscription.
-* **Tax exempt status** — an approved tax exemption that removes eligible taxes from subscription charges.
+ - **Credit balance** — prepaid Expensify credits that can be applied toward future subscription charges.
+ - **Discount code** — a promotional code that applies an eligible discount to your subscription.
+ - **Billing currency** — the currency used to charge your subscription.
+ - **Tax exempt status** — an approved tax exemption that removes eligible taxes from subscription charges.
 
----
+To learn more, see [Review Your Expensify Billing Receipt](Review-your-Expensify-billing-receipt.md).
 
-## Commonly confused terms
-
-Several billing terms sound similar but describe different concepts.
-
-A **plan** determines which features your workspace includes, while a **subscription type** determines how you pay for that plan.
-
-An **active member** is someone who used Expensify during the billing period, while a **unique member** is anyone who belongs to the workspace. Control bills based on active members, while Collect bills based on unique members.
-
-**Subscription size** refers to the number of seats included in an annual commitment, while **active members** represent the members who actually used Expensify during the billing period.
-
-Finally, the **payment card** is the credit card Expensify charges for your subscription, while the **Expensify Card** is the corporate card your business uses to make purchases.
