@@ -85,9 +85,17 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
 
     // For multi-tx parents we don't have a single transaction to anchor on, but if the parent was
     // navigated to from a broader carousel (the no-thread fallback in MoneyRequestReportTransactionsNavigation
-    // passes `anchorTransactionID`), use that transaction as the carousel anchor so the user can keep
-    // paging the broader list. Falls back to the first of this report's transactions found in the active
-    // list, so the carousel still renders even without an explicit hint.
+    // passes `anchorTransactionID`), use that transaction as the carousel anchor so the user can keep paging
+    // the broader list.
+    //
+    // We intentionally do NOT fall back to "the first of this report's transactions in the active list". The
+    // transaction carousel is a single-expense (SEARCH_REPORT) concept: its ◄/► handlers navigate the current
+    // screen via Navigation.setParams. When the user opens a full multi-transaction report from the header, the
+    // report renders on SEARCH_MONEY_REQUEST_REPORT; a generic fallback there would surface the carousel and
+    // paging would setParams to a sibling that renders empty ("No expenses yet"). Viewing a full report is a
+    // report-level context, so we leave carousel navigation to MoneyRequestReportNavigation. This fallback is
+    // also unnecessary now that the carousel's no-thread path opens a single-expense thread (never a full
+    // report body), so we only ever reach a multi-transaction report body by opening it explicitly.
     const anchorTransactionIDFromRoute = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? route.params.anchorTransactionID : undefined;
     const multiTxAnchorTransactionID = useMemo(() => {
         if (singleTransactionID) {
@@ -99,11 +107,8 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         if (anchorTransactionIDFromRoute && activeTransactionIDs?.includes(anchorTransactionIDFromRoute)) {
             return anchorTransactionIDFromRoute;
         }
-        if (!activeTransactionIDs) {
-            return undefined;
-        }
-        return transactions.find((t) => activeTransactionIDs.includes(t.transactionID))?.transactionID;
-    }, [singleTransactionID, anchorTransactionIDFromRoute, transactions, activeTransactionIDs]);
+        return undefined;
+    }, [singleTransactionID, anchorTransactionIDFromRoute, activeTransactionIDs]);
     const carouselAnchorTransactionID = singleTransactionID ?? multiTxAnchorTransactionID;
     const shouldShowTransactionNavigation = !!carouselAnchorTransactionID && !!activeTransactionIDs?.includes(carouselAnchorTransactionID);
 
