@@ -9341,6 +9341,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         resolvedDuplicates: 'a résolu le doublon',
         companyCardRequired: 'Achats par carte d’entreprise obligatoires',
         noRoute: 'Veuillez sélectionner une adresse valide',
+        customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `Le taux n’est valable que du ${startDate} au ${endDate}`,
+        customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Le taux n’est valable qu’à partir du ${startDate}`,
+        customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Le taux n’est valable que jusqu’au ${endDate}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} est obligatoire`,

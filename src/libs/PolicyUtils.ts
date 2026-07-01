@@ -317,6 +317,27 @@ function getDistanceRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRate
     return distanceUnit?.rates[customUnitRateID];
 }
 
+function getPolicyIDOrDefault(policyID?: string) {
+    if (!policyID || policyID === CONST.POLICY.OWNER_EMAIL_FAKE) {
+        return '-1';
+    }
+    return policyID;
+}
+
+/**
+ * Finds the policy that owns the given distance customUnitRateID.
+ */
+function getPolicyForDistanceRateID(customUnitRateID: string | undefined, policies: OnyxCollection<Policy>): OnyxEntry<Policy> {
+    if (!customUnitRateID || !policies) {
+        return undefined;
+    }
+
+    return Object.values(policies).find((policy) => {
+        const distanceUnit = getDistanceRateCustomUnit(policy);
+        return !!distanceUnit?.rates && customUnitRateID in distanceUnit.rates;
+    });
+}
+
 /**
  * Return admins from active policies
  */
@@ -2842,6 +2863,8 @@ export {
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
     getDistanceRateCustomUnitRate,
+    getPolicyForDistanceRateID,
+    getPolicyIDOrDefault,
     getPerDiemRateCustomUnitRate,
     sortWorkspacesBySelected,
     removePendingFieldsFromCustomUnit,

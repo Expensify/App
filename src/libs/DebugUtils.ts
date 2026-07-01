@@ -1362,6 +1362,8 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 comment: 'string',
                 cardID: 'number',
                 missingFields: 'array',
+                startDate: 'string',
+                endDate: 'string',
             });
         case 'showInReview':
             return validateBoolean(value);
