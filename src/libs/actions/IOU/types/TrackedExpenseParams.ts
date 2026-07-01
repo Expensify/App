@@ -64,6 +64,8 @@ type TrackedExpenseParams = {
     policyParams: TrackedExpensePolicyParams;
     createdWorkspaceParams?: CreateWorkspaceParams;
     accountantParams?: TrackExpenseAccountantParams;
+    /** Whether the tracked expense is a distance request. Used to decide if a created workspace's distance custom unit should be applied to the transaction. */
+    isDistanceRequest?: boolean;
     currentUser: CurrentUser;
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
     reportActionsList?: OnyxCollection<OnyxTypes.ReportActions>;

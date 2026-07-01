@@ -4,6 +4,7 @@ import {derivedFlagsSliceSelector} from '@components/MoneyRequestConfirmationLis
 import useTransactionSelector from '@components/MoneyRequestConfirmationList/sections/useTransactionSelector';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
+import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getCurrency, isManagedCardTransaction, isScanRequest, shouldShowAttendees as shouldShowAttendeesTransactionUtils} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -90,7 +91,11 @@ function useFooterDerivedFlags({
     const shouldShowBillable = isBillableEnabledOnPolicy(policy);
     const shouldShowReimbursable =
         (isPolicyExpenseChat || isTrackExpense) && !!policy && policy?.disabledFields?.reimbursable !== true && !isManagedCardTransaction(transaction) && !isTypeInvoice;
-    const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
+    // In the "Submit to my employer" zero-workspace flow the confirmation runs against a draft Submit workspace that lives in
+    // POLICY_DRAFTS, which usePolicyForMovingExpenses (it only scans the real POLICY collection) can't see. Without this, fields like
+    // Category/Rate would route to the upgrade gate even though Categories/Distance ship enabled by default on Submit workspaces.
+    const isSubmitWorkspace = isSubmitPolicy(policy);
+    const shouldNavigateToUpgradePath = !isSubmitWorkspace && !policyForMovingExpensesID && !shouldSelectPolicy;
     const shouldShowTimeRequestFields = isTimeRequest && action === CONST.IOU.ACTION.CREATE;
 
     return {

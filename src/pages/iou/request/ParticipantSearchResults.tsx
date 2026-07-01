@@ -67,6 +67,9 @@ type ParticipantSearchResultsProps = {
     /** Whether the IOU is workspaces only */
     isWorkspacesOnly: boolean;
 
+    /** Whether the destination list is restricted to Submit (submit2026) workspaces only */
+    isSubmitWorkspacesOnly?: boolean;
+
     /** Whether this is a per diem expense request */
     isPerDiemRequest: boolean;
 
@@ -112,6 +115,7 @@ function ParticipantSearchResults({
     action,
     participants,
     isWorkspacesOnly,
+    isSubmitWorkspacesOnly = false,
     isPerDiemRequest,
     isTimeRequest,
     isNative,
@@ -295,10 +299,15 @@ function ParticipantSearchResults({
         );
         sections.push({...formatResults.section, sectionIndex: 0});
 
-        if ((availableOptions.workspaceChats ?? []).length > 0) {
+        const workspaceChats = (availableOptions.workspaceChats ?? []).filter((option) => !selectedParticipantKeys.has(getParticipantOptionKey(option)));
+        // "Submit to my employer" must only ever target Submit (submit2026) workspaces — never team/corporate ones.
+        const filteredWorkspaceChats = isSubmitWorkspacesOnly
+            ? workspaceChats.filter((option) => allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${option.policyID}`]?.type === CONST.POLICY.TYPE.SUBMIT)
+            : workspaceChats;
+        if (filteredWorkspaceChats.length > 0) {
             sections.push({
                 title: translate('workspace.common.workspace'),
-                data: (availableOptions.workspaceChats ?? []).filter((option) => !selectedParticipantKeys.has(getParticipantOptionKey(option))),
+                data: filteredWorkspaceChats,
                 sectionIndex: 1,
             });
         }

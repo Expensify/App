@@ -26,6 +26,9 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Whether the IOU is workspaces only */
     isWorkspacesOnly?: boolean;
 
+    /** Whether the destination list is restricted to Submit (submit2026) workspaces only */
+    isSubmitWorkspacesOnly?: boolean;
+
     /** Whether this is a per diem expense request */
     isPerDiemRequest?: boolean;
 
@@ -65,6 +68,7 @@ function MoneyRequestParticipantsSelector({
     isPerDiemRequest = false,
     isTimeRequest = false,
     isWorkspacesOnly = false,
+    isSubmitWorkspacesOnly = false,
     isTransactionFromCreditCardImport = false,
     initiallySelectedReportID,
     shouldMoveSelectedToTop = false,
@@ -92,6 +96,7 @@ function MoneyRequestParticipantsSelector({
             action={action}
             participants={participants}
             isWorkspacesOnly={isWorkspacesOnly}
+            isSubmitWorkspacesOnly={isSubmitWorkspacesOnly}
             isPerDiemRequest={isPerDiemRequest}
             isTimeRequest={isTimeRequest}
             isNative={isNative}
