@@ -11,6 +11,7 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -18,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {clearBillingReceiptDetailsErrors, payAndDowngrade} from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -27,8 +29,9 @@ type BillingItem = {
     isTotal: boolean;
 };
 
-function PayAndDowngradePage() {
+function DynamicPayAndDowngradePage() {
     const styles = useThemeStyles();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_PAY_AND_DOWNGRADE.path);
 
     const {translate} = useLocalize();
 
@@ -69,17 +72,20 @@ function PayAndDowngradePage() {
     }, []);
 
     if (isLoadingOnyxValue(metadata)) {
-        return <FullScreenLoadingIndicator reasonAttributes={{context: 'PayAndDowngradePage'}} />;
+        return <FullScreenLoadingIndicator reasonAttributes={{context: 'DynamicPayAndDowngradePage'}} />;
     }
 
     return (
         <ScreenWrapper
             shouldShowOfflineIndicator
-            testID="PayAndDowngradePage"
+            testID="DynamicPayAndDowngradePage"
             offlineIndicatorStyle={styles.mtAuto}
         >
             <FullPageNotFoundView shouldShow={isEmptyObject(billingDetails)}>
-                <HeaderWithBackButton title={translate('workspace.payAndDowngrade.title')} />
+                <HeaderWithBackButton
+                    title={translate('workspace.payAndDowngrade.title')}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
+                />
                 <FullPageOfflineBlockingView>
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pt3]}>
                         <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('workspace.payAndDowngrade.headline')}</Text>
@@ -125,4 +131,4 @@ function PayAndDowngradePage() {
     );
 }
 
-export default PayAndDowngradePage;
+export default DynamicPayAndDowngradePage;
