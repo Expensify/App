@@ -14,6 +14,7 @@ import type {
     LastPaymentMethod,
     PersonalDetails,
     Policy,
+    PolicyTagLists,
     Report,
     ReportAction,
     SearchResults,
@@ -446,6 +447,8 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
         columns?: SearchColumnType[];
         /** Non-personal and workspace cards for company card display */
         nonPersonalAndWorkspaceCards?: CardList;
+        /** All policies' tag lists, drilled from the list level so each row can resolve its policy's tags without an Onyx subscription per row */
+        policyTags?: OnyxCollection<PolicyTagLists>;
         /** Callback to undelete a transaction */
         onUndelete?: (transaction: Transaction) => void;
     };

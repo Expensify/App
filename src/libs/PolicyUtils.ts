@@ -52,8 +52,9 @@ import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
 import {formatMemberForList} from './OptionsListUtils';
 import type {MemberForList} from './OptionsListUtils';
-import {getAccountIDsByLogins, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {getAccountIDsByLogins, getKnownAccountIDByLogin, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
+import {generateAccountID} from './UserUtils';
 import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
@@ -316,6 +317,27 @@ function getDistanceRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRate
     return distanceUnit?.rates[customUnitRateID];
 }
 
+function getPolicyIDOrDefault(policyID?: string) {
+    if (!policyID || policyID === CONST.POLICY.OWNER_EMAIL_FAKE) {
+        return '-1';
+    }
+    return policyID;
+}
+
+/**
+ * Finds the policy that owns the given distance customUnitRateID.
+ */
+function getPolicyForDistanceRateID(customUnitRateID: string | undefined, policies: OnyxCollection<Policy>): OnyxEntry<Policy> {
+    if (!customUnitRateID || !policies) {
+        return undefined;
+    }
+
+    return Object.values(policies).find((policy) => {
+        const distanceUnit = getDistanceRateCustomUnit(policy);
+        return !!distanceUnit?.rates && customUnitRateID in distanceUnit.rates;
+    });
+}
+
 /**
  * Return admins from active policies
  */
@@ -415,7 +437,10 @@ function cloneCustomUnitWithNewIDs(unit: CustomUnit, newCustomUnitID: string, ne
         const rates: Record<string, Rate> = {};
         for (const rate of Object.values(unit.rates)) {
             if (rate.customUnitRateID === defaultRate?.customUnitRateID) {
-                rates[newDefaultRateID] = {...rate, customUnitRateID: newDefaultRateID};
+                rates[newDefaultRateID] = {
+                    ...rate,
+                    customUnitRateID: newDefaultRateID,
+                };
             } else {
                 rates[rate.customUnitRateID] = rate;
             }
@@ -485,13 +510,17 @@ function getCustomUnitsForDuplication(
         if (!distanceCustomUnit) {
             return undefined;
         }
-        return {[distanceCustomUnitID]: cloneCustomUnitWithNewIDs(distanceCustomUnit, distanceCustomUnitID, customUnitRateID)};
+        return {
+            [distanceCustomUnitID]: cloneCustomUnitWithNewIDs(distanceCustomUnit, distanceCustomUnitID, customUnitRateID),
+        };
     }
 
     if (!perDiemUnit || !perDiemCustomUnitID) {
         return undefined;
     }
-    return {[perDiemCustomUnitID]: cloneCustomUnitWithNewIDs(perDiemUnit, perDiemCustomUnitID)};
+    return {
+        [perDiemCustomUnitID]: cloneCustomUnitWithNewIDs(perDiemUnit, perDiemCustomUnitID),
+    };
 }
 
 /**
@@ -717,6 +746,56 @@ function getMemberAccountIDsForWorkspace(employeeList: PolicyEmployeeList | unde
         memberEmailsToAccountIDs[email] = Number(personalDetail.accountID);
     }
     return memberEmailsToAccountIDs;
+}
+
+/**
+ * Resolves the accountID for a submit-to recipient chosen in the submit-to popover.
+ * Uses personal details first, then the workspace employee list (same source as ReportSubmitToContent).
+ * When the member is in employeeList but not yet in personal details, returns a stable optimistic accountID.
+ */
+function getAccountIDForSubmitManagerEmail(managerEmail: string | undefined, employeeList: PolicyEmployeeList | undefined): number | undefined {
+    const trimmed = managerEmail?.trim();
+    if (!trimmed) {
+        return undefined;
+    }
+
+    const fromPersonalDetails = getKnownAccountIDByLogin(trimmed);
+    if (fromPersonalDetails !== undefined) {
+        return fromPersonalDetails;
+    }
+
+    if (!employeeList) {
+        return undefined;
+    }
+
+    const normalizedEmail = trimmed.toLowerCase();
+    const memberAccountIDs = getMemberAccountIDsForWorkspace(employeeList, true, false);
+
+    for (const [email, accountID] of Object.entries(memberAccountIDs)) {
+        if (email.toLowerCase() === normalizedEmail) {
+            return accountID;
+        }
+    }
+
+    for (const [listKey, employee] of Object.entries(employeeList)) {
+        const employeeEmail = (employee.email ?? listKey).trim();
+        const listKeyNormalized = listKey.trim().toLowerCase();
+        const employeeEmailNormalized = employeeEmail.toLowerCase();
+
+        if (employeeEmailNormalized !== normalizedEmail && listKeyNormalized !== normalizedEmail) {
+            continue;
+        }
+
+        const accountIDFromMap = memberAccountIDs[employeeEmail] ?? memberAccountIDs[listKey];
+
+        if (accountIDFromMap !== undefined) {
+            return accountIDFromMap;
+        }
+
+        return generateAccountID(trimmed);
+    }
+
+    return undefined;
 }
 
 /**
@@ -1064,6 +1143,45 @@ function getLengthOfTag(tag: string): number {
         return 0;
     }
     return getTagArrayFromName(tag).length;
+}
+
+/**
+ * Resolves a transaction's tag to the GL codes configured on the matching policy tags.
+ * Multi-level tags resolve each level against the tag list with the same order weight,
+ * and the non-empty GL codes are joined into a single comma-separated string.
+ */
+function getTagGLCode(policyTagLists: OnyxEntry<PolicyTagLists>, transactionTag: string | undefined): string {
+    if (isEmptyObject(policyTagLists) || !transactionTag) {
+        return '';
+    }
+
+    const tagLists = getTagLists(policyTagLists);
+    const tagParts = getTagArrayFromName(transactionTag);
+    return tagParts
+        .map((tagName, index) => {
+            const levelTags = tagLists.at(index)?.tags;
+            if (!levelTags) {
+                return '';
+            }
+
+            // Dependent tag lists can hold same-named child tags under different parents (stored under unique
+            // record keys), so a tag only matches by name when its parent filter also matches the parent tag path.
+            const parentTagPath = tagParts.slice(0, index).join(':');
+            const matchesTagAtLevel = (levelTag: ValueOf<PolicyTags> | undefined): levelTag is ValueOf<PolicyTags> => {
+                if (!levelTag || levelTag.name !== tagName) {
+                    return false;
+                }
+                const filterRegex = levelTag.rules?.parentTagsFilter ?? levelTag.parentTagsFilter;
+                return !filterRegex || new RegExp(filterRegex).test(parentTagPath);
+            };
+
+            const directMatch = levelTags[tagName];
+            const matchingTag = matchesTagAtLevel(directMatch) ? directMatch : Object.values(levelTags).find(matchesTagAtLevel);
+            const glCode = matchingTag?.['GL Code'];
+            return glCode != null ? String(glCode).replaceAll('"', '') : '';
+        })
+        .filter(Boolean)
+        .join(', ');
 }
 
 /**
@@ -1497,7 +1615,10 @@ function getRuleApprovers(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
 function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: OnyxEntry<Report>, ownerLogin: string | undefined) {
     // Pre-build a lookup map of { category: { value → approver }, tag: { value → approver } }
     // from the policy's approval rules so that each transaction's category/tag can be resolved in O(1).
-    const rulesMap: Record<'category' | 'tag', Record<string, string>> = {category: {}, tag: {}};
+    const rulesMap: Record<'category' | 'tag', Record<string, string>> = {
+        category: {},
+        tag: {},
+    };
 
     for (let i = 0; i < approvalRules.length; i++) {
         const rule = approvalRules.at(i);
@@ -1613,6 +1734,25 @@ function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseRepor
     }
 
     return isValidSubmitToAccountID ? submitToAccountID : existingManagerID;
+}
+
+/**
+ * Returns the email the expense report should submit to per workspace approval config
+ * (approval rules, employee submitsTo, or default approver for basic/optional workflows).
+ */
+function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string {
+    const defaultApprover = getDefaultApprover(policy).trim();
+    if (!expenseReport) {
+        return defaultApprover;
+    }
+
+    const ownerLogin = getLoginsByAccountIDs([expenseReport.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]).at(0);
+    const submitToAccountID = getSubmitToAccountID(policy, expenseReport, ownerLogin);
+    if (!isValidAccountRoute(submitToAccountID)) {
+        return defaultApprover;
+    }
+
+    return getLoginsByAccountIDs([submitToAccountID]).at(0)?.trim() ?? defaultApprover;
 }
 
 /**
@@ -2127,8 +2267,13 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
         return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors;
     }
     if (isIntacctVendorMatchingActive(policy)) {
-        const intacctVendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.data?.vendors;
-        return intacctVendors?.map((vendor) => ({id: vendor.id, name: vendor.value, currency: '', email: ''}));
+        const intacctVendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.data?.vendors ?? [];
+        return intacctVendors.map((vendor) => ({
+            id: vendor.id,
+            name: vendor.value,
+            currency: '',
+            email: '',
+        }));
     }
     return undefined;
 }
@@ -2190,7 +2335,12 @@ function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined)
     }
     const intacctVendor = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.data?.vendors?.find((vendor) => vendor.id === vendorID);
     if (intacctVendor) {
-        return {id: intacctVendor.id, name: intacctVendor.value, currency: '', email: ''};
+        return {
+            id: intacctVendor.id,
+            name: intacctVendor.value,
+            currency: '',
+            email: '',
+        };
     }
     return undefined;
 }
@@ -2618,6 +2768,7 @@ export {
     getIneligibleInvitees,
     getExcludedUsers,
     getMemberAccountIDsForWorkspace,
+    getAccountIDForSubmitManagerEmail,
     getGuideAndAccountManagerInfo,
     getSoftExclusionsForGuideAndAccountManager,
     getExpensifyTeamExclusions,
@@ -2712,6 +2863,8 @@ export {
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
     getDistanceRateCustomUnitRate,
+    getPolicyForDistanceRateID,
+    getPolicyIDOrDefault,
     getPerDiemRateCustomUnitRate,
     sortWorkspacesBySelected,
     removePendingFieldsFromCustomUnit,
@@ -2753,6 +2906,7 @@ export {
     hasOtherControlWorkspaces,
     shouldBlockWorkspaceDeletionForInvoicifyUser,
     getManagerAccountEmail,
+    getSubmitToEmail,
     getRuleApprovers,
     canModifyPlan,
     getAdminsPrivateEmailDomains,
@@ -2766,6 +2920,7 @@ export {
     getPolicyRole,
     hasIndependentTags,
     getLengthOfTag,
+    getTagGLCode,
     isPolicyMemberWithoutPendingDelete,
     hasDynamicExternalWorkflow,
     getPolicyEmployeeAccountIDs,
