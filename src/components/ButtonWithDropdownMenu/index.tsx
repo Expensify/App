@@ -60,6 +60,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         menuHeaderText = '',
         customText,
         style,
+        buttonStyle,
         disabledStyle,
         buttonSize = CONST.BUTTON_SIZE.MEDIUM,
         anchorAlignment = defaultAnchorAlignment,
@@ -170,7 +171,15 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
             isActive: useKeyboardShortcuts,
         },
     );
-    const splitButtonWrapperStyle = isSplitButton ? [styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter] : {};
+    const splitButtonWrapperStyle = isSplitButton ? [styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter] : undefined;
+    let dropdownButtonStyle;
+    if (isSplitButton) {
+        dropdownButtonStyle = [splitButtonWrapperStyle, style];
+    } else if (style) {
+        dropdownButtonStyle = [styles.w100, style];
+    }
+    const defaultStyle = style ? styles.w100 : undefined;
+    const nonSplitButtonStyle = buttonStyle ? [styles.w100, buttonStyle] : defaultStyle;
     const isTextTooLong = customText && customText?.length > 6;
 
     const handlePress = useCallback(
@@ -191,7 +200,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     return (
         <View style={wrapperStyle}>
             {shouldAlwaysShowDropdownMenu || options.length > 1 ? (
-                <View style={[splitButtonWrapperStyle, style]}>
+                <View style={dropdownButtonStyle}>
                     <Button
                         variant={success ? 'success' : undefined}
                         ref={dropdownButtonRef}
@@ -201,7 +210,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         stayNormalOnDisable={shouldStayNormalOnDisable}
                         isLoading={isLoading}
                         removeBorderRadius="right"
-                        style={isSplitButton ? [styles.pr0, styles.flexGrow1, styles.flexShrink1] : {}}
+                        style={isSplitButton ? [styles.pr0, styles.flexGrow1, styles.flexShrink1] : nonSplitButtonStyle}
                         size={buttonSize}
                         innerStyles={[innerStyleDropButton, !isSplitButton && styles.dropDownButtonCartIconView, isTextTooLong && shouldUseShortForm && {...styles.pl2, ...styles.pr1}]}
                         testID={testID}

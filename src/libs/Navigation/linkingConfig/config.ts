@@ -202,7 +202,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: {
-                            path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
+                            path: ROUTES.SETTINGS_ENABLE_PAYMENTS.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT]: {
@@ -521,6 +521,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS]: DYNAMIC_ROUTES.WORKSPACE_OVERVIEW_ADDRESS.path,
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_PLAN]: DYNAMIC_ROUTES.WORKSPACE_OVERVIEW_PLAN.path,
+                        [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_SETUP]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_SETUP.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CLASSES]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES.route},
@@ -636,6 +637,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_CUSTOMERS]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_CUSTOMERS_DISPLAYED_AS]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS_DISPLAYED_AS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_ITEMS]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_ITEMS.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.XERO_SETUP]: {path: ROUTES.POLICY_ACCOUNTING_XERO_SETUP.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_XERO_IMPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_CHART_OF_ACCOUNTS]: {path: ROUTES.POLICY_ACCOUNTING_XERO_CHART_OF_ACCOUNTS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_ORGANIZATION]: {path: ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.route},
@@ -1698,7 +1700,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 },
                             },
                         },
-                        [SCREENS.MONEY_REQUEST.CREATE_VERIFY_ACCOUNT]: ROUTES.MONEY_REQUEST_CREATE_VERIFY_ACCOUNT.route,
                         [SCREENS.MONEY_REQUEST.DISTANCE_CREATE]: {
                             path: ROUTES.DISTANCE_REQUEST_CREATE.route,
                             exact: true,
@@ -1732,7 +1733,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_CATEGORY_CREATE]: ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.route,
                         [SCREENS.MONEY_REQUEST.STEP_VENDOR]: ROUTES.MONEY_REQUEST_STEP_VENDOR.route,
                         [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.route,
-                        [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION_VERIFY_ACCOUNT]: ROUTES.MONEY_REQUEST_STEP_CONFIRMATION_VERIFY_ACCOUNT.route,
                         [SCREENS.MONEY_REQUEST.STEP_DATE]: ROUTES.MONEY_REQUEST_STEP_DATE.route,
                         [SCREENS.MONEY_REQUEST.STEP_DESCRIPTION]: ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.route,
                         [SCREENS.MONEY_REQUEST.STEP_DISTANCE]: ROUTES.MONEY_REQUEST_STEP_DISTANCE.route,
@@ -1940,7 +1940,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: ROUTES.SEARCH_REPORT.route,
                 [SCREENS.RIGHT_MODAL.SEARCH_REPORT_ACTIONS]: {
                     screens: {
-                        [SCREENS.SEARCH.ROOT_VERIFY_ACCOUNT]: ROUTES.SEARCH_ROOT_VERIFY_ACCOUNT,
                         [SCREENS.SEARCH.MONEY_REQUEST_REPORT_VERIFY_ACCOUNT]: ROUTES.SEARCH_MONEY_REQUEST_REPORT_VERIFY_ACCOUNT.route,
                         [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: ROUTES.SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS.route,
                         [SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS]: ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.route,
@@ -1973,7 +1972,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: {
                     screens: {
-                        [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(),
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.route,
                     },
                 },

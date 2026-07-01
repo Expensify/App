@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+import createRandomPolicy from '../../utils/collections/policies';
 
 jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListActions: () => ({
@@ -42,6 +43,30 @@ function createManualTransaction(participants: Participant[], overrides: Partial
         participants,
         ...overrides,
     });
+}
+
+function createPolicyWithDateBoundDistanceRate(): OnyxTypes.Policy {
+    return {
+        ...createRandomPolicy(1),
+        id: 'policy1',
+        customUnits: {
+            unitId: {
+                customUnitID: 'unitId',
+                attributes: {unit: 'mi'},
+                enabled: true,
+                name: 'Distance',
+                rates: {
+                    rate1: {
+                        customUnitRateID: 'rate1',
+                        enabled: true,
+                        rate: 65.5,
+                        startDate: '2025-01-01',
+                        endDate: '2025-12-31',
+                    },
+                },
+            },
+        },
+    };
 }
 
 const baseParams = {
@@ -177,6 +202,23 @@ describe('useConfirmationValidation', () => {
             }),
         );
         expect(result.current.validate()).toEqual({errorKey: 'iou.error.distanceAmountTooLarge'});
+    });
+
+    it('does not block confirmation when the selected distance rate does not match the expense date', () => {
+        const {result} = renderHook(() =>
+            useConfirmationValidation({
+                ...baseParams,
+                isDistanceRequest: true,
+                policy: createPolicyWithDateBoundDistanceRate(),
+                transaction: createTransactionBase({
+                    amount: 1000,
+                    created: '2026-06-15',
+                    comment: {customUnit: {customUnitRateID: 'rate1'}},
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                }),
+            }),
+        );
+        expect(result.current.validate()).toEqual({errorKey: null});
     });
 
     it('returns invalidAmount for split with zero amount when fields are filled', () => {

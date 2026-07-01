@@ -5417,7 +5417,7 @@ describe('ReportActionsUtils', () => {
             ).toBe(false);
         });
 
-        it('returns true when message is from current user but is already present (not new, not optimistic)', () => {
+        it('returns false when message is from current user and is already present (not new, not optimistic) and no existing marker', () => {
             const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'});
             const prevSortedVisibleReportActionsObjects = {
                 [message.reportActionID]: makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'}),
@@ -5427,6 +5427,23 @@ describe('ReportActionsUtils', () => {
                     ...baseParams,
                     message,
                     prevSortedVisibleReportActionsObjects,
+                    prevUnreadMarkerReportActionID: null,
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('returns true when message is from current user, already present, and marker is being relocated after deletion', () => {
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'});
+            const prevSortedVisibleReportActionsObjects = {
+                [message.reportActionID]: makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'}),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    prevUnreadMarkerReportActionID: 'deleted-action-id',
                     isOffline: false,
                 }),
             ).toBe(true);
@@ -5558,6 +5575,18 @@ describe('ReportActionsUtils', () => {
                     isReversed: true,
                 }),
             ).toEqual(['unread-newer', 1]);
+        });
+
+        it("clears the marker entirely when the only unread action is the current user's own new message", () => {
+            const ownNew = makeAction({reportActionID: 'own-new', actorAccountID: currentUserAccountID});
+            const olderRead = makeAction({reportActionID: 'older-read', created: '2023-01-01 09:00:00.000'});
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions: [ownNew, olderRead],
+                    prevSortedVisibleReportActionsObjects: {},
+                }),
+            ).toEqual([null, -1]);
         });
     });
 

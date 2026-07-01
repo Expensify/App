@@ -27,6 +27,7 @@ type ContinueActionParams = {
     paymentMethod?: PaymentMethod;
     policy?: Policy;
     goBackRoute?: Route;
+    personalBankAccountOnSuccessFallbackRoute?: Route;
 };
 
 type KYCWallProps = {
@@ -62,6 +63,9 @@ type KYCWallProps = {
 
     /** Callback for when a payment method has been selected */
     onSelectPaymentMethod?: (paymentMethod: PaymentMethod) => void;
+
+    /** Returns the route to continue into after adding a personal bank account */
+    getPersonalBankAccountOnSuccessFallbackRoute?: (paymentMethod: PaymentMethod) => Route | undefined;
 
     /** Whether the personal bank account option should be shown */
     shouldShowPersonalBankAccountOption?: boolean;

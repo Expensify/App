@@ -50,6 +50,9 @@ function useAutoCreateTrackWorkspace() {
     const [hasPaidGroupAdminPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: paidGroupPolicySelector});
 
     const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReportID}`);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const {isBetaEnabled} = usePermissions();
@@ -104,6 +107,8 @@ function useAutoCreateTrackWorkspace() {
                     personalTrackGoal: onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL && !!personalTrackGoal ? personalTrackGoal : undefined,
                     introSelected,
                     isSelfTourViewed,
+                    conciergeChat,
+                    selfDMReport,
                 });
 
                 if (isSidePanelReportSupported) {
@@ -156,6 +161,8 @@ function useAutoCreateTrackWorkspace() {
             conciergeChatReportID,
             reportNameValuePairs,
             mergedAccountConciergeReportID,
+            conciergeChat,
+            selfDMReport,
         ],
     );
 

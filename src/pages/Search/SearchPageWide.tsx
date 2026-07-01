@@ -119,12 +119,10 @@ function SearchPageWide({
                                 queryJSON={queryJSON}
                                 searchResults={searchResults}
                                 onSort={onSortPressedCallback}
-                                handleSearch={handleSearchAction}
                             />
                             <View style={styles.flex1}>
                                 {shouldShowLoadingSkeleton ? (
                                     <SearchLoadingSkeleton
-                                        containerStyle={styles.mt3}
                                         reasonAttributes={{
                                             context: 'SearchPage',
                                             isOffline,

@@ -69,7 +69,6 @@ function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducatio
             shouldCloseOnConfirm={false}
             onClose={onClose}
             onConfirm={onConfirm}
-            shouldGoBack={false}
             shouldUseScrollView
         >
             <>
