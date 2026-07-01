@@ -5,6 +5,7 @@ import {write} from '@libs/API';
 import type {ConnectPolicyToMergeParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
+import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
@@ -37,11 +38,11 @@ function syncMergeHR(policy: OnyxEntry<Policy>) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention -- merge_hris is the API-defined connection key
-                    merge_hris: {
+                    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
                         lastSync: {
                             syncStatus: CONST.MERGE_HR.SYNC_STATUS.SYNCING,
                             syncType: CONST.MERGE_HR.SYNC_TYPE.MANUAL,
+                            manualSyncTimestamps: [DateUtils.getDBTime(), ...(previousLastSync?.manualSyncTimestamps ?? [])],
                         },
                     },
                 },
@@ -55,8 +56,7 @@ function syncMergeHR(policy: OnyxEntry<Policy>) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention -- merge_hris is the API-defined connection key
-                    merge_hris: {
+                    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
                         lastSync: previousLastSync ?? null,
                     },
                 },
