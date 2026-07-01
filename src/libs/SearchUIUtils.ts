@@ -6414,7 +6414,6 @@ export {
     getTypeOptions,
     getSortByOptions,
     getSortOrderOptions,
-    getStatusOptions,
     getGroupBySections,
     getViewOptions,
     getCurrencyOptions,
