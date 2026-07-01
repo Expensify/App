@@ -1216,13 +1216,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 email: 'string',
                 displayName: 'string',
                 avatarUrl: 'string',
-                accountID: 'number',
-                text: 'string',
-                login: 'string',
-                searchText: 'string',
-                selected: 'boolean',
-                iouType: CONST.IOU.TYPE,
-                reportID: 'string',
             });
         case 'modifiedWaypoints':
             return validateObject<ObjectElement<Transaction, 'modifiedWaypoints'>>(
@@ -1369,6 +1362,8 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 comment: 'string',
                 cardID: 'number',
                 missingFields: 'array',
+                startDate: 'string',
+                endDate: 'string',
             });
         case 'showInReview':
             return validateBoolean(value);

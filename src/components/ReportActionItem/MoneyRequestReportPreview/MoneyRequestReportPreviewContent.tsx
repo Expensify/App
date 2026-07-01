@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import {reportNameSelector} from '@selectors/ReportAttributes';
 import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useDeferredValue, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -34,6 +35,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
     getReportStatusColorStyle,
+    getReportStatusTooltipTranslation,
     getReportStatusTranslation,
     getTransactionsWithReceipts,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
@@ -53,7 +55,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {reportNameSelector} from '@src/selectors/Attributes';
 import {transactionViolationsByIDsSelector} from '@src/selectors/TransactionViolations';
 import type {ReportAttributesDerivedValue, TransactionViolations} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -254,21 +255,31 @@ function MoneyRequestReportPreviewContent({
         [translate, numberOfRequests],
     );
 
+    const reportStateNum = iouReport?.stateNum ?? action?.childStateNum;
+    const reportStatusNum = iouReport?.statusNum ?? action?.childStatusNum;
+
     const reportStatus = useMemo(
         () =>
             getReportStatusTranslation({
-                stateNum: iouReport?.stateNum ?? action?.childStateNum,
-                statusNum: iouReport?.statusNum ?? action?.childStatusNum,
+                stateNum: reportStateNum,
+                statusNum: reportStatusNum,
                 translate,
             }),
-        [action?.childStateNum, action?.childStatusNum, iouReport?.stateNum, iouReport?.statusNum, translate],
+        [reportStateNum, reportStatusNum, translate],
     );
 
     const shouldShowReportStatus = !!reportStatus && !!expenseCount;
 
-    const reportStatusColorStyle = useMemo(
-        () => getReportStatusColorStyle(theme, iouReport?.stateNum ?? action?.childStateNum, iouReport?.statusNum ?? action?.childStatusNum),
-        [action?.childStateNum, action?.childStatusNum, iouReport?.stateNum, iouReport?.statusNum, theme],
+    const reportStatusColorStyle = useMemo(() => getReportStatusColorStyle(theme, reportStateNum, reportStatusNum), [reportStateNum, reportStatusNum, theme]);
+
+    const reportStatusTooltip = useMemo(
+        () =>
+            getReportStatusTooltipTranslation({
+                stateNum: reportStateNum,
+                statusNum: reportStatusNum,
+                translate,
+            }),
+        [reportStateNum, reportStatusNum, translate],
     );
 
     const totalAmountStyle = shouldUseNarrowLayout ? [styles.flexColumnReverse, styles.alignItemsStretch] : [styles.flexRow, styles.alignItemsCenter];
@@ -454,6 +465,7 @@ function MoneyRequestReportPreviewContent({
                                                                     backgroundColor={reportStatusColorStyle?.backgroundColor}
                                                                     textColor={reportStatusColorStyle?.textColor}
                                                                     badgeStyles={styles.mr1}
+                                                                    tooltipText={reportStatusTooltip}
                                                                 />
                                                             )}
                                                             {!shouldShowAccessPlaceHolder && <Text style={[styles.textLabelSupporting, styles.lh16]}>{expenseCount}</Text>}

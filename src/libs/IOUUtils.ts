@@ -3,8 +3,9 @@ import type {ValueOf} from 'type-fest';
 import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import SafeString from '@src/utils/SafeString';
 import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
@@ -324,19 +325,21 @@ function shouldUseTransactionDraft(action: IOUAction | undefined, type?: IOUType
     return action === CONST.IOU.ACTION.CREATE || type === CONST.IOU.TYPE.SPLIT_EXPENSE || isMovingTransactionFromTrackExpense(action);
 }
 
-function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: string) {
+function formatCurrentUserToAttendee(currentUser?: CurrentUserPersonalDetails) {
     if (!currentUser) {
         return;
     }
+    const login = currentUser.login ? currentUser.login : (currentUser.email ?? '');
+    const displayName = currentUser.displayName ? currentUser.displayName : login;
+
+    if (!login) {
+        return;
+    }
+
     const initialAttendee: Attendee = {
-        email: currentUser?.login ?? '',
-        login: currentUser?.login ?? '',
-        displayName: currentUser.displayName ?? '',
+        email: login,
+        displayName,
         avatarUrl: SafeString(currentUser.avatar),
-        accountID: currentUser.accountID,
-        text: currentUser.login,
-        selected: true,
-        reportID,
     };
 
     return [initialAttendee];

@@ -514,6 +514,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Editor',
         restrictions: 'Restrizioni',
+        tagGLCode: 'Tag codice GL',
         off: 'Disattivato',
     },
     socials: {
@@ -1343,6 +1344,9 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Sei sicuro di voler eliminare questi report?',
         }),
         settledExpensify: 'Pagato',
+        paidStatusMarkedAsPaid: 'Segnato come pagato',
+        paidStatusWithdrawing: 'Prelievo',
+        paidStatusConfirmed: 'Confermato',
         done: 'Fatto',
         settledElsewhere: 'Pagato altrove',
         individual: 'Personale',
@@ -1661,6 +1665,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Sposta nel report',
         moveExpensesError: 'Non puoi spostare le spese di diaria nei report di altri spazi di lavoro, perché le tariffe di diaria possono variare tra gli spazi di lavoro.',
+        submitReportTo: {
+            sendExpense: 'Invia la tua spesa a chiunque',
+            sendExpenseSubtitle: 'Invita chiunque su Expensify usando il suo indirizzo email o numero di telefono.',
+        },
         changeApprover: {
             title: 'Cambia approvatore',
             header: (workflowSettingLink: string) =>
@@ -6333,6 +6341,10 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 one: 'Rendi amministratore dello spazio di lavoro',
                 other: 'Rendi amministratori dello spazio di lavoro',
             }),
+            makeGroupAdmin: () => ({
+                one: 'Rendi amministratore',
+                other: 'Rendi amministratori',
+            }),
             makeAuditor: () => ({
                 one: 'Rendi revisore',
                 other: 'Crea revisori',
@@ -8286,7 +8298,14 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `regola di spesa da ${cards}`,
                 composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} su ${cards}`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} da ${cards}`,
+                bodyCurrency: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `Valuta ${adjective} '${value}'` : `valuta '${value}'`),
+                bodyCurrencyValueOnly: ({value}: {value: string}) => `'${value}'`,
+                bodyCurrencyChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `valuta ${adjective} da '${oldValue}' a '${newValue}'` : `valuta da '${oldValue}' a '${newValue}'`,
+                bodyCurrencyRestriction: 'la restrizione sulla valuta',
             },
+            allowedCurrencyFilters: ({currencies}: {currencies: string}) => `valute ${currencies}`,
+            blockedCurrencyFilters: ({currencies}: {currencies: string}) => `valute non in ${currencies}`,
         },
         updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
             `ha cambiato l’aliquota fiscale predefinita della categoria "${categoryName}" in "${newTax}" (in precedenza "${oldTax}")`,
@@ -9278,6 +9297,9 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         resolvedDuplicates: 'ha risolto il duplicato',
         companyCardRequired: 'Acquisti con carta aziendale obbligatori',
         noRoute: 'Seleziona un indirizzo valido',
+        customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `La tariffa è valida solo dal ${startDate} al ${endDate}`,
+        customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `La tariffa è valida solo a partire dal ${startDate}`,
+        customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `La tariffa è valida solo fino al ${endDate}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} è obbligatorio`,
@@ -9338,10 +9360,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             'Saremmo felici di fare una chiamata con te per capirne il motivo. Puoi prenotare una chiamata con uno dei nostri senior product manager per discutere delle tue esigenze.',
         takeMeToExpensifyClassic: 'Portami a Expensify Classic',
         goBackJustOnce: 'Torna solo per questa volta',
-    },
-    listBoundary: {
-        errorMessage: 'Si è verificato un errore durante il caricamento di altri messaggi',
-        tryAgain: 'Riprova',
     },
     systemMessage: {
         mergedWithCashTransaction: 'ha associato una ricevuta a questa transazione',
