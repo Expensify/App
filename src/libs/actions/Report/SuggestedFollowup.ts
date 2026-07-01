@@ -55,7 +55,9 @@ function resolveSuggestedFollowup(
         event: 'followup_clicked',
         reportID,
         reportActionID,
+        accountID: currentUserAccountID,
         questionText: selectedFollowup.text,
+        followupSource: selectedFollowup.source,
         hasPregeneratedResponse: !!selectedFollowup.response,
     });
 
