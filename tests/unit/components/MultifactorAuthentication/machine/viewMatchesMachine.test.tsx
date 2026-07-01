@@ -19,7 +19,7 @@ jest.mock('@libs/XStateInspector', () => ({__esModule: true, default: {inspect: 
 jest.mock('@components/MultifactorAuthentication/biometrics/useBiometrics', () => require('tests/utils/mfa/realUi/mocks').biometricsHookMock());
 // Browser/Android back-history wiring is a separate concern from the machine <-> UI contract.
 jest.mock('@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHistory', () => require('tests/utils/mfa/realUi/mocks').syncHistoryMock());
-// Supplies the Navigation methods the flow drives with real behavior; the Proxy no-ops the rest.
+// Reuses the shared Navigation mock and overrides the transition methods the MFA flow drives.
 jest.mock('@libs/Navigation/Navigation', () => require('tests/utils/mfa/realUi/mocks').navigationMock());
 
 // The queryable markers each state asserts against. `OutcomeScreenBase` is the success or failure screen's
@@ -93,7 +93,7 @@ describe('the UI walk reaches every settleable leaf', () => {
     });
 });
 
-// assertMatchingStates runs only the entries whose key matches the reached state, so if no key matches a
+// TestModel runs only the state assertions whose keys match the reached state, so if no key matches a
 // state, the test passes without checking it. These guards fail in that case: every settleable leaf must
 // have a matching assertion, and every key must match a real leaf.
 //
