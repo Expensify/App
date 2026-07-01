@@ -21,6 +21,7 @@ import Permissions from '@libs/Permissions';
 import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt} from '@libs/TransactionUtils';
+import {getPolicyTagsData} from '@userActions/IOU';
 import {
     getMoneyRequestParticipantsFromReport,
     setMoneyRequestAmount,
@@ -544,6 +545,9 @@ function submitAmount({
     // `TRANSACTION_VIOLATIONS` at module scope.
     const parentReport = report?.parentReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] : undefined;
 
+    // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const reportPolicyTags = getPolicyTagsData(parentReport?.policyID);
     updateMoneyRequestAmountAndCurrency({
         transactionID,
         transactionThreadReport: report,
@@ -563,6 +567,7 @@ function submitAmount({
         isASAPSubmitBetaEnabled,
         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
         delegateAccountID,
+        reportPolicyTags,
     });
     navigateBack();
 }
