@@ -126,18 +126,18 @@ const STABLE_QUERY_JSON: SearchQueryJSON = {
 
 const STABLE_COLUMNS: SearchColumnType[] = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.ACTION];
 
-/** Builds report rows, each carrying child transactions; `deletedTxns` marks transaction indices as pending-delete. */
-function createMockReportData(reports: Array<{txns: number; deletedTxns?: Set<number>}>): SearchListItem[] {
+/** Builds report rows, each carrying child transactions; `deletedTransactions` marks transaction indices as pending-delete. */
+function createMockReportData(reports: Array<{transactionCount: number; deletedTransactions?: Set<number>}>): SearchListItem[] {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test fixtures are intentionally partial report-group rows
     return reports.map((report, i) => ({
         keyForList: `report-${i}`,
         reportID: `${i}`,
         groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         action: CONST.SEARCH.ACTION_TYPES.VIEW,
-        transactions: Array.from({length: report.txns}, (_, j) => ({
+        transactions: Array.from({length: report.transactionCount}, (_, j) => ({
             keyForList: `txn-${i}-${j}`,
             transactionID: `${i}-${j}`,
-            pendingAction: report.deletedTxns?.has(j) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : undefined,
+            pendingAction: report.deletedTransactions?.has(j) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : undefined,
         })),
     })) as unknown as SearchListItem[];
 }
@@ -161,7 +161,7 @@ type RenderOverrides = {
 };
 
 function renderView(overrides: RenderOverrides = {}) {
-    const data = overrides.data ?? createMockReportData([{txns: 1}, {txns: 1}, {txns: 1}]);
+    const data = overrides.data ?? createMockReportData([{transactionCount: 1}, {transactionCount: 1}, {transactionCount: 1}]);
 
     function Wrapper() {
         const onSelectRow = useCallback((item: SearchListItem) => overrides.onSelectRow?.(item), []);
@@ -233,13 +233,13 @@ afterEach(() => Onyx.clear());
 describe('ExpenseReportSearchView', () => {
     it('does not exceed the max render count on initial mount with stable props', async () => {
         let renderCount = 0;
-        renderView({data: createMockReportData(Array.from({length: 100}, () => ({txns: 1}))), onRenderCount: () => (renderCount += 1)});
+        renderView({data: createMockReportData(Array.from({length: 100}, () => ({transactionCount: 1}))), onRenderCount: () => (renderCount += 1)});
         await waitForBatchedUpdates();
         expect(renderCount).toBeLessThanOrEqual(MAX_INITIAL_RENDER_COUNT);
     });
 
     it('renders one row per report item', async () => {
-        renderView({data: createMockReportData([{txns: 2}, {txns: 1}, {txns: 3}])});
+        renderView({data: createMockReportData([{transactionCount: 2}, {transactionCount: 1}, {transactionCount: 3}])});
         await waitForBatchedUpdates();
         expect(screen.queryAllByTestId(/^row-report-/)).toHaveLength(3);
     });
@@ -249,7 +249,7 @@ describe('ExpenseReportSearchView', () => {
         // One transaction selected -> not all-checked.
         mockSelectedTransactions.current = selectKeys('txn-0-0');
         renderView({
-            data: createMockReportData([{txns: 2}, {txns: 1, deletedTxns: new Set([0])}]),
+            data: createMockReportData([{transactionCount: 2}, {transactionCount: 1, deletedTransactions: new Set([0])}]),
             canSelectMultiple: true,
             tableHeaderVisible: true,
             hasLoadedAllTransactions: true,
@@ -264,7 +264,7 @@ describe('ExpenseReportSearchView', () => {
     it('marks select-all checked when every selectable transaction is selected', async () => {
         mockSelectedTransactions.current = selectKeys('txn-0-0', 'txn-0-1');
         renderView({
-            data: createMockReportData([{txns: 2}, {txns: 1, deletedTxns: new Set([0])}]),
+            data: createMockReportData([{transactionCount: 2}, {transactionCount: 1, deletedTransactions: new Set([0])}]),
             canSelectMultiple: true,
             tableHeaderVisible: true,
             hasLoadedAllTransactions: true,
@@ -278,7 +278,7 @@ describe('ExpenseReportSearchView', () => {
 
     it('toggles selection on row tap while in mobile selection mode, instead of navigating', async () => {
         const onSelectRow = jest.fn();
-        renderView({data: createMockReportData([{txns: 1}, {txns: 1}]), isMobileSelectionModeEnabled: true, onSelectRow});
+        renderView({data: createMockReportData([{transactionCount: 1}, {transactionCount: 1}]), isMobileSelectionModeEnabled: true, onSelectRow});
         await waitForBatchedUpdates();
 
         act(() => mockRowSelect['report-0']?.());
@@ -289,7 +289,7 @@ describe('ExpenseReportSearchView', () => {
 
     it('navigates on row tap when not in mobile selection mode', async () => {
         const onSelectRow = jest.fn();
-        renderView({data: createMockReportData([{txns: 1}, {txns: 1}]), isMobileSelectionModeEnabled: false, onSelectRow});
+        renderView({data: createMockReportData([{transactionCount: 1}, {transactionCount: 1}]), isMobileSelectionModeEnabled: false, onSelectRow});
         await waitForBatchedUpdates();
 
         act(() => mockRowSelect['report-0']?.());
