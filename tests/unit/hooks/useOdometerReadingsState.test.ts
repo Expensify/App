@@ -248,6 +248,58 @@ describe('useOdometerReadingsState', () => {
         expect(result.current.inputKey).toBe(initialKey + 1);
     });
 
+    it('re-hydrates readings from the transaction when switching back onto the odometer tab (typing guard clear)', () => {
+        const typingRef = {current: false};
+        const emptyTransaction = buildOdometerTransaction({odometerStart: undefined, odometerEnd: undefined});
+        const {result, rerender} = renderHook((params: Params) => useOdometerReadingsState(params), {
+            initialProps: {...baseParams, userHasUnsavedTypingRef: typingRef},
+        });
+
+        expect(result.current.startReading).toBe('100');
+
+        // Switch away: local state is cleared and the transaction is rebuilt without odometer readings.
+        rerender({...baseParams, userHasUnsavedTypingRef: typingRef, selectedTab: CONST.TAB_REQUEST.DISTANCE, currentTransaction: emptyTransaction});
+        expect(result.current.startReading).toBe('');
+        expect(result.current.endReading).toBe('');
+
+        // Switch back: draft hydration restores the transaction readings, whose value change re-fires the resync effect.
+        rerender({...baseParams, userHasUnsavedTypingRef: typingRef, selectedTab: CONST.TAB_REQUEST.DISTANCE_ODOMETER});
+        expect(result.current.startReading).toBe('100');
+        expect(result.current.endReading).toBe('250');
+        expect(result.current.startReadingRef.current).toBe('100');
+        expect(result.current.endReadingRef.current).toBe('250');
+    });
+
+    // The stuck-typing-guard variant is the actual deploy-blocker repro: an edit-then-revert leaves userHasUnsavedTypingRef
+    // true, which blocks the resync branch above so the inputs stay empty on return. The fix (resetting the guard on revert,
+    // done in the screen) keeps it false, so the round-trip re-hydrates exactly as the no-edit case does.
+    it('does NOT re-hydrate on return while the typing guard is stuck true, but DOES once it is honest', () => {
+        const stuckTypingRef = {current: false};
+        const emptyTransaction = buildOdometerTransaction({odometerStart: undefined, odometerEnd: undefined});
+        const {result, rerender} = renderHook((params: Params) => useOdometerReadingsState(params), {
+            initialProps: {...baseParams, userHasUnsavedTypingRef: stuckTypingRef},
+        });
+
+        // Simulate the stuck flag an edit-then-revert would leave behind (pre-fix behavior).
+        act(() => {
+            stuckTypingRef.current = true;
+        });
+        rerender({...baseParams, userHasUnsavedTypingRef: stuckTypingRef, selectedTab: CONST.TAB_REQUEST.DISTANCE, currentTransaction: emptyTransaction});
+        rerender({...baseParams, userHasUnsavedTypingRef: stuckTypingRef, selectedTab: CONST.TAB_REQUEST.DISTANCE_ODOMETER});
+
+        // Stuck guard blocks the resync -> inputs stay empty (the bug).
+        expect(result.current.startReading).toBe('');
+
+        // With the guard reset (what the fix does on revert), the same return path re-hydrates.
+        act(() => {
+            stuckTypingRef.current = false;
+        });
+        rerender({...baseParams, userHasUnsavedTypingRef: stuckTypingRef, selectedTab: CONST.TAB_REQUEST.DISTANCE, currentTransaction: emptyTransaction});
+        rerender({...baseParams, userHasUnsavedTypingRef: stuckTypingRef, selectedTab: CONST.TAB_REQUEST.DISTANCE_ODOMETER});
+        expect(result.current.startReading).toBe('100');
+        expect(result.current.endReading).toBe('250');
+    });
+
     it('does not run the tab-reset effect while the selected-tab Onyx key is still loading', () => {
         const initialProps: Params = {...baseParams, isLoadingSelectedTab: true, selectedTab: undefined};
         const {result, rerender} = renderHook((params: Params) => useOdometerReadingsState(params), {initialProps});

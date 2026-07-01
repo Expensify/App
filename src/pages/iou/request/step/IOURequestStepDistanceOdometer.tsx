@@ -296,6 +296,7 @@ function IOURequestStepDistanceOdometer({
         }
         return true;
     };
+    const readingsMatchBaseline = (nextStart: string, nextEnd: string) => nextStart === initialStartReadingRef.current && nextEnd === initialEndReadingRef.current;
 
     const handleStartReadingChange = (text: string) => {
         if (!isOdometerInputValid(text, startReading)) {
@@ -304,7 +305,7 @@ function IOURequestStepDistanceOdometer({
         const textForDisplay = DistanceRequestUtils.prepareTextForDisplay(text);
         setStartReading(textForDisplay);
         startReadingRef.current = textForDisplay;
-        userHasUnsavedTypingRef.current = true;
+        userHasUnsavedTypingRef.current = !readingsMatchBaseline(textForDisplay, endReadingRef.current);
         if (formError) {
             setFormError('');
         }
@@ -317,7 +318,7 @@ function IOURequestStepDistanceOdometer({
         const textForDisplay = DistanceRequestUtils.prepareTextForDisplay(text);
         setEndReading(textForDisplay);
         endReadingRef.current = textForDisplay;
-        userHasUnsavedTypingRef.current = true;
+        userHasUnsavedTypingRef.current = !readingsMatchBaseline(startReadingRef.current, textForDisplay);
         if (formError) {
             setFormError('');
         }
