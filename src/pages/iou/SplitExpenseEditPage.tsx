@@ -5,6 +5,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HighlightableMenuItemWithTopDescription from '@components/HighlightableMenuItemWithTopDescription';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -377,7 +378,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 }
 
                                 return (
-                                    <MenuItemWithTopDescription
+                                    <HighlightableMenuItemWithTopDescription
                                         shouldShowRightIcon
                                         key={name}
                                         highlighted={!getTagForDisplay(splitExpenseDraftTransaction, index) && !prevShouldShow}
