@@ -244,3 +244,20 @@ describe("incremental plural key injection", () => {
     expect(injectedText).not.toMatch(/\(\s*\{\s*sourcePolicyName\s*\}/);
   });
 });
+
+describe("removeDescendantPaths", () => {
+  it("removes leaf plural paths when the parent function path is also present", () => {
+    const paths = new Set([
+      "policyCopyChangeLog.codingRules",
+      "policyCopyChangeLog.codingRules.one",
+      "policyCopyChangeLog.codingRules.other",
+      "common.save",
+    ]);
+
+    TSCompilerUtils.removeDescendantPaths(paths);
+
+    expect(paths).toEqual(
+      new Set(["policyCopyChangeLog.codingRules", "common.save"]),
+    );
+  });
+});

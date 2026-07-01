@@ -535,6 +535,20 @@ function isStringConcatenationChain(node: ts.BinaryExpression): boolean {
     return false;
 }
 
+/**
+ * Remove paths that are strict descendants of another path in the same set.
+ * Prevents incremental translation from injecting leaf plural forms separately.
+ */
+function removeDescendantPaths(paths: Set<string>): void {
+    for (const path of [...paths]) {
+        for (const otherPath of paths) {
+            if (path !== otherPath && path.startsWith(`${otherPath}.`)) {
+                paths.delete(path);
+            }
+        }
+    }
+}
+
 export default {
     findAncestor,
     getIndentationOfNode,
@@ -550,6 +564,7 @@ export default {
     objectHas,
     injectDeepObjectValue,
     isStringConcatenationChain,
+    removeDescendantPaths,
 };
 export {TransformerAction};
 export type {ExpressionWithType, TransformerResult};
