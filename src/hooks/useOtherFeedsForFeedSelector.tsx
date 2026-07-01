@@ -4,7 +4,7 @@ import Icon from '@components/Icon';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import type {ListItem} from '@components/SelectionList/types';
 import {getVisibleCompanyCardFeedsForSelector} from '@libs/CardFeedUtils';
-import {getCardFeedIcon, getCardFeedWithDomainID, getCustomOrFormattedFeedName, getPlaidInstitutionIconUrl} from '@libs/CardUtils';
+import {getCardFeedIcon, getCardFeedWithDomainID, getCustomOrFormattedFeedName, getDomainByFundID, getPlaidInstitutionIconUrl} from '@libs/CardUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,10 +51,12 @@ function useOtherFeedsForFeedSelector(policyID: string): CardFeedListItem[] {
 
     const getOtherFeeds = () => {
         const otherPolicyFeeds: CardFeedListItem[] = [];
+        // `policyID` is stable for this hook invocation, so uppercase it once instead of per feed/linked-policy evaluation.
+        const upperPolicyID = policyID.toUpperCase();
         for (const feed of visibleFeeds) {
             // Feeds linked to the active policy are shown as available feeds, not under "From other workspaces".
             // Linked policy IDs can differ in casing, so compare case-insensitively (matches the Expensify-card path).
-            if (feed?.linkedPolicyIDs?.filter(Boolean).some((linkedPolicyID) => linkedPolicyID.toUpperCase() === policyID.toUpperCase())) {
+            if (feed?.linkedPolicyIDs?.filter(Boolean).some((linkedPolicyID) => linkedPolicyID.toUpperCase() === upperPolicyID)) {
                 continue;
             }
             // Skip feeds already present in the active policy's available list to avoid duplicate rows across the two lists.
@@ -66,7 +68,9 @@ function useOtherFeedsForFeedSelector(policyID: string): CardFeedListItem[] {
             }
             const feedName = feed.feed;
             const plaidUrl = getPlaidInstitutionIconUrl(feedName);
-            const domain = allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${feed.fundID}`];
+            // Use the same fundID-aware domain lookup as the visibility logic (`getVisibleCompanyCardFeedsForSelector`)
+            // so the domain email resolves even when the domains collection isn't keyed by fundID.
+            const domain = getDomainByFundID(allDomains, Number(feed.fundID));
             const firstLinkedPolicyID = feed?.linkedPolicyIDs?.at(0);
             // POLICY collection entries are keyed by uppercase policy IDs, so we uppercase before indexing (matches the Expensify-card path).
             const linkedPolicy = firstLinkedPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstLinkedPolicyID.toUpperCase()}`] : undefined;
