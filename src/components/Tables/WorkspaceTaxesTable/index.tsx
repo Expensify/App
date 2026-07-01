@@ -18,9 +18,10 @@ type WorkspaceTaxesTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    headerComponent?: React.ReactElement;
 };
 
-export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKeys, onRowSelectionChange}: WorkspaceTaxesTableProps) {
+export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKeys, onRowSelectionChange, headerComponent}: WorkspaceTaxesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -73,6 +74,13 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
         />
     );
+    const shouldShowSearchBar = taxes.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const tableHeaderComponent = (
+        <>
+            {headerComponent}
+            {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.taxes.findTaxRate')} />}
+        </>
+    );
 
     return (
         <Table
@@ -88,9 +96,9 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
             selectedKeys={selectedKeys}
             keyExtractor={(tax) => tax.keyForList}
             onRowSelectionChange={onRowSelectionChange}
+            headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
         >
-            {taxes.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.taxes.findTaxRate')} />}
-            <Table.Header />
             <Table.Body />
         </Table>
     );

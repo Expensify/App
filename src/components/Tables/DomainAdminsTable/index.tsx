@@ -64,6 +64,8 @@ export default function DomainAdminsTable({admins}: DomainAdminsTableProps) {
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
         />
     );
+    const shouldShowSearchBar = admins.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const tableHeaderComponent = shouldShowSearchBar ? <Table.SearchBar label={translate('domain.admins.findAdmin')} /> : undefined;
 
     return (
         <Table
@@ -75,9 +77,9 @@ export default function DomainAdminsTable({admins}: DomainAdminsTableProps) {
             initialSortColumn="admin"
             title={translate('domain.admins.title')}
             keyExtractor={(item) => item.keyForList}
+            headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
         >
-            {admins.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('domain.admins.findAdmin')} />}
-            <Table.Header />
             <Table.Body />
         </Table>
     );

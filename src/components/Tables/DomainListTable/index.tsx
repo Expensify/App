@@ -29,9 +29,10 @@ type DomainRowData = {
 
 type DomainListTableProps = {
     domains: DomainRowData[];
+    headerComponent?: React.ReactElement;
 };
 
-export default function DomainListTable({domains}: DomainListTableProps) {
+export default function DomainListTable({domains, headerComponent}: DomainListTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -62,6 +63,14 @@ export default function DomainListTable({domains}: DomainListTableProps) {
         return item.title.toLowerCase().includes(searchValue.toLowerCase());
     };
 
+    const shouldShowSearchBar = domains.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const tableHeaderComponent = (
+        <>
+            {headerComponent}
+            {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.common.findDomain')} />}
+        </>
+    );
+
     const renderTableItem = ({item, index}: ListRenderItemInfo<DomainRowData>) => {
         return (
             <DomainListTableRow
@@ -81,11 +90,11 @@ export default function DomainListTable({domains}: DomainListTableProps) {
             isItemInSearch={isTableItemInSearch}
             initialSortColumn="domains"
             title={translate('common.domains')}
+            headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
             ListEmptyComponent={DomainListEmptyState}
             keyExtractor={(row, index) => `${row.domainAccountID}-${index}`}
         >
-            {domains.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.common.findDomain')} />}
-            <Table.Header />
             <Table.Body />
         </Table>
     );

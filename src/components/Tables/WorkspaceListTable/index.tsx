@@ -42,6 +42,7 @@ type WorkspaceRowData = TableData & {
 type WorkspaceListTableProps = {
     ref?: React.Ref<TableHandle<WorkspaceRowData, WorkspaceTableColumnKey, string>> | undefined;
     workspaces: WorkspaceRowData[];
+    headerComponent?: React.ReactElement;
 
     /** Called when the user picks Delete in a row menu, so the page can mount the delete flow */
     onDeleteWorkspace: (policyID: string) => void;
@@ -53,7 +54,7 @@ type WorkspaceListTableProps = {
     copySettingsEligibleTargets: CopySettingsEligibleTargets;
 };
 
-export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, pendingDeletePolicyID, copySettingsEligibleTargets}: WorkspaceListTableProps) {
+export default function WorkspaceListTable({ref, workspaces, headerComponent, onDeleteWorkspace, pendingDeletePolicyID, copySettingsEligibleTargets}: WorkspaceListTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -106,6 +107,14 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
         return item.title.toLowerCase().includes(searchValue.toLowerCase());
     };
 
+    const shouldShowSearchBar = workspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const tableHeaderComponent = (
+        <>
+            {headerComponent}
+            {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.common.findWorkspace')} />}
+        </>
+    );
+
     const renderTableItem = ({item, index}: ListRenderItemInfo<WorkspaceRowData>) => {
         return (
             <WorkspaceRow
@@ -129,11 +138,11 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
             isItemInSearch={isTableItemInSearch}
             initialSortColumn="workspaces"
             title={translate('common.workspaces')}
+            headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
             ListEmptyComponent={WorkspacesEmptyStateComponent}
             keyExtractor={(row, index) => `${row.policyID}-${index}`}
         >
-            {workspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.common.findWorkspace')} />}
-            <Table.Header />
             <Table.Body />
         </Table>
     );

@@ -83,6 +83,7 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
     const shouldShowSearchBar = rulesData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     const isEmpty = rulesData.length === 0;
+    const tableHeaderComponent = shouldShowSearchBar ? <Table.SearchBar label={translate('workspace.rules.spendRules.findRule')} /> : undefined;
 
     return (
         <Table
@@ -98,15 +99,11 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
             initialSortColumn="card"
             narrowLayoutSortColumn="card"
             title={translate('workspace.rules.tabs.cardRestrictions')}
+            headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
         >
             {isEmpty && !!emptyStateContent && <View style={[styles.flex1, styles.mnh0]}>{emptyStateContent}</View>}
-            {!isEmpty && (
-                <>
-                    {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.rules.spendRules.findRule')} />}
-                    <Table.Header />
-                    <Table.Body />
-                </>
-            )}
+            {!isEmpty && <Table.Body />}
         </Table>
     );
 }

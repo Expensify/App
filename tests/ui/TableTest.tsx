@@ -1,12 +1,27 @@
 import {NavigationContainer} from '@react-navigation/native';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
 import Table from '@components/Table';
-import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
+import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Text from '@components/Text';
 import type Navigation from '@libs/Navigation/Navigation';
+
+type MockFlashListProps<T> = {
+    data?: T[];
+    renderItem?: (info: ListRenderItemInfo<T>) => React.ReactElement | null;
+    keyExtractor?: (item: T, index: number) => string;
+    ListHeaderComponent?: React.ComponentType | React.ReactElement | null;
+    ListEmptyComponent?: React.ComponentType | React.ReactElement | null;
+    onLoad?: (info: {elapsedTimeInMs: number}) => void;
+    onScroll?: (event: {nativeEvent: {contentOffset: {y: number}}}) => void;
+    stickyHeaderIndices?: number[];
+};
+
+const mockFlashListScrollToIndex = jest.fn();
+const mockFlashListScrollToItem = jest.fn();
+let mockFlashListProps: Array<MockFlashListProps<unknown>> = [];
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => {
@@ -16,6 +31,64 @@ jest.mock('@react-navigation/native', () => {
         useIsFocused: jest.fn(),
         useFocusEffect: jest.fn(),
     };
+});
+
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    __esModule: true,
+    default: {
+        isHybridApp: jest.fn(() => false),
+    },
+}));
+
+jest.mock('@shopify/flash-list', () => {
+    const ReactLocal = jest.requireActual<typeof React>('react');
+    const {View: RNView} = jest.requireActual<{View: typeof View}>('react-native');
+
+    const renderComponent = (component: React.ComponentType | React.ReactElement | null | undefined) => {
+        if (!component) {
+            return null;
+        }
+
+        if (ReactLocal.isValidElement(component)) {
+            return component;
+        }
+
+        return ReactLocal.createElement(component);
+    };
+
+    const FlashList = ReactLocal.forwardRef(
+        (props: MockFlashListProps<unknown>, ref: React.Ref<{scrollToIndex: typeof mockFlashListScrollToIndex; scrollToItem: typeof mockFlashListScrollToItem}>) => {
+            mockFlashListProps.push(props);
+            const data = props.data ?? [];
+
+            ReactLocal.useImperativeHandle(ref, () => ({
+                scrollToIndex: mockFlashListScrollToIndex,
+                scrollToItem: mockFlashListScrollToItem,
+            }));
+
+            return (
+                <RNView testID="flash-list">
+                    {renderComponent(props.ListHeaderComponent)}
+                    {data.length === 0
+                        ? renderComponent(props.ListEmptyComponent)
+                        : data.map((item, index) => {
+                              const key = props.keyExtractor?.(item, index) ?? String(index);
+                              return (
+                                  <RNView key={key}>
+                                      {props.renderItem?.({
+                                          item,
+                                          index,
+                                          target: 'Cell',
+                                      } as ListRenderItemInfo<unknown>)}
+                                  </RNView>
+                              );
+                          })}
+                </RNView>
+            );
+        },
+    );
+
+    return {FlashList};
 });
 
 // Mock useLocalize hook
@@ -205,6 +278,7 @@ function createDefaultProps() {
 describe('Table', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockFlashListProps = [];
     });
 
     describe('rendering', () => {
@@ -310,6 +384,122 @@ describe('Table', () => {
             expect(screen.getByText('Category')).toBeTruthy();
             expect(screen.getByText('Value')).toBeTruthy();
         });
+
+        it('should render headerComponent and keep row indexes aligned with data rows', () => {
+            const props = createDefaultProps();
+            const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
+                <View testID={`row-${item.id}`}>
+                    <Text testID={`row-index-${item.id}`}>{index}</Text>
+                    <Text>{item.name}</Text>
+                </View>
+            );
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={renderItem}
+                    keyExtractor={props.keyExtractor}
+                    headerComponent={<Text testID="table-header-component">Page header</Text>}
+                    shouldUseStickyColumnHeader
+                >
+                    <Table.Body />
+                </Table>,
+            );
+
+            expect(screen.getByTestId('table-header-component')).toBeTruthy();
+            expect(screen.getAllByText('Name').length).toBeGreaterThan(0);
+            expect(screen.getByTestId('row-index-1').props.children).toBe(0);
+            expect(mockFlashListProps.at(-1)?.ListHeaderComponent).toBeTruthy();
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
+        });
+
+        it('should wait before enabling sticky table header when rows load asynchronously', () => {
+            const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame');
+            const cancelAnimationFrameSpy = jest.spyOn(global, 'cancelAnimationFrame');
+            let animationFrameCallback: FrameRequestCallback | undefined;
+
+            requestAnimationFrameSpy.mockImplementation((callback) => {
+                animationFrameCallback = callback;
+                return 1;
+            });
+            cancelAnimationFrameSpy.mockImplementation(jest.fn());
+
+            const props = createDefaultProps();
+            const renderTable = (data: TestItem[]) => (
+                <Table<TestItem, TestColumnKey>
+                    data={data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    headerComponent={<Text testID="table-header-component">Page header</Text>}
+                    shouldUseStickyColumnHeader
+                >
+                    <Table.Body />
+                </Table>
+            );
+
+            const {rerender} = render(renderTable([]));
+
+            act(() => {
+                mockFlashListProps.at(-1)?.onLoad?.({elapsedTimeInMs: 0});
+            });
+
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
+
+            rerender(renderTable(props.data));
+
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
+
+            act(() => {
+                animationFrameCallback?.(0);
+            });
+
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
+
+            fireEvent(screen.getByTestId('table-list-header'), 'layout', {nativeEvent: {layout: {height: 40}}});
+
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
+
+            act(() => {
+                mockFlashListProps.at(-1)?.onScroll?.({nativeEvent: {contentOffset: {y: 40}}});
+            });
+
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
+
+            rerender(renderTable([...props.data]));
+
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
+            expect(requestAnimationFrameSpy).toHaveBeenCalledTimes(1);
+
+            requestAnimationFrameSpy.mockRestore();
+            cancelAnimationFrameSpy.mockRestore();
+        });
+
+        it('should offset scrollToIndex calls when the internal table header row is present', () => {
+            const props = createDefaultProps();
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    ref={tableRef}
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    headerComponent={<Text testID="table-header-component">Page header</Text>}
+                    shouldUseStickyColumnHeader
+                >
+                    <Table.Body />
+                </Table>,
+            );
+
+            act(() => {
+                tableRef.current?.scrollToIndex({index: 0, animated: false});
+            });
+
+            expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({index: 1, animated: false});
+        });
     });
 
     describe('search functionality', () => {
@@ -352,6 +542,29 @@ describe('Table', () => {
             expect(screen.getByTestId('row-1')).toBeTruthy();
             expect(screen.queryByTestId('row-2')).toBeNull();
             expect(screen.queryByTestId('row-3')).toBeNull();
+        });
+
+        it('should preserve headerComponent search state while filtering data', () => {
+            const props = createDefaultProps();
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    isItemInSearch={props.isItemInSearch}
+                    headerComponent={<Table.SearchBar label="Search" />}
+                >
+                    <Table.Body />
+                </Table>,
+            );
+
+            fireEvent.changeText(screen.getByTestId('search-input'), 'apple');
+
+            expect(screen.getByTestId('search-input').props.value).toBe('apple');
+            expect(screen.getByTestId('row-1')).toBeTruthy();
+            expect(screen.queryByTestId('row-2')).toBeNull();
         });
 
         it('should show all items when search is cleared', () => {

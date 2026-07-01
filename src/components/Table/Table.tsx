@@ -151,6 +151,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     isItemInSearch,
     initialSortColumn,
     narrowLayoutSortColumn,
+    headerComponent,
+    shouldUseStickyColumnHeader = false,
     children,
     selectionEnabled,
     onRowSelectionChange,
@@ -206,6 +208,10 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         ...highlightingMethods,
     };
 
+    const originalDataLength = data?.length ?? 0;
+    const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasActiveSearchString || hasActiveFilters);
+    const shouldRenderStickyHeader = shouldUseStickyColumnHeader && processedData.length > 0 && !isEmptyResult && !(shouldUseNarrowTableLayout && !title);
+
     /**
      * Exposes table control methods through the ref.
      * Uses a Proxy to also forward FlashList methods (like scrollToIndex).
@@ -221,13 +227,16 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                     return () => processedData;
                 }
 
+                if (property === 'scrollToIndex') {
+                    return (params: Parameters<FlashListRef<DataType>['scrollToIndex']>[0]) => {
+                        listRef.current?.scrollToIndex({...params, index: params.index + (shouldRenderStickyHeader ? 1 : 0)});
+                    };
+                }
+
                 return listRef.current?.[property as keyof FlashListRef<DataType>];
             },
         }) as TableHandle<DataType, ColumnKey, FilterKey>;
     });
-
-    const originalDataLength = data?.length ?? 0;
-    const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasActiveSearchString || hasActiveFilters);
 
     const handleMobileSelectionPress = () => {
         turnOnMobileSelectionMode();
@@ -241,6 +250,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const contextValue: TableContextValue<DataType, ColumnKey, FilterKey> = {
         title,
+        headerComponent,
         listRef,
         listProps,
         processedData,
@@ -253,6 +263,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         tableMethods,
         hasActiveFilters,
         hasSearchString: hasActiveSearchString,
+        shouldRenderStickyHeader,
         isEmptyResult,
         shouldUseNarrowTableLayout,
         selectionEnabled,

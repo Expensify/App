@@ -150,8 +150,9 @@ function WorkspacesListPage() {
         }
     }
 
+    const duplicateWorkspacePolicyID = duplicateWorkspace?.policyID;
     useEffect(() => {
-        const duplicatedWSPolicyID = duplicateWorkspace?.policyID;
+        const duplicatedWSPolicyID = duplicateWorkspacePolicyID;
         const filteredWorkspaces = tableRef.current?.getProcessedData() ?? [];
 
         if (!duplicatedWSPolicyID || !filteredWorkspaces.length || !isFocused) {
@@ -159,6 +160,7 @@ function WorkspacesListPage() {
         }
 
         const duplicateWorkspaceIndex = filteredWorkspaces.findIndex((workspace) => workspace.policyID === duplicatedWSPolicyID);
+
         if (duplicateWorkspaceIndex < 0) {
             return;
         }
@@ -169,7 +171,7 @@ function WorkspacesListPage() {
         });
 
         return () => handle.cancel();
-    }, [duplicateWorkspace?.policyID, isFocused, workspaceRows.length]);
+    }, [duplicateWorkspacePolicyID, isFocused, workspaceRows.length]);
 
     // Scroll to the top when the list gets its first workspace, so it's visible. On web, returning from the create
     // flow restores the scroll position the empty list had (it was scrolled down to reach the "New workspace" button),
@@ -213,35 +215,43 @@ function WorkspacesListPage() {
             activeTabKey="workspaces"
             headerButton={headerButton}
         >
-            {shouldShowLoadingIndicator ? (
-                <View style={[styles.flex1, styles.fullScreenLoading]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={
-                            {
-                                context: 'WorkspacesListPage',
-                                isOffline,
-                            } satisfies SkeletonSpanReasonAttributes
-                        }
-                    />
-                </View>
-            ) : (
-                <WorkspaceListTable
-                    ref={tableRef}
-                    workspaces={workspaceRows}
-                    onDeleteWorkspace={setPolicyIDToDelete}
-                    pendingDeletePolicyID={policyIDToDelete}
-                    copySettingsEligibleTargets={copySettingsEligibleTargets ?? EMPTY_COPY_SETTINGS_ELIGIBLE_TARGETS}
-                />
+            {(headerComponent) => (
+                <>
+                    {shouldShowLoadingIndicator ? (
+                        <>
+                            {headerComponent}
+                            <View style={[styles.flex1, styles.fullScreenLoading]}>
+                                <ActivityIndicator
+                                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                    reasonAttributes={
+                                        {
+                                            context: 'WorkspacesListPage',
+                                            isOffline,
+                                        } satisfies SkeletonSpanReasonAttributes
+                                    }
+                                />
+                            </View>
+                        </>
+                    ) : (
+                        <WorkspaceListTable
+                            ref={tableRef}
+                            workspaces={workspaceRows}
+                            headerComponent={headerComponent}
+                            onDeleteWorkspace={setPolicyIDToDelete}
+                            pendingDeletePolicyID={policyIDToDelete}
+                            copySettingsEligibleTargets={copySettingsEligibleTargets ?? EMPTY_COPY_SETTINGS_ELIGIBLE_TARGETS}
+                        />
+                    )}
+                    {!!policyIDToDelete && (
+                        <DeleteWorkspaceFlow
+                            key={policyIDToDelete}
+                            policyID={policyIDToDelete}
+                            onDismiss={() => setPolicyIDToDelete(undefined)}
+                        />
+                    )}
+                    <CopyPolicySettingsProgressModal />
+                </>
             )}
-            {!!policyIDToDelete && (
-                <DeleteWorkspaceFlow
-                    key={policyIDToDelete}
-                    policyID={policyIDToDelete}
-                    onDismiss={() => setPolicyIDToDelete(undefined)}
-                />
-            )}
-            <CopyPolicySettingsProgressModal />
         </WorkspaceListLayout>
     );
 }

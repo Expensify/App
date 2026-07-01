@@ -39,6 +39,7 @@ type WorkspaceCategoriesTableProps = {
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
     EmptyStateComponent: React.ReactElement;
+    headerComponent?: React.ReactElement;
 };
 
 export default function WorkspaceCategoriesTable({
@@ -50,6 +51,7 @@ export default function WorkspaceCategoriesTable({
     shouldShowApproverColumn,
     onRowSelectionChange,
     EmptyStateComponent,
+    headerComponent,
 }: WorkspaceCategoriesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -137,6 +139,13 @@ export default function WorkspaceCategoriesTable({
     );
 
     const isEmpty = categories.length === 0;
+    const shouldShowSearchBar = categories.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const tableHeaderComponent = (
+        <>
+            {headerComponent}
+            {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.categories.findCategory')} />}
+        </>
+    );
 
     return (
         <Table
@@ -152,15 +161,11 @@ export default function WorkspaceCategoriesTable({
             selectedKeys={selectedKeys}
             keyExtractor={(category) => category.keyForList}
             onRowSelectionChange={onRowSelectionChange}
+            headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
         >
             {isEmpty && EmptyStateComponent}
-            {!isEmpty && (
-                <>
-                    {categories.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.categories.findCategory')} />}
-                    <Table.Header />
-                    <Table.Body />
-                </>
-            )}
+            {!isEmpty && <Table.Body />}
         </Table>
     );
 }

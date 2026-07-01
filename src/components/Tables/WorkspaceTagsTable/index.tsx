@@ -48,6 +48,7 @@ type WorkspaceTagsTableProps = {
     shouldShowGLCodeColumn: boolean;
     shouldShowApproverColumn: boolean;
     EmptyStateComponent: React.ReactElement;
+    headerComponent?: React.ReactElement;
 };
 
 export default function WorkspaceTagsTable({
@@ -60,6 +61,7 @@ export default function WorkspaceTagsTable({
     shouldShowGLCodeColumn,
     shouldShowApproverColumn,
     EmptyStateComponent,
+    headerComponent,
 }: WorkspaceTagsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -193,6 +195,13 @@ export default function WorkspaceTagsTable({
     );
 
     const isEmpty = tags.length === 0;
+    const shouldShowSearchBar = tags.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const tableHeaderComponent = (
+        <>
+            {headerComponent}
+            {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.tags.findTag')} />}
+        </>
+    );
 
     return (
         <Table
@@ -207,15 +216,11 @@ export default function WorkspaceTagsTable({
             selectedKeys={selectedKeys}
             keyExtractor={(tag) => tag.keyForList}
             onRowSelectionChange={onRowSelectionChange}
+            headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
         >
             {isEmpty && EmptyStateComponent}
-            {!isEmpty && (
-                <>
-                    {tags.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.tags.findTag')} />}
-                    <Table.Header />
-                    <Table.Body />
-                </>
-            )}
+            {!isEmpty && <Table.Body />}
         </Table>
     );
 }

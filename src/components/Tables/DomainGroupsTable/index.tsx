@@ -64,6 +64,8 @@ export default function DomainGroupsTable({groups}: DomainGroupsTableProps) {
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
         />
     );
+    const shouldShowSearchBar = groups.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const tableHeaderComponent = shouldShowSearchBar ? <Table.SearchBar label={translate('domain.groups.findGroup')} /> : undefined;
 
     return (
         <Table
@@ -75,9 +77,9 @@ export default function DomainGroupsTable({groups}: DomainGroupsTableProps) {
             initialSortColumn="name"
             title={translate('domain.groups.title')}
             keyExtractor={(item) => item.keyForList}
+            headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
         >
-            {groups.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('domain.groups.findGroup')} />}
-            <Table.Header />
             <Table.Body />
         </Table>
     );
