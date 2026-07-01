@@ -16,7 +16,7 @@ import ReceiptCell from './DataCells/ReceiptCell';
 import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
 import DeferredTransactionItemRowRBR from './DeferredTransactionItemRowRBR';
-import type {TransactionItemRowNarrowComputedData, TransactionItemRowProps} from './types';
+import type {TransactionItemRowNarrowComputedData, TransactionItemRowProps, TransactionItemRowRBRDeferControlProps} from './types';
 
 type TransactionItemRowNarrowProps = Pick<
     TransactionItemRowProps,
@@ -42,7 +42,8 @@ type TransactionItemRowNarrowProps = Pick<
     | 'shouldShowArrowRightOnNarrowLayout'
     | 'checkboxSentryLabel'
 > &
-    TransactionItemRowNarrowComputedData;
+    TransactionItemRowNarrowComputedData &
+    TransactionItemRowRBRDeferControlProps;
 
 function TransactionItemRowNarrow({
     transactionItem,
@@ -66,6 +67,7 @@ function TransactionItemRowNarrow({
     onArrowRightPress,
     shouldShowArrowRightOnNarrowLayout,
     checkboxSentryLabel,
+    shouldDeferRBR = true,
     bgActiveStyles,
     merchant,
     merchantOrDescription,
@@ -173,6 +175,7 @@ function TransactionItemRowNarrow({
                 </View>
                 {shouldShowErrors && (
                     <DeferredTransactionItemRowRBR
+                        shouldDefer={shouldDeferRBR}
                         transaction={transactionItem}
                         violations={violations}
                         report={report}

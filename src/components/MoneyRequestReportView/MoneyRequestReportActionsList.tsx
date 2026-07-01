@@ -3,9 +3,8 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, ListRenderItemInfo, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, View} from 'react-native';
-import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
 import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsReportActionsLoaded from '@hooks/useIsReportActionsLoaded';
@@ -24,7 +23,6 @@ import useReportTransactionsCollection from '@hooks/useReportTransactionsCollect
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useScrollToEndOnNewMessageReceived from '@hooks/useScrollToEndOnNewMessageReceived';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import DateUtils from '@libs/DateUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -52,7 +50,6 @@ import Visibility from '@libs/Visibility';
 import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostFullScreenRoute';
 import {useConciergeDraft} from '@pages/inbox/ConciergeDraftContext';
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
-import getInitialNumToRender from '@pages/inbox/report/getInitialNumReportActionsToRender';
 import ReportActionIndexContext from '@pages/inbox/report/ReportActionIndexContext';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
@@ -68,7 +65,6 @@ import {pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
 import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
-import ReportActionsListLoadingSkeleton from './ReportActionsListLoadingSkeleton';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 import SelectionToolbar from './SelectionToolbar';
 
@@ -94,6 +90,24 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
     const reportScrollManager = useReportScrollManager();
+    // The unified list writes its last item index here (see lastItemIndexRef prop). We jump to the bottom via
+    // scrollToIndex rather than scrollToEnd: scrollToEnd targets an estimated content-end offset, which on a large
+    // list (hundreds of transactions + chat) leaves the bottom blank until it renders/corrects. scrollToIndex
+    // targets the last item directly and renders around it, so the landing is not blank.
+    const lastItemIndexRef = useRef(0);
+    const updateLastItemIndex = useCallback((index: number) => {
+        lastItemIndexRef.current = index;
+    }, []);
+
+    const scrollToBottom = useCallback(() => {
+        if (lastItemIndexRef.current < 0) {
+            return;
+        }
+
+        const listRef = reportScrollManager.ref;
+        listRef?.current?.scrollToIndex({index: lastItemIndexRef.current, animated: false});
+    }, [reportScrollManager.ref]);
+
     const lastMessageTime = useRef<string | null>(null);
     const didLayout = useRef(false);
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
@@ -201,6 +215,10 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const scrollingVerticalTopOffset = useRef(0);
     const wrapperViewRef = useRef<View>(null);
     const readActionSkipped = useRef(false);
+    const stickToBottomRef = useRef(false);
+    const stickToBottomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    // Set when the user taps "Latest messages"; the report is marked as read only once the scroll actually reaches the bottom.
+    const pendingMarkAsReadRef = useRef(false);
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
     const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated;
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
@@ -454,6 +472,14 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
             // We additionally track the top offset to be able to scroll to the new transaction when it's added
             scrollingVerticalTopOffset.current = contentOffset.y;
+
+            // Mark the report as read only once the scroll has actually reached the bottom. The jump fired by
+            // "Latest messages" settles over several frames as deferred items hydrate, so we wait for the real end.
+            if (pendingMarkAsReadRef.current && scrollingVerticalBottomOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
+                pendingMarkAsReadRef.current = false;
+                readActionSkipped.current = false;
+                readNewestAction(reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
+            }
         },
     });
 
@@ -562,15 +588,15 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         }
     }, [visibleReportActions, lastActionEventId, enableScrollToEnd, reportScrollManager]);
 
-    const renderItem = useCallback(
-        ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
+    const renderReportAction = useCallback(
+        (reportAction: OnyxTypes.ReportAction, indexWithinReportActions: number) => {
             const displayAsGroup =
-                !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
-                hasNextActionMadeBySameActor(visibleReportActions, index, isOffline);
+                !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, indexWithinReportActions, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
+                hasNextActionMadeBySameActor(visibleReportActions, indexWithinReportActions, isOffline);
             const shouldDisableContextMenuForConciergeDraft = draftReportActionID === reportAction.reportActionID;
 
             return (
-                <ReportActionIndexContext.Provider value={index}>
+                <ReportActionIndexContext.Provider value={indexWithinReportActions}>
                     <ReportActionsListItemRenderer
                         reportAction={reportAction}
                         parentReportAction={parentReportAction}
@@ -605,19 +631,55 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         ],
     );
 
-    const scrollToBottomAndMarkReportAsRead = useCallback(() => {
+    const scrollToLatestMessages = useCallback(() => {
         setIsFloatingMessageCounterVisible(false);
+
+        stickToBottomRef.current = true;
+        if (stickToBottomTimeoutRef.current) {
+            clearTimeout(stickToBottomTimeoutRef.current);
+        }
+        // Safety net: stop pinning after deferred content has had time to settle, so a much later
+        // unrelated layout change doesn't yank the user back down.
+        stickToBottomTimeoutRef.current = setTimeout(() => {
+            stickToBottomRef.current = false;
+        }, 2000);
 
         if (!hasNewestReportAction) {
             openReport({reportID, introSelected, betas});
-            reportScrollManager.scrollToEnd();
+            scrollToBottom();
             return;
         }
 
-        reportScrollManager.scrollToEnd();
-        readActionSkipped.current = false;
-        readNewestAction(reportID, true);
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, reportID, introSelected, betas]);
+        // Defer marking the report as read until the scroll actually reaches the bottom (handled in onTrackScrolling).
+        pendingMarkAsReadRef.current = true;
+        scrollToBottom();
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, scrollToBottom, reportID, introSelected, betas]);
+
+    useEffect(() => {
+        return () => {
+            if (!stickToBottomTimeoutRef.current) {
+                return;
+            }
+            clearTimeout(stickToBottomTimeoutRef.current);
+        };
+    }, []);
+
+    const onListContentSizeChange = () => {
+        if (!stickToBottomRef.current) {
+            return;
+        }
+        scrollToBottom();
+    };
+
+    const onListScrollBeginDrag = () => {
+        stickToBottomRef.current = false;
+        // The user scrolled away before reaching the bottom, so cancel the pending read.
+        pendingMarkAsReadRef.current = false;
+        if (stickToBottomTimeoutRef.current) {
+            clearTimeout(stickToBottomTimeoutRef.current);
+            stickToBottomTimeoutRef.current = null;
+        }
+    };
 
     const scrollToNewTransaction = useCallback(
         (pageY: number) => {
@@ -644,28 +706,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
         markOpenReportEnd(report, {warm: !shouldShowOpenReportLoadingSkeleton});
     }, [report, shouldShowOpenReportLoadingSkeleton]);
-
-    // Wrapped into useCallback to stabilize children re-renders
-    const keyExtractor = useCallback((item: OnyxTypes.ReportAction) => item.reportActionID, []);
-
-    const {windowHeight} = useWindowDimensions();
-    /**
-     * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
-     * the height of the smallest report action possible.
-     */
-    const initialNumToRender = useMemo((): number | undefined => {
-        const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
-        const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
-        // windowHeight can be smaller than the header+footer during transient mount/transition states
-        // (e.g. Wide RHP overlay animating in), which would make numToRender negative and crash
-        // VirtualizedList with "Invalid cells around viewport". Clamping to 0 lets the `|| undefined`
-        // fallback below kick in so FlatList uses its default.
-        const numToRender = Math.max(0, Math.ceil(availableHeight / minimumReportActionHeight));
-        if (linkedReportActionID) {
-            return getInitialNumToRender(numToRender);
-        }
-        return numToRender || undefined;
-    }, [styles.chatItem.paddingBottom, styles.chatItem.paddingTop, windowHeight, linkedReportActionID]);
 
     const isReportEmpty = isEmpty(visibleReportActions) && isEmpty(transactions) && !showReportActionsLoadingState;
     const showEmptyState = isReportEmpty;
@@ -694,12 +734,12 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                 <FloatingMessageCounter
                     hasNewMessages={!!unreadMarkerReportActionID}
                     isActive={isFloatingMessageCounterVisible}
-                    onClick={scrollToBottomAndMarkReportAsRead}
+                    onClick={scrollToLatestMessages}
                     isMarkAsDone={shouldUseMarkAsDoneCopy}
                 />
                 {/* Exactly one of these two branches is active at a time:
                     1. showEmptyState — genuinely empty report
-                    2. !isReportEmpty — report has data, render the FlatList */}
+                    2. !isReportEmpty — report has data, render the FlashList */}
                 {showEmptyState && (
                     <ScrollView contentContainerStyle={styles.flexGrow1}>
                         <MoneyRequestViewReportFields
@@ -713,51 +753,34 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         />
                     </ScrollView>
                 )}
-                {!isReportEmpty && (
-                    <FlatListWithScrollKey
-                        initialNumToRender={initialNumToRender}
+                {!isReportEmpty && !!reportStable && (
+                    <MoneyRequestReportTransactionList
+                        report={reportStable}
+                        onLayout={onLayout}
+                        transactions={transactions}
+                        newTransactions={newTransactions}
+                        hasPendingDeletionTransaction={hasPendingDeletionTransaction}
+                        reportActions={reportActions}
+                        scrollToNewTransaction={scrollToNewTransaction}
+                        policy={policy}
+                        hasComments={visibleReportActions.length > 0}
+                        isLoadingInitialReportActions={showReportActionsLoadingState}
+                        visibleReportActions={visibleReportActions}
+                        renderReportAction={renderReportAction}
+                        linkedReportActionID={linkedReportActionID}
+                        listRef={reportScrollManager.ref}
+                        onLastItemIndexChange={updateLastItemIndex}
                         accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
-                        testID="money-request-report-actions-list"
-                        style={styles.overscrollBehaviorContain}
-                        data={visibleReportActions}
-                        renderItem={renderItem}
-                        extraData={draftReportActionID}
-                        onViewableItemsChanged={onViewableItemsChanged}
-                        keyExtractor={keyExtractor}
-                        onLayout={recordTimeToMeasureItemLayout}
-                        onEndReached={onEndReached}
-                        onEndReachedThreshold={0.75}
-                        onStartReached={onStartReached}
-                        onStartReachedThreshold={0.75}
-                        ListHeaderComponent={
-                            <>
-                                <MoneyRequestViewReportFields
-                                    report={report}
-                                    policy={policy}
-                                />
-                                {!!reportStable && (
-                                    <MoneyRequestReportTransactionList
-                                        report={reportStable}
-                                        onLayout={onLayout}
-                                        transactions={transactions}
-                                        newTransactions={newTransactions}
-                                        hasPendingDeletionTransaction={hasPendingDeletionTransaction}
-                                        reportActions={reportActions}
-                                        scrollToNewTransaction={scrollToNewTransaction}
-                                        policy={policy}
-                                        hasComments={visibleReportActions.length > 0}
-                                        isLoadingInitialReportActions={showReportActionsLoadingState}
-                                    />
-                                )}
-                            </>
-                        }
-                        keyboardShouldPersistTaps="handled"
+                        onListLayout={recordTimeToMeasureItemLayout}
                         onScroll={trackVerticalScrolling}
-                        contentContainerStyle={[shouldUseNarrowLayout ? styles.pt4 : styles.pt3]}
-                        ref={reportScrollManager.ref}
-                        ListEmptyComponent={!isOffline && showReportActionsLoadingState ? <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} /> : undefined} // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
-                        removeClippedSubviews={false}
-                        initialScrollKey={linkedReportActionID}
+                        onScrollBeginDrag={onListScrollBeginDrag}
+                        onContentSizeChange={onListContentSizeChange}
+                        onViewableItemsChanged={onViewableItemsChanged}
+                        onEndReached={onEndReached}
+                        onStartReached={onStartReached}
+                        contentContainerStyle={shouldUseNarrowLayout ? styles.pt4 : styles.pt3}
+                        isLoadingInitialActions={!!showReportActionsLoadingState}
+                        skeletonReasonAttributes={skeletonReasonAttributes}
                     />
                 )}
             </View>

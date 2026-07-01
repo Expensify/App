@@ -85,7 +85,9 @@ function TransactionItemRow({
     canEditCategory,
     canEditAmount,
     canEditTag,
+    shouldSkipDeferRBR = false,
 }: TransactionItemRowProps) {
+    const shouldDeferRBR = !shouldSkipDeferRBR;
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
@@ -169,6 +171,7 @@ function TransactionItemRow({
                 createdAt={createdAt}
                 transactionThreadReportID={transactionThreadReportID}
                 shouldRenderChatBubbleCell={shouldRenderChatBubbleCell}
+                shouldDeferRBR={shouldDeferRBR}
             />
         );
     }
@@ -250,6 +253,7 @@ function TransactionItemRow({
             totalPerAttendee={!attendeesCount || totalAmount === undefined ? undefined : totalAmount / attendeesCount}
             createdAt={createdAt}
             transactionThreadReportID={transactionThreadReportID}
+            shouldDeferRBR={shouldDeferRBR}
             isMarkAsDone={shouldUseMarkAsDoneCopy}
         />
     );

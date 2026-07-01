@@ -108,7 +108,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
                 maintainVisibleContentPosition={{disabled: true}}
                 ListEmptyComponent={isEmptyResult ? EmptyResultComponent : ListEmptyComponent}
                 contentContainerStyle={[
-                    filteredAndSortedData.length === 0 && styles.flexGrow1,
+                    filteredAndSortedData.length === 0 && styles.flex1,
                     listContentContainerStyle,
                     tableBodyContentContainerStyle,
                     contentContainerStyle,
