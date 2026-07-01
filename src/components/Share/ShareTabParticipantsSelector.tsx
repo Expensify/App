@@ -48,8 +48,9 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
 
                 if (isSubmitFlow) {
                     startSpan(CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW, {
-                        name: '/share/submit-details/*',
+                        name: CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW,
                         op: CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW,
+                        forceTransaction: true,
                         attributes: {
                             [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID.toString(),
                             [CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM]: Navigation.getActiveRoute() || 'unknown',
