@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -18,15 +18,18 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useFilterFormValues from '@hooks/useFilterFormValues';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {saveSearch} from '@libs/actions/Search';
+import {clearSaveAsNewViewQuery, saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {getCustomColumnDefault, getSearchColumnTranslationKey, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/SearchSaveForm';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -150,23 +153,47 @@ function SearchSavePage() {
     const {translate, localeCompare} = useLocalize();
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    // The narrow "Save as new view" flow carries the edited query here so we save those filters without changing the
+    // active search (mobile filters are a draft). When set, it overrides the active search for both the save and the preview.
+    const [saveAsNewViewQuery] = useOnyx(ONYXKEYS.SEARCH_SAVE_AS_NEW_VIEW_QUERY);
     const [name, setName] = useState('');
 
     const {currentSearchQueryJSON} = useSearchQueryContext();
 
+    const overrideQueryJSON = saveAsNewViewQuery ? buildSearchQueryJSON(saveAsNewViewQuery) : undefined;
+    const queryJSONToSave = overrideQueryJSON ?? currentSearchQueryJSON;
+    const overrideFormValues = useFilterFormValues(overrideQueryJSON);
+    const formToDisplay = overrideQueryJSON ? overrideFormValues : searchAdvancedFiltersForm;
+
+    // Clear the carried query when leaving this page (saved or backed out) so it can't leak into a later save.
+    useEffect(
+        () => () => {
+            clearSaveAsNewViewQuery();
+        },
+        [],
+    );
+
     const onSaveSearch = () => {
-        if (!currentSearchQueryJSON) {
+        if (!queryJSONToSave) {
             Navigation.goBack();
             return;
         }
 
-        const newName = name.trim() || currentSearchQueryJSON?.inputQuery;
-        saveSearch({queryJSON: currentSearchQueryJSON, newName});
-        Navigation.goBack();
+        const newName = name.trim() || queryJSONToSave.inputQuery;
+        saveSearch({queryJSON: queryJSONToSave, newName});
+        // Clear the carried query immediately (don't rely on unmount timing) so it can't leak into a later save.
+        clearSaveAsNewViewQuery();
+
+        // For "Save as new view" land on the newly-created view; for the regular save just return to the current search.
+        if (overrideQueryJSON) {
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildSearchQueryString(overrideQueryJSON)}));
+        } else {
+            Navigation.goBack();
+        }
     };
 
-    const appliedFilters = mapFiltersFormToLabelValueList(searchAdvancedFiltersForm, undefined, undefined, translate, localeCompare, convertToDisplayStringWithoutCurrency);
-    const appliedDisplays = getAppliedDisplays(searchAdvancedFiltersForm, currentSearchQueryJSON, translate);
+    const appliedFilters = mapFiltersFormToLabelValueList(formToDisplay, undefined, undefined, translate, localeCompare, convertToDisplayStringWithoutCurrency);
+    const appliedDisplays = getAppliedDisplays(formToDisplay, queryJSONToSave, translate);
 
     const {inputCallbackRef} = useAutoFocusInput();
 

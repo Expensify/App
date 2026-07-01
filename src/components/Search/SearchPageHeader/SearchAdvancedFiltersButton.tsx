@@ -1,20 +1,23 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
-import type {ButtonComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
+import type {ButtonComponentProps, PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import SearchAdvancedFiltersPopup from '@components/Search/FilterDropdowns/SearchAdvancedFiltersPopup';
 import type {SearchQueryJSON} from '@components/Search/types';
 import useFilterFormValues from '@hooks/useFilterFormValues';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchFilterSync from '@hooks/useSearchFilterSync';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {exitSavedViewEditMode} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 type SearchAdvancedFiltersButtonProp = {
@@ -30,6 +33,23 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter']);
     const filterFormValues = useFilterFormValues(queryJSON);
     useSearchFilterSync(queryJSON, filterFormValues);
+    const [editingSavedView] = useOnyx(ONYXKEYS.SEARCH_EDITING_SAVED_VIEW);
+    const isEditingSavedView = !!editingSavedView;
+
+    // On small screens the filters are a fullscreen route, so "Edit filters" opens it here. Keyed by requestID so each
+    // click opens it once. Wait for queryJSON.hash === editingSavedView.hash so the form has the edited view's filters.
+    const lastAutoNavRequestIDRef = useRef<number | undefined>(undefined);
+    useEffect(() => {
+        const requestID = editingSavedView?.requestID;
+        if (!isSmallScreenWidth || requestID === undefined || lastAutoNavRequestIDRef.current === requestID) {
+            return;
+        }
+        if (queryJSON.hash !== editingSavedView?.hash) {
+            return;
+        }
+        lastAutoNavRequestIDRef.current = requestID;
+        Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
+    }, [isSmallScreenWidth, editingSavedView?.requestID, editingSavedView?.hash, queryJSON.hash]);
 
     if (isSmallScreenWidth) {
         return (
@@ -81,7 +101,13 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
               />
           );
 
-    const filtersPopup = () => <SearchAdvancedFiltersPopup queryJSON={queryJSON} />;
+    const filtersPopup = ({closeOverlay}: PopoverComponentProps) => (
+        <SearchAdvancedFiltersPopup
+            queryJSON={queryJSON}
+            editingSavedView={editingSavedView}
+            closeOverlay={closeOverlay}
+        />
+    );
 
     return (
         <FilterPopupButton
@@ -92,6 +118,8 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
             }}
             renderButton={filterButton}
+            autoExpandToken={editingSavedView && queryJSON.hash === editingSavedView.hash ? editingSavedView.requestID : undefined}
+            onOverlayClose={isEditingSavedView ? exitSavedViewEditMode : undefined}
         />
     );
 }

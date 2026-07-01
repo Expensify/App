@@ -32,13 +32,18 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
         return updatedFilterFormValues;
     }
 
-    function setFilterQueryParams(values: Partial<SearchAdvancedFiltersForm>) {
-        const queryString =
+    function buildFilterQueryString(values: Partial<SearchAdvancedFiltersForm>) {
+        return (
             buildFilterQueryWithSortDefaults(
                 values,
                 {view: searchAdvancedFiltersForm.view, groupBy: searchAdvancedFiltersForm.groupBy},
                 {sortBy: queryJSON?.sortBy, sortOrder: queryJSON?.sortOrder},
-            ) ?? '';
+            ) ?? ''
+        );
+    }
+
+    function setFilterQueryParams(values: Partial<SearchAdvancedFiltersForm>) {
+        const queryString = buildFilterQueryString(values);
         if (!queryString) {
             return;
         }
@@ -50,7 +55,7 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
         setFilterQueryParams(getUpdatedFilterFormValues(searchAdvancedFiltersForm, values));
     }
 
-    return {getUpdatedFilterFormValues, setFilterQueryParams, updateFilterQueryParams};
+    return {getUpdatedFilterFormValues, setFilterQueryParams, updateFilterQueryParams, buildFilterQueryString};
 }
 
 export default useUpdateFilterQuery;

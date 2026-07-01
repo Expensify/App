@@ -622,7 +622,16 @@ function BasePopoverMenu({
 
     const menuContainerStyle = useMemo(() => {
         if (isSmallScreenWidth) {
-            return shouldEnableMaxHeight && !isInLandscapeMode ? [{maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT_MOBILE}] : [];
+            if (!shouldEnableMaxHeight) {
+                return [];
+            }
+            // In landscape the fixed mobile max-height is dropped (it would be taller than the short screen), but that lets a
+            // tall menu grow past the screen and clip its last item. For menus that scroll, cap to the available height
+            // instead so they scroll rather than clip.
+            if (isInLandscapeMode) {
+                return shouldUseScrollView ? [{maxHeight: windowHeight - variables.compactPopoverMenuVerticalMargin}] : [];
+            }
+            return [{maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT_MOBILE}];
         }
 
         const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer), {width: variables.compactPopoverMenuWidth}, styles.pv2];

@@ -1,6 +1,7 @@
-import {queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
+import {queueExportSearchItemsToCSV, queueExportSearchWithTemplate, saveSavedViewEdits, saveSearch} from '@libs/actions/Search';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
@@ -118,5 +119,81 @@ describe('queueExportSearchWithTemplate', () => {
 
         const options = mockWrite.mock.calls.at(-1)?.at(2);
         expect(options).toEqual({});
+    });
+});
+
+describe('saveSearch', () => {
+    beforeEach(() => jest.clearAllMocks());
+
+    it('passes previousHash and optimistically removes the stale saved search when editing changed the query hash', () => {
+        const originalQuery = buildSearchQueryJSON('type:expense');
+        const editedQuery = buildSearchQueryJSON('type:invoice');
+        if (!originalQuery || !editedQuery) {
+            throw new Error('failed to build query JSON');
+        }
+
+        saveSearch({queryJSON: editedQuery, newName: 'Renamed view', previousHash: originalQuery.hash});
+
+        const [command, parameters] = mockWrite.mock.calls.at(-1) ?? [];
+        expect(command).toBe(WRITE_COMMANDS.SAVE_SEARCH);
+        expect(parameters).toEqual(expect.objectContaining({newName: 'Renamed view', previousHash: originalQuery.hash}));
+
+        const {optimisticData} = getWriteOptions();
+        const savedSearchesUpdate = optimisticData.find((update) => update.key === ONYXKEYS.SAVED_SEARCHES);
+        expect(savedSearchesUpdate?.value).toEqual(
+            expect.objectContaining({
+                [editedQuery.hash]: expect.objectContaining({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}),
+                [originalQuery.hash]: expect.objectContaining({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+            }),
+        );
+    });
+
+    it('does not send previousHash or remove anything when the query (hash) is unchanged', () => {
+        const queryJSON = buildSearchQueryJSON('type:expense');
+        if (!queryJSON) {
+            throw new Error('failed to build query JSON');
+        }
+
+        saveSearch({queryJSON, newName: 'Renamed view', previousHash: queryJSON.hash});
+
+        const parameters = mockWrite.mock.calls.at(-1)?.at(1);
+        expect(parameters).toEqual(expect.objectContaining({previousHash: undefined}));
+
+        const {optimisticData} = getWriteOptions();
+        const savedSearchesUpdate = optimisticData.find((update) => update.key === ONYXKEYS.SAVED_SEARCHES);
+        expect(savedSearchesUpdate?.value).toEqual({[queryJSON.hash]: expect.objectContaining({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})});
+    });
+});
+
+describe('saveSavedViewEdits', () => {
+    beforeEach(() => jest.clearAllMocks());
+
+    it('preserves a custom name and forwards the original hash as previousHash so the backend updates the view in place', () => {
+        const originalQuery = buildSearchQueryJSON('type:expense');
+        const editedQuery = buildSearchQueryJSON('type:invoice');
+        if (!originalQuery || !editedQuery) {
+            throw new Error('failed to build query JSON');
+        }
+
+        saveSavedViewEdits({queryJSON: editedQuery, editingSavedView: {hash: originalQuery.hash, name: 'My view', query: 'type:expense', requestID: 1}});
+
+        const [command, parameters] = mockWrite.mock.calls.at(-1) ?? [];
+        expect(command).toBe(WRITE_COMMANDS.SAVE_SEARCH);
+        expect(parameters).toEqual(expect.objectContaining({newName: 'My view', previousHash: originalQuery.hash}));
+    });
+
+    it('re-auto-names an auto-named view (name === query) to the edited query so it does not show the stale old query', () => {
+        const originalQuery = buildSearchQueryJSON('type:expense');
+        const editedQuery = buildSearchQueryJSON('type:invoice');
+        if (!originalQuery || !editedQuery) {
+            throw new Error('failed to build query JSON');
+        }
+
+        // The view was auto-named, so its name equals its original query string.
+        saveSavedViewEdits({queryJSON: editedQuery, editingSavedView: {hash: originalQuery.hash, name: originalQuery.inputQuery, query: originalQuery.inputQuery, requestID: 1}});
+
+        const parameters = mockWrite.mock.calls.at(-1)?.at(1);
+        // newName defaults to the EDITED query so SavedSearchList re-derives a readable title (not the stale old query).
+        expect(parameters).toEqual(expect.objectContaining({newName: editedQuery.inputQuery, previousHash: originalQuery.hash}));
     });
 });

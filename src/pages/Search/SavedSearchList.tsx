@@ -14,7 +14,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShareSavedSearch from '@hooks/useShareSavedSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setSearchContext} from '@libs/actions/Search';
+import {enterSavedViewEditMode, setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -122,7 +122,7 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
         hideProductTrainingTooltip: hideSavedSearchTooltip,
     } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH, isFocused && areAllSectionsExpanded);
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Pencil', 'Trashcan', 'LinkCopy', 'Checkmark']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Pencil', 'Trashcan', 'LinkCopy', 'Checkmark', 'Filter']);
     const {copiedHash, handleShare} = useShareSavedSearch();
 
     const taxRates = getAllTaxRates(allPolicies);
@@ -144,10 +144,22 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
     });
 
     const getOverflowMenu = (itemName: string, itemHash: number, itemQuery: string) =>
-        getOverflowMenuUtil(expensifyIcons, itemName, itemHash, itemQuery, translate, showDeleteModal, false, undefined, {
-            onShare: () => handleShare(itemHash, itemQuery),
-            isCopied: copiedHash === itemHash,
-        });
+        getOverflowMenuUtil(
+            expensifyIcons,
+            itemName,
+            itemHash,
+            itemQuery,
+            translate,
+            showDeleteModal,
+            false,
+            undefined,
+            {
+                onShare: () => handleShare(itemHash, itemQuery),
+                isCopied: copiedHash === itemHash,
+            },
+            // Use the raw stored name (not the derived display title) so saving edits doesn't rename auto-named views.
+            () => enterSavedViewEditMode({hash: itemHash, name: savedSearches?.[itemHash]?.name ?? itemName, query: itemQuery}),
+        );
 
     const itemStyle = [styles.alignItemsCenter];
     const tooltipWrapperStyle = [styles.mh4, styles.pv2, styles.productTrainingTooltipWrapper];

@@ -2575,6 +2575,55 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('Test getOverflowMenu', () => {
+        const icons = {
+            Pencil: () => null,
+            Trashcan: () => null,
+            LinkCopy: () => null,
+            Checkmark: () => null,
+            Filter: () => null,
+        } as Parameters<typeof SearchUIUtils.getOverflowMenu>[0];
+
+        it('adds an "Edit filters" item between Rename and Share when onEditFilters is provided and calls it on select', () => {
+            const onEditFilters = jest.fn();
+            const menu = SearchUIUtils.getOverflowMenu(icons, 'My view', 123, 'type:expense', translateLocal, jest.fn(), false, undefined, undefined, onEditFilters);
+
+            const labels = menu.map((item) => item.text);
+            const editIndex = labels.indexOf(translateLocal('search.editFilters'));
+            expect(editIndex).toBeGreaterThan(labels.indexOf(translateLocal('common.rename')));
+            expect(editIndex).toBeLessThan(labels.indexOf(translateLocal('common.share')));
+
+            menu.at(editIndex)?.onSelected?.();
+            expect(onEditFilters).toHaveBeenCalledTimes(1);
+        });
+
+        it('omits the "Edit filters" item when onEditFilters is not provided (e.g. the narrow layout)', () => {
+            const menu = SearchUIUtils.getOverflowMenu(icons, 'My view', 123, 'type:expense', translateLocal, jest.fn());
+            expect(menu.map((item) => item.text)).not.toContain(translateLocal('search.editFilters'));
+        });
+    });
+
+    describe('Test canSaveEditedView', () => {
+        // Two existing saved views, keyed by query hash (111 is the one being edited).
+        const savedSearches = {
+            111: {name: 'View A', query: 'type:expense'},
+            222: {name: 'View B', query: 'type:invoice'},
+        } as Parameters<typeof SearchUIUtils.canSaveEditedView>[0];
+
+        it('returns false when the edited query is already a saved view (no change, or it matches another view)', () => {
+            expect(SearchUIUtils.canSaveEditedView(savedSearches, 111)).toBe(false);
+            expect(SearchUIUtils.canSaveEditedView(savedSearches, 222)).toBe(false);
+        });
+
+        it('returns true when the edited query does not match any saved view', () => {
+            expect(SearchUIUtils.canSaveEditedView(savedSearches, 999)).toBe(true);
+        });
+
+        it('returns false when the edited query hash could not be computed', () => {
+            expect(SearchUIUtils.canSaveEditedView(savedSearches, undefined)).toBe(false);
+        });
+    });
+
     describe('Test getListItem', () => {
         it('should return ChatListItem when type is CHAT', () => {
             expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.EXPENSE.ALL)).toStrictEqual(ChatListItem);

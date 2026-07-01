@@ -631,6 +631,12 @@ const ONYXKEYS = {
     /** Stores the information about the saved searches */
     SAVED_SEARCHES: 'nvp_savedSearches',
 
+    /** Holds the saved view that is currently being edited via the "Edit filters" flow (null when not editing) */
+    SEARCH_EDITING_SAVED_VIEW: 'searchEditingSavedView',
+
+    /** The edited query string the narrow "Save as new view" flow carries to the save page (so it saves the edited filters without changing the active search) */
+    SEARCH_SAVE_AS_NEW_VIEW_QUERY: 'searchSaveAsNewViewQuery',
+
     /** Stores the information about the recent searches */
     RECENT_SEARCHES: 'nvp_recentSearches',
 
@@ -1428,6 +1434,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_TRY_NEW_DOT]: OnyxTypes.TryNewDot;
     [ONYXKEYS.RECENT_SEARCHES]: Record<string, OnyxTypes.RecentSearchItem>;
     [ONYXKEYS.SAVED_SEARCHES]: OnyxTypes.SaveSearch;
+    [ONYXKEYS.SEARCH_EDITING_SAVED_VIEW]: OnyxTypes.EditingSavedSearch;
+    [ONYXKEYS.SEARCH_SAVE_AS_NEW_VIEW_QUERY]: string;
     [ONYXKEYS.SEARCH_CONTEXT]: OnyxTypes.SearchContext;
     [ONYXKEYS.RECENTLY_USED_CURRENCIES]: string[];
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];

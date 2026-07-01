@@ -73,7 +73,7 @@ import FILTER_KEYS, {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form
 import type {HasFilterValues, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
-import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
+import type {SaveSearch, SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {
     ListItemDataType,
@@ -4459,12 +4459,22 @@ function getSortByForColumn(column: SearchColumnType): SearchSortBy {
     return column;
 }
 
-type OverflowMenuIconsType = Record<'Pencil' | 'Trashcan' | 'LinkCopy' | 'Checkmark', IconAsset>;
+// `Filter` is only needed for the optional "Edit filters" item (wide layout), so it's optional here.
+type OverflowMenuIconsType = Record<'Pencil' | 'Trashcan' | 'LinkCopy' | 'Checkmark', IconAsset> & {Filter?: IconAsset};
 
 type ShareProps = {
     onShare: () => void;
     isCopied: boolean;
 };
+
+/**
+ * Whether the edited filters can be saved as a view. Saved views are keyed by their query hash, so the edit footer is
+ * only actionable when the edited query isn't already a saved view: an unchanged query has nothing new to save, and a
+ * query matching another view would just duplicate it. Shared by the wide popover and the narrow fullscreen footer.
+ */
+function canSaveEditedView(savedSearches: OnyxEntry<SaveSearch>, editedQueryHash: number | undefined): boolean {
+    return editedQueryHash !== undefined && !savedSearches?.[editedQueryHash];
+}
 
 /**
  * Constructs and configures the overflow menu for search items, handling interactions such as sharing, renaming or deleting items.
@@ -4479,6 +4489,7 @@ function getOverflowMenu(
     isMobileMenu?: boolean,
     closeMenu?: () => void,
     shareProps?: ShareProps,
+    onEditFilters?: () => void,
 ) {
     return [
         {
@@ -4494,6 +4505,25 @@ function getOverflowMenu(
             shouldShowRightComponent: false,
             shouldCallAfterModalHide: true,
         },
+        // Only offered where the caller can open the edit-filters popover (the wide layout). The narrow layout opens
+        // filters as a fullscreen route without the edit footer, so it doesn't pass onEditFilters and the item is hidden.
+        ...(onEditFilters
+            ? [
+                  {
+                      text: translate('search.editFilters'),
+                      onSelected: () => {
+                          if (isMobileMenu && closeMenu) {
+                              closeMenu();
+                          }
+                          onEditFilters();
+                      },
+                      icon: icons.Filter,
+                      shouldShowRightIcon: false,
+                      shouldShowRightComponent: false,
+                      shouldCallAfterModalHide: true,
+                  },
+              ]
+            : []),
         {
             text: shareProps?.isCopied ? translate('search.urlCopied') : translate('common.share'),
             onSelected: () => {
@@ -6387,6 +6417,7 @@ export {
     isReportActionListItemType,
     shouldShowYear,
     getOverflowMenu,
+    canSaveEditedView,
     isCorrectSearchUserName,
     isReportActionEntry,
     isTaskListItemType,
