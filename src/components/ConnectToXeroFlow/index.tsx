@@ -22,6 +22,8 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
             setIsRequire2FAModalOpen(true);
             return;
         }
+        // On web the setup opens OldDot in a new browser tab. Open it inline here (within the connect click's
+        // user-gesture window) instead of navigating to a setup screen, otherwise the popup blocker stops the tab.
         openLink(getXeroSetupLink(policyID), environmentURL);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -43,6 +45,8 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
             />
         );
     }
+
+    return null;
 }
 
 export default ConnectToXeroFlow;
