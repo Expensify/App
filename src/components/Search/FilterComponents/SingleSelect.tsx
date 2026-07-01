@@ -120,7 +120,7 @@ function SingleSelect<T extends string>({
             hasHeader={hasHeader}
             hasTitle={hasTitle}
             isSearchable={isSearchable}
-            itemHeight={itemHeight ?? variables.optionRowHeight}
+            itemHeight={itemHeight ?? variables.optionRowHeightCompact}
         >
             <Activity mode={shouldShowList ? 'visible' : 'hidden'}>
                 <SelectionList
@@ -132,7 +132,7 @@ function SingleSelect<T extends string>({
                     style={{
                         contentContainerStyle: [styles.pb0],
                         ...selectionListStyle,
-                        listItemWrapperStyle: [itemHeight !== undefined && {minHeight: itemHeight}, selectionListStyle?.listItemWrapperStyle],
+                        listItemWrapperStyle: [{minHeight: itemHeight ?? variables.optionRowHeightCompact}, selectionListStyle?.listItemWrapperStyle],
                     }}
                     shouldUpdateFocusedIndex={isSearchable}
                     initiallyFocusedItemKey={isSearchable ? value?.value : undefined}
