@@ -12,7 +12,7 @@ import {setWorkspaceDefaultSpendCategory} from './actions/Policy/Policy';
 import {clearPolicyCodingRuleErrors} from './actions/Policy/Rules';
 import {getDecodedCategoryName} from './CategoryUtils';
 import Parser from './Parser';
-import {getMccGroupDisplayName, isPendingDeleteOrUpdate} from './PolicyRulesUtils';
+import {getMccGroupDisplayName} from './PolicyRulesUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 
 const MERCHANT_TYPE_RULE_KEY_PREFIX = 'mcc-group:';
@@ -88,7 +88,7 @@ function getMerchantTypeRulesTableData({
             ruleDescription,
             searchTokens: [merchantTypeName, conditionText, ruleDescription, decodedCategoryName],
             pendingAction: mccGroup[groupID]?.pendingAction,
-            disabled: isPendingDeleteOrUpdate(mccGroup[groupID]?.pendingAction),
+            disabled: mccGroup[groupID]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             action: () => onNavigate(getMerchantTypeRuleNavigationRoute(policyID, groupID)),
         };
     });
@@ -165,7 +165,7 @@ function getMerchantCodingRulesTableData({
                 pendingAction: rule.pendingAction,
                 errors: rule.errors,
                 onCloseError: () => clearPolicyCodingRuleErrors(policyID, ruleID, rule),
-                disabled: isPendingDeleteOrUpdate(rule.pendingAction),
+                disabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 action: () => onNavigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID)),
             };
         });
