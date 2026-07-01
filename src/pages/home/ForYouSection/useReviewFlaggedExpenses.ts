@@ -36,7 +36,7 @@ type FlaggedExpense = {
 };
 
 /**
- * Returns true when this report is an OPEN/OPEN expense report owned by the current user.
+ * Returns true when this report is an OPEN expense report owned by the current user.
  *
  * `currentUserAccountID` is required. Callers should pass `session?.accountID ?? CONST.DEFAULT_NUMBER_ID`
  * so that the ownership check fails closed when the session is not yet populated (no real ownerAccountID is 0).

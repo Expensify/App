@@ -122,7 +122,7 @@ const BASE_TODOS: TodoFixture = {
 
 /**
  * Seeds the Onyx collections the ForYouSection hook scans so that each provided transaction surfaces as a
- * flagged expense: an OPEN/OPEN expense report owned by the current user, a transaction on it, and a
+ * flagged expense: an OPEN expense report owned by the current user, a transaction on it, and a
  * reviewable (MISSING_CATEGORY) violation. Mirrors the data shape exercised in FlaggedExpensesTest.
  */
 async function seedFlaggedExpenses(...expenses: Array<{transactionID: string; reportID: string}>) {
