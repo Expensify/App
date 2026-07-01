@@ -201,5 +201,24 @@ describe('HomePage', () => {
             expect(within(leftColumn).queryByTestId('section-DiscoverSection')).not.toBeOnTheScreen();
             expect(within(leftColumn).getByTestId('section-RecentlyAddedSection')).toBeOnTheScreen();
         });
+
+        // Promote Getting started into the left column above For you on wide layout (matching mobile placement).
+        it('renders Getting started in the left column above For you and not in the right column', async () => {
+            setWideLayout();
+            await waitForBatchedUpdates();
+
+            renderHomePage();
+
+            const leftColumn = screen.getByTestId('homePageLeftColumn');
+            const rightColumn = screen.getByTestId('homePageRightColumn');
+
+            expect(within(leftColumn).getByTestId('section-GettingStartedSection')).toBeOnTheScreen();
+            expect(within(rightColumn).queryByTestId('section-GettingStartedSection')).not.toBeOnTheScreen();
+
+            const leftOrder = within(leftColumn)
+                .getAllByTestId(/^section-/)
+                .map((el) => String(el.props.testID));
+            expect(leftOrder.indexOf('section-GettingStartedSection')).toBeLessThan(leftOrder.indexOf('section-ForYouSection'));
+        });
     });
 });
