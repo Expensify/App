@@ -2977,6 +2977,7 @@ ${amount} für ${merchant} – ${date}`,
         waitForPDF: 'Bitte warten, während wir das PDF erstellen.',
         errorPDF: 'Beim Versuch, Ihre PDF zu erstellen, ist ein Fehler aufgetreten',
         successPDF: 'Dein PDF wurde erstellt! Falls es nicht automatisch heruntergeladen wurde, verwende die Schaltfläche unten.',
+        showAuditTrail: 'Prüfprotokoll anzeigen',
         goToRoom: 'Zum Raum gehen',
     },
     reportDescriptionPage: {

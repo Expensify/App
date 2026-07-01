@@ -420,6 +420,26 @@ function isAddCommentAction(reportAction: OnyxInputOrEntry<ReportAction>): repor
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
 }
 
+/**
+ * Whether an action is part of the gray "audit trail" (system messages) the user can hide in expense reports.
+ * Genuine chat comments and interactive whisper prompts (mentions, "Add your receipt to SmartScan", etc.) render as
+ * normal (non-gray) text, so they are not part of the audit trail. Everything else (status/workflow/auto-categorization
+ * messages, which render as gray muted text) is.
+ */
+function isAuditTrailAction(reportAction: OnyxEntry<ReportAction>): boolean {
+    if (
+        isAddCommentAction(reportAction) ||
+        isActionableWhisper(reportAction) ||
+        isActionableJoinRequest(reportAction) ||
+        isActionableAddPaymentCard(reportAction) ||
+        isActionableCardFraudAlert(reportAction) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.EXPENSIFY_CARD_SYSTEM_MESSAGE)
+    ) {
+        return false;
+    }
+    return true;
+}
+
 function isCreatedTaskReportAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) && !!getOriginalMessage(reportAction)?.taskReportID;
 }
@@ -4791,6 +4811,7 @@ export {
     isResolvedConciergeCategoryOptions,
     isResolvedConciergeDescriptionOptions,
     isAddCommentAction,
+    isAuditTrailAction,
     isApprovedOrSubmittedReportAction,
     isIOURequestReportAction,
     isNewerReportAction,

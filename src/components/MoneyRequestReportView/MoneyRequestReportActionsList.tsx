@@ -38,6 +38,7 @@ import {
     getFirstVisibleReportActionID,
     getOneTransactionThreadReportID,
     hasNextActionMadeBySameActor,
+    isAuditTrailAction,
     isCurrentActionUnread,
     isDeletedParentAction,
     isIOUActionMatchingTransactionList,
@@ -157,10 +158,16 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const [enableScrollToEnd, setEnableScrollToEnd] = useState<boolean>(false);
     const [lastActionEventId, setLastActionEventId] = useState<string>('');
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [showAuditTrail = true] = useOnyx(ONYXKEYS.SHOW_AUDIT_TRAIL);
 
     // We are reversing actions because in this View we are starting at the top and don't use Inverted list
     const visibleReportActions = useMemo(() => {
         const filteredActions = reportActions.filter((reportAction) => {
+            // When the audit trail is hidden, drop gray system messages but keep chat comments and interactive prompts.
+            if (!showAuditTrail && isAuditTrailAction(reportAction)) {
+                return false;
+            }
+
             const isActionVisibleOnMoneyReport = isActionVisibleOnMoneyRequestReport(reportAction, shouldShowHarvestCreatedAction);
             if (!isActionVisibleOnMoneyReport) {
                 return false;
@@ -184,7 +191,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         });
 
         return filteredActions.slice().reverse();
-    }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, shouldShowHarvestCreatedAction, visibleReportActionsData, reportID]);
+    }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, shouldShowHarvestCreatedAction, visibleReportActionsData, reportID, showAuditTrail]);
 
     const shouldShowOpenReportLoadingSkeleton = !isOffline && !!showReportActionsLoadingState && visibleReportActions.length === 0;
     const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {

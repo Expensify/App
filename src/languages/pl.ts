@@ -2964,6 +2964,7 @@ ${amount} dla ${merchant} - ${date}`,
         waitForPDF: 'Poczekaj, aż wygenerujemy plik PDF.',
         errorPDF: 'Wystąpił błąd podczas próby wygenerowania Twojego pliku PDF',
         successPDF: 'Twój plik PDF został wygenerowany! Jeśli nie pobrał się automatycznie, użyj przycisku poniżej.',
+        showAuditTrail: 'Pokaż ścieżkę audytu',
         goToRoom: 'Przejdź do pokoju',
     },
     reportDescriptionPage: {
