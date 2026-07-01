@@ -610,7 +610,7 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
         return isAdmin;
     }
 
-    return currentUserLogin === reimburserEmail;
+    return isAdmin && currentUserLogin === reimburserEmail;
 }
 
 /** Check if the passed employee is an approver in the policy's employeeList */

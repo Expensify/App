@@ -2861,7 +2861,7 @@ function isPayer(
             return isAdmin;
         }
 
-        const isReimburser = currentUserEmailParam === reimburserEmail;
+        const isReimburser = currentUserEmailParam === reimburserEmail && isAdmin;
 
         // If using auto reimbursement, then the reimburser can pay, or an admin with access to the business bank account.
         if (isAutoReimbursement) {
