@@ -25,7 +25,7 @@ type DynamicCountrySelectionPageProps = PlatformStackScreenProps<SettingsNavigat
 function DynamicCountrySelectionPage({route}: DynamicCountrySelectionPageProps) {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {translate} = useLocalize();
-    const currentCountry = route.params.country;
+    const currentCountry = route.params?.country;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ADDRESS_COUNTRY.path);
     const initialSelectedValue = useInitialSelection(currentCountry ?? undefined, {resetOnFocus: true});
     const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
