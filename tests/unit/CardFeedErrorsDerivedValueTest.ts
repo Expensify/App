@@ -168,7 +168,7 @@ describe('CardFeedErrors Derived Value', () => {
                     bank: cardFeed.feedName,
                     fundID: String(cardFeed.policyAccountID),
                     lastScrapeResult: 403, // Broken connection
-                    lastScrape: '2020-01-01', // Last successful scrape is well beyond the grace period
+                    lastScrape: '2020-01-01 00:00:00', // Last successful scrape is well beyond the grace period
                 });
 
                 const globalCardList: CardList = {card1: card};
@@ -199,7 +199,7 @@ describe('CardFeedErrors Derived Value', () => {
                 const card = createCard({
                     cardID: CARD_IDS.card1,
                     lastScrapeResult: 403, // Broken connection
-                    lastScrape: '2020-01-01', // Last successful scrape is well beyond the grace period
+                    lastScrape: '2020-01-01 00:00:00', // Last successful scrape is well beyond the grace period
                 });
 
                 const globalCardList: CardList = {card1: card};
