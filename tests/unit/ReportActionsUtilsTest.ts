@@ -1566,6 +1566,76 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('SendMoney phantom type=create filtering', () => {
+        // Modern SendMoney pay action: type=pay AND IOUDetails present. This is what makes
+        // isSentMoneyReportAction() return true and triggers our filter branch.
+        const sendMoneyPayAction = {
+            ...mockIOUAction,
+            reportActionID: 'expense-pay-1',
+            originalMessage: {
+                ...mockOriginalMessage,
+                type: CONST.IOU.TYPE.PAY,
+                IOUDetails: {amount: 100, comment: '', currency: 'USD'},
+                IOUTransactionID: 'txn-1',
+                paymentType: 'Elsewhere',
+            },
+        };
+
+        // Phantom IOU create action that OpenReport synthesizes for legacy SendMoney transactions.
+        const phantomCreateAction = {
+            ...mockIOUAction,
+            reportActionID: 'phantom-create-1',
+            originalMessage: {
+                ...mockOriginalMessage,
+                type: CONST.IOU.TYPE.CREATE,
+                IOUTransactionID: 'txn-1',
+            },
+        };
+
+        // Plain mark-as-paid-elsewhere pay action: type=pay, NO IOUDetails. Does not trigger the
+        // SendMoney filter branch, so type=create actions are not dropped from these reports.
+        const markAsPaidElsewhereAction = {
+            ...mockIOUAction,
+            reportActionID: 'mark-paid-1',
+            originalMessage: {
+                ...mockOriginalMessage,
+                type: CONST.IOU.TYPE.PAY,
+                IOUDetails: undefined,
+                paymentType: 'Elsewhere',
+            },
+        };
+
+        // Legitimate IOU create action used to verify it survives when no SendMoney pay is present.
+        const legitimateCreateAction = {
+            ...mockIOUAction,
+            reportActionID: 'create-1',
+            originalMessage: {
+                ...mockOriginalMessage,
+                type: CONST.IOU.TYPE.CREATE,
+                IOUTransactionID: 'txn-1',
+            },
+        };
+
+        describe('getCombinedReportActions', () => {
+            it('drops type=create IOU actions when a SendMoney pay action is present on the report', () => {
+                const result = getCombinedReportActions([sendMoneyPayAction, phantomCreateAction], 'thread-1', []);
+                expect(result.some((action) => action.reportActionID === sendMoneyPayAction.reportActionID)).toBe(true);
+                expect(result.some((action) => action.reportActionID === phantomCreateAction.reportActionID)).toBe(false);
+            });
+
+            it('keeps type=create when only a plain pay (no IOUDetails) action is present', () => {
+                const result = getCombinedReportActions([markAsPaidElsewhereAction, legitimateCreateAction], null, []);
+                expect(result.some((action) => action.reportActionID === legitimateCreateAction.reportActionID)).toBe(true);
+            });
+
+            it('keeps the SendMoney pay action itself (filter only drops type=create)', () => {
+                const result = getCombinedReportActions([sendMoneyPayAction, phantomCreateAction], 'thread-1', []);
+                const sendMoneyRendered = result.find((action) => action.reportActionID === sendMoneyPayAction.reportActionID);
+                expect(sendMoneyRendered).toBeDefined();
+            });
+        });
+    });
+
     describe('shouldShowAddMissingDetails', () => {
         it('should return true if personal detail is not completed', () => {
             const mockPersonalDetail = {
@@ -4359,6 +4429,57 @@ describe('ReportActionsUtils', () => {
             const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
             expect(actorAccountID).toBe(9999);
         });
+
+        it('returns CONCIERGE for automatic DEW_APPROVE_FAILED when shouldUseRealActor is false', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                reportActionID: '1',
+                created: '1',
+                message: [],
+                actorAccountID: 2701545,
+                originalMessage: {automaticAction: true, message: 'failed'},
+            };
+            const iouReport: Report = {...createRandomReport(0, undefined)};
+            const report: Report = {...createRandomReport(1, undefined)};
+
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report, undefined, false);
+            expect(actorAccountID).toBe(CONST.ACCOUNT_ID.CONCIERGE);
+        });
+
+        it('returns real actorAccountID for automatic DEW_APPROVE_FAILED when shouldUseRealActor is true', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                reportActionID: '1',
+                created: '1',
+                message: [],
+                actorAccountID: 2701545,
+                originalMessage: {automaticAction: true, message: 'failed'},
+            };
+            const iouReport: Report = {...createRandomReport(0, undefined)};
+            const report: Report = {...createRandomReport(1, undefined)};
+
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report, undefined, true);
+            expect(actorAccountID).toBe(2701545);
+        });
+
+        it('returns real actorAccountID for harvest-created CREATED action when shouldUseRealActor is true', async () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                actorAccountID: 9999,
+            };
+            const iouReport: Report = {...createRandomReport(0, undefined)};
+            const report: Report = {...createRandomReport(3, undefined), reportID: 'harvest-report-shouldUseRealActor'};
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`, {
+                origin: 'harvest',
+                originalID: 'orig-456',
+            });
+            await waitForBatchedUpdates();
+
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report, undefined, true);
+            expect(actorAccountID).toBe(9999);
+        });
     });
 
     describe('getInvoiceCompanyNameUpdateMessage', () => {
@@ -4554,6 +4675,53 @@ describe('ReportActionsUtils', () => {
 
             const result = getRequireCompanyCardsEnabledMessage(translateLocal, action);
             expect(result).toBe('disabled the company card purchases requirement');
+        });
+    });
+
+    describe('getReimbursedMessage', () => {
+        const buildReimbursedAction = (originalMessage: Record<string, unknown>): ReportAction =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: '1',
+                created: '',
+                originalMessage,
+                message: [],
+            }) as ReportAction;
+
+        it('shows the funding bank account from the masked accountNumber when debitBankAccountLast4 is absent', () => {
+            // Given a reimbursed action carrying the raw masked accountNumber, as delivered by real-time Pusher updates
+            const action = buildReimbursedAction({
+                paymentMethod: 'ACH',
+                accountNumber: 'XXXXXX4321',
+                creditBankAccountLast4: '5678',
+            });
+
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined);
+
+            // Then the message shows the last 4 digits of the account that funded the payment
+            const expected = `${translateLocal('iou.reimbursedThisReport')} ${translateLocal('iou.reimbursedFromBankAccount', '4321')}${translateLocal('iou.reimbursedWithACH', {
+                creditBankAccount: '5678',
+                expectedDate: undefined,
+            })}`;
+            expect(result).toBe(expected);
+        });
+
+        it('prefers debitBankAccountLast4 over accountNumber when both are present', () => {
+            const action = buildReimbursedAction({
+                paymentMethod: 'ACH',
+                debitBankAccountLast4: '9999',
+                accountNumber: 'XXXXXX4321',
+                creditBankAccountLast4: '5678',
+            });
+
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined);
+
+            expect(result).toBe(
+                `${translateLocal('iou.reimbursedThisReport')} ${translateLocal('iou.reimbursedFromBankAccount', '9999')}${translateLocal('iou.reimbursedWithACH', {
+                    creditBankAccount: '5678',
+                    expectedDate: undefined,
+                })}`,
+            );
         });
     });
 
@@ -5249,7 +5417,7 @@ describe('ReportActionsUtils', () => {
             ).toBe(false);
         });
 
-        it('returns true when message is from current user but is already present (not new, not optimistic)', () => {
+        it('returns false when message is from current user and is already present (not new, not optimistic) and no existing marker', () => {
             const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'});
             const prevSortedVisibleReportActionsObjects = {
                 [message.reportActionID]: makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'}),
@@ -5259,6 +5427,23 @@ describe('ReportActionsUtils', () => {
                     ...baseParams,
                     message,
                     prevSortedVisibleReportActionsObjects,
+                    prevUnreadMarkerReportActionID: null,
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('returns true when message is from current user, already present, and marker is being relocated after deletion', () => {
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'});
+            const prevSortedVisibleReportActionsObjects = {
+                [message.reportActionID]: makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'}),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    prevUnreadMarkerReportActionID: 'deleted-action-id',
                     isOffline: false,
                 }),
             ).toBe(true);
@@ -5390,6 +5575,18 @@ describe('ReportActionsUtils', () => {
                     isReversed: true,
                 }),
             ).toEqual(['unread-newer', 1]);
+        });
+
+        it("clears the marker entirely when the only unread action is the current user's own new message", () => {
+            const ownNew = makeAction({reportActionID: 'own-new', actorAccountID: currentUserAccountID});
+            const olderRead = makeAction({reportActionID: 'older-read', created: '2023-01-01 09:00:00.000'});
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions: [ownNew, olderRead],
+                    prevSortedVisibleReportActionsObjects: {},
+                }),
+            ).toEqual([null, -1]);
         });
     });
 

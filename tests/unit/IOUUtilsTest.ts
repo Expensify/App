@@ -1,4 +1,5 @@
 import {renderHook} from '@testing-library/react-native';
+import type {RenderAPI} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -16,21 +17,10 @@ import type {Policy, Report, ReportMetadata, Transaction, TransactionViolations}
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import currencyList from './currencyList.json';
+import initCurrencyListContext from '../utils/initCurrencyListContext';
 
 const testDate = DateUtils.getDBTime();
 const currentUserAccountID = 5;
-
-function initCurrencyList() {
-    Onyx.init({
-        keys: ONYXKEYS,
-        initialKeyStates: {
-            [ONYXKEYS.CURRENCY_LIST]: currencyList,
-        },
-    });
-    return waitForBatchedUpdates();
-}
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -42,7 +32,16 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 describe('IOUUtils', () => {
     describe('calculateAmount', () => {
-        beforeAll(() => initCurrencyList());
+        let currencyListProvider: RenderAPI;
+
+        beforeEach(async () => {
+            currencyListProvider = await initCurrencyListContext({keys: ONYXKEYS});
+        });
+
+        afterEach(async () => {
+            currencyListProvider.unmount();
+            await Onyx.clear();
+        });
 
         test('103 JPY split among 3 participants including the default user should be [35, 34, 34]', () => {
             const participantsAccountIDs = [100, 101];
@@ -95,8 +94,6 @@ describe('IOUUtils', () => {
         });
 
         describe('calculateAmount - floorToLast rounding', () => {
-            beforeAll(() => initCurrencyList());
-
             test('Positive total: remainder added entirely to default user', () => {
                 // $10.00 among 3 -> base 3.33, remainder 0.01 -> default gets 3.34
                 const numberOfSplits = 2; // total participants = 3
@@ -787,6 +784,35 @@ describe('canApproveIOU', () => {
         // When checking if approve action is available while DEW approval is pending
         // Then it should return false because DEW is already processing an approval
         expect(canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [transaction])).toBe(false);
+    });
+
+    it('should return true for Submit workspace report when user is manager', async () => {
+        const report: Report = {
+            ...createRandomReport(Number(REPORT_ID), undefined),
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: 999,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: currentUserAccountID,
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const policy: Policy = {
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT),
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+        };
+
+        const transaction: Transaction = {
+            ...createRandomTransaction(123),
+            reportID: REPORT_ID,
+            amount: 10,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+            status: undefined,
+        };
+
+        expect(canApproveIOU(report, policy, {}, currentUserAccountID, [transaction])).toBe(true);
     });
 
     it('should return false for non-expense report', async () => {

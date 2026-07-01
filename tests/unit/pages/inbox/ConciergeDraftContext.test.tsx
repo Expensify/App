@@ -154,6 +154,8 @@ describe('ConciergeDraftContext', () => {
     });
 
     it('does not apply completed final HTML until the paced Pusher target is fully visible', async () => {
+        let now = 1000;
+        jest.spyOn(Date, 'now').mockImplementation(() => now);
         const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
         const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
 
@@ -168,6 +170,7 @@ describe('ConciergeDraftContext', () => {
         expect(getFirstMessageText(result.current.draftReportAction)).toBe('H');
 
         // When completion arrives before the visible body reaches the target
+        now += PUSHER_DRAFT_PACE_INTERVAL_MS;
         act(() => {
             emitPusherEvent(
                 Pusher.TYPE.CONCIERGE_DRAFT_COMPLETED,

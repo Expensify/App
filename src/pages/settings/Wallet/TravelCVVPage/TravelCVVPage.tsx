@@ -14,7 +14,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
-import {resetValidateActionCodeSent} from '@libs/actions/User';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -95,7 +94,6 @@ function TravelCVVPage() {
             return;
         }
         hasAutoNavigatedRef.current = true;
-        resetValidateActionCodeSent();
         Navigation.navigate(ROUTES.SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT);
     }, [isLoadingAccount, isLoadingLockAccountDetails, cvv, isSignedInAsDelegate, isOffline, isAccountLocked, isVerifyAccountInStack]);
 
@@ -105,9 +103,6 @@ function TravelCVVPage() {
             return;
         }
 
-        // ValidateCodeActionContent only sends a magic code when validateCodeSent is false
-        // so we need to reset it to ensure a code is always sent
-        resetValidateActionCodeSent();
         // Navigate to the verify account page
         Navigation.navigate(ROUTES.SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT);
     };
