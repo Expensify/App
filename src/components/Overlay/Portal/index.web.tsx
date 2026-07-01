@@ -9,7 +9,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 type PortalProps = {
+    /** Stacking order of the portalled layer (web only) */
     zIndex?: number;
+
+    /** Content rendered into the portal */
     children: ReactNode;
 };
 

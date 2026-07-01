@@ -16,24 +16,47 @@ import Portal from './Portal';
 import Presence from './Presence';
 
 type FloatingHostProps = {
+    /** Whether the overlay is open — drives the enter/exit animation and dismissal registration */
     isOpen: boolean;
+
+    /** Element the surface is positioned against and treated as "inside" for outside-press detection */
     anchor: AnchorNode | null;
+
+    /** Measured rect of the anchor used to place the surface; `null` until measured */
     anchorRect: AnchorRect | null;
+
+    /** Which edge/corner of the anchor the surface aligns to */
     alignment: AnchorAlignment;
+
+    /** Gap in pixels between the anchor and the surface */
     offsetPx?: number;
+
+    /** Overrides the default enter/exit fade duration, in milliseconds */
     fadeDuration?: number;
+
+    /** Called when the overlay requests to close (Esc, outside press, or the anchor moving offscreen) */
     onDismiss: () => void;
+
+    /** Called after the exit animation finishes and the overlay unmounts */
     onExitComplete?: () => void;
+
+    /** Style applied to the animated surface */
     surfaceStyle?: StyleProp<ViewStyle>;
+
+    /** Stable identifier for this overlay within the modal-cover stack */
     stackId: string;
+
+    /** Whether to trap focus within the overlay while open */
     containFocus?: boolean;
+
+    /** Overlay content */
     children: ReactNode;
 };
 
 function FloatingHost({isOpen, anchor, anchorRect, alignment, offsetPx, fadeDuration, onDismiss, onExitComplete, surfaceStyle, stackId, containFocus = false, children}: FloatingHostProps) {
     const {style: positionStyle, available, isPositioned, onContentLayout} = useAnchoredPosition({anchorRect, alignment, offsetPx});
-    const enterTiming = fadeDuration ?? CONST.MODAL.ANIMATION_TIMING.OVERLAY_FADE_IN_WEB;
-    const exitTiming = fadeDuration ?? CONST.MODAL.ANIMATION_TIMING.OVERLAY_FADE_OUT_WEB;
+    const enterTiming = fadeDuration ?? CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN;
+    const exitTiming = fadeDuration ?? CONST.MODAL.ANIMATION_TIMING.DEFAULT_OUT;
 
     useOverlayEntry(
         isOpen && anchor

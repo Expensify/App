@@ -1,6 +1,8 @@
 import {useEffect} from 'react';
 import {isMobileIOS} from '@libs/Browser';
 
+const IS_MOBILE_IOS = isMobileIOS();
+
 let lockCount = 0;
 let saved: {bodyOverflow: string; bodyPosition: string; bodyTop: string; bodyWidth: string; documentOverflow: string; scrollY: number} | null = null;
 
@@ -15,7 +17,7 @@ function acquire(): void {
             documentOverflow: documentElement.style.overflow,
             scrollY: window.scrollY,
         };
-        if (isMobileIOS()) {
+        if (IS_MOBILE_IOS) {
             body.style.position = 'fixed';
             body.style.top = `-${saved.scrollY}px`;
             body.style.width = '100%';
@@ -35,7 +37,7 @@ function release(): void {
         body.style.top = saved.bodyTop;
         body.style.width = saved.bodyWidth;
         documentElement.style.overflow = saved.documentOverflow;
-        if (isMobileIOS()) {
+        if (IS_MOBILE_IOS) {
             window.scrollTo(0, saved.scrollY);
         }
         saved = null;

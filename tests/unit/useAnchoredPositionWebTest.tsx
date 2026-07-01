@@ -3,11 +3,14 @@
  */
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
-import {Dimensions, View} from 'react-native';
+import {View} from 'react-native';
 import type {ViewStyle} from 'react-native';
 import useAnchoredPosition from '@components/Overlay/hooks/useAnchoredPosition/index.web';
 import type {UseAnchoredPositionInput} from '@components/Overlay/hooks/useAnchoredPosition/shared';
 import CONST from '@src/CONST';
+
+const VIEWPORT_WIDTH = 1024;
+const GUTTER_WIDTH = 8;
 
 jest.mock('@hooks/useThemeStyles', () => () => ({
     pFixed: {position: 'fixed'},
@@ -17,6 +20,12 @@ jest.mock('@hooks/useThemeStyles', () => () => ({
 jest.mock('@styles/variables', () => ({
     __esModule: true,
     default: {gutterWidth: 8},
+}));
+
+// Fix the viewport so the width-cap assertion is deterministic and reads from the same source shared.ts uses.
+jest.mock('@hooks/useWindowDimensions', () => ({
+    __esModule: true,
+    default: () => ({windowWidth: 1024, windowHeight: 768}),
 }));
 
 const horizontal = CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL;
@@ -104,7 +113,7 @@ describe('useAnchoredPosition (web) — width cap', () => {
                 onState={(state) => states.push(state)}
             />,
         );
-        const expectedWidth = Dimensions.get('window').width - 2 * 8;
+        const expectedWidth = VIEWPORT_WIDTH - 2 * GUTTER_WIDTH;
 
         dispatchLayout(150, 60);
         const narrowContentWidth = states.at(-1)?.available.width;

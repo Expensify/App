@@ -10,7 +10,6 @@ type EscapeBehavior = 'dismiss' | 'ignore' | undefined;
 function makeEntry(escapeBehavior: EscapeBehavior, onDismiss: () => void): DismissableLayerEntry {
     return {
         kind: 'floating',
-        depth: 1,
         mountId: nextLayerMountId(),
         onDismiss,
         escapeBehaviorRef: {current: escapeBehavior},
@@ -80,7 +79,6 @@ describe('Portal — Android hardware back via RNModal onRequestClose', () => {
         const unregisterOuter = pushDismissableLayer(makeEntry('dismiss', dismissOuter));
         const unregisterInner = pushDismissableLayer({
             kind: 'floating',
-            depth: 2,
             mountId: nextLayerMountId(),
             onDismiss: dismissInner,
             escapeBehaviorRef: {current: 'dismiss'},
@@ -105,7 +103,6 @@ describe('Portal — Android hardware back via RNModal onRequestClose', () => {
         const escapeBehaviorRef: {current: EscapeBehavior} = {current: 'dismiss'};
         const unregister = pushDismissableLayer({
             kind: 'floating',
-            depth: 1,
             mountId: nextLayerMountId(),
             onDismiss,
             escapeBehaviorRef,

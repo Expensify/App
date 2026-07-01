@@ -16,13 +16,21 @@ type HeadingState = {
 type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;
 
 type TitleProps = {
+    /** Style applied to the heading text */
     style?: StyleProp<TextStyle>;
+
+    /** Heading level exposed via `aria-level` (default: 2) */
     level?: HeadingLevel;
+
+    /** Title text */
     children: ReactNode;
 };
 
 type DescriptionProps = {
+    /** Style applied to the description text */
     style?: StyleProp<TextStyle>;
+
+    /** Description text */
     children: ReactNode;
 };
 

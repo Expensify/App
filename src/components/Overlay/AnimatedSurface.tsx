@@ -23,13 +23,28 @@ type AnimationSpec = {
 type AnimatedViewPropsPassthrough = Omit<AnimatedProps<ViewProps>, 'style' | 'children'>;
 
 type AnimatedSurfaceProps = AnimatedViewPropsPassthrough & {
+    /** Start/end frames for the enter transition */
     enterSpec: AnimationSpec;
+
+    /** Start/end frames for the exit transition */
     exitSpec: AnimationSpec;
+
+    /** Enter animation duration, in milliseconds */
     enterTiming: number;
+
+    /** Exit animation duration, in milliseconds */
     exitTiming: number;
+
+    /** Easing curve for both transitions (default: linear) */
     easing?: EasingFunction | EasingFunctionFactory;
+
+    /** Whether the enter animation may run; set `false` to hold the entrance until the content is ready */
     enterEnabled?: boolean;
+
+    /** Style applied to the animated view */
     style?: StyleProp<ViewStyle>;
+
+    /** Surface content */
     children: ReactNode;
 };
 

@@ -18,7 +18,6 @@ function useDismissableLayerWorker(kind: DismissableLayerKind, {onDismiss, escap
 
     const [entry] = useState<DismissableLayerEntry>(() => ({
         kind,
-        depth: myDepth,
         mountId: nextLayerMountId(),
         onDismiss: stableDismiss,
         escapeBehaviorRef,

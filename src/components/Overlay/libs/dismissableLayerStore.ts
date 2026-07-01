@@ -5,7 +5,6 @@ type DismissableLayerKind = 'modal' | 'floating';
 
 type DismissableLayerEntry = {
     readonly kind: DismissableLayerKind;
-    readonly depth: number;
     readonly mountId: number;
     readonly onDismiss?: () => void;
     readonly escapeBehaviorRef?: {readonly current: EscapeBehavior | undefined};

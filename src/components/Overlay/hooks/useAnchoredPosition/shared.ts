@@ -1,34 +1,11 @@
-import {useState, useSyncExternalStore} from 'react';
+import {useState} from 'react';
 import type {LayoutChangeEvent, ViewStyle} from 'react-native';
-import {Dimensions, I18nManager} from 'react-native';
+import {I18nManager} from 'react-native';
 import type {AnchorRect} from '@components/Overlay/libs/measureAnchor';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-
-let cachedViewport = Dimensions.get('window');
-const moduleListeners = new Set<() => void>();
-
-Dimensions.addEventListener('change', ({window}) => {
-    if (window.width === cachedViewport.width && window.height === cachedViewport.height) {
-        return;
-    }
-    cachedViewport = window;
-    for (const listener of moduleListeners) {
-        listener();
-    }
-});
-
-function subscribeViewport(callback: () => void): () => void {
-    moduleListeners.add(callback);
-    return () => {
-        moduleListeners.delete(callback);
-    };
-}
-
-function getViewportSnapshot() {
-    return cachedViewport;
-}
 
 type UseAnchoredPositionInput = {
     anchorRect: AnchorRect | null;
@@ -50,7 +27,8 @@ function useAnchoredPositionShared({anchorRect, alignment, offsetPx = 0, gutterP
     isPositioned: boolean;
     onContentLayout: (event: LayoutChangeEvent) => void;
 } {
-    const viewport = useSyncExternalStore(subscribeViewport, getViewportSnapshot);
+    const {windowWidth, windowHeight} = useWindowDimensions();
+    const viewport = {width: windowWidth, height: windowHeight};
     const [contentSize, setContentSize] = useState<{width: number; height: number} | null>(null);
     const [previousAnchorClosed, setPreviousAnchorClosed] = useState<boolean>(anchorRect === null);
     const isAnchorClosed = anchorRect === null;

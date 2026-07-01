@@ -54,6 +54,7 @@ import AnimatedSurface, {FADE_ONLY_ENTER_SPEC, FADE_ONLY_EXIT_SPEC} from '@compo
 import DismissableLayer from '@components/Overlay/DismissableLayer';
 import Portal from '@components/Overlay/Portal';
 import Presence from '@components/Overlay/Presence';
+import CONST from '@src/CONST';
 
 function CustomModal({isOpen, onClose, children}: {isOpen: boolean; onClose: () => void; children: ReactNode}) {
     return (
@@ -63,8 +64,8 @@ function CustomModal({isOpen, onClose, children}: {isOpen: boolean; onClose: () 
                     <AnimatedSurface
                         enterSpec={FADE_ONLY_ENTER_SPEC}
                         exitSpec={FADE_ONLY_EXIT_SPEC}
-                        enterTiming={150}
-                        exitTiming={150}
+                        enterTiming={CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN}
+                        exitTiming={CONST.MODAL.ANIMATION_TIMING.DEFAULT_OUT}
                         style={cardChrome}
                     >
                         {children}

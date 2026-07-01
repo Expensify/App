@@ -4,8 +4,11 @@ import {Modal as RNModal, StyleSheet, View} from 'react-native';
 import dismissableLayerStore, {selectTopLayer} from '@components/Overlay/libs/dismissableLayerStore';
 
 type PortalProps = {
+    /** Stacking order of the portalled layer (web only) */
     // eslint-disable-next-line react/no-unused-prop-types -- cross-platform contract; consumed by `index.web.tsx`.
     zIndex?: number;
+
+    /** Content rendered into the portal */
     children: ReactNode;
 };
 

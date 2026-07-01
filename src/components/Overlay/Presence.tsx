@@ -19,8 +19,13 @@ type PresenceContextValue = {
 };
 
 type PresenceProps = {
+    /** Whether the content should be present; flipping to `false` runs the exit animation before unmounting */
     present: boolean;
+
+    /** Called once the exit animation completes and the content is removed */
     onExitComplete?: () => void;
+
+    /** Content whose mount/unmount is animated */
     children: ReactNode;
 };
 

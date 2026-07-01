@@ -27,7 +27,6 @@ function useLayerStack(kind: DismissableLayerKind, trackTopOfKind?: boolean): {i
     const myDepth = parentDepth + 1;
     const [entry] = useState<DismissableLayerEntry>(() => ({
         kind,
-        depth: myDepth,
         mountId: nextLayerMountId(),
     }));
     const top = useSyncExternalStore(
