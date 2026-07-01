@@ -5588,6 +5588,10 @@ function searchForReports(isOffline: boolean, searchInput: string, policyID?: st
 function performServerSearch(searchInput: string, policyID?: string, isUserSearch = false) {
     // We are not getting isOffline from components as useEffect change will re-trigger the search on network change
     const isOffline = isOfflineNetwork();
+
+    // Clear the previous search's server-provided result order so it isn't applied to this query before a fresh response arrives.
+    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, []);
+
     if (isOffline || !searchInput.trim().length) {
         Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, false);
         return;
