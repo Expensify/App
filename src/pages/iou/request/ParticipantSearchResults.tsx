@@ -1,16 +1,17 @@
 import lodashPick from 'lodash/pick';
-import React, {useEffect} from 'react';
+import React, {useContext, useEffect} from 'react';
 import type {Ref} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
-import ContactPermissionModal from '@components/ContactPermissionModal';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import useContactImport from '@hooks/useContactImport';
+import useContactPermissionModal from '@hooks/useContactPermissionModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -84,7 +85,7 @@ type ParticipantSearchResultsProps = {
     /** Whether the text input should auto-focus */
     textInputAutoFocus: boolean;
 
-    /** Setter to toggle textInputAutoFocus from the ContactPermissionModal */
+    /** Setter to toggle textInputAutoFocus from the contact permission flow */
     setTextInputAutoFocus: (value: boolean) => void;
 
     /** Callback to propagate selected participants to the parent flow */
@@ -101,6 +102,9 @@ type ParticipantSearchResultsProps = {
 
     /** Callback to handle restricted participant selection */
     onRestrictedParticipantSelected?: () => void;
+
+    /** Callback to dismiss the participant picker overlay before the referral banner navigates, so the referral RHP isn't covered */
+    onCloseParticipantPicker?: () => void;
 };
 
 function ParticipantSearchResults({
@@ -120,6 +124,7 @@ function ParticipantSearchResults({
     initiallySelectedReportID,
     shouldMoveSelectedToTop = false,
     onRestrictedParticipantSelected,
+    onCloseParticipantPicker,
 }: ParticipantSearchResultsProps) {
     const getParticipantOptionKey = (option: Partial<Participant>) => option.reportID ?? option.accountID?.toString() ?? option.login ?? option.phoneNumber ?? '';
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -146,6 +151,12 @@ function ParticipantSearchResults({
     const currentUserLogin = currentUserPersonalDetails.login;
     const reportAttributesDerived = useReportAttributes();
     const privateIsArchivedMap = usePrivateIsArchivedMap();
+
+    // When the surrounding ScreenWrapper runs in edge-to-edge mode (e.g. the new manual expense flow's ParticipantPicker),
+    // it does not apply bottom safe area padding itself, so the fixed footer must consume it. Otherwise the footer
+    // (referral banner / Next button) renders behind the system navigation bar.
+    const screenWrapperStatusContext = useContext(ScreenWrapperStatusContext);
+    const addBottomSafeAreaPadding = !(screenWrapperStatusContext?.isSafeAreaBottomPaddingApplied ?? false);
 
     // Policy and billing data — owned here, used for getValidOptionsConfig and billing gate in onSelectRow
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -426,6 +437,7 @@ function ParticipantSearchResults({
                 isDismissedReferralBanner={isDismissedReferralBanner}
                 onConfirmSelection={handleConfirmSelection}
                 onNewWorkspace={() => onFinish()}
+                onCloseParticipantPicker={onCloseParticipantPicker}
             />
         );
 
@@ -486,45 +498,45 @@ function ParticipantSearchResults({
         headerMessage: header,
     };
 
+    useContactPermissionModal({
+        onGrant: contactState?.importContacts ?? (() => {}),
+        onDeny: contactState?.setContactPermissionState ?? setContactPermissionState,
+        onFocusTextInput: () => {
+            setTextInputAutoFocus(true);
+        },
+    });
+
     return (
-        <>
-            <ContactPermissionModal
-                onGrant={contactState?.importContacts ?? (() => {})}
-                onDeny={contactState?.setContactPermissionState ?? setContactPermissionState}
-                onFocusTextInput={() => {
-                    setTextInputAutoFocus(true);
-                }}
-            />
-            <SelectionListWithSections
-                confirmButtonOptions={{
-                    onConfirm: handleConfirmSelection,
-                }}
-                sections={sections}
-                ListItem={InviteMemberListItem}
-                textInputOptions={textInputOptions}
-                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                onSelectRow={onSelectRow}
-                shouldSingleExecuteRowSelect
-                customListHeaderContent={importContactsButtonComponent}
-                customHeaderContent={
-                    <ImportContactButton
-                        showImportContacts={contactState?.showImportUI ?? showImportContacts}
-                        inputHelperText={inputHelperText}
-                        isInSearch
-                    />
-                }
-                footerContent={footerContent}
-                listEmptyContent={EmptySelectionListContentWithPermission}
-                shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
-                shouldShowTextInput
-                canSelectMultiple={isIOUSplit && isAllowedToSplit}
-                isLoadingNewOptions={!!isSearchingForReports}
-                shouldShowListEmptyContent={shouldShowListEmptyContent}
-                ref={selectionListRef}
-                onEndReached={onListEndReached}
-                onEndReachedThreshold={0.75}
-            />
-        </>
+        <SelectionListWithSections
+            confirmButtonOptions={{
+                onConfirm: handleConfirmSelection,
+            }}
+            sections={sections}
+            ListItem={InviteMemberListItem}
+            textInputOptions={textInputOptions}
+            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+            onSelectRow={onSelectRow}
+            shouldSingleExecuteRowSelect
+            customListHeaderContent={importContactsButtonComponent}
+            customHeaderContent={
+                <ImportContactButton
+                    showImportContacts={contactState?.showImportUI ?? showImportContacts}
+                    inputHelperText={inputHelperText}
+                    isInSearch
+                />
+            }
+            footerContent={footerContent}
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+            listEmptyContent={EmptySelectionListContentWithPermission}
+            shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
+            shouldShowTextInput
+            canSelectMultiple={isIOUSplit && isAllowedToSplit}
+            isLoadingNewOptions={!!isSearchingForReports}
+            shouldShowListEmptyContent={shouldShowListEmptyContent}
+            ref={selectionListRef}
+            onEndReached={onListEndReached}
+            onEndReachedThreshold={0.75}
+        />
     );
 }
 

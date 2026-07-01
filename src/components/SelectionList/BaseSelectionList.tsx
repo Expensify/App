@@ -159,20 +159,19 @@ function BaseSelectionList<TItem extends ListItem>({
         return {data, allSelected, someSelected, selectedOptions, disabledIndexes, disabledArrowKeyIndexes};
     }, [canSelectMultiple, data, isDisabled, isItemSelected]);
 
-    const {focusedIndex, setFocusedIndex, setFocusedIndexFromRowFocus, setFocusedIndexWithoutScrollOnChange, suppressNextFocusScroll, isKeyboardNavigating, setHasKeyBeenPressed} =
-        useSelectionListKeyboardFocus({
-            initialFocusedIndex,
-            maxIndex: data.length - 1,
-            disabledIndexes: dataDetails.disabledArrowKeyIndexes,
-            isActive: isFocused,
-            isFocused,
-            shouldScrollToFocusedIndex,
-            shouldDebounceScrolling,
-            scrollToIndex,
-            debouncedScrollToIndex,
-            announceProgrammaticScroll: () => listRef.current?.announceProgrammaticScroll(),
-            setShouldDisableHoverStyle,
-        });
+    const {focusedIndex, setFocusedIndex, isKeyboardNavigating, setHasKeyBeenPressed} = useSelectionListKeyboardFocus({
+        initialFocusedIndex,
+        maxIndex: data.length - 1,
+        disabledIndexes: dataDetails.disabledArrowKeyIndexes,
+        isActive: isFocused,
+        isFocused,
+        shouldScrollToFocusedIndex,
+        shouldDebounceScrolling,
+        scrollToIndex,
+        debouncedScrollToIndex,
+        announceProgrammaticScroll: () => listRef.current?.announceProgrammaticScroll(),
+        setShouldDisableHoverStyle,
+    });
 
     const {innerTextInputRef, isTextInputFocusedRef, focusTextInput, textInputKeyPress} = useSelectionListTextInput(setHasKeyBeenPressed);
 
@@ -198,7 +197,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 }
             }
             if (shouldUpdateFocusedIndex && typeof indexToFocus === 'number') {
-                setFocusedIndexWithoutScrollOnChange(indexToFocus);
+                setFocusedIndex(indexToFocus);
             }
             onSelectRow(item);
 
@@ -217,7 +216,7 @@ function BaseSelectionList<TItem extends ListItem>({
             isSmallScreenWidth,
             textInputOptions,
             onSelectionButtonPress,
-            setFocusedIndexWithoutScrollOnChange,
+            setFocusedIndex,
             focusTextInput,
         ],
     );
@@ -291,7 +290,7 @@ function BaseSelectionList<TItem extends ListItem>({
                     isSelected: selected,
                     ...item,
                 }}
-                setFocusedIndex={setFocusedIndexFromRowFocus}
+                setFocusedIndex={setFocusedIndex}
                 index={index}
                 isFocused={isItemFocused}
                 isFocusVisible={isItemVisuallyFocused}
@@ -440,8 +439,6 @@ function BaseSelectionList<TItem extends ListItem>({
         shouldUpdateFocusedIndex,
         scrollToIndex,
         setFocusedIndex,
-        focusedIndex,
-        suppressNextFocusScroll,
     });
 
     useEffect(() => {

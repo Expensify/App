@@ -35,9 +35,10 @@ function PlaidBankAccountStep({onNext, isEditing}: SubStepProps) {
             isSubmitButtonVisible={(plaidData?.bankAccounts ?? []).length > 0}
             scrollContextEnabled
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
+            submitButtonStyles={styles.mh5}
             onSubmit={handleSubmit}
             validate={validatePlaidSelection}
-            style={[styles.mh5, styles.flex1]}
+            style={styles.flexGrow1}
             shouldHideFixErrorsAlert
         >
             <InputWrapper
