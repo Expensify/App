@@ -57,8 +57,8 @@ const FS: Fullstory = {
         return FullStory.getCurrentSessionURL();
     },
 
-    event: (eventName, eventProperties = {}) => {
-        FullStory.event(eventName, eventProperties);
+    event: (eventName, eventProperties) => {
+        FullStory.event(eventName, eventProperties ?? {});
     },
 
     log: (level, message) => {

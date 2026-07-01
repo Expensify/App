@@ -11,6 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemePreference from '@hooks/useThemePreference';
 import FS from '@libs/Fullstory';
+import {buildPageViewedEvent, trackFullstoryEvent} from '@libs/Fullstory/utils';
 import Log from '@libs/Log';
 import {setupNavigationFocusReturn, teardownNavigationFocusReturn} from '@libs/NavigationFocusReturn';
 import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
@@ -97,9 +98,11 @@ function parseAndLogRoute(state: NavigationState) {
     }
 
     // Fullstory Page navigation tracking
+    const isTransitionRoute = currentPath.startsWith(`/${ROUTES.TRANSITION_BETWEEN_APPS}`);
     const focusedRouteName = focusedRoute?.name;
-    if (focusedRouteName) {
+    if (focusedRouteName && !isTransitionRoute) {
         new FS.Page(focusedRouteName, {path: currentPath}).start();
+        trackFullstoryEvent('Page_viewed', buildPageViewedEvent(focusedRouteName, currentPath));
     }
 }
 
