@@ -48,6 +48,7 @@ import {
     buildParticipantsFromAccountIDs,
     buildTransactionThread,
     canAddTransaction,
+    canBeAutoReimbursed,
     canCreateRequest,
     canDeleteMoneyRequestReport,
     canDeleteReportAction,
@@ -19234,6 +19235,48 @@ describe('ReportUtils', () => {
             });
 
             expect(getBankAccountRoute(report, false)).toBe(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route);
+        });
+    });
+
+    describe('canBeAutoReimbursed', () => {
+        const buildGroupPolicyForAutoReimbursement = (overrides: Partial<Policy> = {}): Policy =>
+            ({
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                autoReimbursement: {limit: 10000},
+                ...overrides,
+            }) as Policy;
+
+        const buildExpenseReportForAutoReimbursement = () =>
+            buildOptimisticExpenseReport({
+                chatReportID: '1',
+                policyID: '1',
+                payeeAccountID: 100,
+                total: 100,
+                currency: 'USD',
+                betas: [CONST.BETAS.ALL],
+            });
+
+        it('returns true when policy is a group policy and all auto-reimbursement conditions are met', () => {
+            const report = buildExpenseReportForAutoReimbursement();
+            const groupPolicy = buildGroupPolicyForAutoReimbursement();
+
+            expect(canBeAutoReimbursed(report, groupPolicy)).toBe(true);
+        });
+
+        it('returns false when policy is not a group policy', () => {
+            const report = buildExpenseReportForAutoReimbursement();
+            const personalPolicy = buildGroupPolicyForAutoReimbursement({
+                type: CONST.POLICY.TYPE.PERSONAL,
+            });
+
+            expect(canBeAutoReimbursed(report, personalPolicy)).toBe(false);
+        });
+
+        it('returns false when policy is empty', () => {
+            const report = buildExpenseReportForAutoReimbursement();
+
+            expect(canBeAutoReimbursed(report, undefined)).toBe(false);
         });
     });
 });
