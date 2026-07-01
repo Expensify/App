@@ -110,6 +110,12 @@ type UseConfirmationValidationParams = {
 
     /** Whether the new manual expense flow is enabled */
     isNewManualExpenseFlowEnabled: boolean;
+
+    /** Whether the confirmation fields are read-only (date is not inline-editable) */
+    isReadOnly: boolean;
+
+    /** Whether the date field is shown for this flow (mirrors the footer's date visibility) */
+    shouldShowDate: boolean;
 };
 
 /**
@@ -154,6 +160,8 @@ function useConfirmationValidation({
     isTimeRequest,
     routeError,
     isNewManualExpenseFlowEnabled,
+    isReadOnly,
+    shouldShowDate,
 }: UseConfirmationValidationParams): {validate: (paymentType?: PaymentMethodType) => ValidationResult | null} {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const selectedParticipantsCount = selectedParticipants.length;
@@ -189,8 +197,11 @@ function useConfirmationValidation({
         ) {
             return {errorKey: 'common.error.invalidAmount'};
         }
-        // The date is an inline required field in the new manual flow; block confirmation when the user cleared it.
-        if (isNewManualExpenseFlowEnabled && transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL && isCreatedMissing(transaction)) {
+        // The date is an inline, clearable required field in the new manual flow for every type that shows it
+        // (manual, distance, time, invoice, ...). Block confirmation when the user cleared it. Gating on the same
+        // `shouldShowDate && !isReadOnly` condition that renders the inline picker keeps validation and UI in sync,
+        // and skips read-only/scan flows where the date is populated server-side.
+        if (isNewManualExpenseFlowEnabled && shouldShowDate && !isReadOnly && isCreatedMissing(transaction)) {
             return {errorKey: 'common.error.fieldRequired'};
         }
         const merchantValue = iouMerchant ?? '';
