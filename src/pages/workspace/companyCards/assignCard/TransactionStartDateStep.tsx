@@ -2,7 +2,7 @@ import {format} from 'date-fns';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DatePicker from '@components/DatePicker';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionList';
@@ -129,12 +129,16 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
                                 addBottomSafeAreaPadding
                                 footerContent={
                                     <Button
-                                        success
-                                        large
-                                        pressOnEnter
-                                        text={translate(isEditing ? 'common.save' : 'common.next')}
+                                        variant="success"
+                                        size={CONST.BUTTON_SIZE.LARGE}
                                         onPress={submit}
-                                    />
+                                    >
+                                        <Button.KeyboardShortcut
+                                            pressOnEnter
+                                            onPress={submit}
+                                        />
+                                        <Button.Text>{translate(isEditing ? 'common.save' : 'common.next')}</Button.Text>
+                                    </Button>
                                 }
                                 listFooterContent={
                                     dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM ? (

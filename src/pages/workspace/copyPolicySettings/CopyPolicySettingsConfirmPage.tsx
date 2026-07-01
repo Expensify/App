@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -154,12 +154,13 @@ function CopyPolicySettingsConfirmPage() {
                         </>
                     )}
                     <Button
-                        success
-                        large
-                        text={translate('workspace.copyPolicySettings.title')}
+                        variant="success"
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={handleCopyPolicySettings}
                         isDisabled={parts.length === 0 || targetPolicyIDs.length === 0 || (requiresTravelTermsConsent && !hasAcceptedTravelTerms)}
-                    />
+                    >
+                        <Button.Text>{translate('workspace.copyPolicySettings.title')}</Button.Text>
+                    </Button>
                 </FixedFooter>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

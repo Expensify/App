@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -155,14 +155,15 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                         addBottomSafeAreaPadding
                     >
                         <Button
-                            text={spreadsheet?.isImportingIndependentMultiLevelTags ? translate('common.next') : translate('common.import')}
                             onPress={
                                 spreadsheet?.isImportingIndependentMultiLevelTags ? () => Navigation.navigate(ROUTES.WORKSPACE_TAGS_IMPORTED_MULTI_LEVEL.getRoute(policyID)) : importTags
                             }
                             isLoading={isImportingTags}
-                            success
-                            large
-                        />
+                            variant="success"
+                            size={CONST.BUTTON_SIZE.LARGE}
+                        >
+                            <Button.Text>{spreadsheet?.isImportingIndependentMultiLevelTags ? translate('common.next') : translate('common.import')}</Button.Text>
+                        </Button>
                     </FixedFooter>
                 </FullPageOfflineBlockingView>
             </ScreenWrapper>

@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -121,12 +121,13 @@ function MergeHRGroupsPage({
                         addBottomSafeAreaPadding
                     >
                         <Button
-                            large
-                            success
-                            text={translate('common.save')}
+                            size={CONST.BUTTON_SIZE.LARGE}
+                            variant="success"
                             onPress={handleSave}
                             isDisabled={selectedIds.size === 0}
-                        />
+                        >
+                            <Button.Text>{translate('common.save')}</Button.Text>
+                        </Button>
                     </FixedFooter>
                 </View>
             </ScreenWrapper>

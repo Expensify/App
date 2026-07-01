@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -146,12 +146,13 @@ function HRApprovalModePageBase<T extends ApprovalModeValue>({policyID, config}:
                         addBottomSafeAreaPadding
                     >
                         <Button
-                            large
-                            success
-                            text={translate('common.save')}
+                            size={CONST.BUTTON_SIZE.LARGE}
+                            variant="success"
                             onPress={confirmSaveApprovalMode}
                             isDisabled={isSaveDisabled}
-                        />
+                        >
+                            <Button.Text>{translate('common.save')}</Button.Text>
+                        </Button>
                     </FixedFooter>
                 </View>
             </ScreenWrapper>

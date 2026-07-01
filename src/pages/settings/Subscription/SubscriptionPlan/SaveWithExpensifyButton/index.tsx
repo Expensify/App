@@ -1,6 +1,6 @@
 import React from 'react';
 import {Linking} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
 
@@ -13,12 +13,13 @@ function SaveWithExpensifyButton() {
 
     return (
         <Button
-            small
-            text={translate('subscription.yourPlan.saveWithExpensifyButton')}
+            size={CONST.BUTTON_SIZE.SMALL}
             accessibilityLabel={`${translate('subscription.yourPlan.saveWithExpensifyButton')}, ${translate('subscription.yourPlan.saveWithExpensifyTitle')}`}
             onPress={onLinkPress}
             sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.SAVE_WITH_EXPENSIFY}
-        />
+        >
+            <Button.Text>{translate('subscription.yourPlan.saveWithExpensifyButton')}</Button.Text>
+        </Button>
     );
 }
 
