@@ -10505,12 +10505,13 @@ describe('getWithdrawalStatusOptions', () => {
         await IntlStore.load('en');
     });
 
-    it('returns three options keyed by SETTLEMENT_STATUS values in enum order', () => {
+    it('returns the options keyed by SETTLEMENT_STATUS values in enum order', () => {
         const options = SearchUIUtils.getWithdrawalStatusOptions(translateLocal);
         expect(options).toEqual([
             {value: CONST.SEARCH.SETTLEMENT_STATUS.PENDING, text: 'Pending'},
             {value: CONST.SEARCH.SETTLEMENT_STATUS.CLEARED, text: 'Cleared'},
             {value: CONST.SEARCH.SETTLEMENT_STATUS.FAILED, text: 'Failed'},
+            {value: CONST.SEARCH.SETTLEMENT_STATUS.NEVER, text: 'Never'},
         ]);
     });
 });
