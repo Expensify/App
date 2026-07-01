@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import {Filter} from '@components/Search/types';
 import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -57,7 +58,6 @@ import {getAllPolicyValues} from './SearchQueryUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {generateAccountID} from './UserUtils';
 import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
-import { Filter } from '@components/Search/types';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 

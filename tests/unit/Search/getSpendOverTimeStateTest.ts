@@ -11,12 +11,11 @@ const queryJSON: SearchQueryJSON = {
     sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
 } as SearchQueryJSON;
 
-const makeSearchResults = (overrides: Partial<SearchResults> = {}): SearchResults =>
-    ({
-        search: {offset: 0, hash: 0, type: queryJSON.type, hasMoreResults: false, hasResults: true, isLoading: false},
-        data: {},
-        ...overrides,
-    });
+const makeSearchResults = (overrides: Partial<SearchResults> = {}): SearchResults => ({
+    search: {offset: 0, hash: 0, type: queryJSON.type, hasMoreResults: false, hasResults: true, isLoading: false},
+    data: {},
+    ...overrides,
+});
 
 const makeData = (count: number): GroupedItem[] => Array.from({length: count}, (_, i) => ({keyForList: String(i)})) as unknown as GroupedItem[];
 
