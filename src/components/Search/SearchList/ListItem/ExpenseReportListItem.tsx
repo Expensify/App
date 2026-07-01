@@ -47,6 +47,7 @@ import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report} from '@src/types/onyx';
 import ExpenseReportListItemRow from './ExpenseReportListItemRow';
+import getExpenseReportRowAccessibilityLabel from './getExpenseReportRowAccessibilityLabel';
 import type {ExpenseReportListItemProps, ExpenseReportListItemType} from './types';
 import useLiveRowCapabilities from './useLiveRowCapabilities';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
@@ -435,9 +436,13 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         translate,
     ]);
 
+    // A group (not a button) when the row nests controls, so the checkbox/action button stay reachable by screen readers.
     return (
         <BaseListItem
             item={item}
+            accessibilityRole={canSelectMultiple ? CONST.ROLE.GROUP : undefined}
+            accessibilityLabel={getExpenseReportRowAccessibilityLabel(liveReportItem, translate)}
+            shouldUseOptionRole={false}
             pressableStyle={listItemPressableStyle}
             wrapperStyle={listItemWrapperStyle}
             isFocused={isFocused}
@@ -459,7 +464,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                 !isLargeScreenWidth && isLastItem && styles.tableBottomRadius,
                 !isLargeScreenWidth && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected),
             ]}
-            accessible={false}
             shouldShowRightCaret={false}
             isDisabled={isPendingDelete}
             shouldDisableHoverStyle={isPendingDelete}

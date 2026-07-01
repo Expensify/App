@@ -20,7 +20,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BaseListItemProps, ListItem} from './types';
 
-type AccessibilityProps = Pick<PressableWithFeedbackProps, 'accessible' | 'role' | 'tabIndex'>;
+type AccessibilityProps = Pick<PressableWithFeedbackProps, 'accessible' | 'role' | 'tabIndex' | 'accessibilityLabel'>;
 
 type CalculatedAccessibilityProps = Pick<PressableWithFeedbackProps, 'role' | 'tabIndex' | 'accessibilityState'> & {
     accessibleAndAccessibilityLabel: Pick<PressableWithFeedbackProps, 'accessible' | 'accessibilityLabel'>;
@@ -31,13 +31,16 @@ function getAccessibilityProps<TItem extends ListItem>({
     role,
     tabIndex,
     accessible,
+    accessibilityLabel,
     item,
     isFocused,
     canSelectMultiple,
-}: AccessibilityProps & Pick<BaseListItemProps<TItem>, 'item' | 'isFocused' | 'canSelectMultiple'>) {
+    shouldUseOptionRole,
+}: AccessibilityProps & Pick<BaseListItemProps<TItem>, 'item' | 'isFocused' | 'canSelectMultiple' | 'shouldUseOptionRole'>) {
     // For single-select lists, use role="option" with aria-selected so screen readers announce "selected"/"not selected".
-    // For multi-select (checkbox/radio), keep existing role and state.
-    const isSelectableOption = !canSelectMultiple && role !== CONST.ROLE.CHECKBOX && role !== CONST.ROLE.RADIO;
+    // For multi-select (checkbox/radio), keep existing role and state. Navigational lists (shouldUseOptionRole === false)
+    // opt out so the row keeps its button role instead of becoming an option with no listbox container.
+    const isSelectableOption = shouldUseOptionRole !== false && !canSelectMultiple && role !== CONST.ROLE.CHECKBOX && role !== CONST.ROLE.RADIO;
     const effectiveRole = getItemRole(role, isSelectableOption);
 
     const isCheckableRole = effectiveRole === CONST.ROLE.CHECKBOX || effectiveRole === CONST.ROLE.RADIO;
@@ -54,13 +57,11 @@ function getAccessibilityProps<TItem extends ListItem>({
         } satisfies CalculatedAccessibilityProps;
     }
 
-    const accessibilityLabel = getAccessibilityLabel(item);
-
     return {
         role: effectiveRole,
         tabIndex,
         accessibilityState,
-        accessibleAndAccessibilityLabel: {accessible: undefined, accessibilityLabel},
+        accessibleAndAccessibilityLabel: {accessible: undefined, accessibilityLabel: accessibilityLabel ?? getAccessibilityLabel(item)},
         ariaCurrent,
     } satisfies CalculatedAccessibilityProps;
 }
@@ -100,7 +101,9 @@ function BaseListItem<TItem extends ListItem>({
     shouldDisableHoverStyle,
     shouldShowRightCaret = false,
     accessible,
+    accessibilityLabel,
     accessibilityRole = getButtonRole(true),
+    shouldUseOptionRole,
     forwardedFSClass,
     testID,
 }: BaseListItemProps<TItem>) {
@@ -160,10 +163,12 @@ function BaseListItem<TItem extends ListItem>({
     const {role, tabIndex, accessibilityState, accessibleAndAccessibilityLabel, ariaCurrent} = getAccessibilityProps({
         role: accessibilityRole,
         accessible,
+        accessibilityLabel,
         tabIndex: item.tabIndex,
         item,
         isFocused,
         canSelectMultiple,
+        shouldUseOptionRole,
     });
 
     return (

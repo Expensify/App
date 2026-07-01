@@ -26,15 +26,9 @@ function ExpenseReportListItemRowNarrow({item, onCheckboxPress = () => {}, canSe
     );
 
     const amountText = isScanning ? translate('iou.receiptStatusTitle') : convertToDisplayString(totalDisplaySpend, currency);
-    const groupAccessibilityLabel = [item.reportName, amountText, formattedDate, expenseCountText].filter(Boolean).join(', ');
 
     return (
-        <View
-            style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3]}
-            accessible
-            accessibilityLabel={groupAccessibilityLabel}
-            role={CONST.ROLE.BUTTON}
-        >
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3]}>
             {!!canSelectMultiple && (
                 <Checkbox
                     onPress={onCheckboxPress}

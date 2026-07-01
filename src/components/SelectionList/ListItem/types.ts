@@ -213,6 +213,9 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Accessibility role for the list item (e.g. 'checkbox' for multi-select options so screen readers announce checked state) */
     accessibilityRole?: Role;
 
+    /** When `false`, a single-select row stays a `button` instead of becoming a listbox `option`. */
+    shouldUseOptionRole?: boolean;
+
     /** Whether to show the right caret icon */
     shouldShowRightCaret?: boolean;
 } & TRightHandSideComponent<TItem> &
@@ -319,6 +322,8 @@ type ValidListItem =
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
     ForwardedFSClassProps & {
         item: TItem;
+        /** Overrides the row's screen-reader name. Defaults to the item's derived label when omitted. */
+        accessibilityLabel?: string;
         shouldPreventEnterKeySubmit?: boolean;
         shouldShowBlueBorderOnFocus?: boolean;
         keyForList: string;
