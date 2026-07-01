@@ -3,6 +3,7 @@ title: Understand Plan and Subscription Management
 description: Learn who can change a workspace's plan or subscription in New Expensify and the conditions that apply, including when you can and can't downgrade.
 keywords: [New Expensify, plan management, subscription management, change plan, change subscription, downgrade plan, workspace Owner, Collect, Control, Annual, Pay-per-use]
 internalScope: Audience is workspace Owners. Covers who can change a workspace's plan or subscription and the conditions that apply. Does not cover plan features or how to change a subscription.
+retrievalIntent: Overview: who can change plan/subscription and the rules on when.
 contentType: topic
 platform: new
 ---
