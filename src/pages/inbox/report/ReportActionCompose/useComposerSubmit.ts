@@ -1,5 +1,4 @@
 import {Str} from 'expensify-common';
-import {useContext} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useAncestors from '@hooks/useAncestors';
@@ -15,8 +14,8 @@ import {rand64} from '@libs/NumberUtils';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {generateAccountID} from '@libs/UserUtils';
+import {useActionListContext} from '@pages/inbox/ActionListContext';
 import {useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
-import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import {setIsComposerFullSize} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,7 +40,7 @@ function useComposerSubmit(reportID: string) {
     const {isSendDisabled, debouncedCommentMaxLengthValidation} = useComposerSendState();
     const {isEditingInComposer, effectiveDraft, didResetComposerHeightWhileEditing, editingState} = useComposerEditState();
     const {publishDraft, setDidResetComposerHeightWhileEditing} = useComposerEditActions();
-    const {scrollOffsetRef} = useContext(ActionListContext);
+    const {scrollOffsetRef} = useActionListContext();
 
     const {report, effectiveTransactionThreadReportID} = useComposerReportData(reportID);
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${effectiveTransactionThreadReportID ?? reportID}`);

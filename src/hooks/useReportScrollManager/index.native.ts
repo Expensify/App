@@ -1,20 +1,22 @@
-import {useContext} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
-import {ActionListContext} from '@pages/inbox/ReportScreenContext';
+import {useActionListContext} from '@pages/inbox/ActionListContext';
 import type ReportScrollManagerData from './types';
 
 function useReportScrollManager(): ReportScrollManagerData {
-    const {flatListRef, scrollPositionRef} = useContext(ActionListContext);
+    const {getListRef, scrollPositionRef} = useActionListContext();
 
     /**
-     * Scroll to the provided index.
+     * Scroll to the provided index. `isEditing` is accepted for signature parity with the web
+     * implementation but is a no-op here, matching the previous native behavior. `animated`
+     * defaults to `false` to match FlashList's default (the previous native call omitted it).
      */
-    const scrollToIndex = (index: number) => {
-        if (!flatListRef?.current) {
+    const scrollToIndex = (index: number, {animated = false}: {isEditing?: boolean; animated?: boolean} = {}) => {
+        const listRef = getListRef();
+        if (!listRef?.current) {
             return;
         }
-        flatListRef.current.scrollToIndex({index});
+        listRef.current.scrollToIndex({index, animated});
     };
 
     /**
@@ -22,40 +24,43 @@ function useReportScrollManager(): ReportScrollManagerData {
      * When FlatList is inverted it's "bottom" is really it's top
      */
     const scrollToBottom = () => {
-        if (!flatListRef?.current) {
+        const listRef = getListRef();
+        if (!listRef?.current) {
             return;
         }
 
         scrollPositionRef.current = {offset: 0};
-        flatListRef.current.scrollToIndex({animated: false, index: 0});
+        listRef.current.scrollToIndex({animated: false, index: 0});
     };
 
     /**
      * Scroll to the end of the FlatList.
      */
     const scrollToEnd = () => {
-        if (!flatListRef?.current) {
+        const listRef = getListRef();
+        if (!listRef?.current) {
             return;
         }
 
-        const scrollViewRef = flatListRef.current.getNativeScrollRef();
+        const scrollViewRef = listRef.current.getNativeScrollRef?.() as ScrollView | undefined;
         // Try to scroll on underlying scrollView if available, fallback to usual listRef
-        if (scrollViewRef && 'scrollToEnd' in scrollViewRef) {
-            (scrollViewRef as ScrollView).scrollToEnd({animated: false});
+        if (scrollViewRef && typeof scrollViewRef.scrollToEnd === 'function') {
+            scrollViewRef.scrollToEnd({animated: false});
             return;
         }
 
-        flatListRef.current.scrollToEnd({animated: false});
+        listRef.current.scrollToEnd({animated: false});
     };
 
     const scrollToOffset = (offset: number) => {
-        if (!flatListRef?.current) {
+        const listRef = getListRef();
+        if (!listRef?.current) {
             return;
         }
-        flatListRef.current.scrollToOffset({offset, animated: false});
+        listRef.current.scrollToOffset({offset, animated: false});
     };
 
-    return {ref: flatListRef, scrollToIndex, scrollToBottom, scrollToEnd, scrollToOffset};
+    return {scrollToIndex, scrollToBottom, scrollToEnd, scrollToOffset};
 }
 
 export default useReportScrollManager;

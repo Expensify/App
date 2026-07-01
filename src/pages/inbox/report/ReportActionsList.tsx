@@ -1,8 +1,8 @@
 import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import type {FlatList, LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
@@ -46,9 +46,9 @@ import {
 } from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
+import {useActionListContext} from '@pages/inbox/ActionListContext';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
-import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -162,14 +162,24 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     const linkedReportActionID = reportActionIDFromRoute;
 
-    const {scrollOffsetRef} = useContext(ActionListContext);
+    const {registerListRef, getScrollOffset} = useActionListContext();
+
+    // Own the list ref locally and publish it so handlers resolve it via `getListRef()`. Use a
+    // layout effect so the ref is registered at commit — before the list's `onLayout` fires and
+    // calls into `getListRef()` — rather than after paint, which could leave handlers reading null.
+    const listRef = useRef<FlatList>(null);
+    useLayoutEffect(() => {
+        registerListRef(listRef);
+        return () => registerListRef(null);
+    }, [registerListRef]);
+
     const {draftReportAction, hasActiveDraft, isDraftPendingCompletion} = useConciergeDraft();
     const {clearDraft} = useConciergeDraftActions();
 
     const showHiddenHistory = isConciergeHiddenHistory && !showFullHistory;
     const onShowPreviousMessages = handleShowPreviousMessages;
 
-    const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(() => scrollOffsetRef.current >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
+    const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(() => getScrollOffset() >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
 
     const {unreadMarkerReportActionID, unreadMarkerReportActionIndex} = useUnreadMarker({
         reportID,
@@ -244,7 +254,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     }, [reportAttributes?.actionTargetReportActionID, renderedVisibleReportActions]);
 
     const {
-        listRef,
         trackVerticalScrolling,
         onViewableItemsChanged,
         isFloatingMessageCounterVisible,
