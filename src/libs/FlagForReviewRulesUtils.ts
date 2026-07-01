@@ -72,12 +72,14 @@ function getFlagForReviewTableData({
     policyCategories,
     translate,
     convertToDisplayString,
+    isOffline,
     onNavigate,
 }: {
     policy: Policy | undefined;
     policyCategories: PolicyCategories | undefined;
     translate: LocaleContextProps['translate'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    isOffline: boolean;
     onNavigate: (route: Route) => void;
 }): FlagForReviewTableItem[] {
     if (!policy?.id || !policyCategories) {
@@ -91,7 +93,19 @@ function getFlagForReviewTableData({
     const rules: FlagForReviewTableItem[] = [];
 
     for (const [categoryName, category] of Object.entries(policyCategories)) {
-        if (!category?.enabled || !hasExplicitFlagAmount(category.maxExpenseAmount)) {
+        if (!category?.enabled) {
+            continue;
+        }
+
+        const pendingFields = category.pendingFields;
+        const pendingAction = pendingFields?.maxExpenseAmount;
+        const isPendingDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+        if (!isOffline && isPendingDelete) {
+            continue;
+        }
+
+        if (!hasExplicitFlagAmount(category.maxExpenseAmount) && !isPendingDelete) {
             continue;
         }
 
@@ -102,7 +116,6 @@ function getFlagForReviewTableData({
             expenseLimitType === CONST.POLICY.EXPENSE_LIMIT_TYPES.DAILY
                 ? translate('workspace.rules.flagForReviewTable.conditionCategoryAndDailyAmount', decodedCategoryName, amountDisplay)
                 : translate('workspace.rules.flagForReviewTable.conditionCategoryAndAmount', decodedCategoryName, amountDisplay);
-        const pendingFields = category.pendingFields;
 
         rules.push({
             keyForList: categoryName,

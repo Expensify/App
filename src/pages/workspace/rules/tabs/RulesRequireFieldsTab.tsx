@@ -3,6 +3,7 @@ import WorkspaceRequireFieldsTable from '@components/Tables/WorkspaceRequireFiel
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyData from '@hooks/usePolicyData';
@@ -27,6 +28,7 @@ type RulesRequireFieldsTabProps = {
 
 function RulesRequireFieldsTab({policyID, canWriteRules, selectedKeys, onSelectionChange, onActionsChange, onClearSelection, showReadOnlyModal}: RulesRequireFieldsTabProps) {
     const {translate, localeCompare} = useLocalize();
+    const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['SortingMachine']);
     const policy = usePolicy(policyID);
@@ -49,6 +51,7 @@ function RulesRequireFieldsTab({policyID, canWriteRules, selectedKeys, onSelecti
         translate,
         convertToDisplayString,
         localeCompare,
+        isOffline,
         onNavigate: Navigation.navigate,
     });
     const validKeys = new Set(requireFieldsTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));

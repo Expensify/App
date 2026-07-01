@@ -3,6 +3,7 @@ import WorkspaceFlagForReviewTable from '@components/Tables/WorkspaceFlagForRevi
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyData from '@hooks/usePolicyData';
@@ -27,6 +28,7 @@ type RulesFlagForReviewTabProps = {
 
 function RulesFlagForReviewTab({policyID, canWriteRules, selectedKeys, onSelectionChange, onActionsChange, onClearSelection, showReadOnlyModal}: RulesFlagForReviewTabProps) {
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['SortingMachine']);
     const policy = usePolicy(policyID);
@@ -48,6 +50,7 @@ function RulesFlagForReviewTab({policyID, canWriteRules, selectedKeys, onSelecti
         policyCategories: arePolicyCategoriesLoading ? undefined : policyData.categories,
         translate,
         convertToDisplayString,
+        isOffline,
         onNavigate: Navigation.navigate,
     });
     const validKeys = new Set(flagForReviewTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));

@@ -253,6 +253,7 @@ function getRequireFieldsTableData({
     translate,
     convertToDisplayString,
     localeCompare,
+    isOffline,
     onNavigate,
 }: {
     policy: Policy | undefined;
@@ -260,6 +261,7 @@ function getRequireFieldsTableData({
     translate: LocaleContextProps['translate'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     localeCompare: LocaleContextProps['localeCompare'];
+    isOffline: boolean;
     onNavigate: (route: Route) => void;
 }): RequireFieldsTableItem[] {
     if (!policy?.id || !policyCategories) {
@@ -272,7 +274,18 @@ function getRequireFieldsTableData({
     const rules: RequireFieldsTableItem[] = [];
 
     for (const [categoryName, category] of Object.entries(policyCategories)) {
-        if (!category?.enabled || !categoryHasAnyRequireFieldsRule(category)) {
+        if (!category?.enabled) {
+            continue;
+        }
+
+        const pendingAction = getRequireFieldsPendingAction(category.pendingFields);
+        const isPendingDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+        if (!isOffline && isPendingDelete) {
+            continue;
+        }
+
+        if (!categoryHasAnyRequireFieldsRule(category) && !isPendingDelete) {
             continue;
         }
 
@@ -280,7 +293,6 @@ function getRequireFieldsTableData({
         const conditionText = translate('workspace.rules.requireFieldsTable.conditionCategoryIs', decodedCategoryName);
         const ruleDescriptions = getRequireFieldsRuleDescriptionsForCategory(category, translate, convertToDisplayString, policyCurrency);
         const ruleDescription = formatRequireFieldsRuleDescriptions(ruleDescriptions);
-        const pendingAction = getRequireFieldsPendingAction(category.pendingFields);
 
         rules.push({
             keyForList: categoryName,
