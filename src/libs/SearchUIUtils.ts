@@ -1169,26 +1169,6 @@ function getSuggestedSearchesVisibility(
     };
 }
 
-function getVisibleTodoSearches(
-    currentUserAccountID: number | undefined,
-    currentUserEmail: string | undefined,
-    policies: OnyxCollection<OnyxTypes.Policy>,
-): Partial<Record<SearchKey, SearchTypeMenuItem>> {
-    // The `cardFeedsByPolicy` and `defaultExpensifyCard` params are not passed
-    // because they have no effect on the `TODO_SEARCH_KEYS
-    const suggestedSearchesVisibility = getSuggestedSearchesVisibility(currentUserEmail, {}, policies, undefined).visibility;
-    const suggestedSearches = getSuggestedSearches(currentUserAccountID);
-    const visibleTodoSearches: Partial<Record<SearchKey, SearchTypeMenuItem>> = {};
-    for (const searchKey of TODO_SEARCH_KEYS) {
-        const isVisible = suggestedSearchesVisibility[searchKey];
-        if (!isVisible) {
-            continue;
-        }
-        visibleTodoSearches[searchKey] = suggestedSearches[searchKey];
-    }
-    return visibleTodoSearches;
-}
-
 /**
  * @private
  *
@@ -6389,7 +6369,6 @@ export {
     getListItem,
     getSections,
     getSuggestedSearchesVisibility,
-    getVisibleTodoSearches,
     getSortedSections,
     getViolationsFromSearchData,
     isTransactionGroupListItemType,

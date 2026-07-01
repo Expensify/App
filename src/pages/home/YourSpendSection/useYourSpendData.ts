@@ -10,7 +10,6 @@ import {search} from '@libs/actions/Search';
 import {getDisplayableExpensifyCards, getDisplayableThirdPartyCards, isPersonalCard, lastFourNumbersFromCardName} from '@libs/CardUtils';
 import {arePaymentsEnabled, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {getVisibleTodoSearches} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, Policy, Report} from '@src/types/onyx';
@@ -361,17 +360,10 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const paymentRowState = shouldUseCachedPayment ? YOUR_SPEND_ROW_STATE.READY : paymentRowStateRaw;
     const approvalTotals: YourSpendRowTotals = shouldUseCachedApproval && cachedApprovalReady ? cachedApprovalReady : approvalTotalsRaw;
     const paymentTotals: YourSpendRowTotals = shouldUseCachedPayment && cachedPaymentReady ? cachedPaymentReady : paymentTotalsRaw;
-    const visibleTodoSearches = getVisibleTodoSearches(accountID, email, policies);
 
     // Re-fires the search effect when applicability flips, the user joins/leaves a workspace
     // (which changes the policyID filter), or the set of OUTSTANDING reports changes.
-    const applicabilityKey = [
-        isApprovalApplicable ? 1 : 0,
-        isPaymentApplicable ? 1 : 0,
-        paidGroupPolicyIDs.join(','),
-        outstandingReportsSignature ?? '',
-        Object.keys(visibleTodoSearches).join(','),
-    ].join('|');
+    const applicabilityKey = [isApprovalApplicable ? 1 : 0, isPaymentApplicable ? 1 : 0, paidGroupPolicyIDs.join(','), outstandingReportsSignature ?? ''].join('|');
 
     const fireSearches = useEffectEvent(() => {
         if (isOffline) {
@@ -411,22 +403,6 @@ function useYourSpendData(): UseYourSpendDataReturn {
                 isOffline,
                 isLoading: false,
                 shouldCalculateTotals: true,
-                shouldUpdateLastSearchParams: false,
-            });
-        }
-        for (const visibleTodoSearch of Object.values(visibleTodoSearches)) {
-            const searchKey = visibleTodoSearch.key;
-            const queryJSON = visibleTodoSearch.searchQueryJSON;
-            if (!queryJSON) {
-                continue;
-            }
-            search({
-                queryJSON,
-                searchKey,
-                offset: 0,
-                isOffline,
-                isLoading: false,
-                shouldCalculateTotals: false,
                 shouldUpdateLastSearchParams: false,
             });
         }
