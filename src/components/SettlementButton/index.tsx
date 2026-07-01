@@ -30,6 +30,7 @@ import {createWorkspace, generateDefaultWorkspaceName, isCurrencySupportedForDir
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getActivePaymentType, getBusinessBankAccountOptions, matchesCurrency} from '@libs/PaymentUtils';
 import {getPolicyEmployeeAccountIDs, isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/PolicyUtils';
@@ -43,7 +44,7 @@ import {
     isInvoiceReport as isInvoiceReportUtil,
     isIOUReport,
 } from '@libs/ReportUtils';
-import {handleUnvalidatedUserNavigation, useSettlementButtonPaymentMethods} from '@libs/SettlementButtonUtils';
+import useSettlementButtonPaymentMethods from '@libs/SettlementButtonUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {clearPersonalBankAccount, pressLockedBankAccount} from '@userActions/BankAccounts';
@@ -51,7 +52,7 @@ import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {AccountData, BankAccount, LastPaymentMethodType, Policy} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -202,7 +203,7 @@ function SettlementButton({
             }
 
             if (!isUserValidated && paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-                handleUnvalidatedUserNavigation(chatReportID, reportID);
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
                 return true;
             }
 
@@ -246,8 +247,6 @@ function SettlementButton({
             ownerBillingGracePeriodEnd,
             showDelegateNoAccessModal,
             showLockedAccountModal,
-            chatReportID,
-            reportID,
             showConfirmModal,
             translate,
             styles.renderHTML,

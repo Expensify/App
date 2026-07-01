@@ -650,6 +650,26 @@ describe('TransactionPreviewUtils', () => {
         test('returns text when only receiptRequired exists', () => {
             expect(getViolationTranslatePath([receiptRequiredViolation], false, message, false, false)).toEqual({text: message});
         });
+
+        test('returns text for customUnitRateOutOfDateRange when shouldShowOnlyViolations is true', () => {
+            const rateDateViolation = {
+                name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                type: CONST.VIOLATION_TYPES.WARNING,
+                showInReview: true,
+                data: {startDate: '2025-01-01', endDate: '2025-12-31'},
+            };
+
+            expect(getViolationTranslatePath([rateDateViolation], false, message, false, true)).toEqual({text: message});
+        });
+
+        test('filters other warning violations when shouldShowOnlyViolations is true', () => {
+            const warnings = [
+                {name: CONST.VIOLATIONS.MODIFIED_AMOUNT, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true},
+                {name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true},
+            ];
+
+            expect(getViolationTranslatePath(warnings, false, message, false, true)).toEqual({text: message});
+        });
     });
 
     describe('getReviewNavigationRoute', () => {

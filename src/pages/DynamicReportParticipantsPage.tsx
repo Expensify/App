@@ -281,7 +281,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
         ...(isAtLeastOneMemberSelected
             ? [
                   {
-                      text: translate('workspace.people.makeAdmin', {count: selectedMembers.length}),
+                      text: translate('workspace.people.makeGroupAdmin', {count: selectedMembers.length}),
                       value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
                       icon: icons.MakeAdmin,
                       onSelected: () => changeUserRole(CONST.REPORT.ROLE.ADMIN),

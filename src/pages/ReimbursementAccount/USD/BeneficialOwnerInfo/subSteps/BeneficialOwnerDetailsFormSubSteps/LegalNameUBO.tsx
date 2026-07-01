@@ -1,3 +1,4 @@
+import {SafeString} from 'expensify-common';
 import React from 'react';
 import type {FormOnyxValues} from '@components/Form/types';
 import FullNameStep from '@components/SubStepForms/FullNameStep';
@@ -7,7 +8,6 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SafeString from '@src/utils/SafeString';
 
 const {FIRST_NAME, LAST_NAME} = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 const BENEFICIAL_OWNER_PREFIX = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX;

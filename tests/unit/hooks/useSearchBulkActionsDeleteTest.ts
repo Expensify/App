@@ -39,7 +39,8 @@ jest.mock('@libs/actions/Search', () => ({
     exportSearchItemsToCSV: jest.fn(),
     queueExportSearchItemsToCSV: jest.fn(),
     queueExportSearchWithTemplate: jest.fn(),
-    approveMoneyRequestOnSearch: jest.fn(),
+    getSearchApproveOnyxData: jest.fn(() => ({})),
+    getSearchPayOnyxData: jest.fn(() => ({})),
     getLastPolicyBankAccountID: jest.fn(),
     getLastPolicyPaymentMethod: jest.fn(),
     getPayMoneyOnSearchInvoiceParams: jest.fn(),
@@ -172,6 +173,21 @@ jest.mock('react-native', () => ({
             callback();
             return {cancel: jest.fn()};
         },
+    },
+}));
+
+// Make TransitionTracker execute callbacks immediately too (it can't wait for a real
+// modal/popover transition in a unit test, and waitForUpcomingTransition would otherwise
+// stall until MAX_TRANSITION_START_WAIT_MS).
+jest.mock('@libs/Navigation/TransitionTracker', () => ({
+    __esModule: true,
+    default: {
+        runAfterTransitions: ({callback}: {callback: () => void | Promise<void>}) => {
+            callback();
+            return {cancel: jest.fn()};
+        },
+        startTransition: jest.fn(),
+        endTransition: jest.fn(),
     },
 }));
 

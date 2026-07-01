@@ -1,3 +1,4 @@
+import {SafeString} from 'expensify-common';
 import React, {useCallback, useState} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -12,7 +13,6 @@ import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SafeString from '@src/utils/SafeString';
 
 type NationalityProps = SubPageProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
 

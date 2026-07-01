@@ -31,8 +31,8 @@ import {isCategoryMissing} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {hasAccountingConnections, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getTransactionDetails, isReportInGroupPolicy, isSelfDM} from '@libs/ReportUtils';
+import {hasAccountingConnections, isGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getRequestType} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -116,7 +116,7 @@ function IOURequestStepCategory({
         : undefined;
 
     const shouldShowCategory =
-        isReportInGroupPolicy(report, policy) &&
+        isGroupPolicy(policy) &&
         // The transactionCategory can be an empty string, so to maintain the logic we'd like to keep it in this shape until utils refactor
 
         (!!categoryForDisplay || hasEnabledOptions(Object.values(policyCategories ?? {})));

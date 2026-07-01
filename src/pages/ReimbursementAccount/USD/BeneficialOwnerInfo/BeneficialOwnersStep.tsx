@@ -1,4 +1,4 @@
-import {Str} from 'expensify-common';
+import {SafeString, Str} from 'expensify-common';
 import React, {useCallback, useEffect} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
@@ -13,7 +13,6 @@ import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SafeString from '@src/utils/SafeString';
 import BeneficialOwnerDetailsFormPages from './BeneficialOwnerDetailsFormPages';
 import CompanyOwnersListUBO from './subSteps/CompanyOwnersListUBO';
 

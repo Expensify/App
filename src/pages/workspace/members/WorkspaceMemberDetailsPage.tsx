@@ -35,7 +35,7 @@ import {getAllCardsForWorkspace, getCardFeedIcon, getCardFeedWithDomainID, getPl
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
-import {isControlPolicy, isPolicyApprover, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/PolicyUtils';
+import {canMemberAssignRole, canMemberManageMemberWithRole, canMemberWrite, isControlPolicy, isPolicyApprover, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import Navigation from '@navigation/Navigation';
@@ -76,7 +76,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID, login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const {environmentURL} = useEnvironment();
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
@@ -93,9 +93,12 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const fallbackIcon = details.fallbackIcon ?? '';
     const displayName = formatPhoneNumber(getDisplayNameOrDefault(details));
     const isSelectedMemberOwner = policy?.owner === details.login;
-    const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
-    const isCurrentUserAdmin = policy?.employeeList?.[personalDetails?.[currentUserPersonalDetails?.accountID]?.login ?? '']?.role === CONST.POLICY.ROLE.ADMIN;
-    const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
+    const isSelectedMemberCurrentUser = accountID === currentUserAccountID;
+    const isCurrentUserAdmin = policy?.employeeList?.[currentUserLogin]?.role === CONST.POLICY.ROLE.ADMIN;
+    const isCurrentUserOwner = policy?.owner === currentUserLogin;
+    const canWriteMembers = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS);
+    const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
+    const canRemoveSelectedMember = canWriteMembers && !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canMemberManageMemberWithRole(policy, currentUserLogin, member?.role);
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
     const policyOwnerDisplayName = formatPhoneNumber(getDisplayNameOrDefault(ownerDetails)) ?? policy?.owner ?? '';
     const {cardList: assignableCards, ...workspaceCards} = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
@@ -110,7 +113,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         policy,
         personalDetails: personalDetails ?? {},
         localeCompare,
-        currentUserLogin: currentUserPersonalDetails?.login,
+        currentUserLogin,
     });
 
     useEffect(() => {
@@ -272,7 +275,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -317,7 +321,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 <Button
                                     text={translate('workspace.people.removeWorkspaceMemberButtonTitle')}
                                     onPress={isAccountLocked ? showLockedAccountModal : askForConfirmationToRemove}
-                                    isDisabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
+                                    isDisabled={!canRemoveSelectedMember}
                                     icon={icons.RemoveMembers}
                                     style={styles.mb5}
                                 />
@@ -332,11 +336,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 copyable
                             />
                             <MenuItemWithTopDescription
-                                disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
+                                disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser || !canManageSelectedMemberRole}
                                 title={translate(`workspace.common.roleName`, member?.role)}
-                                interactive={!isReimburser}
+                                interactive={!isReimburser && canManageSelectedMemberRole}
                                 description={translate('common.role')}
-                                shouldShowRightIcon={!isReimburser}
+                                shouldShowRightIcon={!isReimburser && canManageSelectedMemberRole}
                                 onPress={() => {
                                     if (
                                         tryNavigateToSubmitWorkspaceUpgrade(
@@ -359,7 +363,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         <MenuItemWithTopDescription
                                             description={translate('workspace.common.customField1')}
                                             title={member?.employeeUserID}
-                                            shouldShowRightIcon
+                                            shouldShowRightIcon={canWriteMembers}
+                                            interactive={canWriteMembers}
                                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField1'))}
                                         />
                                     </OfflineWithFeedback>
@@ -367,7 +372,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         <MenuItemWithTopDescription
                                             description={translate('workspace.common.customField2')}
                                             title={member?.employeePayrollID}
-                                            shouldShowRightIcon
+                                            shouldShowRightIcon={canWriteMembers}
+                                            interactive={canWriteMembers}
                                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField2'))}
                                         />
                                     </OfflineWithFeedback>

@@ -44,7 +44,7 @@ function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string
     const optimisticCustomUnit = {
         name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
         customUnitID: finalCustomUnitID,
-        enabled: true,
+        enabled,
         defaultCategory: '',
         rates: {},
     };

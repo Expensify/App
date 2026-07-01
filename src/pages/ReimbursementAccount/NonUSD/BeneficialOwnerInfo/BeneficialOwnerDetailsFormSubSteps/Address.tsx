@@ -1,3 +1,4 @@
+import {SafeString} from 'expensify-common';
 import React, {useMemo, useState} from 'react';
 import AddressStep from '@components/SubStepForms/AddressStep';
 import useLocalize from '@hooks/useLocalize';
@@ -7,7 +8,6 @@ import type {SubPageProps} from '@hooks/useSubPage/types';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SafeString from '@src/utils/SafeString';
 
 type NameProps = SubPageProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
 

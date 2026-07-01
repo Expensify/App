@@ -239,7 +239,8 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
             fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
         >
             <ScreenWrapper

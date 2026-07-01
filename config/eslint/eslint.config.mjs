@@ -123,7 +123,7 @@ const restrictedImportPaths = [
         importNames: ['Device', 'ExpensiMark'],
         message: [
             '',
-            "For 'Device', do not import it directly, it's known to make VSCode's IntelliSense crash. Please import the desired module from `expensify-common/dist/Device` instead.",
+            "For 'Device', do not import it directly, it's known to make VSCode's IntelliSense crash. Please import the desired module from `expensify-common/Device` instead.",
             "For 'ExpensiMark', please use '@libs/Parser' instead.",
         ].join('\n'),
     },
@@ -201,6 +201,14 @@ const restrictedPaidGroupPolicyImportPatterns = [
         message:
             'isPaidGroupPolicy / isPaidGroupPolicyExpenseReport are billing/paid-only. For feature gating use isReportInGroupPolicy / isGroupPolicyExpenseReport so Submit workspaces are not excluded. If this is genuinely billing/paid-only, keep it and disable this line with a reason.',
     },
+];
+
+// Headless email chart CLI cannot use useTheme; charts always render with the light theme.
+const victoryChartRendererRestrictedImportPaths = restrictedImportPaths.filter((restriction) => restriction.name !== '@styles/theme');
+const victoryChartRendererRestrictedImportPatterns = [
+    ...restrictedImportPatterns.filter((restriction) => restriction.group[0] !== '@styles/theme/themes/**'),
+    ...restrictedReportNameImportPatterns,
+    ...restrictedPaidGroupPolicyImportPatterns,
 ];
 
 const config = defineConfig([
@@ -763,6 +771,16 @@ const config = defineConfig([
             parserOptions: {
                 project: path.resolve(projectRoot, 'server/victory-chart-renderer/tsconfig.json'),
             },
+        },
+        rules: {
+            // Headless CLI cannot use useTheme; email charts always render with the light theme.
+            'no-restricted-imports': [
+                'error',
+                {
+                    paths: victoryChartRendererRestrictedImportPaths,
+                    patterns: victoryChartRendererRestrictedImportPatterns,
+                },
+            ],
         },
     },
 

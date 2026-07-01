@@ -1,3 +1,4 @@
+import {SafeString} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -14,7 +15,6 @@ import getInputKeysForBankInfoStep from '@pages/ReimbursementAccount/NonUSD/util
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import SafeString from '@src/utils/SafeString';
 
 const {ACCOUNT_HOLDER_COUNTRY} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {

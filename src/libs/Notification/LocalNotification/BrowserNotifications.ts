@@ -1,5 +1,5 @@
 // Web implementation only. Do not import for direct use. Use LocalNotification.
-import {Str} from 'expensify-common';
+import {SafeString, Str} from 'expensify-common';
 import type {ImageSourcePropType} from 'react-native';
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
 import * as AppUpdate from '@libs/actions/AppUpdate';
@@ -11,7 +11,6 @@ import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import type {Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
-import SafeString from '@src/utils/SafeString';
 import type {LocalNotificationClickHandler, LocalNotificationData, LocalNotificationModifiedExpensePushParams} from './types';
 
 const notificationCache: Record<string, Notification> = {};

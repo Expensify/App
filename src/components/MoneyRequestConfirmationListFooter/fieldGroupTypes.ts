@@ -1,3 +1,4 @@
+import type {MileageRate} from '@libs/DistanceRequestUtils';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Unit} from '@src/types/onyx/Policy';
 
@@ -16,6 +17,9 @@ type DistanceData = {
     rate: number | undefined;
     distanceRateName: string | undefined;
     distanceRateCurrency: string;
+    mileageRate: MileageRate;
+    expenseDate: string | undefined;
+    customUnitRateID: string | undefined;
     shouldShowRateAutoUpdatedTooltip?: boolean;
 };
 

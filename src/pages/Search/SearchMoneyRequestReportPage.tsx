@@ -1,5 +1,6 @@
 import {PortalHost} from '@gorhom/portal';
 import {useIsFocused} from '@react-navigation/native';
+import reportByIDsSelector from '@selectors/ReportAttributes';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -44,7 +45,6 @@ import {clearDeleteTransactionNavigateBackUrl, createTransactionThreadReport, op
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import reportByIDsSelector from '@src/selectors/Attributes';
 import type {ReportAttributesDerivedValue, Transaction, TransactionViolations} from '@src/types/onyx';
 
 type SearchMoneyRequestPageProps =

@@ -1,3 +1,4 @@
+import {SafeString} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
@@ -8,7 +9,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction, Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
-import SafeString from '@src/utils/SafeString';
 import {getDecodedLeafCategoryName} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
 import Parser from './Parser';
@@ -288,12 +288,8 @@ function getMergeableDataAndConflictFields(
         }
 
         if (field === 'attendees') {
-            const targetAttendeeLogins = ((targetValue as Attendee[] | undefined)?.map((attendee) => attendee.login ?? attendee.email) ?? [])
-                .filter((login): login is string => !!login)
-                .sort(localeCompare);
-            const sourceAttendeeLogins = ((sourceValue as Attendee[] | undefined)?.map((attendee) => attendee.login ?? attendee.email) ?? [])
-                .filter((login): login is string => !!login)
-                .sort(localeCompare);
+            const targetAttendeeLogins = ((targetValue as Attendee[] | undefined)?.map((attendee) => attendee.email) ?? []).filter((login): login is string => !!login).sort(localeCompare);
+            const sourceAttendeeLogins = ((sourceValue as Attendee[] | undefined)?.map((attendee) => attendee.email) ?? []).filter((login): login is string => !!login).sort(localeCompare);
 
             if (deepEqual(targetAttendeeLogins, sourceAttendeeLogins)) {
                 mergeableData[field] = isTargetValueEmpty ? sourceValue : targetValue;

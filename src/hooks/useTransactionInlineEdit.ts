@@ -20,12 +20,14 @@ import {
     getTransactionEditPermissions,
 } from '@libs/actions/TransactionInlineEdit';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {isTrackExpenseReportNew} from '@libs/ReportUtils';
-import {isExpenseUnreported, isPerDiemRequest} from '@libs/TransactionUtils';
+import {isDistanceRequest, isExpenseUnreported, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
+import useDistanceRateOriginalPolicy from './useDistanceRateOriginalPolicy';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
@@ -133,6 +135,11 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
 
     const isTrackExpense = isTrackExpenseReportNew(transactionThreadReport, effectiveParentReport, parentReportAction);
 
+    const editPolicy = completePolicy ?? policy;
+    const customUnitRateID = isDistanceRequest(transaction) ? transaction?.comment?.customUnit?.customUnitRateID : undefined;
+    const shouldLookupDistancePolicy = !!customUnitRateID && !getDistanceRateCustomUnitRate(editPolicy, customUnitRateID);
+    const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
+
     const {isOffline} = useNetwork();
 
     const permissions = getTransactionEditPermissions({
@@ -169,6 +176,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             isOffline,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed ?? false,
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow ?? false,
+            distanceOriginalPolicy,
         };
     };
 

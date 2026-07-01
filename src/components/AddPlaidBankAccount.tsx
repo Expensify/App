@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handlePlaidError, openPlaidBankAccountSelector, openPlaidBankLogin, setPlaidEvent} from '@libs/actions/BankAccounts';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -107,6 +108,9 @@ function AddPlaidBankAccount({
         [plaidData?.bankAccounts?.length, plaidData?.errors, plaidLinkOAuthToken, receivedRedirectURI],
     );
 
+    const isAuthenticated = isAuthenticatedWithPlaid();
+    const prevIsAuthenticated = usePrevious(isAuthenticated);
+
     /**
      * Blocks the keyboard shortcuts that can navigate
      */
@@ -158,6 +162,15 @@ function AddPlaidBankAccount({
         previousNetworkState.current = isOffline;
     }, [allowDebit, bankAccountID, isAuthenticatedWithPlaid, isOffline]);
 
+    useEffect(() => {
+        // We had a Plaid session and lost it (e.g. openReimbursementAccountPage reset plaidData on reconnect).
+        // Re-open the Plaid login so the step isn't left empty.
+        if (!prevIsAuthenticated || isAuthenticated || isOffline) {
+            return;
+        }
+        openPlaidBankLogin(allowDebit, bankAccountID);
+    }, [prevIsAuthenticated, isAuthenticated, isOffline, allowDebit, bankAccountID]);
+
     const token = getPlaidLinkToken();
     const options = plaidBankAccounts.map((account) => ({
         value: account.plaidAccountID,
@@ -187,7 +200,7 @@ function AddPlaidBankAccount({
     if (isPlaidDisabled) {
         return (
             <View>
-                <Text style={[styles.formError]}>{translate('bankAccount.error.tooManyAttempts')}</Text>
+                <Text style={[styles.formError, styles.mh5]}>{translate('bankAccount.error.tooManyAttempts')}</Text>
             </View>
         );
     }

@@ -1,3 +1,4 @@
+import {SafeString} from 'expensify-common';
 import React, {useCallback} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
@@ -8,7 +9,6 @@ import type {SubPageProps} from '@hooks/useSubPage/types';
 import {getFieldRequiredErrors, isValidOwnershipPercentage} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SafeString from '@src/utils/SafeString';
 
 type OwnershipPercentageProps = SubPageProps & {
     isUserEnteringHisOwnData: boolean;

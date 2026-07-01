@@ -1,3 +1,4 @@
+import {SafeString} from 'expensify-common';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
@@ -17,7 +18,6 @@ import {clearErrorFields, clearErrors, setDraftValues, setErrorFields} from '@us
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
-import SafeString from '@src/utils/SafeString';
 
 type DocumentsProps = SubPageProps & {ownerBeingModifiedID: string};
 

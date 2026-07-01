@@ -1797,6 +1797,109 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // Then the raw caller value flows into the API params instead of the rounded display value (5.56).
             expect(params.distance).toBe(5.555);
         });
+
+        it('mirrors customUnitRateOutOfDateRange violation changes into the search snapshot when editing a tracked distance expense date', async () => {
+            const transactionID = 'track_distance_date_violation';
+            const transactionThreadReportID = 'thread_date_violation';
+            const snapshotHash = 1122334455;
+            const customUnitRateID = 'rate_id';
+            const policyID = 'policy_date_violation';
+
+            const fakeTransaction: Transaction = {
+                transactionID,
+                amount: 5000,
+                currency: CONST.CURRENCY.USD,
+                created: '2025-06-15',
+                merchant: 'Distance Track',
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 5,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        customUnitRateID,
+                    },
+                    waypoints: {},
+                },
+            };
+            const fakeThreadReport = {
+                reportID: transactionThreadReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                parentReportID: 'self-dm-report',
+            } as Report;
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(1)),
+                id: policyID,
+                customUnits: {
+                    unitId: {
+                        attributes: {unit: 'mi'},
+                        customUnitID: 'unitId',
+                        defaultCategory: 'Car',
+                        enabled: true,
+                        name: 'Distance',
+                        rates: {
+                            [customUnitRateID]: {
+                                currency: 'USD',
+                                customUnitRateID,
+                                enabled: true,
+                                name: '2025 mileage',
+                                rate: 65.5,
+                                startDate: '2025-01-01',
+                                endDate: '2025-12-31',
+                            },
+                        },
+                    },
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, fakeThreadReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, []);
+            await waitForBatchedUpdates();
+
+            const {onyxData} = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, {created: '2026-06-15'}, fakePolicy, undefined, snapshotHash, undefined, undefined, []);
+
+            const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as const;
+            const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as const;
+            const optimisticViolationsUpdate = onyxData.optimisticData?.find((update) => update.key === violationsKey);
+
+            expect(optimisticViolationsUpdate?.value).toContainEqual(
+                expect.objectContaining({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                    showInReview: true,
+                    data: {
+                        startDate: '2025-01-01',
+                        endDate: '2025-12-31',
+                    },
+                }),
+            );
+
+            expect(onyxData.optimisticData).toContainEqual(
+                expect.objectContaining({
+                    key: snapshotKey,
+                    value: expect.objectContaining({
+                        data: expect.objectContaining({
+                            [violationsKey]: optimisticViolationsUpdate?.value,
+                        }),
+                    }),
+                }),
+            );
+
+            expect(onyxData.failureData).toContainEqual(
+                expect.objectContaining({
+                    key: snapshotKey,
+                    value: expect.objectContaining({
+                        data: expect.objectContaining({
+                            [violationsKey]: [],
+                        }),
+                    }),
+                }),
+            );
+        });
     });
 
     describe('updateMoneyRequestDate distance rate recalculation', () => {

@@ -1,4 +1,4 @@
-import dedent from '@libs/StringUtils/dedent';
+import {Str} from 'expensify-common';
 import Glossary from './Glossary';
 
 const dutchGlossary = new Glossary([
@@ -6,7 +6,7 @@ const dutchGlossary = new Glossary([
     {sourceTerm: 'Expensify Card', targetTerm: 'Expensify Kaart', usage: 'Branded Expensify payment card'},
 ]);
 
-export default dedent(`
+export default Str.dedent(`
     When translating to Dutch, follow these rules:
 
     - Use informal "je/jij" for user-facing text to match the existing tone of the app.

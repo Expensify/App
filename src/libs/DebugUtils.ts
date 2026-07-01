@@ -1,6 +1,7 @@
 /* eslint-disable default-case */
 /* eslint-disable max-classes-per-file */
 import {isMatch, isValid} from 'date-fns';
+import {SafeString} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import CONST from '@src/CONST';
@@ -8,7 +9,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {Beta, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Comment} from '@src/types/onyx/Transaction';
-import SafeString from '@src/utils/SafeString';
 import {getLinkedTransactionID} from './ReportActionsUtils';
 import {getReasonAndReportActionThatRequiresAttention, reasonForReportToBeInOptionList} from './ReportUtils';
 import SidebarUtils from './SidebarUtils';
@@ -443,6 +443,9 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'welcomeMessage':
         case 'origin':
         case 'originalID':
+        case 'submitterUserID':
+        case 'submitterPayrollID':
+        case 'orderDealNumbers':
             return validateString(value);
         case 'hasOutstandingChildRequest':
         case 'hasOutstandingChildTask':
@@ -579,6 +582,9 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 type: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 policyID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                submitterUserID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                submitterPayrollID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                orderDealNumbers: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 avatarUrl: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 chatType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasOutstandingChildRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1210,13 +1216,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 email: 'string',
                 displayName: 'string',
                 avatarUrl: 'string',
-                accountID: 'number',
-                text: 'string',
-                login: 'string',
-                searchText: 'string',
-                selected: 'boolean',
-                iouType: CONST.IOU.TYPE,
-                reportID: 'string',
             });
         case 'modifiedWaypoints':
             return validateObject<ObjectElement<Transaction, 'modifiedWaypoints'>>(
@@ -1363,6 +1362,8 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 comment: 'string',
                 cardID: 'number',
                 missingFields: 'array',
+                startDate: 'string',
+                endDate: 'string',
             });
         case 'showInReview':
             return validateBoolean(value);
@@ -1427,6 +1428,7 @@ function getReasonForShowingRowInLHN({
     draftComment,
     currentUserLogin,
     currentUserAccountID,
+    conciergeReportID,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
@@ -1438,6 +1440,7 @@ function getReasonForShowingRowInLHN({
     draftComment: string | undefined;
     currentUserLogin?: string;
     currentUserAccountID?: number;
+    conciergeReportID?: string;
 }): TranslationPaths | null {
     if (!report) {
         return null;
@@ -1457,6 +1460,7 @@ function getReasonForShowingRowInLHN({
         draftComment,
         currentUserLogin,
         currentUserAccountID,
+        conciergeReportID,
     });
 
     if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {
