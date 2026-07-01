@@ -34,13 +34,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         shouldShow: () => false,
     },
-    [RENAME_SAVED_SEARCH]: {
-        content: 'productTrainingTooltip.saveSearchTooltip',
-        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(RENAME_SAVED_SEARCH, isDismissedUsingCloseButton),
-        name: RENAME_SAVED_SEARCH,
-        priority: 1250,
-        shouldShow: ({shouldUseNarrowLayout}) => !shouldUseNarrowLayout,
-    },
+    {/* Removed [RENAME_SAVED_SEARCH] tooltip */}
     [ACCOUNT_SWITCHER]: {
         content: 'productTrainingTooltip.accountSwitcher',
         onHideTooltip: () => dismissProductTraining(ACCOUNT_SWITCHER),
