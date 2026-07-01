@@ -18,7 +18,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasDomainAdminsSettingsErrors} from '@libs/DomainUtils';
 import {getLatestError} from '@libs/ErrorUtils';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
@@ -87,7 +87,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             return {
                 keyForList: String(accountID),
                 accountID,
-                name: formatPhoneNumber(getDisplayNameOrDefault(details)),
+                name: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
                 email: formatPhoneNumber(login),
                 isPrimaryContact: !!technicalContactEmail && !!login && technicalContactEmail === login,
                 errors: getLatestError(errors),

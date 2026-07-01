@@ -8,7 +8,7 @@ import getZenefitsSetupLink from '@libs/actions/connections/Zenefits';
 import {getConnectedHRProvider, getHRApprovalMode, isMergeHRCompleteSetupNeeded} from '@libs/HRUtils';
 import type {HRConnectionName} from '@libs/HRUtils';
 import {formatList} from '@libs/Localize';
-import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getIntegrationLastSuccessfulDate} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
@@ -197,7 +197,7 @@ function getFinalApproverDisplayName(finalApprover: string | undefined | null, t
     if (!finalApprover) {
         return translate('workspace.hr.notSet');
     }
-    return getDisplayNameOrDefault(getPersonalDetailByEmail(finalApprover), finalApprover, false);
+    return temporaryGetDisplayNameOrDefault({passedPersonalDetails: getPersonalDetailByEmail(finalApprover), defaultValue: finalApprover, shouldFallbackToHidden: false, translate});
 }
 
 /** Extracts the connection-specific config object (approval mode, final approver, pending/error fields) from the policy for a given HR provider. */

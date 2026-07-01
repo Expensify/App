@@ -2228,7 +2228,7 @@ describe('CardUtils', () => {
         it('should sort cards by cardholder name in ascending order', () => {
             const policyMembersAccountIDs = [1, 2, 3];
             const cards = getCardsByCardholderName(mockCards, policyMembersAccountIDs);
-            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare, translateLocal);
 
             expect(sortedCards).toHaveLength(3);
             expect(sortedCards.at(0)?.cardID).toBe(2);
@@ -2239,7 +2239,7 @@ describe('CardUtils', () => {
         it('should filter out cards that are not associated with policy members', () => {
             const policyMembersAccountIDs = [1, 2]; // Exclude accountID 3
             const cards = getCardsByCardholderName(mockCards, policyMembersAccountIDs);
-            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare, translateLocal);
 
             expect(sortedCards).toHaveLength(2);
             expect(sortedCards.at(0)?.cardID).toBe(2);
@@ -2249,7 +2249,7 @@ describe('CardUtils', () => {
         it('should handle undefined cardsList', () => {
             const policyMembersAccountIDs = [1, 2, 3];
             const cards = getCardsByCardholderName(undefined, policyMembersAccountIDs);
-            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare, translateLocal);
 
             expect(sortedCards).toHaveLength(0);
         });
@@ -2257,7 +2257,7 @@ describe('CardUtils', () => {
         it('should handle undefined personalDetails', () => {
             const policyMembersAccountIDs = [1, 2, 3];
             const cards = getCardsByCardholderName(mockCards, policyMembersAccountIDs);
-            const sortedCards = sortCardsByCardholderName(cards, undefined, localeCompare);
+            const sortedCards = sortCardsByCardholderName(cards, undefined, localeCompare, translateLocal);
 
             expect(sortedCards).toHaveLength(3);
             // All cards should be sorted with default names
@@ -2295,10 +2295,43 @@ describe('CardUtils', () => {
 
             const policyMembersAccountIDs = [1, 2];
             const cards = getCardsByCardholderName(cardsWithMissingAccountID, policyMembersAccountIDs);
-            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare, translateLocal);
 
             expect(sortedCards).toHaveLength(1);
             expect(sortedCards.at(0)?.cardID).toBe(1);
+        });
+
+        it('resolves the fallback name for cardholders without personal details through the provided translate function', () => {
+            const policyMembersAccountIDs = [1, 2, 3];
+            const cards = getCardsByCardholderName(mockCards, policyMembersAccountIDs);
+            const requestedPaths: string[] = [];
+            const translate: LocalizedTranslate = (path, ...parameters) => {
+                requestedPaths.push(path);
+                return translateLocal(path, ...parameters);
+            };
+
+            // With no personal details available, each cardholder name falls back to translate('common.hidden').
+            sortCardsByCardholderName(cards, undefined, localeCompare, translate);
+
+            expect(requestedPaths).toContain('common.hidden');
+        });
+
+        it('orders cardholders without a display name by the value returned from the translate function', () => {
+            // Only account 1 has personal details; account 2 falls back to the translated hidden name.
+            const personalDetailsWithOneKnownUser: PersonalDetailsList = {
+                1: {accountID: 1, login: 'mike@example.com', displayName: 'Mike'},
+            };
+            const cards = getCardsByCardholderName(mockCards, [1, 2]);
+
+            // A translate whose hidden value sorts before "Mike" puts the nameless cardholder first.
+            const translateHiddenFirst: LocalizedTranslate = (translatePath, ...parameters) =>
+                translatePath === 'common.hidden' ? 'AAA hidden' : translateLocal(translatePath, ...parameters);
+            expect(sortCardsByCardholderName(cards, personalDetailsWithOneKnownUser, localeCompare, translateHiddenFirst).map((card) => card.cardID)).toEqual([2, 1]);
+
+            // A translate whose hidden value sorts after "Mike" puts the nameless cardholder last.
+            const translateHiddenLast: LocalizedTranslate = (translatePath, ...parameters) =>
+                translatePath === 'common.hidden' ? 'zzz hidden' : translateLocal(translatePath, ...parameters);
+            expect(sortCardsByCardholderName(cards, personalDetailsWithOneKnownUser, localeCompare, translateHiddenLast).map((card) => card.cardID)).toEqual([1, 2]);
         });
     });
 

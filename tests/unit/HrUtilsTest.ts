@@ -21,6 +21,7 @@ import createRandomPolicy from '../utils/collections/policies';
 jest.mock('@libs/PersonalDetailsUtils', () => ({
     getPersonalDetailByEmail: jest.fn(() => null),
     getDisplayNameOrDefault: jest.fn((_detail: unknown, fallback: string) => fallback),
+    temporaryGetDisplayNameOrDefault: jest.fn(({defaultValue}: {defaultValue: string}) => defaultValue),
 }));
 
 const GUSTO = CONST.POLICY.CONNECTIONS.NAME.GUSTO;

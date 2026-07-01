@@ -31,7 +31,7 @@ import {clearDomainMemberError, closeUserAccount, exportMembersToCSV, setDomainM
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {getMemberCustomRowProps, hasDomainMembersSettingsErrors} from '@libs/DomainUtils';
 import {getLatestError} from '@libs/ErrorUtils';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
@@ -114,7 +114,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 keyForList: String(accountID),
                 accountID,
                 login,
-                name: formatPhoneNumber(getDisplayNameOrDefault(details)),
+                name: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
                 email: formatPhoneNumber(login),
                 groupName: group?.details.name ?? '-',
                 errors: getLatestError(customProps?.errors),
