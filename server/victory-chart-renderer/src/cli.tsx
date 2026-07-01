@@ -1,4 +1,5 @@
 import CLI from 'expensify-common/CLI';
+import Log from '@libs/Log';
 import loadChartFontsForCli from './loadChartFontsForCli';
 import parseChartXml from './parseChartXml';
 import renderChartToPng from './renderChartToPng';
@@ -22,6 +23,8 @@ const cli = new CLI({
     },
 });
 
+const renderStartedAt = Date.now();
+
 try {
     const xmlString = cli.namedArgs['chart-xml'];
     const outPath = cli.namedArgs.out;
@@ -31,9 +34,24 @@ try {
 
     await renderChartToPng(tnode, fonts, canvasSize, outPath);
 
+    Log.info('Victory chart rendered successfully', {
+        outPath,
+        width: canvasSize.width,
+        height: canvasSize.height,
+        durationMs: Date.now() - renderStartedAt,
+    });
+
     // Onyx and network modules register listeners/timers during init; exit explicitly so CI smoke tests do not hang.
     process.exit(0);
 } catch (error) {
-    console.error(error instanceof Error ? error.message : error);
+    const message = error instanceof Error ? error.message : String(error);
+    const stack = error instanceof Error ? error.stack : undefined;
+
+    console.error(message);
+    Log.alert('Victory chart render failed', {
+        message,
+        stack,
+        durationMs: Date.now() - renderStartedAt,
+    });
     process.exit(1);
 }
