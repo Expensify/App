@@ -2324,11 +2324,13 @@ describe('CardUtils', () => {
             const cards = getCardsByCardholderName(mockCards, [1, 2]);
 
             // A translate whose hidden value sorts before "Mike" puts the nameless cardholder first.
-            const translateHiddenFirst: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'AAA hidden' : translateLocal(path, ...parameters));
+            const translateHiddenFirst: LocalizedTranslate = (translatePath, ...parameters) =>
+                translatePath === 'common.hidden' ? 'AAA hidden' : translateLocal(translatePath, ...parameters);
             expect(sortCardsByCardholderName(cards, personalDetailsWithOneKnownUser, localeCompare, translateHiddenFirst).map((card) => card.cardID)).toEqual([2, 1]);
 
             // A translate whose hidden value sorts after "Mike" puts the nameless cardholder last.
-            const translateHiddenLast: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'zzz hidden' : translateLocal(path, ...parameters));
+            const translateHiddenLast: LocalizedTranslate = (translatePath, ...parameters) =>
+                translatePath === 'common.hidden' ? 'zzz hidden' : translateLocal(translatePath, ...parameters);
             expect(sortCardsByCardholderName(cards, personalDetailsWithOneKnownUser, localeCompare, translateHiddenLast).map((card) => card.cardID)).toEqual([1, 2]);
         });
     });
