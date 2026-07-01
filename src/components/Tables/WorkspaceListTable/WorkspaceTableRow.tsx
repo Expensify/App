@@ -15,7 +15,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {CopySettingsEligibleTargets} from '@src/selectors/Policy';
 import type {WorkspaceRowData} from '.';
 import WorkspaceRowBrickRoadIndicator from './WorkspaceRowBrickRoadIndicator';
 import WorkspaceRowThreeDotsMenu from './WorkspaceRowThreeDotsMenu';
@@ -35,12 +34,9 @@ type WorkspaceRowProps = {
 
     /** ID of the workspace with a deletion in progress, if any */
     pendingDeletePolicyID?: string;
-
-    /** IDs of the policies eligible as copy-settings targets, passed down to the row menu */
-    copySettingsEligibleTargets: CopySettingsEligibleTargets;
 };
 
-export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex, onDeleteWorkspace, pendingDeletePolicyID, copySettingsEligibleTargets}: WorkspaceRowProps) {
+export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex, onDeleteWorkspace, pendingDeletePolicyID}: WorkspaceRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -97,7 +93,6 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                 item={item}
                 onDeleteWorkspace={onDeleteWorkspace}
                 pendingDeletePolicyID={pendingDeletePolicyID}
-                copySettingsEligibleTargets={copySettingsEligibleTargets}
             />
         </View>
     );

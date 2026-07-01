@@ -40,34 +40,19 @@ const createOwnedPaidPoliciesCountsSelector =
         };
     };
 
-type CopySettingsEligibleTargets = {
-    /** IDs of non-personal policies administered by the user that can be copy-settings targets */
-    adminNonPersonal: string[];
-
-    /** Subset of adminNonPersonal limited to corporate (Control) policies */
-    corporateOnly: string[];
-};
-
 /**
- * Creates a selector returning only the policy IDs eligible as copy-settings targets,
- * so subscribers don't re-render when anything else on the policy collection changes.
+ * Creates a selector returning only the IDs of policies eligible as copy-settings targets, so
+ * subscribers don't re-render when anything else on the policy collection changes. Targets are
+ * limited to paid group workspaces (Collect/Control) the user administers - copy-settings carries
+ * paid features, and Collect targets are upgraded to Control in-flow, so Submit/Personal workspaces
+ * are never valid targets.
  */
 const createCopySettingsEligibleTargetsSelector =
     (currentUserLogin: string | undefined) =>
-    (policies: OnyxCollection<Policy>): CopySettingsEligibleTargets => {
-        const adminNonPersonal: string[] = [];
-        const corporateOnly: string[] = [];
-        for (const policy of Object.values(policies ?? {})) {
-            if (!policy || policy.type === CONST.POLICY.TYPE.PERSONAL || !isPolicyAdmin(policy, currentUserLogin) || isPendingDeletePolicy(policy)) {
-                continue;
-            }
-            adminNonPersonal.push(policy.id);
-            if (policy.type === CONST.POLICY.TYPE.CORPORATE) {
-                corporateOnly.push(policy.id);
-            }
-        }
-        return {adminNonPersonal, corporateOnly};
-    };
+    (policies: OnyxCollection<Policy>): string[] =>
+        Object.values(policies ?? {})
+            .filter((policy): policy is Policy => !!policy && isPaidGroupPolicy(policy) && isPolicyAdmin(policy, currentUserLogin) && !isPendingDeletePolicy(policy))
+            .map((policy) => policy.id);
 
 type WorkspaceListPolicy = Pick<Policy, 'id' | 'name' | 'type' | 'role' | 'ownerAccountID' | 'avatarURL' | 'pendingAction' | 'errors'> & {
     /** Whether the policy is optimistically pending deletion */
@@ -409,4 +394,4 @@ export {
     createAdminPoliciesSelector,
     isAdminForPolicyByIDSelector,
 };
-export type {ReusablePolicyConnectionName, CopySettingsEligibleTargets};
+export type {ReusablePolicyConnectionName};

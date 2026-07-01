@@ -20,9 +20,11 @@ type Props = {
     isReporting?: boolean;
     isTravelUpgrade?: boolean;
     isDistanceRateUpgrade?: boolean;
+    /** Overrides the primary button label (defaults to "Got it, thanks"). */
+    buttonText?: string;
 };
 
-function UpgradeConfirmation({policyName, planName, afterUpgradeAcknowledged, isReporting, isCategorizing, isTravelUpgrade, isDistanceRateUpgrade}: Props) {
+function UpgradeConfirmation({policyName, planName, afterUpgradeAcknowledged, isReporting, isCategorizing, isTravelUpgrade, isDistanceRateUpgrade, buttonText}: Props) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
@@ -70,7 +72,7 @@ function UpgradeConfirmation({policyName, planName, afterUpgradeAcknowledged, is
             descriptionComponent={description}
             shouldShowButton
             onButtonPress={afterUpgradeAcknowledged}
-            buttonText={translate('workspace.upgrade.completed.gotIt')}
+            buttonText={buttonText ?? translate('workspace.upgrade.completed.gotIt')}
             containerStyle={styles.h100}
         />
     );

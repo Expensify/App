@@ -2357,6 +2357,9 @@ type PolicyCopySettingsNavigatorParamList = {
     [SCREENS.POLICY_COPY_SETTINGS.SELECT_FEATURES]: {
         policyID: string;
     };
+    [SCREENS.POLICY_COPY_SETTINGS.UPGRADE]: {
+        policyID: string;
+    };
     [SCREENS.POLICY_COPY_SETTINGS.CONFIRM]: {
         policyID: string;
     };
