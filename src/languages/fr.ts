@@ -396,6 +396,7 @@ const translations: TranslationDeepObject<typeof en> = {
         withdrawalID: 'ID de retrait',
         internationalReimbursementIDs: 'ID de remboursement international',
         withdrawalStatus: 'Statut de retrait',
+        paidStatus: 'Statut de paiement',
         bankAccounts: 'Comptes bancaires',
         chooseFile: 'Choisir un fichier',
         chooseFiles: 'Choisir des fichiers',
@@ -8729,6 +8730,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         failedError: ({link}: {link: string}) => `Nous réessaierons ce règlement lorsque vous <a href="${link}">déverrouillerez votre compte</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID de retrait : ${withdrawalID}`,
+    },
+    paidStatus: {
+        markedAsPaid: 'Marqué comme payé',
+        withdrawing: 'Prélèvement en cours',
+        confirmed: 'Confirmé',
     },
     reportLayout: {
         reportLayout: 'Mise en page de la note de frais',
