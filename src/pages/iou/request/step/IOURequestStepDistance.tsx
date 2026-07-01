@@ -317,11 +317,8 @@ function IOURequestStepDistance({
         Navigation.closeRHPFlow();
     }, [isEditingSplit, backTo]);
 
-    // In the edit flow this page is rendered inside an OnyxTabNavigator. A plain `goBack()` with no
-    // target would be swallowed by that tab navigator (reverting to the Map tab) instead of leaving
-    // the page, so the header back must leave explicitly: honor an explicit `backTo` (e.g. the
-    // edit-split page) and otherwise close the RHP — matching other tabbed RHP pages like
-    // IOURequestStartPage. The browser/hardware back keeps the default tab behavior (revert tab first).
+    // In the edit flow this page is rendered inside an OnyxTabNavigator. The header back honors an
+    // explicit `backTo` (e.g. the edit-split page) and otherwise leaves the whole flow.
     const navigateBackFromEditFlow = useCallback(() => {
         if (backTo) {
             Navigation.goBack(backTo);
