@@ -1,9 +1,10 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
+import Log from '@libs/Log';
 import {clearSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import {getIsOffline} from '@libs/NetworkState';
-import type {getPendingReceiptRequests as GetPendingReceiptRequests, saveReceiptsToGallery as SaveReceiptsToGallery} from '@libs/savePendingReceiptsToGallery';
+import {getPendingReceiptRequests, saveReceiptsToGallery} from '@libs/savePendingReceiptsToGallery';
 import CONFIG from '@src/CONFIG';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,31 +45,20 @@ Onyx.connectWithoutView({
     },
 });
 
-/**
- * Copies queued receipts to the gallery before `Onyx.clear()` wipes the queue records. The save module and
- * logger are required lazily, not imported: they pull in the Network layer, and a static import here would
- * recreate the circular dependency this file is split from Session to avoid. Any throw is swallowed.
- */
+/** Copies queued receipts to the gallery before `Onyx.clear()` wipes the queue records. The `saveReceiptsToGallery` implementation resolves on every failure path itself, so the outer `.catch` only fires on a contract violation (e.g. future refactor rejects, tests stub a reject) — we log and swallow so sign-out is never blocked. */
 function saveUnsentReceiptsBeforeClear(): Promise<void> {
-    try {
-        const {getPendingReceiptRequests, saveReceiptsToGallery} =
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- lazy require breaks the circular dependency with the Network layer documented above
-            require('@libs/savePendingReceiptsToGallery') as {getPendingReceiptRequests: typeof GetPendingReceiptRequests; saveReceiptsToGallery: typeof SaveReceiptsToGallery};
-        const pendingReceipts = getPendingReceiptRequests();
-        if (pendingReceipts.length === 0) {
-            return Promise.resolve();
-        }
-
-        return saveReceiptsToGallery(pendingReceipts)
-            .then(({savedCount, failedCount}) => {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- lazy require breaks the circular dependency with the Network layer documented above
-                const {default: log} = require('@libs/Log') as {default: {info: (message: string, includeData?: boolean, parameters?: Record<string, unknown>) => void}};
-                log.info('[Receipt] Saved pending receipts to gallery before sign-out', false, {savedCount, failedCount});
-            })
-            .catch(() => undefined);
-    } catch {
+    const pendingReceipts = getPendingReceiptRequests();
+    if (pendingReceipts.length === 0) {
         return Promise.resolve();
     }
+
+    return saveReceiptsToGallery(pendingReceipts)
+        .then(({savedCount, failedCount}) => {
+            Log.info('[Receipt] Saved pending receipts to gallery before sign-out', false, {savedCount, failedCount});
+        })
+        .catch((error: unknown) => {
+            Log.alert('[Receipt] Unexpected rejection from saveReceiptsToGallery; sign-out continued', {error});
+        });
 }
 
 function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {

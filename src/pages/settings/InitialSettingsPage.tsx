@@ -41,7 +41,6 @@ import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
-import getPlatform from '@libs/getPlatform';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
@@ -239,10 +238,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             return signOutAndRedirectToSignIn();
         }
 
-        // Saving pending receipts to the gallery on sign-out is native-only, so only warn about them there.
-        const platform = getPlatform();
-        const isNativePlatform = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
-        const pendingReceiptCount = isNativePlatform ? getPendingReceiptRequests().length : 0;
+        // `getPendingReceiptRequests` is platform-split: it returns `[]` on web via its default implementation, so no runtime platform gate is needed here.
+        const pendingReceiptCount = getPendingReceiptRequests().length;
         const shouldWarnBeforeSignOut = network.isOffline || isTrackingGPS;
 
         if (!shouldWarnBeforeSignOut && pendingReceiptCount === 0) {
