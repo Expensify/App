@@ -6072,6 +6072,12 @@ describe('SearchUIUtils', () => {
             expect(getSortedIDs(CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.ASC)).toEqual(['scanning', 'regular-older', 'regular-newer']);
             expect(getSortedIDs(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.SORT_ORDER.DESC)).toEqual(['scanning', 'regular-newer', 'regular-older']);
             expect(getSortedIDs(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.SORT_ORDER.ASC)).toEqual(['scanning', 'regular-older', 'regular-newer']);
+
+            // Custom report-column sorts (submitter/order fields) must pin scanning too — they previously
+            // returned from an early branch that skipped the scanning comparator.
+            expect(getSortedIDs(CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID, CONST.SEARCH.SORT_ORDER.DESC).at(0)).toBe('scanning');
+            expect(getSortedIDs(CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID, CONST.SEARCH.SORT_ORDER.ASC).at(0)).toBe('scanning');
+            expect(getSortedIDs(CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS, CONST.SEARCH.SORT_ORDER.DESC).at(0)).toBe('scanning');
         });
 
         it('should sort expense data by category GL code using policy categories', () => {

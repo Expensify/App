@@ -3877,18 +3877,18 @@ function getSortedTransactionData(
         return data.sort(compareScanningPriority);
     }
 
-    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID || sortBy === CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID || sortBy === CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS) {
-        return data.sort((a, b) => {
-            const aValue = getReportCustomColumnValue(sortBy, a.report);
-            const bValue = getReportCustomColumnValue(sortBy, b.report);
-            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
-        });
-    }
-
     const sortingProperty =
         sortBy === CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE || sortBy === CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE ? undefined : transactionColumnNamesToSortingProperty[sortBy];
 
     const compareColumn = (a: TransactionListItemType, b: TransactionListItemType): number => {
+        if (
+            sortBy === CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID ||
+            sortBy === CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID ||
+            sortBy === CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS
+        ) {
+            return compareValues(getReportCustomColumnValue(sortBy, a.report), getReportCustomColumnValue(sortBy, b.report), sortOrder, sortBy, localeCompare);
+        }
+
         if (sortBy === CONST.SEARCH.TABLE_COLUMNS.REPORT_ID || sortBy === CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID) {
             return compareValues(a.reportID, b.reportID, sortOrder, sortBy, localeCompare, true);
         }
