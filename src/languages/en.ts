@@ -525,6 +525,7 @@ const translations = {
         year: 'Year',
         quarter: 'Quarter',
         restrictions: 'Restrictions',
+        tagGLCode: 'Tag GL code',
         concierge: {
             greeting: 'Hi there, how can I help?',
             showHistory: 'Show history',
@@ -6407,6 +6408,10 @@ const translations = {
                 one: 'Make workspace admin',
                 other: 'Make workspace admins',
             }),
+            makeGroupAdmin: () => ({
+                one: 'Make admin',
+                other: 'Make admins',
+            }),
             makeAuditor: () => ({
                 one: 'Make auditor',
                 other: 'Make auditors',
@@ -6414,6 +6419,10 @@ const translations = {
             makeCardAdmin: () => ({
                 one: 'Make card admin',
                 other: 'Make card admins',
+            }),
+            makePeopleAdmin: () => ({
+                one: 'Make people admin',
+                other: 'Make people admins',
             }),
             selectAll: 'Select all',
             error: {
@@ -6429,6 +6438,7 @@ const translations = {
             allMembers: 'All members',
             admins: 'Workspace Admins',
             cardAdmins: 'Card Admins',
+            peopleAdmins: 'People Admins',
             approvers: 'Approvers',
             auditors: 'Auditors',
             editors: 'Editors',
@@ -9224,6 +9234,9 @@ const translations = {
         categoryOutOfPolicy: 'Category no longer valid',
         conversionSurcharge: (surcharge: number) => `Applied ${surcharge}% conversion surcharge`,
         customUnitOutOfPolicy: 'Rate not valid for this workspace',
+        customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `Rate is only valid from ${startDate} to ${endDate}`,
+        customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Rate is only valid from ${startDate}`,
+        customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Rate is only valid until ${endDate}`,
         duplicatedTransaction: 'Potential duplicate',
         fieldRequired: 'Report fields are required',
         futureDate: 'Future date not allowed',

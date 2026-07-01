@@ -464,6 +464,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
         editor: 'Editor',
         restrictions: 'Restricciones',
+        tagGLCode: 'Etiquetar código GL',
         off: 'Desactivado',
     },
     socials: {
@@ -6184,9 +6185,17 @@ ${amount} para ${merchant} - ${date}`,
                 one: 'Hacer administrador del espacio de trabajo',
                 other: 'Convertir en administradores del espacio de trabajo',
             }),
+            makeGroupAdmin: () => ({
+                one: 'Hacer administrador',
+                other: 'Convertir en administradores',
+            }),
             makeAuditor: () => ({
                 one: 'Convertir en auditor',
                 other: 'Convertir en auditores',
+            }),
+            makePeopleAdmin: () => ({
+                one: 'Hacer administrador de personas',
+                other: 'Hacer administradores de personas',
             }),
             selectAll: 'Seleccionar todo',
             error: {
@@ -6223,6 +6232,7 @@ ${amount} para ${merchant} - ${date}`,
             syncWithHR: (providerName: string) => `Sincronizar con ${providerName}`,
             makeCardAdmin: () => ({one: 'Hacer administrador de tarjetas', other: 'Hacer administradores de tarjetas'}),
             cardAdmins: 'Administradores de tarjetas',
+            peopleAdmins: 'Administradores de personas',
             members: 'Miembros',
         },
         accounting: {
@@ -9464,6 +9474,9 @@ ${amount} para ${merchant} - ${date}`,
         resolvedDuplicates: 'resolvió el duplicado',
         companyCardRequired: 'Se requieren compras con la tarjeta de la empresa.',
         noRoute: 'Por favor, selecciona una dirección válida',
+        customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `La tasa solo es válida desde ${startDate} hasta ${endDate}`,
+        customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `La tasa solo es válida desde ${startDate}`,
+        customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `La tasa solo es válida hasta ${endDate}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName) => `${fieldName} es obligatorio`,

@@ -513,6 +513,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Editor',
         restrictions: 'Restrizioni',
+        tagGLCode: 'Tag codice GL',
         off: 'Disattivato',
     },
     socials: {
@@ -6341,9 +6342,17 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 one: 'Rendi amministratore dello spazio di lavoro',
                 other: 'Rendi amministratori dello spazio di lavoro',
             }),
+            makeGroupAdmin: () => ({
+                one: 'Rendi amministratore',
+                other: 'Rendi amministratori',
+            }),
             makeAuditor: () => ({
                 one: 'Rendi revisore',
                 other: 'Crea revisori',
+            }),
+            makePeopleAdmin: () => ({
+                one: 'Rendi amministratore persone',
+                other: 'Rendi amministratori persone',
             }),
             selectAll: 'Seleziona tutto',
             error: {
@@ -6377,6 +6386,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             syncWithHR: (providerName: string) => `Sincronizza con ${providerName}`,
             makeCardAdmin: () => ({one: 'Rendi amministratore carta', other: 'Rendi amministratori carta'}),
             cardAdmins: 'Amministratori carta',
+            peopleAdmins: 'Amministratori persone',
             members: 'Membri',
         },
         card: {
@@ -9293,6 +9303,9 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         resolvedDuplicates: 'ha risolto il duplicato',
         companyCardRequired: 'Acquisti con carta aziendale obbligatori',
         noRoute: 'Seleziona un indirizzo valido',
+        customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `La tariffa è valida solo dal ${startDate} al ${endDate}`,
+        customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `La tariffa è valida solo a partire dal ${startDate}`,
+        customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `La tariffa è valida solo fino al ${endDate}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} è obbligatorio`,
