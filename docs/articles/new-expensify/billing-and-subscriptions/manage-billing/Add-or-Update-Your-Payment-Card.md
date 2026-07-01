@@ -2,7 +2,7 @@
 title: Manage the payment card on file
 description: Add a payment card or replace the card on file to pay for your Expensify subscription.
 keywords: [New Expensify, add payment card, update payment card, change payment card, replace card, billing owner, subscription, payment method, credit card, workspace Owner]
-internalScope: Audience is workspace Oowners. Covers adding a payment card or replacing the card on file for Expensify subscription payment under Account > Subscription. Does not cover billing details or billing receipts.
+internalScope: Audience is workspace Owners. Covers adding a payment card or replacing the card on file for Expensify subscription payment under Account > Subscription. Does not cover billing details or billing receipts.
 contentType: task
 platform: new
 ---
@@ -47,7 +47,7 @@ The new card replaces the previous one and is used for all future charges.
 
 ## Related Articles
 
-* [How to view your current plan and subscription](/articles/new-expensify/billing-and-subscriptions/manage-plans-and-subscriptions/How-to-view-your-current-plan-and-subscription)
+* [View your plan and subscription](/articles/new-expensify/billing-and-subscriptions/manage-plans-and-subscriptions/View-Your-Plan-and-Subscription)
 * [Take over billing ownership](/articles/new-expensify/billing-and-subscriptions/manage-billing/Take-over-billing-ownership)
 
 ---

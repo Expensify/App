@@ -1,8 +1,10 @@
 ---
 title: Understand why billing issues occur
 description: Learn why subscription billing problems occur, who can resolve them, where you'll see billing alerts, and what the different billing messages mean in New Expensify.
-keywords: [New Expensify, subscription billing problems, billing owner, billing alerts, payment card, billing messages]
+keywords: [why billing issues occur, billing alert meaning, billing messages explained, subscription billing problem causes, billing owner]
 internalScope: Audience is billing owners. Covers how subscription billing problems work, where billing alerts appear, and what common billing messages mean. Does not cover how to resolve individual billing problems.
+contentType: topic
+platform: new
 ---
 
 # Understand why billing issues occur
@@ -53,5 +55,6 @@ A subscription billing alert remains visible until the billing owner resolves th
 
 Once payment succeeds or the required action is completed, the subscription billing alert is removed and subscription billing continues normally. 
 
-## Related articles: 
- - Learn how to fix a subscription billing problem) [link].
+## Related articles
+
+* [Fix a billing issue](/articles/new-expensify/billing-and-subscriptions/manage-billing/resolve-billing-issues/Fix-a-Billing-Issue)

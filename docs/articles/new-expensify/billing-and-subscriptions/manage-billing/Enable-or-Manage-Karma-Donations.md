@@ -1,7 +1,7 @@
 ---
 title: Enable or manage Karma donations
 description: Learn how to enable, disable, and manage Personal Karma and Corporate Karma in New Expensify.
-keywords: [enable Personal Karma, Corporate Karma, Save the World, Karma settings, manage Karma donations]
+keywords: [enable Personal Karma, turn off Corporate Karma, manage Karma donations, Karma settings, Save the World]
 internalScope: Audience is members and billing owners. Covers enabling and managing Personal Karma and Corporate Karma. Does not explain how Karma donations are calculated.
 contentType: task
 platform: new

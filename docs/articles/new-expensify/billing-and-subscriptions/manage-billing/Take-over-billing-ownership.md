@@ -29,7 +29,7 @@ A few things to know before you start:
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [workspace name] > Members**.
 2. Select the current billing owner from the member list.
 3. Click **Transfer owner**.
-4. If you don't have a payment card on file, click **Accept terms & add payment card** and enter your card details.
+4. If you don't have a payment card on file, click **Accept terms & add payment card** and [add your payment card](/articles/new-expensify/billing-and-subscriptions/manage-billing/Add-or-Update-Your-Payment-Card).
 
 Once confirmed, you'll see a message letting you know you're now the billing owner of the workspace.
 
@@ -48,13 +48,13 @@ If the previous owner had unbilled charges or an annual subscription, taking ove
 
 ## Related articles
 
-* [Understand billing ownership](/articles/new-expensify/billing-and-subscriptions/Understand-billing-ownership)
-* [How to view your current plan and subscription](/articles/new-expensify/billing-and-subscriptions/manage-plans-and-subscriptions/How-to-view-your-current-plan-and-subscription)
+* [Understand workspace ownership](/articles/new-expensify/billing-and-subscriptions/Understand-Workspace-Ownership)
+* [View your plan and subscription](/articles/new-expensify/billing-and-subscriptions/manage-plans-and-subscriptions/View-Your-Plan-and-Subscription)
 
 ---
 
+# FAQ
 
 ## Why can't I take over billing?
 
-If the current owner has an overdue Expensify Card settlement, you won't be able to take over billing until it's resolved. Ask them to contact Concierge to clear it, then try again.
 If the current owner has an overdue Expensify Card settlement, you won't be able to take over billing until it's resolved. Ask them to contact Concierge to clear it, then try again.

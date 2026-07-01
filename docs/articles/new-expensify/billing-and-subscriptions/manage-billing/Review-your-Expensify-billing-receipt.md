@@ -1,12 +1,12 @@
 ---
 title: Review your Expensify billing receipt
 description: Learn how to read your Expensify billing receipt, including the summary, billing breakdown, discounts, and workspace activity.
-keywords: [billing receipt, receipt breakdown, billing history, billing summary, discounts, workspace activity, billing owner]
+keywords: [what does my receipt mean, receipt breakdown, receipt sections, billing summary, discounts]
 internalScope: Audience is billing owners. Explains the purpose and sections of the monthly Expensify billing receipt. Does not explain billing calculations, pricing rules, or how to resolve billing issues.
 contentType: topic
 ---
 
-# Understand your Expensify billing receipt
+# Review your Expensify billing receipt
 
 Your monthly Expensify billing receipt summarizes your subscription charges across every workspace you pay for. It explains what you were charged, where discounts were applied, and how each workspace contributed to your total bill.
 
@@ -80,5 +80,5 @@ This section makes it easier to understand how each workspace contributed to you
 * Understand billing and subscriptions
 * Understand billing terms and definitions
 * Understand billable activity
-* How to view your billing receipts
+* [Find your Expensify billing receipt](/articles/new-expensify/billing-and-subscriptions/manage-billing/Find-Your-Expensify-Billing-Receipt)
 * Understand why billing issues occur

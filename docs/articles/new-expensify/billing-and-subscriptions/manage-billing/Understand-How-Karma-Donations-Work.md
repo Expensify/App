@@ -1,8 +1,7 @@
 ---
-
 title: Understand how Karma donations work
 description: Learn how Personal Karma and Corporate Karma work, how donation amounts are calculated, when donations are charged, and how Expensify.org allocates your contributions.
-keywords: [Karma donations, Personal Karma, Corporate Karma, Expensify.org, donation calculation, billing owner]
+keywords: [how Karma donations work, Karma donation calculation, Expensify.org, donation receipt, fund allocation]
 internalScope: Audience is members and billing owners. Explains how Karma donations work, including donation calculations, charging, and fund allocation. Does not cover setup or management steps.
 contentType: topic
 platform: new
