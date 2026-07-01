@@ -44,6 +44,8 @@ function useAutoCreateSubmitWorkspace() {
         [],
     );
     const [hasEditableGroupPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPolicySelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const autoCreateSubmitWorkspace = useCallback(
         async (firstName: string, lastName: string) => {
@@ -82,6 +84,7 @@ function useAutoCreateSubmitWorkspace() {
                     onboardingPolicyID: newPolicyID,
                     introSelected,
                     isSelfTourViewed,
+                    conciergeChat,
                 });
             } catch (error) {
                 Log.warn('[useAutoCreateSubmitWorkspace] Error completing onboarding', {error});
@@ -110,6 +113,7 @@ function useAutoCreateSubmitWorkspace() {
             betas,
             hasActiveAdminPolicies,
             shouldUseNarrowLayout,
+            conciergeChat,
         ],
     );
 
