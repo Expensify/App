@@ -8,6 +8,9 @@ type ActionListContextType = {
     scrollPositionRef: RefObject<ScrollPosition>;
     scrollOffsetRef: RefObject<number>;
 
+    /** Snapshot of the persisted scroll offset. Safe to call during render (e.g. a useState initializer) to restore mount-time scroll state. */
+    getScrollOffset: () => number;
+
     /** Each list publishes its locally-owned ref on mount; pass `null` to clear on unmount. */
     registerListRef: (ref: FlatListRefType) => void;
 
@@ -18,6 +21,7 @@ type ActionListContextType = {
 const ActionListContext = createContext<ActionListContextType>({
     scrollPositionRef: {current: {}},
     scrollOffsetRef: {current: 0},
+    getScrollOffset: () => 0,
     registerListRef: () => {},
     getListRef: () => null,
 });
@@ -37,6 +41,7 @@ function ActionListContextProvider({children}: {children: ReactNode}) {
     const value: ActionListContextType = {
         scrollPositionRef,
         scrollOffsetRef,
+        getScrollOffset: () => scrollOffsetRef.current,
         registerListRef: (ref) => {
             listRefHolder.current = ref;
         },

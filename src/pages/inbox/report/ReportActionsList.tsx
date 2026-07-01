@@ -162,7 +162,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     const linkedReportActionID = reportActionIDFromRoute;
 
-    const {scrollOffsetRef, registerListRef} = useActionListContext();
+    const {registerListRef, getScrollOffset} = useActionListContext();
 
     // Own the list ref locally and publish it so handlers resolve it via `getListRef()`. Use a
     // layout effect so the ref is registered at commit — before the list's `onLayout` fires and
@@ -179,7 +179,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     const showHiddenHistory = isConciergeHiddenHistory && !showFullHistory;
     const onShowPreviousMessages = handleShowPreviousMessages;
 
-    const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(() => scrollOffsetRef.current >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
+    const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(() => getScrollOffset() >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
 
     const {unreadMarkerReportActionID, unreadMarkerReportActionIndex} = useUnreadMarker({
         reportID,

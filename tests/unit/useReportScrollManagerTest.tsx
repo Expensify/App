@@ -30,6 +30,7 @@ function buildContextValue() {
     return {
         scrollPositionRef: {current: {}},
         scrollOffsetRef: {current: 0},
+        getScrollOffset: () => 0,
         registerListRef: (ref: FlatListRefType) => {
             held = ref;
         },
