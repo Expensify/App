@@ -1,8 +1,6 @@
 /* eslint-disable react-hooks/refs -- Refs in this hook are used inside callbacks that capture stable references; the lint rule flags false positives for these patterns */
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -912,19 +910,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return;
         }
 
-        InteractionManager.runAfterInteractions(async () => {
-            const result = await showConfirmModal({
-                title: deleteModalTitle,
-                prompt: deleteModalPrompt,
-                confirmText: translate('common.delete'),
-                cancelText: translate('common.cancel'),
-                danger: true,
-            });
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            const validTransactions = Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, Transaction] => entry[1] !== undefined));
-            InteractionManager.runAfterInteractions(() => {
+        TransitionTracker.runAfterTransitions({
+            callback: async () => {
+                const result = await showConfirmModal({
+                    title: deleteModalTitle,
+                    prompt: deleteModalPrompt,
+                    confirmText: translate('common.delete'),
+                    cancelText: translate('common.cancel'),
+                    danger: true,
+                });
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                const validTransactions = Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, Transaction] => entry[1] !== undefined));
                 if (isExpenseReportType) {
                     for (const reportID of selectedReportIDs) {
                         const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
@@ -993,7 +991,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     }
                 }
                 clearSelectedTransactions();
-            });
+            },
         });
     }, [
         hash,
@@ -1242,9 +1240,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             if (paidReportCount > 0) {
                 playSound(SOUNDS.SUCCESS);
-                InteractionManager.runAfterInteractions(() => {
-                    clearSelectedTransactions();
-                });
+                clearSelectedTransactions();
             }
         },
         [
@@ -1985,9 +1981,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             transactionViolations,
                         );
                     }
-                    InteractionManager.runAfterInteractions(() => {
-                        clearSelectedTransactions();
-                    });
+                    clearSelectedTransactions();
                 },
             });
         }
