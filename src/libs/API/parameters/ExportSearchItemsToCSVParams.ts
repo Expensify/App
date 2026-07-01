@@ -1,4 +1,4 @@
-import type {SearchQueryString, SearchStatus} from '@components/Search/types';
+import type {SearchQueryString} from '@components/Search/types';
 
 type ExportSearchItemsToCSVParams = {
     jsonQuery: SearchQueryString;

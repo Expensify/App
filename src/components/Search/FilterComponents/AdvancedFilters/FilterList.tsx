@@ -13,11 +13,11 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
-import type {PolicyIDFilter} from '@libs/SearchQueryUtils';
 import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type { Filter } from '@components/Search/types';
 
 type ItemCallback = (filter: SearchFilter['key']) => void;
 type FilterItemCallbacks = {
@@ -28,7 +28,7 @@ type FilterItemCallbacks = {
 
 type FilterListProps = FilterItemCallbacks & {
     type: SearchDataTypes | undefined;
-    policyID: PolicyIDFilter;
+    policyID: Filter;
     selectedFilter?: SearchFilter['key'];
     style?: StyleProp<ViewStyle>;
     contentContainerStyle?: StyleProp<ViewStyle>;

@@ -2134,7 +2134,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         return options;
     }, [
         selectedTransactionsKeys,
-        status,
         hash,
         selectedTransactions,
         queryJSON?.type,

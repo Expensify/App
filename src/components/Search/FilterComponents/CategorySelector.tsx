@@ -1,11 +1,10 @@
 import React from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import type {SearchFilterCommonProps} from '@components/Search/types';
+import type {Filter, SearchFilterCommonProps} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
-import type {PolicyIDFilter} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
@@ -13,7 +12,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import MultiSelect from './MultiSelect';
 
 type CategorySelectorProps = SearchFilterCommonProps<string[] | undefined> & {
-    policyID: PolicyIDFilter | undefined;
+    policyID: Filter | undefined;
 };
 
 function CategorySelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: CategorySelectorProps) {
@@ -56,7 +55,7 @@ function CategorySelector({value = [], policyID, selectionListTextInputStyle, se
     } else {
         const selectedPoliciesCategories: PolicyCategory[] = Object.keys(allPolicyCategories ?? {})
             .filter((key) => {
-                const isSelected = policyID.value?.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`)?.includes(key);
+                const isSelected = policyID.value?.map((id) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${id}`)?.includes(key);
                 return policyID.isNegated ? !isSelected : isSelected;
             })
             .map((key) => Object.values(allPolicyCategories?.[key] ?? {}))

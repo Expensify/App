@@ -810,7 +810,6 @@ const tests = [
         query: 'bankAccount:42',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
@@ -825,7 +824,6 @@ const tests = [
         query: 'bankAccount:42,99',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
@@ -969,7 +967,6 @@ const keywordTests = [
         query: 'receipt-type:ereceipt',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -984,7 +981,6 @@ const keywordTests = [
         query: 'receipt-type:hotel,itemized',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',

@@ -5,8 +5,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
-const EXPENSE_STATUS_ALL = CONST.SEARCH.STATUS.EXPENSE.ALL;
-
 jest.mock('@libs/API');
 jest.mock('@libs/Network/enhanceParameters', () => ({
     __esModule: true,

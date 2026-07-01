@@ -332,7 +332,6 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
     }, [
         shouldComputeSections,
         type,
-        status,
         filteredData,
         localeCompare,
         translate,

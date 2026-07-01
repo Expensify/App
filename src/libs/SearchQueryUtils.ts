@@ -6,6 +6,7 @@ import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {
     ASTNode,
+    Filter,
     QueryFilter,
     QueryFilters,
     RawQueryFilter,
@@ -21,7 +22,6 @@ import type {
     SearchQueryString,
     SearchStatus,
     SearchWithdrawalType,
-    SingularSearchStatus,
     SyntaxFilterKey,
     UserFriendlyKey,
     UserFriendlyValue,
@@ -62,7 +62,6 @@ import {getDisplayNameOrDefault, getPersonalDetailByEmail} from './PersonalDetai
 import {getCleanedTagName} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
-import {getStatusOptions} from './SearchUIUtils';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
 import {isValidDate} from './ValidationUtils';
@@ -428,35 +427,8 @@ function getFilters(queryJSON: SearchQueryJSON) {
     return filters;
 }
 
-function getStatusFromQuery(queryJSON: SearchQueryJSON | undefined): SearchStatus {
-    const statusFilters = queryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS)?.filters;
-    if (!statusFilters) {
-        return CONST.SEARCH.STATUS.EXPENSE.ALL;
-    }
-
-    const isNegated = statusFilters.at(0)?.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO;
-    const values = statusFilters.map((filter) => filter.value) as SearchStatus;
-
-    if (!isNegated) {
-        return values;
-    }
-
-    const statusOptions = getStatusOptions(() => '', queryJSON.type);
-    return statusOptions.reduce((acc, curr) => {
-        if (!values.includes(curr.value)) {
-            acc.push(curr.value);
-        }
-        return acc;
-    }, [] as SingularSearchStatus[]);
-}
-
-type PolicyIDFilter = {
-    value: string[] | undefined;
-    isNegated: boolean;
-};
-
-function getPolicyIDFromQuery(queryJSON: SearchQueryJSON | undefined): PolicyIDFilter {
-    const policyIDFilters = queryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID)?.filters;
+function getFilterFromQuery(queryJSON: SearchQueryJSON | undefined, filterKey: SearchAdvancedFiltersKey): Filter {
+    const policyIDFilters = queryJSON?.flatFilters.find((filter) => filter.key === filterKey)?.filters;
     const isNegated = policyIDFilters?.at(0)?.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO;
     const value = policyIDFilters?.map((filter) => filter.value.toString());
 
@@ -1047,7 +1019,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 }
 
 function getAllPolicyValues<T extends OnyxCollectionKey>(
-    {value: policyID, isNegated}: PolicyIDFilter,
+    {value: policyID, isNegated}: Filter,
     key: T,
     policyData: OnyxCollection<OnyxCollectionValuesMapping[T]>,
 ): Array<OnyxCollectionValuesMapping[T]> {
@@ -1072,7 +1044,7 @@ function getAllPolicyValues<T extends OnyxCollectionKey>(
 }
 
 function getAllPolicyValuesMap<T extends OnyxCollectionKey>(
-    policyID: PolicyIDFilter | undefined,
+    policyID: Filter | undefined,
     key: T,
     policyData: OnyxCollection<OnyxCollectionValuesMapping[T]>,
 ): OnyxCollection<OnyxCollectionValuesMapping[T]> {
@@ -1177,7 +1149,7 @@ function buildFilterFormValuesFromQuery(
 ) {
     const filters = queryJSON.flatFilters;
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
-    const policyID = getPolicyIDFromQuery(queryJSON);
+    const policyID = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
 
     // Pre-compute dynamic validation Sets once (avoids recreating per filter iteration)
     const validCurrencies = new Set(Object.keys(currencyList));
@@ -2463,11 +2435,11 @@ export {
     getParamsState,
     getRoutes,
     isSearchRootParams,
-    getStatusFromQuery,
-    getPolicyIDFromQuery,
+    getFilterFromQuery,
     isFilterNegatable,
+    getQueryHashes,
 };
 
 export type {BuildUserReadableQueryStringParams};
 
-export type {SearchDateValues, PolicyIDFilter};
+export type {SearchDateValues};

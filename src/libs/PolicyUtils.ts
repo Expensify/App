@@ -54,10 +54,10 @@ import {formatMemberForList} from './OptionsListUtils';
 import type {MemberForList} from './OptionsListUtils';
 import {getAccountIDsByLogins, getKnownAccountIDByLogin, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllPolicyValues} from './SearchQueryUtils';
-import type {PolicyIDFilter} from './SearchQueryUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {generateAccountID} from './UserUtils';
 import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
+import { Filter } from '@components/Search/types';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -2335,7 +2335,7 @@ function getValidConnectedIntegration(policy: Policy | undefined, connectionName
  * @param policies - Collection of policies to get connected integrations.
  * @param policyIDs - Policy IDs to filter by. When provided, only integrations from these policies are included.
  */
-function getConnectedIntegrationNamesForPolicies(policies: OnyxCollection<Policy> | undefined, policyID: PolicyIDFilter | undefined): Set<string> {
+function getConnectedIntegrationNamesForPolicies(policies: OnyxCollection<Policy> | undefined, policyID: Filter | undefined): Set<string> {
     if (!policies) {
         return new Set();
     }

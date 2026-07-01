@@ -96,7 +96,7 @@ if (!isVerbose) {
     // Make them global to override module-level console calls
     global.console = {
         ...console,
-        log: jest.fn(),
+        // log: jest.fn(),
         info: jest.fn(),
         debug: jest.fn(),
         warn: jest.fn(),

@@ -8,6 +8,7 @@ const makeSearchResults = (overrides: Partial<SearchResults> = {}): SearchResult
     ({
         search: {
             offset: 0,
+            hash: 0,
             type: 'expense',
             hasMoreResults: false,
             hasResults: true,
@@ -16,7 +17,7 @@ const makeSearchResults = (overrides: Partial<SearchResults> = {}): SearchResult
         },
         data: {},
         ...overrides,
-    }) as SearchResults;
+    });
 
 const makeSearchResultsWithCount = (count: number): SearchResults =>
     makeSearchResults({

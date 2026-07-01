@@ -1,11 +1,10 @@
 import React from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import type {SearchFilterCommonProps} from '@components/Search/types';
+import type {Filter, SearchFilterCommonProps} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
 import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
-import type {PolicyIDFilter} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import passthroughPolicyTagListSelector from '@src/selectors/PolicyTagList';
@@ -14,7 +13,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import MultiSelect from './MultiSelect';
 
 type TagSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
-    policyID: PolicyIDFilter | undefined;
+    policyID: Filter | undefined;
 };
 
 function TagSelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: TagSelectorProps) {
@@ -31,7 +30,7 @@ function TagSelector({value = [], policyID, selectionListTextInputStyle, selecti
     } else {
         const selectedPoliciesTagLists = Object.keys(allPolicyTagLists ?? {})
             .filter((key) => {
-                const isSelected = policyID.value?.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`)?.includes(key);
+                const isSelected = policyID.value?.map((id) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${id}`)?.includes(key);
                 return policyID.isNegated ? !isSelected : isSelected;
             })
             .map((key) => getTagNamesFromTagsLists(allPolicyTagLists?.[key] ?? {}))

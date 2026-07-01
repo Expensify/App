@@ -276,6 +276,11 @@ type QueryFilter = {
     value: string | number;
 };
 
+type Filter = {
+    value: string[] | undefined;
+    isNegated: boolean;
+};
+
 // Report fields are dynamic keys, that policies can configure. They match:
 // reportField-<key> : Normal report field
 // reportField<modifier>-<key> : Report field with a modifier, such as On, After, Before, Not, so that we can handle Dates and negation
@@ -454,6 +459,7 @@ export type {
     SearchRowSelectionActionsValue,
     ASTNode,
     QueryFilter,
+    Filter,
     QueryFilters,
     SyntaxFilterKey,
     RawQueryFilter,

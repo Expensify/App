@@ -1,16 +1,15 @@
 import React from 'react';
-import type {SearchFilterCommonProps} from '@components/Search/types';
+import type {Filter, SearchFilterCommonProps} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getAllPolicyValuesMap} from '@libs/SearchQueryUtils';
-import type {PolicyIDFilter} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import MultiSelect from './MultiSelect';
 
 type TaxRateSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
-    policyID: PolicyIDFilter | undefined;
+    policyID: Filter | undefined;
 };
 
 function TaxRateSelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: TaxRateSelectorProps) {

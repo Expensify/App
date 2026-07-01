@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
+import type {SearchQueryJSON} from '@components/Search/types';
 import '@libs/actions/IOU/MoneyRequest';
 import {shouldOptimisticallyUpdateSearch} from '@libs/actions/IOU/SearchUpdate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
@@ -16,6 +16,7 @@ import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import {getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+import { getQueryHashes } from '@libs/SearchQueryUtils';
 
 const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -171,9 +172,9 @@ describe('actions/IOU', () => {
                         ],
                     },
                 ],
-                hash: 1920151829,
-                recentSearchHash: 2100977843,
-                similarSearchHash: 1855682507,
+                hash: 344995086,
+                recentSearchHash: 1106848141,
+                similarSearchHash: 1135147670,
             } as SearchQueryJSON;
             const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
 
@@ -203,7 +204,7 @@ describe('actions/IOU', () => {
                     },
                     right: {
                         operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-                        left: 'from',
+                        left: 'to',
                         right: '20671314',
                     },
                 },
@@ -218,7 +219,7 @@ describe('actions/IOU', () => {
                         ],
                     },
                     {
-                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
                         filters: [
                             {
                                 operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
@@ -227,11 +228,10 @@ describe('actions/IOU', () => {
                         ],
                     },
                 ],
-
-                hash: 1510971479,
+                hash: 1343227670,
                 inputQuery: 'sortBy:date sortOrder:desc type:expense-report action:approve to:20671314',
-                recentSearchHash: 967911777,
-                similarSearchHash: 1539858783,
+                recentSearchHash: 1216776837,
+                similarSearchHash: 911924256,
             } as SearchQueryJSON;
             const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
 
@@ -250,16 +250,37 @@ describe('actions/IOU', () => {
                 reimbursable: true,
             };
             const currentSearchQueryJSON = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                groupBy: CONST.SEARCH.GROUP_BY.FROM,
                 filters: {
-                    operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-                    left: 'reimbursable',
-
-                    right: 'yes',
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                    left: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                        left: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                        right: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+                    },
+                    right: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                        left: 'reimbursable',
+                        right: 'yes',
+                    },
                 },
                 flatFilters: [
+                    {
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                        filters: [
+                            {
+                                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                                value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+                            },
+                            {
+                                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                                value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
+                            },
+                        ],
+                    },
                     {
                         key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
                         filters: [
@@ -270,10 +291,10 @@ describe('actions/IOU', () => {
                         ],
                     },
                 ],
-                hash: 71801560,
+                hash: 280939045,
                 inputQuery: 'sortBy:date sortOrder:desc type:expense groupBy:from status:drafts,outstanding reimbursable:yes',
-                recentSearchHash: 1043581824,
-                similarSearchHash: 1832274510,
+                recentSearchHash: 2045056096,
+                similarSearchHash: 1931622284,
             } as SearchQueryJSON;
 
             const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};

@@ -2695,7 +2695,7 @@ describe('PolicyUtils', () => {
                 [`${ONYXKEYS.COLLECTION.POLICY}1`]: policy1,
                 [`${ONYXKEYS.COLLECTION.POLICY}2`]: policy2,
             };
-            const result = getConnectedIntegrationNamesForPolicies(policies, {value: ['1'], isNegated: false});
+            const result = getConnectedIntegrationNamesForPolicies(policies, undefined);
             expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.QBO);
             expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.XERO);
             expect(result.size).toBe(2);

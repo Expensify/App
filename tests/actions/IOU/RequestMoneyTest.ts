@@ -2,7 +2,7 @@
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
+import type {SearchQueryJSON} from '@components/Search/types';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';

@@ -1,11 +1,10 @@
 import React from 'react';
-import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterCommonProps} from '@components/Search/types';
+import type {Filter, SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterCommonProps} from '@components/Search/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {PolicyIDFilter} from '@libs/SearchQueryUtils';
 import {FILTER_VIEW_MAP, getMultiSelectFilterOptions, getSingleSelectFilterOptions} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
@@ -30,7 +29,7 @@ type FilterKeys = Exclude<SearchFilter['key'], SearchDateFilterKeys | SearchAmou
 type FilterComponentsProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[FilterKeys] | undefined> & {
     filterKey: FilterKeys;
     type?: SearchDataTypes;
-    policyID: PolicyIDFilter | undefined;
+    policyID: Filter | undefined;
 };
 
 type TextInputFilterComponentsProps = {

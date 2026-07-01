@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import Icon from '@components/Icon';
-import type {SearchFilterCommonProps} from '@components/Search/types';
+import type {Filter, SearchFilterCommonProps} from '@components/Search/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -14,7 +14,6 @@ import {getExportTemplates} from '@libs/actions/Search';
 import {getConnectedIntegrationNamesForPolicies} from '@libs/PolicyUtils';
 import {getIntegrationIcon} from '@libs/ReportUtils';
 import {getAllPolicyValues} from '@libs/SearchQueryUtils';
-import type {PolicyIDFilter} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,7 +21,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import MultiSelect from './MultiSelect';
 
 type ExportedToSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
-    policyID: PolicyIDFilter | undefined;
+    policyID: Filter | undefined;
 };
 
 const STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL: Record<string, string> = {

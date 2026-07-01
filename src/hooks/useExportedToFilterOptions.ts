@@ -3,7 +3,7 @@ import {useSearchQueryContext} from '@components/Search/SearchContext';
 import {getStandardExportTemplateDisplayName} from '@libs/AccountingUtils';
 import {getExportTemplates} from '@libs/actions/Search';
 import {getConnectedIntegrationNamesForPolicies} from '@libs/PolicyUtils';
-import {getAllPolicyValues, getPolicyIDFromQuery} from '@libs/SearchQueryUtils';
+import {getAllPolicyValues, getFilterFromQuery} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExportTemplate, Policy} from '@src/types/onyx';
@@ -41,7 +41,7 @@ function exportedToPoliciesSelector(policies: OnyxCollection<Policy>): OnyxColle
  */
 export default function useExportedToFilterOptions(): UseExportedToFilterDataResult {
     const {currentSearchQueryJSON} = useSearchQueryContext();
-    const policyIDs = getPolicyIDFromQuery(currentSearchQueryJSON);
+    const policyIDs = getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
 
     const {translate} = useLocalize();
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);

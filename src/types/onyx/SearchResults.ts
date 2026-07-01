@@ -11,7 +11,7 @@ import type {
     TransactionListItemType,
     TransactionReportGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
-import type {SearchGroupBy, SearchStatus} from '@components/Search/types';
+import type {SearchGroupBy} from '@components/Search/types';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';

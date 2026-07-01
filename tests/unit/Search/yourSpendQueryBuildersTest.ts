@@ -8,7 +8,7 @@
  */
 import {buildAwaitingApprovalQuery, buildRecentCardTransactionsQuery, buildRepaidLast30DaysQuery} from '@pages/home/YourSpendSection/queries';
 import CONST from '@src/CONST';
-import {buildSearchQueryJSON, getPolicyIDFromQuery, getStatusFromQuery} from '@src/libs/SearchQueryUtils';
+import {buildSearchQueryJSON, getFilterFromQuery} from '@src/libs/SearchQueryUtils';
 
 const ACCOUNT_ID = 12345;
 const CARD_ID = 67890;
@@ -48,7 +48,7 @@ describe('buildAwaitingApprovalQuery', () => {
 
     it('produces status:outstanding', () => {
         const queryJSON = buildSearchQueryJSON(queryString);
-        expect(getStatusFromQuery(queryJSON)).toEqual([CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING]);
+        expect(getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS).value).toEqual([CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING]);
     });
 
     it('resolves from to the numeric accountID (not literal [me])', () => {
@@ -76,14 +76,14 @@ describe('buildAwaitingApprovalQuery', () => {
     it('emits the policyID filter for a single policy', () => {
         const scoped = buildAwaitingApprovalQuery(ACCOUNT_ID, ['policy_a']);
         const queryJSON = buildSearchQueryJSON(scoped);
-        expect(getPolicyIDFromQuery(queryJSON).value).toEqual(['policy_a']);
+        expect(getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID).value).toEqual(['policy_a']);
         expect(scoped).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:policy_a`);
     });
 
     it('emits the policyID filter for multiple policies, preserving the provided order', () => {
         const scoped = buildAwaitingApprovalQuery(ACCOUNT_ID, ['policy_a', 'policy_b', 'policy_c']);
         const queryJSON = buildSearchQueryJSON(scoped);
-        expect(getPolicyIDFromQuery(queryJSON).value).toEqual(['policy_a', 'policy_b', 'policy_c']);
+        expect(getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID).value).toEqual(['policy_a', 'policy_b', 'policy_c']);
         expect(scoped).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:policy_a,policy_b,policy_c`);
     });
 
@@ -91,7 +91,7 @@ describe('buildAwaitingApprovalQuery', () => {
         const scoped = buildAwaitingApprovalQuery(ACCOUNT_ID, ['policy_a']);
         const queryJSON = buildSearchQueryJSON(scoped);
         expect(queryJSON?.type).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
-        expect(getStatusFromQuery(queryJSON)).toEqual([CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING]);
+        expect(getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS).value).toEqual([CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING]);
         const fromValues = getRawFiltersForKey(scoped, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM).flatMap((f) => (Array.isArray(f.value) ? f.value : [f.value]));
         expect(fromValues).toContain(String(ACCOUNT_ID));
         const reimbursableValues = getRawFiltersForKey(scoped, CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE).flatMap((f) => (Array.isArray(f.value) ? f.value : [f.value]));
@@ -127,7 +127,7 @@ describe('buildRepaidLast30DaysQuery', () => {
 
     it('produces status:paid', () => {
         const queryJSON = buildSearchQueryJSON(queryString);
-        expect(getStatusFromQuery(queryJSON)).toEqual([CONST.SEARCH.STATUS.EXPENSE.PAID]);
+        expect(getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS).value).toEqual([CONST.SEARCH.STATUS.EXPENSE.PAID]);
     });
 
     it('resolves from to the numeric accountID', () => {

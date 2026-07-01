@@ -8,7 +8,7 @@ import type {CurrencyListActionsContextType} from '@components/CurrencyListConte
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {MenuItemWithLink} from '@components/MenuItemList';
-import {FilterComponentsProps} from '@components/Search/FilterComponents';
+import type {FilterComponentsProps} from '@components/Search/FilterComponents';
 import type {MultiSelectItem} from '@components/Search/FilterComponents/MultiSelect';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
 import ChatListItem from '@components/Search/SearchList/ListItem/ChatListItem';
@@ -177,7 +177,7 @@ import {
     getDateFilterKeys,
     getDateRangeDisplayValueFromFormValue,
     getDateRangeForPreset,
-    getStatusFromQuery,
+    getFilterFromQuery,
     isFilterNegatable,
     isFilterSupported,
     isSearchDatePreset,
@@ -2097,13 +2097,18 @@ function getTransactionsSections({
         const isTrackedOptimisticItem = !!optimisticTransactionID && transactionItem.transactionID === optimisticTransactionID;
         if (currentQueryJSON && !isActionLoading && !isTrackedOptimisticItem) {
             if (currentQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
-                const status = getStatusFromQuery(currentQueryJSON);
-                if (Array.isArray(status)) {
-                    shouldShow = status.some((expenseStatus) => {
-                        return isValidExpenseStatus(expenseStatus) ? expenseStatusActionMapping[expenseStatus](report, transactionItem.reportID) : false;
-                    });
-                } else {
-                    shouldShow = isValidExpenseStatus(status) ? expenseStatusActionMapping[status](report, transactionItem.reportID) : false;
+                const status = getFilterFromQuery(currentQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS);
+                if (status.value) {
+                    if (status.isNegated) {
+                        shouldShow = Object.keys(expenseStatusActionMapping).some((expenseStatus) => {
+                            const isExcluded = status.value?.includes(expenseStatus);
+                            return !isExcluded && expenseStatusActionMapping[expenseStatus](report, transactionItem.reportID);
+                        });
+                    } else {
+                        shouldShow = status.value.some((expenseStatus) => {
+                            return isValidExpenseStatus(expenseStatus) ? expenseStatusActionMapping[expenseStatus](report, transactionItem.reportID) : false;
+                        });
+                    }
                 }
             }
         }
@@ -2821,14 +2826,18 @@ function getReportSections({
             const isActionLoading = isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`);
             if (currentQueryJSON && !isActionLoading) {
                 if (currentQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
-                    const status = getStatusFromQuery(currentQueryJSON);
-
-                    if (Array.isArray(status)) {
-                        shouldShow = status.some((expenseStatus) => {
-                            return isValidExpenseStatus(expenseStatus) ? expenseStatusActionMapping[expenseStatus](reportItem) : false;
-                        });
-                    } else {
-                        shouldShow = isValidExpenseStatus(status) ? expenseStatusActionMapping[status](reportItem) : false;
+                    const status = getFilterFromQuery(currentQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS);
+                    if (status.value) {
+                        if (status.isNegated) {
+                            shouldShow = Object.keys(expenseStatusActionMapping).some((expenseStatus) => {
+                                const isExcluded = status.value?.includes(expenseStatus);
+                                return !isExcluded && expenseStatusActionMapping[expenseStatus](reportItem);
+                            });
+                        } else {
+                            shouldShow = status.value.some((expenseStatus) => {
+                                return isValidExpenseStatus(expenseStatus) ? expenseStatusActionMapping[expenseStatus](reportItem) : false;
+                            });
+                        }
                     }
                 }
             }

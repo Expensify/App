@@ -1,9 +1,8 @@
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {SearchQueryJSON} from '@components/Search/types';
 import {isExpenseReport, isOptimisticPersonalDetail} from '@libs/ReportUtils';
-import {buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON, getPolicyIDFromQuery, getStatusFromQuery} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON, getFilterFromQuery} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -54,20 +53,23 @@ function shouldOptimisticallyUpdateSearch(
     ) {
         return false;
     }
-    let shouldOptimisticallyUpdateByStatus;
-    const status = getStatusFromQuery(currentSearchQueryJSON);
+    let shouldOptimisticallyUpdateByStatus = true;
+    const status = getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS);
     const transactionReportID = transaction?.reportID;
-    if (Array.isArray(status)) {
-        shouldOptimisticallyUpdateByStatus = status.some((val) => {
-            const expenseStatus = val as ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
-            return expenseReportStatusFilterMapping[expenseStatus](iouReport, transactionReportID);
-        });
-    } else {
-        const expenseStatus = status as ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
-        shouldOptimisticallyUpdateByStatus = expenseReportStatusFilterMapping[expenseStatus](iouReport, transactionReportID);
+    if (status.value) {
+        if (status.isNegated) {
+            shouldOptimisticallyUpdateByStatus = Object.keys(expenseReportStatusFilterMapping).some((val) => {
+                const isExcluded = status.value?.includes(val);
+                return !isExcluded && expenseReportStatusFilterMapping[val](iouReport, transactionReportID);
+            });
+        } else {
+            shouldOptimisticallyUpdateByStatus = status.value.some((val) => {
+                return expenseReportStatusFilterMapping[val](iouReport, transactionReportID);
+            });
+        }
     }
 
-    const currentSearchPolicyIDs = getPolicyIDFromQuery(currentSearchQueryJSON);
+    const currentSearchPolicyIDs = getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
     if (currentSearchPolicyIDs.value?.length && iouReport?.policyID) {
         if (!currentSearchPolicyIDs.isNegated && !currentSearchPolicyIDs.value.includes(iouReport.policyID)) {
             return false;
@@ -102,6 +104,7 @@ function shouldOptimisticallyUpdateSearch(
     const matchesSubmitQuery =
         submitQueryJSON?.similarSearchHash === currentSearchQueryJSON.similarSearchHash && expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.DRAFTS](iouReport);
 
+    console.log('query json hash', unapprovedCashSimilarSearchHash)
     const matchesApproveQuery =
         approveQueryJSON?.similarSearchHash === currentSearchQueryJSON.similarSearchHash && expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING](iouReport);
 

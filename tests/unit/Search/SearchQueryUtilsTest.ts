@@ -20,13 +20,13 @@ import {
     getDateRangeDisplayValueFromFormValue,
     getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
+    getFilterFromQuery,
     getKeywordQueryWithCurrentSearchContext,
     getLastRouteByName,
     getParamsState,
     getQueryWithUpdatedValues,
     getRangeBoundariesFromFormValue,
     getRoutes,
-    getStatusFromQuery,
     isSearchRootParams,
     serializeQueryJSONForBackend,
     shouldHighlight,
@@ -373,7 +373,6 @@ describe('SearchQueryUtils', () => {
         test('simple filter value', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 policyID: ['12345'],
                 amountLessThan: '100',
             };
@@ -386,7 +385,6 @@ describe('SearchQueryUtils', () => {
         test('receipt type filter value', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 receiptType: ['ereceipt', 'hotel'],
             };
 
@@ -398,7 +396,6 @@ describe('SearchQueryUtils', () => {
         test('negated receipt type filter value', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 receiptTypeNot: ['hotel'],
             };
 
@@ -420,7 +417,6 @@ describe('SearchQueryUtils', () => {
         test('with keywords', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 policyID: ['67890'],
                 merchant: 'Amazon',
                 description: 'Electronics',
@@ -436,7 +432,6 @@ describe('SearchQueryUtils', () => {
         test('currencies and categories', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 category: ['services', 'consulting'],
                 currency: ['USD', 'EUR'],
             };
@@ -449,7 +444,6 @@ describe('SearchQueryUtils', () => {
         test('has empty category values', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 category: ['equipment', 'consulting', 'none,Uncategorized'],
             };
 
@@ -461,7 +455,6 @@ describe('SearchQueryUtils', () => {
         test('serializes No Tag filter as missing tag query', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 tag: [CONST.SEARCH.TAG_EMPTY_VALUE],
             };
 
@@ -474,7 +467,6 @@ describe('SearchQueryUtils', () => {
         test('serializes real tag values as tag filters', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 tag: ['Engineering'],
             };
 
@@ -633,7 +625,6 @@ describe('SearchQueryUtils', () => {
         test('with withdrawal type filter', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 withdrawalType: CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD,
             };
 
@@ -645,7 +636,6 @@ describe('SearchQueryUtils', () => {
         test('with single withdrawal status filter', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 withdrawalStatus: [CONST.SEARCH.SETTLEMENT_STATUS.PENDING],
             };
 
@@ -657,7 +647,6 @@ describe('SearchQueryUtils', () => {
         test('with multi-value withdrawal status filter', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 withdrawalStatus: [CONST.SEARCH.SETTLEMENT_STATUS.PENDING, CONST.SEARCH.SETTLEMENT_STATUS.CLEARED, CONST.SEARCH.SETTLEMENT_STATUS.FAILED],
             };
 
@@ -669,7 +658,6 @@ describe('SearchQueryUtils', () => {
         test('with withdrawn filter', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 withdrawnOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
             };
 
@@ -1103,7 +1091,6 @@ describe('SearchQueryUtils', () => {
 
             expect(result).toEqual({
                 type: 'expense',
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 category: ['Maintenance', 'none'],
             });
         });
@@ -1128,7 +1115,6 @@ describe('SearchQueryUtils', () => {
 
             expect(result).toEqual({
                 type: 'expense',
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 action: 'submit',
             });
 
@@ -1144,7 +1130,6 @@ describe('SearchQueryUtils', () => {
 
             expect(result).toEqual({
                 type: 'expense',
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 action: undefined,
             });
         });
@@ -1169,7 +1154,6 @@ describe('SearchQueryUtils', () => {
 
             expect(result).toEqual({
                 type: 'expense',
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 withdrawalStatus: [CONST.SEARCH.SETTLEMENT_STATUS.PENDING, CONST.SEARCH.SETTLEMENT_STATUS.CLEARED, CONST.SEARCH.SETTLEMENT_STATUS.FAILED],
             });
 
@@ -1185,7 +1169,6 @@ describe('SearchQueryUtils', () => {
 
             expect(result).toEqual({
                 type: 'expense',
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 withdrawalStatus: [CONST.SEARCH.SETTLEMENT_STATUS.PENDING, CONST.SEARCH.SETTLEMENT_STATUS.FAILED],
             });
         });
@@ -1210,7 +1193,6 @@ describe('SearchQueryUtils', () => {
 
             expect(result).toEqual({
                 type: 'expense',
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 amountLessThan: '-12345',
                 amountGreaterThan: '-67890',
                 amountEqualTo: '-54321',
@@ -1241,7 +1223,6 @@ describe('SearchQueryUtils', () => {
             // Both values should be preserved - name-only attendees should not be filtered out
             expect(result).toEqual({
                 type: 'expense',
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 attendee: ['12345', 'ZZ'],
             });
         });
@@ -1437,7 +1418,6 @@ describe('SearchQueryUtils', () => {
 
             expect(result).toEqual({
                 type: 'expense',
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 tag: [CONST.SEARCH.TAG_EMPTY_VALUE],
             });
         });
@@ -1453,7 +1433,6 @@ describe('SearchQueryUtils', () => {
 
             expect(result).toEqual({
                 type: 'expense',
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 has: [CONST.SEARCH.HAS_VALUES.RECEIPT],
                 tag: [CONST.SEARCH.TAG_EMPTY_VALUE],
             });
@@ -2318,7 +2297,7 @@ describe('SearchQueryUtils', () => {
             const newQueryJSON = buildSearchQueryJSON(result);
             const keywordFilter = newQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
             expect(keywordFilter?.filters.at(0)?.value).toBe('status:done');
-            expect(getStatusFromQuery(newQueryJSON)).toBe(CONST.SEARCH.STATUS.EXPENSE.ALL);
+            expect(getFilterFromQuery(newQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS).value).toBe(undefined);
         });
 
         test('does not add quotes to non-keyword filter values', () => {
@@ -3454,24 +3433,6 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual({});
         });
 
-        it('should reset status to ALL when it has a non-ALL value', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
-            };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result).toEqual({
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-            });
-        });
-
-        it('should not include status in reset when it is already ALL', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-            };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result.status).toBeUndefined();
-        });
-
         it('should reset type to EXPENSE when it has a non-EXPENSE value', () => {
             const form: Partial<SearchAdvancedFiltersForm> = {
                 type: CONST.SEARCH.DATA_TYPES.CHAT,
@@ -3496,6 +3457,7 @@ describe('SearchQueryUtils', () => {
                 currency: ['USD', 'EUR'],
                 dateAfter: '2024-01-01',
                 keyword: 'hotel',
+                status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS],
             };
             const result = getAdvancedFiltersToReset(form);
             expect(result).toEqual({

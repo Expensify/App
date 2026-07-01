@@ -21,7 +21,7 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
 
         if (updatedFilterFormValues.type !== currentValues.type) {
             updatedFilterFormValues.columns = [];
-            updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
+            updatedFilterFormValues.status = undefined;
             updatedFilterFormValues.has = filterValidHasValues(updatedFilterFormValues.has, updatedFilterFormValues.type, translate);
         }
 
