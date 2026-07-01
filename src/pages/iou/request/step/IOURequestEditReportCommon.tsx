@@ -19,7 +19,16 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
 import {canSubmitPerDiemExpenseFromWorkspace, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
-import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
+import {
+    canAddTransaction,
+    getIconsForExpenseReport,
+    isIOUReport,
+    isOpenReport,
+    isReportOwner,
+    isReportSubmittedAndForwardedFromOwner,
+    isSelfDM,
+    sortOutstandingReportsBySelected,
+} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -123,7 +132,9 @@ function IOURequestEditReportCommon({
         isEditing &&
         isOwner &&
         !isReportIOU &&
-        !isCardTransaction;
+        !isCardTransaction &&
+        // The submitter cannot remove an expense from a report once the report has been forwarded past first-level approval; the backend rejects it. See https://github.com/Expensify/App/issues/93999
+        !isReportSubmittedAndForwardedFromOwner(selectedReport);
 
     const outstandingReports = useOutstandingReports(selectedReportID, selectedPolicyID, resolvedReportOwnerAccountID, isEditing);
 

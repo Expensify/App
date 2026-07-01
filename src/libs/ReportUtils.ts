@@ -2957,6 +2957,21 @@ function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArc
 }
 
 /**
+ * Determines whether destructive transaction actions (delete / remove from report) should be hidden from a report's
+ * submitter because the report has already been forwarded past its first level of approval.
+ *
+ * Returns true when ALL of the following hold:
+ * - the current user is the report owner/submitter
+ * - the report is an expense report in the SUBMITTED state
+ * - the report has been forwarded past the first approver (i.e. it is no longer awaiting first-level approval)
+ *
+ * This mirrors the backend rule that rejects these actions, so the UI never offers an action the server will reject.
+ */
+function isReportSubmittedAndForwardedFromOwner(report: OnyxEntry<Report>): boolean {
+    return isReportOwner(report) && isExpenseReport(report) && isProcessingReport(report) && !isAwaitingFirstLevelApproval(report);
+}
+
+/**
  * Determines whether a money request report is eligible for merging transactions based on the user's role and permissions.
  * Rules:
  * - **Admins**: reports that are in "Open" or "Processing" status
@@ -4638,7 +4653,7 @@ function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry
     const isTitleField = isReportFieldOfTypeTitle(reportField);
     const isAdmin = isPolicyAdmin(policy);
     const isApproved = isReportApproved({report});
-    const isForwardedForSubmitter = isReportOwner(report) && isExpenseReport(report) && isProcessingReport(report) && !isAwaitingFirstLevelApproval(report);
+    const isForwardedForSubmitter = isReportSubmittedAndForwardedFromOwner(report);
     if (!isAdmin && (isReportSettled || isReportClosed || isApproved || isForwardedForSubmitter)) {
         return true;
     }
@@ -13272,6 +13287,7 @@ export {
     canAddTransaction,
     isReportIneligibleForMoveExpenses,
     canDeleteTransaction,
+    isReportSubmittedAndForwardedFromOwner,
     canBeAutoReimbursed,
     canCreateRequest,
     canCreateTaskInReport,

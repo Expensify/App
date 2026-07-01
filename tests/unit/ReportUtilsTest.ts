@@ -143,6 +143,7 @@ import {
     isReportIneligibleForMoveExpenses,
     isReportOutstanding,
     isReportPendingDelete,
+    isReportSubmittedAndForwardedFromOwner,
     isRootGroupChat,
     isSelfDMOrSelfDMThread,
     isSortableColumnName,
@@ -9144,6 +9145,76 @@ describe('ReportUtils', () => {
             const result = isReportIneligibleForMoveExpenses(report, testPolicy);
 
             expect(result).toBe(false);
+        });
+    });
+
+    describe('isReportSubmittedAndForwardedFromOwner', () => {
+        // With no policy stored in Onyx, getSubmitToAccountID() resolves to -1, so a managerID other than -1
+        // means the report has been forwarded past the first approver, while managerID === -1 means it is still
+        // awaiting first-level approval.
+        it('should return true when the owner views a submitted expense report forwarded past first-level approval', () => {
+            const report: Report = {
+                ...createRandomReport(30100, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: 99999,
+            };
+
+            expect(isReportSubmittedAndForwardedFromOwner(report)).toBe(true);
+        });
+
+        it('should return false when the report is still awaiting first-level approval', () => {
+            const report: Report = {
+                ...createRandomReport(30101, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: -1,
+            };
+
+            expect(isReportSubmittedAndForwardedFromOwner(report)).toBe(false);
+        });
+
+        it('should return false when the current user is not the report owner', () => {
+            const report: Report = {
+                ...createRandomReport(30102, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: currentUserAccountID + 1,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: 99999,
+            };
+
+            expect(isReportSubmittedAndForwardedFromOwner(report)).toBe(false);
+        });
+
+        it('should return false when the report is not submitted', () => {
+            const report: Report = {
+                ...createRandomReport(30103, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                managerID: 99999,
+            };
+
+            expect(isReportSubmittedAndForwardedFromOwner(report)).toBe(false);
+        });
+
+        it('should return false when the report is not an expense report', () => {
+            const report: Report = {
+                ...createRandomReport(30104, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: 99999,
+            };
+
+            expect(isReportSubmittedAndForwardedFromOwner(report)).toBe(false);
         });
     });
 
