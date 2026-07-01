@@ -5578,6 +5578,7 @@ const translations = {
             },
             exportDate: {
                 label: 'Vendor bill date',
+                description: 'Use this date when exporting reports to Rillet.',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
                         label: 'Date of last expense',
@@ -5603,9 +5604,11 @@ const translations = {
             },
             defaultCompanyCardVendor: {
                 label: 'Default company card vendor',
+                description: "Choose a default Rillet vendor for expenses that don't match automatically.",
             },
             companyCardAccount: {
                 label: 'Company card account',
+                description: 'Choose where to export company card transactions.',
             },
         },
         type: {
