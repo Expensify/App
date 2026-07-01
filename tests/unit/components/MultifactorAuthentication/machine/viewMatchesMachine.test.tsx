@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return -- jest.mock factories delegate to require()'d helpers, which resolve as `any`. */
 import {act, fireEvent, screen} from '@testing-library/react-native';
 import {MFA_TEST_SCENARIO_NAME} from 'tests/utils/mfa/flowFixtures';
 import getWalkedPaths from 'tests/utils/mfa/flowPaths';
 import getSettleableLeafStates from 'tests/utils/mfa/reachableStates';
 import {getMfaControls, renderMfaUi} from 'tests/utils/mfa/realUi/harness';
 import {pendingModalClose, resetMfaUiMocks} from 'tests/utils/mfa/realUi/mocks';
+import type * as MfaRealUiMocks from 'tests/utils/mfa/realUi/mocks';
 import waitForBatchedUpdatesWithAct from 'tests/utils/waitForBatchedUpdatesWithAct';
 import {matchesState} from 'xstate';
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
@@ -17,11 +17,11 @@ jest.mock('@hooks/useResponsiveLayout');
 // This mock disables the dev-only Stately inspector so `useInspectedMachine` falls back to `useMachine`.
 jest.mock('@libs/XStateInspector', () => ({__esModule: true, default: {inspect: undefined}}));
 // Native and WebAuthn biometrics are outside the modal lifecycle contract.
-jest.mock('@components/MultifactorAuthentication/biometrics/useBiometrics', () => require('tests/utils/mfa/realUi/mocks').biometricsHookMock());
+jest.mock('@components/MultifactorAuthentication/biometrics/useBiometrics', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').biometricsHookMock());
 // Browser and Android history synchronization is outside the contract between the machine and UI.
-jest.mock('@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHistory', () => require('tests/utils/mfa/realUi/mocks').syncHistoryMock());
+jest.mock('@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHistory', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').syncHistoryMock());
 // This mock reuses the shared Navigation implementation and overrides the transition methods used by the MFA flow.
-jest.mock('@libs/Navigation/Navigation', () => require('tests/utils/mfa/realUi/mocks').navigationMock());
+jest.mock('@libs/Navigation/Navigation', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').navigationMock());
 
 // These UI markers distinguish the closed, closing, and outcome states. `OutcomeScreenBase` identifies the
 // outcome screen, while the backdrop's `Close` label exists only when the MFA navigator is mounted.
