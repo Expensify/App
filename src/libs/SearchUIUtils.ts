@@ -5143,7 +5143,7 @@ const FILTER_VIEW_MAP = {
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS]: {
         labelKey: 'common.paidStatus',
-        icon: 'Cash',
+        icon: 'MoneyBag',
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT]: {
         labelKey: 'iou.amount',
