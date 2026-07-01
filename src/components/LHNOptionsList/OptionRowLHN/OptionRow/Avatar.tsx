@@ -1,8 +1,9 @@
 import React from 'react';
 import type {ColorValue} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import LHNAvatar from '@components/LHNOptionsList/LHNAvatar';
+import IconsAvatar from '@components/Avatars/IconsAvatar';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {shouldOptionShowTooltip} from '@libs/OptionsListUtils';
 import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
@@ -24,6 +25,7 @@ type AvatarProps = {
 
 function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const personalDetails = usePersonalDetails();
 
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
@@ -60,17 +62,17 @@ function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps)
     }
 
     return (
-        <LHNAvatar
+        <IconsAvatar
             icons={icons}
-            shouldShowSubscript={!!optionItem.shouldShowSubscript}
+            avatarType={optionItem.shouldShowSubscript ? CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT : undefined}
             size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
             subscriptAvatarBorderColor={avatarBackgroundColor}
-            useMidSubscriptSize={isInFocusMode}
-            secondaryAvatarBackgroundColor={avatarBackgroundColor}
+            shouldUseMidSubscriptSize={isInFocusMode}
+            secondaryAvatarContainerStyle={StyleUtils.getBackgroundAndBorderStyle(avatarBackgroundColor)}
             singleAvatarContainerStyle={singleAvatarContainerStyle}
             shouldShowTooltip={shouldOptionShowTooltip(optionItem)}
+            accountID={delegateTooltipAccountID}
             delegateAccountID={skipDelegate ? undefined : delegateAccountID}
-            delegateTooltipAccountID={delegateTooltipAccountID}
         />
     );
 }

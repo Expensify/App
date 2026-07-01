@@ -289,7 +289,7 @@ function WorkspaceInviteMessageComponent({
                             size={CONST.AVATAR_SIZE.LARGE}
                             accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
                             horizontalStacking={{
-                                displayInRows: true,
+                                shouldDisplayAvatarsInRows: true,
                             }}
                             secondaryAvatarContainerStyle={styles.secondAvatarInline}
                             invitedEmailsToAccountIDs={invitedEmailsToAccountIDsDraft}
