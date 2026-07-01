@@ -622,6 +622,16 @@ const ONYXKEYS = {
     /** Stores the role selected for members being imported from a spreadsheet */
     IMPORTED_SPREADSHEET_MEMBER_ROLE: 'importedSpreadsheetMemberRole',
 
+    /** Generic, `contextID`-routed transient command: the year selected in the year picker, read back and cleared by the CalendarPicker that opened it (any host: DOB, ScheduleCall, Search) */
+    CALENDAR_PICKER_SELECTED_YEAR: 'calendarPickerSelectedYear',
+
+    /**
+     * Search-only companion to `CALENDAR_PICKER_SELECTED_YEAR`: the active Search date-filter sub-view (Custom date/range modifier).
+     * The Search popover unmounts when the year picker screen opens, so this breadcrumb lets it restore the sub-view on return.
+     * Only honoured while a `search*`-context year write-back is pending, and cleared when the user leaves the sub-view.
+     */
+    CALENDAR_PICKER_SELECTED_DATE_MODIFIER: 'calendarPickerSelectedDateModifier',
+
     /** Stores the route to open after changing app permission from settings */
     LAST_ROUTE: 'lastRoute',
 
@@ -1632,6 +1642,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IMPORTED_SPREADSHEET]: OnyxTypes.ImportedSpreadsheet;
     [ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA]: OnyxTypes.ImportedSpreadsheetMemberData[];
     [ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE]: ValueOf<typeof CONST.POLICY.ROLE>;
+    [ONYXKEYS.CALENDAR_PICKER_SELECTED_YEAR]: {contextID: string; year: number};
+    [ONYXKEYS.CALENDAR_PICKER_SELECTED_DATE_MODIFIER]: string;
     [ONYXKEYS.LAST_ROUTE]: string;
     [ONYXKEYS.IS_USING_IMPORTED_STATE]: boolean;
     [ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES]: Record<string, string>;

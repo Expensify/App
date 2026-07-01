@@ -20,6 +20,14 @@ import createRandomPolicy from '../../utils/collections/policies';
 import {signInWithTestUser, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
+// DatePickerModal (rendered by the confirmation page's date field) mounts useRootNavigationState (via
+// useIsYearSelectorOpen) to detect the year-selector route; this suite renders without a NavigationContainer,
+// so mock it to the "navigation not ready" default.
+jest.mock('@hooks/useRootNavigationState', () => ({
+    __esModule: true,
+    default: <T,>(selector: (state: undefined) => T): T => selector(undefined),
+}));
+
 jest.mock('@rnmapbox/maps', () => {
     return {
         default: jest.fn(),

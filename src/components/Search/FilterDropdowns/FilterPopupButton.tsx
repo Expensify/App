@@ -4,6 +4,7 @@ import type {ReactNode, RefObject} from 'react';
 import React, {useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import useIsYearSelectorOpen from '@components/DatePicker/useIsYearSelectorOpen';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
 import useOnyx from '@hooks/useOnyx';
@@ -12,6 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
@@ -55,6 +57,13 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const isFocused = useIsFocused();
+    const isYearSelectorOpen = useIsYearSelectorOpen();
+    // While the year-selector RHP is open, hide the whole popover frame (opacity/pointerEvents) instead of
+    // unmounting it, so it never paints over or blocks the RHP. The popover itself stays mounted across the blur
+    // because its render is gated on the user-controlled isOverlayVisible (not navigation focus), so its state
+    // survives the round-trip — mirroring how DatePickerModal keeps the DOB picker mounted and hides the calendar.
+    const isDesktopWeb = getPlatform() === CONST.PLATFORM.WEB && !isSmallScreenWidth;
+    const shouldHideForYearSelector = isDesktopWeb && isYearSelectorOpen;
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
@@ -74,6 +83,11 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
     const popoverAnchorAlignment = popoverAnchorAlignmentProp ?? ANCHOR_ORIGIN;
 
     const toggleOverlay = () => {
+        // The year-selector RHP's goBack fires this popover's onClose; ignore it while the year selector is open
+        // so the popover stays mounted and its CalendarPicker is there to consume/apply the picked year on return.
+        if (isYearSelectorOpen) {
+            return;
+        }
         setIsOverlayVisible((previousValue) => {
             if (!previousValue && willAlertModalBecomeVisible) {
                 return false;
@@ -103,8 +117,9 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
             {/* Dropdown Trigger */}
             {renderButton({ref: triggerRef, onPress: calculatePopoverPositionAndToggleOverlay, isExpanded: isOverlayVisible})}
 
-            {/* Dropdown overlay */}
-            {isFocused && (
+            {/* Dropdown overlay — keep mounted while the user has it open (isOverlayVisible), not while the
+                screen is focused, so opening the year-selector RHP (which blurs the screen) doesn't unmount it */}
+            {(isFocused || isOverlayVisible) && (
                 <PopoverWithMeasuredContent
                     anchorRef={triggerRef}
                     avoidKeyboard
@@ -119,7 +134,15 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
                     // This must be false because we dont want the modal to close if we open the RHP for selections
                     // such as date years
                     shouldCloseWhenBrowserNavigationChanged={false}
-                    innerContainerStyle={{...containerStyles, ...styles.p0}}
+                    // While the year-selector RHP is open we keep this popover mounted (to preserve its state) but
+                    // its Modal renders a full-screen backdrop Pressable that would otherwise sit over the RHP and
+                    // swallow the year clicks. Drop the backdrop during the year selector so the RHP receives them.
+                    hasBackdrop={!shouldHideForYearSelector}
+                    // The Modal's full-screen z-9996 wrappers (ModalAnimation/ModalContent) also swallow RHP clicks.
+                    // Make the whole modal subtree pointer-transparent while the year selector is open so the year
+                    // is clickable; the popover content is already visually hidden + stays mounted (state preserved).
+                    shouldDisablePointerEvents={shouldHideForYearSelector}
+                    innerContainerStyle={{...containerStyles, ...styles.p0, ...(shouldHideForYearSelector ? {opacity: 0, visibility: 'hidden', pointerEvents: 'none'} : {})}}
                     popoverDimensions={{
                         width: actualPopoverWidth,
                         height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,

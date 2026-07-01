@@ -23,6 +23,9 @@ type RangeDatePickerProps = {
 
     /** Force vertical stacking of calendars */
     forceVertical?: boolean;
+
+    /** Whether the hosting popover should be dismissed (via `Modal.closeTop`) before navigating to the year picker screen */
+    shouldCloseModalOnYearPickerOpen?: boolean;
 };
 
 function parseCalendarDate(dateValue?: string): Date | undefined {
@@ -34,7 +37,7 @@ function parseCalendarDate(dateValue?: string): Date | undefined {
     return isValid(parsedDate) ? parsedDate : undefined;
 }
 
-function RangeDatePicker({fromValue, toValue, onFromSelected, onToSelected, forceVertical = false}: RangeDatePickerProps) {
+function RangeDatePicker({fromValue, toValue, onFromSelected, onToSelected, forceVertical = false, shouldCloseModalOnYearPickerOpen = false}: RangeDatePickerProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -54,6 +57,8 @@ function RangeDatePicker({fromValue, toValue, onFromSelected, onToSelected, forc
                         minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                         maxDate={fromMaxDate}
                         headerContainerStyle={styles.ph4}
+                        pickerContextID="searchRangeFrom"
+                        shouldCloseModalOnYearPickerOpen={shouldCloseModalOnYearPickerOpen}
                     />
                 </View>
             </View>
@@ -67,6 +72,8 @@ function RangeDatePicker({fromValue, toValue, onFromSelected, onToSelected, forc
                         minDate={toMinDate}
                         maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                         headerContainerStyle={styles.ph4}
+                        pickerContextID="searchRangeTo"
+                        shouldCloseModalOnYearPickerOpen={shouldCloseModalOnYearPickerOpen}
                     />
                 </View>
             </View>

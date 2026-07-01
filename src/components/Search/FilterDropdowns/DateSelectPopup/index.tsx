@@ -9,13 +9,17 @@ import ActionButtons from '@components/Search/FilterDropdowns/ActionButtons';
 import type {SearchDatePreset} from '@components/Search/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {clearCalendarPickerSelectedDateModifier, setCalendarPickerSelectedDateModifier} from '@libs/actions/CalendarPicker';
+import getPlatform from '@libs/getPlatform';
 import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {getDateModifierTitle, getDateRangeDisplayValueFromFormValue} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SelectedDateModifierHeader from './SelectedDateModifierHeader';
 
 type DateSelectPopupProps = {
@@ -44,6 +48,7 @@ type DateSelectPopupProps = {
 function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, setPopoverWidth}: DateSelectPopupProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const isDesktopWeb = getPlatform() === CONST.PLATFORM.WEB && !isSmallScreenWidth;
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -52,6 +57,32 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
     const scrollViewRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
     const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
     const [shouldShowRangeError, setShouldShowRangeError] = useState(false);
+
+    // Opening the year picker blurs the Search screen and unmounts this popover, resetting selectedDateModifier
+    // (the Custom date/range sub-view) back to the top menu on return. Persist it and restore it on return (a
+    // pending year write-back for a search calendar) so the calendar reopens with the picked year applied.
+    const [storedDateModifier] = useOnyx(ONYXKEYS.CALENDAR_PICKER_SELECTED_DATE_MODIFIER);
+    const [storedYearSelection] = useOnyx(ONYXKEYS.CALENDAR_PICKER_SELECTED_YEAR);
+    const hasRestoredDateModifierRef = useRef(false);
+
+    useEffect(() => {
+        if (!selectedDateModifier) {
+            return;
+        }
+        setCalendarPickerSelectedDateModifier(selectedDateModifier);
+    }, [selectedDateModifier]);
+
+    useEffect(() => {
+        if (hasRestoredDateModifierRef.current || selectedDateModifier || !storedDateModifier || !storedYearSelection?.contextID.startsWith('search')) {
+            return;
+        }
+        const dateModifierToRestore = Object.values(CONST.SEARCH.DATE_MODIFIERS).find((modifier) => modifier === storedDateModifier);
+        if (!dateModifierToRestore) {
+            return;
+        }
+        hasRestoredDateModifierRef.current = true;
+        requestAnimationFrame(() => setSelectedDateModifier(dateModifierToRestore));
+    }, [storedDateModifier, storedYearSelection, selectedDateModifier]);
     const [rangeText, setRangeText] = useState(() =>
         getDateRangeDisplayValueFromFormValue(value[CONST.SEARCH.DATE_MODIFIERS.RANGE], value[CONST.SEARCH.DATE_MODIFIERS.AFTER], value[CONST.SEARCH.DATE_MODIFIERS.BEFORE]),
     );
@@ -76,6 +107,8 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
     }, [selectedDateModifier, setPopoverWidth]);
 
     const clearSelection = useCallback(() => {
+        // Leaving the sub-view (not via the year picker, which unmounts us instead) — drop the persisted breadcrumb.
+        clearCalendarPickerSelectedDateModifier();
         setSelectedDateModifier(null);
         setShouldShowRangeError(false);
     }, []);
@@ -133,6 +166,7 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
                         presets={presets}
                         onDateValuesChange={updateRangeText}
                         onRangeValidationErrorChange={setShouldShowRangeError}
+                        shouldCloseModalOnYearPickerOpen={!isDesktopWeb}
                     />
                     {shouldShowRangeError && (
                         <FormHelpMessage

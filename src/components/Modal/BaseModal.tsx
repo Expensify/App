@@ -68,6 +68,7 @@ function BaseModal({
     shouldApplySidePanelOffset: shouldApplySidePanelOffsetProp,
     hasBackdrop,
     backdropOpacity,
+    shouldDisablePointerEvents = false,
     shouldDisableBottomSafeAreaPadding = false,
     shouldIgnoreBackHandlerDuringTransition = false,
     forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK,
@@ -343,6 +344,7 @@ function BaseModal({
                         backdropOpacity={backdropOpacityAdjusted}
                         backdropTransitionOutTiming={0}
                         hasBackdrop={hasBackdrop ?? fullscreen}
+                        shouldDisablePointerEvents={shouldDisablePointerEvents}
                         coverScreen={fullscreen}
                         style={modalStyle}
                         deviceHeight={windowHeight}

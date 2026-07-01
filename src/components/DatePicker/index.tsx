@@ -17,6 +17,7 @@ import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import DatePickerModal from './DatePickerModal';
 import type {DateInputWithPickerProps} from './types';
+import useIsYearSelectorOpen from './useIsYearSelectorOpen';
 
 const PADDING_MODAL_DATE_PICKER = 8;
 
@@ -54,6 +55,13 @@ function DatePicker({
     const textInputRef = useRef<BaseTextInputRef | null>(null);
     const anchorRef = useRef<View>(null);
     const [isInverted, setIsInverted] = useState(false);
+    const isYearSelectorOpen = useIsYearSelectorOpen();
+    // Keep the picker open across the dynamic year-selector round-trip: the RHP opens over this popover and, on
+    // return, its goBack would otherwise close the picker before the picked year is applied. Track the open state in
+    // a ref (read synchronously in the close handler) plus a short grace window to absorb the return popstate that
+    // fires just as the flag flips back to false.
+    const isYearSelectorOpenRef = useRef(false);
+    const yearSelectorGraceRef = useRef(false);
     // Whether the user currently intends the picker to be open. Lets a deferred measurement skip opening if the
     // picker was dismissed before it resolved.
     const openIntentRef = useRef(false);
@@ -124,7 +132,28 @@ function DatePicker({
         openPicker();
     }, [shouldDeferShowUntilPositioned, shouldDismissKeyboardBeforeShow, calculatePopoverPosition, cancelAutoFocus]);
 
+    useEffect(() => {
+        isYearSelectorOpenRef.current = isYearSelectorOpen;
+        if (isYearSelectorOpen) {
+            yearSelectorGraceRef.current = true;
+            return;
+        }
+        if (!yearSelectorGraceRef.current) {
+            return;
+        }
+        const graceTimeoutID = setTimeout(() => {
+            yearSelectorGraceRef.current = false;
+        }, 250);
+        return () => clearTimeout(graceTimeoutID);
+    }, [isYearSelectorOpen]);
+
     const closeDatePicker = useCallback(() => {
+        // Don't close while the year-selector RHP is open or just closed. Its goBack fires a popstate that reaches
+        // the popover's close listener AFTER isYearSelectorOpen has already flipped back to false (so the popstate
+        // gating can't catch it) — the grace window does, keeping the picker open with the picked year applied.
+        if (isYearSelectorOpenRef.current || yearSelectorGraceRef.current) {
+            return;
+        }
         openIntentRef.current = false;
         setIsModalVisible(false);
 

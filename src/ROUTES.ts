@@ -150,6 +150,18 @@ const DYNAMIC_ROUTES = {
         path: 'imported-members-role',
         entryScreens: [SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION],
     },
+    YEAR_SELECTOR: {
+        path: 'year-selector',
+        queryParams: ['contextID', 'currentYear', 'minYear', 'maxYear'],
+        // CalendarPicker is a generic component reached from many screens (date input fields,
+        // DateSelectPopup, RangeDatePicker, DatePresetFilterBase, ScheduleCallPage, ...), and the
+        // previous in-place YearPickerModal had no screen restriction. Use '*' so the year selector
+        // remains reachable from every CalendarPicker host and doesn't silently break when new
+        // date-input screens are added (matches KEYBOARD_SHORTCUTS / EXIT_SURVEY_* generic flows).
+        entryScreens: ['*'],
+        getRoute: ({contextID, currentYear, minYear, maxYear}: {contextID: string; currentYear: number; minYear: number; maxYear: number}) =>
+            getUrlWithParams('year-selector', {contextID, currentYear, minYear, maxYear}),
+    },
     REPORT_SETTINGS: {
         path: 'report-settings',
         entryScreens: [SCREENS.REPORT_DETAILS.DYNAMIC_ROOT],
