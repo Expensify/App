@@ -1,17 +1,31 @@
 import lodashDropRightWhile from 'lodash/dropRightWhile';
 import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import * as API from '@libs/API';
-import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
+import {write} from '@libs/API';
+import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, SetApprovalWorkflowParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getDefaultApprover} from '@libs/PolicyUtils';
-import {calculateApprovers, convertApprovalWorkflowToPolicyEmployees, getOverLimitForwardsToDisplayName, mergeWorkflowMembersWithAvailableMembers} from '@libs/WorkflowUtils';
+import type {ApprovalWorkflowRulesDiff} from '@libs/WorkflowUtils';
+import {
+    applyApprovalWorkflowRulesDiff,
+    buildApprovalWorkflowRules,
+    calculateApprovers,
+    convertApprovalWorkflowToPolicyEmployees,
+    getOverLimitForwardsToDisplayName,
+    mergeWorkflowMembersWithAvailableMembers,
+    reconcileApprovalWorkflowRulesForCreate,
+    reconcileApprovalWorkflowRulesForEdit,
+    reconcileApprovalWorkflowRulesForMembersChange,
+    reconcileApprovalWorkflowRulesForRemove,
+} from '@libs/WorkflowUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
+import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {completeTask} from './Task';
 
@@ -86,7 +100,7 @@ function createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTa
     ];
 
     const parameters: CreateWorkspaceApprovalParams = {policyID: policy.id, employees: JSON.stringify(Object.values(updatedEmployees))};
-    API.write(WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 
     if (
         addExpenseApprovalsTaskReport &&
@@ -200,7 +214,7 @@ function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRem
         employees: JSON.stringify(Object.values(updatedEmployees)),
         defaultApprover: newDefaultApprover,
     };
-    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.UPDATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 }
 
 function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: OnyxEntry<Policy>) {
@@ -259,7 +273,163 @@ function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
     ];
 
     const parameters: RemoveWorkspaceApprovalParams = {policyID: policy.id, employees: JSON.stringify(Object.values(updatedEmployees))};
-    API.write(WRITE_COMMANDS.REMOVE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.REMOVE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
+}
+
+type SetApprovalWorkflowRulesParams = {
+    policyID: string;
+
+    /**
+     * Diff to apply to `Policy.rules.approvalWorkflows`. A value of `ApprovalWorkflowRule`
+     * sets/replaces the rule under its `ruleID`; a value of `null` removes it
+     */
+    rulesDiff: ApprovalWorkflowRulesDiff;
+
+    /** Snapshot of the policy's `rules.approvalWorkflows` taken before applying `rulesDiff`. Used to roll back on failure. */
+    previousApprovalWorkflows: Record<string, ApprovalWorkflowRule>;
+};
+
+/**
+ * Apply a set of approval-workflow rule changes to a policy via the SetApprovalWorkflow
+ * Auth command.
+ *
+ */
+function setApprovalWorkflowRules({policyID, rulesDiff, previousApprovalWorkflows}: SetApprovalWorkflowRulesParams) {
+    if (!policyID || isEmptyObject(rulesDiff)) {
+        return;
+    }
+
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+
+    // Build the rollback shape
+    const failureApprovalWorkflows: Record<string, ApprovalWorkflowRule | null> = {};
+    for (const ruleID of Object.keys(rulesDiff)) {
+        failureApprovalWorkflows[ruleID] = previousApprovalWorkflows[ruleID] ?? null;
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                rules: {approvalWorkflows: rulesDiff},
+                pendingFields: {approvalWorkflows: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                errorFields: {approvalWorkflows: null},
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                pendingFields: {approvalWorkflows: null},
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                rules: {approvalWorkflows: failureApprovalWorkflows},
+                pendingFields: {approvalWorkflows: null},
+                errorFields: {approvalWorkflows: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            },
+        },
+    ];
+
+    const parameters: SetApprovalWorkflowParams = {
+        policyID,
+        rules: JSON.stringify(rulesDiff),
+    };
+
+    write(WRITE_COMMANDS.SET_APPROVAL_WORKFLOW, parameters, {optimisticData, successData, failureData});
+}
+
+/**
+ * Create an approval workflow using the rules-based backend structure,
+ */
+function createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprovalsTaskReport}: CreateApprovalWorkflowParams) {
+    if (!policy) {
+        return;
+    }
+
+    const existingRules = policy.rules?.approvalWorkflows ?? {};
+    const memberEmails = approvalWorkflow.members.map((member) => member.email).filter((email): email is string => !!email);
+
+    // A submitter can only belong to one workflow, so first drop these members from any OTHER
+    // workflow's rules, then add them to the new workflow.
+    const removeDiff = reconcileApprovalWorkflowRulesForRemove(memberEmails, {existingRules});
+    const rulesAfterRemoval = applyApprovalWorkflowRulesDiff(existingRules, removeDiff);
+
+    const newRules = buildApprovalWorkflowRules(approvalWorkflow);
+    const createDiff = reconcileApprovalWorkflowRulesForCreate(newRules, memberEmails, {existingRules: rulesAfterRemoval});
+
+    const rulesDiff = {...removeDiff, ...createDiff};
+
+    setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousApprovalWorkflows: existingRules});
+
+    if (
+        addExpenseApprovalsTaskReport &&
+        (addExpenseApprovalsTaskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || addExpenseApprovalsTaskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED)
+    ) {
+        completeTask(addExpenseApprovalsTaskReport, false, false, undefined, undefined, undefined, false);
+    }
+}
+
+type UpdateApprovalWorkflowRulesParams = {
+    approvalWorkflow: ApprovalWorkflow;
+    initialApprovalWorkflow: ApprovalWorkflow;
+    policy: OnyxEntry<Policy>;
+};
+
+/**
+ * Update an existing workflow using the rules-based backend structure
+ */
+function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow, policy}: UpdateApprovalWorkflowRulesParams) {
+    if (!policy) {
+        return;
+    }
+
+    const existingRules = policy.rules?.approvalWorkflows ?? {};
+    const previousMemberEmails = initialApprovalWorkflow.members.map((member) => member.email).filter((email): email is string => !!email);
+    const newMemberEmails = approvalWorkflow.members.map((member) => member.email).filter((email): email is string => !!email);
+
+    // 1. A submitter can only belong to one workflow, so drop joining members (those not previously in
+    // this workflow) from any OTHER workflow's rules first.
+    const joiningMemberEmails = newMemberEmails.filter((email) => !previousMemberEmails.includes(email));
+    const removeFromOthersDiff = reconcileApprovalWorkflowRulesForRemove(joiningMemberEmails, {existingRules});
+    const rulesAfterRemoval = applyApprovalWorkflowRulesDiff(existingRules, removeFromOthersDiff);
+
+    // 2. Sync membership across this workflow's rules (add joiners, drop leavers).
+    const memberDiff = reconcileApprovalWorkflowRulesForMembersChange(previousMemberEmails, newMemberEmails, {existingRules: rulesAfterRemoval});
+    const rulesAfterMembers = applyApprovalWorkflowRulesDiff(rulesAfterRemoval, memberDiff);
+
+    // 3. Reconcile the approver chain with the membership-updated rules.
+    const newRules = buildApprovalWorkflowRules(approvalWorkflow);
+    const chainDiff = reconcileApprovalWorkflowRulesForEdit(newRules, newMemberEmails, {existingRules: rulesAfterMembers});
+
+    const rulesDiff = {...removeFromOthersDiff, ...memberDiff, ...chainDiff};
+
+    setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousApprovalWorkflows: existingRules});
+}
+
+/**
+ * Delete an approval workflow using the rules-based backend structure, gated behind the `multipleApprovers` beta.
+ */
+function removeApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow, policy: OnyxEntry<Policy>) {
+    if (!policy) {
+        return;
+    }
+
+    const existingRules = policy.rules?.approvalWorkflows ?? {};
+    const memberEmails = approvalWorkflow.members.map((member) => member.email).filter((email): email is string => !!email);
+    const rulesDiff = reconcileApprovalWorkflowRulesForRemove(memberEmails, {existingRules});
+
+    setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousApprovalWorkflows: existingRules});
 }
 
 /** Set the members of the approval workflow that is currently edited */
@@ -423,7 +593,10 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): appro
 
 export {
     createApprovalWorkflow,
+    createApprovalWorkflowRules,
+    removeApprovalWorkflowRules,
     updateApprovalWorkflow,
+    updateApprovalWorkflowRules,
     removeApprovalWorkflow,
     setApprovalWorkflowMembers,
     setApprovalWorkflowApprover,

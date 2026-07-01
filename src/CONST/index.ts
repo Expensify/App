@@ -974,6 +974,7 @@ const CONST = {
         VENDOR_MATCHING: 'vendorMatching',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
+        MULTIPLE_APPROVERS: 'multipleApprovers',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -6840,6 +6841,7 @@ const CONST = {
             IS: 'is',
             REPORT_FIELD: 'reportField',
             EXPORTED_TO: 'exportedTo',
+            PREVIOUS_APPROVER: 'previousApprover',
         },
         REPORT_FIELD: {
             // All report fields start with this, so use this to check if a search key is a report field

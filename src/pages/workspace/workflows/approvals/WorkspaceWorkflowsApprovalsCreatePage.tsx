@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isAnyHRReadOnlyWorkflowMode} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -19,7 +20,7 @@ import {canEditWorkspaceSettings, goBackFromInvalidPolicy, isPendingDeletePolicy
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import {createApprovalWorkflow as createApprovalWorkflowAction, validateApprovalWorkflow} from '@userActions/Workflow';
+import {createApprovalWorkflow as createApprovalWorkflowAction, createApprovalWorkflowRules, validateApprovalWorkflow} from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -32,6 +33,7 @@ type WorkspaceWorkflowsApprovalsCreatePageProps = WithPolicyAndFullscreenLoading
 function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsCreatePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const addExpenseApprovalsTaskReportID = introSelected?.addExpenseApprovals;
@@ -50,9 +52,13 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
             return;
         }
 
-        createApprovalWorkflowAction({approvalWorkflow, policy, addExpenseApprovalsTaskReport});
+        if (isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)) {
+            createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprovalsTaskReport});
+        } else {
+            createApprovalWorkflowAction({approvalWorkflow, policy, addExpenseApprovalsTaskReport});
+        }
         Navigation.dismissModal();
-    }, [approvalWorkflow, policy, addExpenseApprovalsTaskReport]);
+    }, [approvalWorkflow, policy, addExpenseApprovalsTaskReport, isBetaEnabled]);
 
     const submitButtonContainerStyles = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.mb5, styles.mh5]});
 
