@@ -117,9 +117,13 @@ export default createOnyxDerivedValueConfig({
         // Check if display names changed when personal details are updated
         let displayNamesChanged = false;
         if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, sourceValues)) {
+            // Must run regardless — it updates the tracked previous display names.
             displayNamesChanged = checkDisplayNamesChanged(personalDetails);
 
-            if (!displayNamesChanged) {
+            // Only short-circuit when personal details were the sole trigger; coalescing can batch them
+            // with report/transaction changes, and returning early would drop those.
+            const personalDetailsIsOnlyTrigger = Object.keys(sourceValues ?? {}).length === 1;
+            if (!displayNamesChanged && personalDetailsIsOnlyTrigger) {
                 return currentValue ?? {reports: {}, locale: null};
             }
         } else if (!sourceValues) {
