@@ -46,11 +46,11 @@ const buildPolicyWithRates = (rates: Record<string, ReturnType<typeof buildRate>
         },
     }) as unknown as Policy;
 
-const buildDistanceTransaction = (customUnitRateID: string | undefined): Transaction =>
+const buildDistanceTransaction = (customUnitRateID: string | undefined, overrides: {amount?: number; currency?: string; quantity?: number} = {}): Transaction =>
     ({
         transactionID: 'tx-1',
-        amount: -1000,
-        currency: CONST.CURRENCY.USD,
+        amount: overrides.amount ?? -1000,
+        currency: overrides.currency ?? CONST.CURRENCY.USD,
         comment: {
             type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
             customUnit: {
@@ -58,7 +58,7 @@ const buildDistanceTransaction = (customUnitRateID: string | undefined): Transac
                 customUnitID: CUSTOM_UNIT_ID,
                 customUnitRateID,
                 distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-                quantity: 10,
+                quantity: overrides.quantity ?? 10,
             },
         },
     }) as unknown as Transaction;
@@ -175,6 +175,16 @@ describe('resolveSplitMileageRate', () => {
             expect(result.customUnitRateID).toBe(DELETED_RATE_ID);
         });
 
+        it('derives a rate and uses personalPolicyOutputCurrency when no policy is provided', () => {
+            const transaction = buildDistanceTransaction(DELETED_RATE_ID, {amount: -1200, currency: 'GBP', quantity: 12});
+
+            const result = resolveSplitMileageRate({transaction, policy: undefined, isSelfDMSplit: true, personalPolicyOutputCurrency: 'EUR'});
+
+            expect(result.rate).toBe(100);
+            expect(result.currency).toBe('EUR');
+            expect(result.customUnitRateID).toBe(DELETED_RATE_ID);
+        });
+
         it('prefers the workspace default rate over the amount/quantity derivation when both could apply', () => {
             // The deleted rate makes baseMileageRate.rate truthy (getRate includes disabled rates when a
             // selectedRateID matches), but in case the workspace also has an enabled rate we should still
@@ -206,6 +216,16 @@ describe('resolveSplitMileageRate', () => {
             // ordering only invokes the derived fallback when neither the active base rate nor a policy
             // default is available. The 75 is therefore the deterministic return for this configuration.
             expect(result.rate).toBe(DELETED_RATE_VALUE);
+        });
+
+        it('derives a rate when policy exists but has no configured distance rates', () => {
+            const policy = buildPolicyWithRates({});
+            const transaction = buildDistanceTransaction(DELETED_RATE_ID, {amount: -900, quantity: 9});
+
+            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: true});
+
+            expect(result.rate).toBe(100);
+            expect(result.customUnitRateID).toBe(DELETED_RATE_ID);
         });
     });
 });
