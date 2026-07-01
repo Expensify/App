@@ -66,9 +66,10 @@ function RateField({
 
     const {isSearchRouterDisplayed} = useSearchRouterState();
 
+    const shouldMountMileageRateTooltip = !!shouldShowRateAutoUpdatedTooltip && !isSearchRouterDisplayed && !shouldDisplayDistanceRateError;
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MILEAGE_RATE_AUTO_UPDATED,
-        !!shouldShowRateAutoUpdatedTooltip && !isSearchRouterDisplayed && !shouldDisplayDistanceRateError,
+        shouldMountMileageRateTooltip,
     );
 
     return (
@@ -111,7 +112,8 @@ function RateField({
             disabled={didConfirm}
             interactive={isRateInteractive}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RATE_FIELD}
-            shouldRenderTooltip={shouldShowProductTrainingTooltip}
+            shouldRenderTooltip={shouldMountMileageRateTooltip}
+            shouldDisplayEducationalTooltip={shouldShowProductTrainingTooltip}
             renderTooltipContent={renderProductTrainingTooltip}
             tooltipWrapperStyle={styles.productTrainingTooltipWrapper}
             tooltipAnchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}

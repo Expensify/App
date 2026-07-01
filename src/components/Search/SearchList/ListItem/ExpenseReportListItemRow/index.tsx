@@ -25,6 +25,7 @@ function ExpenseReportListItemRow(props: ExpenseReportListItemRowProps) {
                 isHovered={props.isHovered}
                 isFocused={props.isFocused}
                 isPendingDelete={props.isPendingDelete}
+                shouldDisableActionPointerEvents={props.shouldDisableActionPointerEvents}
                 columns={props.columns}
                 isMarkAsDone={props.isMarkAsDone}
             />
