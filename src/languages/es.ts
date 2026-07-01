@@ -21,7 +21,7 @@ const translations: TranslationDeepObject<typeof en> = {
         count: 'Contar',
         cancel: 'Cancelar',
         unableToDisplayChart: 'No se puede mostrar el gráfico',
-        webGLNotSupported: 'Tu navegador no es compatible con WebGL. Por favor, actívalo o cambia de navegador.',
+        webGLNotSupported: 'Tu navegador no es compatible con WebGL. Por favor, habilítalo o cambia de navegador.',
         dismiss: 'Descartar',
         proceed: 'Proceder',
         unshare: 'Dejar de compartir',
