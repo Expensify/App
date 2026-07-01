@@ -166,6 +166,7 @@ function Search({
     const isAttendeesEnabledForMovingPolicy = shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policyForMovingExpenses);
 
     const [, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, offset === 0);
@@ -1003,7 +1004,8 @@ function Search({
     }
 
     const searchTableHeader = !shouldShowTableHeader ? undefined : (
-        <View style={[!isTask && styles.pr9, styles.flex1]}>
+        // Match the rows' trailing arrow spacing so the header columns line up with them.
+        <View style={[!isTask && styles.pr8, styles.flex1]}>
             <SearchTableHeader
                 canSelectMultiple={canSelectMultiple}
                 columns={columnsToShow}
@@ -1057,7 +1059,7 @@ function Search({
                 SearchTableHeader={searchTableHeader}
                 tableHeaderVisible={tableHeaderVisible}
                 contentContainerStyle={[styles.pb3, contentContainerStyle]}
-                containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3]}
+                containerStyle={[styles.pv0]}
                 onScroll={onSearchListScroll}
                 onEndReached={fetchMoreResults}
                 ListFooterComponent={listFooterComponent}
@@ -1082,7 +1084,7 @@ function Search({
                 SearchTableHeader={searchTableHeader}
                 tableHeaderVisible={tableHeaderVisible}
                 contentContainerStyle={[styles.pb3, contentContainerStyle]}
-                containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3]}
+                containerStyle={[styles.pv0]}
                 onScroll={onSearchListScroll}
                 onEndReached={fetchMoreResults}
                 ListFooterComponent={listFooterComponent}
@@ -1104,7 +1106,7 @@ function Search({
                 shouldPreventLongPressRow={isChat || isTask}
                 SearchTableHeader={searchTableHeader}
                 contentContainerStyle={[styles.pb3, contentContainerStyle]}
-                containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3]}
+                containerStyle={[styles.pv0]}
                 onScroll={onSearchListScroll}
                 onEndReachedThreshold={0.75}
                 onEndReached={fetchMoreResults}
@@ -1118,6 +1120,7 @@ function Search({
                 hasLoadedAllTransactions={hasLoadedAllTransactions}
                 isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                policyTags={policyTags}
                 isActionColumnWide={isTask || hasDeletedTransaction}
             />
         );

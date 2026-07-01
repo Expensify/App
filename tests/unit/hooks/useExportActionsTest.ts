@@ -9,6 +9,7 @@ const mockClearExportDownload = jest.mocked(clearExportDownload);
 
 const REPORT_ID = 'report1';
 const POLICY_ID = 'policy1';
+const EXPORT_NAME = 'Test Template';
 
 type ExportDownloadStatusModalProps = {exportID: string; onClose: () => void};
 
@@ -104,7 +105,7 @@ describe('useExportActions - template export status modal', () => {
         const {result} = renderHook(() => useExportActions({reportID: REPORT_ID}));
 
         act(() => {
-            result.current.beginExportWithTemplate('Test Template', 'csv', ['1', '2'], POLICY_ID);
+            result.current.beginExportWithTemplate('Test Template', 'csv', ['1', '2'], EXPORT_NAME, POLICY_ID);
         });
 
         expect(mockQueueExportSearchWithTemplate).toHaveBeenCalledWith(
@@ -115,6 +116,7 @@ describe('useExportActions - template export status modal', () => {
                 reportIDList: [REPORT_ID],
                 transactionIDList: ['1', '2'],
                 policyID: POLICY_ID,
+                exportName: EXPORT_NAME,
             },
             true,
         );
@@ -127,7 +129,7 @@ describe('useExportActions - template export status modal', () => {
         const {result} = renderHook(() => useExportActions({reportID: REPORT_ID}));
 
         act(() => {
-            result.current.beginExportWithTemplate('Test Template', 'csv', ['1'], POLICY_ID);
+            result.current.beginExportWithTemplate('Test Template', 'csv', ['1'], EXPORT_NAME, POLICY_ID);
         });
 
         expect(mockQueueExportSearchWithTemplate).not.toHaveBeenCalled();
@@ -139,7 +141,7 @@ describe('useExportActions - template export status modal', () => {
         const {result} = renderHook(() => useExportActions({reportID: REPORT_ID}));
 
         act(() => {
-            result.current.beginExportWithTemplate('Test Template', 'csv', ['1'], POLICY_ID);
+            result.current.beginExportWithTemplate('Test Template', 'csv', ['1'], EXPORT_NAME, POLICY_ID);
         });
         const modal: ReactElement<ExportDownloadStatusModalProps> | null = result.current.exportDownloadStatusModal;
         expect(modal?.props.exportID).toBe('mock-export-id');

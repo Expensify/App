@@ -1,8 +1,7 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import Icon from '@components/Icon';
@@ -224,9 +223,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {showLockedAccountModal} = useLockedAccountActions();
 
     useEffect(() => {
-        InteractionManager.runAfterInteractions(() => {
-            fetchData();
-        });
+        fetchData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

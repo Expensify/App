@@ -91,7 +91,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
         const trimmed = fixedDistanceInput.trim();
         const numeric = Number(trimmed);
 
-        if (!trimmed || Number.isNaN(numeric) || numeric <= 0) {
+        if (!trimmed || !Number.isInteger(numeric) || numeric <= 0) {
             setInlineError(translate('workspace.distanceRates.commuterExclusions.errors.distanceMustBePositive'));
             return;
         }
@@ -118,17 +118,18 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                 accessibilityLabel={translate('workspace.distanceRates.commuterExclusions.distanceLabel')}
                 value={fixedDistanceInput}
                 onChangeText={(value) => {
-                    setFixedDistanceInput(value);
+                    setFixedDistanceInput(value.replaceAll(/\D/g, ''));
                     if (inlineError) {
                         setInlineError('');
                     }
                 }}
-                keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
+                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                 suffixCharacter={unitLabel}
                 suffixStyle={styles.colorMuted}
                 role={CONST.ROLE.PRESENTATION}
                 autoFocus={existingMethod !== CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE}
                 onSubmitEditing={onSave}
+                submitBehavior="submit"
             />
         </View>
     );
