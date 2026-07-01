@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
 import TwoFactorAuthForm from '@components/TwoFactorAuthForm';
 import type {BaseTwoFactorAuthFormRef} from '@components/TwoFactorAuthForm/types';
 import useLocalize from '@hooks/useLocalize';
@@ -59,9 +58,11 @@ function ReplaceDeviceVerifyOldPage() {
                 keyboardShouldPersistTaps="handled"
             >
                 <View style={[styles.ph5, styles.mb4, styles.mt3]}>
-                    <Text style={[styles.textLabel, styles.mb4]}>{translate('twoFactorAuth.verifyOldDeviceDescription')}</Text>
                     <TwoFactorAuthForm
                         ref={formRef}
+                        shouldAllowRecoveryCode
+                        descriptionKey="twoFactorAuth.verifyOldDeviceDescription"
+                        descriptionKeyWithRecovery="twoFactorAuth.verifyOldDeviceDescriptionWithRecovery"
                         onSubmit={(code) => {
                             replaceTwoFactorDevice('verify_old', code);
                         }}

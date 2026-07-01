@@ -2353,6 +2353,7 @@ const translations: TranslationDeepObject<typeof en> = {
         replaceDeviceTitle: 'Tweefactorauthenticatie-apparaat vervangen',
         verifyOldDeviceTitle: 'Oud apparaat verifiëren',
         verifyOldDeviceDescription: 'Voer de zescijferige code uit je huidige authenticator-app in om te bevestigen dat je daar toegang toe hebt.',
+        verifyOldDeviceDescriptionWithRecovery: 'Voer een geldige herstelcode in om te bevestigen dat je toegang tot je account hebt.',
         verifyNewDeviceTitle: 'Nieuw apparaat instellen',
         verifyNewDeviceDescription: 'Scan de QR-code met je nieuwe apparaat en voer daarna de code in om de installatie te voltooien.',
         downloadCodes: 'Codes downloaden',
