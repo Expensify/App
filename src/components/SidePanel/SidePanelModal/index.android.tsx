@@ -23,6 +23,7 @@ function SidePanelModal({shouldHideSidePanel, closeSidePanel, children}: SidePan
             isVisible={!shouldHideSidePanel}
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             shouldHandleNavigationBack
+            enableEdgeToEdgeBottomSafeAreaPadding={false}
         >
             {children}
         </Modal>

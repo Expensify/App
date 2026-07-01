@@ -11,6 +11,7 @@ function SidePanelModal({shouldHideSidePanel, closeSidePanel, children}: SidePan
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             shouldHandleNavigationBack
             swipeDirection={CONST.SWIPE_DIRECTION.RIGHT}
+            enableEdgeToEdgeBottomSafeAreaPadding={false}
         >
             {children}
         </Modal>
