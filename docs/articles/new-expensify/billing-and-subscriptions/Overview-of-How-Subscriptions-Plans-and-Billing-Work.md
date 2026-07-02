@@ -20,7 +20,7 @@ Expensify offers two workspace plans:
 - **Collect**: Designed for small teams that need expense management and reimbursements.
 - **Control**: Designed for growing organizations that need advanced approvals, accounting integrations, and spend management.
 
-To learn which plan is right for your organization, see [Compare the Collect and Control Plans](/articles/new-expensify/billing-and-subscriptions/learn-about-plans-and-subscriptions/Compare-Collect-and-Control-Plans).
+To learn which plan is right for your organization, see [Compare the Collect and Control Plans](/articles/new-expensify/billing-and-subscriptions/learn-about-plans-subscriptions-and-pricing/Compare-Collect-and-Control-Plans).
 
 ## What is a subscription?
 
@@ -38,7 +38,7 @@ Organizations with an annual subscription qualify for different pricing tiers ba
 
 Using the Expensify Card also allows eligible organizations to earn cash back on qualifying purchases.
 
-To learn more, see [Understand Expensify Pricing](/articles/new-expensify/billing-and-subscriptions/learn-about-plans-and-subscriptions/Understand-Expensify-Pricing).
+To learn more, see [Understand Expensify Pricing](/articles/new-expensify/billing-and-subscriptions/learn-about-plans-subscriptions-and-pricing/Understand-Expensify-Pricing).
 
 ## How your monthly bill is calculated
 
@@ -57,4 +57,4 @@ Each Workspace has an owner, sometimes called the billing owner, who is responsi
 
 Workspace owners can add and update payment cards, view billing receipts, and manage workspace plan and subscription settings.
 
-To learn more, see [Understand Workspace Ownership](/articles/new-expensify/billing-and-subscriptions/Understand-Workspace-Ownership).
+To learn more, see [Understand Workspace Ownership](/articles/new-expensify/billing-and-subscriptions/Understand-Workspace-Ownership-and-Billing-Permissions).

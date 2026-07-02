@@ -6,7 +6,7 @@ internalScope: Audience is workspace owners and Workspace Admins. Explains works
 retrievalIntent: Explain Workspace ownership, billing responsibilities, owner permissions, admin permissions, and the differences between workspace owners and Workspace Admins.
 contentType: topic
 platform: new
-order: 3
+order: 6
 ---
 
 # Understand Workspace Ownership and Billing Permissions
@@ -65,5 +65,5 @@ To learn more, see Take Over Workspace Ownership.
 ## Related articles
 
 - [Understand Billing Terms and Definitions](/articles/new-expensify/billing-and-subscriptions/Understand-Billing-Terms-and-Definitions)
-- [How Subscriptions Plans and Billing Work](/articles/new-expensify/billing-and-subscriptions/How-Subscriptions-Plans-and-Billing-Work)
+- [How Subscriptions Plans and Billing Work](/articles/new-expensify/billing-and-subscriptions/Overview-of-How-Subscriptions-Plans-and-Billing-Work)
 

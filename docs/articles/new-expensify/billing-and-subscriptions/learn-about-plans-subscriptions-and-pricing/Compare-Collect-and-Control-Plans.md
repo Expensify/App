@@ -77,4 +77,4 @@ Yes. Every Workspace is created with either the Collect or Control plan.
 
 Yes. The Expensify Card is available with both plans. However, only the Control plan offers subscription pricing that nets a discount on qualifying Expensify Card usage.
 
-To learn more, see [How the Expensify Card Discount Works](/articles/new-expensify/billing-and-subscriptions/learn-about-plans-and-subscriptions/Understand-Expensify-Pricing#how-the-expensify-card-discount-works).  
+To learn more, see [How the Expensify Card Discount Works](/articles/new-expensify/billing-and-subscriptions/learn-about-plans-subscriptions-and-pricing/Understand-Expensify-Pricing#how-the-expensify-card-discount-works).  

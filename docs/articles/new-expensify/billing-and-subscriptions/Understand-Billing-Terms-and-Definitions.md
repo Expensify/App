@@ -37,7 +37,7 @@ Subscription types include:
 
 Your plan and subscription type are independent. For example, a Control workspace can use either an Annual or Pay-per-use subscription.
 
-To learn more, see [How Billing, Plans and Subscriptions Work](/articles/new-expensify/billing-and-subscriptions/How-Subscriptions-Plans-and-Billing-Work).
+To learn more, see [How Billing, Plans and Subscriptions Work](/articles/new-expensify/billing-and-subscriptions/Overview-of-How-Subscriptions-Plans-and-Billing-Work).
 
 ---
 
