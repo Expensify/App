@@ -13,7 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Accessibility from '@libs/Accessibility';
-import {isMobileChrome} from '@libs/Browser';
+import {isMobile} from '@libs/Browser';
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 import {getIsOffline} from '@libs/NetworkState';
 import variables from '@styles/variables';
@@ -77,7 +77,7 @@ function FeatureTrainingContentIllustration({
 
     const animationRef = useRef<LottieView | null>(null);
     useEffect(() => {
-        if (isMobileChrome() || !isCarousel || !animationRef.current || isReduceMotionEnabled) {
+        if (isMobile() || !isCarousel || !animationRef.current || isReduceMotionEnabled) {
             return;
         }
         if (isFocused) {
@@ -149,7 +149,7 @@ function FeatureTrainingContentIllustration({
                                 source={animation ?? LottieAnimations.Hands}
                                 style={styles.h100}
                                 webStyle={shouldUseNarrowLayout ? styles.h100 : undefined}
-                                autoPlay={isMobileChrome() || isFocused}
+                                autoPlay={isMobile() || isFocused}
                                 loop
                             />
                         )}
