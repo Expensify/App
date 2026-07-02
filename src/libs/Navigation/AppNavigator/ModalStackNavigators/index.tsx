@@ -910,6 +910,9 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_REPORT_EXPORT_STATUS]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/export/CertiniaReportExportStatusPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_COMPANY_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/CertiniaCompanySelectorPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/RilletSetupPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_EXISTING_CONNECTIONS]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/RilletExistingConnectionsPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_SUBSIDIARY_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/RilletSubsidiarySelector').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationSageIntacctAutoSyncPage').default,
@@ -1069,6 +1072,26 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.RULES_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesNewPage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddMerchantRulePage').default,
     [SCREENS.WORKSPACE.RULES_SPEND_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/SpendRules/AddSpendRulePage').default,
+    [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RequireFieldsRules/AddRequireFieldsRulePage').default,
+    [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RequireFieldsRules/EditRequireFieldsRulePage').default,
+    [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_CATEGORY]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RequireFieldsRules/RequireFieldsRuleCategoryPage').default,
+    [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_CATEGORY_EDIT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/rules/RequireFieldsRules/EditRequireFieldsRuleCategoryPage').default,
+    [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/FlagForReviewRules/AddFlagForReviewRulePage').default,
+    [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/FlagForReviewRules/EditFlagForReviewRulePage').default,
+    [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/rules/FlagForReviewRules/FlagForReviewRuleCategoryPage').default,
+    [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY_EDIT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/rules/FlagForReviewRules/EditFlagForReviewRuleCategoryPage').default,
+    [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/FlagForReviewRules/FlagForReviewRuleAmountPage').default,
+    [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT_EDIT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/rules/FlagForReviewRules/EditFlagForReviewRuleAmountPage').default,
+    [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/rules/FlagForReviewRules/FlagForReviewRuleAmountPage').default,
+    [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE_EDIT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/rules/FlagForReviewRules/EditFlagForReviewRuleAmountPage').default,
+    [SCREENS.WORKSPACE.RULES_MERCHANT_TYPE_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantTypeRules/EditMerchantTypeRulePage').default,
+    [SCREENS.WORKSPACE.RULES_MERCHANT_TYPE_CATEGORY]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantTypeRules/MerchantTypeRuleCategoryPage').default,
     [SCREENS.WORKSPACE.RULES_SPEND_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/SpendRules/EditSpendRulePage').default,
     [SCREENS.WORKSPACE.RULES_SPEND_CARD]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/SpendRules/SpendRuleCardPage').default,
     [SCREENS.WORKSPACE.RULES_SPEND_CATEGORY]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/SpendRules/SpendRuleCategoryPage').default,
