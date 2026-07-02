@@ -155,6 +155,7 @@ import {
     isGroupPolicy as isGroupPolicyPolicyUtils,
     isInstantSubmitEnabled,
     isPendingDeletePolicy,
+    isPerDiemEnabled,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
     isPolicyOwner,
@@ -5205,7 +5206,7 @@ function canEditFieldOfMoneyRequest({
                 // For unreported per diem expenses, check if there's a valid policy with rates.
                 const perDiemPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
                 const perDiemCustomUnit = getPerDiemCustomUnit(perDiemPolicy);
-                if (!perDiemPolicy?.arePerDiemRatesEnabled || isEmptyObject(perDiemCustomUnit?.rates)) {
+                if (!isPerDiemEnabled(perDiemPolicy) || isEmptyObject(perDiemCustomUnit?.rates)) {
                     return false;
                 }
             }
@@ -6212,11 +6213,15 @@ function hasReportNameError(report: OnyxEntry<Report>): boolean {
  * For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
  * For longer comments, skip parsing, but still escape the text, and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
  */
-function getParsedComment(text: string, parsingDetails?: ParsingDetails, mediaAttributes?: Record<string, string>, disabledRules?: string[]): string {
+function getParsedComment(text: string, parsingDetails?: ParsingDetails, mediaAttributes?: Record<string, string>, disabledRules?: string[], isGroupPolicyReportParam?: boolean): string {
     let isGroupPolicyReport = false;
     if (parsingDetails?.reportID) {
-        const currentReport = getReportOrDraftReport(parsingDetails?.reportID);
-        isGroupPolicyReport = isReportInGroupPolicy(currentReport);
+        if (isGroupPolicyReportParam !== undefined) {
+            isGroupPolicyReport = isGroupPolicyReportParam;
+        } else {
+            const currentReport = getReportOrDraftReport(parsingDetails.reportID);
+            isGroupPolicyReport = isReportInGroupPolicy(currentReport);
+        }
     }
 
     if (parsingDetails?.policyID) {
@@ -9448,6 +9453,7 @@ type ShouldReportBeInOptionListParams = {
     includeDomainEmail?: boolean;
     isReportArchived: boolean | undefined;
     draftComment: string | undefined;
+    conciergeReportID?: string;
     /** Pre-computed value from reportAttributes derived value. When provided, skips the expensive requiresAttentionFromCurrentUser recomputation. */
     requiresAttention?: boolean;
 };
@@ -9467,6 +9473,7 @@ function reasonForReportToBeInOptionList({
     currentUserAccountID,
     includeDomainEmail = false,
     isReportArchived,
+    conciergeReportID,
     requiresAttention,
 }: ShouldReportBeInOptionListParams): ValueOf<typeof CONST.REPORT_IN_LHN_REASONS> | null {
     const isInDefaultMode = !isInFocusMode;
@@ -9612,7 +9619,7 @@ function reasonForReportToBeInOptionList({
         isChatReport(report) &&
         !isPolicyExpenseChat(report) &&
         !isTripRoom(report) &&
-        !isConciergeChatReport(report) &&
+        !isConciergeChatReport(report, conciergeReportID) &&
         !isSystemChatReport &&
         !isSelfDMWithVisiblePreference &&
         canHideReport
@@ -11020,7 +11027,7 @@ function canBeAutoReimbursed(report: OnyxInputOrEntry<Report>, policy: OnyxInput
     const reimbursableTotal = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
     const autoReimbursementLimit = policy?.autoReimbursement?.limit ?? policy?.autoReimbursementLimit ?? 0;
     const isAutoReimbursable =
-        isReportInGroupPolicy(report) &&
+        isGroupPolicyPolicyUtils(policy) &&
         policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES &&
         autoReimbursementLimit >= reimbursableTotal &&
         reimbursableTotal > 0 &&
@@ -11306,6 +11313,8 @@ type CreateDraftTransactionParams = {
     currentUserAccountID: number;
     currentUserEmail: string;
     currentUserLocalCurrency: string;
+    filteredPoliciesCount: number;
+    firstPolicyID: string | undefined;
 };
 
 function createDraftTransactionAndNavigateToParticipantSelector({
@@ -11324,6 +11333,8 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     currentUserAccountID,
     currentUserEmail,
     currentUserLocalCurrency,
+    filteredPoliciesCount,
+    firstPolicyID,
 }: CreateDraftTransactionParams): void {
     const transactionID = transaction?.transactionID;
     if (!transactionID || !reportID) {
@@ -11372,24 +11383,6 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         participants: [],
     } as Transaction);
 
-    let firstPolicy: Policy | undefined;
-    let filteredPoliciesCount = 0;
-    for (const policy of policiesArray) {
-        if (!shouldShowPolicy(policy, false, deprecatedCurrentUserEmail)) {
-            continue;
-        }
-
-        if (filteredPoliciesCount === 0) {
-            firstPolicy = policy;
-        }
-        filteredPoliciesCount++;
-
-        // Short-circuit once we find 2 policies
-        if (filteredPoliciesCount > 1) {
-            break;
-        }
-    }
-
     if (actionName === CONST.IOU.ACTION.CATEGORIZE) {
         if (activePolicy && shouldRestrictUserBillableActions(activePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
@@ -11430,15 +11423,14 @@ function createDraftTransactionAndNavigateToParticipantSelector({
             return;
         }
 
-        const policyID = firstPolicy?.id;
-        const policyExpenseReportID = getPolicyExpenseChat(deprecatedCurrentUserAccountID, policyID)?.reportID;
+        const policyExpenseReportID = getPolicyExpenseChat(deprecatedCurrentUserAccountID, firstPolicyID)?.reportID;
         setMoneyRequestParticipants(transactionID, [
             {
                 selected: true,
                 accountID: 0,
                 isPolicyExpenseChat: true,
                 reportID: policyExpenseReportID,
-                policyID,
+                policyID: firstPolicyID,
                 searchText: activePolicy?.name,
             },
         ]);
@@ -11455,7 +11447,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         return;
     }
 
-    if (actionName === CONST.IOU.ACTION.SUBMIT || (allPolicies && filteredPoliciesCount > 0)) {
+    if (actionName === CONST.IOU.ACTION.SUBMIT || filteredPoliciesCount > 0) {
         // Check if user is restricted to preferred workspace for submit tracked expenses
         if (isRestrictedToPreferredPolicy && preferredPolicyID) {
             const policyExpenseReport = getPolicyExpenseChat(deprecatedCurrentUserAccountID, preferredPolicyID);
@@ -12392,7 +12384,7 @@ function getSourceIDFromReportAction(reportAction: OnyxEntry<ReportAction>): str
 
 function getIntegrationIcon(
     connectionName?: ConnectionName,
-    expensifyIcons?: Record<'XeroSquare' | 'QBOSquare' | 'NetSuiteSquare' | 'IntacctSquare' | 'QBDSquare' | 'CertiniaSquare' | 'GustoSquare', IconAsset> | undefined,
+    expensifyIcons?: Record<'XeroSquare' | 'QBOSquare' | 'NetSuiteSquare' | 'IntacctSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare' | 'GustoSquare', IconAsset> | undefined,
 ) {
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.XERO) {
         return expensifyIcons?.XeroSquare;
@@ -12411,6 +12403,9 @@ function getIntegrationIcon(
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.CERTINIA) {
         return expensifyIcons?.CertiniaSquare;
+    }
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.RILLET) {
+        return expensifyIcons?.RilletSquare;
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.GUSTO) {
         return expensifyIcons?.GustoSquare;
@@ -13493,7 +13488,6 @@ export {
     isGroupChat,
     isGroupChatAdmin,
     isHarvestCreatedExpenseReport,
-    isReportInGroupPolicy,
     isHoldCreator,
     isIOUOwnedByCurrentUser,
     isIOUReport,
@@ -13524,6 +13518,7 @@ export {
     isReportFieldDisabled,
     isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
+    isReportInGroupPolicy,
     isReportManager,
     isReportOwner,
     isReportParticipant,

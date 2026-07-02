@@ -21,6 +21,7 @@ function EmptyStateComponent({
     subtitleStyles,
     children,
     headerStyles,
+    foregroundStyles,
     cardStyles,
     cardContentStyles,
     headerContentStyles,
@@ -42,7 +43,7 @@ function EmptyStateComponent({
 
     return (
         <View style={[{minHeight: minModalHeight}, styles.flexGrow1, styles.flexShrink0, containerStyles]}>
-            <View style={styles.emptyStateForeground}>
+            <View style={[styles.emptyStateForeground, foregroundStyles]}>
                 <View style={[styles.emptyStateContent, cardStyles]}>
                     <View style={[styles.emptyStateHeader, headerStyles]}>{HeaderComponent}</View>
                     <View style={[styles.ph2, styles.pb2, cardContentStyles]}>

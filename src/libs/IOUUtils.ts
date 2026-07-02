@@ -1,3 +1,4 @@
+import {SafeString} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
@@ -6,7 +7,6 @@ import ROUTES from '@src/ROUTES';
 import type {OnyxInputOrEntry, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
-import SafeString from '@src/utils/SafeString';
 import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import {isGroupPolicy} from './PolicyUtils';
@@ -444,7 +444,11 @@ function getInitialPerDiemTargetReport(
     defaultExpensePolicy: OnyxEntry<Pick<Policy, 'autoReporting'>>,
     personalPolicy: OnyxEntry<Pick<Policy, 'autoReporting'>>,
     isFromGlobalCreate: boolean,
-): {targetReport: OnyxEntry<Report>; targetIouType: IOUType; transactionReportID: string | undefined} {
+): {
+    targetReport: OnyxEntry<Report>;
+    targetIouType: IOUType;
+    transactionReportID: string | undefined;
+} {
     let targetReport = report;
     let targetIouType = iouType;
 
