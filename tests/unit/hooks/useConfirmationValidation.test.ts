@@ -97,6 +97,8 @@ const baseParams = {
     isTimeRequest: false,
     routeError: undefined,
     isNewManualExpenseFlowEnabled: false,
+    isReadOnly: false,
+    shouldShowDate: true,
 } satisfies UseConfirmationValidationParams;
 
 function createValidationParamsForParticipant(
@@ -744,6 +746,97 @@ describe('useConfirmationValidation', () => {
                 }),
             );
             expect(result.current.validate()).toEqual({errorKey: 'iou.error.invalidAmount'});
+        });
+    });
+
+    describe('date validation — inline required date in new manual expense flow', () => {
+        const newManualFlowParams = {
+            ...baseParams,
+            isNewManualExpenseFlowEnabled: true,
+        };
+
+        it('returns fieldRequired for manual expense when the date is removed', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation(createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, newManualFlowParams, {created: '', isAmountSet: true})),
+            );
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+        });
+
+        it('returns fieldRequired for distance expense when the date is removed', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation({
+                    ...newManualFlowParams,
+                    isDistanceRequest: true,
+                    transaction: createTransactionBase({
+                        amount: 1000,
+                        created: '',
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                        participants: [POLICY_EXPENSE_CHAT_PARTICIPANT],
+                        comment: {type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT},
+                    }),
+                    selectedParticipants: [POLICY_EXPENSE_CHAT_PARTICIPANT],
+                }),
+            );
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+        });
+
+        it('returns fieldRequired for time expense when the date is removed', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation({
+                    ...newManualFlowParams,
+                    isTimeRequest: true,
+                    transaction: createTransactionBase({
+                        amount: 1000,
+                        created: '',
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.TIME,
+                        participants: [POLICY_EXPENSE_CHAT_PARTICIPANT],
+                        comment: {type: CONST.TRANSACTION.TYPE.TIME, units: {count: 1, rate: 100}},
+                    }),
+                    selectedParticipants: [POLICY_EXPENSE_CHAT_PARTICIPANT],
+                }),
+            );
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+        });
+
+        it('returns fieldRequired for invoice when the date is removed', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation(
+                    createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {...newManualFlowParams, iouType: CONST.IOU.TYPE.INVOICE}, {created: '', isAmountSet: true}),
+                ),
+            );
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+        });
+
+        it('does not return fieldRequired when the date is present', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation(createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, newManualFlowParams, {created: '2025-01-15', isAmountSet: true})),
+            );
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('does not return fieldRequired when the fields are read-only (date populated server-side)', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation(
+                    createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {...newManualFlowParams, isReadOnly: true}, {created: '', isAmountSet: true}),
+                ),
+            );
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('does not return fieldRequired when the date field is not shown (pure scan flow)', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation(
+                    createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {...newManualFlowParams, shouldShowDate: false}, {created: '', isAmountSet: true}),
+                ),
+            );
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('does not return fieldRequired when the new manual expense flow beta is disabled', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation(createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {isNewManualExpenseFlowEnabled: false}, {created: '', isAmountSet: true})),
+            );
+            expect(result.current.validate()).toEqual({errorKey: null});
         });
     });
 });
