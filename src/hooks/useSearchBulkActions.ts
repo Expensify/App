@@ -65,6 +65,7 @@ import {
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, isDefaultExpensesQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import {getColumnsToShow, getSearchColumnTranslationKey, getSelectedGroupFilterEntry, getValidGroupBy, navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
+import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
@@ -108,6 +109,7 @@ import useOnyx from './useOnyx';
 import {getParticipantsInvoiceReport} from './useParticipantsInvoiceReport';
 import usePaymentContext from './usePaymentContext';
 import usePermissions from './usePermissions';
+import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import useSelfDMReport from './useSelfDMReport';
@@ -556,6 +558,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const firstTransactionReport = firstTransactionFetchedReport ?? (isFirstTransactionUnreported ? selfDMReport : undefined);
     const [firstTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${firstTransactionReport?.policyID}`);
     const splitEffectivePolicy = useSplitEffectivePolicy(firstTransactionReport, undefined, firstTransaction);
+    const personalPolicy = usePersonalPolicy();
     const restrictedActionPolicyID = useRestrictedActionPolicyID(firstTransactionPolicy);
 
     // Use the split-aware delete hook for bulk transaction deletion so split children trigger
@@ -911,89 +914,85 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return;
         }
 
-        TransitionTracker.runAfterTransitions({
-            callback: async () => {
-                const result = await showConfirmModal({
-                    title: deleteModalTitle,
-                    prompt: deleteModalPrompt,
-                    confirmText: translate('common.delete'),
-                    cancelText: translate('common.cancel'),
-                    danger: true,
-                });
-                if (result.action !== ModalActions.CONFIRM) {
-                    return;
-                }
-                const validTransactions = Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, Transaction] => entry[1] !== undefined));
-                if (isExpenseReportType) {
-                    for (const reportID of selectedReportIDs) {
-                        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-                        deleteAppReport({
-                            report,
-                            reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`],
-                            parentReportAction: report?.parentReportActionID
-                                ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report?.parentReportActionID]
-                                : undefined,
-                            selfDMReport,
-                            currentUserEmailParam: email ?? '',
-                            currentUserAccountIDParam: accountID,
-                            reportTransactions: validTransactions,
-                            allTransactionViolations,
-                            bankAccountList,
-                            hash,
-                        });
-                    }
-                } else {
-                    const transactionsViolations = allTransactionViolations
-                        ? Object.fromEntries(Object.entries(allTransactionViolations).filter((entry): entry is [string, TransactionViolations] => !!entry[1]))
-                        : {};
-                    // Partition selection into whole-report deletions and individual transactions.
-                    // The selection key equals the reportID for whole-report rows.
-                    const wholeReportIDs: string[] = [];
-                    const transactionIDsToDelete: string[] = [];
-                    for (const key of Object.keys(selectedTransactions)) {
-                        const selectedItem = selectedTransactions[key];
-                        if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
-                            wholeReportIDs.push(selectedItem.reportID);
-                        }
-                    }
-                    for (const key of Object.keys(selectedTransactions)) {
-                        const selectedItem = selectedTransactions[key];
-                        if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
-                            continue;
-                        }
-                        if (!selectedItem.reportID || !wholeReportIDs.includes(selectedItem.reportID)) {
-                            transactionIDsToDelete.push(key);
-                        }
-                    }
-
-                    // Route individual transactions through the split-aware hook so that deleting a
-                    // split child triggers updateSplitTransactions (e.g. reverse-split) instead of a
-                    // bare deleteMoneyRequest.
-                    if (transactionIDsToDelete.length > 0) {
-                        deleteTransactionsFromHook(transactionIDsToDelete, duplicateTransactions, duplicateTransactionViolations, hash);
-                    }
-
-                    // Whole-report deletions keep their existing path.
-                    for (const reportID of wholeReportIDs) {
-                        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-                        deleteAppReport({
-                            report,
-                            reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`],
-                            parentReportAction: report?.parentReportActionID
-                                ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report?.parentReportActionID]
-                                : undefined,
-                            selfDMReport,
-                            currentUserEmailParam: email ?? '',
-                            currentUserAccountIDParam: accountID,
-                            reportTransactions: validTransactions,
-                            allTransactionViolations: transactionsViolations,
-                            bankAccountList,
-                        });
-                    }
-                }
-                clearSelectedTransactions();
-            },
+        const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
+            title: deleteModalTitle,
+            prompt: deleteModalPrompt,
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            danger: true,
         });
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        const validTransactions = Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, Transaction] => entry[1] !== undefined));
+        if (isExpenseReportType) {
+            for (const reportID of selectedReportIDs) {
+                const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                deleteAppReport({
+                    report,
+                    reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`],
+                    parentReportAction: report?.parentReportActionID
+                        ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report?.parentReportActionID]
+                        : undefined,
+                    selfDMReport,
+                    currentUserEmailParam: email ?? '',
+                    currentUserAccountIDParam: accountID,
+                    reportTransactions: validTransactions,
+                    allTransactionViolations,
+                    bankAccountList,
+                    hash,
+                });
+            }
+        } else {
+            const transactionsViolations = allTransactionViolations
+                ? Object.fromEntries(Object.entries(allTransactionViolations).filter((entry): entry is [string, TransactionViolations] => !!entry[1]))
+                : {};
+            // Partition selection into whole-report deletions and individual transactions.
+            // The selection key equals the reportID for whole-report rows.
+            const wholeReportIDs: string[] = [];
+            const transactionIDsToDelete: string[] = [];
+            for (const key of Object.keys(selectedTransactions)) {
+                const selectedItem = selectedTransactions[key];
+                if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
+                    wholeReportIDs.push(selectedItem.reportID);
+                }
+            }
+            for (const key of Object.keys(selectedTransactions)) {
+                const selectedItem = selectedTransactions[key];
+                if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
+                    continue;
+                }
+                if (!selectedItem.reportID || !wholeReportIDs.includes(selectedItem.reportID)) {
+                    transactionIDsToDelete.push(key);
+                }
+            }
+
+            // Route individual transactions through the split-aware hook so that deleting a
+            // split child triggers updateSplitTransactions (e.g. reverse-split) instead of a
+            // bare deleteMoneyRequest.
+            if (transactionIDsToDelete.length > 0) {
+                deleteTransactionsFromHook(transactionIDsToDelete, duplicateTransactions, duplicateTransactionViolations, hash);
+            }
+
+            // Whole-report deletions keep their existing path.
+            for (const reportID of wholeReportIDs) {
+                const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                deleteAppReport({
+                    report,
+                    reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`],
+                    parentReportAction: report?.parentReportActionID
+                        ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report?.parentReportActionID]
+                        : undefined,
+                    selfDMReport,
+                    currentUserEmailParam: email ?? '',
+                    currentUserAccountIDParam: accountID,
+                    reportTransactions: validTransactions,
+                    allTransactionViolations: transactionsViolations,
+                    bankAccountList,
+                });
+            }
+        }
+        clearSelectedTransactions();
     }, [
         hash,
         showConfirmModal,
@@ -2058,7 +2057,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 icon: expensifyIcons.ArrowSplit,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SPLIT,
                 onSelected: () => {
-                    initSplitExpense(firstTransaction, firstTransactionReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, {isProduction});
+                    initSplitExpense(firstTransaction, firstTransactionReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, personalPolicy?.outputCurrency, {
+                        isProduction,
+                    });
                 },
             });
         }
@@ -2200,6 +2201,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         personalDetails,
         selfDMReportID,
         splitEffectivePolicy,
+        personalPolicy?.outputCurrency,
         restrictedActionPolicyID,
         doSelectedItemsBelongToSubmitPolicy,
         openSearchReportSubmitToPopover,
