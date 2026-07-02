@@ -36,7 +36,6 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         menuHeaderText = '',
         customText,
         style,
-        buttonStyle,
         disabledStyle,
         buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
         anchorAlignment = defaultAnchorAlignment,
@@ -147,15 +146,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
             isActive: useKeyboardShortcuts,
         },
     );
-    const splitButtonWrapperStyle = isSplitButton ? [styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter] : undefined;
-    let dropdownButtonStyle;
-    if (isSplitButton) {
-        dropdownButtonStyle = [splitButtonWrapperStyle, style];
-    } else if (style) {
-        dropdownButtonStyle = [styles.w100, style];
-    }
-    const defaultStyle = style ? styles.w100 : undefined;
-    const nonSplitButtonStyle = buttonStyle ? [styles.w100, buttonStyle] : defaultStyle;
+    const splitButtonWrapperStyle = isSplitButton ? [styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter] : {};
     const isTextTooLong = customText && customText?.length > 6;
 
     const handlePress = useCallback(
@@ -176,7 +167,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     return (
         <View style={wrapperStyle}>
             {shouldAlwaysShowDropdownMenu || options.length > 1 ? (
-                <View style={dropdownButtonStyle}>
+                <View style={[splitButtonWrapperStyle, style]}>
                     <Button
                         success={success}
                         pressOnEnter={pressOnEnter}
@@ -188,7 +179,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         shouldStayNormalOnDisable={shouldStayNormalOnDisable}
                         isLoading={isLoading}
                         shouldRemoveRightBorderRadius
-                        style={isSplitButton ? [styles.pr0, styles.flexGrow1, styles.flexShrink1] : nonSplitButtonStyle}
+                        style={isSplitButton ? [styles.pr0, styles.flexGrow1, styles.flexShrink1] : {}}
                         extraSmall={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL}
                         large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                         medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}

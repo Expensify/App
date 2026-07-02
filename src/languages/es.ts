@@ -1631,10 +1631,6 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Mover a informe',
         moveExpensesError: 'No puedes mover gastos per diem a informes de otros espacios de trabajo, porque las tarifas de dietas pueden diferir entre espacios de trabajo.',
-        submitReportTo: {
-            sendExpense: 'Envía tu gasto a cualquier persona',
-            sendExpenseSubtitle: 'Invita a cualquiera a Expensify usando su dirección de correo electrónico o número de teléfono.',
-        },
         changeApprover: {
             title: 'Cambiar aprobador',
             header: (workflowSettingLink) =>

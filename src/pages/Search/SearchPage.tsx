@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import Animated from 'react-native-reanimated';
-import {ReportSubmitToPopoverHost, SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SearchParams} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
@@ -129,39 +128,38 @@ function SearchPage({route}: SearchPageProps) {
     });
 
     return (
-        <ReportSubmitToPopoverHost anchorAlignment={SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT}>
-            <PaymentContextProvider>
-                <Animated.View style={[styles.flex1]}>
-                    {shouldUseNarrowLayout ? (
-                        <SearchPageNarrow
-                            queryJSON={currentSearchQueryJSON}
-                            metadata={metadata}
-                            searchResults={searchResults}
-                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                            onSortPressedCallback={onSortPressedCallback}
-                            searchOverlayContent={searchOverlayContent}
-                            onSearchContentReady={onSearchContentReady}
-                            hasFilterBars={hasFilterBars}
-                            isOverlayActive={isOverlayActive}
-                        />
-                    ) : (
-                        <SearchPageWide
-                            queryJSON={currentSearchQueryJSON}
-                            searchResults={searchResults}
-                            searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                            handleSearchAction={handleSearchAction}
-                            onSortPressedCallback={onSortPressedCallback}
-                            route={route}
-                            searchOverlayContent={searchOverlayContent}
-                            onSearchContentReady={onSearchContentReady}
-                        />
-                    )}
-                </Animated.View>
-            </PaymentContextProvider>
-        </ReportSubmitToPopoverHost>
+        <PaymentContextProvider>
+            <Animated.View style={[styles.flex1]}>
+                {shouldUseNarrowLayout ? (
+                    <SearchPageNarrow
+                        queryJSON={currentSearchQueryJSON}
+                        metadata={metadata}
+                        searchResults={searchResults}
+                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                        onSortPressedCallback={onSortPressedCallback}
+                        searchOverlayContent={searchOverlayContent}
+                        onSearchContentReady={onSearchContentReady}
+                        hasFilterBars={hasFilterBars}
+                        isOverlayActive={isOverlayActive}
+                    />
+                ) : (
+                    <SearchPageWide
+                        queryJSON={currentSearchQueryJSON}
+                        searchResults={searchResults}
+                        searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                        handleSearchAction={handleSearchAction}
+                        onSortPressedCallback={onSortPressedCallback}
+                        route={route}
+                        searchOverlayContent={searchOverlayContent}
+                        onSearchContentReady={onSearchContentReady}
+                    />
+                )}
+            </Animated.View>
+        </PaymentContextProvider>
     );
 }
+
 SearchPage.whyDidYouRender = true;
 
 export default SearchPage;

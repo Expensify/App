@@ -10,12 +10,6 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReportSearchHeader from '@components/ReportSearchHeader';
-import {
-    ReportSubmitToPopoverAnchor,
-    SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT,
-    useOpenReportSubmitToPopover,
-    useSearchSubmitPopoverGuard,
-} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
@@ -108,9 +102,6 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
     /** Whether the down arrow is expanded */
     isExpanded?: boolean;
 
-    /** Whether the action button should be disabled */
-    shouldDisableActionPointerEvents?: boolean;
-
     /** Parent chat report resolved from live Onyx with search snapshot fallback */
     chatReport?: OnyxEntry<Report>;
 };
@@ -126,7 +117,6 @@ function HeaderFirstRow<TItem extends ListItem>({
     isIndeterminate,
     onDownArrowClick,
     isExpanded,
-    shouldDisableActionPointerEvents = false,
     chatReport,
 }: FirstRowReportHeaderProps<TItem>) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
@@ -209,7 +199,6 @@ function HeaderFirstRow<TItem extends ListItem>({
                         hash={reportItem.hash}
                         amount={reportItem.total}
                         extraSmall={!isLargeScreenWidth}
-                        shouldDisablePointerEvents={shouldDisableActionPointerEvents}
                         chatReport={chatReport}
                     />
                 </View>
@@ -218,18 +207,7 @@ function HeaderFirstRow<TItem extends ListItem>({
     );
 }
 
-function ReportListItemHeader<TItem extends ListItem>(props: ReportListItemHeaderProps<TItem>) {
-    return (
-        <ReportSubmitToPopoverAnchor
-            reportID={props.report.reportID}
-            anchorAlignment={SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT}
-        >
-            <ReportListItemHeaderInner {...props} />
-        </ReportSubmitToPopoverAnchor>
-    );
-}
-
-function ReportListItemHeaderInner<TItem extends ListItem>({
+function ReportListItemHeader<TItem extends ListItem>({
     report: reportItem,
     onSelectRow,
     onCheckboxPress,
@@ -283,9 +261,6 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     const avatarBorderColor =
         StyleUtils.getItemBackgroundColorStyle(isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
-    const openReportSubmitToPopover = useOpenReportSubmitToPopover();
-    const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
-
     const handleOnButtonPress = (event?: ModifiedMouseEvent) => {
         handleActionButtonPress({
             hash: currentSearchHash,
@@ -303,9 +278,6 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             personalPolicyID,
             ownerBillingGracePeriodEnd,
             amountOwed,
-            openReportSubmitToPopover,
-            shouldDisableSearchSubmitPress,
-            consumeIgnoreNextSearchSubmitPress,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
             currentUserAccountID,
             currentUserLogin,
@@ -336,13 +308,11 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
                 onCheckboxPress={onCheckboxPress}
                 isDisabled={isDisabled}
                 canSelectMultiple={canSelectMultiple}
-                handleOnButtonPress={handleOnButtonPress}
                 avatarBorderColor={avatarBorderColor}
                 isSelectAllChecked={isSelectAllChecked}
                 isIndeterminate={isIndeterminate}
                 onDownArrowClick={onDownArrowClick}
                 isExpanded={isExpanded}
-                shouldDisableActionPointerEvents={shouldDisableSearchSubmitPress}
             />
         </View>
     ) : (
@@ -358,7 +328,6 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
                 isIndeterminate={isIndeterminate}
                 onDownArrowClick={onDownArrowClick}
                 isExpanded={isExpanded}
-                shouldDisableActionPointerEvents={shouldDisableSearchSubmitPress}
                 chatReport={chatReport}
             />
         </View>

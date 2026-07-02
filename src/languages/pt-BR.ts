@@ -1659,10 +1659,6 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Mover para relatório',
         moveExpensesError: 'Você não pode mover despesas de diária para relatórios em outros workspaces, porque as tarifas de diária podem ser diferentes entre os workspaces.',
-        submitReportTo: {
-            sendExpense: 'Envie sua despesa para qualquer pessoa',
-            sendExpenseSubtitle: 'Convide qualquer pessoa para o Expensify usando o endereço de e-mail ou número de telefone.',
-        },
         changeApprover: {
             title: 'Alterar aprovador',
             header: (workflowSettingLink: string) =>

@@ -1610,10 +1610,6 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: '移动到报告',
         moveExpensesError: '您无法将每日津贴报销移动到其他工作区的报表中，因为不同工作区的每日津贴标准可能不同。',
-        submitReportTo: {
-            sendExpense: '将你的报销发送给任何人',
-            sendExpenseSubtitle: '使用电子邮箱地址或电话号码邀请任何人加入 Expensify。',
-        },
         changeApprover: {
             title: '更改审批人',
             header: (workflowSettingLink: string) => `选择一个选项来更改此报表的审批人。（更新你的<a href="${workflowSettingLink}">工作区设置</a>，以将其永久应用于所有报表。）`,

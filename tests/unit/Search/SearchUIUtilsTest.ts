@@ -2155,40 +2155,6 @@ describe('SearchUIUtils', () => {
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
         });
 
-        test('Should return `Submit` action for open expense report on Submit workspace when default submit-to is the owner', () => {
-            const submitPolicyID = 'submitPolicy1';
-            const submitReportID = '6520936998330986';
-            const localSearchResults = {
-                ...searchResults.data,
-                [`policy_${submitPolicyID}`]: {
-                    ...policy,
-                    id: submitPolicyID,
-                    type: CONST.POLICY.TYPE.SUBMIT,
-                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
-                    employeeList: {
-                        [adminEmail]: {
-                            email: adminEmail,
-                            submitsTo: adminEmail,
-                        },
-                    },
-                },
-                [`report_${submitReportID}`]: {
-                    ...report1,
-                    reportID: submitReportID,
-                    policyID: submitPolicyID,
-                    ownerAccountID: adminAccountID,
-                    managerID: adminAccountID,
-                },
-                [`transactions_${transactionID}`]: {
-                    ...searchResults.data[`transactions_${transactionID}`],
-                    reportID: submitReportID,
-                },
-            };
-
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${submitReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminEmail, adminAccountID, {}, {}).at(0);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
-        });
-
         test('Should return `View` action for transaction on policy with delayed submission and with violations when current user is submitter and the expense was submitted', async () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: submitterAccountID});
             const localSearchResults = {

@@ -103,7 +103,6 @@ function MoneyReportHeaderKYCDropdown({
                     options={applicableSecondaryActions}
                     isSplitButton={false}
                     wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && !customText && !isInLandscapeMode && styles.flex1, !!customText && styles.w100]}
-                    style={shouldDisplayNarrowVersion && !primaryAction && !customText && !isInLandscapeMode ? styles.w100 : undefined}
                     shouldUseModalPaddingStyle
                     onOptionsMenuHide={onOptionsMenuHide}
                     sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.MORE_BUTTON}
