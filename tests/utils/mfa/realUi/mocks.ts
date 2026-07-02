@@ -18,7 +18,10 @@ const pendingModalClose = {
     run: () => {
         const callback = pendingCloseCallback;
         pendingCloseCallback = undefined;
-        callback?.();
+        if (!callback) {
+            throw new Error('No close callback was captured. The navigator schedules it through Navigation.runAfterUpcomingTransition when it enters the closing state.');
+        }
+        callback();
     },
     clear: () => {
         pendingCloseCallback = undefined;
