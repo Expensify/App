@@ -71,7 +71,7 @@ function GroupChildrenContent({
             cardFeeds,
             conciergeReportID,
             convertToDisplayString,
-            reportAttributesDerivedValue,
+            reportAttributesDerivedValue: undefined,
         }) as [TransactionListItemType[], number, boolean];
         return sectionData.map((transactionItem) => ({
             ...transactionItem,
@@ -90,7 +90,6 @@ function GroupChildrenContent({
         cardFeeds,
         conciergeReportID,
         convertToDisplayString,
-        reportAttributesDerivedValue,
         selectedTransactionIDsSet,
     ]);
 
