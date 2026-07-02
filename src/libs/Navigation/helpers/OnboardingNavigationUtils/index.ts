@@ -1,6 +1,13 @@
 import {StackActions} from '@react-navigation/native';
+import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import navigationRef from '@libs/Navigation/navigationRef';
 import NAVIGATORS from '@src/NAVIGATORS';
+
+function dismissOnboardingModalBeforeExit() {}
+
+function getOnboardingExitNavigationOptions(): LinkToOptions | undefined {
+    return {forceReplace: true};
+}
 
 /**
  * Pops the nested OnboardingModalNavigator stack back to its first route so useLinking
@@ -26,4 +33,4 @@ function resetOnboardingStackToRoot() {
     });
 }
 
-export default resetOnboardingStackToRoot;
+export {dismissOnboardingModalBeforeExit, getOnboardingExitNavigationOptions, resetOnboardingStackToRoot};

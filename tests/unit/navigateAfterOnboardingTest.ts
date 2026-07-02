@@ -1,5 +1,5 @@
 import {navigateAfterOnboarding} from '@libs/navigateAfterOnboarding';
-import getOnboardingExitNavigationOptions from '@libs/Navigation/helpers/getOnboardingExitNavigationOptions';
+import {getOnboardingExitNavigationOptions} from '@libs/Navigation/helpers/OnboardingNavigationUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type * as ReportUtils from '@libs/ReportUtils';
 
