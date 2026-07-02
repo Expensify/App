@@ -1,4 +1,4 @@
-import React, {useDeferredValue, useEffect, useId, useRef, useState} from 'react';
+import React, {useDeferredValue, useEffect, useId, useState} from 'react';
 import type {ReactNode, RefObject} from 'react';
 import {View} from 'react-native';
 import Pencil from '@assets/images/pencil.svg';
@@ -10,7 +10,7 @@ import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import {useEditingCellActions, useEditingCellState} from './EditingCellContext';
+import {useEditingCellActions} from './EditingCellContext';
 
 type EditIconPosition = 'left' | 'right';
 
@@ -61,13 +61,10 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     const {translate} = useLocalize();
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     const [isEditIconFocused, setIsEditIconFocused] = useState(false);
-    const [shouldSuppressEditIconHover, setShouldSuppressEditIconHover] = useState(false);
     const isEditable = isLargeScreenWidth && !shouldUseNarrowLayout;
     const cellId = useId();
     const {setIsEditingCell, setFocusedCellId} = useEditingCellActions();
-    const {wasRecentlyEditingCell} = useEditingCellState();
     const isInteractive = useDeferredValue(true, false);
-    const isCellHoveredRef = useRef(false);
 
     useEffect(() => {
         if (!isEditable || !isEditing) {
@@ -84,33 +81,13 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
 
         const animationFrame = requestAnimationFrame(() => {
             setIsEditIconFocused(false);
-            setShouldSuppressEditIconHover(true);
             setFocusedCellId(null);
         });
 
         return () => cancelAnimationFrame(animationFrame);
     }, [isEditing, isEditable, setFocusedCellId]);
 
-    useEffect(() => {
-        if (!wasRecentlyEditingCell) {
-            return;
-        }
-
-        const animationFrame = requestAnimationFrame(() => {
-            if (isEditIconFocused || isCellHoveredRef.current) {
-                setShouldSuppressEditIconHover(false);
-                return;
-            }
-
-            setIsEditIconFocused(false);
-            setShouldSuppressEditIconHover(true);
-        });
-
-        return () => cancelAnimationFrame(animationFrame);
-    }, [isEditIconFocused, wasRecentlyEditingCell]);
-
     const handleEditIconFocus = () => {
-        setShouldSuppressEditIconHover(false);
         setIsEditIconFocused(true);
         setFocusedCellId(cellId);
     };
@@ -120,18 +97,7 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
         setFocusedCellId(null);
     };
 
-    const handleCellHoverIn = () => {
-        isCellHoveredRef.current = true;
-        setShouldSuppressEditIconHover(false);
-    };
-
-    const handleCellHoverOut = () => {
-        isCellHoveredRef.current = false;
-        setShouldSuppressEditIconHover(false);
-    };
-
     const handleEditIconMouseDown = () => {
-        setShouldSuppressEditIconHover(false);
         setIsEditIconFocused(true);
         setFocusedCellId(cellId);
     };
@@ -170,12 +136,9 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     }
 
     return (
-        <Hoverable
-            onHoverIn={handleCellHoverIn}
-            onHoverOut={handleCellHoverOut}
-        >
+        <Hoverable>
             {(isCellHovered) => {
-                const shouldShowEditIcon = isEditIconFocused || (!wasRecentlyEditingCell && !shouldSuppressEditIconHover && isCellHovered);
+                const shouldShowEditIcon = isEditIconFocused || isCellHovered;
 
                 return (
                     <View style={styles.editableCell}>
