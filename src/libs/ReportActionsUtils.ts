@@ -1598,7 +1598,7 @@ function withDEWRoutedActionsObject(reportActions: OnyxEntry<ReportActions>): On
 }
 
 /**
- * This method returns the report actions that are ready for display in the ReportActionsView.
+ * This method returns the report actions that are ready for display in the ReportActionsList.
  * The report actions need to be sorted by created timestamp first, and reportActionID second
  * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
  * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
@@ -2794,6 +2794,10 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
                 case CONST.EXPORT_LABELS.CERTINIA:
                     // The first three characters in a Salesforce ID is the expense type
                     url = nonReimbursableUrls.at(0)?.substring(0, SALESFORCE_EXPENSES_URL_PREFIX.length + 3) ?? '';
+                    break;
+                case CONST.EXPORT_LABELS.RILLET:
+                    // TODO Test in R3 https://github.com/Expensify/App/issues/94848
+                    url = '';
                     break;
                 default:
                     url = QBO_EXPENSES_URL;

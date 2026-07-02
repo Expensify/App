@@ -1,6 +1,6 @@
+import {Str} from 'expensify-common';
 import ts from 'typescript';
 import TSCompilerUtils from '../../scripts/utils/TSCompilerUtils';
-import dedent from '../../src/libs/StringUtils/dedent';
 
 function createSourceFile(content: string): ts.SourceFile {
     return ts.createSourceFile('test.ts', content, ts.ScriptTarget.Latest, true);
@@ -14,7 +14,7 @@ describe('TSCompilerUtils', () => {
     describe('addImport', () => {
         it('adds a default import after an existing import', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     import fs from 'fs';
                     console.log('hello');
                 `),
@@ -22,7 +22,7 @@ describe('TSCompilerUtils', () => {
             const updated = TSCompilerUtils.addImport(source, 'myModule', 'some-path');
             const output = printSourceFile(updated);
             expect(output).toBe(
-                dedent(`
+                Str.dedent(`
                     import fs from 'fs';
                     import myModule from "some-path";
                     console.log('hello');
@@ -32,14 +32,14 @@ describe('TSCompilerUtils', () => {
 
         it('adds a default import at the top when there are no imports', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     console.log('hello');
                 `),
             );
             const updated = TSCompilerUtils.addImport(source, 'myModule', 'some-path');
             const output = printSourceFile(updated);
             expect(output).toBe(
-                dedent(`
+                Str.dedent(`
                     import myModule from "some-path";
                     console.log('hello');
                 `),
@@ -48,7 +48,7 @@ describe('TSCompilerUtils', () => {
 
         it('adds after multiple imports', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     import fs from 'fs';
                     import path from 'path';
 
@@ -60,7 +60,7 @@ describe('TSCompilerUtils', () => {
             const updated = TSCompilerUtils.addImport(source, 'myModule', 'some-path');
             const output = printSourceFile(updated);
             expect(output).toBe(
-                dedent(`
+                Str.dedent(`
                     import fs from 'fs';
                     import path from 'path';
                     import myModule from "some-path";
@@ -77,7 +77,7 @@ describe('TSCompilerUtils', () => {
             const output = printSourceFile(updated);
 
             expect(output).toBe(
-                dedent(`
+                Str.dedent(`
                     import init from "./init";
                 `),
             );
@@ -85,7 +85,7 @@ describe('TSCompilerUtils', () => {
 
         it('supports type-only imports', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     import fs from 'fs';
                     console.log('hello');
                 `),
@@ -93,7 +93,7 @@ describe('TSCompilerUtils', () => {
             const updated = TSCompilerUtils.addImport(source, 'MyType', 'some-path', true);
             const output = printSourceFile(updated);
             expect(output).toBe(
-                dedent(`
+                Str.dedent(`
                     import fs from 'fs';
                     import type MyType from "some-path";
                     console.log('hello');
@@ -104,7 +104,7 @@ describe('TSCompilerUtils', () => {
 
     describe('findDefaultExport', () => {
         it('returns the identifier in `export default` statement', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 const strings = { greeting: 'Hello' };
                 export default strings;
             `);
@@ -114,7 +114,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('returns the object literal if directly exported', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 export default { farewell: 'Goodbye' };
             `);
             const ast = createSourceFile(code);
@@ -128,7 +128,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('returns null if no default export is present', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 const foo = 'bar';
                 export const greeting = 'Hello';
             `);
@@ -138,7 +138,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('returns identifier for `export { foo as default }`', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 const foo = { bar: 'baz' };
                 export { foo as default };
             `);
@@ -150,7 +150,7 @@ describe('TSCompilerUtils', () => {
 
     describe('resolveDeclaration', () => {
         it('resolves a variable declaration', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 const foo = { message: 'hi' };
             `);
             const ast = createSourceFile(code);
@@ -165,7 +165,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('resolves a function declaration', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 function greet() {
                     return 'hello';
                 }
@@ -182,7 +182,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('resolves a class declaration', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 class MyClass {
                     method() {}
                 }
@@ -199,7 +199,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('returns null for unknown identifier', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 const foo = 123;
             `);
             const ast = createSourceFile(code);
@@ -208,7 +208,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('returns declaration even if variable has no initializer', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 let foo;
             `);
             const ast = createSourceFile(code);
@@ -331,7 +331,7 @@ describe('TSCompilerUtils', () => {
 
     describe('extractKeyFromPropertyNode', () => {
         it('extracts key from property assignment with identifier', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 const obj = {
                     myKey: 'value'
                 };
@@ -346,7 +346,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('extracts key from property assignment with string literal', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 const obj = {
                     "myStringKey": 'value'
                 };
@@ -361,7 +361,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('extracts key from method declaration', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 const obj = {
                     myMethod() {
                         return 'hello';
@@ -378,7 +378,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('handles computed property names by returning undefined', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 const obj = {
                     [computedKey]: 'value'
                 };
@@ -393,7 +393,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('handles numeric literal property names by returning undefined', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 const obj = {
                     123: 'value'
                 };
@@ -408,7 +408,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('handles method declaration with complex name by returning undefined', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 const obj = {
                     [Symbol.iterator]() {
                         return {};
@@ -425,7 +425,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('handles arrow function property assignment', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 const obj = {
                     arrowFunc: () => 'hello'
                 };
@@ -442,7 +442,7 @@ describe('TSCompilerUtils', () => {
 
     describe('addImport', () => {
         it('adds import when it does not exist', () => {
-            const sourceCode = dedent(`
+            const sourceCode = Str.dedent(`
                 const strings = {
                     greeting: 'Hello'
                 };
@@ -458,7 +458,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('does not add duplicate import when it already exists', () => {
-            const sourceCode = dedent(`
+            const sourceCode = Str.dedent(`
                 import type en from './en';
                 const strings = {
                     greeting: 'Hello'
@@ -476,7 +476,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('distinguishes between type and value imports', () => {
-            const sourceCode = dedent(`
+            const sourceCode = Str.dedent(`
                 import en from './en';
                 const strings = {
                     greeting: 'Hello'
@@ -494,7 +494,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('handles different module paths', () => {
-            const sourceCode = dedent(`
+            const sourceCode = Str.dedent(`
                 import type en from './other';
                 const strings = {
                     greeting: 'Hello'
@@ -514,7 +514,7 @@ describe('TSCompilerUtils', () => {
 
     describe('buildDotNotationPath', () => {
         it('builds path from nested property assignment', () => {
-            const sourceCode = dedent(`
+            const sourceCode = Str.dedent(`
                 const strings = {
                     common: {
                         save: 'Save'
@@ -558,7 +558,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('builds path from top-level property', () => {
-            const sourceCode = dedent(`
+            const sourceCode = Str.dedent(`
                 const strings = {
                     greeting: 'Hello'
                 };
@@ -590,7 +590,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('builds path with custom root node', () => {
-            const sourceCode = dedent(`
+            const sourceCode = Str.dedent(`
                 const strings = {
                     common: {
                         save: 'Save'
@@ -635,7 +635,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('returns null for nodes without property assignments', () => {
-            const sourceCode = dedent(`
+            const sourceCode = Str.dedent(`
                 const greeting = 'Hello';
             `);
 
@@ -655,7 +655,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('handles deeply nested paths', () => {
-            const sourceCode = dedent(`
+            const sourceCode = Str.dedent(`
                 const strings = {
                     level1: {
                         level2: {
@@ -765,7 +765,7 @@ describe('TSCompilerUtils', () => {
 
     describe('createPathAwareVisitor', () => {
         it('should create visitor that builds correct paths for property assignments', () => {
-            const sourceCode = dedent(`
+            const sourceCode = Str.dedent(`
                 const strings = {
                     greeting: 'Hello',
                     common: {
@@ -803,7 +803,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('should handle nested paths correctly', () => {
-            const sourceCode = dedent(`
+            const sourceCode = Str.dedent(`
                 const strings = {
                     common: {
                         save: 'Save',
@@ -850,7 +850,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('should work with forEachChild for non-transforming traversal', () => {
-            const sourceCode = dedent(`
+            const sourceCode = Str.dedent(`
                 const strings = {
                     greeting: 'Hello',
                     farewell: 'Goodbye'
@@ -888,7 +888,7 @@ describe('TSCompilerUtils', () => {
     describe('objectHas', () => {
         it('returns true for top-level property that exists', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     const obj = {
                         greeting: 'Hello',
                         farewell: 'Goodbye',
@@ -904,7 +904,7 @@ describe('TSCompilerUtils', () => {
 
         it('returns false for top-level property that does not exist', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     const obj = {
                         greeting: 'Hello',
                         farewell: 'Goodbye',
@@ -918,7 +918,7 @@ describe('TSCompilerUtils', () => {
 
         it('returns true for nested property that exists', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     const obj = {
                         common: {
                             save: 'Save',
@@ -939,7 +939,7 @@ describe('TSCompilerUtils', () => {
 
         it('returns false for nested property that does not exist', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     const obj = {
                         common: {
                             save: 'Save',
@@ -960,7 +960,7 @@ describe('TSCompilerUtils', () => {
 
         it('returns false when trying to traverse into a non-object property', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     const obj = {
                         greeting: 'Hello',
                         common: {
@@ -977,7 +977,7 @@ describe('TSCompilerUtils', () => {
 
         it('returns true for deeply nested properties', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     const obj = {
                         level1: {
                             level2: {
@@ -996,7 +996,7 @@ describe('TSCompilerUtils', () => {
 
         it('returns false for partially correct deeply nested paths', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     const obj = {
                         level1: {
                             level2: {
@@ -1016,7 +1016,7 @@ describe('TSCompilerUtils', () => {
 
         it('handles empty object', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     const obj = {};
                 `),
             );
@@ -1439,7 +1439,7 @@ describe('TSCompilerUtils', () => {
     describe('getIndentationOfNode', () => {
         it('should return 0 for a node at column 0', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     const x = 1;
                 `),
             );
@@ -1450,7 +1450,7 @@ describe('TSCompilerUtils', () => {
 
         it('should return correct indentation for a node with leading spaces', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     function example() {
                         const x = 1;
                     }
@@ -1470,7 +1470,7 @@ describe('TSCompilerUtils', () => {
 
         it('should handle nested indentation', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     class MyClass {
                         method() {
                             if (true) {

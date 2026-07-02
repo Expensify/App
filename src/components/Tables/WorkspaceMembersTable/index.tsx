@@ -39,7 +39,7 @@ type WorkspaceMembersTableProps = {
     ref?: React.Ref<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>> | undefined;
     members: WorkspaceMemberRowData[];
     policy: OnyxEntry<Policy>;
-    isPolicyAdmin: boolean;
+    canSelectMembers: boolean;
     selectedKeys: string[];
     shouldShowCustomField1Column: boolean;
     shouldShowCustomField2Column: boolean;
@@ -53,11 +53,12 @@ const WORKSPACE_MEMBER_FILTER_VALUES = {
     CARD_ADMINS: 'cardAdmins',
     EDITORS: 'editors',
     MEMBERS: 'members',
+    PEOPLE_ADMINS: 'peopleAdmins',
 } as const;
 
 export default function WorkspaceMembersTable({
     ref,
-    isPolicyAdmin,
+    canSelectMembers,
     policy,
     selectedKeys,
     shouldShowCustomField1Column,
@@ -111,43 +112,82 @@ export default function WorkspaceMembersTable({
 
     const compareTableItems: CompareItemsCallback<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey> = (item1, item2, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
+        const memberNameComparison = localeCompare(item1.name, item2.name) * orderMultiplier;
 
         if (activeSorting.columnKey === 'member') {
-            return localeCompare(item1.name, item2.name) * orderMultiplier;
+            return memberNameComparison;
         }
 
         if (activeSorting.columnKey === 'role') {
+            if (!item1.role && !item2.role) {
+                return memberNameComparison;
+            }
+
             if (!item1.role) {
                 return 1;
             }
+
             if (!item2.role) {
                 return -1;
             }
-            return localeCompare(item1.role, item2.role) * orderMultiplier;
+
+            const roleComparison = localeCompare(translate('workspace.common.roleName', item1.role), translate('workspace.common.roleName', item2.role));
+
+            if (roleComparison !== 0) {
+                return roleComparison * orderMultiplier;
+            }
+
+            return memberNameComparison;
         }
 
         if (activeSorting.columnKey === 'customField1') {
             const item1CustomField1Value = item1.employeeUserID;
             const item2CustomField1Value = item2.employeeUserID;
+
+            if (!item1CustomField1Value && !item2CustomField1Value) {
+                return memberNameComparison;
+            }
+
             if (!item1CustomField1Value) {
                 return 1;
             }
+
             if (!item2CustomField1Value) {
                 return -1;
             }
-            return localeCompare(item1CustomField1Value, item2CustomField1Value) * orderMultiplier;
+
+            const employeeIdComparison = localeCompare(item1CustomField1Value, item2CustomField1Value);
+
+            if (employeeIdComparison !== 0) {
+                return employeeIdComparison * orderMultiplier;
+            }
+
+            return memberNameComparison;
         }
 
         if (activeSorting.columnKey === 'customField2') {
             const item1CustomField2Value = item1.employeePayrollID;
             const item2CustomField2Value = item2.employeePayrollID;
+
+            if (!item1CustomField2Value && !item2CustomField2Value) {
+                return memberNameComparison;
+            }
+
             if (!item1CustomField2Value) {
                 return 1;
             }
+
             if (!item2CustomField2Value) {
                 return -1;
             }
-            return localeCompare(item1CustomField2Value, item2CustomField2Value) * orderMultiplier;
+
+            const payrollIdComparison = localeCompare(item1CustomField2Value, item2CustomField2Value);
+
+            if (payrollIdComparison !== 0) {
+                return payrollIdComparison * orderMultiplier;
+            }
+
+            return memberNameComparison;
         }
 
         return 1;
@@ -183,6 +223,11 @@ export default function WorkspaceMembersTable({
             return true;
         }
 
+        const isPeopleAdmin = item.role === CONST.POLICY.ROLE.PEOPLE_ADMIN;
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.PEOPLE_ADMINS) && isPeopleAdmin) {
+            return true;
+        }
+
         const isEditor = item.role === CONST.POLICY.ROLE.EDITOR;
         if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.EDITORS) && isEditor) {
             return true;
@@ -211,6 +256,11 @@ export default function WorkspaceMembersTable({
         filterConfig.role.options.push({
             label: translate('workspace.people.cardAdmins'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.CARD_ADMINS,
+        });
+
+        filterConfig.role.options.push({
+            label: translate('workspace.people.peopleAdmins'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.PEOPLE_ADMINS,
         });
 
         filterConfig.role.options.push({
@@ -249,7 +299,7 @@ export default function WorkspaceMembersTable({
             data={members}
             filters={filterConfig}
             selectedKeys={selectedKeys}
-            selectionEnabled={isPolicyAdmin}
+            selectionEnabled={canSelectMembers}
             columns={workspaceMembersColumns}
             initialSortColumn="member"
             title={translate('common.members')}

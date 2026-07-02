@@ -41,23 +41,40 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
     const limitTypeLabel = translate(getTranslationKeyForLimitType(item.limitType));
     const formattedLimit = convertToShortDisplayString(item.limit, item.currency);
     const formattedFrozenDate = item.frozenDate ? DateUtils.formatWithUTCTimeZone(item.frozenDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
-    const frozenByAdminPrefix = translate('cardPage.frozenByAdminPrefix', {date: formattedFrozenDate});
     let frozenByText: string | undefined;
     if (formattedFrozenDate) {
-        frozenByText =
-            item.frozenByAccountID === session?.accountID
-                ? translate('cardPage.youFroze', {date: formattedFrozenDate})
-                : `${frozenByAdminPrefix}${item.frozenByDisplayName ?? translate('common.someone')}`;
+        if (item.frozenByAccountID === session?.accountID) {
+            frozenByText = translate('cardPage.youFroze', {date: formattedFrozenDate});
+        } else {
+            const frozenByAdminPrefix = translate('cardPage.frozenByAdminPrefix', {date: formattedFrozenDate});
+            frozenByText = `${frozenByAdminPrefix}${item.frozenByDisplayName ?? translate('common.someone')}`;
+        }
     }
 
     const accessibilityLabel = [cardholderName, item.name, cardType, limitTypeLabel, item.lastFourPAN, formattedLimit, frozenByText].filter(Boolean).join(', ');
+
+    const frozenByRowFooter = !!frozenByText && (
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt1]}>
+            <Icon
+                src={icons.FreezeCard}
+                fill={theme.icon}
+                small
+            />
+            <Text
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                style={[styles.textLabelSupporting, styles.colorMuted, styles.ml2, styles.flexShrink1, shouldUseNarrowTableLayout ? styles.lh16 : styles.textMicro]}
+            >
+                {frozenByText}
+            </Text>
+        </View>
+    );
 
     return (
         <Table.Row
             interactive
             rowIndex={rowIndex}
             accessibilityLabel={accessibilityLabel}
-            skeletonReasonAttributes={{context: 'workspaceExpensifyCardsTableRow'}}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ROW}
             offlineWithFeedback={{
                 errors: item.errors,
@@ -65,6 +82,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                 shouldHideOnDelete: false,
                 onClose: item.onClose,
             }}
+            rowFooter={frozenByRowFooter}
             onPress={item.action}
         >
             {({hovered}) => (
@@ -97,16 +115,6 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                                     text={item.name}
                                     style={styles.textLabelSupporting}
                                 />
-                            )}
-                            {!!frozenByText && (
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt1]}>
-                                    <Icon
-                                        src={icons.FreezeCard}
-                                        fill={theme.icon}
-                                        small
-                                    />
-                                    <Text style={[styles.textLabelSupporting, styles.colorMuted, styles.ml2]}>{frozenByText}</Text>
-                                </View>
                             )}
                         </View>
                     </View>
