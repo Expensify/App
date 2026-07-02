@@ -6323,6 +6323,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 one: 'Ustaw jako audytora',
                 other: 'Utwórz audytorów',
             }),
+            makePeopleAdmin: () => ({
+                one: 'Ustaw jako administratora osób',
+                other: 'Ustaw administratorów osób',
+            }),
             selectAll: 'Zaznacz wszystko',
             error: {
                 genericAdd: 'Wystąpił problem z dodaniem tego członka przestrzeni roboczej',
@@ -6355,6 +6359,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             syncWithHR: (providerName: string) => `Synchronizuj z ${providerName}`,
             makeCardAdmin: () => ({one: 'Ustaw jako administratora karty', other: 'Ustaw administratorów kart'}),
             cardAdmins: 'Administratorzy kart',
+            peopleAdmins: 'Administratorzy osób',
             members: 'Członkowie',
         },
         card: {

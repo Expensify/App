@@ -1257,7 +1257,6 @@
 "../../src/pages/workspace/WorkspaceInitialPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/WorkspaceMembersPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/WorkspaceMembersPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/WorkspaceMembersPage.tsx"	"react-hooks/exhaustive-deps"	1
 "../../src/pages/workspace/WorkspaceMembersPage.tsx"	"react-hooks/refs"	1
 "../../src/pages/workspace/WorkspaceNewRoomPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/workspace/WorkspaceNewRoomPage.tsx"	"react-hooks/set-state-in-effect"	3
