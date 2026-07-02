@@ -1,5 +1,5 @@
-import Button from '@components/Button';
-
+import React from 'react';
+import Button from '@components/ButtonComposed';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 
@@ -19,15 +19,16 @@ function MarkAsResolvedPrimaryAction({reportID, chatReportID}: SimpleActionProps
 
     return (
         <Button
-            success
+            variant="success"
             onPress={() => {
                 if (!transaction?.transactionID) {
                     return;
                 }
                 markRejectViolationAsResolved(transaction.transactionID, isOffline, transactionThreadReport?.reportID);
             }}
-            text={translate('iou.reject.markAsResolved')}
-        />
+        >
+            <Button.Text>{translate('iou.reject.markAsResolved')}</Button.Text>
+        </Button>
     );
 }
 

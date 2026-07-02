@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -267,19 +267,21 @@ function TransactionDuplicateReview() {
                     </ScrollView>
                     <FixedFooter style={[styles.mtAuto, styles.gap3]}>
                         <Button
-                            success={hasSettledOrApprovedTransaction}
-                            large
-                            text={translate('iou.keepAll')}
+                            variant={hasSettledOrApprovedTransaction ? 'success' : undefined}
+                            size={CONST.BUTTON_SIZE.LARGE}
                             onPress={keepAll}
-                        />
+                        >
+                            <Button.Text>{translate('iou.keepAll')}</Button.Text>
+                        </Button>
                         {!hasSettledOrApprovedTransaction && (
                             <Button
-                                success
-                                large
-                                text={translate('iou.keepSelected')}
+                                variant="success"
+                                size={CONST.BUTTON_SIZE.LARGE}
                                 onPress={keepSelected}
                                 isDisabled={!selectedTransaction || !selectedTransactionReport}
-                            />
+                            >
+                                <Button.Text>{translate('iou.keepSelected')}</Button.Text>
+                            </Button>
                         )}
                     </FixedFooter>
                 </View>

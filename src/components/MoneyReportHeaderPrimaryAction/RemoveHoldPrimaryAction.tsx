@@ -1,4 +1,5 @@
-import Button from '@components/Button';
+import React from 'react';
+import Button from '@components/ButtonComposed';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -34,8 +35,7 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
 
     return (
         <Button
-            success
-            text={translate('iou.unhold')}
+            variant="success"
             onPress={() => {
                 if (isDelegateAccessRestricted) {
                     showDelegateNoAccessModal();
@@ -63,7 +63,9 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
                 const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${linkedTransaction?.transactionID}`];
                 changeMoneyRequestHoldStatus(moneyRequestAction, linkedTransaction, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations);
             }}
-        />
+        >
+            <Button.Text>{translate('iou.unhold')}</Button.Text>
+        </Button>
     );
 }
 

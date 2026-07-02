@@ -1,4 +1,7 @@
-import Button from '@components/Button';
+import {domainNameSelector, groupsSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
+import React, {useState} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -67,7 +70,7 @@ function MoveUserBetweenGroupsPage({route}: MoveUserBetweenGroupsPageProps) {
         setSelectedGroupId(item.value);
     };
 
-    const handleSave = () => {
+    const moveToSelectedGroup = () => {
         if (!selectedGroupId || !domainName || !userSecurityGroup || !memberLogin) {
             return;
         }
@@ -86,6 +89,8 @@ function MoveUserBetweenGroupsPage({route}: MoveUserBetweenGroupsPageProps) {
         changeDomainSecurityGroup(domainAccountID, domainName, memberLogin, accountID, userSecurityGroup.key, userSecurityGroup.securityGroup, newSecurityGroupKey);
         Navigation.goBack(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID));
     };
+
+    const isSaveDisabled = !selectedGroupId || selectedGroupId === currentGroupId || !memberLogin;
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
@@ -110,13 +115,18 @@ function MoveUserBetweenGroupsPage({route}: MoveUserBetweenGroupsPageProps) {
                 />
                 <FixedFooter>
                     <Button
-                        success
-                        large
-                        pressOnEnter
-                        text={translate('common.save')}
-                        onPress={handleSave}
-                        isDisabled={!selectedGroupId || selectedGroupId === currentGroupId || !memberLogin}
-                    />
+                        variant="success"
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        onPress={moveToSelectedGroup}
+                        isDisabled={isSaveDisabled}
+                    >
+                        <Button.KeyboardShortcut
+                            pressOnEnter
+                            onPress={moveToSelectedGroup}
+                            isDisabled={isSaveDisabled}
+                        />
+                        <Button.Text>{translate('common.save')}</Button.Text>
+                    </Button>
                 </FixedFooter>
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>

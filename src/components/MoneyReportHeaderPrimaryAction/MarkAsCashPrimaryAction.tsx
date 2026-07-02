@@ -1,5 +1,5 @@
-import Button from '@components/Button';
-
+import React from 'react';
+import Button from '@components/ButtonComposed';
 import useLocalize from '@hooks/useLocalize';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 
@@ -18,15 +18,16 @@ function MarkAsCashPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
 
     return (
         <Button
-            success
-            text={translate('iou.markAsCash')}
+            variant="success"
             onPress={() => {
                 if (!requestParentReportAction || !iouTransactionID || !transactionThreadReport?.reportID) {
                     return;
                 }
                 markAsCashAction(iouTransactionID, transactionThreadReport.reportID, transactionViolations);
             }}
-        />
+        >
+            <Button.Text>{translate('iou.markAsCash')}</Button.Text>
+        </Button>
     );
 }
 

@@ -1,9 +1,10 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FormHelpMessage from '@components/FormHelpMessage';
 
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -37,13 +38,13 @@ function FormHelpMessageRowWithRetryButton({message, isButtonSmall = false, onRe
                 style={[styles.mt0, styles.mb0, shouldAlignButtonToMessage ? styles.flexShrink1 : styles.flex1]}
             />
             <Button
-                small={isButtonSmall}
-                medium={!isButtonSmall}
-                text={translate('domain.retry')}
+                size={isButtonSmall ? CONST.BUTTON_SIZE.SMALL : CONST.BUTTON_SIZE.MEDIUM}
+                variant={danger ? 'danger' : undefined}
                 onPress={onRetry}
                 isDisabled={isOffline}
-                danger={danger}
-            />
+            >
+                <Button.Text>{translate('domain.retry')}</Button.Text>
+            </Button>
         </View>
     );
 }

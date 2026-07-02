@@ -1,4 +1,9 @@
-import Button from '@components/Button';
+import type {NavigationState} from '@react-navigation/native';
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 
@@ -247,10 +252,9 @@ function DebugTabView({selectedTab}: Props) {
                     />
                     {!!message && <Text style={[StyleUtils.getColorStyle(theme.text), styles.lh20]}>{translate(message)}</Text>}
                 </View>
-                <Button
-                    text={translate('common.view')}
-                    onPress={navigateTo}
-                />
+                <Button onPress={navigateTo}>
+                    <Button.Text>{translate('common.view')}</Button.Text>
+                </Button>
             </View>
         </View>
     );

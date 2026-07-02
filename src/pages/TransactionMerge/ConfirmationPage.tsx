@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -71,7 +71,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     // Build the merged transaction data for display
     const mergedTransactionData = buildMergedTransactionData(targetTransaction, mergeTransaction);
 
-    const handleMergeExpenses = () => {
+    const mergeExpenses = () => {
         if (!targetTransaction || !mergeTransaction || !sourceTransaction) {
             return;
         }
@@ -154,11 +154,12 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                 </ScrollView>
                 <FixedFooter style={styles.ph5}>
                     <Button
-                        text={translate('transactionMerge.confirmationPage.confirmButton')}
-                        success
-                        onPress={handleMergeExpenses}
-                        large
-                    />
+                        variant="success"
+                        onPress={mergeExpenses}
+                        size={CONST.BUTTON_SIZE.LARGE}
+                    >
+                        <Button.Text>{translate('transactionMerge.confirmationPage.confirmButton')}</Button.Text>
+                    </Button>
                 </FixedFooter>
             </FullPageNotFoundView>
         </ScreenWrapper>

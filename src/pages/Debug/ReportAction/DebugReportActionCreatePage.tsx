@@ -1,4 +1,7 @@
-import Button from '@components/Button';
+import React, {useCallback, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -152,11 +155,12 @@ function DebugReportActionCreatePage({
                         </View>
                         <Text style={[styles.headerText, styles.textAlignCenter]}>{translate('debug.hint')}</Text>
                         <Button
-                            success
-                            text={translate('common.save')}
+                            variant="success"
                             isDisabled={!draftReportAction || !!error}
                             onPress={createReportAction}
-                        />
+                        >
+                            <Button.Text>{translate('common.save')}</Button.Text>
+                        </Button>
                     </ScrollView>
                 </View>
             )}

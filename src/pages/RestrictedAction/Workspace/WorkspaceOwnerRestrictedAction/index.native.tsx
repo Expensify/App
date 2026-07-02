@@ -1,5 +1,5 @@
 import Badge from '@components/Badge';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
-
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React, {useCallback, useMemo} from 'react';
@@ -58,11 +58,12 @@ function WorkspaceOwnerRestrictedAction() {
                     <Text style={[styles.textHeadlineH1, styles.mb4]}>{translate('workspace.restrictedAction.addPaymentCardToContinueUsingWorkspace')}</Text>
                     <Text style={[styles.textLabelSupportingEmptyValue, styles.mb5]}>{translate('workspace.restrictedAction.youWillNeedToAddOrUpdatePaymentCard')}</Text>
                     <Button
-                        text={translate('workspace.restrictedAction.goToSubscription')}
                         onPress={goToSubscription}
-                        success
-                        large
-                    />
+                        variant="success"
+                        size={CONST.BUTTON_SIZE.LARGE}
+                    >
+                        <Button.Text>{translate('workspace.restrictedAction.goToSubscription')}</Button.Text>
+                    </Button>
                 </View>
             </ScrollView>
         </ScreenWrapper>

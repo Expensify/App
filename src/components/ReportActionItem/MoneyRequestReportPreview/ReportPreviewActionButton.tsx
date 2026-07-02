@@ -1,4 +1,7 @@
-import Button from '@components/Button';
+import React from 'react';
+import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ExportWithDropdownMenu from '@components/ReportActionItem/ExportWithDropdownMenu';
 
@@ -248,10 +251,11 @@ function ReportPreviewActionButton({
 
         return (
             <Button
-                text={translate('common.view')}
                 onPress={openReportFromPreview}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.VIEW_BUTTON}
-            />
+            >
+                <Button.Text>{translate('common.view')}</Button.Text>
+            </Button>
         );
     };
 

@@ -1,4 +1,7 @@
-import Button from '@components/Button';
+import React, {useState} from 'react';
+import {View} from 'react-native';
+import {ScrollView} from 'react-native-gesture-handler';
+import Button from '@components/ButtonComposed';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
@@ -66,6 +69,14 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
             return;
         }
         Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
+    };
+
+    const submitSomethingElseGoal = () => {
+        if (!somethingElseText.trim()) {
+            setInputError(translate('common.error.fieldRequired'));
+            return;
+        }
+        completeTrackGoalSelection(somethingElseText.trim());
     };
 
     const menuIcons = {
@@ -158,18 +169,16 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
             {isSomethingElseSelected && (
                 <View style={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}>
                     <Button
-                        success
-                        large
-                        text={translate('common.continue')}
-                        onPress={() => {
-                            if (!somethingElseText.trim()) {
-                                setInputError(translate('common.error.fieldRequired'));
-                                return;
-                            }
-                            completeTrackGoalSelection(somethingElseText.trim());
-                        }}
-                        pressOnEnter
-                    />
+                        variant="success"
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        onPress={submitSomethingElseGoal}
+                    >
+                        <Button.KeyboardShortcut
+                            pressOnEnter
+                            onPress={submitSomethingElseGoal}
+                        />
+                        <Button.Text>{translate('common.continue')}</Button.Text>
+                    </Button>
                 </View>
             )}
         </ScreenWrapper>

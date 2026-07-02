@@ -1,4 +1,5 @@
-import Button from '@components/Button';
+import React, {useCallback, useMemo, useState} from 'react';
+import Button from '@components/ButtonComposed';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -104,6 +105,15 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
             });
     }, [translate, selectedCompanySize, onboardingValues?.signupQualifier]);
 
+    const submitCompanySize = () => {
+        if (!selectedCompanySize) {
+            setError(translate('onboarding.errorSelection'));
+            return;
+        }
+        setOnboardingCompanySize(selectedCompanySize);
+        Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
+    };
+
     const footerContent = (
         <>
             {!!error && (
@@ -114,20 +124,17 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                 />
             )}
             <Button
-                success
-                large
-                text={translate('common.continue')}
-                onPress={() => {
-                    if (!selectedCompanySize) {
-                        setError(translate('onboarding.errorSelection'));
-                        return;
-                    }
-                    setOnboardingCompanySize(selectedCompanySize);
-                    Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
-                }}
-                pressOnEnter
+                variant="success"
+                size={CONST.BUTTON_SIZE.LARGE}
+                onPress={submitCompanySize}
                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
-            />
+            >
+                <Button.KeyboardShortcut
+                    pressOnEnter
+                    onPress={submitCompanySize}
+                />
+                <Button.Text>{translate('common.continue')}</Button.Text>
+            </Button>
         </>
     );
 

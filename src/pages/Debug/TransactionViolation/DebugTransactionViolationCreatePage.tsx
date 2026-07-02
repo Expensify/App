@@ -1,4 +1,6 @@
-import Button from '@components/Button';
+import React, {useCallback, useState} from 'react';
+import {View} from 'react-native';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -130,11 +132,12 @@ function DebugTransactionViolationCreatePage({
                         </View>
                         <Text style={[styles.headerText, styles.textAlignCenter]}>{translate('debug.hint')}</Text>
                         <Button
-                            success
-                            text={translate('common.save')}
+                            variant="success"
                             isDisabled={!draftTransactionViolation || !!error}
                             onPress={createTransactionViolation}
-                        />
+                        >
+                            <Button.Text>{translate('common.save')}</Button.Text>
+                        </Button>
                     </ScrollView>
                 </View>
             )}

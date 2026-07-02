@@ -1,4 +1,6 @@
-import Button from '@components/Button';
+import {delegateEmailSelector} from '@selectors/Account';
+import React from 'react';
+import Button from '@components/ButtonComposed';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -79,11 +81,12 @@ function ApproveActionButton({iouReportID, startApprovedAnimation, onHoldMenuOpe
 
     return (
         <Button
-            text={translate('iou.approve')}
-            success
+            variant="success"
             onPress={confirmApproval}
             sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.APPROVE_BUTTON}
-        />
+        >
+            <Button.Text>{translate('iou.approve')}</Button.Text>
+        </Button>
     );
 }
 
