@@ -169,6 +169,11 @@ const restrictedImportPaths = [
         name: '@src/utils/findNodeHandle',
         message: "Do not use 'findNodeHandle' as it is no longer supported on web.",
     },
+    {
+        name: '@components/Button',
+        importNames: ['default'],
+        message: 'The old Button is deprecated. Please use the composed Button from `@components/ButtonComposed` instead. See migration-button.md.',
+    },
 ];
 
 const restrictedImportPatterns = [
