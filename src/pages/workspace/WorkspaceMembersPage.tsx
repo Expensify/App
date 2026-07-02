@@ -66,6 +66,7 @@ import {
     isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyApprover,
+    isSubmitPolicy,
     shouldFilterExpensifyTeam,
 } from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
@@ -350,10 +351,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const shouldShowCustomField1Column = isControlPolicyWithWideLayout && hasAnyCustomField1;
     const shouldShowCustomField2Column = isControlPolicyWithWideLayout && hasAnyCustomField2;
 
+    // Submit workspaces have a flat role model where every member, including the owner, is an Editor.
+    const isSubmitWorkspace = isSubmitPolicy(policy);
+
     const data: WorkspaceMemberRowData[] = useMemo(() => {
+        const ownerDisplayRole = isSubmitWorkspace ? CONST.POLICY.ROLE.EDITOR : CONST.POLICY.ROLE.OWNER;
         return filteredMembers.map(({policyEmployee, accountID, details}) => {
             const isPendingDeleteOrError = canEditWorkspaceSettings && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors));
-            const role = policy?.owner === details.login ? CONST.POLICY.ROLE.OWNER : policyEmployee.role;
+            const role = policy?.owner === details.login ? ownerDisplayRole : policyEmployee.role;
 
             const login = details.login ?? '';
             const memberEmail = formatPhoneNumber(login);
@@ -391,6 +396,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         canWriteMembers,
         currentUserLogin,
         policy,
+        isSubmitWorkspace,
         formatPhoneNumber,
         session?.accountID,
         shouldShowCustomField1Column,
