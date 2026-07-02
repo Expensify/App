@@ -1,13 +1,21 @@
-// eslint-disable-next-line no-restricted-imports -- InteractionManager defers past popover dismiss animations on native
-import {InteractionManager} from 'react-native';
+import CONST from '@src/CONST';
+import getPlatform from './getPlatform';
+import TransitionTracker from './Navigation/TransitionTracker';
 
 /**
- * Presents a blocking modal after active UI interactions complete (e.g. payment popover dismiss).
+ * Presents a blocking modal after the payment popover dismisses.
  * On iOS, presenting a modal while another modal is dismissing freezes the app.
  */
 function deferModalPresentationAfterPopoverDismiss(presentModal: () => void) {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- InteractionManager is widely used and kept alive via a dedicated RN patch
-    InteractionManager.runAfterInteractions(presentModal);
+    if (getPlatform() !== CONST.PLATFORM.IOS) {
+        presentModal();
+        return;
+    }
+
+    TransitionTracker.runAfterTransitions({
+        callback: presentModal,
+        waitForUpcomingTransition: true,
+    });
 }
 
 export default deferModalPresentationAfterPopoverDismiss;

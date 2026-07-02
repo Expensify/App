@@ -48,6 +48,7 @@ import {
     buildParticipantsFromAccountIDs,
     buildTransactionThread,
     canAddTransaction,
+    canBeAutoReimbursed,
     canCreateRequest,
     canDeleteMoneyRequestReport,
     canDeleteReportAction,
@@ -16151,6 +16152,8 @@ describe('ReportUtils', () => {
                 currentUserAccountID,
                 currentUserEmail,
                 currentUserLocalCurrency: '',
+                filteredPoliciesCount: 0,
+                firstPolicyID: undefined,
             });
 
             expect(Navigation.navigate).not.toHaveBeenCalled();
@@ -16192,6 +16195,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should navigate to the restricted action page
@@ -16229,6 +16234,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should navigate to the restricted action page
@@ -16270,6 +16277,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should navigate to the category step
@@ -16313,6 +16322,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 1,
+                    firstPolicyID: ownPolicy.id,
                 });
 
                 // Then it should automatically pick the available policy and navigate to the category step
@@ -16343,6 +16354,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should navigate to the upgrade page because no policies were found to categorize with
@@ -16394,6 +16407,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 2,
+                    firstPolicyID: policy1.id,
                 });
 
                 // Then it should navigate to the upgrade page because it's ambiguous which policy to use
@@ -16441,6 +16456,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should log a warning and not navigate
@@ -16488,6 +16505,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should NOT navigate to restricted action page, but to category step
@@ -16527,10 +16546,125 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should navigate to restricted action page
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
+            });
+
+            it('should use policies param to determine filtered policies count instead of Onyx-connected policiesArray', async () => {
+                // Given a transaction and a policy passed via policies param (not set in Onyx)
+                const transaction = createRandomTransaction(7);
+                const policyFromParam = {
+                    ...createRandomPolicy(108),
+                    ownerAccountID: currentUserAccountID,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    pendingAction: null,
+                };
+                const policyExpenseReport = {
+                    ...createPolicyExpenseChat(4),
+                    policyID: policyFromParam.id,
+                    ownerAccountID: currentUserAccountID,
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${1}`, {});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseReport.reportID}`, policyExpenseReport);
+
+                // When we pass the policy via policies param with no activePolicy
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    reportID: '1',
+                    actionName: CONST.IOU.ACTION.CATEGORIZE,
+                    reportActionID: '1',
+                    introSelected: undefined,
+                    draftTransactionIDs: [],
+                    activePolicy: undefined,
+                    userBillingGracePeriodEnds: undefined,
+                    amountOwed: 0,
+                    transaction,
+                    currentUserAccountID,
+                    currentUserEmail,
+                    currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 1,
+                    firstPolicyID: policyFromParam.id,
+                });
+
+                // Then it should pick the policy from the policies param and navigate to the category step
+                expect(Navigation.navigate).toHaveBeenCalledWith(
+                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
+                );
+            });
+
+            it('should navigate to participant selector when policies param has policies and action is SUBMIT', async () => {
+                // Given a transaction and a policy passed via policies param
+                const transaction = createRandomTransaction(8);
+                const policyFromParam = {
+                    ...createRandomPolicy(109),
+                    ownerAccountID: currentUserAccountID,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    pendingAction: null,
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${1}`, {});
+
+                // When we call with SUBMIT action and policies containing a valid policy
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    reportID: '1',
+                    actionName: CONST.IOU.ACTION.SUBMIT,
+                    reportActionID: '1',
+                    introSelected: undefined,
+                    draftTransactionIDs: [],
+                    activePolicy: undefined,
+                    userBillingGracePeriodEnds: undefined,
+                    amountOwed: 0,
+                    transaction,
+                    currentUserAccountID,
+                    currentUserEmail,
+                    currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 1,
+                    firstPolicyID: policyFromParam.id,
+                });
+
+                // Then it should navigate to the participant selector step
+                expect(Navigation.navigate).toHaveBeenCalledWith(
+                    ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transaction.transactionID, '1', undefined, CONST.IOU.ACTION.SUBMIT),
+                );
+            });
+
+            it('should navigate to create workspace screen when policies param is empty and action is not SUBMIT', async () => {
+                // Given a transaction and empty policies
+                const transaction = createRandomTransaction(9);
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${1}`, {});
+
+                // When we call with a non-SUBMIT, non-CATEGORIZE, non-SHARE action and empty policies
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    reportID: '1',
+                    actionName: CONST.IOU.ACTION.SUBMIT,
+                    reportActionID: '1',
+                    introSelected: undefined,
+                    draftTransactionIDs: [],
+                    activePolicy: undefined,
+                    userBillingGracePeriodEnds: undefined,
+                    amountOwed: 0,
+                    transaction,
+                    currentUserAccountID,
+                    currentUserEmail,
+                    currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
+                });
+
+                // Then it should still navigate to participant selector since action is SUBMIT (SUBMIT always goes to participants)
+                expect(Navigation.navigate).toHaveBeenCalledWith(
+                    ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transaction.transactionID, '1', undefined, CONST.IOU.ACTION.SUBMIT),
+                );
             });
         });
     });
@@ -17762,6 +17896,18 @@ describe('ReportUtils', () => {
             expect(result).toBe('');
         });
 
+        it('should return posted date for POSTED column', () => {
+            const transaction = createMockTransaction({posted: '20240115'});
+            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.POSTED, mockReport, mockPolicy);
+            expect(result).toBe('20240115');
+        });
+
+        it('should return empty string for POSTED column when posted date is undefined', () => {
+            const transaction = createMockTransaction();
+            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.POSTED, mockReport, mockPolicy);
+            expect(result).toBe('');
+        });
+
         it('should return merchant for MERCHANT column', () => {
             const transaction = createMockTransaction({merchant: 'Test Merchant'});
             const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, mockReport, mockPolicy);
@@ -17875,6 +18021,29 @@ describe('ReportUtils', () => {
             expect(result).toBe('Standard Tax (10%)');
         });
 
+        const mockAttendees = [
+            {email: 'a@test.com', displayName: 'A', avatarUrl: ''},
+            {email: 'b@test.com', displayName: 'B', avatarUrl: ''},
+        ];
+
+        it('should return attendee count for ATTENDEES column', () => {
+            const transaction = createMockTransaction({comment: {attendees: mockAttendees}});
+            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.ATTENDEES, mockReport, mockPolicy);
+            expect(result).toBe(2);
+        });
+
+        it('should return amount divided by attendee count for TOTAL_PER_ATTENDEE column', () => {
+            const transaction = createMockTransaction({amount: 6000, comment: {attendees: mockAttendees}});
+            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, mockReport, mockPolicy);
+            expect(result).toBe(-3000);
+        });
+
+        it('should return 0 for TOTAL_PER_ATTENDEE column when there are no attendees', () => {
+            const transaction = createMockTransaction({amount: 6000});
+            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, mockReport, mockPolicy);
+            expect(result).toBe(0);
+        });
+
         it('should return empty string for unknown column', () => {
             const transaction = createMockTransaction();
             const result = getTransactionSortValue(transaction, 'UNKNOWN_COLUMN' as typeof CONST.SEARCH.TABLE_COLUMNS.DATE, mockReport, mockPolicy);
@@ -17885,6 +18054,7 @@ describe('ReportUtils', () => {
     describe('isSortableColumnName', () => {
         it('should return true for sortable columns', () => {
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.DATE)).toBe(true);
+            expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.POSTED)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE)).toBe(true);
@@ -17895,6 +18065,8 @@ describe('ReportUtils', () => {
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.CARD)).toBe(true);
+            expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.ATTENDEES)).toBe(true);
+            expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE)).toBe(true);
         });
 
         it('should return false for non-sortable columns', () => {
@@ -19101,6 +19273,48 @@ describe('ReportUtils', () => {
             });
 
             expect(getBankAccountRoute(report, false)).toBe(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route);
+        });
+    });
+
+    describe('canBeAutoReimbursed', () => {
+        const buildGroupPolicyForAutoReimbursement = (overrides: Partial<Policy> = {}): Policy =>
+            ({
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                autoReimbursement: {limit: 10000},
+                ...overrides,
+            }) as Policy;
+
+        const buildExpenseReportForAutoReimbursement = () =>
+            buildOptimisticExpenseReport({
+                chatReportID: '1',
+                policyID: '1',
+                payeeAccountID: 100,
+                total: 100,
+                currency: 'USD',
+                betas: [CONST.BETAS.ALL],
+            });
+
+        it('returns true when policy is a group policy and all auto-reimbursement conditions are met', () => {
+            const report = buildExpenseReportForAutoReimbursement();
+            const groupPolicy = buildGroupPolicyForAutoReimbursement();
+
+            expect(canBeAutoReimbursed(report, groupPolicy)).toBe(true);
+        });
+
+        it('returns false when policy is not a group policy', () => {
+            const report = buildExpenseReportForAutoReimbursement();
+            const personalPolicy = buildGroupPolicyForAutoReimbursement({
+                type: CONST.POLICY.TYPE.PERSONAL,
+            });
+
+            expect(canBeAutoReimbursed(report, personalPolicy)).toBe(false);
+        });
+
+        it('returns false when policy is empty', () => {
+            const report = buildExpenseReportForAutoReimbursement();
+
+            expect(canBeAutoReimbursed(report, undefined)).toBe(false);
         });
     });
 });

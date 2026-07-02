@@ -120,17 +120,25 @@ function useSelectionModePayment({
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
     const isAnyTransactionOnHold = hasHeldExpensesFromTransactions(transactions);
 
-    const shouldBlockAction = (paymentMethodType?: PaymentMethodType) => {
+    const presentBlockingAction = (action: () => void, deferBlockingPresentation: boolean) => {
+        if (deferBlockingPresentation) {
+            deferModalPresentationAfterPopoverDismiss(action);
+        } else {
+            action();
+        }
+    };
+
+    const shouldBlockAction = (paymentMethodType?: PaymentMethodType, deferBlockingPresentation = false) => {
         if (isDelegateAccessRestricted) {
-            deferModalPresentationAfterPopoverDismiss(showDelegateNoAccessModal);
+            presentBlockingAction(showDelegateNoAccessModal, deferBlockingPresentation);
             return true;
         }
         if (isAccountLocked) {
-            deferModalPresentationAfterPopoverDismiss(showLockedAccountModal);
+            presentBlockingAction(showLockedAccountModal, deferBlockingPresentation);
             return true;
         }
         if (!isUserValidated && paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-            deferModalPresentationAfterPopoverDismiss(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path)));
+            presentBlockingAction(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path)), deferBlockingPresentation);
             return true;
         }
         return false;
@@ -243,7 +251,7 @@ function useSelectionModePayment({
     })();
 
     const handleWorkspaceSelected = (wp: OnyxTypes.Policy) => {
-        if (shouldBlockAction()) {
+        if (shouldBlockAction(undefined, true)) {
             return;
         }
         kycWallRef.current?.continueAction?.({policy: wp});
@@ -270,10 +278,7 @@ function useSelectionModePayment({
         return result;
     })();
 
-    const onSelectionModePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
-        if (shouldBlockAction(iouPaymentType)) {
-            return;
-        }
+    const invokePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         selectPaymentType({
             event,
             iouPaymentType,
@@ -297,6 +302,13 @@ function useSelectionModePayment({
         });
     };
 
+    const onSelectionModePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
+        if (shouldBlockAction(iouPaymentType, true)) {
+            return;
+        }
+        invokePaymentSelect(event, iouPaymentType, triggerKYCFlow);
+    };
+
     const selectionModeKYCSuccess = (type?: PaymentMethodType) => {
         confirmPayment({paymentType: type});
     };
@@ -307,6 +319,7 @@ function useSelectionModePayment({
     return {
         confirmPayment,
         shouldBlockAction,
+        invokePaymentSelect,
         onSelectionModePaymentSelect,
         selectionModeKYCSuccess,
         paymentSubMenuItems,

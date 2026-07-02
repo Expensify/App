@@ -2,8 +2,6 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import {useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -32,6 +30,7 @@ import {
     isSelfDM,
     navigateOnDeleteExpense,
 } from '@libs/ReportUtils';
+import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     getChildTransactions,
@@ -330,7 +329,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 }
 
                 if (hasCustomUnitOutOfPolicyViolation) {
-                    showConfirmModal({
+                    showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                         title: translate('common.duplicateExpense'),
                         prompt: translate('iou.correctRateError'),
                         confirmText: translate('common.buttonConfirm'),
@@ -340,7 +339,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 }
 
                 if (isDistanceExpenseUnsupportedForDuplicating) {
-                    showConfirmModal({
+                    showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                         title: translate('common.duplicateExpense'),
                         prompt: translate('iou.cannotDuplicateDistanceExpense'),
                         confirmText: translate('common.buttonConfirm'),
@@ -350,7 +349,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 }
 
                 if (isPerDiemRequestOnNonDefaultWorkspace) {
-                    showConfirmModal({
+                    showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                         title: translate('common.duplicateExpense'),
                         prompt: translate('iou.duplicateNonDefaultWorkspacePerDiemError'),
                         confirmText: translate('common.buttonConfirm'),
@@ -396,28 +395,26 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 const targetChatForDuplicate = isSourcePolicyValid ? chatReport : activePolicyExpenseChat;
                 const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyForDuplicate?.id}`] ?? {};
 
-                InteractionManager.runAfterInteractions(() => {
-                    duplicateReportAction({
-                        sourceReport: moneyRequestReport,
-                        sourceReportTransactions: nonPendingDeleteTransactions,
-                        sourceReportName: moneyRequestReport?.reportName ?? '',
-                        targetPolicy: targetPolicyForDuplicate ?? undefined,
-                        targetPolicyCategories: activePolicyCategories,
-                        targetPolicyTags: allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyForDuplicate?.id}`] ?? {},
-                        parentChatReport: targetChatForDuplicate,
-                        ownerPersonalDetails: currentUserPersonalDetails,
-                        isASAPSubmitBetaEnabled,
-                        betas,
-                        personalDetails,
-                        quickAction,
-                        policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                        isSelfTourViewed,
-                        transactionViolations: allTransactionViolations,
-                        translate,
-                        recentWaypoints: recentWaypoints ?? [],
-                        currentUserAccountID: currentUserPersonalDetails?.accountID,
-                        currentUserLogin: currentUserPersonalDetails?.email ?? '',
-                    });
+                duplicateReportAction({
+                    sourceReport: moneyRequestReport,
+                    sourceReportTransactions: nonPendingDeleteTransactions,
+                    sourceReportName: moneyRequestReport?.reportName ?? '',
+                    targetPolicy: targetPolicyForDuplicate ?? undefined,
+                    targetPolicyCategories: activePolicyCategories,
+                    targetPolicyTags: allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyForDuplicate?.id}`] ?? {},
+                    parentChatReport: targetChatForDuplicate,
+                    ownerPersonalDetails: currentUserPersonalDetails,
+                    isASAPSubmitBetaEnabled,
+                    betas,
+                    personalDetails,
+                    quickAction,
+                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                    isSelfTourViewed,
+                    transactionViolations: allTransactionViolations,
+                    translate,
+                    recentWaypoints: recentWaypoints ?? [],
+                    currentUserAccountID: currentUserPersonalDetails?.accountID,
+                    currentUserLogin: currentUserPersonalDetails?.email ?? '',
                 });
             },
         },
@@ -487,7 +484,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         return;
                     }
 
-                    const result = await showConfirmModal({
+                    const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                         title: translate('iou.deleteExpense', {count: 1}),
                         prompt: translate('iou.deleteConfirmation', {count: 1}),
                         confirmText: translate('common.delete'),
@@ -548,7 +545,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     return;
                 }
 
-                const result = await showConfirmModal({
+                const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                     title: translate('iou.deleteReport', {count: 1}),
                     prompt: translate('iou.deleteReportConfirmation', {count: 1}),
                     confirmText: translate('common.delete'),

@@ -1,7 +1,5 @@
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -9,8 +7,8 @@ import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import {canIOUBePaid as canIOUBePaidAction} from '@libs/actions/IOU/ReportWorkflow';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
@@ -182,7 +180,7 @@ function useSelectionModeReportActions({
     const {
         confirmPayment,
         shouldBlockAction,
-        onSelectionModePaymentSelect: basePaymentSelect,
+        invokePaymentSelect,
         selectionModeKYCSuccess,
         paymentSubMenuItems,
         hasPayInSelectionMode,
@@ -201,11 +199,7 @@ function useSelectionModeReportActions({
             setRequestType(rt);
             setPaymentType(pt);
             setSelectedVBBAToPayFromHoldMenu(methodID);
-            if (getPlatform() === CONST.PLATFORM.IOS) {
-                InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
-            } else {
-                setIsHoldMenuVisible(true);
-            }
+            setIsHoldMenuVisible(true);
         },
         onPaymentComplete: () => {
             clearSelectedTransactions(true);
@@ -214,11 +208,17 @@ function useSelectionModeReportActions({
         confirmApproval,
     });
 
-    // Defer payment select until the popover dismiss animation completes. shouldBlockAction inside
-    // basePaymentSelect defers blocking modals for the same reason (iOS modal-on-modal freeze).
+    // Defer payment select until the popover dismiss animation completes. Blocking modals are shown
+    // synchronously inside the callback (popover already closed) to avoid double-defer on Android.
     const onSelectionModePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
-        InteractionManager.runAfterInteractions(() => {
-            basePaymentSelect(event, iouPaymentType, triggerKYCFlow);
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                if (shouldBlockAction(iouPaymentType)) {
+                    return;
+                }
+                invokePaymentSelect(event, iouPaymentType, triggerKYCFlow);
+            },
+            waitForUpcomingTransition: true,
         });
     };
 
