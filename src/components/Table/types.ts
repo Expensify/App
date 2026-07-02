@@ -146,6 +146,14 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
         /** Whether multi selection is enabled */
         selectionEnabled?: boolean;
 
+        /**
+         * Whether the selection UX (checkboxes / long-press selection mode) should be driven by the real screen size
+         * (isSmallScreenWidth) instead of shouldUseNarrowLayout. Set this for tables rendered inside a narrow pane modal
+         * (RHP), where shouldUseNarrowLayout is always true and would otherwise suppress selection entirely. Defaults to
+         * false so central-pane tables keep their existing behavior.
+         */
+        shouldEnableSelectionInNarrowPaneModal?: boolean;
+
         /** Column configuration defining what columns to display and how. */
         columns: Array<TableColumn<ColumnKey>>;
 

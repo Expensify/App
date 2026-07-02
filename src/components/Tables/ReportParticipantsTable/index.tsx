@@ -111,6 +111,7 @@ export default function ReportParticipantsTable({ref, members, isGroupChat, sele
             columns={columns}
             selectedKeys={selectedKeys}
             selectionEnabled={selectionEnabled}
+            shouldEnableSelectionInNarrowPaneModal
             initialSortColumn="member"
             title={translate('common.members')}
             renderItem={renderItem}

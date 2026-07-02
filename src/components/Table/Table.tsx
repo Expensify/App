@@ -153,6 +153,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     narrowLayoutSortColumn,
     children,
     selectionEnabled,
+    shouldEnableSelectionInNarrowPaneModal,
     onRowSelectionChange,
     ...listProps
 }: TableProps<DataType, ColumnKey, FilterKey>) {
@@ -190,7 +191,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         methods: selectionMethods,
         mobileSelectionModalRowKey,
         middleware: selectionMiddleware,
-    } = useSelection<DataType>({data: sortedData, originalSelectableCount, currentFilters, selectedKeys, onRowSelectionChange});
+    } = useSelection<DataType>({data: sortedData, originalSelectableCount, currentFilters, selectedKeys, onRowSelectionChange, shouldEnableSelectionInNarrowPaneModal});
     const selectionData = selectionMiddleware(sortedData);
 
     const {methods: highlightingMethods, middleware: highlightMiddleware} = useHighlighting<DataType>();
@@ -256,6 +257,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         isEmptyResult,
         shouldUseNarrowTableLayout,
         selectionEnabled,
+        shouldEnableSelectionInNarrowPaneModal,
         isMobileSelectionEnabled,
     };
 
