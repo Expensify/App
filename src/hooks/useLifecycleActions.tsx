@@ -9,8 +9,6 @@ import {useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnc
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import getPlatform from '@libs/getPlatform';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getValidConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {
@@ -24,6 +22,7 @@ import {
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
+import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import {cancelPayment, markReportPaymentReceived} from '@userActions/IOU/PayMoneyRequest';
 import {approveMoneyRequest, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
@@ -62,26 +61,6 @@ type UseLifecycleActionsResult = {
     shouldBlockSubmit: boolean;
     isBlockSubmitDueToPreventSelfApproval: boolean;
 };
-
-type ShowConfirmModal = ReturnType<typeof useConfirmModal>['showConfirmModal'];
-type ShowConfirmModalOptions = Parameters<ShowConfirmModal>[0];
-type ShowConfirmModalResult = Awaited<ReturnType<ShowConfirmModal>>;
-
-/** More menu items call this after the popover dismisses; on iOS defer until interactions finish so the confirm modal can present. */
-function showConfirmModalAfterMoreMenuDismiss(showConfirmModal: ShowConfirmModal, options: ShowConfirmModalOptions): Promise<ShowConfirmModalResult> {
-    if (getPlatform() !== CONST.PLATFORM.IOS) {
-        return showConfirmModal(options);
-    }
-
-    return new Promise((resolve) => {
-        TransitionTracker.runAfterTransitions({
-            callback: () => {
-                showConfirmModal(options).then(resolve);
-            },
-            waitForUpcomingTransition: true,
-        });
-    });
-}
 
 /**
  * Provides report lifecycle transition actions (submit, approve, unapprove, cancel payment, retract, reopen)
