@@ -14,7 +14,7 @@ Every workspace uses either the Collect or Control plan. Your workspace plan det
 
 Changing a workspace plan is different from changing your subscription. This article explains how to switch a workspace between the Collect and Control plans. If you want to manage your subscription instead, see How to Manage Your Plan or Subscription.
 
-To learn which plan is right for your organization, see C[ompare Collect and Control Plans](/articles/new-expensify/billing-and-subscriptions/learn-about-plans-and-subscriptions/Compare-Collect-and-Control-Plans).
+To learn which plan is right for your organization, see [Compare Collect and Control Plans](/articles/new-expensify/billing-and-subscriptions/learn-about-plans-and-subscriptions/Compare-Collect-and-Control-Plans).
 
 ---
 
