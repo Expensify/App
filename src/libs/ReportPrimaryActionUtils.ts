@@ -134,7 +134,8 @@ function isSubmitAction(
 
     const reportTransactionsList = reportTransactions ?? [];
     const hasNoSubmittableTransaction =
-        reportTransactionsList.length > 0 && reportTransactionsList.every((transaction) => isScanning(transaction) || hasSmartScanFailedWithMissingFields([transaction], report));
+        reportTransactionsList.length > 0 &&
+        reportTransactionsList.every((transaction) => isScanning(transaction) || isPending(transaction) || hasSmartScanFailedWithMissingFields([transaction], report));
 
     if (hasNoSubmittableTransaction) {
         return false;
