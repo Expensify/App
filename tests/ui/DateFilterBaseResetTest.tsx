@@ -35,7 +35,7 @@ function renderDateFilterBase(props: {onSubmit?: jest.Mock; onReset?: jest.Mock;
     return render(
         <NavigationContainer>
             <Stack.Navigator>
-                <Stack.Screen name={SCREENS.SEARCH.ADVANCED_FILTERS_DATE_RHP}>
+                <Stack.Screen name={SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP}>
                     {() => (
                         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                             <DateFilterBase
