@@ -4,12 +4,36 @@ import type {StatePath} from 'xstate/graph';
 import {adjacencyMapToArray, getAdjacencyMap, getShortestPaths, serializeSnapshot, TestModel} from 'xstate/graph';
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
 import type {MfaEvent} from '@components/MultifactorAuthentication/machine/types';
+import CONST from '@src/CONST';
 import createInitEvent from './flowFixtures';
 
-// DRIVING_EVENTS holds the explicit teardown journey that `getWalkedPaths` drives on top of the
-// generated coverage paths. Coverage comes from the graph traversal, not from this list.
-// `INIT` carries the scenario payload, while `CLOSE_MODAL` and `MODAL_CLOSED` are bare.
-const DRIVING_EVENTS: MfaEvent[] = [createInitEvent(), {type: 'CLOSE_MODAL'}, {type: 'MODAL_CLOSED'}];
+const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
+
+type DrivingJourney = {
+    /** Names the journey in test titles. */
+    description: string;
+    /** The event sequence the walk drives, in order. */
+    events: MfaEvent[];
+    /** Dot-path state value the journey must end in, compared with `matchesState`. */
+    endState: string;
+};
+
+/**
+ * DRIVING_JOURNEYS holds the explicit event sequences that `getWalkedPaths` drives on top of the
+ * generated coverage paths. Coverage comes from the graph traversal, not from this list.
+ *
+ * Every generated oracle in the suite follows the machine under test, so a retargeted transition
+ * regenerates matching expectations as long as every state stays reachable. Each journey therefore
+ * pins the state it must end in. These endpoints are the only hand-written expectations, and they
+ * fail when such a retarget slips through the generated coverage.
+ */
+const DRIVING_JOURNEYS: DrivingJourney[] = [
+    {
+        description: 'the teardown journey ends back in the closed state',
+        events: [createInitEvent(), {type: 'CLOSE_MODAL'}, {type: 'MODAL_CLOSED'}],
+        endState: MFA_STATE.CLOSED,
+    },
+];
 
 /**
  * Concrete event fixtures for graph traversal. XState synthesizes a bare event for every transition a
@@ -67,8 +91,13 @@ function getMfaShortestPaths() {
     return getShortestPaths(mfaMachine, {events: getTraversalEvents});
 }
 
+/** Returns each driving journey together with the paths the test model builds from its event sequence. */
+function getDrivingJourneyPaths() {
+    return DRIVING_JOURNEYS.map((journey) => ({...journey, paths: mfaTestModel.getPathsFromEvents(journey.events)}));
+}
+
 /**
- * Returns the shortest coverage paths and the explicit teardown path, because the shortest path to the
+ * Returns the shortest coverage paths and the explicit driving journeys, because the shortest path to the
  * initial `closed` state contains no events. Duplicate paths are retained so every settleable leaf remains
  * a path endpoint. Paths with a delayed step are filtered out because the walk cannot drive a timer; the
  * states they visit must stay reachable through some drivable route or the reachability guards fail.
@@ -77,7 +106,7 @@ function getMfaShortestPaths() {
  * harmless while the executor table still forces an executor for every application event.
  */
 function getWalkedPaths() {
-    return [...mfaTestModel.getPaths(() => getMfaShortestPaths(), {allowDuplicatePaths: true}), ...mfaTestModel.getPathsFromEvents(DRIVING_EVENTS)].filter(isUiDrivablePath);
+    return [...mfaTestModel.getPaths(() => getMfaShortestPaths(), {allowDuplicatePaths: true}), ...getDrivingJourneyPaths().flatMap((journey) => journey.paths)].filter(isUiDrivablePath);
 }
 
 type UiDrivableTransition = {
@@ -125,4 +154,4 @@ function getExercisedTransitionKeys(paths: ReadonlyArray<Pick<MfaStatePath, 'ste
 }
 
 export default getWalkedPaths;
-export {getExercisedTransitionKeys, getMfaShortestPaths, getUiDrivableTransitions};
+export {getDrivingJourneyPaths, getExercisedTransitionKeys, getMfaShortestPaths, getUiDrivableTransitions};
