@@ -2,15 +2,14 @@ import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboard
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {TextInputProps} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import DeferredAutocompleteList from '@components/Search/DeferredSearchAutocompleteList';
 import type {GetAdditionalSectionsCallback} from '@components/Search/SearchAutocompleteList';
-import {useSearchQueryActions} from '@components/Search/SearchContext';
+import {useSearchQueryActions, useSearchQueryContext} from '@components/Search/SearchContext';
 import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import {isSearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
@@ -18,10 +17,12 @@ import type {SearchQueryString} from '@components/Search/types';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
@@ -32,11 +33,12 @@ import backHistory from '@libs/Navigation/helpers/backHistory';
 import type {SearchOption} from '@libs/OptionsListUtils';
 import {createOptionFromReport} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
+import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {isHiddenForCurrentUser} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
-import {getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {buildUserReadableQueryString, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
@@ -46,10 +48,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type Report from '@src/types/onyx/Report';
+import {buildSubstitutionsMap} from './buildSubstitutionsMap';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
-import {clearPendingRouterQuery, peekPendingRouterQuery} from './SearchRouterContext';
+import {clearPendingRouterState, peekPendingRouterState} from './SearchRouterContext';
 import {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery} from './SearchRouterUtils';
 import updateAutocompleteSubstitutionsForSelection from './updateAutocompleteSubstitutionsForSelection';
 import useAskConcierge from './useAskConcierge';
@@ -74,6 +77,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT);
     const personalDetails = usePersonalDetails();
     const sortedActions = useSortedActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -81,7 +85,58 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'ConciergeAvatar']);
     const {askConcierge, shouldShowAskConcierge} = useAskConcierge();
 
-    const initialQuery = peekPendingRouterQuery();
+    const {query: pendingInitialQuery, isFromSearchPageSearchButton} = peekPendingRouterState();
+    const {currentSearchQueryJSON} = useSearchQueryContext();
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
+    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const feedKeysWithCards = useFeedKeysWithAssignedCards();
+    const reportAttributes = useReportAttributes();
+
+    // Seed the input on open. When the SearchRouter is opened from the search button on the search page
+    // and `shouldShowSearchQuery` is true, we build a user-readable query string from the current search
+    // query (showing names instead of IDs) along with the substitutions map needed to map those names
+    // back to IDs when submitting. Otherwise we fall back to the explicit pending query (e.g. from
+    // ExpenseReportSearchHandler). Computed once via a lazy initializer so the query string and its
+    // substitutions stay consistent.
+    const [[initialQuery, initialSubstitutions]] = useState<[string, SubstitutionMap]>(() => {
+        if (!currentSearchQueryJSON || !isFromSearchPageSearchButton || !searchContext?.shouldShowSearchQuery) {
+            return [pendingInitialQuery, {}];
+        }
+
+        const taxRates = getAllTaxRates(policies);
+        const query = buildUserReadableQueryString({
+            queryJSON: currentSearchQueryJSON,
+            PersonalDetails: personalDetails,
+            reports,
+            taxRates,
+            cardList: personalAndWorkspaceCards,
+            cardFeeds: allFeeds,
+            policies,
+            currentUserAccountID,
+            autoCompleteWithSpace: false,
+            translate,
+            feedKeysWithCards,
+            reportAttributes,
+            bankAccountList,
+        });
+        const substitutions = buildSubstitutionsMap(
+            currentSearchQueryJSON.inputQuery,
+            personalDetails,
+            reports,
+            taxRates,
+            personalAndWorkspaceCards,
+            allFeeds,
+            policies,
+            currentUserAccountID,
+            translate,
+            reportAttributes,
+            bankAccountList,
+        );
+        return [query, substitutions];
+    });
 
     // The actual input text that the user sees
     const [textInputValue, , setTextInputValue] = useDebouncedState(initialQuery, 500);
@@ -90,9 +145,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [selection, setSelection] = useState({start: initialQuery.length, end: initialQuery.length});
 
     useEffect(() => {
-        clearPendingRouterQuery();
+        clearPendingRouterState();
     }, []);
-    const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
+    const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>(initialSubstitutions);
     const textInputRef = useRef<AnimatedTextInputRef>(null);
 
     const {contextualReportID, isSearchRouterScreen} = useRootNavigationState(getContextualReportData);
@@ -293,25 +348,25 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             backHistory(() => {
                 onRouterClose();
                 setSearchContext(true);
-                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
+                Navigation.navigate(
+                    ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery, rawQuery: shouldSkipAmountConversion || !isFromSearchPageSearchButton ? undefined : queryWithSubstitutions}),
+                );
             });
 
             setTextInputValue('');
             setAutocompleteQueryValue('');
         },
-        [autocompleteSubstitutions, currentUserAccountID, onRouterClose, setTextInputValue, setShouldResetSearchQuery],
+        [autocompleteSubstitutions, currentUserAccountID, onRouterClose, setTextInputValue, setShouldResetSearchQuery, isFromSearchPageSearchButton],
     );
 
     const onListItemPress = useCallback(
         (item: OptionData | SearchQueryItem) => {
             const setFocusAndScrollToRight = () => {
-                InteractionManager.runAfterInteractions(() => {
-                    if (!textInputRef.current) {
-                        return;
-                    }
-                    textInputRef.current.focus();
-                    scrollToRight(textInputRef.current);
-                });
+                if (!textInputRef.current) {
+                    return;
+                }
+                textInputRef.current.focus();
+                scrollToRight(textInputRef.current);
             };
 
             if (isSearchQueryItem(item)) {

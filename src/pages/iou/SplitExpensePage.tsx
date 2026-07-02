@@ -1,7 +1,6 @@
 import {deepEqual} from 'fast-equals';
 import React, {useEffect, useMemo} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, Keyboard, View} from 'react-native';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
@@ -70,6 +69,7 @@ import type SCREENS from '@src/SCREENS';
 import type {SplitExpense} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import KeyboardUtils from '@src/utils/keyboard';
 import SplitList from './SplitList';
 
 type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE>;
@@ -98,6 +98,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [draftTransaction, draftTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const isLoadingDraftTransaction = isLoadingOnyxValue(draftTransactionMetadata);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const draftTransactionReport = useReportOrReportDraft(draftTransaction?.reportID);
     const parentTransactionReport = useReportOrReportDraft(draftTransactionReport?.parentReportID);
     const expenseReport = draftTransactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? draftTransactionReport : parentTransactionReport;
@@ -351,6 +352,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             allSnapshots,
             transactionData: {
@@ -544,10 +546,11 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             });
             return;
         }
-        Keyboard.dismiss();
-        InteractionManager.runAfterInteractions(() => {
-            initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, item.reportID ?? reportID);
-            Navigation.navigate(ROUTES.SPLIT_EXPENSE_EDIT.getRoute(item.reportID ?? reportID, originalTransactionID, item.transactionID, Navigation.getActiveRoute()));
+        KeyboardUtils.dismiss({
+            afterTransition: () => {
+                initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, item.reportID ?? reportID);
+                Navigation.navigate(ROUTES.SPLIT_EXPENSE_EDIT.getRoute(item.reportID ?? reportID, originalTransactionID, item.transactionID, Navigation.getActiveRoute()));
+            },
         });
     };
 

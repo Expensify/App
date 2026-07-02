@@ -5,6 +5,9 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 jest.mock('@hooks/useRootNavigationState', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/getPathFromState', () => jest.fn());
+jest.mock('@libs/Navigation/linkingConfig/config', () => ({
+    dynamicTabPatternToTabPaths: new Map(),
+}));
 jest.mock('@src/ROUTES', () => ({
     default: {
         HOME: 'home',

@@ -30,6 +30,7 @@ import createRandomPolicyCategories from '../../utils/collections/policyCategory
 import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
 import {getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
@@ -146,10 +147,10 @@ describe('actions/Duplicate', () => {
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             created: '2024-01-01 12:00:00',
             reportID,
-            originalMessage: {
+            originalMessage: createMock<OriginalMessageIOU>({
                 IOUTransactionID: transactionID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            } as OriginalMessageIOU,
+            }),
             message: [{type: 'TEXT', text: 'Test IOU message'}],
             childReportID,
         });
@@ -447,10 +448,10 @@ describe('actions/Duplicate', () => {
                 [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
             });
 
-            const participantAccountIDs = Object.keys(transactionThreadReport1.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs);
-            jest.advanceTimersByTime(10);
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participantAccountIDs = Object.keys(transactionThreadReport1.participants ?? {}).map(Number);
+            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
+            jest.advanceTimersByTime(10);
             const participants = userLogins.map((login, index) => ({
                 login,
                 accountID: participantAccountIDs.at(index),
@@ -1929,12 +1930,12 @@ describe('actions/Duplicate', () => {
             const mockTransactionWithLinkedAction = {
                 ...mockTransaction,
                 amount: mockTransaction.amount * -1,
-                linkedTrackedExpenseReportAction: {
+                linkedTrackedExpenseReportAction: createMock<ReportAction>({
                     reportActionID: 'linked-action-123',
                     childReportID: existingLinkedReportActionChildReportID,
                     actionName: 'IOU',
                     created: '2024-01-01 00:00:00',
-                } as ReportAction,
+                }),
                 comment: {
                     ...restOfComment,
                 },
@@ -2864,13 +2865,13 @@ describe('actions/Duplicate', () => {
             employeeList: {[RORY_EMAIL]: {email: RORY_EMAIL, role: CONST.POLICY.ROLE.USER}},
         };
 
-        const inaccessiblePolicy = {
+        const inaccessiblePolicy = createMock<Policy>({
             ...createRandomPolicy(300, CONST.POLICY.TYPE.TEAM, 'Inaccessible WS'),
             id: OTHER_POLICY_ID,
             role: undefined,
             pendingAction: undefined,
             employeeList: {},
-        } as unknown as Policy;
+        });
 
         const ACTIVE_PEC_REPORT_ID = 'activePEC';
         const activePolicyExpenseChat: Report = {
@@ -2918,11 +2919,11 @@ describe('actions/Duplicate', () => {
             })),
             allReports: {},
             searchData: undefined,
-            allPolicies: {
+            allPolicies: createMock<BulkDuplicateReportsParams['allPolicies']>({
                 [`${ONYXKEYS.COLLECTION.POLICY}${SOURCE_POLICY_ID}`]: sourcePolicy,
                 [`${ONYXKEYS.COLLECTION.POLICY}${DEFAULT_POLICY_ID}`]: defaultPolicy,
                 [`${ONYXKEYS.COLLECTION.POLICY}${OTHER_POLICY_ID}`]: inaccessiblePolicy,
-            } as BulkDuplicateReportsParams['allPolicies'],
+            }),
             allPolicyCategories: {},
             allPolicyTags: {},
             defaultExpensePolicy: defaultPolicy,
