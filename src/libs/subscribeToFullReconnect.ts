@@ -12,14 +12,14 @@ let serverReconnectCutoff = '';
 let lastFullReconnectTime = '';
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE,
-    callback: (value) => {
-        serverReconnectCutoff = value ?? '';
+    callback: (serverReconnectCutoffOnyxValue) => {
+        serverReconnectCutoff = serverReconnectCutoffOnyxValue ?? '';
         if (serverReconnectCutoff) {
             const connection = Onyx.connectWithoutView({
                 key: ONYXKEYS.LAST_FULL_RECONNECT_TIME,
-                callback: (value) => {
+                callback: (lastFullReconnectTimeOnyxValue) => {
                     Onyx.disconnect(connection);
-                    lastFullReconnectTime = value ?? '';
+                    lastFullReconnectTime = lastFullReconnectTimeOnyxValue ?? '';
                     doFullReconnectIfNecessary();
                 },
             });
