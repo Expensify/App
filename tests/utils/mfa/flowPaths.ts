@@ -154,6 +154,19 @@ function getUiDrivableTransitions(): UiDrivableTransition[] {
 }
 
 /**
+ * Returns the state-changing INIT edges of the full adjacency map as (serialized event, serialized landing
+ * vertex) pairs. The payload fixture is meant to give the payload flow its own context vertices, and the
+ * guard built on these pairs fails when the machine stops copying the payload and the landings merge.
+ */
+function getInitEdgeLandings(): Array<{eventKey: string; landingKey: string}> {
+    const edges = adjacencyMapToArray(getAdjacencyMap(mfaMachine, {events: getTraversalEvents}));
+    return edges
+        .filter((edge) => edge.event.type === 'INIT')
+        .filter((edge) => serializeSnapshot(edge.nextState) !== serializeSnapshot(edge.state))
+        .map((edge) => ({eventKey: JSON.stringify(edge.event), landingKey: serializeSnapshot(edge.nextState)}));
+}
+
+/**
  * Returns the (source vertex, event) pairs a set of walked paths drives. A step holds the state its event
  * produced, so the source of step `i` is the state of step `i - 1`.
  */
@@ -173,4 +186,4 @@ function getExercisedTransitionKeys(paths: ReadonlyArray<Pick<MfaStatePath, 'ste
 }
 
 export default getWalkedPaths;
-export {getDrivingJourneyPaths, getExercisedTransitionKeys, getMfaShortestPaths, getUiDrivableTransitions};
+export {getDrivingJourneyPaths, getExercisedTransitionKeys, getInitEdgeLandings, getMfaShortestPaths, getUiDrivableTransitions};

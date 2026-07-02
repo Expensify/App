@@ -1,6 +1,6 @@
 import {act, fireEvent, screen} from '@testing-library/react-native';
 import {isTestScenarioInitEvent} from 'tests/utils/mfa/flowFixtures';
-import getWalkedPaths, {getDrivingJourneyPaths, getExercisedTransitionKeys, getMfaShortestPaths, getUiDrivableTransitions} from 'tests/utils/mfa/flowPaths';
+import getWalkedPaths, {getDrivingJourneyPaths, getExercisedTransitionKeys, getInitEdgeLandings, getMfaShortestPaths, getUiDrivableTransitions} from 'tests/utils/mfa/flowPaths';
 import {getMfaControls, renderMfaUi} from 'tests/utils/mfa/realUi/harness';
 import {pendingModalClose, resetMfaUiMocks} from 'tests/utils/mfa/realUi/mocks';
 import type * as MfaRealUiMocks from 'tests/utils/mfa/realUi/mocks';
@@ -176,6 +176,18 @@ describe('the generated coverage itself stays complete', () => {
 
         it.each(getUiDrivableTransitions())('$description is exercised', ({key}) => {
             expect(exercisedTransitionKeys.has(key)).toBe(true);
+        });
+    });
+
+    // The payload INIT fixture exists to give the payload flow its own context vertices. When the machine
+    // stops copying the payload into its context, every INIT fixture lands in the same vertex, the split
+    // disappears, and the explicit journeys keep the walk green. This guard pins the split itself.
+    describe('INIT fixtures produce distinct context vertices', () => {
+        it('keeps at least one landing vertex per distinct INIT fixture', () => {
+            const landings = getInitEdgeLandings();
+            const distinctFixtures = new Set(landings.map(({eventKey}) => eventKey));
+            const distinctLandings = new Set(landings.map(({landingKey}) => landingKey));
+            expect(distinctLandings.size).toBeGreaterThanOrEqual(distinctFixtures.size);
         });
     });
 
