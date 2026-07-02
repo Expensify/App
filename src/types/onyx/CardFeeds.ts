@@ -39,11 +39,6 @@ type BankName = ValueOf<typeof CONST.COMPANY_CARDS.BANKS>;
 type NonConnectableBankName = ValueOf<typeof CONST.COMPANY_CARDS.NON_CONNECTABLE_BANKS>;
 
 /**
- *
- */
-type CardType = ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE>;
-
-/**
  * Card type name
  */
 type CardTypeName = ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE_NAMES>;
@@ -232,6 +227,9 @@ type CardFeeds = {
         /** User-friendly feed nicknames */
         companyCardNicknames?: Partial<Record<CardFeedWithNumber, string>>;
 
+        /** Custom card names by card ID */
+        companyCardCustomNames?: Record<string, string>;
+
         /** Company cards feeds */
         companyCards?: Partial<Record<CardFeedWithNumber, CustomCardFeedData>>;
 
@@ -357,13 +355,11 @@ export type {
     CardFeedWithDomainID,
     BankName,
     NonConnectableBankName,
-    CardType,
     CardTypeName,
     CompanyCardFeed,
     CompanyCardFeedWithNumber,
     CompanyCardFeedWithDomainID,
     CardFeedDetails,
-    DirectCardFeedData,
     CardFeedProvider,
     CardFeedData,
     CardFeedsStatus,

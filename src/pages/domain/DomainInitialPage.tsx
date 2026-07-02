@@ -10,7 +10,6 @@ import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -21,8 +20,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import {openDomainInitialPage} from '@libs/actions/Domain';
-import {hasDomainAdminsErrors, hasDomainMembersErrors} from '@libs/DomainUtils';
+import {openDomainPage} from '@libs/actions/Domain';
+import {hasDomainAdminsErrors, hasDomainGroupsErrors, hasDomainMembersErrors} from '@libs/DomainUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type DOMAIN_TO_RHP from '@navigation/linkingConfig/RELATIONS/DOMAIN_TO_RHP';
@@ -51,7 +50,7 @@ type DomainMenuItem = {
 type DomainInitialPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.INITIAL>;
 
 function DomainInitialPage({route}: DomainInitialPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['UserLock', 'UserShield', 'User']);
+    const icons = useMemoizedLazyExpensifyIcons(['UserLock', 'UserShield', 'User', 'Users']);
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
@@ -82,6 +81,13 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
             brickRoadIndicator: hasDomainAdminsErrors(domainErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
+            translationKey: 'domain.groups.title',
+            icon: icons.Users,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_GROUPS.getRoute(domainAccountID)))),
+            screenName: SCREENS.DOMAIN.GROUPS,
+            brickRoadIndicator: hasDomainGroupsErrors(domainErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+        },
+        {
             translationKey: 'domain.saml',
             icon: icons.UserLock,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_SAML.getRoute(domainAccountID)))),
@@ -90,19 +96,17 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
     ];
 
     const fetchDomainData = useCallback(() => {
-        if (!domainName) {
+        if (!domainAccountID) {
             return;
         }
-        openDomainInitialPage(domainName);
-    }, [domainName]);
+        openDomainPage(domainAccountID);
+    }, [domainAccountID]);
 
     useEffect(() => {
         fetchDomainData();
     }, [fetchDomainData]);
 
     useNetwork({onReconnect: fetchDomainData});
-
-    useConfirmReadyToOpenApp();
 
     const shouldShowFullScreenLoadingIndicator = isLoadingOnyxValue(domainMetadata);
 
@@ -111,7 +115,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
             return;
         }
 
-        Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
+        Navigation.goBack(ROUTES.DOMAINS_LIST.route);
     }, [domain, isAdmin, shouldShowFullScreenLoadingIndicator]);
 
     return (
@@ -131,7 +135,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
             >
                 <HeaderWithBackButton
                     title={domainName}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAINS_LIST.route)}
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
                 />
 

@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/prefer-for-of */
-import * as Sentry from '@sentry/react-native';
 import {Str} from 'expensify-common';
 import deburr from 'lodash/deburr';
 import lodashOrderBy from 'lodash/orderBy';
@@ -10,20 +9,21 @@ import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import filterArrayByMatch from '@libs/filterArrayByMatch';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhoneNumber';
 import {translateLocal} from '@libs/Localize';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
-import {MaxHeap} from '@libs/MaxHeap';
-import {MinHeap} from '@libs/MinHeap';
+import MaxHeap from '@libs/MaxHeap';
+import MinHeap from '@libs/MinHeap';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
+import {getIsOffline} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
-import Permissions from '@libs/Permissions';
 import type {OptionData as PersonalDetailOptionData} from '@libs/PersonalDetailOptionsListUtils/types';
-import {getDisplayNameOrDefault, getPersonalDetailByEmail, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import {getDisplayNameOrDefault, getLoginByAccountID, getPersonalDetailByEmail, getPersonalDetailsByIDs, getPersonalDetailsListByIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {
     canSendInvoiceFromWorkspace,
@@ -40,6 +40,7 @@ import {
     getAssignedCompanyCardMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
+    getCategoryTaxRateMessage,
     getChangedApproverActionMessage,
     getCombinedReportActions,
     getCurrencyDefaultTaxUpdateMessage,
@@ -47,6 +48,7 @@ import {
     getDynamicExternalWorkflowRoutedMessage,
     getExportIntegrationLastMessageText,
     getForeignCurrencyDefaultTaxUpdateMessage,
+    getForwardedReportActionMessage,
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
     getIOUReportIDFromReportActionPreview,
@@ -55,6 +57,7 @@ import {
     getLastVisibleActionIncludingTransactionThread,
     getLastVisibleMessage,
     getMarkedReimbursedMessage,
+    getMccGroupCategoryMessage,
     getMentionedAccountIDsFromAction,
     getMessageOfOldDotReportAction,
     getOneTransactionThreadReportID,
@@ -102,6 +105,7 @@ import {
     isMovedTransactionAction,
     isOldDotReportAction,
     isPendingRemove,
+    isPolicyCopyReportAction,
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRenamedAction,
@@ -118,7 +122,6 @@ import type {OptionData} from '@libs/ReportUtils';
 import {
     canUserPerformWriteAction,
     formatReportLastMessageText,
-    getChatByParticipants,
     getChatRoomSubtitle,
     getDeletedParentActionMessageForChatReport,
     getDeletedTransactionMessage,
@@ -128,6 +131,7 @@ import {
     getMovedActionMessage,
     getMovedTransactionMessage,
     getParticipantsAccountIDsForDisplay,
+    getPolicyChangeLogCopyMessage,
     getPolicyChangeMessage,
     getPolicyName,
     getReimbursementDeQueuedOrCanceledActionMessage,
@@ -144,7 +148,6 @@ import {
     isArchivedNonExpenseReport,
     isChatThread,
     isDM,
-    isDraftReport,
     isExpenseReport,
     isHiddenForCurrentUser,
     isInvoiceRoom,
@@ -162,10 +165,11 @@ import {
     isSelfDM as reportUtilsIsSelfDM,
     isTaskReport as reportUtilsIsTaskReport,
     shouldReportBeInOptionList,
+    shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
-import {isScanning} from '@libs/TransactionUtils';
+import {getDescription, getAmount as getTransactionAmount, getCurrency as getTransactionCurrency, isScanning} from '@libs/TransactionUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -185,6 +189,7 @@ import type {
     ReportActions,
     ReportAttributesDerivedValue,
     ReportMetadata,
+    Transaction,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
@@ -200,6 +205,7 @@ import type {
     Option,
     OptionList,
     Options,
+    OptionsResult,
     OrderOptionsConfig,
     OrderReportOptionsConfig,
     PayeePersonalDetails,
@@ -258,7 +264,7 @@ Onyx.connect({
             // If the report is a one-transaction report, we need to return the combined reportActions so that the LHN can display modifications
             // to the transaction thread or the report itself.
             // Cache the result for O(1) lookup in renderItem.
-            const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, actions[reportActions[0]]);
+            const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, actions[reportActions[0]], getIsOffline());
             deprecatedCachedOneTransactionThreadReportIDs[reportID] = transactionThreadReportID;
 
             if (transactionThreadReportID) {
@@ -329,8 +335,21 @@ function getParticipantsOption(participant: OptionData | Participant, personalDe
     const detail = participant.accountID ? getPersonalDetailsForAccountIDs([participant.accountID], personalDetails)[participant.accountID] : undefined;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const displayName = participant?.displayName || formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(detail, login || participant.text));
+    // When detail has a login the participant is a real Expensify user — use their profile name.
+    // When detail has no login the participant is either a phone contact (optimistic stub with
+    // no displayName) or a privacy-hidden user (detail has a displayName but no login). Prefer
+    // participant.text (the device contact name for phone contacts); falling back through detail
+    // preserves the displayName for hidden-login users while still resolving to the formatted
+    // phone number for phone-contact stubs.
+    let displayName: string;
+    if (participant?.displayName) {
+        displayName = participant.displayName;
+    } else if (detail?.login) {
+        displayName = formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(detail, login));
+    } else {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- empty string from device contacts should fall through to the formatted phone number
+        displayName = participant?.text || formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(detail, login));
+    }
 
     return {
         keyForList: String(detail?.accountID ?? login),
@@ -410,9 +429,7 @@ function shouldShowLastActorDisplayName(
         !lastActorDetails ||
         reportUtilsIsSelfDM(report) ||
         (isDM(report) && lastActorDetails.accountID !== currentUserAccountIDParam) ||
-        lastActionName === CONST.REPORT.ACTIONS.TYPE.IOU ||
-        (lastActionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
-            Object.keys(report?.participants ?? {})?.some((participantID) => participantID === CONST.ACCOUNT_ID.MANAGER_MCTEST.toString()))
+        lastActionName === CONST.REPORT.ACTIONS.TYPE.IOU
     ) {
         return false;
     }
@@ -428,6 +445,7 @@ function shouldShowLastActorDisplayName(
 
 type GetAlternateTextConfig = {
     isReportArchived: boolean | undefined;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
     // We'll make it required in the next PR. Ref: https://github.com/Expensify/App/issues/66415
     policy?: OnyxEntry<Policy>;
     lastActorDetails?: Partial<PersonalDetails> | null;
@@ -436,6 +454,9 @@ type GetAlternateTextConfig = {
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     policyTags?: OnyxEntry<PolicyTagLists>;
     conciergeReportID: string | undefined;
+    // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
+    sortedActions?: Record<string, ReportAction[]>;
+    isTrackIntentUser?: boolean;
 };
 
 /**
@@ -444,7 +465,19 @@ type GetAlternateTextConfig = {
 function getAlternateText(
     option: OptionData,
     {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig,
-    {isReportArchived, policy, lastActorDetails = {}, visibleReportActionsData = {}, translate, reportAttributesDerived, policyTags, conciergeReportID}: GetAlternateTextConfig,
+    {
+        isReportArchived,
+        personalDetails,
+        policy,
+        lastActorDetails = {},
+        visibleReportActionsData = {},
+        translate,
+        reportAttributesDerived,
+        policyTags,
+        conciergeReportID,
+        sortedActions,
+        isTrackIntentUser,
+    }: GetAlternateTextConfig,
 ) {
     const report = getReportOrDraftReport(option.reportID);
     const isAdminRoom = reportUtilsIsAdminRoom(report);
@@ -457,6 +490,7 @@ function getAlternateText(
         getLastMessageTextForReport({
             translate: translateFn,
             report,
+            personalDetails,
             lastActorDetails,
             policy,
             isReportArchived,
@@ -464,6 +498,8 @@ function getAlternateText(
             reportAttributesDerived,
             policyTags,
             conciergeReportID,
+            sortedActions,
+            isTrackIntentUser,
         });
     const reportPrefix = getReportSubtitlePrefix(report);
     const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
@@ -559,6 +595,43 @@ function hasHiddenDisplayNames(accountIDs: number[]) {
     return getPersonalDetailsByIDs({accountIDs, currentUserAccountID: 0}).some((personalDetail) => !getDisplayNameOrDefault(personalDetail, undefined, false));
 }
 
+function getLatestVisibleMoneyRequestAction(
+    reportID: string,
+    canUserPerformWrite: boolean | undefined,
+    sortedReportActions: ReportAction[] = [],
+    visibleReportActionsData?: VisibleReportActionsDerivedValue,
+): OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> {
+    return sortedReportActions.find(
+        (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
+            isMoneyRequestAction(reportAction) &&
+            reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+            isReportActionVisible(reportAction, reportID, canUserPerformWrite, visibleReportActionsData),
+    );
+}
+
+function getExpenseReportPreviewText(
+    report: OnyxEntry<Report>,
+    moneyRequestAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>,
+    translate: LocalizedTranslate,
+    transactions: Transaction[] = [],
+): string {
+    const originalMessage = moneyRequestAction ? getOriginalMessage(moneyRequestAction) : undefined;
+    const linkedTransaction = transactions.find((transaction) => transaction.transactionID === originalMessage?.IOUTransactionID);
+    const amount = linkedTransaction ? getTransactionAmount(linkedTransaction, true) : originalMessage?.amount;
+    const currency = linkedTransaction ? getTransactionCurrency(linkedTransaction) : (originalMessage?.currency ?? report?.currency);
+
+    if (typeof amount !== 'number' || !currency) {
+        return '';
+    }
+
+    const formattedAmount = convertToDisplayString(amount, currency);
+    const description = linkedTransaction ? getDescription(linkedTransaction) : '';
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const comment = Parser.htmlToText(description || originalMessage?.comment || '').trim();
+
+    return formatReportLastMessageText(translate('iou.expenseAmount', formattedAmount, comment || undefined));
+}
+
 function getLastActorDisplayNameFromLastVisibleActions(
     report: OnyxEntry<Report>,
     lastActorDetails: Partial<PersonalDetails> | null,
@@ -598,6 +671,7 @@ function getLastActorDisplayNameFromLastVisibleActions(
 function getLastMessageTextForReport({
     translate,
     report,
+    personalDetails,
     lastActorDetails,
     movedFromReport,
     movedToReport,
@@ -609,10 +683,13 @@ function getLastMessageTextForReport({
     reportAttributesDerived,
     policyTags,
     currentUserLogin,
-    conciergeReportID,
+    isTrackIntentUser = false,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    sortedActions = deprecatedAllSortedReportActions,
 }: {
     translate: LocalizedTranslate;
     report: OnyxEntry<Report>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
     lastActorDetails: Partial<PersonalDetails> | null;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
@@ -627,6 +704,9 @@ function getLastMessageTextForReport({
     currentUserLogin?: string;
     // TODO: conciergeReportID will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
     conciergeReportID?: string;
+    isTrackIntentUser?: boolean;
+    // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
+    sortedActions?: Record<string, ReportAction[]>;
 }): string {
     const reportID = report?.reportID;
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
@@ -688,46 +768,44 @@ function getLastMessageTextForReport({
             }
         }
     } else if (isMoneyRequestAction(lastReportAction)) {
-        const properSchemaForMoneyRequestMessage = getReportPreviewMessage(report, conciergeReportID, lastReportAction, true, false, null, true);
+        const properSchemaForMoneyRequestMessage = getReportPreviewMessage({
+            reportOrID: report,
+            iouReportAction: lastReportAction,
+            shouldConsiderScanningReceiptOrPendingRoute: true,
+            policy: null,
+            isForListPreview: true,
+        });
         lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(properSchemaForMoneyRequestMessage));
     } else if (isReportPreviewAction(lastReportAction)) {
         const iouReport = getReportOrDraftReport(getIOUReportIDFromReportActionPreview(lastReportAction));
         const iouReportID = iouReport?.reportID;
         const reportCache = iouReportID ? visibleReportActionsDataParam?.[iouReportID] : undefined;
         const visibleReportActionsForIOUReport = reportCache && Object.keys(reportCache).length > 0 ? visibleReportActionsDataParam : undefined;
-        const iouReportActions = iouReportID ? deprecatedAllSortedReportActions[iouReportID] : undefined;
+        const iouReportActions = iouReportID ? sortedActions?.[iouReportID] : undefined;
         const canPerformWrite = canUserPerformWriteAction(report, isReportArchived);
         const lastIOUMoneyReportAction =
-            iouReportID && iouReportActions
-                ? iouReportActions.find(
-                      (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
-                          isReportActionVisible(reportAction, iouReportID, canPerformWrite, visibleReportActionsForIOUReport) &&
-                          reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-                          isMoneyRequestAction(reportAction),
-                  )
-                : undefined;
+            iouReportID && iouReportActions ? getLatestVisibleMoneyRequestAction(iouReportID, canPerformWrite, iouReportActions, visibleReportActionsForIOUReport) : undefined;
 
         // For workspace chats, use the report title
         if (reportUtilsIsPolicyExpenseChat(report) && !isEmptyObject(iouReport)) {
             const reportName = reportAttributesDerived?.[iouReport.reportID]?.reportName ?? '';
             lastMessageTextFromReport = formatReportLastMessageText(reportName);
         } else {
-            const reportPreviewMessage = getReportPreviewMessage(
-                !isEmptyObject(iouReport) ? iouReport : null,
-                conciergeReportID,
-                lastIOUMoneyReportAction ?? lastReportAction,
-                true,
-                reportUtilsIsChatReport(report),
-                null,
-                true,
-                lastReportAction,
-            );
+            const reportPreviewMessage = getReportPreviewMessage({
+                reportOrID: !isEmptyObject(iouReport) ? iouReport : null,
+                iouReportAction: lastIOUMoneyReportAction ?? lastReportAction,
+                shouldConsiderScanningReceiptOrPendingRoute: true,
+                isPreviewMessageForParentChatReport: reportUtilsIsChatReport(report),
+                policy: null,
+                isForListPreview: true,
+                originalReportAction: lastReportAction,
+            });
             lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
         }
     } else if (isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils, report});
     } else if (isReimbursementDeQueuedOrCanceledAction(lastReportAction)) {
-        lastMessageTextFromReport = getReimbursementDeQueuedOrCanceledActionMessage(translate, lastReportAction, report);
+        lastMessageTextFromReport = getReimbursementDeQueuedOrCanceledActionMessage(translate, lastReportAction, report?.ownerAccountID);
     } else if (isDeletedParentAction(lastReportAction) && reportUtilsIsChatReport(report)) {
         lastMessageTextFromReport = getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (isPendingRemove(lastReportAction) && report?.reportID && isThreadParentMessage(lastReportAction, report.reportID)) {
@@ -735,7 +813,13 @@ function getLastMessageTextForReport({
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
         lastMessageTextFromReport = getMarkedReimbursedMessage(translate, lastReportAction);
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
-        lastMessageTextFromReport = getReimbursedMessage(translate, lastReportAction, report);
+        lastMessageTextFromReport = getReimbursedMessage(
+            translate,
+            lastReportAction,
+            report?.ownerAccountID,
+            getLoginByAccountID(report?.ownerAccountID, personalDetails),
+            getLoginByAccountID(lastReportAction.actorAccountID, personalDetails),
+        );
     } else if (isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {
         lastMessageTextFromReport = `[${translate('common.attachment')}]`;
     } else if (isModifiedExpenseAction(lastReportAction)) {
@@ -752,7 +836,7 @@ function getLastMessageTextForReport({
         const properSchemaForModifiedExpenseMessage = Parser.htmlToText(properSchemaForModifiedExpenseMessageWithHTML);
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isMovedTransactionAction(lastReportAction)) {
-        lastMessageTextFromReport = Parser.htmlToText(getMovedTransactionMessage(translate, lastReportAction, conciergeReportID));
+        lastMessageTextFromReport = Parser.htmlToText(getMovedTransactionMessage(translate, lastReportAction, reportAttributesDerived));
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(translate, lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {
@@ -771,7 +855,13 @@ function getLastMessageTextForReport({
         } else if (hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isPendingAdd) {
             lastMessageTextFromReport = translate('iou.queuedToSubmitViaDEW');
         } else {
-            lastMessageTextFromReport = translate('iou.submitted', getOriginalMessage(lastReportAction)?.message);
+            lastMessageTextFromReport = shouldShowMarkAsDone({
+                report,
+                isTrackIntentUser,
+                policy,
+            })
+                ? translate('iou.markedAsDone', getOriginalMessage(lastReportAction)?.message)
+                : translate('iou.submitted', getOriginalMessage(lastReportAction)?.message);
         }
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = getOriginalMessage(lastReportAction) ?? {};
@@ -794,7 +884,7 @@ function getLastMessageTextForReport({
         if (automaticAction) {
             lastMessageTextFromReport = Parser.htmlToText(translate('iou.automaticallyForwarded'));
         } else {
-            lastMessageTextFromReport = translate('iou.forwarded');
+            lastMessageTextFromReport = getForwardedReportActionMessage(lastReportAction, translate);
         }
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
         lastMessageTextFromReport = translate('iou.rejectedThisReport');
@@ -808,10 +898,11 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
         lastMessageTextFromReport = getExportIntegrationLastMessageText(translate, lastReportAction);
-    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED) {
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
         // RECEIPT_SCAN_FAILED is submitted by Concierge, so use the IOU action to determine edit permission
         const iouAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-        lastMessageTextFromReport = translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction)});
+        const missingFields = getOriginalMessage(lastReportAction)?.missingFields;
+        lastMessageTextFromReport = translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction), missingFields});
     } else if (lastReportAction?.actionName && isOldDotReportAction(lastReportAction)) {
         lastMessageTextFromReport = getMessageOfOldDotReportAction(translate, lastReportAction, false);
     } else if (isActionableJoinRequest(lastReportAction)) {
@@ -850,9 +941,10 @@ function getLastMessageTextForReport({
     } else if (isMovedAction(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getMovedActionMessage(translate, lastReportAction, report));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-        lastMessageTextFromReport = Parser.htmlToText(getUnreportedTransactionMessage(translate, lastReportAction, conciergeReportID));
+        lastMessageTextFromReport = Parser.htmlToText(getUnreportedTransactionMessage(translate, lastReportAction, reportAttributesDerived));
     } else if (isActionableMentionWhisper(lastReportAction)) {
-        lastMessageTextFromReport = Parser.htmlToText(getActionableMentionWhisperMessage(translate, lastReportAction));
+        const targetAccountIDs = getOriginalMessage(lastReportAction)?.inviteeAccountIDs;
+        lastMessageTextFromReport = Parser.htmlToText(getActionableMentionWhisperMessage(translate, lastReportAction, getPersonalDetailsListByIDs(targetAccountIDs, personalDetails)));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED)) {
         lastMessageTextFromReport = getDynamicExternalWorkflowRoutedMessage(lastReportAction, translate);
     }
@@ -879,6 +971,12 @@ function getLastMessageTextForReport({
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT)) {
         lastMessageTextFromReport = getAutoReimbursementMessage(translate, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE)) {
+        lastMessageTextFromReport = getCategoryTaxRateMessage(translate, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY)) {
+        lastMessageTextFromReport = getMccGroupCategoryMessage(translate, lastReportAction);
     }
     if (
         isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAX) ||
@@ -920,6 +1018,9 @@ function getLastMessageTextForReport({
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FEATURE_ENABLED)) {
         lastMessageTextFromReport = getWorkspaceFeatureEnabledMessage(translate, lastReportAction);
     }
+    if (isPolicyCopyReportAction(lastReportAction)) {
+        lastMessageTextFromReport = Parser.htmlToText(getPolicyChangeLogCopyMessage(translate, lastReportAction));
+    }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
     if (reportID && !isReportArchived && report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
@@ -954,7 +1055,25 @@ function getLastMessageTextForReport({
         if (scanningTransactions.length > 0) {
             lastMessageTextFromReport = translate('iou.receiptScanning', {count: scanningTransactions.length});
         } else if (report?.transactionCount && report?.transactionCount > 0 && report?.currency) {
-            lastMessageTextFromReport = lastVisibleMessage?.lastMessageText;
+            const latestVisibleMoneyRequestAction = getLatestVisibleMoneyRequestAction(reportID, canUserPerformWrite, sortedActions?.[reportID], visibleReportActionsDataParam);
+            if (isExpenseReport(report) && latestVisibleMoneyRequestAction) {
+                lastMessageTextFromReport = getExpenseReportPreviewText(report, latestVisibleMoneyRequestAction, translate, transactions);
+            } else if (!isExpenseReport(report)) {
+                lastMessageTextFromReport = lastVisibleMessage?.lastMessageText;
+            } else if (!isCreatedAction(lastReportAction)) {
+                lastMessageTextFromReport =
+                    formatReportLastMessageText(
+                        Parser.htmlToText(
+                            getReportPreviewMessage({
+                                reportOrID: report,
+                                iouReportAction: lastReportAction,
+                                shouldConsiderScanningReceiptOrPendingRoute: true,
+                                policy: null,
+                                isForListPreview: true,
+                            }),
+                        ),
+                    ) || lastVisibleMessage?.lastMessageText;
+            }
         } else if (report?.transactionCount === 0) {
             lastMessageTextFromReport = translate('report.noActivityYet');
         }
@@ -982,7 +1101,7 @@ function getLastMessageTextForReport({
 
 type CreateOptionParams = {
     accountIDs: number[];
-    personalDetails: OnyxInputOrEntry<PersonalDetailsList>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
     report: OnyxInputOrEntry<Report>;
     privateIsArchived: boolean | undefined;
     policy?: OnyxEntry<Policy>;
@@ -991,8 +1110,11 @@ type CreateOptionParams = {
     policyTags?: OnyxEntry<PolicyTagLists>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     translate?: LocalizedTranslate;
+    isTrackIntentUser?: boolean;
     // TODO: conciergeReportID will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
     conciergeReportID?: string;
+    // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
+    sortedActions?: Record<string, ReportAction[]>;
 };
 
 /**
@@ -1009,7 +1131,9 @@ function createOption({
     policyTags,
     visibleReportActionsData = {},
     translate,
+    isTrackIntentUser,
     conciergeReportID,
+    sortedActions,
 }: CreateOptionParams): SearchOptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
 
@@ -1078,20 +1202,24 @@ function createOption({
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- below is a boolean expression
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || reportUtilsIsGroupChat(report);
-        subtitle = getChatRoomSubtitle(report, true, result.private_isArchived);
+        const translateFn = translate ?? translateLocal;
+        subtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translateFn, true, result.private_isArchived);
 
         // If displaying chat preview line is needed, let's overwrite the default alternate text
         const lastActorDetails = personalDetails?.[report?.lastActorAccountID ?? String(CONST.DEFAULT_NUMBER_ID)] ?? {};
-        const translateFn = translate ?? translateLocal;
         result.lastMessageText = getLastMessageTextForReport({
             translate: translateFn,
             report,
+            personalDetails,
             lastActorDetails,
+            policy,
             isReportArchived: result.private_isArchived,
             visibleReportActionsDataParam: visibleReportActionsData,
             reportAttributesDerived,
             policyTags,
             conciergeReportID,
+            sortedActions,
+            isTrackIntentUser,
         });
         result.alternateText =
             showPersonalDetails && personalDetail?.login
@@ -1101,6 +1229,7 @@ function createOption({
                       {showChatPreviewLine, forcePolicyNamePreview},
                       {
                           isReportArchived: !!result.private_isArchived,
+                          personalDetails,
                           policy,
                           lastActorDetails,
                           visibleReportActionsData,
@@ -1159,12 +1288,12 @@ function getReportOption(
     policy: OnyxEntry<Policy>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     conciergeReportID: string | undefined,
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    reportDrafts?: OnyxCollection<Report>,
+    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
+    reportDraft: OnyxEntry<Report>,
     policyTags?: OnyxCollection<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
 ): OptionData {
-    const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDrafts);
+    const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDraft);
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
     const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
 
@@ -1191,11 +1320,11 @@ function getReportOption(
         option.text = getReportName(report, reportAttributesDerived);
         option.alternateText = translateLocal('workspace.common.invoices');
     } else {
-        option.text = getPolicyName({report});
+        option.text = getPolicyName({report, policy});
         option.alternateText = translateLocal('workspace.common.workspace');
 
         if (report?.policyID) {
-            const submitToAccountID = getSubmitToAccountID(policy, report);
+            const submitToAccountID = getSubmitToAccountID(policy, report, getLoginByAccountID(report?.ownerAccountID, personalDetails));
             const submitsToAccountDetails = personalDetails?.[submitToAccountID];
             const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
 
@@ -1204,7 +1333,7 @@ function getReportOption(
             }
         }
     }
-    option.isDisabled = isDraftReport(participant.reportID);
+    option.isDisabled = !!reportDraft;
     option.isSelected = participant.selected;
     option.selected = participant.selected; // Keep for backwards compatibility
     option.brickRoadIndicator = null;
@@ -1252,7 +1381,7 @@ function getReportDisplayOption(
         option.alternateText = unknownUserDetails.login;
         option.participantsList = [{...unknownUserDetails, displayName: unknownUserDetails.login, accountID: unknownUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID}];
     } else if (report?.ownerAccountID !== 0 || !option.text) {
-        option.text = getPolicyName({report});
+        option.text = getPolicyName({report, policy});
         option.alternateText = translateLocal('workspace.common.workspace');
     }
     option.isDisabled = true;
@@ -1294,7 +1423,7 @@ function getPolicyExpenseReportOption(
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
-    option.text = getPolicyName({report: expenseReport});
+    option.text = getPolicyName({report: expenseReport, policy});
     option.alternateText = translateLocal('workspace.common.workspace');
     option.isSelected = participant.selected;
     option.selected = participant.selected; // Keep for backwards compatibility
@@ -1340,9 +1469,11 @@ function isDisablingOrDeletingLastEnabledCategory(
     return false;
 }
 
-function isDisablingOrDeletingLastEnabledTag(policyTagList: PolicyTagLists[string] | undefined, selectedTags: Array<PolicyTag | undefined>): boolean {
-    const enabledTagsCount = getCountOfEnabledTagsOfList(policyTagList?.tags);
-
+function isDisablingOrDeletingLastEnabledTag(
+    policyTagList: PolicyTagLists[string] | undefined,
+    selectedTags: Array<PolicyTag | undefined>,
+    enabledTagsCount: number = getCountOfEnabledTagsOfList(policyTagList?.tags),
+): boolean {
     if (!enabledTagsCount) {
         return false;
     }
@@ -1402,6 +1533,7 @@ function processReport(
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxEntry<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
+    isTrackIntentUser?: boolean,
 ): {
     reportMapEntry?: [number, Report]; // The entry to add to reportMapForAccountIDs if applicable
     reportOption: SearchOption<Report> | null; // The report option to add to allReportOptions if applicable
@@ -1425,75 +1557,8 @@ function processReport(
         reportMapEntry,
         reportOption: {
             item: report,
-            ...createOption({accountIDs, personalDetails, report, privateIsArchived, policy, reportAttributesDerived, policyTags, visibleReportActionsData}),
+            ...createOption({accountIDs, personalDetails, report, privateIsArchived, policy, reportAttributesDerived, policyTags, visibleReportActionsData, isTrackIntentUser}),
         },
-    };
-}
-
-function createOptionList(
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    privateIsArchivedMap: PrivateIsArchivedMap,
-    reports: OnyxCollection<Report>,
-    policiesCollection: OnyxCollection<Policy>,
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    policyTags?: OnyxCollection<PolicyTagLists>,
-    visibleReportActionsData: VisibleReportActionsDerivedValue = {},
-) {
-    const span = Sentry.startInactiveSpan({name: 'createOptionList'});
-
-    const reportMapForAccountIDs: Record<number, Report> = {};
-    const allReportOptions: Array<SearchOption<Report>> = [];
-
-    if (reports) {
-        for (const report of Object.values(reports)) {
-            const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
-            const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-            const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
-            const {reportMapEntry, reportOption} = processReport(report, personalDetails, privateIsArchived, policy, reportAttributesDerived, reportPolicyTags, visibleReportActionsData);
-
-            if (reportMapEntry) {
-                const [accountID, reportValue] = reportMapEntry;
-                reportMapForAccountIDs[accountID] = reportValue;
-            }
-
-            if (reportOption) {
-                allReportOptions.push(reportOption);
-            }
-        }
-    }
-
-    const allPersonalDetailsOptions = Object.values(personalDetails ?? {}).map((personalDetail) => {
-        const report = reportMapForAccountIDs[personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID];
-        const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
-        const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
-        return {
-            item: personalDetail,
-            ...createOption({
-                accountIDs: [personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
-                personalDetails,
-                report,
-                policy,
-                privateIsArchived,
-                config: {
-                    showPersonalDetails: true,
-                },
-                reportAttributesDerived,
-                policyTags: reportPolicyTags,
-                visibleReportActionsData,
-            }),
-        };
-    });
-
-    span.setAttributes({
-        personalDetails: allPersonalDetailsOptions.length,
-        reports: allReportOptions.length,
-    });
-    span.end();
-
-    return {
-        reports: allReportOptions,
-        personalDetails: allPersonalDetailsOptions as Array<SearchOption<PersonalDetails>>,
     };
 }
 
@@ -1511,11 +1576,15 @@ const reportSortComparator = (report: Report, privateIsArchivedMap: PrivateIsArc
  *
  * Performance optimization approach:
  * 1. Pre-filters reports using shouldReportBeInOptionList with correct parameters (betas, etc.)
- * 2. Sorts by lastVisibleActionCreated (most recent first)
- * 3. Limits to top N reports
- * 4. Processes only those N reports
+ * 2. Default (`options.isSearching` false): sorts by lastVisibleActionCreated (most recent first), limits to
+ *    the top N reports (`maxRecentReports`), then processes only those reports. This avoids processing
+ *    thousands of reports while ensuring correct filtering.
+ * 3. Search mode (`options.isSearching` true): uses the full pre-filtered report list with no recency sort and
+ *    no `maxRecentReports` cap, so search can include all eligible reports.
  *
- * This avoids processing thousands of reports while ensuring correct filtering.
+ * @param options.isSearching - When true, skips the sort and top-N limit in step 2; when false, applies them.
+ *
+ * @remarks In search mode, sorting by last visible action is skipped because the UI needs the full eligible set.
  *
  * Use this for screens that need recent reports (NewChatPage, WorkspaceInvitePage, etc.)
  */
@@ -1533,6 +1602,7 @@ function createFilteredOptionList(
     } = {},
     policyTags?: OnyxCollection<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
+    isTrackIntentUser?: boolean,
 ) {
     const {maxRecentReports = 500, includeP2P = true, isSearching = false} = options;
     const reportMapForAccountIDs: Record<number, Report> = {};
@@ -1545,7 +1615,7 @@ function createFilteredOptionList(
 
     // Step 2: Sort by lastVisibleActionCreated (most recent first) and limit to top N
     // In search mode, skip sorting because we return all reports anyway - sorting is unnecessary
-    const sortedReports = isSearching ? reportsArray : optionsOrderBy(reportsArray, (report) => reportSortComparator(report, privateIsArchivedMap), maxRecentReports);
+    const sortedReports = isSearching ? reportsArray : optionsOrderBy(reportsArray, (report) => reportSortComparator(report, privateIsArchivedMap), maxRecentReports).options;
 
     // Step 3: If search term is present, build report map with ONLY 1:1 DM reports
     // This allows personal details to have valid 1:1 DM reportIDs for proper avatar display
@@ -1579,7 +1649,16 @@ function createFilteredOptionList(
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
         const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
-        const {reportMapEntry, reportOption} = processReport(report, personalDetails, privateIsArchived, policy, reportAttributesDerived, reportPolicyTags, visibleReportActionsData);
+        const {reportMapEntry, reportOption} = processReport(
+            report,
+            personalDetails,
+            privateIsArchived,
+            policy,
+            reportAttributesDerived,
+            reportPolicyTags,
+            visibleReportActionsData,
+            isTrackIntentUser,
+        );
         if (reportMapEntry) {
             const [accountID, reportValue] = reportMapEntry;
 
@@ -1638,22 +1717,38 @@ function createOptionFromReport(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     privateIsArchived: boolean | undefined,
     policy: OnyxEntry<Policy>,
+    sortedActions: Record<string, ReportAction[]> | undefined,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     config?: PreviewConfig,
     policyTags?: OnyxEntry<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
+    isTrackIntentUser?: boolean,
 ) {
     const accountIDs = getParticipantsAccountIDsForDisplay(report);
 
     return {
         item: report,
-        ...createOption({accountIDs, personalDetails, report, privateIsArchived, policy, config, reportAttributesDerived, policyTags, visibleReportActionsData}),
+        ...createOption({
+            accountIDs,
+            personalDetails,
+            report,
+            privateIsArchived,
+            policy,
+            config,
+            reportAttributesDerived,
+            policyTags,
+            visibleReportActionsData,
+            sortedActions,
+            isTrackIntentUser,
+        }),
     };
 }
 
-function orderPersonalDetailsOptions(options: SearchOptionData[]) {
+function orderPersonalDetailsOptions<T extends SearchOptionData>(options: T[]): T[] {
     // PersonalDetails should be ordered Alphabetically by default - https://github.com/Expensify/App/issues/8220#issuecomment-1104009435
-    return lodashOrderBy(options, [(personalDetail) => personalDetail.text?.toLowerCase()], 'asc');
+    // Keep this aligned with `getValidOptions` ordering (`optionsOrderBy(..., personalDetailsComparator, ...)`)
+    // so upstream and downstream sorting use the same key (text -> alternateText -> login).
+    return lodashOrderBy(options, [personalDetailsComparator], 'asc');
 }
 
 /**
@@ -1667,10 +1762,10 @@ function orderReportOptions(options: SearchOptionData[]) {
 /**
  * Sort personal details by displayName or login in alphabetical order
  */
-const personalDetailsComparator = (personalDetail: SearchOptionData | PersonalDetailOptionData) => {
+function personalDetailsComparator(personalDetail: SearchOptionData | PersonalDetailOptionData) {
     const name = personalDetail.text ?? personalDetail.alternateText ?? personalDetail.login ?? '';
     return name.toLowerCase();
-};
+}
 
 /**
  * Sort reports by archived status and last visible action
@@ -1689,12 +1784,13 @@ function optionsOrderBy<T = SearchOptionData | PersonalDetailOptionData>(
     limit?: number,
     filter?: (option: T) => boolean | undefined,
     reversed = false,
-): T[] {
+): {options: T[]; hasMore: boolean} {
     const heap = reversed ? new MaxHeap<T>(comparator) : new MinHeap<T>(comparator);
+    let hasMore = false;
 
     // If a limit is 0 or negative, return an empty array
     if (limit !== undefined && limit <= 0) {
-        return [];
+        return {options: [], hasMore};
     }
 
     for (const option of options) {
@@ -1702,6 +1798,7 @@ function optionsOrderBy<T = SearchOptionData | PersonalDetailOptionData>(
             continue;
         }
         if (limit !== undefined && heap.size() >= limit) {
+            hasMore = true;
             const peekedValue = heap.peek();
             if (!peekedValue) {
                 throw new Error('Heap is empty, cannot peek value');
@@ -1714,7 +1811,7 @@ function optionsOrderBy<T = SearchOptionData | PersonalDetailOptionData>(
             heap.push(option);
         }
     }
-    return [...heap].reverse();
+    return {options: [...heap].reverse(), hasMore};
 }
 
 /**
@@ -1731,9 +1828,10 @@ function optionsOrderAndGroupBy<T = SearchOptionData>(
     limit?: number,
     filter?: (option: T) => boolean | undefined,
     reversed = false,
-): T[][] {
+): {options: T[][]; hasMore: boolean} {
     // Create a heap for each separator + one default heap (N+1 total)
     const heaps: Array<MinHeap<T> | MaxHeap<T>> = [];
+    let hasMore = false;
     for (let i = 0; i < separators.length; i++) {
         heaps.push(reversed ? new MaxHeap<T>(comparator) : new MinHeap<T>(comparator));
     }
@@ -1741,7 +1839,7 @@ function optionsOrderAndGroupBy<T = SearchOptionData>(
 
     // If limit is 0 or negative, return N+1 empty arrays
     if (limit !== undefined && limit <= 0) {
-        return Array(separators.length + 1).map(() => []);
+        return {options: Array(separators.length + 1).map(() => []), hasMore};
     }
 
     // Process each option
@@ -1769,6 +1867,7 @@ function optionsOrderAndGroupBy<T = SearchOptionData>(
 
         // Add to heap with limit logic (each heap has its own limit)
         if (limit !== undefined && targetHeap.size() >= limit) {
+            hasMore = true;
             const peekedValue = targetHeap.peek();
             if (!peekedValue) {
                 throw new Error('Heap is empty, cannot peek value');
@@ -1790,7 +1889,7 @@ function optionsOrderAndGroupBy<T = SearchOptionData>(
     }
     results.push([...defaultHeap].reverse());
 
-    return results;
+    return {options: results, hasMore};
 }
 
 /**
@@ -2007,109 +2106,6 @@ function getUserToInviteOption({
     return userToInvite;
 }
 
-function getUserToInviteContactOption({
-    searchValue = '',
-    optionsToExclude = [],
-    selectedOptions = [],
-    firstName = '',
-    lastName = '',
-    email = '',
-    phone = '',
-    avatar = '',
-    countryCode = CONST.DEFAULT_COUNTRY_CODE,
-    loginList = {},
-    currentUserEmail,
-}: GetUserToInviteConfig): SearchOption<PersonalDetails> | null {
-    // If email is provided, use it as the primary identifier
-
-    const effectiveSearchValue = email || searchValue;
-
-    // Handle phone number parsing for either provided phone or searchValue
-
-    const phoneToCheck = phone || searchValue;
-    const normalizedPhoneNumber = appendCountryCode(Str.removeSMSDomain(phoneToCheck), countryCode);
-    const parsedPhoneNumber = parsePhoneNumber(normalizedPhoneNumber);
-
-    // Validate email (either provided email or searchValue)
-    const isValidEmail = Str.isValidEmail(effectiveSearchValue) && !Str.isDomainEmail(effectiveSearchValue) && !Str.endsWith(effectiveSearchValue, CONST.SMS.DOMAIN);
-
-    const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
-
-    const sanitizedPhoneLogin = isValidPhoneNumber ? addSMSDomainIfPhoneNumber(parsedPhoneNumber.number?.e164 ?? normalizedPhoneNumber) : '';
-    const login = email ? effectiveSearchValue : (sanitizedPhoneLogin ?? searchValue);
-    const normalizedLoginToExclude = addSMSDomainIfPhoneNumber(login).toLowerCase();
-
-    const isCurrentUserLogin = isCurrentUser({login} as PersonalDetails, loginList, currentUserEmail);
-    const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === login);
-
-    const isInOptionToExclude = optionsToExclude.findIndex((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === normalizedLoginToExclude) !== -1;
-
-    if (!effectiveSearchValue || isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber) || isInOptionToExclude) {
-        return null;
-    }
-
-    // Generates an optimistic account ID for new users not yet saved in Onyx
-    const optimisticAccountID = generateAccountID(login);
-
-    // Construct display name if firstName/lastName are provided
-
-    const displayName = firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName || effectiveSearchValue;
-
-    // Create the base user details that will be used in both item and participantsList
-    const userDetails = {
-        accountID: optimisticAccountID,
-
-        avatar: avatar || FallbackAvatar,
-        firstName: firstName ?? '',
-        lastName: lastName ?? '',
-        displayName,
-        login,
-        pronouns: '',
-        phoneNumber: phone ?? '',
-        validated: true,
-    };
-
-    const userToInvite = {
-        item: userDetails,
-        text: displayName,
-        displayName,
-        firstName,
-        lastName,
-        alternateText: displayName !== login ? login : undefined,
-        brickRoadIndicator: null,
-        icons: [
-            {
-                source: userDetails.avatar,
-                type: CONST.ICON_TYPE_AVATAR,
-                name: login,
-                id: optimisticAccountID,
-            },
-        ],
-        tooltipText: null,
-        participantsList: [userDetails],
-        accountID: optimisticAccountID,
-        login,
-        reportID: '',
-        phoneNumber: phone ?? '',
-        hasDraftComment: false,
-        keyForList: optimisticAccountID.toString(),
-        isDefaultRoom: false,
-        isPinned: false,
-        isWaitingOnBankAccount: false,
-        isIOUReportOwner: false,
-        iouReportAmount: 0,
-        isChatRoom: false,
-        shouldShowSubscript: false,
-        isPolicyExpenseChat: false,
-        isExpenseReport: false,
-        lastMessageText: '',
-        isBold: true,
-        isOptimisticAccount: true,
-    };
-
-    return userToInvite;
-}
-
 function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, config: IsValidReportsConfig, draftComment: string | undefined, chatReport: OnyxEntry<Report>): boolean {
     const {
         betas = [],
@@ -2130,8 +2126,10 @@ function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, 
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
         currentUserAccountID,
+        currentUserLogin,
         shouldAlwaysIncludeDM,
         isTimeRequest = false,
+        conciergeReportID,
     } = config;
     const topmostReportId = Navigation.getTopmostReportId();
     const doesReportHaveViolations = !!getViolatingReportIDForRBRInLHN(option.item, transactionViolations);
@@ -2149,6 +2147,9 @@ function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, 
         includeDomainEmail,
         isReportArchived: option.private_isArchived,
         draftComment,
+        currentUserLogin,
+        currentUserAccountID,
+        conciergeReportID,
     });
 
     if (!shouldBeInOptionList) {
@@ -2252,19 +2253,21 @@ function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, 
  * Not every property of the report option can be computed on the initial computing in the OptionListContextProvider. Some of them are based on the context (config) so they are computed here.
  *
  * @param options - Array of report options to prepare
+ * @param isOffline - Whether the app is currently offline. Passed in to keep this function pure.
  * @param config - Configuration object specifying display preferences and filtering criteria
  * @returns Array of enriched and filtered report options ready for UI display
  */
 function prepareReportOptionsForDisplay(
     options: Array<SearchOption<Report>>,
     policiesCollection: OnyxCollection<Policy>,
-    currentUserAccountID: number,
+    isOffline: boolean,
     config: GetValidReportsConfig,
     conciergeReportID: string | undefined,
     sortedActions: Record<string, ReportAction[]> | undefined,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxCollection<PolicyTagLists>,
+    isTrackIntentUser?: boolean,
 ): Array<SearchOption<Report>> {
     const {
         showChatPreviewLine = false,
@@ -2302,12 +2305,15 @@ function prepareReportOptionsForDisplay(
             {showChatPreviewLine, forcePolicyNamePreview},
             {
                 isReportArchived: !!option.private_isArchived,
+                personalDetails,
                 policy,
                 lastActorDetails: null,
                 visibleReportActionsData,
                 reportAttributesDerived,
                 policyTags: reportPolicyTags,
                 conciergeReportID,
+                sortedActions,
+                isTrackIntentUser,
             },
         );
         const isSelected = isReportSelected(option, selectedOptions);
@@ -2317,7 +2323,7 @@ function prepareReportOptionsForDisplay(
             const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
             const oneTransactionThreadReportID =
                 report.type === CONST.REPORT.TYPE.IOU || report.type === CONST.REPORT.TYPE.EXPENSE || report.type === CONST.REPORT.TYPE.INVOICE
-                    ? getOneTransactionThreadReportID(report, chatReport, sortedActions?.[report.reportID])
+                    ? getOneTransactionThreadReportID(report, chatReport, sortedActions?.[report.reportID], isOffline)
                     : undefined;
             const oneTransactionThreadReport = oneTransactionThreadReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`] : undefined;
 
@@ -2355,11 +2361,11 @@ function prepareReportOptionsForDisplay(
         }
 
         if (shouldSeparateWorkspaceChat && newReportOption.isPolicyExpenseChat && !newReportOption.private_isArchived) {
-            newReportOption.text = getPolicyName({report});
+            newReportOption.text = getPolicyName({report, policy});
             newReportOption.alternateText = translateLocal('workspace.common.workspace');
 
             if (report?.policyID) {
-                const submitToAccountID = getSubmitToAccountID(policy, report);
+                const submitToAccountID = getSubmitToAccountID(policy, report, getLoginByAccountID(report?.ownerAccountID, personalDetails));
                 const submitsToAccountDetails = personalDetails?.[submitToAccountID];
                 const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
 
@@ -2383,17 +2389,6 @@ function prepareReportOptionsForDisplay(
 }
 
 /**
- * Returns a list of logins that should be restricted (i.e., hidden or excluded in the UI)
- * based on dynamic business logic and feature flags.
- * Centralizes restriction logic to avoid scattering conditions across the codebase.
- */
-function getRestrictedLogins(config: GetOptionsConfig, options: OptionList, canShowManagerMcTest: boolean): Record<string, boolean> {
-    return {
-        [CONST.EMAIL.MANAGER_MCTEST]: !canShowManagerMcTest || !Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST, config.betas),
-    };
-}
-
-/**
  * Options are reports and personal details. This function filters out the options that are not valid to be displayed.
  */
 function getValidOptions(
@@ -2414,7 +2409,6 @@ function getValidOptions(
         shouldSeparateSelfDMChat = false,
         shouldSeparateWorkspaceChat = false,
         excludeHidden = false,
-        canShowManagerMcTest = false,
         searchString,
         searchInputValue,
         maxElements,
@@ -2427,17 +2421,16 @@ function getValidOptions(
         visibleReportActionsData = {},
         reportAttributesDerived,
         sortedActions,
+        isTrackIntentUser,
+        isOffline,
         ...config
     }: GetOptionsConfig = {},
-): Options {
-    const restrictedLogins = getRestrictedLogins(config, options, canShowManagerMcTest);
-
+): OptionsResult {
     // Gather shared configs:
     // Hard exclusions: cannot be selected at all
     const loginsToExclude: Record<string, boolean> = {
         [CONST.EMAIL.NOTIFICATIONS]: true,
         ...excludeLogins,
-        ...restrictedLogins,
     };
 
     // Soft exclusions: hidden from suggestions but can be manually entered (e.g., Guide/AM)
@@ -2470,8 +2463,11 @@ function getValidOptions(
     let recentReportOptions: Array<SearchOption<Report>> = [];
     let workspaceChats: Array<SearchOption<Report>> = [];
     let selfDMChat: SearchOptionData | undefined;
+    let hasMore = false;
 
     const searchTerms = processSearchString(searchString);
+    /** TODO: getIsOffline should be removed in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
+    const isOfflineNetworkState = isOffline ?? getIsOffline();
     if (includeRecentReports) {
         // if maxElements is passed, filter the recent reports by searchString and return only most recent reports (@see recentReportsComparator)
 
@@ -2504,6 +2500,7 @@ function getValidOptions(
                     !report.isTaskReport &&
                     report.item?.chatType !== CONST.REPORT.CHAT_TYPE.SELF_DM &&
                     report.item?.chatType !== CONST.REPORT.CHAT_TYPE.POLICY_ADMINS &&
+                    report.item?.chatType !== CONST.REPORT.CHAT_TYPE.POLICY_ROOM &&
                     report.item?.chatType !== CONST.REPORT.CHAT_TYPE.GROUP &&
                     !report.private_isArchived
                 ) {
@@ -2532,6 +2529,8 @@ function getValidOptions(
                     includeDomainEmail,
                     loginsToExclude: loginsToExcludeFromSuggestions,
                     currentUserAccountID,
+                    currentUserLogin: currentUserEmail,
+                    conciergeReportID,
                 },
                 draftComment,
                 chatReport,
@@ -2539,13 +2538,16 @@ function getValidOptions(
         };
 
         let selfDMChats: Array<SearchOption<Report>>;
-        [selfDMChats, workspaceChats, recentReportOptions] = optionsOrderAndGroupBy([isSelfDMChat, isWorkspaceChat], options.reports, recentReportComparator, maxElements, filteringFunction);
+        const groupedOptions = optionsOrderAndGroupBy([isSelfDMChat, isWorkspaceChat], options.reports, recentReportComparator, maxElements, filteringFunction);
+        [selfDMChats, workspaceChats, recentReportOptions] = groupedOptions.options;
+
+        hasMore = hasMore || groupedOptions.hasMore;
 
         if (selfDMChats.length > 0) {
             selfDMChat = prepareReportOptionsForDisplay(
                 selfDMChats,
                 policiesCollection,
-                currentUserAccountID,
+                isOfflineNetworkState,
                 {
                     ...getValidReportsConfig,
                     selectedOptions,
@@ -2560,6 +2562,7 @@ function getValidOptions(
                 visibleReportActionsData,
                 reportAttributesDerived,
                 allPolicyTags,
+                isTrackIntentUser,
             ).at(0);
         }
 
@@ -2569,7 +2572,7 @@ function getValidOptions(
         recentReportOptions = prepareReportOptionsForDisplay(
             recentReportOptions,
             policiesCollection,
-            currentUserAccountID,
+            isOfflineNetworkState,
             {
                 ...getValidReportsConfig,
                 selectedOptions,
@@ -2584,12 +2587,13 @@ function getValidOptions(
             visibleReportActionsData,
             reportAttributesDerived,
             allPolicyTags,
+            isTrackIntentUser,
         );
 
         workspaceChats = prepareReportOptionsForDisplay(
             workspaceChats,
             policiesCollection,
-            currentUserAccountID,
+            isOfflineNetworkState,
             {
                 ...getValidReportsConfig,
                 selectedOptions,
@@ -2604,6 +2608,7 @@ function getValidOptions(
             visibleReportActionsData,
             reportAttributesDerived,
             allPolicyTags,
+            isTrackIntentUser,
         );
 
         if (reportIDsToExclude.size > 0) {
@@ -2611,19 +2616,21 @@ function getValidOptions(
             recentReportOptions = recentReportOptions.filter((report) => !report.reportID || !reportIDsToExclude.has(report.reportID));
         }
     } else if (recentAttendees && recentAttendees?.length > 0) {
-        recentAttendees.filter((attendee) => {
-            const login = attendee.login ?? attendee.displayName;
-            if (login) {
-                loginsToExcludeFromSuggestions[login] = true;
-                return true;
-            }
-
-            return false;
-        });
         recentReportOptions = filterReports(recentAttendees as SearchOptionData[], searchTerms) as Array<SearchOption<Report>>;
 
-        if (maxRecentReportElements) {
+        // Only cap the recent attendees when there's no active search. During a search we surface every match, since
+        // all recent attendees are excluded from "Contacts" and capped-off matches would otherwise vanish from the list.
+        if (maxRecentReportElements && searchTerms.length === 0) {
             recentReportOptions = recentReportOptions.slice(0, maxRecentReportElements);
+        }
+
+        // Build the exclusion set from the recent attendees actually shown (after filtering and the cap) so that
+        // attendees that aren't displayed in "Recent" remain available in "Contacts".
+        for (const option of recentReportOptions) {
+            const login = option.login ?? option.displayName;
+            if (login) {
+                loginsToExcludeFromSuggestions[login] = true;
+            }
         }
     }
 
@@ -2648,8 +2655,9 @@ function getValidOptions(
                 !personalDetail.accountID ||
                 !!personalDetail?.isOptimisticPersonalDetail ||
                 (!includeDomainEmail && Str.isDomainEmail(personalDetail.login)) ||
-                // Exclude the setup specialist from the list of personal details as it's a fallback if guide is not assigned
-                personalDetail?.login === CONST.SETUP_SPECIALIST_LOGIN
+                // Exclude the account executive (and its legacy "Setup Specialist" login) from the list of personal details as it's a fallback if guide is not assigned
+                personalDetail?.login === CONST.ACCOUNT_EXECUTIVE_LOGIN ||
+                personalDetail?.login === CONST.ACCOUNT_EXECUTIVE_LEGACY_LOGIN
             ) {
                 return false;
             }
@@ -2670,7 +2678,21 @@ function getValidOptions(
         const maxPersonalDetailsElements = maxElements
             ? Math.max(maxElements - recentReportOptions.length - workspaceChats.length - (!selfDMChat ? 1 : 0), MIN_PERSONAL_DETAILS_SLOTS)
             : undefined;
-        personalDetailsOptions = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxPersonalDetailsElements, filteringFunction, true);
+        const groupedPersonalDetails = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxPersonalDetailsElements, filteringFunction, true);
+        personalDetailsOptions = groupedPersonalDetails.options;
+
+        hasMore = hasMore || groupedPersonalDetails.hasMore;
+
+        const selectedAccountIDs = new Set<number>();
+        const selectedLogins = new Set<string>();
+        for (const selectedOption of selectedOptions) {
+            if (selectedOption.accountID) {
+                selectedAccountIDs.add(selectedOption.accountID);
+            }
+            if (selectedOption.login) {
+                selectedLogins.add(selectedOption.login);
+            }
+        }
 
         for (let i = 0; i < personalDetailsOptions.length; i++) {
             const personalDetail = personalDetailsOptions.at(i);
@@ -2684,6 +2706,8 @@ function getValidOptions(
             if (personalDetail.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
                 personalDetail.brickRoadIndicator = shouldShowGBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : '';
             }
+            personalDetail.isSelected =
+                (!!personalDetail.accountID && selectedAccountIDs.has(personalDetail.accountID)) || (!!personalDetail.login && selectedLogins.has(personalDetail.login));
         }
     }
 
@@ -2705,12 +2729,15 @@ function getValidOptions(
     }
 
     return {
-        personalDetails: personalDetailsOptions,
-        recentReports: recentReportOptions,
-        currentUserOption: currentUserRef.current,
-        userToInvite,
-        workspaceChats,
-        selfDMChat,
+        options: {
+            personalDetails: personalDetailsOptions,
+            recentReports: recentReportOptions,
+            currentUserOption: currentUserRef.current,
+            userToInvite,
+            workspaceChats,
+            selfDMChat,
+        },
+        hasMore,
     };
 }
 
@@ -2738,6 +2765,8 @@ type SearchOptionsConfig = {
     allPolicyTags?: OnyxCollection<PolicyTagLists>;
     sortedActions: Record<string, ReportAction[]> | undefined;
     conciergeReportID: string | undefined;
+    excludeFromSuggestionsOnly?: Record<string, boolean>;
+    isTrackIntentUser?: boolean;
 };
 
 /**
@@ -2767,7 +2796,9 @@ function getSearchOptions({
     allPolicyTags,
     sortedActions,
     conciergeReportID,
-}: SearchOptionsConfig): Options {
+    excludeFromSuggestionsOnly = {},
+    isTrackIntentUser,
+}: SearchOptionsConfig): OptionsResult {
     const optionList = getValidOptions(options, policyCollection, draftComments, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
         betas,
         includeRecentReports,
@@ -2794,6 +2825,8 @@ function getSearchOptions({
         reportAttributesDerived,
         allPolicyTags,
         sortedActions,
+        excludeFromSuggestionsOnly,
+        isTrackIntentUser,
     });
 
     return optionList;
@@ -2830,16 +2863,12 @@ function getFilteredRecentAttendees(
     currentUserEmail: string,
     currentUserAccountID: number,
 ): Option[] {
-    const recentAttendeeHasCurrentUser = recentAttendees.find((attendee) => attendee.email === currentUserEmail || attendee.login === currentUserEmail);
+    const recentAttendeeHasCurrentUser = recentAttendees.find((attendee) => attendee.email === currentUserEmail);
     if (!recentAttendeeHasCurrentUser && currentUserEmail) {
         const details = getPersonalDetailByEmail(currentUserEmail);
         recentAttendees.push({
             email: currentUserEmail,
-            login: currentUserEmail,
             displayName: details?.displayName ?? currentUserEmail,
-            accountID: currentUserAccountID,
-            text: details?.displayName ?? currentUserEmail,
-            searchText: details?.displayName ?? currentUserEmail,
             avatarUrl: details?.avatarThumbnail ?? '',
         });
     }
@@ -3300,84 +3329,25 @@ function filterAndOrderOptions(
     };
 }
 
-/**
- * Filter out selected options from personal details and recent reports
- * @param options - The options to filter
- * @param selectedOptions - The selected options to filter out.
- * @returns The filtered options
- */
-function filterSelectedOptions(options: Options, selectedOptions: Set<number | undefined>): Options {
-    const filteredOptions = {
-        ...options,
-        personalDetails: options.personalDetails.filter(({accountID}) => !selectedOptions.has(accountID)),
-        recentReports: options.recentReports.filter(({accountID}) => !selectedOptions.has(accountID)),
-    };
-    return filteredOptions;
-}
-
 function sortAlphabetically<T extends Partial<Record<TKey, string | undefined>>, TKey extends keyof T>(items: T[], key: TKey, localeCompare: LocaleContextProps['localeCompare']): T[] {
     return items.sort((a, b) => localeCompare(a[key]?.toLowerCase() ?? '', b[key]?.toLowerCase() ?? ''));
 }
 
-function getEmptyOptions(): Options {
+function getEmptyOptions(): OptionsResult {
     return {
-        recentReports: [],
-        personalDetails: [],
-        userToInvite: null,
-        currentUserOption: null,
+        options: {
+            recentReports: [],
+            personalDetails: [],
+            userToInvite: null,
+            currentUserOption: null,
+        },
+        hasMore: false,
     };
 }
 
 function shouldUseBoldText(report: SearchOptionData): boolean {
     const notificationPreference = report.notificationPreference ?? getReportNotificationPreference(report);
     return report.isUnread === true && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE && !isHiddenForCurrentUser(notificationPreference);
-}
-
-function getManagerMcTestParticipant(currentUserAccountID: number, personalDetails: OnyxEntry<PersonalDetailsList>): Participant | undefined {
-    // Use O(1) cache lookup when using global personal details, fall back to O(n) search for custom personal details
-    const managerMcTestPersonalDetails = personalDetails
-        ? Object.values(personalDetails).find((personalDetail) => personalDetail?.login === CONST.EMAIL.MANAGER_MCTEST)
-        : getPersonalDetailByEmail(CONST.EMAIL.MANAGER_MCTEST);
-    const managerMcTestReport =
-        managerMcTestPersonalDetails?.accountID && currentUserAccountID ? getChatByParticipants([managerMcTestPersonalDetails?.accountID, currentUserAccountID]) : undefined;
-    return managerMcTestPersonalDetails
-        ? {
-              ...getParticipantsOption({...managerMcTestPersonalDetails, keyForList: `${managerMcTestPersonalDetails?.accountID}`}, personalDetails ?? {}),
-              reportID: managerMcTestReport?.reportID,
-          }
-        : undefined;
-}
-
-function shallowOptionsListCompare(a: OptionList, b: OptionList): boolean {
-    if (!a || !b) {
-        return false;
-    }
-    if (a.reports.length !== b.reports.length || a.personalDetails.length !== b.personalDetails.length) {
-        return false;
-    }
-    for (let i = 0; i < a.reports.length; i++) {
-        const aReport = a.reports.at(i);
-        const bReport = b.reports.at(i);
-        if (
-            aReport?.reportID !== bReport?.reportID ||
-            aReport?.text !== bReport?.text ||
-            aReport?.alternateText !== bReport?.alternateText ||
-            aReport?.subtitle !== bReport?.subtitle ||
-            aReport?.lastMessageText !== bReport?.lastMessageText
-        ) {
-            return false;
-        }
-    }
-    for (let i = 0; i < a.personalDetails.length; i++) {
-        if (
-            a.personalDetails.at(i)?.login !== b.personalDetails.at(i)?.login ||
-            a.personalDetails.at(i)?.text !== b.personalDetails.at(i)?.text ||
-            a.personalDetails.at(i)?.alternateText !== b.personalDetails.at(i)?.alternateText
-        ) {
-            return false;
-        }
-    }
-    return true;
 }
 
 /**
@@ -3396,12 +3366,10 @@ export {
     canCreateOptimisticPersonalDetailOption,
     combineOrderingOfReportsAndPersonalDetails,
     createOptionFromReport,
-    createOptionList,
     createFilteredOptionList,
     createOption,
     filterAndOrderOptions,
     filterReports,
-    filterSelectedOptions,
     filterSelfDMChat,
     filterWorkspaceChats,
     formatMemberForList,
@@ -3416,7 +3384,6 @@ export {
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
-    getManagerMcTestParticipant,
     getParticipantsOption,
     getPersonalDetailsForAccountIDs,
     getPolicyExpenseReportOption,
@@ -3424,7 +3391,6 @@ export {
     getReportOption,
     getSearchOptions,
     getSearchValueForPhoneOrEmail,
-    getUserToInviteContactOption,
     getUserToInviteOption,
     getValidOptions,
     hasEnabledOptions,
@@ -3436,10 +3402,9 @@ export {
     isSearchStringMatchUserDetails,
     optionsOrderBy,
     orderOptions,
+    orderPersonalDetailsOptions,
     orderWorkspaceOptions,
-    processReport,
     recentReportComparator,
-    shallowOptionsListCompare,
     shouldOptionShowTooltip,
     shouldShowLastActorDisplayName,
     shouldUseBoldText,
@@ -3448,26 +3413,4 @@ export {
     processSearchString,
 };
 
-export type {
-    FilterUserToInviteConfig,
-    GetOptionsConfig,
-    GetUserToInviteConfig,
-    GetValidOptionsSharedConfig,
-    GetValidReportsConfig,
-    MemberForList,
-    Option,
-    OptionList,
-    OptionTree,
-    OptionWithKey,
-    Options,
-    OrderOptionsConfig,
-    OrderReportOptionsConfig,
-    PayeePersonalDetails,
-    PreviewConfig,
-    ReportAndPersonalDetailOptions,
-    SearchOption,
-    SearchOptionData,
-    Section,
-    SectionBase,
-    SectionForSearchTerm,
-} from './types';
+export type {GetOptionsConfig, MemberForList, Option, OptionList, OptionTree, Options, SearchOption, SearchOptionData} from './types';

@@ -1,4 +1,4 @@
-// Static twin of SearchPageInputNarrow - used for fast perceived performance.
+// Static twin of SearchPageInput for narrow layout - used for fast perceived performance.
 // Keep hooks and Onyx subscriptions to an absolute minimum; add new ones only
 // when strictly necessary. UI must stay visually identical to the interactive version.
 import React from 'react';
@@ -15,29 +15,21 @@ function StaticSearchPageInput() {
 
     return (
         <View
-            dataSet={{dragArea: false}}
-            style={[styles.flex1, styles.appBG]}
+            style={[
+                styles.flex1,
+                styles.searchRouterTextInputContainer,
+                styles.searchAutocompleteInputResults,
+                styles.br2,
+                styles.justifyContentCenter,
+                styles.searchPageInputNarrowTouchableWrapper,
+            ]}
         >
-            <View style={[styles.flexRow, styles.ml5, styles.mb4, styles.mr3]}>
-                <View style={[styles.flex1, styles.zIndex10]}>
-                    <View
-                        style={[
-                            styles.searchRouterTextInputContainer,
-                            styles.searchAutocompleteInputResults,
-                            styles.br2,
-                            styles.justifyContentCenter,
-                            styles.searchPageInputNarrowTouchableWrapper,
-                        ]}
-                    >
-                        <Text
-                            style={[{color: theme.textSupporting}]}
-                            numberOfLines={1}
-                        >
-                            {translate('search.searchPlaceholder')}
-                        </Text>
-                    </View>
-                </View>
-            </View>
+            <Text
+                style={[{color: theme.textSupporting}]}
+                numberOfLines={1}
+            >
+                {translate('search.searchPlaceholder')}
+            </Text>
         </View>
     );
 }

@@ -3,14 +3,18 @@ import type {ValueOf} from 'type-fest';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ListItemProps} from '@components/SelectionList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
+import type {TransactionPreviewData} from '@libs/actions/Search';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type CONST from '@src/CONST';
 import type {
+    BankAccountList,
     BillingGraceEndPeriod,
+    CardFeeds,
     CardList,
     LastPaymentMethod,
     PersonalDetails,
-    PersonalDetailsList,
     Policy,
+    PolicyTagLists,
     Report,
     ReportAction,
     SearchResults,
@@ -48,16 +52,8 @@ type SearchListActionProps = {
 };
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
-    queryJSONHash?: number;
-
     /** The report data */
     report?: Report;
-
-    /** Personal details list */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-
-    /** User billing fund ID */
-    userBillingFundID: number | undefined;
 };
 
 type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
@@ -183,6 +179,18 @@ type TransactionListItemType = ListItem &
         /** The main action that can be performed for the transaction */
         action: SearchTransactionAction;
 
+        /** Whether the current user can pay this report */
+        canPay: boolean;
+
+        /** Whether the current user can approve this report */
+        canApprove: boolean;
+
+        /** Whether the current user can submit this report */
+        canSubmit: boolean;
+
+        /** Whether the current user can change the approver of this report */
+        canChangeApprover: boolean;
+
         /** The tax code of the transaction */
         taxCode?: string;
     };
@@ -202,6 +210,12 @@ type TransactionGroupListItemType = ListItem & {
 
     /** Whether the report was rejected (REJECTED or REJECTEDTOSUBMITTER) */
     isRejectedReport?: boolean;
+
+    /** Total value of transactions in the group */
+    total?: number;
+
+    /** Currency of the group total */
+    currency?: string;
 };
 
 type ExpenseReportListItemType = TransactionReportGroupListItemType;
@@ -258,6 +272,18 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** The available actions that can be performed for the report */
         allActions?: SearchTransactionAction[];
 
+        /** Whether the current user can pay this report */
+        canPay: boolean;
+
+        /** Whether the current user can approve this report */
+        canApprove: boolean;
+
+        /** Whether the current user can submit this report */
+        canSubmit: boolean;
+
+        /** Whether the current user can change the approver of this report */
+        canChangeApprover: boolean;
+
         /** Pre-computed total display spend amount */
         totalDisplaySpend?: number;
 
@@ -292,9 +318,6 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
     /** All the data of the report collection */
     allReports?: OnyxCollection<Report>;
-
-    /** Personal details list */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 type TaskListItemType = ListItem &
@@ -422,10 +445,10 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
         /** Whether the item's action is loading */
         isLoading?: boolean;
         columns?: SearchColumnType[];
-        violations?: Record<string, TransactionViolations | undefined> | undefined;
-        policyForMovingExpenses?: Policy;
         /** Non-personal and workspace cards for company card display */
         nonPersonalAndWorkspaceCards?: CardList;
+        /** All policies' tag lists, drilled from the list level so each row can resolve its policy's tags without an Onyx subscription per row */
+        policyTags?: OnyxCollection<PolicyTagLists>;
         /** Callback to undelete a transaction */
         onUndelete?: (transaction: Transaction) => void;
     };
@@ -434,12 +457,9 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
     SearchListActionProps & {
         groupBy?: SearchGroupBy;
         searchType?: SearchDataTypes;
-        policies?: OnyxCollection<Policy>;
         accountID?: number;
         columns?: SearchColumnType[];
         newTransactionID?: string;
-        violations?: Record<string, TransactionViolations | undefined> | undefined;
-        policyForMovingExpenses?: Policy;
         /** Non-personal and workspace cards for company card display */
         nonPersonalAndWorkspaceCards?: CardList;
         /** Callback to undelete a transaction */
@@ -448,19 +468,9 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     TransactionGroupListItemProps<TItem>,
-    | 'showTooltip'
-    | 'canSelectMultiple'
-    | 'onSelectionButtonPress'
-    | 'columns'
-    | 'groupBy'
-    | 'accountID'
-    | 'isOffline'
-    | 'violations'
-    | 'onSelectRow'
-    | 'nonPersonalAndWorkspaceCards'
-    | 'onUndelete'
-    | 'policyForMovingExpenses'
+    'showTooltip' | 'canSelectMultiple' | 'onSelectionButtonPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'onSelectRow' | 'nonPersonalAndWorkspaceCards' | 'onUndelete'
 > & {
+    violations?: Record<string, TransactionViolations | undefined> | undefined;
     transactions: TransactionListItemType[];
     transactionsVisibleLimit: number;
     setTransactionsVisibleLimit: React.Dispatch<React.SetStateAction<number>>;
@@ -472,6 +482,58 @@ type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     isInSingleTransactionReport: boolean;
     searchTransactions: (pageSize?: number) => void;
     onLongPress: (transaction: TransactionListItemType) => void;
+    hideSearchTableHeader?: boolean;
+};
+
+const GROUP_ITEM_TYPES = {
+    GROUP_HEADER: 'group_header',
+    CHILDREN_CONTAINER: 'children_container',
+} as const;
+
+type GroupHeaderListItemType = {listItemType: typeof GROUP_ITEM_TYPES.GROUP_HEADER};
+
+type GroupHeaderItemType =
+    | (TransactionReportGroupListItemType & GroupHeaderListItemType)
+    | (TransactionMemberGroupListItemType & GroupHeaderListItemType)
+    | (TransactionCardGroupListItemType & GroupHeaderListItemType)
+    | (TransactionWithdrawalIDGroupListItemType & GroupHeaderListItemType)
+    | (TransactionCategoryGroupListItemType & GroupHeaderListItemType)
+    | (TransactionMerchantGroupListItemType & GroupHeaderListItemType)
+    | (TransactionTagGroupListItemType & GroupHeaderListItemType)
+    | (TransactionMonthGroupListItemType & GroupHeaderListItemType)
+    | (TransactionWeekGroupListItemType & GroupHeaderListItemType)
+    | (TransactionYearGroupListItemType & GroupHeaderListItemType)
+    | (TransactionQuarterGroupListItemType & GroupHeaderListItemType)
+    | (TransactionGroupListItemType & GroupHeaderListItemType);
+
+type GroupChildrenContainerItemType = TransactionGroupListItemType & {
+    listItemType: typeof GROUP_ITEM_TYPES.CHILDREN_CONTAINER;
+};
+
+function isGroupHeaderItem(item: SearchListItem): item is GroupHeaderItemType {
+    return 'listItemType' in item && item.listItemType === GROUP_ITEM_TYPES.GROUP_HEADER;
+}
+
+function isGroupChildrenContainerItem(item: SearchListItem): item is GroupChildrenContainerItemType {
+    return 'listItemType' in item && item.listItemType === GROUP_ITEM_TYPES.CHILDREN_CONTAINER;
+}
+
+type GroupChildrenContentProps = {
+    item: GroupChildrenContainerItemType;
+    isExpanded: boolean;
+    groupBy?: SearchGroupBy;
+    searchType?: SearchDataTypes;
+    columns?: SearchColumnType[];
+    canSelectMultiple: boolean;
+    onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
+    onCheckboxPress: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
+    onLongPressRow?: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
+    nonPersonalAndWorkspaceCards?: CardList;
+    onUndelete?: (transaction: Transaction) => void;
+    newTransactionID?: string;
+    bankAccountList?: OnyxEntry<BankAccountList>;
+    cardFeeds?: OnyxCollection<CardFeeds>;
+    conciergeReportID?: string;
 };
 
 type UnreportedExpenseListItemType = Transaction & {
@@ -506,4 +568,9 @@ export type {
     TransactionListItemProps,
     ReportActionListItemType,
     UnreportedExpenseListItemType,
+    GroupHeaderItemType,
+    GroupChildrenContainerItemType,
+    GroupChildrenContentProps,
 };
+
+export {GROUP_ITEM_TYPES, isGroupHeaderItem, isGroupChildrenContainerItem};

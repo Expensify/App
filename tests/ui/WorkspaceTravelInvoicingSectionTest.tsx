@@ -58,6 +58,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     default: {
         navigate: jest.fn(),
         getActiveRoute: jest.fn(() => ''),
+        getActiveRouteWithoutParams: jest.fn(() => ''),
+        isNavigationReady: jest.fn(() => Promise.resolve()),
         isTopmostRouteModalScreen: jest.fn(() => false),
     },
 }));
@@ -130,8 +132,8 @@ describe('WorkspaceTravelInvoicingSection', () => {
             // Wait for component to render
             await waitForBatchedUpdatesWithAct();
 
-            // Central Invoicing section should be visible
-            expect(screen.getByText('Central invoicing')).toBeTruthy();
+            // Travel Invoicing section should be visible
+            expect(screen.getByText('Consolidated Travel Billing')).toBeTruthy();
         });
 
         it('should render sections when paymentBankAccountID is not set', async () => {
@@ -151,7 +153,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
 
             renderWorkspaceTravelInvoicingSection();
             await waitForBatchedUpdatesWithAct();
-            expect(screen.getByText('Central invoicing')).toBeTruthy();
+            expect(screen.getByText('Consolidated Travel Billing')).toBeTruthy();
         });
     });
 
@@ -183,7 +185,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
 
             renderWorkspaceTravelInvoicingSection();
             await waitForBatchedUpdatesWithAct();
-            expect(screen.getByText('Central invoicing')).toBeTruthy();
+            expect(screen.getByText('Consolidated Travel Billing')).toBeTruthy();
         });
 
         it('should display current travel spend label when configured', async () => {

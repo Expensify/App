@@ -3,6 +3,8 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import TestToolMenu from '@components/TestToolMenu';
 import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 const REGISTRATION_STATUS = MULTIFACTOR_AUTHENTICATION_VALUES.REGISTRATION_STATUS;
 
@@ -52,11 +54,6 @@ jest.mock('@hooks/useSidebarOrderedReports', () => ({
     useSidebarOrderedReportsActions: () => ({clearLHNCache: jest.fn()}),
 }));
 
-jest.mock('@hooks/useSingleExecution', () => ({
-    __esModule: true,
-    default: () => ({singleExecution: (fn: () => void) => fn}),
-}));
-
 jest.mock('@hooks/useThemeStyles', () => ({
     __esModule: true,
     default: () =>
@@ -68,11 +65,6 @@ jest.mock('@hooks/useThemeStyles', () => ({
         ),
 }));
 
-jest.mock('@hooks/useWaitForNavigation', () => ({
-    __esModule: true,
-    default: () => (fn: () => void) => fn,
-}));
-
 const mockRevokeCredentials = jest.fn().mockResolvedValue({httpStatusCode: 200});
 jest.mock('@libs/actions/MultifactorAuthentication', () => ({
     revokeMultifactorAuthenticationCredentials: (...args: unknown[]): Promise<{httpStatusCode: number}> => mockRevokeCredentials(...args) as Promise<{httpStatusCode: number}>,
@@ -80,10 +72,28 @@ jest.mock('@libs/actions/MultifactorAuthentication', () => ({
 
 jest.mock('@libs/ApiUtils', () => ({
     isUsingStagingApi: () => false,
+    getCommandURL: () => 'https://test-api.expensify.com/api/Ping?',
 }));
 
+const mockExecuteScenario = jest.fn().mockResolvedValue(undefined);
+jest.mock('@components/MultifactorAuthentication/Context', () => ({
+    useMultifactorAuthentication: () => ({
+        executeScenario: mockExecuteScenario,
+        cancel: jest.fn(),
+        requestCancel: jest.fn(),
+        hideCancelConfirm: jest.fn(),
+        confirmCancel: jest.fn(),
+    }),
+}));
+
+const mockDismissModal = jest.fn();
+const mockGetActiveRoute = jest.fn(() => '');
 jest.mock('@libs/Navigation/Navigation', () => ({
-    navigate: jest.fn(),
+    __esModule: true,
+    default: {
+        getActiveRoute: () => mockGetActiveRoute(),
+        dismissModal: (...args: unknown[]) => mockDismissModal(...args),
+    },
 }));
 
 jest.mock('@userActions/Network', () => ({
@@ -254,11 +264,38 @@ describe('TestToolMenu biometrics', () => {
         expect(mockRevokeCredentials).toHaveBeenCalledWith({onlyKeyID: 'key-abc'});
     });
 
-    it('always shows the Test button', () => {
+    it('always shows the Test button and invokes executeScenario with BIOMETRICS_TEST when pressed', () => {
         setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NEVER_REGISTERED});
 
         render(<TestToolMenu />);
 
-        screen.getByText('multifactorAuthentication.biometricsTest.test');
+        const testButton = screen.getByText('multifactorAuthentication.biometricsTest.test');
+        fireEvent.press(testButton);
+
+        expect(mockExecuteScenario).toHaveBeenCalledWith(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST);
+    });
+
+    it('dismisses the Test Tools modal when Test is pressed from inside the modal', () => {
+        setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NEVER_REGISTERED});
+        mockGetActiveRoute.mockReturnValue(ROUTES.TEST_TOOLS_MODAL.route);
+
+        render(<TestToolMenu />);
+
+        fireEvent.press(screen.getByText('multifactorAuthentication.biometricsTest.test'));
+
+        expect(mockDismissModal).toHaveBeenCalledTimes(1);
+        expect(mockExecuteScenario).toHaveBeenCalledWith(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST);
+    });
+
+    it('does not dismiss any modal when Test is pressed inline on the Troubleshoot page', () => {
+        setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NEVER_REGISTERED});
+        mockGetActiveRoute.mockReturnValue(ROUTES.SETTINGS_TROUBLESHOOT);
+
+        render(<TestToolMenu />);
+
+        fireEvent.press(screen.getByText('multifactorAuthentication.biometricsTest.test'));
+
+        expect(mockDismissModal).not.toHaveBeenCalled();
+        expect(mockExecuteScenario).toHaveBeenCalledWith(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST);
     });
 });

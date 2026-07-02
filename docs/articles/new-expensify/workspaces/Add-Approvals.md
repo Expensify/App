@@ -1,7 +1,7 @@
 ---
 title: Add Approvals
 description: Require report approvals in your Expensify workspace, including setting approval thresholds and over-limit approvers.
-keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain, approval threshold, approval limit, over-limit approval, report amount limit, dollar limit approver, reassign approver, automatic approver reassignment, change approver workflow, automatic approval, approval audit]
+keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain, approval threshold, approval limit, over-limit approval, report amount limit, dollar limit approver, reassign approver, automatic approver reassignment, change approver workflow, automatic approval, approval audit, category approver, tag approver, category rules, tag rules, invite member to approval workflow, invite new user approval workflow]
 ---
 
 Each Expensify workspace can be configured to require additional approvals for reports before payments are authorized. When approvals are enabled, admins can set a default approval workflow for all members or create custom workflows for individual members.
@@ -20,6 +20,8 @@ To enable approvals on a workspace you manage:
 4. Toggle on **Approvals**.
 
 Enabling **Approvals** will reveal an option to set a default approval workflow for the workspace.
+
+**Note:** If your workspace is connected to an HR integration such as Gusto or TriNet, approval workflows managed through that integration appear on the **Workflows** tab with the integration's indicator. To manage these approval settings, go to the **HR** tab in your workspace settings. [Learn about connecting Gusto to Expensify](/articles/new-expensify/connections/Connect-Gusto-to-Expensify) or [learn about connecting TriNet to Expensify](/articles/new-expensify/connections/TriNet).
 
 ---
 
@@ -46,8 +48,8 @@ Set up default or custom approval workflows to route expenses through one or mor
 
 1. Navigate to **Workspaces > [Workspace Name] > Workflows**.
 2. Under **Approvals**, click **Add approval workflow**.
-3. Choose the member whose expenses should have a custom workflow.
-4. Click **Next**.
+3. On the **Expenses from** page, choose the member whose expenses should have a custom workflow. To route expenses from someone who isn't a workspace member yet, type their email address and select them from the list.
+4. Click **Next**. If you selected someone who isn't a workspace member, the **Invite new member** screen appears. Click **Invite** to add them to the workspace and continue.
 5. Select the first approver for their expenses.
 6. (Optional) Set an additional approval when a report exceeds a specific amount:
  - Enter a dollar amount in the Report amount field.
@@ -101,6 +103,25 @@ Even with auto-approvals enabled, you can route a percentage of compliant report
 3. Click **Save**.
 
 **Note:** Custom auto-approval settings are only available on the Control plan. Collect plans will have a $100 auto-approval threshold and 0% random audit percentage. 
+
+---
+
+# Set Category and Tag approvers
+
+In addition to the workspace approval workflow, Control plan workspaces can assign an approver to a specific **Category** or **Tag**. When a report contains an expense that uses one of these categories or tags, the report is routed to the Category and Tag approvers *before* it continues through the workspace's normal approval workflow.
+
+The approval order is:
+
+1. **Category approver(s)** – approve first.
+2. **Tag approver(s)** – approve next.
+3. **Workspace workflow approver(s)** – the default or custom workflow you configured above runs last.
+
+Category and Tag approvers are added to the approval chain — they don't replace the workflow approvers. To set them up, see:
+
+- [Create expense categories](/articles/new-expensify/workspaces/Create-expense-categories) (Category Rules > Approver)
+- [Create and manage expense tags](/articles/new-expensify/workspaces/Create-and-manage-expense-tags) (Tag Rules > Approver)
+
+---
 
 # FAQ
 

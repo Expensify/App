@@ -1,10 +1,8 @@
 import {NavigationContainer} from '@react-navigation/native';
-import {screen} from '@testing-library/react-native';
-import type {ComponentType} from 'react';
+import {act, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import type Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {setHasRadio} from '@libs/NetworkState';
@@ -13,46 +11,15 @@ import {ActionListContext, ReactionListContext} from '@pages/inbox/ReportScreenC
 import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import ComposeProviders from '@src/components/ComposeProviders';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList} from '@src/types/onyx';
-import createRandomReportAction from '../utils/collections/reportActions';
-import {createRandomReport} from '../utils/collections/reports';
+import type {ReportAction, ReportActions} from '@src/types/onyx';
 import * as ReportTestUtils from '../utils/ReportTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-const REPORT_ACTIONS_LIST_ID = 'perf-test-list';
-
-type LazyLoadLHNTestUtils = {
-    fakePersonalDetails: PersonalDetailsList;
-};
-
 const mockedNavigate = jest.fn();
-
-jest.mock('@components/withCurrentUserPersonalDetails', () => {
-    // Lazy loading of LHNTestUtils
-    const lazyLoadLHNTestUtils = () => require<LazyLoadLHNTestUtils>('../utils/LHNTestUtils');
-
-    return <TProps extends WithCurrentUserPersonalDetailsProps>(Component: ComponentType<TProps>) => {
-        function WrappedComponent(props: Omit<TProps, keyof WithCurrentUserPersonalDetailsProps>) {
-            const currentUserAccountID = 5;
-            const LHNTestUtils = lazyLoadLHNTestUtils(); // Load LHNTestUtils here
-
-            return (
-                <Component
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...(props as TProps)}
-                    currentUserPersonalDetails={LHNTestUtils.fakePersonalDetails[currentUserAccountID]}
-                />
-            );
-        }
-
-        WrappedComponent.displayName = 'WrappedComponent';
-
-        return WrappedComponent;
-    };
-});
 
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
@@ -63,8 +30,6 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-jest.mock('@src/components/ConfirmedRoute.tsx');
-
 beforeAll(() =>
     Onyx.init({
         keys: ONYXKEYS,
@@ -73,8 +38,6 @@ beforeAll(() =>
 );
 
 const mockOnLayout = jest.fn();
-const mockOnScroll = jest.fn();
-const mockLoadChats = jest.fn();
 const mockRef = {current: null, flatListRef: null, scrollPositionRef: {current: {}}, scrollOffsetRef: {current: 0}};
 const mockReactionListContextValue = {
     showReactionList: () => {},
@@ -84,49 +47,59 @@ const mockReactionListContextValue = {
 
 const TEST_USER_ACCOUNT_ID = 1;
 const TEST_USER_LOGIN = 'test@test.com';
+const REPORT_ID = '1';
 
 const signUpWithTestUser = () => {
     TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
 };
 
-const report = createRandomReport(1, undefined);
-const parentReportAction = createRandomReportAction(1);
+const sortedReportActions = ReportTestUtils.getMockedSortedReportActions(500);
+const reportActions: ReportActions = Object.fromEntries(sortedReportActions.map((action: ReportAction) => [action.reportActionID, action]));
+const report = ReportTestUtils.createMockReport({reportID: REPORT_ID, lastVisibleActionCreated: sortedReportActions.at(0)?.created});
 
-beforeEach(() => {
+beforeEach(async () => {
     // Initialize the network key for OfflineWithFeedback
     setHasRadio(true);
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
-    signUpWithTestUser();
+    // Pre-seed the locale so LocaleContextProvider's mount effect is a no-op (setLocale early-returns),
+    // avoiding post-mount Onyx writes that would re-render outside act().
+    await act(async () => {
+        signUpWithTestUser();
+        await Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.DEFAULT);
+
+        // Seed the report under test: the report, its 500 actions, and a settled loading state.
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, reportActions);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {
+            isLoadingInitialReportActions: false,
+            hasOnceLoadedReportActions: true,
+            isLoadingOlderReportActions: false,
+            hasLoadingOlderReportActionsError: false,
+            isLoadingNewerReportActions: false,
+            hasLoadingNewerReportActionsError: false,
+        });
+        await waitForBatchedUpdates();
+    });
 });
 
-afterEach(() => {
-    Onyx.clear();
+afterEach(async () => {
+    // Await the clear so its broadcasts settle in teardown instead of leaking into the next test.
+    await Onyx.clear();
+    await waitForBatchedUpdates();
 });
 
+// Mirror the production data flow (usePaginatedReportActions): the body reads REPORT_ACTIONS from Onyx and
+// sorts inside a useOnyx selector, then runs it through the real continuous-chain pagination and the
+// visibility filter.
 function ReportActionsListWrapper() {
-    const reportActions = ReportTestUtils.getMockedSortedReportActions(500);
     return (
         <NavigationContainer ref={navigationRef}>
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, AttachmentModalContextProvider]}>
                 <ReactionListContext.Provider value={mockReactionListContextValue}>
                     <ActionListContext.Provider value={mockRef}>
                         <ReportActionsList
-                            parentReportAction={parentReportAction}
-                            parentReportActionForTransactionThread={undefined}
-                            sortedReportActions={reportActions}
-                            sortedVisibleReportActions={reportActions}
-                            report={report}
+                            reportID={REPORT_ID}
                             onLayout={mockOnLayout}
-                            onScroll={mockOnScroll}
-                            listID={REPORT_ACTIONS_LIST_ID}
-                            loadOlderChats={mockLoadChats}
-                            loadNewerChats={mockLoadChats}
-                            hasNewerActions={false}
-                            sortedAllReportActionsForPagination={reportActions}
-                            reportActionPages={undefined}
-                            treatAsNoPaginationAnchor={false}
-                            setTreatAsNoPaginationAnchor={() => {}}
-                            transactionThreadReport={report}
                         />
                     </ActionListContext.Provider>
                 </ReactionListContext.Provider>

@@ -1,3 +1,4 @@
+import type {NavigationState} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -10,27 +11,40 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRootNavigationState from '@hooks/useRootNavigationState';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import getFocusedLeafScreenName from '@libs/Navigation/helpers/getFocusedLeafScreenName';
+import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
 import Navigation from '@libs/Navigation/Navigation';
-import {getRouteForCurrentStep as getReimbursementAccountRouteForCurrentStep} from '@libs/ReimbursementAccountUtils';
-import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoadReportID} from '@libs/WorkspacesSettingsUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {ReimbursementAccount} from '@src/types/onyx';
 import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
 
-type DebugTabViewProps = {
-    selectedTab?: ValueOf<typeof NAVIGATION_TABS>;
-    chatTabBrickRoad: BrickRoad;
-};
+function getActiveTabRoute(rootState: NavigationState | undefined) {
+    if (!rootState) {
+        return undefined;
+    }
+    // Multiple TAB_NAVIGATOR instances can exist in the root stack (e.g. workspace nav from RHP
+    // pushes a new one). Use `findLast` to read state from the most recent tab navigator,
+    // even when the focused root route is a modal — the bar should stay mounted under the RHP
+    // and just be visually covered by it.
+    const tabRoute = rootState.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+    return tabRoute?.state?.routes?.[tabRoute.state.index ?? 0];
+}
 
 function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPaths | undefined {
     switch (status) {
@@ -62,17 +76,21 @@ function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPat
             return 'debug.indicatorStatus.theresAProblemWithYourWalletTerms';
         case CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT:
             return 'debug.indicatorStatus.aBankAccountIsLocked';
+        case CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED:
+            return 'debug.indicatorStatus.completeHrSetup';
+        case CONST.INDICATOR_STATUS.HAS_HR_CONNECTION_ERROR:
+            return 'debug.indicatorStatus.theresAProblemWithAnHRConnection';
         default:
             return undefined;
     }
 }
 
-function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAccount: OnyxEntry<ReimbursementAccount>, policyIDWithErrors = ''): Route | undefined {
+function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAccount: OnyxEntry<ReimbursementAccount>, indicatorPolicyID = ''): Route | undefined {
     switch (status) {
         case CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR:
-            return ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyIDWithErrors);
+            return ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(indicatorPolicyID);
         case CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR:
-            return ROUTES.WORKSPACE_MEMBERS.getRoute(policyIDWithErrors);
+            return ROUTES.WORKSPACE_MEMBERS.getRoute(indicatorPolicyID);
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR:
             return ROUTES.SETTINGS_CONTACT_METHODS.route;
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO:
@@ -80,39 +98,61 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
         case CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR:
             return ROUTES.SETTINGS_WALLET;
         case CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS:
-            return ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithErrors);
+            return ROUTES.WORKSPACE_INITIAL.getRoute(indicatorPolicyID);
         case CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS:
-            return ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({
-                policyID: reimbursementAccount?.achData?.policyID,
-                stepToOpen: getReimbursementAccountRouteForCurrentStep(reimbursementAccount?.achData?.currentStep ?? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT),
-            });
+            return ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: reimbursementAccount?.achData?.policyID});
         case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS:
             return ROUTES.SETTINGS_SUBSCRIPTION.route;
         case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO:
             return ROUTES.SETTINGS_SUBSCRIPTION.route;
         case CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS:
-            return ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyIDWithErrors);
+            return ROUTES.WORKSPACE_ACCOUNTING.getRoute(indicatorPolicyID);
         case CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS:
             return ROUTES.SETTINGS_WALLET;
         case CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS:
             return ROUTES.SETTINGS_WALLET;
         case CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT:
             return ROUTES.SETTINGS_WALLET;
+        case CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED:
+        case CONST.INDICATOR_STATUS.HAS_HR_CONNECTION_ERROR:
+            return ROUTES.WORKSPACE_HR.getRoute(indicatorPolicyID);
         default:
             return undefined;
     }
 }
 
-function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
+type Props = {
+    selectedTab: ValueOf<typeof NAVIGATION_TABS>;
+};
+
+function DebugTabView({selectedTab}: Props) {
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {windowWidth} = useWindowDimensions();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const reportAttributes = useReportAttributes();
-    const {status, indicatorColor, policyIDWithErrors} = useIndicatorStatus();
-    const {orderedReportIDs} = useSidebarOrderedReportsState();
+    const {status, indicatorColor, indicatorPolicyID} = useIndicatorStatus();
+    const {orderedReportIDs, chatTabBrickRoad} = useSidebarOrderedReportsState();
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
+
+    const isAtRoot = useRootNavigationState((rootState) => {
+        const activeRoute = getActiveTabRoute(rootState);
+        return activeRoute ? isTabRouteAtRoot(activeRoute) : false;
+    });
+
+    const isOnFullWidthTabRoot = useRootNavigationState((rootState) => {
+        const activeRoute = getActiveTabRoute(rootState);
+        if (!activeRoute) {
+            return false;
+        }
+        const focusedLeaf = getFocusedLeafScreenName(activeRoute.state) ?? activeRoute.name;
+        // Scoped to WORKSPACES_LIST — the only full-width tab root among the three tabs
+        // (Inbox/Settings/Workspaces) gated by the tab filter further below.
+        return focusedLeaf === SCREENS.WORKSPACES_LIST;
+    });
 
     const message = useMemo((): TranslationPaths | undefined => {
         if (selectedTab === NAVIGATION_TABS.INBOX) {
@@ -152,35 +192,59 @@ function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
                 Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(reportID));
             }
         }
-        if (selectedTab === NAVIGATION_TABS.SETTINGS) {
-            const route = getSettingsRoute(status, reimbursementAccount, policyIDWithErrors);
+        if (selectedTab === NAVIGATION_TABS.SETTINGS || selectedTab === NAVIGATION_TABS.WORKSPACES) {
+            const route = getSettingsRoute(status, reimbursementAccount, indicatorPolicyID);
 
             if (route) {
                 Navigation.navigate(route);
             }
         }
-    }, [selectedTab, chatTabBrickRoad, orderedReportIDs, reportAttributes, status, reimbursementAccount, policyIDWithErrors]);
+    }, [selectedTab, chatTabBrickRoad, orderedReportIDs, reportAttributes, status, reimbursementAccount, indicatorPolicyID]);
 
-    if (!([NAVIGATION_TABS.INBOX, NAVIGATION_TABS.SETTINGS, NAVIGATION_TABS.WORKSPACES] as string[]).includes(selectedTab ?? '') || !indicator || !message) {
+    if (
+        (shouldUseNarrowLayout && !isAtRoot) ||
+        !([NAVIGATION_TABS.INBOX, NAVIGATION_TABS.SETTINGS, NAVIGATION_TABS.WORKSPACES] as string[]).includes(selectedTab) ||
+        !indicator ||
+        !message
+    ) {
         return null;
     }
 
+    let positionStyle: {bottom?: number; top?: number; left: number; right?: number; width?: number};
+    const verticalAnchor = selectedTab === NAVIGATION_TABS.SETTINGS && !shouldUseNarrowLayout ? {top: 0} : {bottom: 0};
+    if (shouldUseNarrowLayout) {
+        positionStyle = {bottom: 0, left: 0, right: 0};
+    } else if (isOnFullWidthTabRoot) {
+        positionStyle = {...verticalAnchor, left: variables.navigationTabBarSize, width: windowWidth - variables.navigationTabBarSize};
+    } else {
+        positionStyle = {...verticalAnchor, left: variables.navigationTabBarSize, width: variables.sideBarWithLHBWidth - variables.cropBorderWidth};
+    }
+
+    // pAbsolute is only applied on wide layouts. On narrow layout the bar is placed by its parent
+    // (above the bottom tab bar), so detaching it with absolute positioning breaks both the FAB
+    // and the DebugTabView's own placement.
     return (
         <View
-            testID="DebugTabView"
-            style={[StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.p3, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}
+            testID="DebugTabViewContainer"
+            style={[shouldUseNarrowLayout ? positionStyle : {...styles.pAbsolute, ...positionStyle}]}
+            pointerEvents="box-none"
         >
-            <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter]}>
-                <Icon
-                    src={icons.DotIndicator}
-                    fill={indicator}
+            <View
+                testID="DebugTabView"
+                style={[StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.p3, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}
+            >
+                <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter]}>
+                    <Icon
+                        src={icons.DotIndicator}
+                        fill={indicator}
+                    />
+                    {!!message && <Text style={[StyleUtils.getColorStyle(theme.text), styles.lh20]}>{translate(message)}</Text>}
+                </View>
+                <Button
+                    text={translate('common.view')}
+                    onPress={navigateTo}
                 />
-                {!!message && <Text style={[StyleUtils.getColorStyle(theme.text), styles.lh20]}>{translate(message)}</Text>}
             </View>
-            <Button
-                text={translate('common.view')}
-                onPress={navigateTo}
-            />
         </View>
     );
 }

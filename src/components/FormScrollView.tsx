@@ -21,7 +21,6 @@ function FormScrollView({children, ref, ...rest}: FormScrollViewProps) {
             ref={ref}
             contentContainerStyle={styles.flexGrow1}
             keyboardShouldPersistTaps="handled"
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         >
             {children}

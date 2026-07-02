@@ -1,3 +1,4 @@
+import {NavigationContainer} from '@react-navigation/native';
 import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -49,12 +50,14 @@ describe('PolicyChangeLogContent', () => {
         const fakeAction = {actionName: type, originalMessage: {}} as ReportAction;
 
         render(
-            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                <PolicyChangeLogContent
-                    action={fakeAction}
-                    policyID={mockPolicy.id}
-                />
-            </ComposeProviders>,
+            <NavigationContainer>
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <PolicyChangeLogContent
+                        action={fakeAction}
+                        policyID={mockPolicy.id}
+                    />
+                </ComposeProviders>
+            </NavigationContainer>,
         );
         await waitForBatchedUpdatesWithAct();
 

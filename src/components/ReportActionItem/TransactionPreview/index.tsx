@@ -3,7 +3,7 @@ import React, {memo, useCallback, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import {showContextMenuForReport} from '@components/ShowContextMenuContext';
+import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -31,33 +31,20 @@ import type {TransactionPreviewProps} from './types';
 function TransactionPreview(props: TransactionPreviewProps) {
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const {
-        action,
-        chatReportID,
-        reportID,
-        contextMenuAnchor,
-        checkIfContextMenuActive = () => {},
-        shouldDisplayContextMenu,
-        iouReportID,
-        transactionID: transactionIDFromProps,
-        onPreviewPressed,
-        shouldHighlight,
-        reportPreviewAction,
-        contextAction,
-        originalReportID,
-    } = props;
+    const {action, chatReport, reportID, transactionID: transactionIDFromProps, onPreviewPressed, shouldHighlight, reportPreviewAction, contextAction} = props;
+    const chatReportID = chatReport?.reportID;
+    const {anchor: contextMenuAnchorRef, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
+    const {checkIfContextMenuActive} = useShowContextMenuActions();
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
     const transactionID = transactionIDFromProps ?? (isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : undefined);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
-    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(transactionReport?.policyID)}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(transactionReport?.policyID)}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(transactionReport?.policyID)}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const violations = useTransactionViolations(transaction?.transactionID);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
     const session = useSession();
@@ -80,7 +67,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
         if (!shouldDisplayContextMenu) {
             return;
         }
-        showContextMenuForReport(event, contextMenuAnchor, contextMenuReportID, contextMenuAction, checkIfContextMenuActive, false, originalReportID);
+        showContextMenuForReport(event, contextMenuAnchorRef, contextMenuReportID, contextMenuAction, checkIfContextMenuActive, originalReportID);
     };
 
     const offlineWithFeedbackOnClose = useCallback(() => {
@@ -89,15 +76,11 @@ function TransactionPreview(props: TransactionPreviewProps) {
     }, [chatReportID]);
 
     const navigateToReviewFields = () =>
-        Navigation.navigate(
-            getReviewNavigationRoute(Navigation.getActiveRoute(), route.params?.threadReportID, transaction, duplicates, policy, policyCategories, policyTags ?? {}, transactionReport),
-        );
+        Navigation.navigate(getReviewNavigationRoute(Navigation.getActiveRoute(), route.params?.threadReportID, transaction, duplicates, policy, policyCategories, policyTags ?? {}, report));
 
     const transactionPreview = transaction;
 
     const {isBillSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
-
-    const iouAction = action;
 
     // See description of `transactionRawAmount` prop for more context
 
@@ -119,9 +102,8 @@ function TransactionPreview(props: TransactionPreviewProps) {
                 sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_PREVIEW.CARD}
             >
                 <TransactionPreviewContent
-                    /* eslint-disable-next-line react/jsx-props-no-spreading */
                     {...props}
-                    action={iouAction}
+                    action={action}
                     isBillSplit={isBillSplit && !transaction?.comment?.originalTransactionID}
                     chatReport={chatReport}
                     personalDetails={personalDetails}
@@ -144,9 +126,8 @@ function TransactionPreview(props: TransactionPreviewProps) {
 
     return (
         <TransactionPreviewContent
-            /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
-            action={iouAction}
+            action={action}
             isBillSplit={isBillSplit}
             chatReport={chatReport}
             personalDetails={personalDetails}

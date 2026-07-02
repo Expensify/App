@@ -40,6 +40,12 @@ type CalendarPickerProps = {
 
     /** Optional style override for the header container */
     headerContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Optional additional style for the outermost container */
+    containerStyle?: StyleProp<ViewStyle>;
+
+    /** Whether Month/Year right-docked picker modals should keep backdrop in narrow pane context */
+    shouldEnableMonthYearBackdropInNarrowPane?: boolean;
 };
 
 function getInitialCurrentDateView(value: Date | string, minDate: Date, maxDate: Date) {
@@ -71,6 +77,8 @@ function CalendarPicker({
     DayComponent = Day,
     selectableDates,
     headerContainerStyle,
+    containerStyle,
+    shouldEnableMonthYearBackdropInNarrowPane = false,
 }: CalendarPickerProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -235,7 +243,7 @@ function CalendarPicker({
     const getAccessibilityState = useCallback((isSelected: boolean) => ({selected: isSelected}), []);
 
     return (
-        <View style={[themeStyles.pb4, themeStyles.pt1]}>
+        <View style={[themeStyles.pb4, themeStyles.pt1, containerStyle]}>
             <View
                 style={[themeStyles.calendarHeader, themeStyles.flexRow, themeStyles.justifyContentBetween, themeStyles.alignItemsCenter, themeStyles.gap3, headerPaddingStyle]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
@@ -424,12 +432,14 @@ function CalendarPicker({
                 currentYear={currentYearView}
                 onYearChange={onYearSelected}
                 onClose={() => setIsYearPickerVisible(false)}
+                shouldEnableBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
             />
             <MonthPickerModal
                 isVisible={isMonthPickerVisible}
                 currentMonth={currentMonthView}
                 onMonthChange={onMonthSelected}
                 onClose={() => setIsMonthPickerVisible(false)}
+                shouldEnableBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
             />
         </View>
     );

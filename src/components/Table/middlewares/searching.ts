@@ -42,6 +42,7 @@ type SearchingMethods = {
  */
 type UseSearchingResult<T> = MiddlewareHookResult<T, SearchingMethods> & {
     activeSearchString: string;
+    hasActiveSearchString: boolean;
 };
 
 /**
@@ -65,7 +66,9 @@ function useSearching<T>({isItemInSearch}: UseSearchingProps<T>): UseSearchingRe
         getActiveSearchString,
     };
 
-    return {middleware, activeSearchString, methods};
+    const hasActiveSearchString = activeSearchString.trim().length > 0;
+
+    return {middleware, activeSearchString, methods, hasActiveSearchString};
 }
 
 /**
@@ -105,4 +108,4 @@ function search<T>({data, activeSearchString, isItemInSearch}: SearchingMiddlewa
 }
 
 export default useSearching;
-export type {UseSearchingProps, UseSearchingResult, SearchingMethods, IsItemInSearchCallback};
+export type {SearchingMethods, IsItemInSearchCallback};

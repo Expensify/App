@@ -1,142 +1,77 @@
-import isEmpty from 'lodash/isEmpty';
-import React, {useRef, useState} from 'react';
+import React from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import type {SearchFilterCommonProps} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
-import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useSearchSelector from '@hooks/useSearchSelector';
+import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
-import {getParticipantsOption} from '@libs/OptionsListUtils';
-import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
-import type {OptionData} from '@libs/ReportUtils';
+import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
+import {getExpensifyTeamExclusions} from '@libs/PolicyUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ListFilterWrapper from './ListFilterViewWrapper';
 
-type UserSelectorProps = {
-    value: string[] | undefined;
-    onChange: (options: string[]) => void;
-};
+type UserSelectorProps = SearchFilterCommonProps<string[] | undefined>;
 
-function UserSelector({value = [], onChange}: UserSelectorProps) {
-    const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
+function UserSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: UserSelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const currentUserAccountID = currentUserPersonalDetails.accountID;
-    const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+    const shouldFocusInputOnScreenFocus = autoFocus && canFocusInputOnScreenFocus();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
-    const initialSelectedOptions = value.reduce<OptionData[]>((options, id) => {
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const initialSelectedAccountIDs = value.reduce<Set<string>>((acc, id) => {
         const participant = personalDetails?.[id];
         if (!participant) {
-            return options;
+            return acc;
         }
 
-        const optionData = {
-            ...getParticipantsOption(participant, personalDetails),
-            isSelected: true,
-        };
+        acc.add(id);
+        return acc;
+    }, new Set<string>());
 
-        if (optionData) {
-            options.push(optionData as OptionData);
-        }
+    const expensifyTeamExclusions = getExpensifyTeamExclusions(personalDetails, policies, currentUserPersonalDetails.email);
 
-        return options;
-    }, []);
-
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, toggleSelection, areOptionsInitialized, selectedOptionsForDisplay, onListEndReached} = useSearchSelector({
+    const {searchTerm, setSearchTerm, availableOptions, totalOptionsCount, toggleSelection, areOptionsInitialized} = usePersonalDetailSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-        initialSelected: initialSelectedOptions,
+        initialSelected: initialSelectedAccountIDs,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-        maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        includeUserToInvite: false,
-        includeCurrentUser: true,
-        onSelectionChange: (options) => onChange(options.flatMap((option) => (option.accountID ? [option.accountID.toString()] : []))),
+        excludeFromSuggestionsOnly: expensifyTeamExclusions,
+        includeUserToInvite: true,
+        includeCurrentUser: false,
+        includeRecentReports: false,
+        shouldInitialize: ready,
+        onSelectionChange: onChange,
+        shouldKeepSelectedInAvailableOptions: true,
     });
 
-    const listData = (() => {
-        const personalDetailsList = availableOptions.personalDetails.map((participant) => ({
-            ...participant,
-            keyForList: String(participant.accountID),
-        }));
-        const recentReports = availableOptions.recentReports.map((report) => ({
-            ...report,
-            keyForList: String(report.reportID),
-        }));
+    // Snapshot the pre-selected accountIDs from when the filter first opened so they can be floated to the
+    // top on first render without repinning rows that are toggled afterwards (see https://github.com/Expensify/App/issues/61414).
+    const initialSelectedValues = useInitialValue(() => value);
 
-        const isCurrentUserSelected = selectedOptionsForDisplay.some((option) => option.accountID === currentUserAccountID);
+    // The current user is excluded from personalDetails, so include it (when present) in the list. moveInitialSelectionToTop
+    // keys on `value`, so map each option's accountID (keyForList) onto it. Pre-selected rows are moved to the top,
+    // leaving the current user just below them in its natural sorted position.
+    const baseListData = availableOptions.currentUserOption ? [availableOptions.currentUserOption, ...availableOptions.personalDetails] : availableOptions.personalDetails;
+    const listData = moveInitialSelectionToTop(
+        baseListData.map((option) => ({...option, value: option.keyForList})),
+        initialSelectedValues,
+    );
 
-        // Extract the current user from available options to guarantee they appear at the top.
-        // Falls back to creating from personal details to handle pagination edge cases.
-        let currentUserOption: OptionData | undefined;
-        if (!isCurrentUserSelected && currentUserAccountID) {
-            const currentUserPersonalDetail = personalDetailsList.find((p) => p.accountID === currentUserAccountID) ?? recentReports.find((r) => r.accountID === currentUserAccountID);
-            if (currentUserPersonalDetail) {
-                currentUserOption = currentUserPersonalDetail;
-            } else if (personalDetails?.[currentUserAccountID]) {
-                const candidateOption = getParticipantsOption(personalDetails[currentUserAccountID], personalDetails) as OptionData;
-                const trimmedSearchTerm = debouncedSearchTerm.trim().toLowerCase();
-                if (!trimmedSearchTerm || doesPersonalDetailMatchSearchTerm(candidateOption, currentUserAccountID, trimmedSearchTerm)) {
-                    currentUserOption = candidateOption;
-                }
-            }
-        }
-
-        // Filter current user from regular lists to avoid duplication
-        const filteredPersonalDetails = currentUserOption ? personalDetailsList.filter((p) => p.accountID !== currentUserAccountID) : personalDetailsList;
-        const filteredRecentReports = currentUserOption ? recentReports.filter((r) => r.accountID !== currentUserAccountID) : recentReports;
-
-        // Place selected options first, then the current user, then the rest
-        const combinedOptions = [...selectedOptionsForDisplay, ...(currentUserOption ? [currentUserOption] : []), ...filteredPersonalDetails, ...filteredRecentReports];
-
-        // Sort so that selected items appear first; current user placement is handled explicitly above
-        combinedOptions.sort((a, b) => {
-            if (a.isSelected && !b.isSelected) {
-                return -1;
-            }
-            if (!a.isSelected && b.isSelected) {
-                return 1;
-            }
-            // Among selected items, prioritize the current user
-            if (a.isSelected && b.isSelected) {
-                if (a.accountID === currentUserAccountID) {
-                    return -1;
-                }
-                if (b.accountID === currentUserAccountID) {
-                    return 1;
-                }
-            }
-            return 0;
-        });
-
-        const combinedOptionsWithKeyForList = combinedOptions.map((option) => ({
-            ...option,
-            keyForList: option.keyForList ?? option.login ?? '',
-        }));
-        return combinedOptionsWithKeyForList;
-    })();
-
-    const headerMessage = isEmpty(listData) ? translate('common.noResultsFound') : undefined;
+    const headerMessage = listData.length === 0 ? translate('common.noResultsFound') : undefined;
 
     const selectUser = (option: OptionData) => {
         toggleSelection(option);
-        selectionListRef?.current?.scrollToIndex(0);
     };
 
     const isLoadingNewOptions = !!isSearchingForReports;
-    const totalOptions = selectedOptionsForDisplay.length + availableOptions.personalDetails.length + availableOptions.recentReports.length;
-    const [totalOptionsCount, setTotalOptionsCount] = useState(totalOptions);
-
-    if (totalOptions !== totalOptionsCount && !debouncedSearchTerm) {
-        setTotalOptionsCount(selectedOptionsForDisplay.length + availableOptions.personalDetails.length + availableOptions.recentReports.length);
-    }
-
     const shouldShowSearchInput = totalOptionsCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     const textInputOptions = shouldShowSearchInput
@@ -146,6 +81,9 @@ function UserSelector({value = [], onChange}: UserSelectorProps) {
               onChangeText: setSearchTerm,
               headerMessage,
               disableAutoFocus: !shouldFocusInputOnScreenFocus,
+              style: {
+                  containerStyle: selectionListTextInputStyle,
+              },
           }
         : undefined;
 
@@ -156,15 +94,15 @@ function UserSelector({value = [], onChange}: UserSelectorProps) {
         >
             <SelectionList
                 data={listData}
-                ref={selectionListRef}
                 textInputOptions={textInputOptions}
                 canSelectMultiple
                 ListItem={UserSelectionListItem}
                 onSelectRow={selectUser}
+                shouldUpdateFocusedIndex
                 isLoadingNewOptions={isLoadingNewOptions}
-                shouldShowLoadingPlaceholder={!areOptionsInitialized}
-                onEndReached={onListEndReached}
-                style={{contentContainerStyle: [styles.pb0]}}
+                shouldShowLoadingPlaceholder={!areOptionsInitialized || !ready}
+                style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
+                footerContent={footer}
             />
         </ListFilterWrapper>
     );

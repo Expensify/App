@@ -128,8 +128,3 @@ function useCurrentReportIDActions() {
 }
 
 export {CurrentReportIDContextProvider, useCurrentReportIDState, useCurrentReportIDActions};
-
-// Backward compatible type alias
-type CurrentReportIDContextValue = CurrentReportIDStateContextType & CurrentReportIDActionsContextType;
-
-export type {CurrentReportIDContextValue};

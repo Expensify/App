@@ -2,10 +2,11 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import {handleActionButtonPress, handleBulkPayItemSelected} from '@libs/actions/Search';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {LastPaymentMethod, Policy, Report, SearchResults} from '@src/types/onyx';
 import createRandomPolicy from '../../utils/collections/policies';
 
@@ -25,6 +26,10 @@ const mockReportItemWithHold = {
     accountID: 1206,
     action: 'approve',
     allActions: ['approve'],
+    canPay: false,
+    canApprove: true,
+    canSubmit: false,
+    canChangeApprover: false,
     chatReportID: '2108006919825366',
     created: '2024-12-04 23:18:33',
     submitted: '2024-12-04',
@@ -110,6 +115,10 @@ const mockReportItemWithHold = {
             accountID: 1206,
             action: 'view',
             allActions: ['view'],
+            canPay: false,
+            canApprove: false,
+            canSubmit: false,
+            canChangeApprover: false,
             amount: -1200,
             category: '',
             comment: {
@@ -206,6 +215,10 @@ const mockReportItemWithHold = {
             accountID: 1206,
             action: 'view',
             allActions: ['view'],
+            canPay: false,
+            canApprove: false,
+            canSubmit: false,
+            canChangeApprover: false,
             amount: -12300,
             category: '',
             comment: {
@@ -322,6 +335,7 @@ describe('handleActionButtonPress', () => {
             goToItem,
             snapshotReport: snapshotReport as Report,
             snapshotPolicy: snapshotPolicy as Policy,
+            submitterLogin: undefined,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
             ownerBillingGracePeriodEnd: undefined,
@@ -329,6 +343,8 @@ describe('handleActionButtonPress', () => {
             userBillingGracePeriodEnds: undefined,
             onHoldMenuOpen: jest.fn(),
             policy: snapshotPolicy as Policy,
+            chatReportActions: undefined,
+            currentUserAccountID: 1206,
         });
         expect(goToItem).not.toHaveBeenCalled();
     });
@@ -341,6 +357,7 @@ describe('handleActionButtonPress', () => {
             goToItem: jest.fn(),
             snapshotReport: snapshotReport as Report,
             snapshotPolicy: snapshotPolicy as Policy,
+            submitterLogin: undefined,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
             userBillingGracePeriodEnds: undefined,
@@ -348,6 +365,8 @@ describe('handleActionButtonPress', () => {
             amountOwed: undefined,
             onHoldMenuOpen,
             policy: snapshotPolicy as Policy,
+            chatReportActions: undefined,
+            currentUserAccountID: 1206,
         });
 
         expect(onHoldMenuOpen).toHaveBeenCalledWith(mockReportItemWithHold, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
@@ -361,12 +380,15 @@ describe('handleActionButtonPress', () => {
             goToItem,
             snapshotReport: snapshotReport as Report,
             snapshotPolicy: snapshotPolicy as Policy,
+            submitterLogin: undefined,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
             ownerBillingGracePeriodEnd: undefined,
             amountOwed: undefined,
             userBillingGracePeriodEnds: undefined,
             policy: snapshotPolicy as Policy,
+            chatReportActions: undefined,
+            currentUserAccountID: 1206,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
     });
@@ -390,6 +412,7 @@ describe('handleBulkPayItemSelected', () => {
         userBillingGracePeriodEnds: undefined,
         businessBankAccountOptions: undefined,
         ownerBillingGracePeriodEnd: undefined,
+        currentUserAccountID: ownerAccountID,
     };
 
     beforeEach(async () => {
@@ -496,5 +519,47 @@ describe('handleBulkPayItemSelected', () => {
         });
 
         expect(baseParams.confirmPayment).toHaveBeenCalled();
+    });
+
+    it('should not navigate to verify account and should call confirmPayment when user is unvalidated and item is Mark as paid (ELSEWHERE)', async () => {
+        const policy = {
+            ...createRandomPolicy(Number(policyID)),
+            id: policyID,
+            ownerAccountID,
+        } as Policy;
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+        handleBulkPayItemSelected({
+            ...baseParams,
+            policy,
+            amountOwed: 0,
+            isUserValidated: false,
+            item: {key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, text: 'Pay elsewhere', icon: () => null},
+        });
+
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+        expect(baseParams.confirmPayment).toHaveBeenCalled();
+    });
+
+    it('should navigate to verify account when user is unvalidated and item is a bank-funded payment type (VBBA)', async () => {
+        const policy = {
+            ...createRandomPolicy(Number(policyID)),
+            id: policyID,
+            ownerAccountID,
+        } as Policy;
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+        handleBulkPayItemSelected({
+            ...baseParams,
+            policy,
+            amountOwed: 0,
+            isUserValidated: false,
+            item: {key: CONST.IOU.PAYMENT_TYPE.VBBA, text: 'Pay with bank account', icon: () => null},
+        });
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+        expect(baseParams.confirmPayment).not.toHaveBeenCalled();
     });
 });

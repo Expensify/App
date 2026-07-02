@@ -1,3 +1,4 @@
+import {SafeString} from 'expensify-common';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
@@ -17,11 +18,10 @@ import {clearErrorFields, clearErrors, setDraftValues, setErrorFields} from '@us
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
-import SafeString from '@src/utils/SafeString';
 
 type DocumentsProps = SubPageProps & {ownerBeingModifiedID: string};
 
-const {PROOF_OF_OWNERSHIP, ADDRESS_PROOF, COPY_OF_ID, CODICE_FISCALE, NATIONALITY, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
+const {PROOF_OF_OWNERSHIP, ADDRESS_PROOF, COPY_OF_ID, CODICE_FISCALE, COUNTRY, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
 function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
     const {translate} = useLocalize();
@@ -35,9 +35,9 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
     const copyOfIDInputID = `${PREFIX}_${ownerBeingModifiedID}_${COPY_OF_ID}` as const;
     const addressProofInputID = `${PREFIX}_${ownerBeingModifiedID}_${ADDRESS_PROOF}` as const;
     const codiceFiscaleInputID = `${PREFIX}_${ownerBeingModifiedID}_${CODICE_FISCALE}` as const;
-    const beneficialOwnerNationalityInputID = `${PREFIX}_${ownerBeingModifiedID}_${NATIONALITY}` as const;
-    const beneficialOwnerNationality = SafeString(reimbursementAccountDraft?.[beneficialOwnerNationalityInputID]);
-    const isDocumentNeededStatus = getNeededDocumentsStatusForBeneficialOwner(currency, country, beneficialOwnerNationality);
+    const beneficialOwnerAddressCountryInputID = `${PREFIX}_${ownerBeingModifiedID}_${COUNTRY}` as const;
+    const beneficialOwnerAddressCountry = SafeString(reimbursementAccountDraft?.[beneficialOwnerAddressCountryInputID]);
+    const isDocumentNeededStatus = getNeededDocumentsStatusForBeneficialOwner(currency, country, beneficialOwnerAddressCountry);
     const defaultValues: Record<string, FileObject[]> = {
         [proofOfOwnershipInputID]: Array.isArray(reimbursementAccountDraft?.[proofOfOwnershipInputID]) ? (reimbursementAccountDraft?.[proofOfOwnershipInputID] ?? []) : [],
         [copyOfIDInputID]: Array.isArray(reimbursementAccountDraft?.[copyOfIDInputID]) ? (reimbursementAccountDraft?.[copyOfIDInputID] ?? []) : [],

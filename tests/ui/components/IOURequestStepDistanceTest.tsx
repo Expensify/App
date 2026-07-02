@@ -93,6 +93,8 @@ jest.mock('@libs/Navigation/Navigation', () => {
         goBack: jest.fn(),
         navigationRef: mockRef,
         getActiveRoute: () => '',
+        getActiveRouteWithoutParams: jest.fn(() => ''),
+        isNavigationReady: jest.fn(() => Promise.resolve()),
     };
 });
 
@@ -110,6 +112,7 @@ jest.mock('@react-navigation/native', () => {
         useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn()}),
         useFocusEffect: jest.fn(),
         usePreventRemove: jest.fn(),
+        useRoute: jest.fn(() => ({name: 'Money_Request_Step_Distance'})),
     };
 });
 

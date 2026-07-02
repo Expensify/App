@@ -13,21 +13,22 @@ import type {Report, ReportAction} from '@src/types/onyx';
 
 type ModifiedExpenseContentProps = {
     action: ReportAction;
-    report: OnyxEntry<Report>;
+    policyID: string | undefined;
     originalReport: OnyxEntry<Report>;
 };
 
-function ModifiedExpenseContent({action, report, originalReport}: ModifiedExpenseContentProps) {
+function ModifiedExpenseContent({action, policyID, originalReport}: ModifiedExpenseContentProps) {
     const {translate} = useLocalize();
     const {email: currentUserEmail} = useCurrentUserPersonalDetails();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action.childReportID)}`);
 
     // When expense is moved from self-DM to workspace, policyID is temporarily OWNER_EMAIL_FAKE.
     // Fall back to policyForMovingExpensesID (actual destination workspace) for correct tag list.
-    const policyIDForTags = report?.policyID === CONST.POLICY.OWNER_EMAIL_FAKE && policyForMovingExpensesID ? policyForMovingExpensesID : report?.policyID;
+    const policyIDForTags = policyID === CONST.POLICY.OWNER_EMAIL_FAKE && policyForMovingExpensesID ? policyForMovingExpensesID : policyID;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyIDForTags}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyIDForTags}`);
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(action, CONST.REPORT.MOVE_TYPE.FROM)}`);
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(action, CONST.REPORT.MOVE_TYPE.TO)}`);
 
@@ -38,6 +39,7 @@ function ModifiedExpenseContent({action, report, originalReport}: ModifiedExpens
         movedFromReport,
         movedToReport,
         policyTags: policyTags ?? CONST.POLICY.DEFAULT_TAG_LIST,
+        policyCategories,
         currentUserLogin: currentUserEmail ?? '',
     });
 
@@ -50,7 +52,5 @@ function ModifiedExpenseContent({action, report, originalReport}: ModifiedExpens
         />
     );
 }
-
-ModifiedExpenseContent.displayName = 'ModifiedExpenseContent';
 
 export default ModifiedExpenseContent;

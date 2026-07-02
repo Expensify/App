@@ -1,11 +1,10 @@
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import {useEffect, useEffectEvent, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useIsOwnWorkspaceChatRef from '@hooks/useIsOwnWorkspaceChatRef';
+import useIsReportActionsLoaded from '@hooks/useIsReportActionsLoaded';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -15,18 +14,31 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
 import {getFilteredReportActionsForReportView, getIOUActionForReportID, getOneTransactionThreadReportID, isCreatedAction} from '@libs/ReportActionsUtils';
-import {isChatThread, isHiddenForCurrentUser, isOneTransactionThread, isPolicyExpenseChat, isReportTransactionThread, isTaskReport, isValidReportIDFromPath} from '@libs/ReportUtils';
+import {
+    isChatThread,
+    isHiddenForCurrentUser,
+    isOneTransactionThread,
+    isPolicyExpenseChat,
+    isPublicRoom,
+    isReportTransactionThread,
+    isTaskReport,
+    isThread,
+    isValidReportIDFromPath,
+} from '@libs/ReportUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
-import {setShouldShowComposeInput} from '@userActions/Composer';
 import {
     clearStaleDMRecoveryTargetByTargetReportID,
     createTransactionThreadReport,
     openReport,
     readNewestAction,
+    setViewingPublicRoomReportID,
     subscribeToReportLeavingEvents,
     unsubscribeFromLeavingRoomReportChannel,
     updateLastVisitTime,
+    updateLoadingInitialReportAction,
 } from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -77,12 +89,14 @@ function ReportFetchHandler() {
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportOnyx?.chatReportID}`);
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
+    const isReportActionsLoaded = useIsReportActionsLoaded(reportIDFromRoute);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const prevIsLoadingReportData = usePrevious(isLoadingReportData);
+    const [viewingPublicRoomReportID] = useOnyx(ONYXKEYS.VIEWING_PUBLIC_ROOM_REPORT_ID);
 
     const reportID = reportOnyx?.reportID;
     const report = reportOnyx;
@@ -148,7 +162,15 @@ function ReportFetchHandler() {
         );
         const oneTransactionID = currentReportTransactions.at(0)?.transactionID;
         const iouAction = getIOUActionForReportID(reportID, oneTransactionID);
-        createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, betas, report, iouAction, currentReportTransactions.at(0));
+        createTransactionThreadReport({
+            introSelected,
+            currentUserLogin: currentUserEmail ?? '',
+            currentUserAccountID,
+            betas,
+            iouReport: report,
+            iouReportAction: iouAction,
+            transaction: currentReportTransactions.at(0),
+        });
     });
 
     const onUnmount = useEffectEvent(() => {
@@ -164,6 +186,14 @@ function ReportFetchHandler() {
             return;
         }
         openReport({reportID, introSelected, betas});
+    });
+
+    const joinPublicRoomIfNeeded = useEffectEvent(() => {
+        // Return early if the viewing public room is the current report since we will fetch the current report in another function
+        if (!viewingPublicRoomReportID || viewingPublicRoomReportID === reportIDFromRoute) {
+            return;
+        }
+        openReport({reportID: viewingPublicRoomReportID, introSelected, betas});
     });
 
     // Effect order below matches the original declaration order in ReportScreen.tsx.
@@ -201,13 +231,13 @@ function ReportFetchHandler() {
         if (
             transactionThreadReportID !== CONST.FAKE_REPORT_ID ||
             transactionThreadReport?.reportID ||
-            (!reportLoadingState.hasOnceLoadedReportActions && !reportMetadata?.isOptimisticReport)
+            (!reportLoadingState.hasOnceLoadedReportActions && !reportMetadata?.isOptimisticReport && !isOffline)
         ) {
             return;
         }
 
         createOneTransactionThread();
-    }, [reportLoadingState.hasOnceLoadedReportActions, reportMetadata?.isOptimisticReport, transactionThreadReport?.reportID, transactionThreadReportID]);
+    }, [reportLoadingState.hasOnceLoadedReportActions, reportMetadata?.isOptimisticReport, transactionThreadReport?.reportID, transactionThreadReportID, isOffline]);
 
     useEffect(() => {
         if (isLoadingReportData || !prevIsLoadingReportData || !prevIsAnonymousUser.current || isAnonymousUser) {
@@ -215,6 +245,7 @@ function ReportFetchHandler() {
         }
         // Re-fetch public report data after user signs in and OpenApp API is called to
         // avoid reportActions data being empty for public rooms.
+        joinPublicRoomIfNeeded();
         fetchReport();
     }, [isLoadingReportData, prevIsLoadingReportData, prevIsAnonymousUser, isAnonymousUser]);
 
@@ -242,14 +273,29 @@ function ReportFetchHandler() {
     }, [reportID, isFocused, isInSidePanel]);
 
     useEffect(() => {
-        const interactionTask = InteractionManager.runAfterInteractions(() => {
-            setShouldShowComposeInput(true);
-        });
+        if (!isFocused || !reportID || !isPublicRoom(report) || !isAnonymousUser) {
+            return;
+        }
+
+        setViewingPublicRoomReportID(isThread(report) ? report.parentReportID : reportID);
+    }, [reportID, report, isAnonymousUser, isFocused]);
+
+    useEffect(() => {
         return () => {
-            interactionTask.cancel();
             onUnmount();
         };
     }, []);
+
+    // `isLoadingInitialReportActions` is memory-only and is not reset between navigations. A prior failed
+    // fetch leaves a stale `false` that can make ReportNotFoundGuard show "not here" before the fetch below
+    // re-runs. When opening a report whose actions were never successfully loaded, mark it as loading again so
+    // the guard waits for the real fetch result instead of trusting the leaked flag. See issue #92920.
+    useEffect(() => {
+        if (reportLoadingState.hasOnceLoadedReportActions) {
+            return;
+        }
+        updateLoadingInitialReportAction(reportIDFromRoute, true);
+    }, [reportIDFromRoute, reportLoadingState.hasOnceLoadedReportActions]);
 
     useEffect(() => {
         // This function is triggered when a user clicks on a link to navigate to a report.
@@ -289,11 +335,14 @@ function ReportFetchHandler() {
         // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
         // Existing reports created will have empty fields for `pendingFields`.
         const didCreateReportSuccessfully = !report?.pendingFields || (!report?.pendingFields.addWorkspaceRoom && !report?.pendingFields.createChat);
-        let interactionTask: ReturnType<typeof InteractionManager.runAfterInteractions> | null = null;
+        let interactionTask: CancelHandle | null = null;
         if (!didSubscribeToReportLeavingEvents.current && didCreateReportSuccessfully) {
-            interactionTask = InteractionManager.runAfterInteractions(() => {
-                subscribeToReportLeavingEvents(reportIDFromRoute, currentUserAccountID);
-                didSubscribeToReportLeavingEvents.current = true;
+            interactionTask = TransitionTracker.runAfterTransitions({
+                callback: () => {
+                    subscribeToReportLeavingEvents(reportIDFromRoute, currentUserAccountID);
+                    didSubscribeToReportLeavingEvents.current = true;
+                },
+                waitForUpcomingTransition: true,
             });
         }
         return () => {
@@ -309,8 +358,8 @@ function ReportFetchHandler() {
             return;
         }
         // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
-        readNewestAction(report?.reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
-    }, [report, reportLoadingState?.hasOnceLoadedReportActions]);
+        readNewestAction(report?.reportID, isReportActionsLoaded);
+    }, [report, isReportActionsLoaded]);
 
     useEffect(() => {
         hasCreatedLegacyThreadRef.current = false;
@@ -350,7 +399,14 @@ function ReportFetchHandler() {
 
         // For legacy transactions, pass undefined as IOU action and the transaction object
         // It will be created optimistically and in the backend when call openReport
-        createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, betas, report, undefined, transaction);
+        createTransactionThreadReport({
+            introSelected,
+            currentUserLogin: currentUserEmail ?? '',
+            currentUserAccountID,
+            betas,
+            iouReport: report,
+            transaction,
+        });
     }, [
         introSelected,
         currentUserEmail,

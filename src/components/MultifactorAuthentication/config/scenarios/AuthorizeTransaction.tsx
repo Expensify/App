@@ -18,7 +18,6 @@ import {createLocalMFAError, createMFAErrorFromApiResponse} from '@libs/Multifac
 import variables from '@styles/variables';
 import {authorizeTransaction, denyTransaction, fireAndForgetDenyTransaction} from '@userActions/MultifactorAuthentication';
 import CONST from '@src/CONST';
-import SCREENS from '@src/SCREENS';
 
 type Payload = {
     transactionID: string;
@@ -100,7 +99,7 @@ const AlreadyReviewedFailureScreen = createScreenWithDefaults(
     'AlreadyReviewedFailureScreen',
 );
 
-export {DeniedTransactionSuccessScreen, DeniedTransactionServerFailureScreen, AlreadyReviewedFailureScreen};
+export {DeniedTransactionSuccessScreen, DeniedTransactionServerFailureScreen};
 
 export default {
     // Allowed methods are hardcoded here; keep in sync with allowedAuthenticationMethods in useNavigateTo3DSAuthorizationChallenge.
@@ -116,7 +115,6 @@ export default {
 
         return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN;
     },
-    screen: SCREENS.MULTIFACTOR_AUTHENTICATION.AUTHORIZE_TRANSACTION,
     successScreen: <ApprovedTransactionSuccessScreen />,
     defaultClientFailureScreen: <ApproveTransactionClientFailureScreen />,
     defaultServerFailureScreen: <ApproveTransactionServerFailureScreen />,

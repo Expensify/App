@@ -2,8 +2,7 @@ import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
 import React, {useContext, useEffect} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import type {ButtonWithDropdownMenuRef} from '@components/ButtonWithDropdownMenu/types';
@@ -14,11 +13,13 @@ import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsCon
 import NavigationDeferredMount from '@components/NavigationDeferredMount';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {ReportSubmitToPopoverAnchor} from '@components/ReportSubmitToPopoverAnchor';
+import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import useExpenseActions from '@hooks/useExpenseActions';
 import useExportActions from '@hooks/useExportActions';
 import useHoldRejectActions from '@hooks/useHoldRejectActions';
@@ -30,6 +31,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
+import usePayChatReportActions from '@hooks/usePayChatReportActions';
 import usePaymentOptions from '@hooks/usePaymentOptions';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -44,10 +46,11 @@ import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {KYCFlowEvent, TriggerKYCFlow, WorkspacePolicyPaymentOption} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
 import {sortPoliciesByName} from '@libs/PolicyUtils';
+import {REPORT_MORE_MENU_SECTIONS, sortAndSectionPopoverMenuItems} from '@libs/PopoverMenuSections';
 import {getFilteredReportActionsForReportView, hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -64,6 +67,7 @@ import {canApproveIOU, canIOUBePaid as canIOUBePaidAction} from '@userActions/IO
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 type MoneyReportHeaderSecondaryActionsProps = {
@@ -72,6 +76,11 @@ type MoneyReportHeaderSecondaryActionsProps = {
     isReportInSearch?: boolean;
     backTo?: Route;
     dropdownMenuRef?: React.RefObject<ButtonWithDropdownMenuRef>;
+};
+
+const MORE_MENU_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
 function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef}: MoneyReportHeaderSecondaryActionsProps) {
@@ -84,6 +93,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
+    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)}, [moneyRequestReport?.ownerAccountID]);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport?.reportID}`);
@@ -131,12 +141,14 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {currentSearchQueryJSON, currentSearchKey, currentSearchResults} = useSearchStateContext();
+    const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
+    const {currentSearchResults} = useSearchResultsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(allTransactions);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
+    const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
         if (!type || !chatReport) {
@@ -152,8 +164,13 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 onConfirm: () => startAnimation(),
             };
             if (getPlatform() === CONST.PLATFORM.IOS) {
-                // InteractionManager delays modal until current interaction completes, preventing visual glitches on iOS
-                InteractionManager.runAfterInteractions(() => openHoldMenu(holdMenuParams));
+                // TransitionTracker.runAfterTransitions delays modal until current interaction completes, preventing visual glitches on iOS
+                TransitionTracker.runAfterTransitions({
+                    callback: () => {
+                        openHoldMenu(holdMenuParams);
+                    },
+                    waitForUpcomingTransition: true,
+                });
             } else {
                 openHoldMenu(holdMenuParams);
             }
@@ -167,6 +184,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 introSelected,
                 currentUserAccountIDParam: accountID,
                 currentUserEmailParam: email ?? '',
+                currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                 payAsBusiness,
                 existingB2BInvoiceReport,
                 methodID,
@@ -175,6 +193,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 betas,
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
+                chatReportActions: getChatReportActions(payAsBusiness),
             });
         } else {
             startAnimation();
@@ -198,6 +217,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 onPaid: () => {
                     startAnimation();
                 },
+                chatReportActions: getChatReportActions(false),
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
@@ -270,12 +290,13 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     }
 
     // Domain hooks
-    const lifecycleActions = useLifecycleActions({
+    const {actions: lifecycleActionEntries, confirmApproval} = useLifecycleActions({
         reportID,
         startApprovedAnimation,
+        startAnimation,
         startSubmittingAnimation,
-        onHoldMenuOpen: (requestType, onConfirm) => {
-            openHoldMenu({requestType, onConfirm: onConfirm ?? (() => startApprovedAnimation())});
+        onHoldMenuOpen: (requestType, onConfirm, paymentType) => {
+            openHoldMenu({requestType, onConfirm: onConfirm ?? (() => startApprovedAnimation()), paymentType});
         },
     });
 
@@ -305,17 +326,20 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         onRejectModalOpen: openRejectModal,
     });
 
-    const {exportActionEntries} = useExportActions({
+    const {exportActionEntries, exportDownloadStatusModal} = useExportActions({
         reportID,
         policy,
         onPDFModalOpen: openPDFDownload,
     });
+
+    const {isProduction} = useEnvironment();
 
     // Compute list of applicable secondary action keys
     const secondaryActions = moneyRequestReport
         ? getSecondaryReportActions({
               currentUserLogin: currentUserLogin ?? '',
               currentUserAccountID: accountID,
+              submitterLogin,
               report: moneyRequestReport,
               chatReport,
               reportTransactions: nonPendingDeleteTransactions,
@@ -329,22 +353,23 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
               policies,
               outstandingReportsByPolicyID,
               isChatReportArchived,
+              isProduction,
           })
         : [];
 
     // Merge all action implementations
-    const secondaryActionsImplementation: Record<string, (typeof lifecycleActions.actions)[string]> = {
+    const secondaryActionsImplementation: Record<string, (typeof lifecycleActionEntries)[string]> = {
         [CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
             text: translate('iou.viewDetails'),
             icon: expensifyIcons.Info,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.VIEW_DETAILS,
             onSelected: () => {
-                navigateToDetailsPage(moneyRequestReport, Navigation.getReportRHPActiveRoute());
+                navigateToDetailsPage(moneyRequestReport);
             },
         },
         ...exportActionEntries,
-        ...lifecycleActions.actions,
+        ...lifecycleActionEntries,
         ...expenseActions,
         ...holdRejectActions,
         [CONST.REPORT.SECONDARY_ACTIONS.PAY]: {
@@ -358,9 +383,10 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         },
     };
 
-    const applicableSecondaryActions = secondaryActions
-        .map((action) => secondaryActionsImplementation[action])
-        .filter((action) => action?.shouldShow !== false && action?.value !== primaryAction);
+    const applicableSecondaryActions = sortAndSectionPopoverMenuItems(
+        secondaryActions.map((action) => secondaryActionsImplementation[action]).filter((action) => action?.shouldShow !== false && action?.value !== primaryAction),
+        REPORT_MORE_MENU_SECTIONS,
+    );
 
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
 
@@ -377,7 +403,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             hasViolations,
             isASAPSubmitBetaEnabled,
             isUserValidated,
-            confirmApproval: () => lifecycleActions.confirmApproval(),
+            confirmApproval: () => confirmApproval(),
             iouReport: moneyRequestReport,
             iouReportNextStep: nextStep,
             betas,
@@ -389,21 +415,24 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     };
 
     if (!applicableSecondaryActions.length) {
-        return null;
+        return exportDownloadStatusModal;
     }
 
     return (
-        <MoneyReportHeaderKYCDropdown
-            chatReportID={chatReport?.reportID}
-            iouReport={moneyRequestReport}
-            onPaymentSelect={onPaymentSelect}
-            onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
-            primaryAction={primaryAction}
-            applicableSecondaryActions={applicableSecondaryActions}
-            dropdownMenuRef={dropdownMenuRef}
-            onOptionsMenuHide={handleOptionsMenuHide}
-            ref={kycWallRef}
-        />
+        <>
+            {exportDownloadStatusModal}
+            <MoneyReportHeaderKYCDropdown
+                chatReportID={chatReport?.reportID}
+                iouReport={moneyRequestReport}
+                onPaymentSelect={onPaymentSelect}
+                onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
+                primaryAction={primaryAction}
+                applicableSecondaryActions={applicableSecondaryActions}
+                dropdownMenuRef={dropdownMenuRef}
+                onOptionsMenuHide={handleOptionsMenuHide}
+                ref={kycWallRef}
+            />
+        </>
     );
 }
 
@@ -414,7 +443,7 @@ function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction}: {primaryA
     const {shouldUseNarrowLayout, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const shouldTakeRemainingWidth = (shouldUseNarrowLayout || isMediumScreenWidth) && !primaryAction && !isInLandscapeMode;
-    const wrapperStyle = shouldTakeRemainingWidth ? styles.flex1 : undefined;
+    const wrapperStyle = shouldTakeRemainingWidth ? [styles.w100, styles.mnw0] : undefined;
     // Match the inner styles the real ButtonWithDropdownMenu applies when isSplitButton=false so text placement stays put on swap.
     const innerStyles = [StyleUtils.getDropDownButtonHeight(CONST.DROPDOWN_BUTTON_SIZE.MEDIUM), styles.dropDownButtonCartIconView];
     return (
@@ -424,6 +453,7 @@ function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction}: {primaryA
                 iconRight={icons.DownArrow}
                 shouldShowRightIcon
                 innerStyles={innerStyles}
+                style={shouldTakeRemainingWidth ? styles.w100 : undefined}
                 onPress={() => {}}
             />
         </View>
@@ -431,23 +461,32 @@ function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction}: {primaryA
 }
 
 function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef}: MoneyReportHeaderSecondaryActionsProps) {
+    const styles = useThemeStyles();
+    const {shouldUseNarrowLayout, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const shouldTakeRemainingWidth = (shouldUseNarrowLayout || isMediumScreenWidth) && !primaryAction && !isInLandscapeMode;
+
     return (
-        <NavigationDeferredMount
-            placeholder={<MoneyReportHeaderSecondaryActionsPlaceholder primaryAction={primaryAction} />}
-            // RHPReportScreen remounts this tree on setParams arrow-nav without firing a transition,
-            // so we must not wait for one — see https://github.com/Expensify/App/issues/88931.
-            waitForUpcomingTransition={false}
+        <ReportSubmitToPopoverAnchor
+            reportID={reportID}
+            wrapperStyle={shouldTakeRemainingWidth ? styles.w100 : undefined}
+            anchorAlignment={MORE_MENU_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT}
         >
-            <MoneyReportHeaderSecondaryActionsInner
-                reportID={reportID}
-                primaryAction={primaryAction}
-                isReportInSearch={isReportInSearch}
-                backTo={backTo}
-                dropdownMenuRef={dropdownMenuRef}
-            />
-        </NavigationDeferredMount>
+            <NavigationDeferredMount
+                placeholder={<MoneyReportHeaderSecondaryActionsPlaceholder primaryAction={primaryAction} />}
+                // RHPReportScreen remounts this tree on setParams arrow-nav without firing a transition,
+                // so we must not wait for one — see https://github.com/Expensify/App/issues/88931.
+                waitForUpcomingTransition={false}
+            >
+                <MoneyReportHeaderSecondaryActionsInner
+                    reportID={reportID}
+                    primaryAction={primaryAction}
+                    isReportInSearch={isReportInSearch}
+                    backTo={backTo}
+                    dropdownMenuRef={dropdownMenuRef}
+                />
+            </NavigationDeferredMount>
+        </ReportSubmitToPopoverAnchor>
     );
 }
 
 export default MoneyReportHeaderSecondaryActions;
-export type {MoneyReportHeaderSecondaryActionsProps};

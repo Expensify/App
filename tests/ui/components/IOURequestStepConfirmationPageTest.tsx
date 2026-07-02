@@ -89,11 +89,15 @@ jest.mock('@libs/getCurrentPosition');
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn(() => false));
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
-    getCurrentRoute: jest.fn(() => ({
-        name: 'Money_Request_Step_Confirmation',
-        params: {},
-    })),
-    getState: jest.fn(() => ({})),
+    __esModule: true,
+    default: {
+        getCurrentRoute: jest.fn(() => ({
+            name: 'Money_Request_Step_Confirmation',
+            params: {},
+        })),
+        getState: jest.fn(() => ({})),
+        getRootState: jest.fn(() => ({routes: []})),
+    },
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => {
@@ -108,6 +112,8 @@ jest.mock('@libs/Navigation/Navigation', () => {
     return {
         navigate: jest.fn(),
         goBack: jest.fn(),
+        getActiveRouteWithoutParams: jest.fn(() => ''),
+        isNavigationReady: jest.fn(() => Promise.resolve()),
         dismissModal: jest.fn((options?: {afterTransition?: () => void}) => {
             options?.afterTransition?.();
         }),
@@ -125,6 +131,7 @@ jest.mock('@libs/Navigation/Navigation', () => {
         getTopmostReportId: jest.fn(() => undefined),
         preInsertFullscreenUnderRHP: jest.fn(),
         removePreInsertedFullscreenIfNeeded: jest.fn(),
+        isTopmostRouteModalScreen: jest.fn(() => false),
         navigationRef: mockRef,
     };
 });
@@ -238,18 +245,14 @@ function createWaypoints(startAddress: string, endAddress: string): WaypointColl
 
 const DEFAULT_SPLIT_TRANSACTION: Transaction = {
     amount: 0,
+    isAmountSet: true,
     billable: false,
     comment: {
         attendees: [
             {
-                accountID: ACCOUNT_ID,
                 avatarUrl: '',
                 displayName: '',
                 email: ACCOUNT_LOGIN,
-                login: ACCOUNT_LOGIN,
-                reportID: REPORT_ID,
-                selected: true,
-                text: ACCOUNT_LOGIN,
             },
         ],
     },
@@ -983,6 +986,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                     transactionID,
                     reportID: transactionReportID,
                     amount: 1000,
+                    isAmountSet: true,
                     currency: 'USD',
                     merchant: 'Test',
                     created: '2025-01-15',
@@ -1049,6 +1053,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                     transactionID,
                     reportID: routeReportID,
                     amount: 1000,
+                    isAmountSet: true,
                     currency: 'USD',
                     merchant: 'Test',
                     created: '2025-01-15',
@@ -1124,6 +1129,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                         transactionID,
                         reportID: transactionReportID,
                         amount: 1000,
+                        isAmountSet: true,
                         currency: 'USD',
                         merchant: 'Test',
                         created: '2025-01-15',
@@ -1183,6 +1189,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                     transactionID,
                     reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                     amount: 1000,
+                    isAmountSet: true,
                     currency: 'USD',
                     merchant: 'Test Merchant',
                     created: '2025-01-15',

@@ -1,15 +1,20 @@
 import type {ParamListBase} from '@react-navigation/native';
 import {CardStyleInterpolators} from '@react-navigation/stack';
+import type {StackCardStyleInterpolator} from '@react-navigation/stack';
 import {useCallback} from 'react';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import enhanceCardStyleInterpolator from '@libs/Navigation/AppNavigator/enhanceCardStyleInterpolator';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
+import RHP_WEB_TRANSITION_SPEC from '@libs/Navigation/AppNavigator/RHPTransitionSpec';
+import useModalCardStyleInterpolator from '@libs/Navigation/AppNavigator/useModalCardStyleInterpolator';
 import type {PlatformStackNavigationOptions, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import CONST from '@src/CONST';
 
 function useWideModalStackScreenOptions() {
     const styles = useThemeStyles();
+    const modalCardStyleInterpolator = useModalCardStyleInterpolator();
 
     // We have to use isSmallScreenWidth, otherwise the content of RHP 'jumps' on Safari - its width is set to size of screen and only after rerender it is set to the correct value
     // It works as intended on other browsers
@@ -20,20 +25,24 @@ function useWideModalStackScreenOptions() {
 
     return useCallback<({route}: {route: PlatformStackRouteProp<ParamListBase, string>}) => PlatformStackNavigationOptions>(
         ({route}) => {
-            let cardStyleInterpolator = CardStyleInterpolators.forHorizontalIOS;
+            const baseInterpolator: StackCardStyleInterpolator = isSmallScreenWidth
+                ? CardStyleInterpolators.forHorizontalIOS
+                : (props) => modalCardStyleInterpolator({props, enter: {kind: 'slide-and-fade', distancePx: CONST.MODAL.RHP_ENTER_OFFSET_PX_WEB}});
+
+            let cardStyleInterpolator: StackCardStyleInterpolator = baseInterpolator;
 
             if (!isSmallScreenWidth) {
                 if (superWideRHPRouteKeys.includes(route.key)) {
-                    cardStyleInterpolator = enhanceCardStyleInterpolator(CardStyleInterpolators.forHorizontalIOS, {
+                    cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
                         cardStyle: styles.superWideRHPExtendedCardInterpolatorStyles,
                     });
                 } else if (wideRHPRouteKeys.includes(route.key)) {
-                    cardStyleInterpolator = enhanceCardStyleInterpolator(CardStyleInterpolators.forHorizontalIOS, {
+                    cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
                         cardStyle: styles.wideRHPExtendedCardInterpolatorStyles,
                     });
                     // single RHPs displayed above the wide RHP need to be positioned
                 } else if (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0) {
-                    cardStyleInterpolator = enhanceCardStyleInterpolator(CardStyleInterpolators.forHorizontalIOS, {
+                    cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
                         cardStyle: styles.singleRHPExtendedCardInterpolatorStyles,
                     });
                 }
@@ -49,10 +58,11 @@ function useWideModalStackScreenOptions() {
                 web: {
                     cardStyle: styles.navigationScreenCardStyle,
                     cardStyleInterpolator,
+                    transitionSpec: isSmallScreenWidth ? undefined : RHP_WEB_TRANSITION_SPEC,
                 },
             };
         },
-        [isSmallScreenWidth, styles, superWideRHPRouteKeys, wideRHPRouteKeys],
+        [isSmallScreenWidth, modalCardStyleInterpolator, styles, superWideRHPRouteKeys, wideRHPRouteKeys],
     );
 }
 

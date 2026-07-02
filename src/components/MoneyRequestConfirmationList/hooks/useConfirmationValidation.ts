@@ -2,12 +2,22 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {isValidPerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
 import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
-import {validateAmount} from '@libs/MoneyRequestUtils';
+import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import {isTaxAmountInvalid, isValidMoneyRequestAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import type {getTagLists as getTagListsFn} from '@libs/PolicyUtils';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {hasEnabledTags, hasMatchingTag} from '@libs/TagsOptionsListUtils';
 import {isValidTimeExpenseAmount} from '@libs/TimeTrackingUtils';
-import {areRequiredFieldsEmpty, getTag, hasTaxRateWithMatchingValue, isMerchantMissing} from '@libs/TransactionUtils';
+import {
+    areRequiredFieldsEmpty,
+    getCalculatedTaxAmount,
+    getTag,
+    getTaxAmount,
+    hasTaxRateWithMatchingValue,
+    isCreatedMissing,
+    isMerchantMissing,
+    isScanRequest as isScanRequestUtil,
+} from '@libs/TransactionUtils';
 import {isValidInputLength} from '@libs/ValidationUtils';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -71,10 +81,13 @@ type UseConfirmationValidationParams = {
     /** Whether the merchant field is required for this flow */
     isMerchantRequired: boolean | undefined;
 
-    /** Whether the merchant field is currently empty / partial */
+    /** Whether the merchant value passes full validation (length, required, disallowed values) */
+    isMerchantFieldValid: boolean;
+
+    /** Whether the merchant field is empty / partial (from {@link useFormErrorManagement}) */
     isMerchantEmpty: boolean;
 
-    /** Whether per-field errors should be shown */
+    /** When editing a split bill, whether per-field errors should be shown (SmartScan failure paths) */
     shouldDisplayFieldError: boolean;
 
     /** Whether the tax section is enabled for this policy */
@@ -92,11 +105,17 @@ type UseConfirmationValidationParams = {
     /** Whether the transaction is a time-tracking request */
     isTimeRequest: boolean;
 
-    /** Whether the new manual expense flow beta is enabled */
-    isNewManualExpenseFlowEnabled: boolean;
-
     /** Truthy when the route to the confirmation page has a known error */
     routeError: string | null | undefined;
+
+    /** Whether the new manual expense flow is enabled */
+    isNewManualExpenseFlowEnabled: boolean;
+
+    /** Whether the confirmation fields are read-only (date is not inline-editable) */
+    isReadOnly: boolean;
+
+    /** Whether the date field is shown for this flow (mirrors the footer's date visibility) */
+    shouldShowDate: boolean;
 };
 
 /**
@@ -131,6 +150,7 @@ function useConfirmationValidation({
     currentUserPersonalDetails,
     isEditingSplitBill,
     isMerchantRequired,
+    isMerchantFieldValid,
     isMerchantEmpty,
     shouldDisplayFieldError,
     shouldShowTax,
@@ -138,8 +158,10 @@ function useConfirmationValidation({
     isDistanceRequestWithPendingRoute,
     isPerDiemRequest,
     isTimeRequest,
-    isNewManualExpenseFlowEnabled,
     routeError,
+    isNewManualExpenseFlowEnabled,
+    isReadOnly,
+    shouldShowDate,
 }: UseConfirmationValidationParams): {validate: (paymentType?: PaymentMethodType) => ValidationResult | null} {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const selectedParticipantsCount = selectedParticipants.length;
@@ -152,21 +174,50 @@ function useConfirmationValidation({
             return {errorKey: 'iou.error.noParticipantSelected'};
         }
 
-        const amountForValidation = iouAmount;
-        const isAmountMissingForManualFlow = amountForValidation === null || amountForValidation === undefined;
+        const firstParticipant = transaction?.participants?.at(0);
+        const isP2P = !!(firstParticipant?.accountID && !firstParticipant?.isPolicyExpenseChat && !firstParticipant?.isSelfDM);
 
-        if (iouType !== CONST.IOU.TYPE.PAY && isNewManualExpenseFlowEnabled && isAmountMissingForManualFlow) {
+        // P2P manual submit: $0 is invalid unless scan/time/distance (same guard as legacy inline confirm).
+        if (!isScanRequestUtil(transaction) && !isTimeRequest && !isDistanceRequest && iouAmount === 0 && isP2P) {
             return {errorKey: 'common.error.invalidAmount'};
         }
-
+        // isAmountSet only applies to manual expenses — scan, per diem, distance, and time set amount programmatically.
+        if (isNewManualExpenseFlowEnabled && transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL && !transaction?.isAmountSet) {
+            return {errorKey: 'common.error.fieldRequired'};
+        }
+        if (
+            isNewManualExpenseFlowEnabled &&
+            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL &&
+            transaction?.isAmountSet &&
+            !isScanRequestUtil(transaction) &&
+            !isTimeRequest &&
+            !isDistanceRequest &&
+            !isEditingSplitBill &&
+            !isValidMoneyRequestAmount(iouAmount, iouType, true, isP2P)
+        ) {
+            return {errorKey: 'common.error.invalidAmount'};
+        }
+        // The date is an inline, clearable required field in the new manual flow for every type that shows it
+        // (manual, distance, time, invoice, ...). Block confirmation when the user cleared it. Gating on the same
+        // `shouldShowDate && !isReadOnly` condition that renders the inline picker keeps validation and UI in sync,
+        // and skips read-only/scan flows where the date is populated server-side.
+        if (isNewManualExpenseFlowEnabled && shouldShowDate && !isReadOnly && isCreatedMissing(transaction)) {
+            return {errorKey: 'common.error.fieldRequired'};
+        }
         const merchantValue = iouMerchant ?? '';
         const {isValid: isMerchantLengthValid} = isValidInputLength(merchantValue, CONST.MERCHANT_NAME_MAX_BYTES);
 
         if (!isMerchantLengthValid) {
             return {errorKey: 'iou.error.invalidMerchant'};
         }
-
-        if (!isEditingSplitBill && isMerchantRequired && (isMerchantEmpty || (shouldDisplayFieldError && isMerchantMissing(transaction)))) {
+        if (isMerchantRequired) {
+            if (!isEditingSplitBill && !isMerchantFieldValid) {
+                return {errorKey: 'iou.error.invalidMerchant'};
+            }
+            if (isEditingSplitBill && (isMerchantEmpty || (shouldDisplayFieldError && isMerchantMissing(transaction)))) {
+                return {errorKey: 'iou.error.invalidMerchant'};
+            }
+        } else if (transaction?.isMerchantSet && !isMerchantFieldValid) {
             return {errorKey: 'iou.error.invalidMerchant'};
         }
 
@@ -206,6 +257,18 @@ function useConfirmationValidation({
 
         if (shouldShowTax && !!transaction?.taxCode && !hasTaxRateWithMatchingValue(policy, transaction)) {
             return {errorKey: 'violations.taxOutOfPolicy'};
+        }
+
+        // In the new manual expense flow the tax amount is edited inline, so the standalone tax amount step's
+        // guard (tax amount can't exceed the tax computed from the rate and the expense amount) runs here.
+        // This also blocks creation when an invalid tax amount was persisted to the draft and then reloaded.
+        if (isNewManualExpenseFlowEnabled && shouldShowTax && !isDistanceRequest) {
+            const decimals = getCurrencyDecimals(iouCurrencyCode);
+            const maxTaxAmount = getCalculatedTaxAmount(policy, transaction, iouCurrencyCode, decimals);
+            const currentTaxAmount = convertToFrontendAmountAsString(Math.abs(getTaxAmount(transaction, false)), decimals);
+            if (isTaxAmountInvalid(currentTaxAmount, maxTaxAmount, decimals)) {
+                return {errorKey: 'iou.error.invalidTaxAmount'};
+            }
         }
 
         if (isPerDiemRequest && (transaction?.comment?.customUnit?.subRates ?? []).length === 0) {
@@ -252,4 +315,4 @@ function useConfirmationValidation({
 }
 
 export default useConfirmationValidation;
-export type {ValidationResult};
+export type {UseConfirmationValidationParams};

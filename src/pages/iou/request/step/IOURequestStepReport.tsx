@@ -1,7 +1,7 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
-import {useSearchActionsContext} from '@components/Search/SearchContext';
+import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useOnyx from '@hooks/useOnyx';
@@ -12,13 +12,14 @@ import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {createNewReport} from '@libs/actions/Report';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getPersonalDetailsForAccountID, getReportOrDraftReport, isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
 import {isPerDiemRequest, isTimeRequest as isTimeRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, ReportAction, ReportActions} from '@src/types/onyx';
 import IOURequestEditReportCommon from './IOURequestEditReportCommon';
@@ -53,7 +54,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
     const {allPolicies, perDiemOriginalPolicy} = usePerDiemPolicyData(transaction);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
-    const {setSelectedTransactions} = useSearchActionsContext();
+    const {setSelectedTransactions} = useSearchSelectionActions();
     const reportOrDraftReport = useReportOrReportDraft(reportIDFromRoute);
     const [iouActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportOrDraftReport?.parentReportID}`, {selector: getIOUActionsSelector});
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -145,7 +146,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
 
         const policyForNewReport = isPerDiemTransaction && perDiemOriginalPolicy ? perDiemOriginalPolicy : policyForMovingExpenses;
         const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, betas, false, shouldDismissEmptyReportsConfirmation);
-        handleRegularReportSelection({value: optimisticReport.reportID, keyForList: optimisticReport.reportID}, optimisticReport);
+        handleRegularReportSelection({value: optimisticReport.reportID, keyForList: optimisticReport.reportID, policyID: policyForNewReport?.id}, optimisticReport);
     };
 
     const {handleCreateReport} = useConditionalCreateEmptyReportConfirmation({
@@ -170,7 +171,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
         if (shouldSelectPolicy) {
             setSelectedTransactions([transactionID]);
-            Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true, backTo));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true)));
             return;
         }
         handleCreateReport();

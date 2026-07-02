@@ -1,25 +1,24 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import Animated from 'react-native-reanimated';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {ReportSubmitToPopoverHost, SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT} from '@components/ReportSubmitToPopoverAnchor';
+import {useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SearchParams} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
-import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
+import {PaymentContextProvider} from '@hooks/usePaymentContext';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchOverlay from '@hooks/useSearchOverlay';
 import useSearchPageSetup from '@hooks/useSearchPageSetup';
-import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
 import {search} from '@libs/actions/Search';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {hasFilterBarsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
@@ -34,15 +33,16 @@ function SearchPage({route}: SearchPageProps) {
     useDocumentTitle(translate('common.spend'));
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {selectedTransactions, lastSearchType, areAllMatchingItemsSelected, currentSearchKey, currentSearchResults, currentSearchQueryJSON, shouldUseLiveData} = useSearchStateContext();
-    const {clearSelectedTransactions, setLastSearchType} = useSearchActionsContext();
+    const {lastSearchType, currentSearchResults, shouldUseLiveData} = useSearchResultsContext();
+    const {currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
+    const {setLastSearchType} = useSearchResultsActions();
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
     const [hasFilterBars = false] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: hasFilterBarsSelector});
 
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
 
-    useConfirmReadyToOpenApp();
     useSearchPageSetup(currentSearchQueryJSON);
 
     // Adjust state during rendering rather than in a useEffect: the value is consumed in the same
@@ -62,8 +62,6 @@ function SearchPage({route}: SearchPageProps) {
         setLastSearchType(currentSearchResults.search.type);
     }, [lastSearchType, currentSearchQueryJSON, setLastSearchType, currentSearchResults?.search?.type]);
 
-    const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
-
     const {resetVideoPlayerData} = usePlaybackActionsContext();
 
     const [isSorting, setIsSorting] = useState(false);
@@ -76,8 +74,6 @@ function SearchPage({route}: SearchPageProps) {
     }
 
     const metadata = searchResults?.search;
-    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
-    const shouldShowFooter = selectedTransactionsKeys.length > 0 || (shouldAllowFooterTotals && !!metadata?.count);
 
     useEffect(() => {
         if (shouldUseNarrowLayout) {
@@ -116,28 +112,6 @@ function SearchPage({route}: SearchPageProps) {
         }
     }, []);
 
-    const footerData = useMemo(() => {
-        if (!shouldAllowFooterTotals && selectedTransactionsKeys.length === 0) {
-            return {count: undefined, total: undefined, currency: undefined};
-        }
-
-        const shouldUseClientTotal = selectedTransactionsKeys.length > 0 || !metadata?.count || (selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected);
-        const selectedTransactionItems = Object.values(selectedTransactions);
-        const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency;
-        const numberOfExpense = shouldUseClientTotal
-            ? selectedTransactionsKeys.reduce((count, key) => {
-                  const item = selectedTransactions[key];
-                  if (item.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === item.reportID) {
-                      return count;
-                  }
-                  return count + 1;
-              }, 0)
-            : metadata?.count;
-        const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.groupAmount ?? -Math.abs(transaction.amount)), 0) : metadata?.total;
-
-        return {count: numberOfExpense, total, currency};
-    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys, shouldAllowFooterTotals]);
-
     const onSortPressedCallback = useCallback(() => {
         setIsSorting(true);
     }, []);
@@ -155,40 +129,39 @@ function SearchPage({route}: SearchPageProps) {
     });
 
     return (
-        <Animated.View style={[styles.flex1]}>
-            {shouldUseNarrowLayout ? (
-                <SearchPageNarrow
-                    queryJSON={currentSearchQueryJSON}
-                    metadata={metadata}
-                    searchResults={searchResults}
-                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                    footerData={footerData}
-                    shouldShowFooter={shouldShowFooter}
-                    onSortPressedCallback={onSortPressedCallback}
-                    searchOverlayContent={searchOverlayContent}
-                    onSearchContentReady={onSearchContentReady}
-                    hasFilterBars={hasFilterBars}
-                    isOverlayActive={isOverlayActive}
-                />
-            ) : (
-                <SearchPageWide
-                    queryJSON={currentSearchQueryJSON}
-                    searchResults={searchResults}
-                    searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                    footerData={footerData}
-                    handleSearchAction={handleSearchAction}
-                    onSortPressedCallback={onSortPressedCallback}
-                    route={route}
-                    shouldShowFooter={shouldShowFooter}
-                    searchOverlayContent={searchOverlayContent}
-                    onSearchContentReady={onSearchContentReady}
-                />
-            )}
-        </Animated.View>
+        <ReportSubmitToPopoverHost anchorAlignment={SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT}>
+            <PaymentContextProvider>
+                <Animated.View style={[styles.flex1]}>
+                    {shouldUseNarrowLayout ? (
+                        <SearchPageNarrow
+                            queryJSON={currentSearchQueryJSON}
+                            metadata={metadata}
+                            searchResults={searchResults}
+                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                            onSortPressedCallback={onSortPressedCallback}
+                            searchOverlayContent={searchOverlayContent}
+                            onSearchContentReady={onSearchContentReady}
+                            hasFilterBars={hasFilterBars}
+                            isOverlayActive={isOverlayActive}
+                        />
+                    ) : (
+                        <SearchPageWide
+                            queryJSON={currentSearchQueryJSON}
+                            searchResults={searchResults}
+                            searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                            handleSearchAction={handleSearchAction}
+                            onSortPressedCallback={onSortPressedCallback}
+                            route={route}
+                            searchOverlayContent={searchOverlayContent}
+                            onSearchContentReady={onSearchContentReady}
+                        />
+                    )}
+                </Animated.View>
+            </PaymentContextProvider>
+        </ReportSubmitToPopoverHost>
     );
 }
-
 SearchPage.whyDidYouRender = true;
 
 export default SearchPage;

@@ -31,7 +31,6 @@ function PopoverWithMeasuredContent({shouldWrapModalChildrenInScrollViewIfBottom
     if (isSmallScreenWidth) {
         return (
             <Modal
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                 animationIn="slideInUp"
@@ -45,7 +44,6 @@ function PopoverWithMeasuredContent({shouldWrapModalChildrenInScrollViewIfBottom
         return null;
     }
 
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <PopoverWithMeasuredContentBase {...props} />;
 }
 

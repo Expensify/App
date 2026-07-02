@@ -5,12 +5,15 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DomainMemberBulkActionType, DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
+import type {FeatureListItem} from '@components/FeatureList';
+import FeatureList from '@components/FeatureList';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
-import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
-import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
-import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import Text from '@components/Text';
+import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
+import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
+import type {DomainMemberRowData} from '@components/Tables/DomainMembersTable';
+import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useClearSelectedDomainMembersOnMoveComplete from '@hooks/useClearSelectedDomainMembersOnMoveComplete';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
@@ -27,10 +30,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDomainMemberError, closeUserAccount, exportMembersToCSV, setDomainMembersSelectedForMove} from '@libs/actions/Domain';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {getMemberCustomRowProps, hasDomainMembersSettingsErrors} from '@libs/DomainUtils';
+import {getLatestError} from '@libs/ErrorUtils';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
+import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
+import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -40,13 +47,15 @@ type DomainMembersPageProps = PlatformStackScreenProps<DomainSplitNavigatorParam
 
 function DomainMembersPage({route}: DomainMembersPageProps) {
     const {domainAccountID} = route.params;
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Profile']);
+    const illustrations = useMemoizedLazyIllustrations(['Profile', 'LaptopWithMembers', 'LockClosed', 'BuildingCross', 'Encryption']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Gear', 'DotIndicator', 'RemoveMembers', 'Download', 'Transfer']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
-    const clearSelectedMembers = () => setSelectedMembers([]);
+    const clearSelectedMembers = () => {
+        setSelectedMembers((prevSelectedMembers) => (prevSelectedMembers.length > 0 ? [] : prevSelectedMembers));
+    };
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedMembers);
     const {isOffline} = useNetwork();
 
@@ -72,56 +81,57 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         selector: memberAccountIDsSelector,
     });
 
-    const {groupPreFilter, groupOptions, selectedGroup, handleGroupChange, dropdownLabel, groups} = useDomainGroupFilter(domainAccountID);
+    const {filterConfig, isItemInFilter, shouldShowGroupFilter, shouldShowGroupColumn, groups} = useDomainGroupFilter(domainAccountID);
 
-    const groupPopoverComponent = ({closeOverlay, isExpanded}: PopoverComponentProps) => (
-        <SingleSelectPopup
-            label={translate('common.group')}
-            items={groupOptions}
-            value={selectedGroup ?? groupOptions.at(0)}
-            closeOverlay={closeOverlay}
-            onChange={handleGroupChange}
-            defaultValue={groupOptions.at(0)?.value}
-            selectionListStyle={{listItemWrapperStyle: {minHeight: 40}}}
-            shouldShowList={isExpanded}
-        />
-    );
+    const membersFeatureListItems: FeatureListItem[] = [
+        {
+            icon: illustrations.BuildingCross,
+            translationKey: 'domain.members.membersFeatureList.controlPolicyCreation',
+        },
+        {
+            icon: illustrations.LockClosed,
+            translationKey: 'domain.members.membersFeatureList.enableSamlSso',
+        },
+        {
+            icon: illustrations.Encryption,
+            translationKey: 'domain.members.membersFeatureList.enforce2FA',
+        },
+    ];
 
-    const groupFilterDropdown =
-        groupOptions.length > 1 ? (
-            <DropdownButton
-                label={dropdownLabel}
-                value={null}
-                PopoverComponent={groupPopoverComponent}
-                innerStyles={[styles.gap2, shouldUseNarrowLayout && styles.mw100]}
-                wrapperStyle={shouldUseNarrowLayout && styles.w100}
-                labelStyle={styles.fontSizeLabel}
-                caretWrapperStyle={styles.gap2}
-                medium
-            />
-        ) : null;
+    const members: DomainMemberRowData[] = (memberIDs ?? [])
+        .filter((accountID) => {
+            const details = personalDetails?.[accountID];
+            return !!details?.login || !!details?.displayName;
+        })
+        .map((accountID) => {
+            const details = personalDetails?.[accountID];
+            const login = details?.login ?? '';
+            const customProps = getMemberCustomRowProps(accountID, domainPendingActions, domainErrors, login);
+            const isPendingActionDelete = customProps?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            const group = groups?.find((securityGroup) => String(accountID) in securityGroup.details.shared);
 
-    const getGroupRightElement = (accountID: number) => {
-        if (!groups) {
-            return undefined;
-        }
-        const group = groups.find((g) => String(accountID) in g.details.shared);
-        return <Text style={styles.flex1}>{group?.details.name ?? '-'}</Text>;
-    };
+            return {
+                keyForList: String(accountID),
+                accountID,
+                login,
+                name: formatPhoneNumber(getDisplayNameOrDefault(details)),
+                email: formatPhoneNumber(login),
+                groupName: group?.details.name ?? '-',
+                errors: getLatestError(customProps?.errors),
+                pendingAction: customProps?.pendingAction,
+                disabled: isPendingActionDelete || !!details?.isOptimisticPersonalDetail,
+                action: () => Navigation.navigate(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID)),
+                dismissError: () => {
+                    if (!defaultSecurityGroupID) {
+                        return;
+                    }
+                    clearDomainMemberError(domainAccountID, accountID, login, defaultSecurityGroupID, customProps?.pendingAction);
+                },
+            };
+        });
 
-    const getCustomListHeader = () => {
-        return (
-            <CustomListHeader
-                canSelectMultiple={canSelectMultiple}
-                leftHeaderText={translate('domain.members.title')}
-                rightHeaderText={translate('common.group')}
-                shouldDivideEqualWidth
-                shouldShowRightCaret
-                shouldAdjustWidthForAvatar
-            />
-        );
-    };
     useClearSelectedDomainMembersOnMoveComplete(clearSelectedMembers);
+    useCleanupSelectedOptions(clearSelectedMembers);
 
     useSearchBackPress({
         onClearSelection: clearSelectedMembers,
@@ -273,30 +283,72 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         );
     };
 
-    const getCustomRowProps = (accountID: number, email?: string) => getMemberCustomRowProps(accountID, domainPendingActions, domainErrors, email);
+    if (!domain?.validated) {
+        return (
+            <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
+                <ScreenWrapper
+                    enableEdgeToEdgeBottomSafeAreaPadding
+                    shouldEnableMaxHeight
+                    shouldShowOfflineIndicatorInWideScreen
+                    testID="DomainMembersPage"
+                >
+                    <HeaderWithBackButton
+                        title={translate('domain.domainMembers')}
+                        onBackButtonPress={Navigation.goBack}
+                        icon={illustrations.Profile}
+                        shouldShowBackButton={shouldUseNarrowLayout}
+                        shouldDisplayHelpButton
+                    />
+                    <ScrollView
+                        keyboardShouldPersistTaps="handled"
+                        addBottomSafeAreaPadding
+                        style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
+                    >
+                        <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
+                            <FeatureList
+                                menuItems={membersFeatureListItems}
+                                title={translate('domain.domainMembers')}
+                                renderSubtitle={() => (
+                                    <SectionSubtitleHTML
+                                        html={translate('domain.members.membersFeatureList.subtitle', {domainName: `@${domainName ?? ''}`})}
+                                        wrapperStyle={styles.pt3}
+                                    />
+                                )}
+                                ctaText={translate('domain.verifyDomain.title')}
+                                ctaAccessibilityLabel={translate('domain.verifyDomain.title')}
+                                onCtaPress={() => {
+                                    Navigation.navigate(ROUTES.DOMAIN_MEMBERS_VERIFY.getRoute(domainAccountID));
+                                }}
+                                illustrationBackgroundColor={colors.ice800}
+                                illustration={illustrations.LaptopWithMembers}
+                                illustrationStyle={styles.emptyStateSamlIllustration}
+                                illustrationContainerStyle={[styles.cardSectionIllustrationContainer, styles.justifyContentCenter, styles.pv5]}
+                                titleStyles={styles.textHeadlineH1}
+                            />
+                        </View>
+                    </ScrollView>
+                </ScreenWrapper>
+            </DomainNotFoundPageWrapper>
+        );
+    }
 
     return (
         <>
             <BaseDomainMembersPage
                 domainAccountID={domainAccountID}
-                accountIDs={memberIDs ?? []}
-                preFilter={groupPreFilter}
+                members={members}
                 headerTitle={translate('domain.members.title')}
-                getCustomListHeader={getCustomListHeader}
-                searchPlaceholder={translate('domain.members.findMember')}
-                onSelectRow={(item) => Navigation.navigate(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, item.accountID))}
                 headerIcon={illustrations.Profile}
-                getCustomRowProps={getCustomRowProps}
                 headerContent={getHeaderButtons()}
                 selectedMembers={selectedMembers}
                 setSelectedMembers={setSelectedMembers}
-                canSelectMultiple={canSelectMultiple}
                 useSelectionModeHeader={selectionModeHeader}
-                getCustomRightElement={getGroupRightElement}
-                searchBarAccessory={groupFilterDropdown}
+                filterConfig={filterConfig}
+                isItemInFilter={isItemInFilter}
+                shouldShowGroupFilter={shouldShowGroupFilter}
+                shouldShowGroupColumn={shouldShowGroupColumn}
                 emptyStateTitle={translate('domain.members.emptyMembers.title')}
                 emptyStateSubtitle={translate('domain.members.emptyMembers.subtitle')}
-                turnOnSelectionModeOnLongPress
                 onBackButtonPress={() => {
                     if (isMobileSelectionModeEnabled) {
                         clearSelectedMembers();
@@ -304,12 +356,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                         return;
                     }
                     Navigation.popToSidebar();
-                }}
-                onDismissError={(item) => {
-                    if (!defaultSecurityGroupID) {
-                        return;
-                    }
-                    clearDomainMemberError(domainAccountID, item.accountID, item.login, defaultSecurityGroupID, item.pendingAction);
                 }}
             />
             <DecisionModal

@@ -1,5 +1,5 @@
 import {eachDayOfInterval, format, parse} from 'date-fns';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -7,7 +7,8 @@ import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translate} from '@libs/Localize';
 import {rand64} from '@libs/NumberUtils';
-import {getTransactionDetails} from '@libs/ReportUtils';
+import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
+import {getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
 import {buildOptimisticTransaction, getAmount, getCurrency, isDistanceRequest as isDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -72,6 +73,98 @@ function updateSplitExpenseDistanceFromAmount(
     const merchant = getDistanceMerchantFromDistance(distanceInUnits, unit, rate, transactionCurrency ?? mileageRate?.currency ?? CONST.CURRENCY.USD);
 
     return {customUnit, merchant};
+}
+
+/**
+ * Resolve the effective mileage rate to use across the split flow.
+ *
+ * For selfDM splits whose original workspace rate was deleted (`enabled: false` or pending DELETE),
+ * `DistanceRequestUtils.getRate` still returns the disabled rate (it's kept in policy data),
+ * which makes downstream merchant/distance calculations produce stale "X mi @ deletedRate" labels.
+ * We substitute the workspace's default mileage rate so every split surface (initial 2-way split,
+ * "+ Add split", date split, even split, amount edit, split edit) renders against the same rate.
+ *
+ * Keep this in sync with the matching branch in `initSplitExpense` — drift here causes the
+ * initial splits to be built with one rate and subsequent mutations to use another.
+ */
+function resolveSplitMileageRate({
+    transaction,
+    policy,
+    isSelfDMSplit,
+    personalPolicyOutputCurrency,
+}: {
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    isSelfDMSplit?: boolean;
+    personalPolicyOutputCurrency: string | undefined;
+}): ReturnType<typeof DistanceRequestUtils.getRate> {
+    const customUnitRateID = transaction?.comment?.customUnit?.customUnitRateID;
+    const isP2PRate = customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+    const rawPolicyRate = isSelfDMSplit && !isP2PRate && customUnitRateID && policy ? getDistanceRateCustomUnitRate(policy, customUnitRateID) : undefined;
+    const isOriginalRateDeleted =
+        !!isSelfDMSplit &&
+        !isP2PRate &&
+        !!customUnitRateID &&
+        !!policy &&
+        (!rawPolicyRate || rawPolicyRate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || rawPolicyRate.enabled === false);
+
+    const baseMileageRate = DistanceRequestUtils.getRate({transaction, policy: policy ?? undefined, personalPolicyOutputCurrency});
+    if (baseMileageRate.rate && !isOriginalRateDeleted) {
+        return baseMileageRate;
+    }
+    // Policy is present but the originally-stored rate was deleted/disabled — pick the policy's
+    // current default mileage rate so split surfaces use a real (enabled) rate.
+    if (policy) {
+        const fallbackMileageRate = DistanceRequestUtils.getDefaultMileageRate(policy);
+        if (fallbackMileageRate?.rate) {
+            return fallbackMileageRate;
+        }
+    }
+    // No policy resolved (e.g. source workspace deleted and no other paid workspace either) AND the
+    // policy-driven lookup above produced nothing useful: reconstruct a rate from the transaction
+    // itself (amount / quantity) so distance splits render an accurate "X mi @ rate" merchant
+    // string instead of falling back to the original-merchant string.
+    if (!baseMileageRate.rate && !isP2PRate) {
+        const quantity = transaction?.comment?.customUnit?.quantity;
+        const transactionAmount = transaction?.amount;
+        if (typeof quantity === 'number' && quantity > 0 && typeof transactionAmount === 'number' && transactionAmount !== 0) {
+            const derivedRate = Math.abs(transactionAmount) / quantity;
+            return {
+                ...baseMileageRate,
+                customUnitRateID: baseMileageRate.customUnitRateID ?? customUnitRateID,
+                rate: derivedRate,
+                currency: baseMileageRate.currency ?? transaction?.currency ?? CONST.CURRENCY.USD,
+            };
+        }
+    }
+    return baseMileageRate;
+}
+
+function resolveSplitItemReportID({
+    childTransaction,
+    allReports,
+    selfDMContextReportID,
+    selfDMReportIDFallback,
+}: {
+    childTransaction: OnyxEntry<OnyxTypes.Transaction>;
+    allReports: OnyxCollection<OnyxTypes.Report> | undefined;
+    selfDMContextReportID: string | undefined;
+    selfDMReportIDFallback: string | undefined;
+}): string | undefined {
+    if (selfDMContextReportID) {
+        const childReport =
+            childTransaction?.reportID && childTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID
+                ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childTransaction.reportID}`]
+                : undefined;
+        if (childReport && !isSelfDM(childReport)) {
+            return childTransaction?.reportID;
+        }
+        return selfDMContextReportID;
+    }
+    if (childTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+        return selfDMReportIDFallback;
+    }
+    return undefined;
 }
 
 function initSplitExpenseItemData(
@@ -197,7 +290,9 @@ function addSplitExpenseField(
     transaction: OnyxEntry<OnyxTypes.Transaction>,
     draftTransaction: OnyxEntry<OnyxTypes.Transaction>,
     transactionReport: OnyxEntry<OnyxTypes.Report>,
-    policy?: OnyxEntry<OnyxTypes.Policy>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    isSelfDMSplit: boolean,
+    personalPolicyOutputCurrency: string | undefined,
 ) {
     if (!transaction || !draftTransaction) {
         return;
@@ -218,7 +313,7 @@ function addSplitExpenseField(
               }
             : undefined;
 
-        const mileageRate = DistanceRequestUtils.getRate({transaction, policy: policy ?? undefined});
+        const mileageRate = resolveSplitMileageRate({transaction, policy, isSelfDMSplit, personalPolicyOutputCurrency});
         const {unit, rate} = mileageRate;
 
         if (rate && rate > 0 && customUnit) {
@@ -275,7 +370,13 @@ function addSplitExpenseField(
  * - Works entirely on the provided `draftTransaction` to avoid direct Onyx reads.
  * - Uses `calculateAmount` utility to handle currency subunits and rounding consistently with existing logic.
  */
-function evenlyDistributeSplitExpenseAmounts(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, transaction?: OnyxEntry<OnyxTypes.Transaction>, policy?: OnyxEntry<OnyxTypes.Policy>) {
+function evenlyDistributeSplitExpenseAmounts(
+    draftTransaction: OnyxEntry<OnyxTypes.Transaction>,
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    isSelfDMSplit: boolean,
+    personalPolicyOutputCurrency: string | undefined,
+) {
     if (!draftTransaction) {
         return;
     }
@@ -298,7 +399,7 @@ function evenlyDistributeSplitExpenseAmounts(draftTransaction: OnyxEntry<OnyxTyp
     const splitCount = splitExpenses.length;
     const lastIndex = splitCount - 1;
 
-    const mileageRate = DistanceRequestUtils.getRate({transaction, policy: policy ?? undefined});
+    const mileageRate = resolveSplitMileageRate({transaction, policy, isSelfDMSplit, personalPolicyOutputCurrency});
     const {unit, rate} = mileageRate;
 
     const updatedSplitExpenses = splitExpenses.map((splitExpense, index) => {
@@ -338,18 +439,22 @@ function evenlyDistributeSplitExpenseAmounts(draftTransaction: OnyxEntry<OnyxTyp
  * The original amount is distributed proportionally across all dates.
  *
  * @param transaction - The transaction containing split expenses
+ * @param draftTransaction - The split draft holding the resolved reportID (self-DM/workspace)
  * @param startDate - Start date in format 'YYYY-MM-DD'
  * @param endDate - End date in format 'YYYY-MM-DD'
  * @param policy - The policy (for distance transactions)
  */
 function resetSplitExpensesByDateRange(
     transaction: OnyxEntry<OnyxTypes.Transaction>,
+    draftTransaction: OnyxEntry<OnyxTypes.Transaction>,
     transactionReport: OnyxEntry<OnyxTypes.Report>,
     startDate: string,
     endDate: string,
-    policy?: OnyxEntry<OnyxTypes.Policy>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    isSelfDMSplit: boolean,
+    personalPolicyOutputCurrency: string | undefined,
 ) {
-    if (!transaction || !startDate || !endDate) {
+    if (!transaction || !draftTransaction || !startDate || !endDate) {
         return;
     }
 
@@ -365,7 +470,7 @@ function resetSplitExpensesByDateRange(
 
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
 
-    const mileageRate = DistanceRequestUtils.getRate({transaction, policy: policy ?? undefined});
+    const mileageRate = resolveSplitMileageRate({transaction, policy, isSelfDMSplit, personalPolicyOutputCurrency});
     const {unit, rate} = mileageRate;
 
     // Create split expenses for each date with proportional amounts
@@ -375,7 +480,7 @@ function resetSplitExpensesByDateRange(
         let splitExpense = initSplitExpenseItemData(transaction, transactionReport, {
             amount,
             transactionID: rand64(),
-            reportID: transaction?.reportID,
+            reportID: draftTransaction?.reportID,
             created: format(date, CONST.DATE.FNS_FORMAT_STRING),
         });
 
@@ -422,7 +527,11 @@ function removeSplitExpenseField(draftTransaction: OnyxEntry<OnyxTypes.Transacti
 
     // Auto-redistribute amounts for all splits if this is not a distance request
     if (!isDistanceRequest) {
-        redistributedSplitExpenses = redistributeSplitExpenseAmounts(splitExpenses, total, currency);
+        const hasAnyUneditedSplit = splitExpenses.some((item) => !item.isManuallyEdited);
+        // If every remaining split is locked, temporarily unlock them so removing one split
+        // still redistributes to a valid, saveable total in the split edit flow.
+        const splitExpensesToRedistribute = hasAnyUneditedSplit ? splitExpenses : splitExpenses.map((item) => ({...item, isManuallyEdited: false}));
+        redistributedSplitExpenses = redistributeSplitExpenseAmounts(splitExpensesToRedistribute, total, currency);
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
@@ -439,7 +548,9 @@ function updateSplitExpenseField(
     originalTransactionDraft: OnyxEntry<OnyxTypes.Transaction>,
     splitExpenseTransactionID: string,
     originalTransaction: OnyxEntry<OnyxTypes.Transaction>,
-    policy?: OnyxEntry<OnyxTypes.Policy>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    isSelfDMSplit: boolean,
+    personalPolicyOutputCurrency: string | undefined,
 ) {
     if (!splitExpenseDraftTransaction || !splitExpenseTransactionID || !originalTransactionDraft) {
         return;
@@ -482,7 +593,7 @@ function updateSplitExpenseField(
 
             // Recalculate amount for distance transactions when rate or distance changes
             if (isDistanceRequest && originalTransaction) {
-                const mileageRate = DistanceRequestUtils.getRate({transaction: splitExpenseDraftTransaction, policy: policy ?? undefined});
+                const mileageRate = resolveSplitMileageRate({transaction: splitExpenseDraftTransaction, policy, isSelfDMSplit, personalPolicyOutputCurrency});
                 const {unit, rate} = mileageRate;
 
                 if (rate && rate > 0) {
@@ -526,7 +637,14 @@ function updateSplitExpenseField(
     });
 }
 
-function updateSplitExpenseAmountField(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, currentItemTransactionID: string, amount: number, policy?: OnyxEntry<OnyxTypes.Policy>) {
+function updateSplitExpenseAmountField(
+    draftTransaction: OnyxEntry<OnyxTypes.Transaction>,
+    currentItemTransactionID: string,
+    amount: number,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    isSelfDMSplit: boolean,
+    personalPolicyOutputCurrency: string | undefined,
+) {
     if (!draftTransaction?.transactionID || !currentItemTransactionID || Number.isNaN(amount)) {
         return;
     }
@@ -549,11 +667,13 @@ function updateSplitExpenseAmountField(draftTransaction: OnyxEntry<OnyxTypes.Tra
 
             // Update distance for distance transactions based on new amount and rate
             if (isDistanceRequest && originalTransaction && splitExpense.customUnit) {
-                const mileageRate = DistanceRequestUtils.getRate({transaction: originalTransaction, policy: policy ?? undefined});
+                const mileageRate = resolveSplitMileageRate({transaction: originalTransaction, policy, isSelfDMSplit, personalPolicyOutputCurrency});
                 const {rate: currentRate = 0} =
                     DistanceRequestUtils.getRateByCustomUnitRateID({policy, customUnitRateID: splitExpense.customUnit?.customUnitRateID ?? String(CONST.DEFAULT_NUMBER_ID)}) ?? {};
                 const {unit, rate: mileageRateValue} = mileageRate;
-                const rate = currentRate || mileageRateValue;
+                const preferredRate = isSelfDMSplit ? mileageRateValue : currentRate;
+                const secondaryRate = isSelfDMSplit ? currentRate : mileageRateValue;
+                const rate = preferredRate && preferredRate > 0 ? preferredRate : secondaryRate;
 
                 if (rate && rate > 0) {
                     const {customUnit: updatedCustomUnit, merchant} = updateSplitExpenseDistanceFromAmount(
@@ -608,6 +728,8 @@ function clearSplitTransactionDraftErrors(transactionID: string | undefined) {
 export {
     updateSplitExpenseDistanceFromAmount,
     initSplitExpenseItemData,
+    resolveSplitItemReportID,
+    resolveSplitMileageRate,
     initDraftSplitExpenseDataForEdit,
     addSplitExpenseField,
     evenlyDistributeSplitExpenseAmounts,

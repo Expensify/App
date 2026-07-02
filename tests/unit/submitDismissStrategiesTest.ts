@@ -1,6 +1,5 @@
 import {flushDeferredWrite} from '@libs/deferredLayoutWrite';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-// eslint-disable-next-line no-restricted-imports -- Testing submitDismissStrategies which uses TransitionTracker directly
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {endSubmitFollowUpActionSpan, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
@@ -12,12 +11,14 @@ const mockGetIsNarrowLayout = jest.fn<boolean, []>();
 const mockGetTopmostReportParams = jest.fn<{reportID: string} | undefined, [unknown]>();
 const mockGetReportOrDraftReport = jest.fn();
 const mockIsMoneyRequestReport = jest.fn<boolean, [unknown]>();
+const mockIsSearchTopmostFullScreenRoute = jest.fn<boolean, []>();
 
 jest.mock('@libs/deferredLayoutWrite', () => ({
     flushDeferredWrite: jest.fn(),
 }));
 jest.mock('@libs/getIsNarrowLayout', () => () => mockGetIsNarrowLayout());
 jest.mock('@libs/Navigation/helpers/getTopmostReportParams', () => (state: unknown) => mockGetTopmostReportParams(state));
+jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => mockIsSearchTopmostFullScreenRoute());
 jest.mock('@libs/Navigation/Navigation', () => ({
     dismissModal: jest.fn(),
     dismissModalWithReport: jest.fn(),
@@ -53,6 +54,7 @@ describe('submitDismissStrategies', () => {
         mockGetTopmostReportParams.mockReturnValue(undefined);
         mockGetReportOrDraftReport.mockReturnValue(undefined);
         mockIsMoneyRequestReport.mockReturnValue(false);
+        mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
     });
 
     describe('dismissOnly', () => {
@@ -170,6 +172,18 @@ describe('submitDismissStrategies', () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: 'report-1'}, undefined, expect.objectContaining({onBeforeNavigate: expect.any(Function)}));
             expect(TransitionTracker.runAfterTransitions).toHaveBeenCalledWith(expect.objectContaining({callback: runAfterDismiss, waitForUpcomingTransition: true}));
+        });
+
+        it('uses dismissOnly when Search is the topmost full-screen route', () => {
+            mockGetIsNarrowLayout.mockReturnValue(true);
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+
+            executeDismissModalStrategy('report-1', runAfterDismiss);
+
+            expect(setPendingSubmitFollowUpAction).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
+            expect(setPendingSubmitFollowUpAction).not.toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, 'report-1');
+            expect(Navigation.dismissModal).toHaveBeenCalled();
+            expect(Navigation.dismissModalWithReport).not.toHaveBeenCalled();
         });
 
         it('calls dismissWideToSameReport when current report matches destination on wide layout', () => {

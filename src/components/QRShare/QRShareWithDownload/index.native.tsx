@@ -11,7 +11,7 @@ function QRShareWithDownload({ref, ...props}: QRShareWithDownloadProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
-    const qrCodeScreenshotRef = useRef<ViewShot>(null);
+    const qrCodeScreenshotRef = useRef<React.ComponentRef<typeof ViewShot>>(null);
 
     useImperativeHandle(
         ref,
@@ -25,7 +25,6 @@ function QRShareWithDownload({ref, ...props}: QRShareWithDownloadProps) {
     return (
         <ViewShot ref={qrCodeScreenshotRef}>
             <QRShare
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 logo={isOffline ? undefined : props.logo}
             />

@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -40,7 +40,9 @@ type ApproverSelectionListPageProps = {
     onSelectApprover?: (approvers: SelectionListApprover[]) => void;
     shouldShowLoadingPlaceholder?: boolean;
     shouldEnableHeaderMaxHeight?: boolean;
+    onSearchChange?: (searchTerm: string) => void;
     shouldUpdateFocusedIndex?: boolean;
+    shouldRequirePolicyAdmin?: boolean;
 };
 
 type SelectionListApprover = ListItem & {
@@ -66,7 +68,9 @@ function ApproverSelectionList({
     onSelectApprover,
     shouldShowLoadingPlaceholder,
     shouldEnableHeaderMaxHeight,
+    onSearchChange,
     shouldUpdateFocusedIndex = true,
+    shouldRequirePolicyAdmin = true,
 }: ApproverSelectionListPageProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -75,9 +79,20 @@ function ApproverSelectionList({
     const shouldShowTextInput = shouldShowTextInputProp ?? allApprovers?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const lazyIllustrations = useMemoizedLazyIllustrations(['TurtleInShell']);
 
+    const handleSearchChange = useCallback(
+        (term: string) => {
+            setSearchTerm(term);
+            if (onSearchChange) {
+                onSearchChange(term);
+            }
+        },
+        [onSearchChange, setSearchTerm],
+    );
+
     const selectedMembers = useMemo(() => allApprovers.filter((approver) => approver.isSelected), [allApprovers]);
 
-    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy) || shouldShowNotFoundViewProp;
+    const shouldShowNotFoundView =
+        (isEmptyObject(policy) && !isLoadingReportData) || (shouldRequirePolicyAdmin && !isPolicyAdmin(policy)) || isPendingDeletePolicy(policy) || shouldShowNotFoundViewProp;
 
     const data = useMemo(() => {
         const filteredApprovers =
@@ -125,10 +140,10 @@ function ApproverSelectionList({
         () => ({
             label: shouldShowListEmptyContent ? undefined : translate('selectionList.findMember'),
             value: searchTerm,
-            onChangeText: setSearchTerm,
+            onChangeText: handleSearchChange,
             headerMessage: searchTerm && !data?.length ? translate('common.noResultsFound') : '',
         }),
-        [shouldShowListEmptyContent, translate, searchTerm, setSearchTerm, data?.length],
+        [shouldShowListEmptyContent, translate, searchTerm, handleSearchChange, data?.length],
     );
 
     return (

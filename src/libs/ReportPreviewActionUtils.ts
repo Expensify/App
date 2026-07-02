@@ -2,13 +2,22 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {BankAccountList, Policy, Report, ReportMetadata, Transaction, TransactionViolation} from '@src/types/onyx';
-import {arePaymentsEnabled, getSubmitToAccountID, getValidConnectedIntegration, hasDynamicExternalWorkflow, hasIntegrationAutoSync, isPreferredExporter} from './PolicyUtils';
+import {
+    arePaymentsEnabled,
+    getSubmitToAccountID,
+    getValidConnectedIntegration,
+    hasDynamicExternalWorkflow,
+    hasIntegrationAutoSync,
+    isPreferredExporter,
+    isSubmitterApproveBlockedOnSubmitWorkspace,
+} from './PolicyUtils';
 import {hasPendingDEWApprove} from './ReportActionsUtils';
 import {isAddExpenseAction} from './ReportPrimaryActionUtils';
 import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
     getReportTransactions,
+    hasExportError as hasExportErrorUtil,
     hasOnlyNonReimbursableTransactions,
     isClosedReport,
     isCurrentUserSubmitter,
@@ -28,6 +37,7 @@ function canSubmit(
     isReportArchived: boolean,
     currentUserAccountID: number,
     currentUserEmail: string,
+    ownerLogin: string | undefined,
     violations?: OnyxCollection<TransactionViolation[]>,
     policy?: Policy,
     transactions?: Transaction[],
@@ -39,12 +49,6 @@ function canSubmit(
     const isExpense = isExpenseReport(report);
     const isSubmitter = isCurrentUserSubmitter(report);
     const isOpen = isOpenReport(report);
-    const isManager = report.managerID === currentUserAccountID;
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-
-    if (!!transactions && transactions?.length > 0 && transactions.every((transaction) => isPending(transaction))) {
-        return false;
-    }
 
     const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
 
@@ -56,16 +60,20 @@ function canSubmit(
         return false;
     }
 
-    const submitToAccountID = getSubmitToAccountID(policy, report);
+    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin);
 
     if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
         return false;
     }
 
-    return isExpense && (isSubmitter || isManager || isAdmin) && isOpen && !isAnyReceiptBeingScanned && !!transactions && transactions.length > 0;
+    return isExpense && isSubmitter && isOpen && !isAnyReceiptBeingScanned && !!transactions && transactions.length > 0;
 }
 
 function canApprove(report: Report, currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy, transactions?: Transaction[]) {
+    if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, report.ownerAccountID, currentUserAccountID)) {
+        return false;
+    }
+
     const isExpense = isExpenseReport(report);
     const isProcessing = isProcessingReport(report);
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
@@ -124,7 +132,7 @@ function canPay(
     const isReimbursed = isSettled(report);
 
     const isExported = report.isExportedToIntegration ?? false;
-    const hasExportError = report?.hasExportError ?? false;
+    const hasExportError = hasExportErrorUtil(undefined, report);
     const didExportFail = !isExported && hasExportError;
 
     if (
@@ -179,7 +187,7 @@ function canExport(report: Report, currentUserLogin: string, policy?: Policy) {
         return false;
     }
 
-    const hasExportError = report.hasExportError ?? false;
+    const hasExportError = hasExportErrorUtil(undefined, report);
     if (syncEnabled && !hasExportError) {
         return false;
     }
@@ -206,6 +214,7 @@ function getReportPreviewAction({
     isDEWSubmitPending,
     violationsData,
     reportMetadata,
+    ownerLogin,
 }: {
     isReportArchived: boolean;
     currentUserAccountID: number;
@@ -221,6 +230,7 @@ function getReportPreviewAction({
     isDEWSubmitPending?: boolean;
     violationsData?: OnyxCollection<TransactionViolation[]>;
     reportMetadata: OnyxEntry<ReportMetadata>;
+    ownerLogin: string | undefined;
 }): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
@@ -243,7 +253,7 @@ function getReportPreviewAction({
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
 
-    if (canSubmit(report, isReportArchived, currentUserAccountID, currentUserLogin, violationsData, policy, transactions)) {
+    if (canSubmit(report, isReportArchived, currentUserAccountID, currentUserLogin, ownerLogin, violationsData, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (canApprove(report, currentUserAccountID, reportMetadata, policy, transactions)) {

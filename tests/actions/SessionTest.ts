@@ -1,9 +1,10 @@
 // cspell:ignore SOMESECRETKEY
 import {beforeEach, jest, test} from '@jest/globals';
 import {openAuthSessionAsync} from 'expo-web-browser';
+import {clearTokenRefresh, removeFromAutoPrefetch} from 'react-native-nitro-fetch';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import {confirmReadyToOpenApp, openApp, reconnectApp} from '@libs/actions/App';
+import {openApp, reconnectApp} from '@libs/actions/App';
 import {buildOldDotURL, openExternalLink} from '@libs/actions/Link';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {getAll as getAllPersistedRequests} from '@libs/actions/PersistedRequests';
@@ -81,6 +82,43 @@ describe('Session', () => {
         redirectToSignInSpy.mockRestore();
     });
 
+    test('reauthenticate aborts when RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN is true', async () => {
+        // Given a SignIn with short lived token is currently in flight
+        await Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, true);
+        await waitForBatchedUpdates();
+
+        const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+        // When reauthenticate is called
+        const result = await reauthenticate('TestCommand');
+        await waitForBatchedUpdates();
+
+        // Then it aborts cleanly without redirecting to sign in
+        expect(result).toBe(false);
+        expect(redirectToSignInSpy).not.toHaveBeenCalled();
+
+        redirectToSignInSpy.mockRestore();
+    });
+
+    test('reauthenticate proceeds even when a legacy session.isAuthenticatingWithShortLivedToken=true is persisted (recovers stuck users)', async () => {
+        // Given a session in Onyx that still carries the legacy stuck flag from before the RAM-only migration.
+        // The Session type no longer declares the field, so cast to write the legacy shape.
+        await Onyx.merge(ONYXKEYS.SESSION, {isAuthenticatingWithShortLivedToken: true} as unknown as Session);
+        await waitForBatchedUpdates();
+
+        const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+        // When reauthenticate is called with no credentials stored
+        const result = await reauthenticate('TestCommand');
+        await waitForBatchedUpdates();
+
+        // Then the legacy persisted flag does NOT block reauth. Reauth proceeds, finds no credentials, and redirects to sign in.
+        expect(result).toBe(false);
+        expect(redirectToSignInSpy).toHaveBeenCalledWith('No credentials available');
+
+        redirectToSignInSpy.mockRestore();
+    });
+
     test('Authenticate is called with saved credentials when a session expires', async () => {
         // Given a test user and set of authToken with subscriptions to session and credentials
         const TEST_USER_LOGIN = 'test@testguy.com';
@@ -138,7 +176,6 @@ describe('Session', () => {
             );
 
         // When we attempt to fetch the initial app data via the API
-        confirmReadyToOpenApp();
         openApp();
         await waitForBatchedUpdates();
 
@@ -165,7 +202,6 @@ describe('Session', () => {
         setHasRadio(false);
         await waitForBatchedUpdates();
 
-        confirmReadyToOpenApp();
         reconnectApp();
 
         await waitForBatchedUpdates();
@@ -187,7 +223,6 @@ describe('Session', () => {
         setHasRadio(false);
         await waitForBatchedUpdates();
 
-        confirmReadyToOpenApp();
         reconnectApp();
 
         await waitForBatchedUpdates();
@@ -209,7 +244,6 @@ describe('Session', () => {
         setHasRadio(false);
         await waitForBatchedUpdates();
 
-        confirmReadyToOpenApp();
         reconnectApp();
         reconnectApp();
         reconnectApp();
@@ -294,6 +328,20 @@ describe('Session', () => {
         await waitForBatchedUpdates();
 
         expect(getAllPersistedRequests().length).toBe(0);
+    });
+
+    test('SignOut should clear native startup prefetch state', async () => {
+        await TestHelper.signInWithTestUser();
+        setHasRadio(false);
+        await waitForBatchedUpdates();
+
+        await SessionUtil.signOut({authToken: 'testAuthToken'});
+
+        expect(clearTokenRefresh).toHaveBeenCalledWith('fetch');
+        expect(removeFromAutoPrefetch).toHaveBeenCalledWith(WRITE_COMMANDS.RECONNECT_APP);
+
+        setHasRadio(true);
+        await waitForBatchedUpdates();
     });
 
     describe('SignOutAndRedirectToSignIn', () => {

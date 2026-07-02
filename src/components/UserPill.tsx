@@ -53,4 +53,3 @@ function UserPill({avatar, displayName, accountID, email, style}: UserPillProps)
 UserPill.displayName = 'UserPill';
 
 export default UserPill;
-export type {UserPillProps};

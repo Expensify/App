@@ -23,17 +23,24 @@ function combineSpendRuleASTNodes(nodes: ExpensifyCardRuleFilter[], operator: Va
     return remainingNodes.reduce<ExpensifyCardRuleFilter>((accumulator, node) => ({left: accumulator, operator, right: node}), firstNode);
 }
 
-function buildSpendRuleAST(spendRuleValues: SpendRuleForm, existingCreated?: string): ExpensifyCardRule | undefined {
-    const cardIDs = spendRuleValues.cardIDs ?? [];
-    if (cardIDs.length === 0) {
-        return undefined;
-    }
+type SpendRuleValues = {
+    cardIDs?: string[];
+    maxAmount?: string;
+    categories?: string[];
+    merchantNames?: string[];
+    currencies?: string[];
+    restrictionAction?: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+    merchantMatchTypes?: Array<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>;
+};
 
+function buildSpendRuleAST(spendRuleValues: SpendRuleValues, existingCreated?: string): ExpensifyCardRule | undefined {
     const merchantNames = (spendRuleValues.merchantNames ?? []).map((merchant) => merchant.trim()).filter((merchant) => merchant !== '');
     const merchantMatchTypes = spendRuleValues.merchantMatchTypes ?? [];
+    const currencies = spendRuleValues.currencies ?? [];
     const categories = (spendRuleValues.categories ?? []).map((category) => category.trim()).filter((category) => category !== '');
     const maxAmount = spendRuleValues.maxAmount?.trim() ?? '';
 
+    const cardIDs = spendRuleValues.cardIDs ?? [];
     const cardNode: ExpensifyCardRuleFilter = {
         left: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
         operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
@@ -71,6 +78,16 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleForm, existingCreated?: str
             : undefined;
 
     const criteriaNode = combineSpendRuleASTNodes([merchantNode, categoryNode].filter(Boolean) as ExpensifyCardRuleFilter[], CONST.SEARCH.SYNTAX_OPERATORS.OR);
+
+    const currencyNode =
+        currencies.length > 0
+            ? {
+                  left: CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
+                  operator: spendRuleValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK ? CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO : CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                  right: currencies,
+              }
+            : undefined;
+
     const amountNode =
         maxAmount !== ''
             ? {
@@ -84,10 +101,11 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleForm, existingCreated?: str
             : undefined;
 
     const ruleNode = combineSpendRuleASTNodes(
-        [amountNode, criteriaNode].filter(Boolean) as ExpensifyCardRuleFilter[],
+        [amountNode, currencyNode, criteriaNode].filter(Boolean) as ExpensifyCardRuleFilter[],
         spendRuleValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK ? CONST.SEARCH.SYNTAX_OPERATORS.OR : CONST.SEARCH.SYNTAX_OPERATORS.AND,
     );
-    const filters = combineSpendRuleASTNodes([cardNode, ruleNode].filter(Boolean) as ExpensifyCardRuleFilter[], CONST.SEARCH.SYNTAX_OPERATORS.AND);
+
+    const filters = cardIDs.length > 0 ? combineSpendRuleASTNodes([cardNode, ruleNode].filter(Boolean) as ExpensifyCardRuleFilter[], CONST.SEARCH.SYNTAX_OPERATORS.AND) : ruleNode;
 
     if (!filters) {
         return undefined;
@@ -100,7 +118,7 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleForm, existingCreated?: str
     };
 }
 
-function getSpendRuleFormValuesFromCardRule(cardRule: ExpensifyCardRule): SpendRuleForm | undefined {
+function getSpendRuleFormValuesFromCardRule(cardRule?: ExpensifyCardRule): SpendRuleForm | undefined {
     if (!cardRule || typeof cardRule !== 'object' || !('filters' in cardRule) || !('action' in cardRule)) {
         return undefined;
     }
@@ -114,6 +132,7 @@ function getSpendRuleFormValuesFromCardRule(cardRule: ExpensifyCardRule): SpendR
         restrictionAction: cardRule.action,
         merchantNames: [],
         merchantMatchTypes: [],
+        currencies: [],
         categories: [],
         maxAmount: '',
     };
@@ -130,28 +149,35 @@ function getSpendRuleFormValuesFromCardRule(cardRule: ExpensifyCardRule): SpendR
             return;
         }
 
-        if (typeof left !== 'string' || !Array.isArray(right)) {
+        if (typeof left !== 'string') {
             return;
         }
 
+        const rightValues = [right].flat();
+
         if (left === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-            formValues.cardIDs = right;
+            formValues.cardIDs = rightValues;
             return;
         }
 
         if (left === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
-            formValues.maxAmount = typeof right === 'string' ? right : (right.at(0) ?? '');
+            formValues.maxAmount = rightValues.at(0) ?? '';
             return;
         }
 
         if (left === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
-            formValues.categories = right.filter(isSpendRuleCategory);
+            formValues.categories = rightValues.filter(isSpendRuleCategory);
+            return;
+        }
+
+        if (left === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY) {
+            formValues.currencies = rightValues;
             return;
         }
 
         if (left === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
-            formValues.merchantNames = [...formValues.merchantNames, ...right];
-            formValues.merchantMatchTypes = [...formValues.merchantMatchTypes, ...right.map(() => operator)];
+            formValues.merchantNames = [...formValues.merchantNames, ...rightValues];
+            formValues.merchantMatchTypes = [...formValues.merchantMatchTypes, ...rightValues.map(() => operator)];
         }
     };
 
@@ -188,7 +214,7 @@ type MoreCountFormatter = (summary: string, hiddenCount: number, shownCount: num
 type SpendRuleSummaryPart = {
     badgeLabel: string;
     text: string;
-    isNeutral?: boolean;
+    variant: 'neutral' | 'success' | 'error';
 };
 
 function getTruncatedSpendRuleSummary(values: string[] | undefined, formatMoreCount: MoreCountFormatter): string {
@@ -215,33 +241,59 @@ function getTruncatedSpendRuleSummary(values: string[] | undefined, formatMoreCo
 }
 
 function getSpendRuleSummaryParts(
+    action: ValueOf<typeof CONST.SPEND_RULES.ACTION>,
     formValues: SpendRuleForm,
     selectedCurrency: string | undefined,
-    actionLabel: string,
     translate: LocalizedTranslate,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
 ): SpendRuleSummaryPart[] {
     const summaryParts: SpendRuleSummaryPart[] = [];
+    const blockLabel = translate('workspace.rules.spendRules.block');
+    const allowLabel = translate('workspace.rules.spendRules.allow');
+
+    const maxAmount = formValues.maxAmount.trim();
     const merchantNames = getTruncatedSpendRuleSummary(formValues.merchantNames, (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}));
+    const allowedCurrencies = getTruncatedSpendRuleSummary(formValues.currencies, (currencies, hiddenCount, shownCount) =>
+        translate('workspace.rules.spendRules.summaryCurrencies', {currencies, hiddenCount, shownCount}),
+    );
+
     const categories = getTruncatedSpendRuleSummary(
         formValues.categories.map((category) => translate(`workspace.rules.spendRules.categoryOptions.${category}`)),
         (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
     );
-    const maxAmount = formValues.maxAmount.trim();
+
+    const actionLabel = action === CONST.SPEND_RULES.ACTION.BLOCK ? blockLabel : allowLabel;
+    const actionVariant = action === CONST.SPEND_RULES.ACTION.BLOCK ? CONST.SPEND_RULES.BADGE_VARIANTS.ERROR : CONST.SPEND_RULES.BADGE_VARIANTS.SUCCESS;
 
     if (merchantNames) {
-        summaryParts.push({badgeLabel: actionLabel, text: `${translate('workspace.rules.spendRules.merchants')}: ${merchantNames}`});
+        summaryParts.push({
+            variant: actionVariant,
+            badgeLabel: actionLabel,
+            text: `${translate('workspace.rules.spendRules.merchants')}: ${merchantNames}`,
+        });
     }
 
     if (categories) {
-        summaryParts.push({badgeLabel: actionLabel, text: `${translate('workspace.rules.spendRules.categories')}: ${categories}`});
+        summaryParts.push({
+            variant: actionVariant,
+            badgeLabel: actionLabel,
+            text: `${translate('workspace.rules.spendRules.merchantTypes')}: ${categories}`,
+        });
+    }
+
+    if (allowedCurrencies.length > 0) {
+        summaryParts.push({
+            variant: CONST.SPEND_RULES.BADGE_VARIANTS.SUCCESS,
+            badgeLabel: allowLabel,
+            text: `${translate('workspace.rules.spendRules.currencies')}: ${allowedCurrencies}`,
+        });
     }
 
     if (maxAmount) {
         summaryParts.push({
+            variant: CONST.SPEND_RULES.BADGE_VARIANTS.NEUTRAL,
             badgeLabel: translate('workspace.rules.spendRules.max'),
             text: `${translate('iou.amount')}: ${convertToDisplayString(convertToBackendAmount(Number.parseFloat(maxAmount)), selectedCurrency ?? CONST.CURRENCY.USD)}`,
-            isNeutral: true,
         });
     }
 
@@ -260,6 +312,7 @@ function getSpendRuleSummaryText(
               translate('workspace.rules.spendRules.summaryMerchants', {merchants, hiddenCount, shownCount, action}),
           )
         : undefined;
+
     const categoryNames = formValues.categories.map((category) => translate(`workspace.rules.spendRules.categoryOptions.${category}`));
     const categorySummary =
         categoryNames.length > 0
@@ -267,10 +320,17 @@ function getSpendRuleSummaryText(
                   translate('workspace.rules.spendRules.summaryCategories', {categories, hiddenCount, shownCount, action}),
               )
             : undefined;
+
     const amountSummary =
         formValues.maxAmount.trim() !== ''
             ? `${translate('workspace.rules.spendRules.maxAmount')}: ${convertToDisplayString(convertToBackendAmount(Number.parseFloat(formValues.maxAmount)), cardCurrency ?? CONST.CURRENCY.USD)}`
             : undefined;
+
+    const currencySummary = formValues.currencies.length
+        ? getTruncatedSpendRuleSummary(formValues.currencies, (currencies, hiddenCount, shownCount) =>
+              translate('workspace.rules.spendRules.summaryCurrencies', {currencies, hiddenCount, shownCount}),
+          )
+        : undefined;
 
     const summaryArray = [];
     if (merchantSummary) {
@@ -285,8 +345,12 @@ function getSpendRuleSummaryText(
         summaryArray.push(amountSummary);
     }
 
+    if (currencySummary) {
+        summaryArray.push(currencySummary);
+    }
+
     return summaryArray;
 }
 
+export type {SpendRuleSummaryPart};
 export {buildSpendRuleAST, getSpendRuleByCardID, getSpendRuleFormValuesFromCardRule, getSpendRuleSummaryParts, getSpendRuleSummaryText, getTruncatedSpendRuleSummary};
-export type {SpendRuleByCardID, SpendRuleSummaryPart};

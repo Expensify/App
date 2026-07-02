@@ -1,8 +1,6 @@
 import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import EmbeddedDemo from '@components/EmbeddedDemo';
 import Modal from '@components/Modal';
@@ -21,6 +19,7 @@ import {completeTestDriveTask} from '@libs/actions/Task';
 import {setSelfTourViewed} from '@libs/actions/Welcome';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isAdminRoom} from '@libs/ReportUtils';
 import {getTestDriveURL} from '@libs/TourUtils';
 import CONST from '@src/CONST';
@@ -96,23 +95,28 @@ function TestDriveDemo() {
     ]);
 
     useEffect(() => {
-        InteractionManager.runAfterInteractions(() => {
-            setIsVisible(true);
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => setIsVisible(true),
+            waitForUpcomingTransition: true,
         });
+        return () => handle.cancel();
     }, []);
 
     const closeModal = useCallback(() => {
         setIsVisible(false);
-        InteractionManager.runAfterInteractions(() => {
-            Navigation.goBack();
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                Navigation.goBack();
 
-            if (shouldOpenRHPVariant()) {
-                Log.hmmm('[AdminTestDriveModal] User was redirected to Workspace Editor, skipping navigation to admin room');
-                return;
-            }
-            if (isAdminRoom(onboardingReport)) {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(onboardingReport?.reportID));
-            }
+                if (shouldOpenRHPVariant()) {
+                    Log.hmmm('[TestDriveDemo] User was redirected to Workspace Editor, skipping navigation to admin room');
+                    return;
+                }
+                if (isAdminRoom(onboardingReport)) {
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(onboardingReport?.reportID));
+                }
+            },
+            waitForUpcomingTransition: true,
         });
     }, [onboardingReport]);
 

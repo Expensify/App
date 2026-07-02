@@ -8,19 +8,21 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 import SortableHeaderText from './SortableHeaderText';
-import type {SearchColumnType, SortOrder, TableColumnSize} from './types';
+import type {SearchColumnType, SearchSortBy, SortOrder, TableColumnSize} from './types';
 
 type ColumnConfig = {
     columnName: SearchColumnType;
     translationKey: TranslationPaths | undefined;
     icon?: IconAsset;
     isColumnSortable?: boolean;
+    sortColumnName?: SearchSortBy;
     canBeMissing?: boolean;
+    canEdit?: boolean;
 };
 
 type SearchTableHeaderProps = {
     columns: ColumnConfig[];
-    sortBy?: SearchColumnType;
+    sortBy?: SearchSortBy;
     sortOrder?: SortOrder;
     shouldShowSorting: boolean;
     dateColumnSize: TableColumnSize;
@@ -33,7 +35,7 @@ type SearchTableHeaderProps = {
     taxAmountColumnSize: TableColumnSize;
     containerStyles?: StyleProp<ViewStyle>;
     shouldShowColumn: (columnName: SearchColumnType) => boolean;
-    onSortPress: (column: SearchColumnType, order: SortOrder) => void;
+    onSortPress: (column: SearchSortBy, order: SortOrder) => void;
     shouldRemoveTotalColumnFlex?: boolean;
     isActionColumnWide?: boolean;
 };
@@ -64,14 +66,19 @@ function SortableTableHeader({
     return (
         <View style={[styles.flex1]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, containerStyles]}>
-                {columns.map(({columnName, translationKey, icon, isColumnSortable}) => {
+                {columns.map(({columnName, translationKey, icon, isColumnSortable, sortColumnName, canEdit}) => {
                     if (!shouldShowColumn(columnName)) {
                         return null;
                     }
 
                     const isSortable = shouldShowSorting && isColumnSortable;
-                    const isActive = sortBy === columnName;
-                    const textStyle = columnName === CONST.SEARCH.TABLE_COLUMNS.RECEIPT ? StyleUtils.getTextOverflowStyle('clip') : null;
+                    const sortByColumnName = sortColumnName ?? columnName;
+                    const isActive = sortBy === sortByColumnName;
+                    const isReimbursableOrBillableColumn = columnName === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE || columnName === CONST.SEARCH.TABLE_COLUMNS.BILLABLE;
+                    const textStyle = [
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.RECEIPT ? StyleUtils.getTextOverflowStyle('clip') : null,
+                        isReimbursableOrBillableColumn ? styles.flexShrink1 : null,
+                    ];
 
                     return (
                         <SortableHeaderText
@@ -82,6 +89,7 @@ function SortableTableHeader({
                             sortOrder={sortOrder ?? CONST.SEARCH.SORT_ORDER.ASC}
                             isActive={isActive}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.SORTABLE_HEADER}
+                            innerContainerStyle={canEdit && styles.editableCellHeader}
                             containerStyle={[
                                 StyleUtils.getReportTableColumnStyles(columnName, {
                                     isDateColumnWide: dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
@@ -97,7 +105,7 @@ function SortableTableHeader({
                                 }),
                             ]}
                             isSortable={isSortable}
-                            onPress={(order: SortOrder) => onSortPress(columnName, order)}
+                            onPress={(order: SortOrder) => onSortPress(sortByColumnName, order)}
                         />
                     );
                 })}

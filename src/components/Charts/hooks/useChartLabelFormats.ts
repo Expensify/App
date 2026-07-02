@@ -1,7 +1,7 @@
 import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
-import {LABEL_ROTATIONS} from '@components/Charts/constants';
 import type {ChartDataPoint, LabelRotation, UnitPosition, UnitWithFallback} from '@components/Charts/types';
 import {canFontRenderText} from '@components/Charts/utils';
+import {LABEL_ROTATIONS} from '@components/Charts/VictoryTheme';
 import useLocalize from '@hooks/useLocalize';
 
 type UseChartLabelFormatsProps = {
@@ -11,14 +11,14 @@ type UseChartLabelFormatsProps = {
     labelSkipInterval?: number;
     labelRotation?: LabelRotation;
     truncatedLabels?: string[];
-    fontMgr?: SkTypefaceFontProvider | null;
+    fontManager?: SkTypefaceFontProvider | null;
 };
 
-export default function useChartLabelFormats({data, unit, unitPosition = 'left', labelSkipInterval = 1, labelRotation = 0, truncatedLabels, fontMgr}: UseChartLabelFormatsProps) {
+export default function useChartLabelFormats({data, unit, unitPosition = 'left', labelSkipInterval = 1, labelRotation = 0, truncatedLabels, fontManager}: UseChartLabelFormatsProps) {
     const {numberFormat} = useLocalize();
 
     const displayUnit = typeof unit === 'string' ? unit : unit?.value;
-    const unitToDisplay = fontMgr && !canFontRenderText(displayUnit, fontMgr) ? (unit as UnitWithFallback)?.fallback : displayUnit;
+    const unitToDisplay = fontManager && !canFontRenderText(displayUnit, fontManager) ? (unit as UnitWithFallback)?.fallback : displayUnit;
     const formatValue = (value: number) => {
         const formatted = numberFormat(value);
         if (!unitToDisplay) {

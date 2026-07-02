@@ -1,12 +1,14 @@
+import {useIsFocused} from '@react-navigation/core';
 import type {ListRenderItem} from '@shopify/flash-list';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
+import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,36 +22,41 @@ import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContex
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {hasOnceLoadedReportActionsSelector} from '@src/selectors/ReportMetaData';
+import {hasOnceLoadedReportActionsSelector, pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
 import type {Transaction} from '@src/types/onyx';
 import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
 import type {MoneyRequestReportPreviewProps} from './types';
 
 function MoneyRequestReportPreview({
     iouReportID,
+    iouReport,
     policyID,
     chatReportID,
+    chatReport,
     action,
-    contextMenuAnchor,
     isHovered = false,
     isWhisper = false,
-    checkIfContextMenuActive = () => {},
     onPaymentOptionsShow,
     onPaymentOptionsHide,
-    shouldDisplayContextMenu = true,
     shouldShowBorder,
-    originalReportID,
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const personalDetailsList = usePersonalDetails();
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}`);
     const invoiceReceiverPersonalDetail = chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? personalDetailsList?.[chatReport.invoiceReceiver.accountID] : null;
-    const [iouReport, transactions] = useReportWithTransactionsAndViolations(iouReportID);
+    const reportTransactionsCollection = useReportTransactionsCollection(iouReportID);
+    const {isOffline} = useNetwork();
+    const transactions = useMemo(
+        () =>
+            Object.values(reportTransactionsCollection ?? {}).filter(
+                (transaction): transaction is Transaction => !!transaction && (isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+            ),
+        [reportTransactionsCollection, isOffline],
+    );
     const policy = usePolicy(policyID);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
@@ -120,32 +127,33 @@ function MoneyRequestReportPreview({
     const [hasOnceLoadedReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${chatReportID}`, {
         selector: hasOnceLoadedReportActionsSelector,
     });
-    const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactions);
+    const [pendingNewTransactionIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {
+        selector: pendingNewTransactionIDsSelector,
+    });
+    const isFocused = useIsFocused();
+    const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactions, pendingNewTransactionIDs, chatReportID, isFocused);
     const newTransactionIDs = new Set(newTransactions.map((transaction) => transaction.transactionID));
 
     const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
-            chatReportID={chatReportID}
+            chatReport={chatReport}
             action={getIOUActionForReportID(item.reportID, item.transactionID)}
             contextAction={action}
             reportID={item.reportID}
             isBillSplit={isSplitBillAction}
             isTrackExpense={isTrackExpenseAction}
-            contextMenuAnchor={contextMenuAnchor}
             isWhisper={isWhisper}
             isHovered={isHovered}
             iouReportID={iouReportID}
             containerStyles={transactionPreviewContainerStyles}
-            shouldDisplayContextMenu={shouldDisplayContextMenu}
             transactionPreviewWidth={reportPreviewStyles.transactionPreviewCarouselStyle.width}
             transactionID={item.transactionID}
             reportPreviewAction={action}
             onPreviewPressed={openReportFromPreview}
             shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
             shouldHighlight={!!newTransactionIDs?.has(item.transactionID)}
-            originalReportID={originalReportID}
         />
     );
 
@@ -158,10 +166,8 @@ function MoneyRequestReportPreview({
             chatReport={chatReport}
             action={action}
             containerStyles={[reportPreviewStyles.componentStyle]}
-            contextMenuAnchor={contextMenuAnchor}
             isHovered={isHovered}
             isWhisper={isWhisper}
-            checkIfContextMenuActive={checkIfContextMenuActive}
             onPaymentOptionsShow={onPaymentOptionsShow}
             onPaymentOptionsHide={onPaymentOptionsHide}
             transactions={transactions}
@@ -174,11 +180,9 @@ function MoneyRequestReportPreview({
             onWrapperLayout={onWrapperLayout}
             currentWidth={widths.currentWidth}
             reportPreviewStyles={reportPreviewStyles}
-            shouldDisplayContextMenu={shouldDisplayContextMenu}
             onPress={openReportFromPreview}
             shouldShowBorder={shouldShowBorder}
             forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
-            originalReportID={originalReportID}
         />
     );
 }

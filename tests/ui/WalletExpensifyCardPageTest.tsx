@@ -12,6 +12,7 @@ import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import {clearRevealedVirtualCardDetails, setRevealedVirtualCardDetails} from '@libs/RevealedCardSecretsStore';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import ExpensifyCardPage from '@pages/settings/Wallet/ExpensifyCardPage';
 import CONST from '@src/CONST';
@@ -49,7 +50,7 @@ const renderPage = (initialRouteName: typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD
 };
 
 describe('ExpensifyCardPage', () => {
-    beforeAll(() => {
+    beforeEach(async () => {
         // Initialize Onyx with required keys before running any test.
         Onyx.init({
             keys: ONYXKEYS,
@@ -57,9 +58,8 @@ describe('ExpensifyCardPage', () => {
                 [ONYXKEYS.CURRENCY_LIST]: currencyList,
             },
         });
-    });
+        await waitForBatchedUpdatesWithAct();
 
-    beforeEach(() => {
         // Mock the useResponsiveLayout hook to control layout behavior in tests.
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
             isSmallScreenWidth: false,
@@ -71,11 +71,13 @@ describe('ExpensifyCardPage', () => {
         // Clear Onyx data and reset all mocks after each test to ensure a clean state.
         await act(async () => {
             await Onyx.clear();
+            // Clear the in-memory revealed card secrets so state doesn't leak between tests.
+            clearRevealedVirtualCardDetails();
         });
         jest.clearAllMocks();
     });
 
-    it('should show the Report Fraud and Reveal details options on screen', async () => {
+    it('should show the Report Fraud and Reveal options on screen', async () => {
         // Sign in as a test user before running the test.
         await TestHelper.signInWithTestUser();
 
@@ -107,9 +109,9 @@ describe('ExpensifyCardPage', () => {
             expect(screen.getByText(TestHelper.translateLocal('cardPage.reportFraud'))).toBeOnTheScreen();
         });
 
-        // Verify that the "Reveal Details" option is displayed on the screen.
+        // Verify that the "Reveal" option is displayed on the screen.
         await waitFor(() => {
-            expect(screen.getByText(TestHelper.translateLocal('cardPage.cardDetails.revealDetails'))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('cardPage.cardDetails.reveal'))).toBeOnTheScreen();
         });
 
         // Unmount the component after assertions to clean up.
@@ -117,7 +119,7 @@ describe('ExpensifyCardPage', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should not show the Report Fraud and Reveal details options on screen', async () => {
+    it('should not show the Report Fraud and Reveal options on screen', async () => {
         // Sign in as a test user before running the test.
         await TestHelper.signInWithTestUser();
 
@@ -156,9 +158,9 @@ describe('ExpensifyCardPage', () => {
             expect(screen.queryByText(TestHelper.translateLocal('cardPage.reportFraud'))).not.toBeOnTheScreen();
         });
 
-        // Verify that the "Reveal Details" option is NOT displayed on the screen.
+        // Verify that the "Reveal" option is NOT displayed on the screen.
         await waitFor(() => {
-            expect(screen.queryByText(TestHelper.translateLocal('cardPage.cardDetails.revealDetails'))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal('cardPage.cardDetails.reveal'))).not.toBeOnTheScreen();
         });
 
         // Unmount the component after assertions to clean up.
@@ -325,6 +327,62 @@ describe('ExpensifyCardPage', () => {
         await waitFor(() => {
             expect(screen.getByText(TestHelper.translateLocal('cardPage.getPhysicalCard'))).toBeOnTheScreen();
         });
+
+        // Unmount the component after assertions to clean up.
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should show the Limit type row only once after revealing a single virtual card', async () => {
+        // Sign in as a test user before running the test.
+        await TestHelper.signInWithTestUser();
+
+        // Add a single virtual card with a limit type set. The page renders a canonical top-level
+        // "Limit type" row for the current card; before this fix the revealed details section also
+        // rendered its own "Limit type" row, duplicating it for a single card.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.CARD_LIST, {
+                [userCardID]: {
+                    cardID: 1234,
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    fundID: '12345',
+                    domainName: 'xyz',
+                    nameValuePairs: {
+                        isVirtual: true,
+                        cardTitle: 'Test Virtual Card',
+                        limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
+                    },
+                    availableSpend: 50000,
+                    fraud: null,
+                },
+            });
+        });
+
+        // Render the page with the specified card ID.
+        const {unmount} = renderPage(SCREENS.SETTINGS.WALLET.DOMAIN_CARD, {cardID: '1234'});
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Simulate the card details being revealed, as the SCA reveal flow would, which mounts the
+        // revealed card details section (CardDetails).
+        act(() => {
+            setRevealedVirtualCardDetails(userCardID, {
+                pan: '4111111111111111',
+                expiration: '1225',
+                cvv: '123',
+            });
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        // The revealed card number row confirms the details section is now rendered.
+        await waitFor(() => {
+            expect(screen.getByText(TestHelper.translateLocal('cardPage.cardDetails.cardNumber'))).toBeOnTheScreen();
+        });
+
+        // The "Limit type" row should appear exactly once — only the canonical top-level row — and
+        // not be duplicated by the revealed card details section for a single card.
+        expect(screen.getAllByText(TestHelper.translateLocal('workspace.card.issueNewCard.limitType'))).toHaveLength(1);
 
         // Unmount the component after assertions to clean up.
         unmount();

@@ -14,16 +14,15 @@ import type {
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import getWorkspaceCreatedAnalyticsEvent from '@libs/getWorkspaceCreatedAnalyticsEvent';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils} from '@libs/IOUUtils';
 import isFileUploadable from '@libs/isFileUploadable';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
-import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
-// eslint-disable-next-line no-restricted-imports -- No higher-level Navigation API for waiting on transitions without navigating
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
@@ -53,10 +52,13 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     findSelfDMReportID,
     generateReportID,
+    getDefaultNotificationPreferenceForReport,
     getParsedComment,
     getReportOrDraftReport,
     getReportRecipientAccountIDs,
+    getReportTransactions,
     isDraftReport,
+    isHiddenForCurrentUser,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isSelfDM,
@@ -89,7 +91,6 @@ import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData, notifyNewAction} from '@userActions/Report';
 import {stringifyWaypointsForAPI} from '@userActions/Transaction';
-import {removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -104,12 +105,14 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt, ReceiptSource} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData, getNavigationUrlOnMoneyRequestDelete} from './DeleteMoneyRequest';
-import type {ReplaceReceipt, StartSplitBilActionParams} from './index';
 import {getAllReports, getAllTransactionDrafts, getAllTransactions, getAllTransactionViolations, getMoneyRequestPolicyTags} from './index';
 import {buildMinimalTransactionForFormula, getMoneyRequestInformation, getReceiptError, getReportPreviewAction, getTransactionWithPreservedLocalReceiptSource} from './MoneyRequestBuilder';
 import type {BuildOnyxDataForMoneyRequestKeys, RequestMoneyInformation} from './MoneyRequestBuilder';
-import {handleNavigateAfterExpenseCreate, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
+import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
+import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
+import type {ReplaceReceipt} from './Receipt';
 import {getSearchOnyxUpdate} from './SearchUpdate';
+import type {StartSplitBilActionParams} from './Split';
 import type BasePolicyParams from './types/BasePolicyParams';
 import type {CreateTrackExpenseParams} from './types/CreateTrackExpenseParams';
 import type {
@@ -157,6 +160,7 @@ type GetTrackExpenseInformationTransactionParams = {
     odometerStart?: number;
     odometerEnd?: number;
     gpsCoordinates?: string;
+    distanceRequestType?: string;
 };
 
 type GetTrackExpenseInformationParticipantParams = {
@@ -170,6 +174,7 @@ type GetTrackExpenseInformationParams = {
     moneyRequestReportID?: string;
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     existingTransactionID?: string;
+    optimisticTransactionID?: string;
     participantParams: GetTrackExpenseInformationParticipantParams;
     policyParams: BasePolicyParams;
     transactionParams: GetTrackExpenseInformationTransactionParams;
@@ -183,6 +188,10 @@ type GetTrackExpenseInformationParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean;
     defaultWorkspaceName?: string;
+    optimisticChatReportID?: string;
+    currentUserLocalCurrency: string | undefined;
+    // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined;
 };
 
 type DeleteTrackExpenseParams = {
@@ -213,6 +222,7 @@ type BuildOnyxDataForTrackExpenseParams = {
     participant?: Participant;
     isASAPSubmitBetaEnabled: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    currentUserAccountID: number;
 };
 
 /** Builds the Onyx data for track expense */
@@ -227,6 +237,7 @@ function buildOnyxDataForTrackExpense({
     participant,
     isASAPSubmitBetaEnabled,
     quickAction,
+    currentUserAccountID,
 }: BuildOnyxDataForTrackExpenseParams): OnyxData<BuildOnyxDataForTrackExpenseKeys> {
     const {report: chatReport, previewAction: reportPreviewAction} = chat;
     const {report: iouReport, createdAction: iouCreatedAction, action: iouAction} = iou;
@@ -250,6 +261,9 @@ function buildOnyxDataForTrackExpense({
     const existingTransactionThreadReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${existingTransactionThreadReportID}`] ?? null;
 
     if (chatReport) {
+        const currentUserNotificationPreference = chatReport.participants?.[currentUserAccountID]?.notificationPreference;
+        const shouldUpdateSelfDMNotificationPreference = isSelfDMReport && isHiddenForCurrentUser(currentUserNotificationPreference);
+
         onyxData.optimisticData?.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -262,6 +276,17 @@ function buildOnyxDataForTrackExpense({
                     // do not update iouReportID if auto submit beta is enabled and it is a scan request
                     iouReportID: isASAPSubmitBetaEnabled && isScanRequest ? null : iouReport?.reportID,
                     lastVisibleActionCreated: shouldCreateNewMoneyRequestReport ? reportPreviewAction?.created : chatReport.lastVisibleActionCreated,
+                    ...(shouldUpdateSelfDMNotificationPreference
+                        ? {
+                              participants: {
+                                  ...chatReport.participants,
+                                  [currentUserAccountID]: {
+                                      ...chatReport.participants?.[currentUserAccountID],
+                                      notificationPreference: getDefaultNotificationPreferenceForReport(chatReport),
+                                  },
+                              },
+                          }
+                        : {}),
                 },
             },
             {
@@ -478,7 +503,7 @@ function buildOnyxDataForTrackExpense({
             value: {
                 pendingAction: null,
                 pendingFields: clearedPendingFields,
-                routes: null,
+                // Keep `routes`: the BE never returns it, so it's the only source `ConfirmedRoute`/the preview can draw the map from (GH #90057).
             },
         },
     );
@@ -622,6 +647,8 @@ function getDeleteTrackExpenseInformation(
 ) {
     // STEP 1: Get all collections we're updating
     const transaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const transactionViolations = getAllTransactionViolations()?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const transactionThreadID = reportAction.childReportID;
 
@@ -809,6 +836,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         moneyRequestReportID = '',
         existingTransaction,
         existingTransactionID,
+        optimisticTransactionID: providedOptimisticTransactionID,
         participantParams,
         policyParams,
         transactionParams,
@@ -822,6 +850,9 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         betas,
         isSelfTourViewed,
         defaultWorkspaceName,
+        optimisticChatReportID,
+        delegateAccountID,
+        currentUserLocalCurrency,
     } = params;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy} = policyParams;
@@ -868,7 +899,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     let optimisticReportActionID: string | undefined;
     if (!chatReport) {
         const currentTime = DateUtils.getDBTime();
-        const selfDMReport = buildOptimisticSelfDMReport(currentTime);
+        const selfDMReport = buildOptimisticSelfDMReport(currentTime, optimisticChatReportID);
         const selfDMCreatedReportAction = buildOptimisticCreatedReportAction({emailCreatingAction: currentUserEmailParam, created: currentTime});
         optimisticReportID = selfDMReport.reportID;
         optimisticReportActionID = selfDMCreatedReportAction.reportActionID;
@@ -960,6 +991,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             policyID: policy?.id,
             expenseReportId: chatReport?.reportID,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+            currency: currentUserLocalCurrency,
             currentUserAccountIDParam,
             currentUserEmailParam,
             introSelected,
@@ -983,7 +1015,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     let shouldCreateNewMoneyRequestReport = false;
 
     // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
-    const optimisticTransactionID = existingTransactionID ?? NumberUtils.rand64();
+    const optimisticTransactionID = existingTransactionID ?? providedOptimisticTransactionID ?? NumberUtils.rand64();
     const optimisticExpenseReportID = generateReportID();
 
     if (shouldUseMoneyReport) {
@@ -992,7 +1024,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         } else {
             iouReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
         }
-        const isScanRequest = isScanRequestTransactionUtils({amount, receipt});
+        const isScanRequest = isScanRequestTransactionUtils(existingTransaction);
         shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, betas);
         if (!iouReport || shouldCreateNewMoneyRequestReport) {
             const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticExpenseReportID, created, amount, currency, merchant);
@@ -1094,6 +1126,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         existingTransactionThreadReportID: linkedTrackedExpenseReportAction?.childReportID,
         linkedTrackedExpenseReportAction,
         currentUserAccountID: currentUserAccountIDParam,
+        delegateAccountIDParam: delegateAccountID,
     });
 
     let reportPreviewAction: OnyxInputValue<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = null;
@@ -1103,7 +1136,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         if (reportPreviewAction) {
             reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
         } else {
-            reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction);
+            reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction, undefined, undefined, delegateAccountID);
             // Generated ReportPreview action is a parent report action of the iou report.
             // We are setting the iou report's parentReportActionID to display subtitle correctly in IOU page when offline.
             iouReport.parentReportActionID = reportPreviewAction.reportActionID;
@@ -1130,6 +1163,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         retryParams,
         isASAPSubmitBetaEnabled,
         quickAction,
+        currentUserAccountID: currentUserAccountIDParam,
     });
 
     onyxData.optimisticData?.push(...(trackExpenseOnyxData.optimisticData ?? []));
@@ -1364,6 +1398,7 @@ type AddTrackedExpenseToPolicyParam = {
     moneyRequestPreviewReportActionID: string;
     distance: number | undefined;
     attendees: string | undefined;
+    shouldDeferAutoSubmit?: boolean;
 } & ConvertTrackedWorkspaceParams;
 
 type ConvertTrackedExpenseToRequestParams = {
@@ -1402,14 +1437,37 @@ type ConvertTrackedExpenseToRequestParams = {
     onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys>;
     workspaceParams?: ConvertTrackedWorkspaceParams;
     currentUserAccountID: number;
+    shouldDeferAutoSubmit?: boolean;
 };
 
 function addTrackedExpenseToPolicy(parameters: AddTrackedExpenseToPolicyParam, onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys>) {
     API.write(WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY, parameters, onyxData);
 }
 
+/**
+ * Returns `true` when `customUnit.quantity` (in `distanceUnit`) diverges from
+ * `customUnit.routeDistanceMeters` — i.e. the user typed a manual value on the "Manual" tab
+ * after a map route had already populated the distance.
+ *
+ * Returns `false` for map-routed / GPS-tracked expenses (quantity matches the route) and any
+ * case missing the data needed for a confident compare — those flows must keep `waypoints` so
+ * BE can preserve / regenerate the map receipt.
+ */
+function hasManualDistanceOverride(transaction: OnyxEntry<OnyxTypes.Transaction>): boolean {
+    const quantity = transaction?.comment?.customUnit?.quantity;
+    const distanceUnit = transaction?.comment?.customUnit?.distanceUnit;
+    const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters;
+    if (typeof quantity !== 'number' || !distanceUnit || typeof routeDistanceMeters !== 'number' || routeDistanceMeters <= 0) {
+        return false;
+    }
+    // Compare in display units — `quantity` is stored at 2dp, so a meters round-trip would
+    // exceed any sub-meter tolerance from rounding alone (~5m km / ~8m mi).
+    const routeQuantity = DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, distanceUnit);
+    return Math.abs(quantity - routeQuantity) > 0.01;
+}
+
 function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrackedExpenseToRequestParams) {
-    const {payerParams, transactionParams, chatParams, iouParams, onyxData, workspaceParams, currentUserAccountID} = convertTrackedExpenseParams;
+    const {payerParams, transactionParams, chatParams, iouParams, onyxData, workspaceParams, currentUserAccountID, shouldDeferAutoSubmit} = convertTrackedExpenseParams;
     const {accountID: payerAccountID, email: payerEmail} = payerParams;
     const {
         transactionID,
@@ -1474,6 +1532,13 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         });
     }
 
+    // Drop `waypoints` only when the transaction's stored distance diverges from the route's
+    // computed distance, so BE doesn't recompute and overwrite the manual override. GPS-tracked
+    // / map-routed expenses match the route — they must keep waypoints so BE can regenerate the
+    // map receipt.
+    const sourceTransaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const hasManualDistanceOverrideForRequest = hasManualDistanceOverride(sourceTransaction);
+
     if (workspaceParams) {
         const additionalFailureData = getConvertTrackedExpenseWorkspaceFailureData({
             iouReportID: iouParams.reportID,
@@ -1491,6 +1556,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         // Removing the ghost IOU report on API failure which can cause unexpected errors.
         failureData?.push(...additionalFailureData);
 
+        const workspaceParamsForAPI = hasManualDistanceOverrideForRequest ? {...workspaceParams, waypoints: undefined} : workspaceParams;
         const params = {
             amount,
             distance,
@@ -1507,7 +1573,8 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
             moneyRequestPreviewReportActionID: iouParams.reportActionID,
             modifiedExpenseReportActionID: convertTrackedExpenseInformation.modifiedExpenseReportActionID,
             reportPreviewReportActionID: chatParams.reportPreviewReportActionID,
-            ...workspaceParams,
+            shouldDeferAutoSubmit,
+            ...workspaceParamsForAPI,
         };
 
         addTrackedExpenseToPolicy(params, {optimisticData, successData, failureData});
@@ -1536,7 +1603,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         reportPreviewReportActionID: chatParams.reportPreviewReportActionID,
         isDistance,
         customUnitRateID,
-        waypoints,
+        waypoints: hasManualDistanceOverrideForRequest ? undefined : waypoints,
     };
     API.write(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, parameters, {optimisticData, successData, failureData});
 }
@@ -1553,8 +1620,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         transactionParams,
         gpsPoint,
         action,
-        shouldHandleNavigation = true,
-        backToReport,
         shouldPlaySound = true,
         optimisticChatReportID,
         optimisticCreatedReportActionID,
@@ -1568,11 +1633,12 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         quickAction,
         policyRecentlyUsedCurrencies,
         existingTransactionDraft,
-        draftTransactionIDs = [],
+        existingTransaction: explicitExistingTransaction,
         isSelfTourViewed,
         betas,
         personalDetails,
         shouldDeferAutoSubmit,
+        delegateAccountID,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -1616,7 +1682,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
     const existingTransactionID = existingTransactionDraft?.transactionID;
-    const existingTransaction = action === CONST.IOU.ACTION.SUBMIT ? existingTransactionDraft : getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`];
+    const existingTransaction =
+        explicitExistingTransaction ?? (action === CONST.IOU.ACTION.SUBMIT ? existingTransactionDraft : getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`]);
 
     const retryParams = {
         ...requestMoneyInformation,
@@ -1628,6 +1695,17 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
             ...requestMoneyInformation.transactionParams,
             receipt: undefined,
         },
+        existingTransaction: explicitExistingTransaction
+            ? {
+                  iouRequestType: explicitExistingTransaction.iouRequestType,
+                  amount: 0,
+                  currency: '',
+                  created: '',
+                  merchant: '',
+                  reportID: '1',
+                  transactionID: '1',
+              }
+            : undefined,
     };
 
     const {
@@ -1659,7 +1737,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         transactionParams,
         moneyRequestReportID,
         existingTransactionID,
-        existingTransaction: isDistanceRequestTransactionUtils(existingTransaction) ? existingTransaction : undefined,
+        optimisticTransactionID: requestMoneyInformation.optimisticTransactionID,
+        existingTransaction,
         retryParams,
         testDriveCommentReportActionID,
         optimisticChatReportID,
@@ -1676,6 +1755,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         policyRecentlyUsedCurrencies,
         betas,
         personalDetails,
+        delegateAccountID,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -1683,13 +1763,11 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         playSound(SOUNDS.DONE);
     }
 
-    // API.write is deferred until the Search screen's actual content (not skeleton)
-    // lays out, so that Onyx optimistic updates don't block the JS thread while
-    // the skeleton→content transition is in progress. The Search component flushes
-    // the registered write from its content onLayout callback.
-    // Only the SUBMIT and default (REQUEST_MONEY) branches wrap the write; the actual
-    // deferral only activates when we navigate to Search (shouldHandleNavigation && !isRetry).
-    // CATEGORIZE and SHARE navigate elsewhere and don't benefit from this deferral.
+    // API.write is deferred until the Search screen's actual content (not skeleton) lays out, so Onyx
+    // optimistic updates don't block the JS thread during the skeleton→content transition. The Search
+    // component flushes the registered write from its content onLayout callback. Wrapped in a closure
+    // so `deferOrExecuteWrite` can register it against a SEARCH/DISMISS_MODAL channel when the UI
+    // reserved one; otherwise it runs synchronously below.
     let deferredAPIWrite: (() => void) | undefined;
 
     switch (action) {
@@ -1756,6 +1834,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                     onyxData,
                     workspaceParams,
                     currentUserAccountID: currentUserAccountIDParam,
+                    shouldDeferAutoSubmit,
                 });
             };
             break;
@@ -1769,7 +1848,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                       onboardingMessage: getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER],
                       companySize: undefined,
                       isSelfTourViewed,
-                      betas,
                   })?.guidedSetupData
                 : undefined;
 
@@ -1822,26 +1900,13 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         }
     }
 
-    // queueMicrotask defers past the synchronous multi-scan batch loop so that
-    // every iteration can read its draft before any cleanup runs.  Without it,
-    // TransitionTracker.runAfterTransitions fires synchronously when no transition
-    // is active (the dismiss already completed), removing drafts mid-loop.
-    queueMicrotask(() => {
-        TransitionTracker.runAfterTransitions({callback: () => removeDraftTransactionsByIDs(draftTransactionIDs)});
-    });
-
-    if (shouldHandleNavigation) {
-        const trackReport = Navigation.getReportRouteByID(linkedTrackedExpenseReportAction?.childReportID);
-        if (trackReport?.key) {
-            Navigation.removeScreenByKey(trackReport.key);
-        }
+    if (isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID))) {
+        addPendingNewTransactionIDs(activeReportID, transaction.transactionID);
     }
 
-    // Register the deferred write BEFORE navigation so the Search component's
-    // hasDeferredWrite() check on mount always sees the pending channel.
     if (deferredAPIWrite) {
         deferOrExecuteWrite(deferredAPIWrite, {
-            shouldDeferForSearch: shouldHandleNavigation && !requestMoneyInformation.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator(),
+            shouldDeferForSearch: false,
             isRetry: requestMoneyInformation.isRetry,
             optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
@@ -1850,14 +1915,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
 
     if (!requestMoneyInformation.isRetry) {
         highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
-
-        if (shouldHandleNavigation) {
-            handleNavigateAfterExpenseCreate({
-                activeReportID: backToReport ?? activeReportID,
-                transactionID: transaction.transactionID,
-                isFromGlobalCreate,
-            });
-        }
     }
 
     if (activeReportID && !isMoneyRequestReport) {
@@ -1886,6 +1943,7 @@ function convertBulkTrackedExpensesToIOU({
     quickAction,
     personalDetails,
     betas,
+    policyTagList,
 }: {
     transactions: OnyxTypes.Transaction[];
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -1898,6 +1956,7 @@ function convertBulkTrackedExpensesToIOU({
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
 }) {
     const iouReportID = iouReport?.reportID;
 
@@ -2016,11 +2075,7 @@ function convertBulkTrackedExpensesToIOU({
             personalDetails,
             betas,
             policyParams: {
-                policyTagList: getMoneyRequestPolicyTags({
-                    moneyRequestReportID: iouReportID,
-                    parentChatReport: chatReport,
-                    participant: participantParams.participant,
-                }),
+                policyTagList,
             },
         });
 
@@ -2070,7 +2125,8 @@ function convertBulkTrackedExpensesToIOU({
 }
 
 function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
-    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, currentUserAccountID} = trackedExpenseParams;
+    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, currentUser} = trackedExpenseParams;
+    const {accountID: currentUserAccountID} = currentUser;
     const {optimisticData, successData, failureData} = onyxData ?? {};
     const {transactionID} = transactionParams;
     const {isDraftPolicy} = policyParams;
@@ -2128,12 +2184,24 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     // If a draft policy was used, then the CategorizeTrackedExpense command will create a real one
     // so let's track that conversion here
     if (isDraftPolicy) {
-        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, currentUserAccountID);
+        const workspaceCreatedEvent = getWorkspaceCreatedAnalyticsEvent(createdWorkspaceParams?.engagementChoice, createdWorkspaceParams?.companySize, currentUser.email ?? '');
+        GoogleTagManager.publishEvent(workspaceCreatedEvent, currentUserAccountID, currentUser.email ?? '');
     }
 }
 
 function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
-    const {onyxData: trackedExpenseOnyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, accountantParams, currentUserAccountID} = trackedExpenseParams;
+    const {
+        onyxData: trackedExpenseOnyxData,
+        reportInformation,
+        transactionParams,
+        policyParams,
+        createdWorkspaceParams,
+        accountantParams,
+        currentUser,
+        reportActionsList,
+        personalDetailsList,
+    } = trackedExpenseParams;
+    const {accountID: currentUserAccountID} = currentUser;
 
     const policyID = policyParams?.policyID;
     const chatReportID = reportInformation?.chatReportID;
@@ -2200,7 +2268,11 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             policyMemberAccountIDs,
             CONST.POLICY.ROLE.ADMIN,
             formatPhoneNumber,
-            currentUserAccountID,
+            personalDetailsList,
+            {accountID: currentUserAccountID},
+            undefined,
+            undefined,
+            reportActionsList,
         );
         onyxData.optimisticData?.push(...addAccountantToWorkspaceOptimisticData);
         onyxData.successData?.push(...addAccountantToWorkspaceSuccessData);
@@ -2223,7 +2295,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             optimisticData: inviteAccountantToRoomOptimisticData,
             successData: inviteAccountantToRoomSuccessData,
             failureData: inviteAccountantToRoomFailureData,
-        } = buildInviteToRoomOnyxData(chatReport, {[accountantEmail]: accountantAccountID}, formatPhoneNumber);
+        } = buildInviteToRoomOnyxData(chatReport, {[accountantEmail]: accountantAccountID}, personalDetailsList, formatPhoneNumber);
         onyxData.optimisticData?.push(...inviteAccountantToRoomOptimisticData);
         onyxData.successData?.push(...inviteAccountantToRoomSuccessData);
         onyxData.failureData?.push(...inviteAccountantToRoomFailureData);
@@ -2268,21 +2340,25 @@ function trackExpense(params: CreateTrackExpenseParams) {
         existingTransaction,
         transactionParams: transactionData,
         accountantParams,
-        shouldHandleNavigation = true,
         shouldPlaySound = true,
+        optimisticChatReportID,
+        optimisticTransactionID,
         isASAPSubmitBetaEnabled,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
+        currentUser,
         introSelected,
         activePolicy,
         quickAction,
         recentWaypoints = [],
         betas,
-        draftTransactionIDs = [],
         isSelfTourViewed,
         defaultWorkspaceName,
         previousOdometerDraft,
+        delegateAccountID,
+        reportActionsList,
+        personalDetailsList,
+        currentUserLocalCurrency,
     } = params;
+    const {accountID: currentUserAccountIDParam, email: currentUserEmailParam = ''} = currentUser;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
     const parsedComment = getParsedComment(transactionData.comment ?? '');
@@ -2313,6 +2389,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         odometerEnd,
         isFromGlobalCreate = false,
         gpsCoordinates,
+        distanceRequestType,
     } = transactionData;
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
@@ -2328,6 +2405,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
         report,
         isDraftPolicy,
         action,
+        // Strip reportActionsList from retryParams to keep the serialized error JSON small.
+        reportActionsList: undefined,
         participantParams: {
             participant,
             payeeAccountID,
@@ -2357,6 +2436,17 @@ function trackExpense(params: CreateTrackExpenseParams) {
         },
         quickAction,
         isSelfTourViewed,
+        existingTransaction: existingTransaction
+            ? {
+                  iouRequestType: existingTransaction.iouRequestType,
+                  amount: 0,
+                  currency: '',
+                  created: '',
+                  merchant: '',
+                  reportID: '1',
+                  transactionID: '1',
+              }
+            : undefined,
     };
 
     const {
@@ -2378,6 +2468,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         parentChatReport: currentChatReport,
         moneyRequestReportID,
         existingTransaction,
+        optimisticTransactionID,
         existingTransactionID:
             isMovingTransactionFromTrackExpense && linkedTrackedExpenseReportAction && isMoneyRequestAction(linkedTrackedExpenseReportAction)
                 ? getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID
@@ -2423,6 +2514,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
         betas,
         isSelfTourViewed,
         defaultWorkspaceName,
+        optimisticChatReportID,
+        delegateAccountID,
+        currentUserLocalCurrency,
     }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
     const onyxData: TrackedExpenseParams['onyxData'] = trackExpenseInformationOnyxData;
@@ -2512,7 +2606,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 transactionParams,
                 policyParams,
                 createdWorkspaceParams,
-                currentUserAccountID: currentUserAccountIDParam,
+                currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
             };
 
             categorizeTrackedExpense(trackedExpenseParams);
@@ -2564,7 +2658,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 policyParams,
                 createdWorkspaceParams,
                 accountantParams,
-                currentUserAccountID: currentUserAccountIDParam,
+                currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
+                reportActionsList,
+                personalDetailsList,
             };
             shareTrackedExpense(trackedExpenseParams);
             break;
@@ -2616,6 +2712,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 ...(policy && customUnitRateID && customUnitRateID !== CONST.CUSTOM_UNITS.FAKE_P2P_ID && {policyID: policy?.id}),
                 description: parsedComment,
                 gpsCoordinates,
+                distanceRequestType,
                 isDistance:
                     isGPSDistanceRequest ||
                     isMapDistanceRequest(transaction) ||
@@ -2633,7 +2730,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             };
 
             deferOrExecuteWrite(apiWrite, {
-                shouldDeferForSearch: shouldHandleNavigation && !params.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator(),
+                shouldDeferForSearch: false,
                 isRetry: params.isRetry,
                 optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
                 onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
@@ -2641,21 +2738,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
         }
     }
 
-    // See comment in requestMoney above.
-    queueMicrotask(() => {
-        TransitionTracker.runAfterTransitions({callback: () => removeDraftTransactionsByIDs(draftTransactionIDs)});
-    });
-
     if (!params.isRetry) {
         highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction?.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
-
-        if (shouldHandleNavigation) {
-            handleNavigateAfterExpenseCreate({
-                activeReportID,
-                transactionID: transaction?.transactionID,
-                isFromGlobalCreate,
-            });
-        }
     }
 
     notifyNewAction(activeReportID, undefined, payeeAccountID === currentUserAccountIDParam);
@@ -2685,7 +2769,9 @@ function getNavigationUrlAfterTrackExpenseDelete(
 
     // If not a self DM, handle it as a regular money request
     if (!isSelfDM(chatReport)) {
-        return getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, iouReport, chatIOUReport, isChatReportArchived, isSingleTransactionView);
+        const allReports = getAllReports();
+        const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
+        return getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, transactionThreadReport, iouReport, chatIOUReport, isChatReportArchived, isSingleTransactionView);
     }
 
     // Only navigate if in single transaction view and the thread will be deleted
@@ -2730,10 +2816,14 @@ function deleteTrackExpense({
 
     // STEP 1: Get all collections we're updating
     if (!isSelfDM(chatReport)) {
+        const allReports = getAllReports();
+        const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
+
         deleteMoneyRequest({
             transactionID,
             reportAction,
             transactions,
+            transactionThreadReport,
             violations,
             iouReport,
             chatReport: chatIOUReport,
@@ -2775,8 +2865,9 @@ export {
     getDeleteTrackExpenseInformation,
     getNavigationUrlAfterTrackExpenseDelete,
     getTrackExpenseInformation,
+    hasManualDistanceOverride,
     trackExpense,
     requestMoney,
 };
 
-export type {ConvertTrackedExpenseToRequestParams, CreateTrackExpenseParams, DeleteTrackExpenseParams, TrackExpenseInformation};
+export type {CreateTrackExpenseParams};

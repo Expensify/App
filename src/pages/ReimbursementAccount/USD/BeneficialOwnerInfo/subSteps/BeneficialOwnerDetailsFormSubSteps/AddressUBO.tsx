@@ -1,17 +1,17 @@
+import {SafeString} from 'expensify-common';
 import React from 'react';
 import AddressStep from '@components/SubStepForms/AddressStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SafeString from '@src/utils/SafeString';
 
 const BENEFICIAL_OWNER_INFO_KEY = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 const BENEFICIAL_OWNER_PREFIX = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX;
 
-type AddressUBOProps = SubStepProps & {beneficialOwnerBeingModifiedID: string};
+type AddressUBOProps = SubPageProps & {beneficialOwnerBeingModifiedID: string};
 
 function AddressUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifiedID}: AddressUBOProps) {
     const {translate} = useLocalize();
@@ -47,7 +47,7 @@ function AddressUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifiedID}:
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             formTitle={translate('beneficialOwnerInfoStep.enterTheOwnersAddress')}
-            formPOBoxDisclaimer={translate('common.noPO')}
+            formPOBoxDisclaimer={translate('personalInfoStep.addressSubtitle')}
             onSubmit={handleSubmit}
             stepFields={stepFields}
             inputFieldsIDs={inputKeys}

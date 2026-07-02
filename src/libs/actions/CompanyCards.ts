@@ -18,6 +18,7 @@ import type {
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CardUtils from '@libs/CardUtils';
 import {getCardFeedWithDomainID} from '@libs/CardUtils';
+import parseCSVDate from '@libs/CSVDateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
@@ -40,8 +41,10 @@ import type {
     StatementPeriodEnd,
     StatementPeriodEndDay,
 } from '@src/types/onyx/CardFeeds';
+import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type Transaction from '@src/types/onyx/Transaction';
+import {getImportFailedFinalModal, getImportFinalModalID, getImportFinalModalOnyxData, waitForImportFinalModal} from './ImportSpreadsheet';
 
 type AddNewCompanyCardFlowData = {
     /** Step to be set in Onyx */
@@ -104,6 +107,7 @@ function buildOptimisticCompanyCardCSVTransactions(
 
     const cardNumberColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER);
     const postedDateColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.POSTED_DATE);
+    const originalTransactionDateColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.ORIGINAL_TRANSACTION_DATE);
     const merchantColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.MERCHANT);
     const amountColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.AMOUNT);
     const currencyColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.CURRENCY);
@@ -117,7 +121,8 @@ function buildOptimisticCompanyCardCSVTransactions(
         row[externalIDColumnIndex] = transactionID;
 
         const cardName = row.at(cardNumberColumnIndex)?.trim();
-        const created = row.at(postedDateColumnIndex)?.trim();
+        const rawPostedDate = row.at(postedDateColumnIndex)?.trim();
+        const created = rawPostedDate ? parseCSVDate(rawPostedDate) : null;
         const merchant = row.at(merchantColumnIndex)?.trim() ?? '';
         const currency = row.at(currencyColumnIndex)?.trim();
         const amountValue = row.at(amountColumnIndex) ?? '';
@@ -125,6 +130,17 @@ function buildOptimisticCompanyCardCSVTransactions(
 
         if (!cardName || !created || !currency || amount === undefined) {
             continue;
+        }
+
+        // The backend expects yyyy-MM-dd dates, so write the normalized values back into
+        // the row before it gets serialized and sent to Auth/Scrapers.
+        row[postedDateColumnIndex] = created;
+        if (originalTransactionDateColumnIndex >= 0) {
+            const rawOriginalDate = row.at(originalTransactionDateColumnIndex)?.trim();
+            const parsedOriginalDate = rawOriginalDate ? parseCSVDate(rawOriginalDate) : null;
+            if (parsedOriginalDate) {
+                row[originalTransactionDateColumnIndex] = parsedOriginalDate;
+            }
         }
 
         const category = categoryColumnIndex >= 0 ? (row.at(categoryColumnIndex)?.trim() ?? '') : '';
@@ -681,7 +697,9 @@ function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: 
 }
 
 function updateCompanyCardName(domainOrWorkspaceAccountID: number, cardID: string, newCardTitle: string, bankName: CompanyCardFeedWithNumber, oldCardTitle?: string) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST | typeof ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES>> = [
+    const optimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST | typeof ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES | typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`,
@@ -704,6 +722,11 @@ function updateCompanyCardName(domainOrWorkspaceAccountID: number, cardID: strin
             key: ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES,
             value: {[cardID]: newCardTitle},
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
+            value: {settings: {companyCardCustomNames: {[cardID]: newCardTitle}}},
+        },
     ];
 
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [
@@ -721,7 +744,9 @@ function updateCompanyCardName(domainOrWorkspaceAccountID: number, cardID: strin
             },
         },
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST | typeof ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES>> = [
+    const failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST | typeof ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES | typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`,
@@ -742,6 +767,11 @@ function updateCompanyCardName(domainOrWorkspaceAccountID: number, cardID: strin
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES,
             value: {[cardID]: oldCardTitle},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
+            value: {settings: {companyCardCustomNames: {[cardID]: oldCardTitle ?? null}}},
         },
     ];
 
@@ -1119,7 +1149,7 @@ function importCSVCompanyCards({
     lastSelectedFeed,
     workspaceCardFeeds,
     existingInstanceID,
-}: ImportCSVCompanyCardsData) {
+}: ImportCSVCompanyCardsData): Promise<ImportFinalModal> {
     const feedName = layoutType as CompanyCardFeed;
     const {csvDataWithGeneratedIDs, normalizedColumnMappings, transactions} = buildOptimisticCompanyCardCSVTransactions(csvData, columnMappings, feedName);
     const instanceID = existingInstanceID ?? Date.now().toString();
@@ -1151,24 +1181,18 @@ function importCSVCompanyCards({
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IMPORTED_SPREADSHEET>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IMPORTED_SPREADSHEET,
-            value: {
-                shouldFinalModalBeOpened: true,
-                shouldShowPendingMessage: true,
-                importFinalModal: {
-                    titleKey: 'spreadsheet.importSuccessfulTitle',
-                    promptKey: 'spreadsheet.importCompanyCardTransactionsSuccessfulDescription',
-                    promptKeyParams: {
-                        transactions: transactionsCount,
-                    },
-                },
-            },
+    const importFinalModal: ImportFinalModal = {
+        titleKey: 'spreadsheet.importSuccessfulTitle',
+        promptKey: 'spreadsheet.importCompanyCardTransactionsSuccessfulDescription',
+        promptKeyParams: {
+            transactions: transactionsCount,
         },
-    ];
+        pendingMessageKey: 'spreadsheet.importCompanyCardTransactionsPendingMessage',
+    };
+    const importFinalModalID = getImportFinalModalID();
+    const importFinalModalResult = waitForImportFinalModal(importFinalModalID);
 
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IMPORTED_SPREADSHEET>> = [getImportFinalModalOnyxData(importFinalModalID, importFinalModal)];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER | typeof ONYXKEYS.COLLECTION.LAST_SELECTED_FEED | typeof ONYXKEYS.IMPORTED_SPREADSHEET>> =
         [
             {
@@ -1176,17 +1200,7 @@ function importCSVCompanyCards({
                 key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
                 value: lastSelectedFeed ?? null,
             },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                value: {
-                    shouldFinalModalBeOpened: true,
-                    importFinalModal: {
-                        titleKey: 'spreadsheet.importFailedTitle',
-                        promptKey: 'spreadsheet.importFailedDescription',
-                    },
-                },
-            },
+            getImportFinalModalOnyxData(importFinalModalID, getImportFailedFinalModal()),
         ];
 
     if (shouldCreateFeed || shouldSetNickname) {
@@ -1228,7 +1242,12 @@ function importCSVCompanyCards({
         });
     }
 
-    API.write(WRITE_COMMANDS.IMPORT_CSV_COMPANY_CARDS, parameters, {optimisticData, successData, failureData});
+    return API.write(WRITE_COMMANDS.IMPORT_CSV_COMPANY_CARDS, parameters, {optimisticData, successData, failureData})
+        .then(() => importFinalModalResult.promise)
+        .catch(() => {
+            importFinalModalResult.cancel();
+            return getImportFailedFinalModal();
+        });
 }
 
 /**

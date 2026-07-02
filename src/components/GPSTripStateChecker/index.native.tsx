@@ -36,6 +36,12 @@ function GPSTripStateChecker() {
             const gpsTrip = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
 
             if (!gpsTrip?.isTracking) {
+                const isBackgroundTaskRunning = await hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME);
+                if (isBackgroundTaskRunning) {
+                    stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) =>
+                        console.error('[GPS distance request] Failed to stop orphaned location tracking', error),
+                    );
+                }
                 return;
             }
 
@@ -43,7 +49,6 @@ function GPSTripStateChecker() {
         }
 
         handleGpsTripInProgressOnAppRestart();
-        checkAndCleanGpsNotification();
 
         return () => {
             hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).then((isRunning) => {

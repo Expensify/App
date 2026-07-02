@@ -3,7 +3,7 @@ import React from 'react';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsContext';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
+import usePayChatReportActions from '@hooks/usePayChatReportActions';
 import usePolicy from '@hooks/usePolicy';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
@@ -20,6 +21,7 @@ import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasUpdatedTotal, isAllowedToApproveExpenseReport, isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
 import {isExpensifyCardTransaction, isPending} from '@libs/TransactionUtils';
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
@@ -40,7 +42,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
     const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation} = usePaymentAnimationsContext();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const {accountID, email, login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const {accountID, email, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
@@ -64,6 +66,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
+    const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
     const {convertToDisplayString} = useCurrencyListActions();
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
@@ -106,7 +109,8 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
     const totalAmount = getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions, convertToDisplayString);
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
 
-    const {currentSearchQueryJSON, currentSearchKey, currentSearchResults} = useSearchStateContext();
+    const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
+    const {currentSearchResults} = useSearchResultsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
 
     const {openHoldMenu} = useMoneyReportHeaderModals();
@@ -136,6 +140,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                 introSelected,
                 currentUserAccountIDParam: accountID,
                 currentUserEmailParam: email ?? '',
+                currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
                 payAsBusiness,
                 existingB2BInvoiceReport,
                 methodID,
@@ -144,6 +149,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                 betas,
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
+                chatReportActions: getChatReportActions(payAsBusiness),
             });
         } else {
             startAnimation();
@@ -165,6 +171,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
                 onPaid: startAnimation,
+                chatReportActions: getChatReportActions(false),
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
@@ -183,6 +190,8 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
         <AnimatedSettlementButton
             isPaidAnimationRunning={isPaidAnimationRunning}
             isApprovedAnimationRunning={isApprovedAnimationRunning}
+            isDEWApproval={hasDynamicExternalWorkflow(policy)}
+            reportID={moneyRequestReport?.reportID}
             onAnimationFinish={stopAnimation}
             formattedAmount={totalAmount}
             canIOUBePaid

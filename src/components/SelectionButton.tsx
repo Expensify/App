@@ -46,6 +46,9 @@ type BaseSelectionButtonProps = Partial<ChildrenProps> &
         /** An accessibility label */
         accessibilityLabel: string;
 
+        /** An accessibility hint */
+        accessibilityHint?: string;
+
         /** stop propagation of the mouse down event */
         shouldStopMouseDownPropagation?: boolean;
 
@@ -113,6 +116,7 @@ function SelectionButton({
     caretSize = 14,
     onPress,
     accessibilityLabel,
+    accessibilityHint,
     shouldStopMouseDownPropagation,
     shouldSelectOnPressEnter,
     wrapperStyle,
@@ -138,6 +142,7 @@ function SelectionButton({
             return;
         }
 
+        event.preventDefault();
         onPress(event.nativeEvent);
     };
 
@@ -170,6 +175,7 @@ function SelectionButton({
             }}
             aria-checked={isIndeterminate ? 'mixed' : isChecked}
             accessibilityLabel={accessibilityLabel}
+            accessibilityHint={accessibilityHint}
             accessible={accessible}
             pressDimmingValue={1}
             wrapperStyle={wrapperStyle}
@@ -204,4 +210,4 @@ function SelectionButton({
 
 export default SelectionButton;
 
-export type {BaseSelectionButtonProps, CheckboxProps, RadioButtonProps, SelectionButtonProps};
+export type {CheckboxProps, RadioButtonProps};

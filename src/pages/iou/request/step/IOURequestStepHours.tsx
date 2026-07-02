@@ -6,6 +6,7 @@ import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -20,7 +21,7 @@ import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {computeTimeAmount, formatTimeMerchant} from '@libs/TimeTrackingUtils';
 import variables from '@styles/variables';
-import {setMoneyRequestAmount, setMoneyRequestMerchant, setMoneyRequestParticipantsFromReport, setMoneyRequestTimeCount, setMoneyRequestTimeRate} from '@userActions/IOU';
+import {setMoneyRequestAmount, setMoneyRequestMerchant, setMoneyRequestParticipantsFromReport, setMoneyRequestTimeCount, setMoneyRequestTimeRate} from '@userActions/IOU/MoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -79,6 +80,16 @@ function IOURequestStepHours({
         moneyRequestTimeInputRef.current?.updateNumber(`${transaction?.comment?.units?.count ?? ''}`);
     }, [selectedTab, transaction?.comment?.units?.count]);
 
+    const {notifySaving} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => {
+            const typedCount = moneyRequestTimeInputRef.current?.getNumber() ?? '';
+            return typedCount !== `${transaction?.comment?.units?.count ?? ''}`;
+        },
+        onCancel: () => {
+            focusTimeoutRef.current = setTimeout(() => textInputRef.current?.focus(), CONST.ANIMATED_TRANSITION);
+        },
+    });
+
     useFocusEffect(() => {
         focusTimeoutRef.current = setTimeout(() => textInputRef.current?.focus(), CONST.ANIMATED_TRANSITION);
         return () => {
@@ -102,6 +113,7 @@ function IOURequestStepHours({
             return;
         }
 
+        notifySaving();
         setMoneyRequestAmount(transactionID, computeTimeAmount(rate, count), currency);
         setMoneyRequestMerchant(transactionID, formatTimeMerchant(count, rate, currency, translate, convertToDisplayString), isTransactionDraft);
         setMoneyRequestTimeCount(transactionID, count, isTransactionDraft);
@@ -169,7 +181,8 @@ function IOURequestStepHours({
                         large={!isExtraSmallScreenHeight}
                         style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
                         onPress={() => {
-                            if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                            if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
+                                notifySaving();
                                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                                 return;
                             }

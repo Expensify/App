@@ -57,6 +57,8 @@ type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListP
     titleNumberOfLines?: number;
 };
 
+type MeasurableInput = unknown;
+
 type SelectionListWithSectionsHandle<TItem extends ListItem = ListItem> = {
     focusTextInput: () => void;
     scrollToIndex: (index: number) => void;
@@ -64,6 +66,9 @@ type SelectionListWithSectionsHandle<TItem extends ListItem = ListItem> = {
     updateAndScrollToFocusedIndex: (index: number, shouldScroll?: boolean) => void;
     updateExternalTextInputFocus: (isTextInputFocused: boolean) => void;
     getFocusedOption: () => TItem | undefined;
+
+    /** Scrolls the list so an input rendered inside `listFooterContent` is not hidden behind the keyboard. */
+    scrollInputIntoView: (input: MeasurableInput) => void;
 };
 
 type SectionHeader = {
@@ -83,4 +88,4 @@ type SectionListItem<TItem extends ListItem> = TItem & {
 
 type FlattenedItem<TItem extends ListItem> = SectionListItem<TItem> | SectionHeader;
 
-export type {Section, ListItem, SectionListItem, SelectionListWithSectionsProps, SelectionListWithSectionsHandle, SectionHeader, FlattenedItem};
+export type {Section, ListItem, SectionListItem, SelectionListWithSectionsProps, SelectionListWithSectionsHandle, FlattenedItem, MeasurableInput};

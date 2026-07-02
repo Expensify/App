@@ -9,6 +9,9 @@ import DistanceRequestRenderItem from '@components/DistanceRequest/DistanceReque
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
+import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -32,7 +35,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
-import {getRateID, getRequestType, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
+import {doesMoneyRequestDraftHaveUserInput, getRateID, getRequestType, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -77,6 +80,7 @@ function IOURequestStepDistanceMap({
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const selfDMReport = useSelfDMReport();
     const policy = usePolicy(report?.policyID);
+    const distanceOriginalPolicy = useDistanceRateOriginalPolicy(transaction?.comment?.customUnit?.customUnitRateID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const personalPolicy = usePersonalPolicy();
@@ -135,13 +139,26 @@ function IOURequestStepDistanceMap({
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, currentTransaction);
 
+    const {notifySaving} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => isCreatingNewRequest && doesMoneyRequestDraftHaveUserInput(transaction),
+    });
+
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const delegateAccountID = useDelegateAccountID();
 
-    const setDistanceRequestData = useDistanceRequestData({policy, personalPolicy, transaction, customUnitRateID, transactionID, isSplitRequest});
+    const setDistanceRequestData = useDistanceRequestData({
+        policy,
+        personalPolicy,
+        transaction,
+        customUnitRateID,
+        transactionID,
+        isSplitRequest,
+        currentUserAccountID: currentUserAccountIDParam,
+    });
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -220,6 +237,7 @@ function IOURequestStepDistanceMap({
 
     const navigateToNextStep = useDistanceNavigation({
         iouType,
+        action,
         report,
         policy,
         transaction,
@@ -230,6 +248,7 @@ function IOURequestStepDistanceMap({
         waypoints,
         currentUserLogin: currentUserEmailParam,
         currentUserAccountID: currentUserAccountIDParam,
+        currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
         backTo,
         backToReport,
         shouldSkipConfirmation,
@@ -331,6 +350,7 @@ function IOURequestStepDistanceMap({
                     recentWaypoints,
                     ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
                     policy,
+                    distanceOriginalPolicy,
                     policyTagList: policyTags,
                     policyCategories,
                     transactionBackup,
@@ -338,6 +358,7 @@ function IOURequestStepDistanceMap({
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled,
                     parentReportNextStep,
+                    delegateAccountID,
                 });
             }
             transactionWasSaved.current = true;
@@ -345,6 +366,7 @@ function IOURequestStepDistanceMap({
             return;
         }
 
+        notifySaving();
         navigateToNextStep();
     }, [
         duplicateWaypointsError,
@@ -355,6 +377,7 @@ function IOURequestStepDistanceMap({
         isLoading,
         isCreatingNewRequest,
         navigateToNextStep,
+        notifySaving,
         isEditingSplit,
         transaction,
         transactionBackup,
@@ -371,6 +394,8 @@ function IOURequestStepDistanceMap({
         isASAPSubmitBetaEnabled,
         parentReportNextStep,
         recentWaypoints,
+        distanceOriginalPolicy,
+        delegateAccountID,
     ]);
 
     const renderItem = useCallback(

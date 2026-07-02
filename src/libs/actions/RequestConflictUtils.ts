@@ -85,6 +85,23 @@ function resolveOpenReportDuplicationConflictAction<TKey extends OnyxKey>(persis
                 };
             }
 
+            // The queued request carries the participants needed to create the optimistic chat on the
+            // server (e.g. from navigateToAndOpenReportWithAccountIDs). A follow-up OpenReport fired by
+            // ReportFetchHandler when the screen mounts has no participants. Replacing would drop the
+            // accountIDList, leaving the server with no way to resolve the optimistic reportID — Auth
+            // returns NIL reportSummary and PHP throws "Report not found" (da7984df).
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const queuedHasParticipants = !!(request.data?.emailList || request.data?.accountIDList);
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const newHasParticipants = !!(parameters.emailList || parameters.accountIDList);
+            if (queuedHasParticipants && !newHasParticipants) {
+                return {
+                    conflictAction: {
+                        type: 'noAction',
+                    },
+                };
+            }
+
             // In other cases it's safe to replace the previous request with the new one
             return {
                 conflictAction: {
@@ -96,6 +113,74 @@ function resolveOpenReportDuplicationConflictAction<TKey extends OnyxKey>(persis
     }
 
     // If we didn't find any request to replace, we should push the new request
+    return {
+        conflictAction: {
+            type: 'push',
+        },
+    };
+}
+
+function isReconnectFamilyRequest(request: AnyRequest | null | undefined): request is AnyRequest {
+    return !!request && (request.command === WRITE_COMMANDS.OPEN_APP || request.command === WRITE_COMMANDS.RECONNECT_APP);
+}
+
+/**
+ * Read the `updateIDFrom` coverage marker off untyped reconnect params. Returns the number, or undefined
+ * when the param is missing or not a number.
+ */
+function readUpdateIDFrom(params: unknown): number | undefined {
+    if (typeof params === 'object' && params !== null && 'updateIDFrom' in params && typeof params.updateIDFrom === 'number') {
+        return params.updateIDFrom;
+    }
+    return undefined;
+}
+
+/**
+ * How far back a reconnect re-fetches: a lower number means more coverage. OpenApp and a full
+ * ReconnectApp re-fetch everything (0); an incremental ReconnectApp covers only from its
+ * `updateIDFrom` onward. Mirrors the `!updateIDFrom` "is full reconnect" notion in App.ts.
+ */
+function reconnectCoverageFrom(request: AnyRequest): number {
+    const updateIDFrom = request.data?.updateIDFrom;
+    return typeof updateIDFrom === 'number' ? updateIDFrom : 0;
+}
+
+/**
+ * Coverage-based duplicate resolver for an incoming ReconnectApp. See the Conflict Resolution section of
+ * contributingGuides/SEQUENTIAL_QUEUE.md for how coverage and the ongoing-request check decide the outcome.
+ * Preserve it in the SequentialQueue refactor.
+ */
+function resolveReconnectDuplicationConflictAction(persistedRequests: AnyRequest[], ongoingRequest: AnyRequest | null, incomingRequest: AnyRequest): ConflictActionData {
+    const incomingCoverage = reconnectCoverageFrom(incomingRequest);
+    const isCovered = [ongoingRequest, ...persistedRequests].some((live) => isReconnectFamilyRequest(live) && reconnectCoverageFrom(live) <= incomingCoverage);
+
+    if (isCovered) {
+        return {
+            conflictAction: {
+                type: 'noAction',
+            },
+        };
+    }
+
+    // The incoming reconnect is wider than everything live, so drop the now-redundant narrower
+    // reconnects still waiting in the queue (never the in-flight one) to avoid an extra fetch.
+    const indicesToDelete = persistedRequests.reduce<number[]>((indices, request, index) => {
+        if (isReconnectFamilyRequest(request) && reconnectCoverageFrom(request) > incomingCoverage) {
+            indices.push(index);
+        }
+        return indices;
+    }, []);
+
+    if (indicesToDelete.length > 0) {
+        return {
+            conflictAction: {
+                type: 'delete',
+                indices: indicesToDelete,
+                pushNewRequest: true,
+            },
+        };
+    }
+
     return {
         conflictAction: {
             type: 'push',
@@ -263,6 +348,8 @@ function resolveDetachReceiptConflicts<TKey extends OnyxKey>(persistedRequests: 
 export {
     resolveDuplicationConflictAction,
     resolveOpenReportDuplicationConflictAction,
+    resolveReconnectDuplicationConflictAction,
+    readUpdateIDFrom,
     resolveCommentDeletionConflicts,
     resolveEditCommentWithNewAddCommentRequest,
     createUpdateCommentMatcher,

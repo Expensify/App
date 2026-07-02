@@ -1,7 +1,6 @@
-import type {NavigationProp} from '@react-navigation/native';
-import {useNavigation} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,30 +8,38 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SpendRuleRestrictionTypeToggle from '@components/SpendRules/SpendRuleRestrictionTypeToggle';
+import SpendRuleRestrictionTypeToggleRevamp from '@components/SpendRules/SpendRuleRestrictionTypeToggleRevamp';
 import Text from '@components/Text';
+import useCanWriteCardSpendRules from '@hooks/useCanWriteCardSpendRules';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import usePolicy from '@hooks/usePolicy';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {deleteExpensifyCardRule, setExpensifyCardRule} from '@libs/actions/Card';
+import Tab from '@libs/actions/Tab';
 import {clearDraftSpendRule, setDraftSpendRule, updateDraftSpendRule} from '@libs/actions/User';
 import {filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsSharedCurrency} from '@libs/CardUtils';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getSpendRuleFormValuesFromCardRule, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
-import SpendRuleRestrictionTypeToggle from './SpendRuleRestrictionTypeToggle';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type SpendRulePageBaseProps = {
     policyID: string;
@@ -55,64 +62,93 @@ function getErrorMessage(hasSelectedCards: boolean, hasAnyRuleApplied: boolean, 
 }
 
 function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBaseProps) {
-    const navigation = useNavigation<NavigationProp<SettingsNavigatorParamList>>();
     const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
+    const policy = usePolicy(policyID);
+
+    const {showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
+    const canWriteSpendRules = useCanWriteCardSpendRules(policyID);
+    const {isBetaEnabled} = usePermissions();
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
+    const icons = useMemoizedLazyExpensifyIcons(['CreditCardHourglass', 'MoneyCircle', 'CoinsButton', 'Basket']);
     const domainAccountID = useDefaultFundID(policyID);
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
-    const [isErrorVisible, setIsErrorVisible] = useState(false);
+
     const currentRuleID = ruleID ?? ROUTES.NEW;
-    const isEditing = currentRuleID !== ROUTES.NEW;
-    const existingRule = isEditing ? expensifyCardSettings?.cardRules?.[currentRuleID] : undefined;
+    const isNewRule = currentRuleID === ROUTES.NEW;
+    const isEditingRule = currentRuleID !== ROUTES.NEW;
+    const existingRule = isEditingRule ? expensifyCardSettings?.cardRules?.[currentRuleID] : undefined;
+    const existingFormValues = useMemo(() => getSpendRuleFormValuesFromCardRule(existingRule), [existingRule]);
+
+    const [isErrorVisible, setIsErrorVisible] = useState(false);
+    const [isRestrictMerchantsOff, setIsRestrictMerchantsOff] = useState(() => {
+        const hasNoMerchantRestrictions = !existingFormValues?.merchantNames.length && !existingFormValues?.categories?.length;
+        return isNewRule || hasNoMerchantRestrictions;
+    });
 
     useEffect(() => () => clearDraftSpendRule(), []);
 
     useEffect(() => {
-        if (!isEditing || !existingRule) {
-            return;
-        }
-
-        const existingFormValues = getSpendRuleFormValuesFromCardRule(existingRule);
-        if (!existingFormValues) {
+        if (!isEditingRule || !existingFormValues) {
             return;
         }
 
         setDraftSpendRule(existingFormValues);
-    }, [existingRule, isEditing]);
+    }, [existingFormValues, isEditingRule]);
 
     const cardIDs = spendRuleForm?.cardIDs;
     const restrictionAction = spendRuleForm?.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW;
     const merchantNames = spendRuleForm?.merchantNames ?? [];
     const categories = spendRuleForm?.categories ?? [];
+    const currencies = spendRuleForm?.currencies ?? [];
     const maxAmount = spendRuleForm?.maxAmount ?? '';
-
-    const clearError = () => {
-        setIsErrorVisible(false);
-    };
 
     const selectedCurrency = getSelectedCardsSharedCurrency(cardIDs, cardsList);
     const parsedMaxAmount = Number.parseFloat(maxAmount);
     const maxAmountMenuTitle = Number.isFinite(parsedMaxAmount) ? convertToDisplayString(convertToBackendAmount(parsedMaxAmount), selectedCurrency ?? CONST.CURRENCY.USD) : '';
 
-    const openCurrencyMismatchModal = async () => {
-        const result = await showConfirmModal({
-            title: translate('workspace.rules.spendRules.currencyMismatchTitle'),
-            prompt: translate('workspace.rules.spendRules.currencyMismatchPrompt'),
-            confirmText: translate('workspace.rules.spendRules.reviewSelectedCards'),
-            cancelText: translate('common.cancel'),
-        });
-        if (result.action !== ModalActions.CONFIRM) {
-            return;
-        }
-        navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_CARD, {policyID, ruleID: currentRuleID});
+    const clearError = () => {
+        setIsErrorVisible(false);
     };
 
-    function getCardsMenuTitle(cardIDsToSummarize: string[] | undefined): string {
+    const openMaxAmountCurrencyMismatchModal = () => {
+        showConfirmModal({
+            id: 'spend-rule-max-amount-currency-mismatch-modal',
+            title: translate('workspace.rules.spendRules.maxAmountCurrencyMismatchTitle'),
+            prompt: translate('workspace.rules.spendRules.maxAmountCurrencyMismatchPrompt'),
+            confirmText: translate('workspace.rules.spendRules.reviewSelectedCards'),
+            cancelText: translate('common.cancel'),
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            Navigation.navigate(ROUTES.RULES_SPEND_CARD.getRoute(policyID, currentRuleID));
+        });
+    };
+
+    const openCurrenciesCurrencyMismatchModal = () => {
+        showConfirmModal({
+            id: 'spend-rule-currencies-currency-mismatch-modal',
+            title: translate('workspace.rules.spendRules.currenciesCurrencyMismatchTitle'),
+            prompt: translate('workspace.rules.spendRules.currenciesCurrencyMismatchPrompt'),
+            confirmText: translate('workspace.rules.spendRules.reviewSelectedCards'),
+            cancelText: translate('common.cancel'),
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            Navigation.navigate(ROUTES.RULES_SPEND_CARD.getRoute(policyID, currentRuleID));
+        });
+    };
+
+    const getCardsMenuTitle = (cardIDsToSummarize: string[] | undefined) => {
         const activeCardIDs = cardIDsToSummarize?.filter((id) => cardsList?.[id] !== undefined);
         return getTruncatedSpendRuleSummary(
             activeCardIDs?.map((id) => {
@@ -126,30 +162,37 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
             }),
             (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
         );
-    }
+    };
 
-    function getMerchantMenuTitle(merchantNamesToSummarize: string[] | undefined): string {
+    const getMerchantMenuTitle = (merchantNamesToSummarize: string[] | undefined) => {
         return getTruncatedSpendRuleSummary(merchantNamesToSummarize, (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}));
-    }
+    };
 
-    function getCategoryMenuTitle(categoriesToSummarize: SpendRuleCategory[] | undefined): string {
+    const getCategoryMenuTitle = (categoriesToSummarize: SpendRuleCategory[] | undefined) => {
         return getTruncatedSpendRuleSummary(
             categoriesToSummarize?.map((category) => translate(`workspace.rules.spendRules.categoryOptions.${category}`)),
             (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
         );
-    }
+    };
 
     const cardsMenuTitle = getCardsMenuTitle(cardIDs);
     const categoriesMenuTitle = getCategoryMenuTitle(categories);
+    const merchantsMenuTitle = getMerchantMenuTitle(merchantNames);
+    const currenciesMenuTitle = currencies.length > 0 ? currencies.join(', ') : translate('workspace.rules.spendRules.allCurrencies');
 
     const hasSelectedCards = !!cardIDs?.length;
-    const hasAnyMerchant = merchantNames.some((name) => name.trim() !== '');
-    const hasAnyCategory = categories.length > 0;
     const hasMaxAmount = maxAmount.trim() !== '';
-    const hasAnyRuleApplied = hasAnyMerchant || hasAnyCategory || hasMaxAmount;
+    const hasAnyCurrency = currencies.length > 0;
+    const hasAnyCategory = categories.length > 0 && !isRestrictMerchantsOff;
+    const hasAnyMerchant = merchantNames.some((name) => name.trim() !== '') && !isRestrictMerchantsOff;
+    const hasAnyRuleApplied = hasAnyMerchant || hasAnyCategory || hasMaxAmount || hasAnyCurrency;
     const errorMessage = getErrorMessage(hasSelectedCards, hasAnyRuleApplied, translate);
 
-    const handleSaveRule = () => {
+    const saveRule = () => {
+        if (!canWriteSpendRules) {
+            return;
+        }
+
         if (errorMessage) {
             setIsErrorVisible(true);
             return;
@@ -159,13 +202,31 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
             return;
         }
 
+        const updatedSpendRuleForm = {
+            ...spendRuleForm,
+            categories: !isRestrictMerchantsOff ? categories : [],
+            merchantNames: !isRestrictMerchantsOff ? spendRuleForm.merchantNames : [],
+            merchantMatchTypes: !isRestrictMerchantsOff ? spendRuleForm.merchantMatchTypes : [],
+        };
+
         clearError();
-        setExpensifyCardRule(domainAccountID, isEditing ? currentRuleID : rand64(), spendRuleForm, existingRule);
+        setExpensifyCardRule(domainAccountID, isEditingRule ? currentRuleID : rand64(), updatedSpendRuleForm, existingRule);
         clearDraftSpendRule();
-        navigation.goBack();
+
+        if (!isEditingRule && isRulesRevampEnabled) {
+            Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.CARD_RESTRICTIONS);
+            Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
+            return;
+        }
+
+        Navigation.goBack();
     };
 
-    const handleDeleteRule = () => {
+    const deleteRule = () => {
+        if (!canWriteSpendRules) {
+            return;
+        }
+
         if (!existingRule) {
             return;
         }
@@ -183,111 +244,276 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
 
             deleteExpensifyCardRule(domainAccountID, currentRuleID, existingRule);
             clearDraftSpendRule();
-            navigation.goBack();
+            Navigation.goBack();
         });
     };
 
-    if (isEditing && !existingRule) {
+    const setSpendRuleRestrictionType = (action: ValueOf<typeof CONST.SPEND_RULES.ACTION> | null) => {
+        if (!canWriteSpendRules) {
+            showReadOnlyModal();
+            return;
+        }
+
+        clearError();
+
+        if (action === null) {
+            setIsRestrictMerchantsOff(true);
+            return;
+        }
+
+        setIsRestrictMerchantsOff(false);
+        updateDraftSpendRule({restrictionAction: action});
+    };
+
+    const chooseCards = () => {
+        if (!canWriteSpendRules) {
+            return;
+        }
+
+        clearError();
+        Navigation.navigate(ROUTES.RULES_SPEND_CARD.getRoute(policyID, currentRuleID));
+    };
+
+    const chooseCurrencies = () => {
+        if (!canWriteSpendRules) {
+            return;
+        }
+
+        clearError();
+
+        if (!selectedCurrency) {
+            openCurrenciesCurrencyMismatchModal();
+            return;
+        }
+
+        Navigation.navigate(ROUTES.RULES_SPEND_CURRENCIES.getRoute(policyID, currentRuleID));
+    };
+
+    const chooseMaxAmount = () => {
+        if (!canWriteSpendRules) {
+            return;
+        }
+
+        clearError();
+
+        if (!selectedCurrency) {
+            openMaxAmountCurrencyMismatchModal();
+            return;
+        }
+
+        Navigation.navigate(ROUTES.RULES_SPEND_MAX_AMOUNT.getRoute(policyID, currentRuleID));
+    };
+
+    const chooseMerchants = () => {
+        if (!canWriteSpendRules) {
+            return;
+        }
+
+        clearError();
+        Navigation.navigate(ROUTES.RULES_SPEND_MERCHANTS.getRoute(policyID, currentRuleID));
+    };
+
+    const chooseCategories = () => {
+        if (!canWriteSpendRules) {
+            return;
+        }
+
+        clearError();
+        Navigation.navigate(ROUTES.RULES_SPEND_CATEGORY.getRoute(policyID, currentRuleID));
+    };
+
+    const isAllowRestriction = restrictionAction === CONST.SPEND_RULES.ACTION.ALLOW;
+    const merchantsDescription = isAllowRestriction ? translate('workspace.rules.spendRules.allowedMerchants') : translate('workspace.rules.spendRules.blockedMerchants');
+    const merchantTypeDescription = isAllowRestriction ? translate('workspace.rules.spendRules.allowedMerchantTypes') : translate('workspace.rules.spendRules.blockedMerchantTypes');
+
+    if (isEditingRule && !existingRule) {
         return <NotFoundPage />;
     }
+
+    if (!isEditingRule && !!policy && !canWriteSpendRules) {
+        return <NotFoundPage />;
+    }
+
+    const getMenuItemIconProps = (icon: IconAsset) => ({
+        icon,
+        iconWidth: variables.iconSizeNormal,
+        iconHeight: variables.iconSizeNormal,
+        shouldIconUseAutoWidthStyle: true,
+    });
+
+    const handleRestrictionActionSelect = setSpendRuleRestrictionType;
+
+    const spendRuleSectionSentryLabel = CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SECTION_ITEM;
+    const merchantRuleSectionSentryLabel = CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM;
+
+    const renderEditableMenuItem = ({description, title, onPress, sentryLabel, icon}: {description: string; title: string; onPress: () => void; sentryLabel: string; icon?: IconAsset}) => (
+        <MenuItemWithTopDescription
+            description={description}
+            onPress={canWriteSpendRules ? onPress : undefined}
+            shouldShowRightIcon={canWriteSpendRules}
+            interactive={canWriteSpendRules}
+            title={title}
+            numberOfLinesTitle={2}
+            titleStyle={styles.flex1}
+            {...(icon ? getMenuItemIconProps(icon) : {})}
+            sentryLabel={sentryLabel}
+        />
+    );
+
+    const cardsMenuItem = renderEditableMenuItem({
+        description: translate(isRulesRevampEnabled ? 'workspace.rules.spendRules.cardPageTitle' : 'workspace.rules.spendRules.chooseCards'),
+        title: cardsMenuTitle,
+        onPress: chooseCards,
+        sentryLabel: isRulesRevampEnabled ? spendRuleSectionSentryLabel : merchantRuleSectionSentryLabel,
+        icon: isRulesRevampEnabled ? icons.CreditCardHourglass : undefined,
+    });
+
+    const merchantMenuItem = renderEditableMenuItem({
+        description: merchantsDescription,
+        title: merchantsMenuTitle,
+        onPress: chooseMerchants,
+        sentryLabel: isRulesRevampEnabled ? spendRuleSectionSentryLabel : merchantRuleSectionSentryLabel,
+        icon: isRulesRevampEnabled ? icons.Basket : undefined,
+    });
+
+    const categoryMenuItem = renderEditableMenuItem({
+        description: merchantTypeDescription,
+        title: categoriesMenuTitle,
+        onPress: chooseCategories,
+        sentryLabel: isRulesRevampEnabled ? spendRuleSectionSentryLabel : merchantRuleSectionSentryLabel,
+        icon: isRulesRevampEnabled ? icons.Basket : undefined,
+    });
+
+    const maxAmountMenuItem = renderEditableMenuItem({
+        description: translate('workspace.rules.spendRules.maxAmount'),
+        title: isRulesRevampEnabled && maxAmountMenuTitle ? translate('workspace.rules.spendRules.maxAmountAbove', {amount: maxAmountMenuTitle}) : maxAmountMenuTitle,
+        onPress: chooseMaxAmount,
+        sentryLabel: isRulesRevampEnabled ? spendRuleSectionSentryLabel : merchantRuleSectionSentryLabel,
+        icon: isRulesRevampEnabled ? icons.CoinsButton : undefined,
+    });
+
+    const currenciesMenuItem = renderEditableMenuItem({
+        description: translate('workspace.rules.spendRules.permittedCurrencies'),
+        title: currenciesMenuTitle,
+        onPress: chooseCurrencies,
+        sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.CURRENCY_SELECTOR,
+        icon: isRulesRevampEnabled ? icons.MoneyCircle : undefined,
+    });
+
+    const revampFormContent = (
+        <>
+            <View style={[styles.ph5, styles.pv3, styles.gap6]}>
+                <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.spendRules.restrictCardSpendSubtitle')}</Text>
+                <Text style={[styles.textLabel, styles.textSupporting, styles.lh16]}>{translate('workspace.rules.spendRules.ifAnyCardMatches')}</Text>
+            </View>
+            {cardsMenuItem}
+            <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
+            <Text style={[styles.textLabel, styles.textSupporting, styles.lh16, styles.ph5, styles.pv3]}>{translate('workspace.rules.spendRules.thenDoThisAtPointOfSale')}</Text>
+            {currenciesMenuItem}
+            {maxAmountMenuItem}
+            <View style={[styles.ph5, styles.pv3]}>
+                <SpendRuleRestrictionTypeToggleRevamp
+                    restrictionAction={!isRestrictMerchantsOff ? restrictionAction : null}
+                    onSelect={handleRestrictionActionSelect}
+                />
+            </View>
+            {!isRestrictMerchantsOff && (
+                <>
+                    {merchantMenuItem}
+                    {categoryMenuItem}
+                </>
+            )}
+        </>
+    );
+
+    const legacyFormContent = (
+        <>
+            <Text style={[styles.textStrong, styles.ph5, styles.pv2]}>{translate('workspace.rules.spendRules.cardsSectionTitle')}</Text>
+            <MenuItemWithTopDescription
+                numberOfLinesTitle={2}
+                title={cardsMenuTitle}
+                titleStyle={styles.flex1}
+                interactive={canWriteSpendRules}
+                shouldShowRightIcon={canWriteSpendRules}
+                description={translate('workspace.rules.spendRules.chooseCards')}
+                sentryLabel={merchantRuleSectionSentryLabel}
+                onPress={chooseCards}
+            />
+            <Text style={[styles.textStrong, styles.ph5, styles.mt5, styles.pv2]}>{translate('workspace.rules.spendRules.spendRuleSectionTitle')}</Text>
+            {currenciesMenuItem}
+            {maxAmountMenuItem}
+
+            <View style={[styles.ph5, styles.pv3]}>
+                <SpendRuleRestrictionTypeToggle
+                    restrictionAction={!isRestrictMerchantsOff ? restrictionAction : null}
+                    onSelect={setSpendRuleRestrictionType}
+                />
+            </View>
+            {!isRestrictMerchantsOff && (
+                <>
+                    <MenuItemWithTopDescription
+                        numberOfLinesTitle={2}
+                        titleStyle={styles.flex1}
+                        title={merchantsMenuTitle}
+                        description={merchantsDescription}
+                        interactive={canWriteSpendRules}
+                        shouldShowRightIcon={canWriteSpendRules}
+                        sentryLabel={merchantRuleSectionSentryLabel}
+                        onPress={chooseMerchants}
+                    />
+                    <MenuItemWithTopDescription
+                        numberOfLinesTitle={2}
+                        titleStyle={styles.flex1}
+                        title={categoriesMenuTitle}
+                        description={merchantTypeDescription}
+                        interactive={canWriteSpendRules}
+                        shouldShowRightIcon={canWriteSpendRules}
+                        sentryLabel={merchantRuleSectionSentryLabel}
+                        onPress={chooseCategories}
+                    />
+                </>
+            )}
+        </>
+    );
 
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            shouldBeBlocked={!!policy?.id && !canWriteSpendRules}
         >
             <ScreenWrapper
                 testID={testID}
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
+                shouldEnableKeyboardAvoidingView={false}
             >
-                <HeaderWithBackButton title={translate(titleKey)} />
-                <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                    <Text style={[styles.textStrong, styles.ph5, styles.pv2]}>{translate('workspace.rules.spendRules.cardsSectionTitle')}</Text>
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.rules.spendRules.chooseCards')}
-                        onPress={() => {
-                            clearError();
-                            navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_CARD, {policyID, ruleID: currentRuleID});
-                        }}
-                        shouldShowRightIcon
-                        title={cardsMenuTitle}
-                        numberOfLinesTitle={2}
-                        titleStyle={styles.flex1}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                <HeaderWithBackButton title={translate(isRulesRevampEnabled ? 'workspace.rules.spendRules.restrictCardSpendTitle' : titleKey)} />
+                <ScrollView contentContainerStyle={[styles.flexGrow1]}>{isRulesRevampEnabled ? revampFormContent : legacyFormContent}</ScrollView>
+                {canWriteSpendRules && (
+                    <FormAlertWithSubmitButton
+                        buttonText={translate('workspace.rules.spendRules.saveRule')}
+                        containerStyles={[styles.m4, styles.mb5]}
+                        message={errorMessage}
+                        isAlertVisible={isErrorVisible}
+                        onSubmit={saveRule}
+                        enabledWhenOffline
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
+                        shouldRenderFooterAboveSubmit
+                        footerContent={
+                            isEditingRule ? (
+                                <Button
+                                    text={translate('workspace.rules.spendRules.deleteRule')}
+                                    onPress={deleteRule}
+                                    style={[styles.mb4]}
+                                    large
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE}
+                                />
+                            ) : undefined
+                        }
                     />
-                    <Text style={[styles.textStrong, styles.ph5, styles.mt5]}>{translate('workspace.rules.spendRules.spendRuleSectionTitle')}</Text>
-                    <View style={[styles.ph5, styles.pv3]}>
-                        <SpendRuleRestrictionTypeToggle
-                            restrictionAction={restrictionAction}
-                            onSelect={(action) => {
-                                clearError();
-                                updateDraftSpendRule({restrictionAction: action});
-                            }}
-                        />
-                    </View>
-                    <MenuItemWithTopDescription
-                        description={translate('common.merchant')}
-                        onPress={() => {
-                            clearError();
-                            navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_MERCHANTS, {policyID, ruleID: currentRuleID});
-                        }}
-                        shouldShowRightIcon
-                        title={getMerchantMenuTitle(spendRuleForm?.merchantNames)}
-                        numberOfLinesTitle={2}
-                        titleStyle={styles.flex1}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
-                    />
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.rules.spendRules.spendCategory')}
-                        onPress={() => {
-                            clearError();
-                            navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_CATEGORY, {policyID, ruleID: currentRuleID});
-                        }}
-                        shouldShowRightIcon
-                        title={categoriesMenuTitle}
-                        numberOfLinesTitle={2}
-                        titleStyle={styles.flex1}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
-                    />
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.rules.spendRules.maxAmount')}
-                        onPress={() => {
-                            clearError();
-                            if (!selectedCurrency) {
-                                openCurrencyMismatchModal();
-                                return;
-                            }
-                            navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_MAX_AMOUNT, {policyID, ruleID: currentRuleID});
-                        }}
-                        shouldShowRightIcon
-                        title={maxAmountMenuTitle}
-                        titleStyle={styles.flex1}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
-                    />
-                </ScrollView>
-                <FormAlertWithSubmitButton
-                    buttonText={translate('workspace.rules.spendRules.saveRule')}
-                    containerStyles={[styles.m4, styles.mb5]}
-                    message={errorMessage}
-                    isAlertVisible={isErrorVisible}
-                    onSubmit={handleSaveRule}
-                    enabledWhenOffline
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
-                    shouldRenderFooterAboveSubmit
-                    footerContent={
-                        isEditing ? (
-                            <Button
-                                text={translate('workspace.rules.spendRules.deleteRule')}
-                                onPress={handleDeleteRule}
-                                style={[styles.mb4]}
-                                large
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE}
-                            />
-                        ) : undefined
-                    }
-                />
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

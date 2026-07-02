@@ -10,10 +10,12 @@ import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearApprovalWorkflowApprover, clearApprovalWorkflowApprovers, setApprovalWorkflowApprover} from '@libs/actions/Workflow';
+import {isAnyHRReadOnlyWorkflowMode} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getDefaultApprover, getMemberAccountIDsForWorkspace, isExpensifyTeam, shouldFilterExpensifyTeam} from '@libs/PolicyUtils';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
+import {canMemberWrite, getDefaultApprover, getMemberAccountIDsForWorkspace, isExpensifyTeam, shouldFilterExpensifyTeam} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -34,7 +36,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const isApprovalWorkflowLoading = isLoadingOnyxValue(approvalWorkflowMetadata);
     const personalDetailsByEmail = usePersonalDetailsByEmail();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const approverIndex = Number(route.params.approverIndex) ?? 0;
     const rhpRoutes = useNavigationState((state) => state.routes);
     const defaultApprover = getDefaultApprover(policy);
@@ -54,7 +56,9 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const approversFromWorkflow = approvalWorkflow?.approvers;
     const isDefault = approvalWorkflow?.isDefault;
 
-    const shouldFilterOutExpensifyTeam = shouldFilterExpensifyTeam(policy?.owner, currentUserPersonalDetails?.login);
+    const canWriteApprovals = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
+    const shouldShowNotFoundView = !canWriteApprovals || isAnyHRReadOnlyWorkflowMode(policy);
+    const shouldFilterOutExpensifyTeam = shouldFilterExpensifyTeam(policy?.owner, currentUserLogin);
 
     const allApprovers: SelectionListApprover[] = useMemo(() => {
         if (isApprovalWorkflowLoading || !employeeList) {
@@ -148,7 +152,9 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         } else {
             backToRoute = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID);
         }
-        Navigation.goBack(backToRoute);
+        // Don't compare params: the edit screen may carry "Add agent" seed params, so a strict param
+        // match would miss it and REPLACE would mount a fresh edit screen that wipes the unsaved draft.
+        Navigation.goBack(backToRoute, {compareParams: false});
     }, [isInitialCreationFlow, approvalWorkflow?.action, route.params.policyID, rhpRoutes.length, firstApprover]);
 
     const toggleApprover = useCallback(
@@ -160,14 +166,18 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 setRemovingApproverEmail(visibleSelectedApproverEmail);
                 clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow: approvalWorkflow});
                 if (isChangeApproverRoute && approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
-                    Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
+                    // Don't compare params — see goBack above.
+                    Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover), {compareParams: false});
                     return;
                 }
                 goBack();
                 return;
             }
 
-            const newSelectedEmail = approver?.login ?? '';
+            // Canonicalize phone logins (e164@expensify.sms) so the approver email stored as submitsTo
+            // matches the canonical key the invite writes into employeeList. Without this, a phone approver
+            // invited offline stops resolving once online and the workflow disappears. No-op for emails.
+            const newSelectedEmail = addSMSDomainIfPhoneNumber(approver?.login ?? '');
             const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
             const accountID = Number(newSelectedEmail ? policyMemberEmailsToAccountIDs[newSelectedEmail] : '');
             const {avatar, displayName = newSelectedEmail} = personalDetails?.[accountID] ?? {};
@@ -223,6 +233,8 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <ApproverSelectionList
                 testID="WorkspaceWorkflowsApprovalsApproverPage"
@@ -231,6 +243,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 isLoadingReportData={isLoadingReportData}
                 policy={policy}
                 initiallyFocusedOptionKey={visibleSelectedApproverEmail}
+                shouldShowNotFoundView={shouldShowNotFoundView}
                 shouldShowNotFoundViewLink
                 allApprovers={allApprovers}
                 onBackButtonPress={goBack}
@@ -238,6 +251,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 listEmptyContentSubtitle={translate('workflowsPage.emptyContent.approverSubtitle')}
                 allowMultipleSelection={false}
                 onSelectApprover={toggleApprover}
+                shouldRequirePolicyAdmin={false}
             />
         </AccessOrNotFoundWrapper>
     );

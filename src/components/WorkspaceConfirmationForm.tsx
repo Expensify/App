@@ -20,7 +20,7 @@ import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -64,9 +64,18 @@ type WorkspaceConfirmationFormProps = {
 
     /** Whether bottom safe area padding should be added */
     addBottomSafeAreaPadding?: boolean;
+
+    /** Whether the submit button should display a loading spinner (e.g. while the new workspace is revealed) */
+    isLoading?: boolean;
 };
 
-function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButtonPress = () => Navigation.goBack(), addBottomSafeAreaPadding = true}: WorkspaceConfirmationFormProps) {
+function WorkspaceConfirmationForm({
+    onSubmit,
+    policyOwnerEmail = '',
+    onBackButtonPress = () => Navigation.goBack(),
+    addBottomSafeAreaPadding = true,
+    isLoading = false,
+}: WorkspaceConfirmationFormProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Camera', 'ImageCropSquareMask']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -208,6 +217,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                     submitButtonText={translate('common.confirm')}
                     style={[styles.flexGrow1, styles.ph5]}
                     scrollContextEnabled
+                    isLoading={isLoading}
                     validate={validate}
                     onSubmit={(val) => {
                         onSubmit({
@@ -251,7 +261,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                                 label={translate('workspace.editor.currencyInputLabel')}
                                 value={userCurrency}
                                 shouldShowCurrencySymbol
-                                currencySelectorRoute={ROUTES.CURRENCY_SELECTION}
+                                useWorkspaceConfirmationCurrencySelector
                             />
                         </View>
                         {isApprovedAccountant && (

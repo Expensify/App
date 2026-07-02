@@ -63,7 +63,6 @@ function CustomFlatList<T>({
     if (enableAnimatedKeyboardDismissal) {
         return (
             <KeyboardDismissibleFlatList
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...restProps}
                 ref={listRef}
                 maintainVisibleContentPosition={maintainVisibleContentPosition}
@@ -78,7 +77,6 @@ function CustomFlatList<T>({
 
     return (
         <FlatList<T>
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
             ref={listRef}
             maintainVisibleContentPosition={maintainVisibleContentPosition}

@@ -32,14 +32,23 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Whether this is a time expense request */
     isTimeRequest?: boolean;
 
-    /** Whether this is a corporate card transaction */
-    isCorporateCardTransaction?: boolean;
+    /** Whether this is a transaction from a credit card import */
+    isTransactionFromCreditCardImport?: boolean;
+
+    /** Whether to exclude P2P recipients (and the invite-by-email option) from the list. Used for negative amounts, which P2P chats don't support. */
+    shouldExcludeP2P?: boolean;
 
     /** Report ID of a pre-selected participant whose selection state can't be derived from the participants array (e.g. self DM with accountID 0) */
     initiallySelectedReportID?: string;
 
     /** Whether to find the participant matching initiallySelectedReportID and move it to the top of the list */
     shouldMoveSelectedToTop?: boolean;
+
+    /** Callback to handle restricted participant selection */
+    onRestrictedParticipantSelected?: () => void;
+
+    /** Callback to dismiss the participant picker overlay before the referral banner navigates, so the referral RHP isn't covered */
+    onCloseParticipantPicker?: () => void;
 
     /** Reference to the outer element */
     ref?: Ref<InputFocusRef>;
@@ -59,9 +68,12 @@ function MoneyRequestParticipantsSelector({
     isPerDiemRequest = false,
     isTimeRequest = false,
     isWorkspacesOnly = false,
-    isCorporateCardTransaction = false,
+    isTransactionFromCreditCardImport = false,
+    shouldExcludeP2P = false,
     initiallySelectedReportID,
     shouldMoveSelectedToTop = false,
+    onRestrictedParticipantSelected,
+    onCloseParticipantPicker,
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
     const platform = getPlatform();
@@ -87,7 +99,8 @@ function MoneyRequestParticipantsSelector({
             isPerDiemRequest={isPerDiemRequest}
             isTimeRequest={isTimeRequest}
             isNative={isNative}
-            isCorporateCardTransaction={isCorporateCardTransaction}
+            isTransactionFromCreditCardImport={isTransactionFromCreditCardImport}
+            shouldExcludeP2P={shouldExcludeP2P}
             selectionListRef={selectionListRef}
             textInputAutoFocus={textInputAutoFocus}
             setTextInputAutoFocus={setTextInputAutoFocus}
@@ -95,6 +108,8 @@ function MoneyRequestParticipantsSelector({
             onFinish={onFinish}
             initiallySelectedReportID={initiallySelectedReportID}
             shouldMoveSelectedToTop={shouldMoveSelectedToTop}
+            onRestrictedParticipantSelected={onRestrictedParticipantSelected}
+            onCloseParticipantPicker={onCloseParticipantPicker}
         />
     );
 }

@@ -6,10 +6,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportOnyxState from '@components/ImportOnyxState';
 import MenuItemList from '@components/MenuItemList';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {useSearchActionsContext} from '@components/Search/SearchContext';
+import {useSearchQueryActions} from '@components/Search/SearchContext';
 import Section from '@components/Section';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
 import SentryDebugToolMenu from '@components/SentryDebugToolMenu';
@@ -65,12 +64,11 @@ function TroubleshootPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
     const [shouldMaskOnyxState = true] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE);
-    const {resetOptions} = useOptionsList({shouldInitialize: false});
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const {showConfirmModal} = useConfirmModal();
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
     const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
-    const {setShouldResetSearchQuery} = useSearchActionsContext();
+    const {setShouldResetSearchQuery} = useSearchQueryActions();
     const showResetAndRefreshModal = async () => {
         const result = await showConfirmModal({
             title: translate('common.areYouSure'),
@@ -82,7 +80,6 @@ function TroubleshootPage() {
         if (result.action !== ModalActions.CONFIRM) {
             return;
         }
-        resetOptions();
         setShouldResetSearchQuery(true);
         clearOnyxAndResetApp();
     };
@@ -120,7 +117,7 @@ function TroubleshootPage() {
     const surveyCompletedWithinLastMonth = getSurveyCompletedWithinLastMonth();
 
     const getClassicRedirectMenuItem = (): BaseMenuItem | null => {
-        if (shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP)) {
+        if (shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP, isDevelopment)) {
             return null;
         }
 
@@ -215,7 +212,6 @@ function TroubleshootPage() {
                         illustrationBackgroundColor={colors.blue700}
                         titleStyles={styles.accountSettingsSectionTitle}
                         renderSubtitle={() => <SectionSubtitleHTML html={translate('initialSettingsPage.troubleshoot.description')} />}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...troubleshootIllustration}
                     >
                         <View style={[styles.flex1, styles.mt5]}>

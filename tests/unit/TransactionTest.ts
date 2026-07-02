@@ -1,10 +1,10 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import type {ValueOf} from 'type-fest';
 import useOnyx from '@hooks/useOnyx';
-import {changeTransactionsReport, dismissDuplicateTransactionViolation, markAsCash, sanitizeWaypointsForAPI, saveWaypoint} from '@libs/actions/Transaction';
+import {changeTransactionsReport as changeTransactionsReportAction, dismissDuplicateTransactionViolation, markAsCash, sanitizeWaypointsForAPI, saveWaypoint} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -18,13 +18,24 @@ import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {UpdateMoneyRequestDataKeys} from '../../src/libs/actions/IOU/UpdateMoneyRequest';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
-import type {PersonalDetails, PolicyTagLists, RecentWaypoint, Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
+import type {PersonalDetails, Policy, PolicyTagLists, RecentWaypoint, Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import {createExpenseReport, createRandomReport} from '../utils/collections/reports';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+type LegacyChangeTransactionsReportProps = Omit<Parameters<typeof changeTransactionsReportAction>[0], 'transactions' | 'allTransactionViolation'> & {
+    allTransactions: OnyxCollection<Transaction>;
+    transactionViolations?: OnyxCollection<TransactionViolation[]>;
+};
+
+// Wrapper mirroring the pre-refactor signature so existing test call sites compile unchanged.
+function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations = {}, ...rest}: LegacyChangeTransactionsReportProps) {
+    const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
+    changeTransactionsReportAction({transactionIDs, transactions, allTransactionViolation: transactionViolations, ...rest});
+}
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
     const reportID = '1';
@@ -55,11 +66,11 @@ const FAKE_SELF_DM_REPORT_ID = '4';
 function generateIOUAction(transaction: Transaction, reportID: string): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
     return {
         reportActionID: rand64(),
+        reportID,
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: CURRENT_USER_ID,
         created: DateUtils.getDBTime(),
         originalMessage: {
-            IOUReportID: reportID,
             IOUTransactionID: transaction.transactionID,
             amount: transaction.amount,
             currency: transaction.currency,
@@ -116,11 +127,11 @@ describe('Transaction', () => {
         function createIOUAction(transaction: Transaction, reportID = transaction.reportID, type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE> = CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
             return {
                 reportActionID: rand64(),
+                reportID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: CURRENT_USER_ID,
                 created: DateUtils.getDBTime(),
                 originalMessage: {
-                    IOUReportID: reportID,
                     IOUTransactionID: transaction.transactionID,
                     amount: transaction.amount,
                     currency: transaction.currency,
@@ -151,6 +162,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                transactionViolations: {},
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
@@ -188,6 +201,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                transactionViolations: {},
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
@@ -239,6 +254,8 @@ describe('Transaction', () => {
                 reportNextStep: mockReportNextStep,
                 allTransactions,
                 policyTagList: undefined,
+                transactionViolations: {},
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -292,6 +309,8 @@ describe('Transaction', () => {
                 reportNextStep: mockReportNextStep,
                 allTransactions,
                 policyTagList: undefined,
+                transactionViolations: {},
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -333,6 +352,8 @@ describe('Transaction', () => {
                 reportNextStep: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                transactionViolations: {},
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -349,7 +370,7 @@ describe('Transaction', () => {
             mockAPIWrite.mockRestore();
         });
 
-        it('updates the source submitted report next step without reopening when it becomes empty', async () => {
+        it('updates the source submitted report next step and reopens it when it becomes empty', async () => {
             const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
             const buildOptimisticNextStepSpy = jest.spyOn(require('@libs/NextStepUtils'), 'buildOptimisticNextStep');
 
@@ -363,7 +384,7 @@ describe('Transaction', () => {
                 ...createExpenseReport(6),
                 reportID: FAKE_OLD_REPORT_ID,
                 ownerAccountID: CURRENT_USER_ID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 currency: CONST.CURRENCY.USD,
                 total: -100,
@@ -386,6 +407,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                transactionViolations: {},
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -394,13 +417,18 @@ describe('Transaction', () => {
                 const sourceNextStepCall = buildOptimisticNextStepCalls.find(([params]) => params.report?.reportID === FAKE_OLD_REPORT_ID);
 
                 expect(sourceNextStepCall).toBeDefined();
-                expect(sourceNextStepCall?.[0].predictedNextStatus).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+                expect(sourceNextStepCall?.[0].predictedNextStatus).toBe(CONST.REPORT.STATUS_NUM.OPEN);
 
                 const apiWriteCall = mockAPIWrite.mock.calls.at(0);
-                const optimisticData = (apiWriteCall?.[2] as {optimisticData?: Array<{key: string}>})?.optimisticData;
+                const optimisticData = (apiWriteCall?.[2] as {optimisticData?: Array<{key: string; value: Partial<Report>}>})?.optimisticData;
                 const sourceNextStepUpdate = optimisticData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${FAKE_OLD_REPORT_ID}`);
+                const sourceReportStateUpdate = optimisticData?.find(
+                    (data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}` && 'stateNum' in data.value && 'statusNum' in data.value,
+                );
 
                 expect(sourceNextStepUpdate).toBeDefined();
+                expect(sourceReportStateUpdate?.value.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+                expect(sourceReportStateUpdate?.value.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
             } finally {
                 buildOptimisticNextStepSpy.mockRestore();
                 mockAPIWrite.mockRestore();
@@ -431,6 +459,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                transactionViolations: {},
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -473,6 +503,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                transactionViolations: {},
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -521,6 +553,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                transactionViolations: {},
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -569,6 +603,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                transactionViolations: {},
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -624,6 +660,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                transactionViolations: {},
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -678,6 +716,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                transactionViolations: {},
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -693,12 +733,14 @@ describe('Transaction', () => {
             expect(report?.total).toBe(0);
         });
 
-        it('should update the old report total when the currency is the same', async () => {
+        it('should reset the old report total to 0 and reopen it when moving the last same-currency expense', async () => {
             const oldExpenseReport = {
                 ...createRandomReport(1, undefined),
                 total: -200,
                 nonReimbursableTotal: -200,
                 currency: CONST.CURRENCY.USD,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
             const transaction = {
                 ...generateTransaction({
@@ -725,6 +767,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                transactionViolations: {},
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -738,11 +782,13 @@ describe('Transaction', () => {
                 });
             });
 
-            expect(report?.total).toBe(oldExpenseReport.total - transaction.amount);
-            expect(report?.nonReimbursableTotal).toBe(oldExpenseReport.nonReimbursableTotal - transaction.amount);
+            expect(report?.total).toBe(0);
+            expect(report?.nonReimbursableTotal).toBe(0);
+            expect(report?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+            expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
         });
 
-        it('should not update the old report total when the currency is different', async () => {
+        it('should reset the old report total to 0 when no expenses remain, even if the currency is different', async () => {
             const oldExpenseReport = {
                 ...createRandomReport(1, undefined),
                 total: -200,
@@ -774,6 +820,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                transactionViolations: {},
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -787,8 +835,74 @@ describe('Transaction', () => {
                 });
             });
 
-            expect(report?.total).toBe(oldExpenseReport.total);
-            expect(report?.nonReimbursableTotal).toBe(oldExpenseReport.nonReimbursableTotal);
+            expect(report?.total).toBe(0);
+            expect(report?.nonReimbursableTotal).toBe(0);
+        });
+
+        it('should reset the old report total to 0 after moving all same-currency expenses to a new report', async () => {
+            const oldExpenseReport = {
+                ...createRandomReport(1, undefined),
+                total: -300,
+                nonReimbursableTotal: -300,
+                currency: CONST.CURRENCY.USD,
+                transactionCount: 2,
+            };
+            const firstTransaction = {
+                ...generateTransaction({
+                    reportID: oldExpenseReport.reportID,
+                }),
+                amount: -100,
+                reimbursable: false,
+                currency: CONST.CURRENCY.USD,
+            };
+            const secondTransaction = {
+                ...generateTransaction({
+                    reportID: oldExpenseReport.reportID,
+                }),
+                amount: -200,
+                reimbursable: false,
+                currency: CONST.CURRENCY.USD,
+            };
+            const firstIOUAction = createIOUAction(firstTransaction, FAKE_OLD_REPORT_ID);
+            const secondIOUAction = createIOUAction(secondTransaction, FAKE_OLD_REPORT_ID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransaction.transactionID}`, firstTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransaction.transactionID}`, secondTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${oldExpenseReport.reportID}`, oldExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldExpenseReport.reportID}`, {
+                [firstIOUAction.reportActionID]: firstIOUAction,
+                [secondIOUAction.reportActionID]: secondIOUAction,
+            });
+
+            const fakeReport = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransaction.transactionID}`]: firstTransaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransaction.transactionID}`]: secondTransaction,
+            };
+            changeTransactionsReport({
+                transactionIDs: [firstTransaction.transactionID, secondTransaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: fakeReport,
+                policy: undefined,
+                allTransactions,
+                policyTagList: undefined,
+                allReports: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const report = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${oldExpenseReport.reportID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            expect(report?.total).toBe(0);
+            expect(report?.nonReimbursableTotal).toBe(0);
         });
 
         it('should keep both reports stale and preserve the displayed totals for mixed-currency partial moves', async () => {
@@ -867,6 +981,8 @@ describe('Transaction', () => {
                     policy: undefined,
                     allTransactions,
                     policyTagList: undefined,
+                    transactionViolations: {},
+                    allReports: undefined,
                 });
 
                 await waitForBatchedUpdates();
@@ -932,6 +1048,8 @@ describe('Transaction', () => {
                 policyCategories,
                 allTransactions,
                 policyTagList: undefined,
+                transactionViolations: {},
+                allReports: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -986,6 +1104,8 @@ describe('Transaction', () => {
                 policyCategories: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                transactionViolations: {},
+                allReports: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1041,6 +1161,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                transactionViolations: {},
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1080,6 +1202,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                transactionViolations: {},
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1114,6 +1238,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                transactionViolations: {},
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1161,6 +1287,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                transactionViolations: {},
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1220,11 +1348,63 @@ describe('Transaction', () => {
                 policy,
                 allTransactions,
                 policyTagList,
+                transactionViolations: {},
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
             const updatedViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`);
             expect(updatedViolations?.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_TAG)).toBe(true);
+
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`);
+            expect(updatedReport?.nextStep?.messageKey).not.toBe(CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES);
+        });
+
+        it('should not show fix issues next step when moving a transaction with a receiptNotSmartScanned notice', async () => {
+            const policyID = '78';
+            const transaction = generateTransaction({reportID: FAKE_OLD_REPORT_ID});
+            const oldIOUAction = createIOUAction(transaction);
+            const receiptNoticeViolation: TransactionViolation = {
+                name: CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
+                type: CONST.VIOLATION_TYPES.NOTICE,
+            };
+            const newExpenseReport = {
+                ...createExpenseReport(Number(FAKE_NEW_REPORT_ID)),
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: CURRENT_USER_ID,
+            };
+            const policy = createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM);
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`, [receiptNoticeViolation]);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+            await waitForBatchedUpdates();
+
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: newExpenseReport,
+                policy,
+                allTransactions,
+                policyTagList: undefined,
+                transactionViolations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [receiptNoticeViolation]},
+                allReports: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const updatedViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`);
+            expect(updatedViolations).toContainEqual(receiptNoticeViolation);
+
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`);
+            expect(updatedReport?.nextStep?.messageKey).not.toBe(CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES);
         });
 
         it('should add a missingTag violation per tag list when moving to a paid policy with dependent multi-level tags and the transaction has no tag', async () => {
@@ -1278,6 +1458,8 @@ describe('Transaction', () => {
                 policy,
                 allTransactions,
                 policyTagList,
+                transactionViolations: {},
+                allReports: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1286,6 +1468,370 @@ describe('Transaction', () => {
             expect(missingTagViolations).toHaveLength(2);
             expect(missingTagViolations.some((violation) => violation.data?.tagName === 'Region')).toBe(true);
             expect(missingTagViolations.some((violation) => violation.data?.tagName === 'City')).toBe(true);
+        });
+
+        it('removes AUTO_REPORTED_REJECTED_EXPENSE from transaction violations when moving to a paid group policy', async () => {
+            const policyID = '1001';
+            const transaction = generateTransaction({reportID: FAKE_OLD_REPORT_ID});
+            const oldIOUAction = createIOUAction(transaction);
+            const newExpenseReport = {
+                ...createExpenseReport(Number(FAKE_NEW_REPORT_ID)),
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: CURRENT_USER_ID,
+            };
+            const policy: Policy = {
+                ...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM),
+                requiresTag: false,
+                requiresCategory: false,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`, [
+                {name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+            ]);
+            await waitForBatchedUpdates();
+
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: newExpenseReport,
+                policy,
+                allTransactions,
+                policyTagList: {},
+                allReports: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const updatedViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`);
+            expect(updatedViolations?.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)).toBe(false);
+        });
+
+        it('should auto-select a valid distance rate when moving a distance expense with an invalid P2P rate to a workspace', async () => {
+            const policyID = '100';
+            const validRateID = 'valid_rate_1';
+            const transaction = generateTransaction({
+                reportID: FAKE_OLD_REPORT_ID,
+                amount: -500,
+                currency: 'USD',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                    },
+                },
+            });
+            const oldIOUAction = createIOUAction(transaction);
+
+            const newExpenseReport = {
+                ...createExpenseReport(Number(FAKE_NEW_REPORT_ID)),
+                reportID: FAKE_NEW_REPORT_ID,
+                policyID,
+                ownerAccountID: CURRENT_USER_ID,
+                currency: 'USD',
+            };
+            const policy = {
+                ...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                outputCurrency: 'USD',
+                customUnits: {
+                    distanceUnit: {
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                        customUnitID: 'distanceUnit',
+                        defaultCategory: '',
+                        enabled: true,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        rates: {
+                            [validRateID]: {
+                                currency: 'USD',
+                                customUnitRateID: validRateID,
+                                enabled: true,
+                                name: 'Default Rate',
+                                rate: 6550,
+                            },
+                        },
+                    },
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`, newExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: newExpenseReport,
+                policy,
+                allTransactions,
+                policyTagList: undefined,
+                transactionViolations: {},
+                allReports: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+            expect(updatedTransaction?.comment?.customUnit?.customUnitRateID).toBe(validRateID);
+            expect(updatedTransaction?.comment?.customUnit?.defaultP2PRate).toBeUndefined();
+        });
+
+        it('should auto-select a valid distance rate when the current rate is disabled on the destination workspace', async () => {
+            const policyID = '101';
+            const disabledRateID = 'disabled_rate';
+            const enabledRateID = 'enabled_rate';
+            const transaction = generateTransaction({
+                reportID: FAKE_OLD_REPORT_ID,
+                amount: -500,
+                currency: 'USD',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitRateID: disabledRateID,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                    },
+                },
+            });
+            const oldIOUAction = createIOUAction(transaction);
+
+            const newExpenseReport = {
+                ...createExpenseReport(Number(FAKE_NEW_REPORT_ID)),
+                reportID: FAKE_NEW_REPORT_ID,
+                policyID,
+                ownerAccountID: CURRENT_USER_ID,
+                currency: 'USD',
+            };
+            const policy = {
+                ...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                outputCurrency: 'USD',
+                customUnits: {
+                    distanceUnit: {
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                        customUnitID: 'distanceUnit',
+                        defaultCategory: '',
+                        enabled: true,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        rates: {
+                            [disabledRateID]: {
+                                currency: 'USD',
+                                customUnitRateID: disabledRateID,
+                                enabled: false,
+                                name: 'Old Rate',
+                                rate: 5000,
+                            },
+                            [enabledRateID]: {
+                                currency: 'USD',
+                                customUnitRateID: enabledRateID,
+                                enabled: true,
+                                name: 'Default Rate',
+                                rate: 6550,
+                            },
+                        },
+                    },
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`, newExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: newExpenseReport,
+                policy,
+                allTransactions,
+                policyTagList: undefined,
+                transactionViolations: {},
+                allReports: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+            expect(updatedTransaction?.comment?.customUnit?.customUnitRateID).toBe(enabledRateID);
+        });
+
+        it('should not generate CUSTOM_UNIT_OUT_OF_POLICY violation when auto-selecting a valid rate during move', async () => {
+            const policyID = '102';
+            const validRateID = 'workspace_rate';
+            const transaction = generateTransaction({
+                reportID: FAKE_OLD_REPORT_ID,
+                amount: -500,
+                currency: 'USD',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                    },
+                },
+            });
+            const oldIOUAction = createIOUAction(transaction);
+
+            const newExpenseReport = {
+                ...createExpenseReport(Number(FAKE_NEW_REPORT_ID)),
+                reportID: FAKE_NEW_REPORT_ID,
+                policyID,
+                ownerAccountID: CURRENT_USER_ID,
+                currency: 'USD',
+            };
+            const policy = {
+                ...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                outputCurrency: 'USD',
+                customUnits: {
+                    distanceUnit: {
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                        customUnitID: 'distanceUnit',
+                        defaultCategory: '',
+                        enabled: true,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        rates: {
+                            [validRateID]: {
+                                currency: 'USD',
+                                customUnitRateID: validRateID,
+                                enabled: true,
+                                name: 'Default Rate',
+                                rate: 6550,
+                            },
+                        },
+                    },
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`, newExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: newExpenseReport,
+                policy,
+                allTransactions,
+                policyTagList: undefined,
+                transactionViolations: {},
+                allReports: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const updatedViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`);
+            const customUnitViolations = updatedViolations?.filter((v) => v.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY) ?? [];
+            expect(customUnitViolations).toHaveLength(0);
+        });
+
+        it('should not change the rate when moving a distance expense with a valid rate to a workspace', async () => {
+            const policyID = '103';
+            const validRateID = 'already_valid_rate';
+            const transaction = generateTransaction({
+                reportID: FAKE_OLD_REPORT_ID,
+                amount: -500,
+                currency: 'USD',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitRateID: validRateID,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                    },
+                },
+            });
+            const oldIOUAction = createIOUAction(transaction);
+
+            const newExpenseReport = {
+                ...createExpenseReport(Number(FAKE_NEW_REPORT_ID)),
+                reportID: FAKE_NEW_REPORT_ID,
+                policyID,
+                ownerAccountID: CURRENT_USER_ID,
+                currency: 'USD',
+            };
+            const policy = {
+                ...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                outputCurrency: 'USD',
+                customUnits: {
+                    distanceUnit: {
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                        customUnitID: 'distanceUnit',
+                        defaultCategory: '',
+                        enabled: true,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        rates: {
+                            [validRateID]: {
+                                currency: 'USD',
+                                customUnitRateID: validRateID,
+                                enabled: true,
+                                name: 'Default Rate',
+                                rate: 6550,
+                            },
+                        },
+                    },
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`, newExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: newExpenseReport,
+                policy,
+                allTransactions,
+                policyTagList: undefined,
+                transactionViolations: {},
+                allReports: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+            // Rate should remain unchanged since it was already valid
+            expect(updatedTransaction?.comment?.customUnit?.customUnitRateID).toBe(validRateID);
         });
     });
 
@@ -1296,11 +1842,11 @@ describe('Transaction', () => {
             });
             const IOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
                 reportActionID: rand64(),
+                reportID: FAKE_OLD_REPORT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: CURRENT_USER_ID,
                 created: DateUtils.getDBTime(),
                 originalMessage: {
-                    IOUReportID: FAKE_OLD_REPORT_ID,
                     IOUTransactionID: transaction.transactionID,
                     amount: transaction.amount,
                     currency: transaction.currency,
@@ -1679,12 +2225,12 @@ describe('Transaction', () => {
             const transaction = generateTransaction({transactionID, reportID: FAKE_OLD_REPORT_ID});
             const iouAction = {
                 reportActionID: rand64(),
+                reportID: FAKE_OLD_REPORT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 childReportID: threadReportID,
                 actorAccountID: CURRENT_USER_ID,
                 created: DateUtils.getDBTime(),
                 originalMessage: {
-                    IOUReportID: FAKE_OLD_REPORT_ID,
                     IOUTransactionID: transactionID,
                     amount: transaction.amount,
                     currency: transaction.currency,
@@ -1706,6 +2252,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 isASAPSubmitBetaEnabled: false,
                 allTransactions,
+                currentTransactionViolations: [{transactionID, violations: mockViolations}],
             });
             await waitForBatchedUpdates();
 
@@ -1744,12 +2291,12 @@ describe('Transaction', () => {
             const transaction = generateTransaction({transactionID, reportID: FAKE_OLD_REPORT_ID});
             const iouAction = {
                 reportActionID: rand64(),
+                reportID: FAKE_OLD_REPORT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 childReportID: threadReportID,
                 actorAccountID: CURRENT_USER_ID,
                 created: DateUtils.getDBTime(),
                 originalMessage: {
-                    IOUReportID: FAKE_OLD_REPORT_ID,
                     IOUTransactionID: transactionID,
                     amount: transaction.amount,
                     currency: transaction.currency,
@@ -1770,6 +2317,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 isASAPSubmitBetaEnabled: false,
                 allTransactions,
+                currentTransactionViolations: [{transactionID, violations: mockViolations}],
             });
             await waitForBatchedUpdates();
 
@@ -1782,6 +2330,88 @@ describe('Transaction', () => {
 
             const reportActions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`);
             expect(Object.keys(reportActions ?? {}).length).toBe(0);
+        });
+
+        it('should preserve an existing hold when optimistic dismissal is built from a stale transaction snapshot', async () => {
+            const transactionID = 'dismissTxnHold';
+            const threadReportID = 'threadDismissHold';
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
+            const testerEmail = 'tester@example.com';
+            const mockViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: 'warning'}];
+
+            mockFetch.pause();
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, mockViolations);
+
+            const transactionInOnyx = generateTransaction({
+                transactionID,
+                reportID: FAKE_OLD_REPORT_ID,
+                comment: {
+                    hold: 'holdReportActionID',
+                    dismissedViolations: {
+                        [CONST.VIOLATIONS.SMARTSCAN_FAILED]: {
+                            owner: 123,
+                        },
+                    },
+                },
+            });
+            await Onyx.merge(transactionKey, transactionInOnyx);
+
+            const staleTransaction = {
+                ...transactionInOnyx,
+                comment: {
+                    dismissedViolations: {
+                        [CONST.VIOLATIONS.SMARTSCAN_FAILED]: {
+                            owner: 123,
+                        },
+                    },
+                    hold: undefined,
+                },
+            } as Transaction;
+
+            const iouAction = {
+                reportActionID: rand64(),
+                reportID: FAKE_OLD_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID: threadReportID,
+                actorAccountID: CURRENT_USER_ID,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUTransactionID: transactionID,
+                    amount: transactionInOnyx.amount,
+                    currency: transactionInOnyx.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[iouAction.reportActionID]: iouAction});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {});
+
+            mockFetch.fail();
+
+            dismissDuplicateTransactionViolation({
+                transactionIDs: [transactionID],
+                dismissedPersonalDetails: {login: testerEmail, accountID: CURRENT_USER_ID},
+                expenseReport: newReport,
+                policy: undefined,
+                isASAPSubmitBetaEnabled: false,
+                allTransactions: {[transactionKey]: staleTransaction},
+                currentTransactionViolations: [{transactionID, violations: mockViolations}],
+            });
+            await waitForBatchedUpdates();
+
+            const optimisticTransaction = await getOnyxValue(transactionKey);
+            const duplicateDismissals = optimisticTransaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.DUPLICATED_TRANSACTION];
+            expect(optimisticTransaction?.comment?.hold).toBe('holdReportActionID');
+            expect(optimisticTransaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.SMARTSCAN_FAILED]).toEqual({owner: 123});
+            expect(duplicateDismissals?.[testerEmail]).toEqual(expect.any(Number));
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            const revertedTransaction = await getOnyxValue(transactionKey);
+            expect(revertedTransaction?.comment?.hold).toBe('holdReportActionID');
+            expect(revertedTransaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.SMARTSCAN_FAILED]).toEqual({owner: 123});
+            expect(revertedTransaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.DUPLICATED_TRANSACTION]).toBeUndefined();
         });
 
         it('should not modify Onyx data when tag list does not exist at given index (empty violations array)', async () => {
@@ -1829,12 +2459,12 @@ describe('Transaction', () => {
                 const transaction = generateTransaction({transactionID, reportID: FAKE_OLD_REPORT_ID});
                 const iouAction = {
                     reportActionID: rand64(),
+                    reportID: FAKE_OLD_REPORT_ID,
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                     childReportID: threadReportID,
                     actorAccountID: CURRENT_USER_ID,
                     created: DateUtils.getDBTime(),
                     originalMessage: {
-                        IOUReportID: FAKE_OLD_REPORT_ID,
                         IOUTransactionID: transactionID,
                         amount: transaction.amount,
                         currency: transaction.currency,
@@ -1858,6 +2488,7 @@ describe('Transaction', () => {
                         policy: undefined,
                         isASAPSubmitBetaEnabled: false,
                         allTransactions,
+                        currentTransactionViolations: [{transactionID, violations: mockViolations}],
                     });
                     await waitForBatchedUpdates();
                 });

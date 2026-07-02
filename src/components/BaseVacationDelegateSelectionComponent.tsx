@@ -1,13 +1,14 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useSearchSelector from '@hooks/useSearchSelector';
+import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchUserInServer} from '@libs/actions/Report';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
-import {getHeaderMessage} from '@libs/OptionsListUtils';
+import {filterOption, getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,70 +59,86 @@ function BaseVacationDelegateSelectionComponent({
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
 
     const currentVacationDelegate = vacationDelegate?.delegate ?? '';
-    const delegatePersonalDetails = getPersonalDetailByEmail(currentVacationDelegate);
+    const initialVacationDelegate = useInitialSelection(currentVacationDelegate || undefined, {resetOnFocus: true});
     const hasActiveDelegations = !!vacationDelegate?.delegatorFor?.length;
 
     const excludeLogins = {
         ...CONST.EXPENSIFY_EMAILS_OBJECT,
-        ...(currentVacationDelegate && {[currentVacationDelegate]: true}),
         ...additionalExcludeLogins,
     };
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized, onListEndReached} = useSearchSelector({
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized} = usePersonalDetailSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
         excludeLogins,
+        includeUserToInvite: true,
         includeRecentReports: true,
-        getValidOptionsConfig: {
-            excludeLogins,
-            includeCurrentUser,
-        },
+        includeCurrentUser,
     });
 
     useEffect(() => {
         searchUserInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
+    const searchValue = debouncedSearchTerm.trim().toLowerCase();
+    const pinnedVacationDelegate = searchValue ? currentVacationDelegate : (initialVacationDelegate ?? '');
+    const pinnedDelegatePersonalDetails = getPersonalDetailByEmail(pinnedVacationDelegate);
+    const pinnedDelegateOption =
+        pinnedVacationDelegate && pinnedDelegatePersonalDetails
+            ? {
+                  ...pinnedDelegatePersonalDetails,
+                  text: pinnedDelegatePersonalDetails?.displayName ?? pinnedVacationDelegate,
+                  alternateText: pinnedDelegatePersonalDetails?.login ?? pinnedVacationDelegate,
+                  login: pinnedDelegatePersonalDetails.login ?? pinnedVacationDelegate,
+                  keyForList: `vacationDelegate-${pinnedDelegatePersonalDetails.login ?? pinnedVacationDelegate}`,
+                  isDisabled: false,
+                  isSelected: pinnedVacationDelegate === currentVacationDelegate,
+                  shouldShowSubscript: undefined,
+                  icons: [
+                      {
+                          source: pinnedDelegatePersonalDetails?.avatar ?? icons.FallbackAvatar,
+                          name: formatPhoneNumber(pinnedDelegatePersonalDetails?.login ?? ''),
+                          type: CONST.ICON_TYPE_AVATAR,
+                          id: pinnedDelegatePersonalDetails?.accountID,
+                      },
+                  ],
+              }
+            : undefined;
+    const shouldShowPinnedVacationDelegate = !!pinnedDelegateOption && (!searchValue || !!filterOption(pinnedDelegateOption, debouncedSearchTerm));
+    const filterPinnedVacationDelegateFromOptions = (options: typeof availableOptions.recentOptions) => {
+        if (!shouldShowPinnedVacationDelegate || !pinnedVacationDelegate) {
+            return options;
+        }
+        return options.filter((option) => option.login?.toLowerCase() !== pinnedVacationDelegate.toLowerCase());
+    };
+
     const sectionsList = [];
 
-    if (currentVacationDelegate && delegatePersonalDetails) {
+    if (pinnedDelegateOption && shouldShowPinnedVacationDelegate) {
         sectionsList.push({
             title: undefined,
             sectionIndex: 0,
-            data: [
-                {
-                    ...delegatePersonalDetails,
-                    text: delegatePersonalDetails?.displayName ?? currentVacationDelegate,
-                    alternateText: delegatePersonalDetails?.login ?? currentVacationDelegate,
-                    login: delegatePersonalDetails.login ?? currentVacationDelegate,
-                    keyForList: `vacationDelegate-${delegatePersonalDetails.login}`,
-                    isDisabled: false,
-                    isSelected: true,
-                    shouldShowSubscript: undefined,
-                    icons: [
-                        {
-                            source: delegatePersonalDetails?.avatar ?? icons.FallbackAvatar,
-                            name: formatPhoneNumber(delegatePersonalDetails?.login ?? ''),
-                            type: CONST.ICON_TYPE_AVATAR,
-                            id: delegatePersonalDetails?.accountID,
-                        },
-                    ],
-                },
-            ],
+            data: [pinnedDelegateOption],
         });
     }
 
-    sectionsList.push({
-        title: translate('common.recents'),
-        sectionIndex: 1,
-        data: availableOptions.recentReports,
-    });
-    sectionsList.push({
-        title: translate('common.contacts'),
-        sectionIndex: 2,
-        data: availableOptions.personalDetails,
-    });
+    const recentOptions = filterPinnedVacationDelegateFromOptions(availableOptions.recentOptions);
+    if (recentOptions.length) {
+        sectionsList.push({
+            title: translate('common.recents'),
+            sectionIndex: 1,
+            data: recentOptions,
+        });
+    }
+
+    const personalDetails = filterPinnedVacationDelegateFromOptions(availableOptions.personalDetails);
+    if (personalDetails.length) {
+        sectionsList.push({
+            title: translate('common.contacts'),
+            sectionIndex: 2,
+            data: personalDetails,
+        });
+    }
 
     if (availableOptions.userToInvite) {
         sectionsList.push({
@@ -135,27 +152,28 @@ function BaseVacationDelegateSelectionComponent({
         ...section,
         data: (section.data ?? []).map((option) => ({
             ...option,
-            text: option.text ?? option.displayName ?? '',
+            text: option.text ?? '',
             alternateText: option.alternateText ?? option.login ?? undefined,
             keyForList: option.keyForList ?? '',
             isDisabled: option.isDisabled ?? undefined,
-            isSelected: option.isSelected ?? undefined,
+            isSelected: option.login === currentVacationDelegate,
             login: option.login ?? undefined,
-            shouldShowSubscript: option.shouldShowSubscript ?? undefined,
+            shouldShowSubscript: undefined,
         })),
     }));
+
+    const headerMessage = (() => {
+        if (sections.length > 0) {
+            return '';
+        }
+        return getHeaderMessage(translate, searchValue, countryCode);
+    })();
 
     const textInputOptions = {
         value: searchTerm,
         onChangeText: setSearchTerm,
         label: translate('selectionList.nameEmailOrPhoneNumber'),
-        headerMessage: getHeaderMessage(
-            (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
-            !!availableOptions.userToInvite,
-            debouncedSearchTerm.trim(),
-            countryCode,
-            false,
-        ),
+        headerMessage,
     };
 
     return (
@@ -186,7 +204,10 @@ function BaseVacationDelegateSelectionComponent({
                             textInputOptions={textInputOptions}
                             shouldShowLoadingPlaceholder={!areOptionsInitialized}
                             isLoadingNewOptions={!!isSearchingForReports}
-                            onEndReached={onListEndReached}
+                            searchValueForFocusSync={debouncedSearchTerm}
+                            initiallyFocusedItemKey={initialVacationDelegate ? `vacationDelegate-${initialVacationDelegate}` : undefined}
+                            initialScrollIndex={0}
+                            shouldUpdateFocusedIndex
                             shouldSingleExecuteRowSelect
                             shouldShowTextInput
                         />

@@ -24,15 +24,18 @@ import StatusBadge from '@components/StatusBadge';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Navigation from '@libs/Navigation/Navigation';
-import {getReportStatusColorStyle, getReportStatusTranslation, isOneTransactionReport} from '@libs/ReportUtils';
+import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, isOneTransactionReport} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
 import type {SearchResults} from '@src/types/onyx';
 import type {TransactionListItemType} from './SearchList/ListItem/types';
 import UserInfoCellsWithArrow from './SearchList/ListItem/UserInfoCellsWithArrow';
@@ -73,6 +76,8 @@ function SearchStaticList({
     const session = useSession();
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const email = session?.email;
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
 
     const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(
         () => hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH) || Navigation.getIsFullscreenPreInsertedUnderRHP(),
@@ -95,7 +100,6 @@ function SearchStaticList({
             translate,
             formatPhoneNumber,
             bankAccountList: undefined,
-            allReportMetadata: undefined,
             conciergeReportID: undefined,
             convertToDisplayString,
         });
@@ -128,7 +132,18 @@ function SearchStaticList({
             // betas and introSelected are passed as undefined to avoid extra Onyx subscriptions in this lightweight placeholder.
             // They're only used for guided-setup onboarding data, which is gated behind introSelected/onboarding checks
             // that won't apply here - the user has already completed onboarding if they're submitting expenses.
-            createAndOpenSearchTransactionThread(item, undefined, backTo, email ?? '', accountID, undefined, item.reportAction?.childReportID, undefined, shouldOpenTransactionThread);
+            createAndOpenSearchTransactionThread({
+                item,
+                introSelected: undefined,
+                backTo,
+                currentUserLogin: email ?? '',
+                currentUserAccountID: accountID,
+                betas: undefined,
+                isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
+                IOUTransactionID: item.reportAction?.childReportID,
+                shouldNavigate: shouldOpenTransactionThread,
+            });
             if (shouldOpenTransactionThread) {
                 return;
             }
@@ -163,6 +178,7 @@ function SearchStaticList({
         const statusNum = item.report?.statusNum;
         const statusText = getReportStatusTranslation({stateNum, statusNum, translate});
         const reportStatusColorStyle = getReportStatusColorStyle(theme, stateNum, statusNum);
+        const statusTooltipText = getReportStatusTooltipTranslation({stateNum, statusNum, translate});
 
         return (
             <PressableWithoutFeedback
@@ -177,8 +193,8 @@ function SearchStaticList({
                         styles.flex1,
                         styles.userSelectNone,
                         {backgroundColor: theme.highlightBG},
-                        isFirstItem && styles.searchTableTopRadius,
-                        isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
+                        isFirstItem && styles.tableTopRadius,
+                        isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
                         !isLastItem && styles.borderBottom,
                     ]}
                 >
@@ -204,6 +220,7 @@ function SearchStaticList({
                                     text={statusText}
                                     backgroundColor={reportStatusColorStyle.backgroundColor}
                                     textColor={reportStatusColorStyle.textColor}
+                                    tooltipText={statusTooltipText}
                                 />
                             )}
                         </View>
@@ -236,14 +253,7 @@ function SearchStaticList({
 
         return (
             <View
-                style={[
-                    styles.mh5,
-                    styles.flex1,
-                    {backgroundColor: theme.highlightBG},
-                    styles.userSelectNone,
-                    isLastItem && styles.searchTableBottomRadius,
-                    isLastItem && styles.overflowHidden,
-                ]}
+                style={[styles.mh5, styles.flex1, {backgroundColor: theme.highlightBG}, styles.userSelectNone, isLastItem && styles.tableBottomRadius, isLastItem && styles.overflowHidden]}
             >
                 <PressableWithoutFeedback
                     sentryLabel="SearchStaticList-wide-item"

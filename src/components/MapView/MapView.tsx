@@ -1,9 +1,11 @@
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import type {MapState} from '@rnmapbox/maps';
-import Mapbox, {MarkerView, setAccessToken} from '@rnmapbox/maps';
+import Mapbox, {MarkerView} from '@rnmapbox/maps';
 import {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import {useSharedValue} from 'react-native-reanimated';
 import Button from '@components/Button';
+import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
@@ -14,16 +16,17 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
-import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
 import ONYXKEYS from '@src/ONYXKEYS';
+import Compass from './Compass';
 import Direction from './Direction';
 import type {MapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
 import ToggleDistanceUnitButton from './ToggleDistanceUnitButton';
+import useAccessToken from './useAccessToken';
 import useDistanceUnit from './useDistanceUnit';
 import utils from './utils';
 
@@ -41,6 +44,8 @@ function MapView({
     distanceInMeters,
     unit,
     ref,
+    shouldDisplayCurrentLocation = true,
+    shouldDisplayCompass = true,
 }: MapViewProps) {
     const directionCoordinates = !directionCoordinatesProp || utils.isSingleSegmentRoute(directionCoordinatesProp) ? directionCoordinatesProp : directionCoordinatesProp.flat();
 
@@ -50,14 +55,14 @@ function MapView({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'MapCurrentLocation']);
     const cameraRef = useRef<Mapbox.Camera>(null);
     const [isIdle, setIsIdle] = useState(false);
     const initialLocation = useMemo(() => initialState && {longitude: initialState.location[0], latitude: initialState.location[1]}, [initialState]);
     const currentPosition = userLocation ?? initialLocation;
     const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
     const shouldInitializeCurrentPosition = useRef(true);
-    const [isAccessTokenSet, setIsAccessTokenSet] = useState(false);
+    const isAccessTokenSet = useAccessToken({accessToken});
 
     const {distanceUnit, toggleDistanceUnit} = useDistanceUnit(unit);
 
@@ -70,7 +75,10 @@ function MapView({
     // location without bothering the user. It will return
     // false if user has already started dragging the map or
     // if there are one or more waypoints present.
-    const shouldPanMapToCurrentPosition = useCallback(() => !userInteractedWithMap && (!waypoints || waypoints.length === 0), [userInteractedWithMap, waypoints]);
+    const shouldPanMapToCurrentPosition = useCallback(
+        () => !userInteractedWithMap && shouldDisplayCurrentLocation && (!waypoints || waypoints.length === 0),
+        [userInteractedWithMap, waypoints, shouldDisplayCurrentLocation],
+    );
 
     const setCurrentPositionToInitialState: GeolocationErrorCallback = useCallback(
         (error) => {
@@ -172,15 +180,6 @@ function MapView({
         setIsIdle(false);
     }, [isOffline]);
 
-    useEffect(() => {
-        setAccessToken(accessToken).then((token) => {
-            if (!token) {
-                return;
-            }
-            setIsAccessTokenSet(true);
-        });
-    }, [accessToken]);
-
     const setMapIdle = (e: MapState) => {
         if (e.gestures.isGestureActive) {
             return;
@@ -190,6 +189,13 @@ function MapView({
             onMapReady();
         }
     };
+
+    const mapHeading = useSharedValue(0);
+
+    const onCameraChanged = (e: MapState) => {
+        mapHeading.set(e.properties.heading ?? 0);
+    };
+
     const centerMap = useCallback(() => {
         const waypointCoordinates = waypoints?.map((waypoint) => waypoint.coordinate) ?? [];
         if (waypointCoordinates.length > 1 || (directionCoordinates ?? []).length > 1) {
@@ -258,16 +264,15 @@ function MapView({
                 style={{flex: 1}}
                 styleURL={styleURL}
                 onMapIdle={setMapIdle}
+                onCameraChanged={onCameraChanged}
                 onTouchStart={() => setUserInteractedWithMap(true)}
                 pitchEnabled={pitchEnabled}
                 attributionPosition={{...styles.r2, ...styles.b2}}
                 scaleBarEnabled={false}
                 // We use scaleBarPosition with top: -32 to hide the scale bar on iOS because scaleBarEnabled={false} not work on iOS
                 scaleBarPosition={{...styles.tn8, left: 0}}
-                compassEnabled
-                compassPosition={{...styles.l2, ...styles.t5}}
+                compassEnabled={false}
                 logoPosition={{...styles.l2, ...styles.b2}}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...responder.panHandlers}
             >
                 <Mapbox.Camera
@@ -278,62 +283,50 @@ function MapView({
                     centerCoordinate={initCenterCoordinate}
                     bounds={initBounds}
                 />
-                {interactive && (
-                    <Mapbox.ShapeSource
-                        id={CONST.MAP_VIEW_LAYERS.USER_LOCATION_SOURCE}
-                        shape={{
-                            type: 'FeatureCollection',
-                            features: [
-                                {
-                                    type: 'Feature',
-                                    geometry: {
-                                        type: 'Point',
-                                        coordinates: [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0],
-                                    },
-                                    properties: {},
-                                },
-                            ],
-                        }}
+                {interactive && shouldDisplayCurrentLocation && (
+                    <MarkerView
+                        id={CONST.MAP_VIEW_LAYERS.USER_LOCATION}
+                        coordinate={[currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]}
+                        allowOverlap
                     >
-                        <Mapbox.CircleLayer
-                            id={CONST.MAP_VIEW_LAYERS.USER_LOCATION}
-                            sourceID={CONST.MAP_VIEW_LAYERS.USER_LOCATION_SOURCE}
-                            style={{
-                                circleColor: colors.blue400,
-                                circleRadius: 8,
-                            }}
+                        <ImageSVG
+                            src={expensifyIcons.MapCurrentLocation}
+                            width={CONST.MAP_MARKER_SIZES.CURRENT_LOCATION.width}
+                            height={CONST.MAP_MARKER_SIZES.CURRENT_LOCATION.height}
                         />
-                    </Mapbox.ShapeSource>
+                    </MarkerView>
                 )}
                 {waypoints?.map(({coordinate, markerComponent, id}) => {
                     const MarkerComponent = markerComponent;
-                    if (utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]) && interactive) {
+                    if (
+                        utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]) &&
+                        interactive &&
+                        shouldDisplayCurrentLocation
+                    ) {
                         return null;
                     }
+
                     return (
                         <MarkerView
                             id={id}
                             key={id}
                             coordinate={coordinate}
+                            allowOverlap
                         >
                             <MarkerComponent />
                         </MarkerView>
                     );
                 })}
 
-                {!!directionCoordinatesProp && (
-                    <Direction
-                        coordinates={directionCoordinatesProp}
-                        belowLayerID={interactive ? CONST.MAP_VIEW_LAYERS.USER_LOCATION : undefined}
-                    />
-                )}
+                {!!directionCoordinatesProp && <Direction coordinates={directionCoordinatesProp} />}
                 {!!distanceSymbolCoordinate && !!distanceInMeters && !!distanceUnit && (
                     <MarkerView
                         coordinate={distanceSymbolCoordinate}
                         id="distance-label"
                         key="distance-label"
+                        allowOverlap
                     >
-                        <View style={{zIndex: 1}}>
+                        <View style={styles.zIndex1}>
                             <ToggleDistanceUnitButton
                                 accessibilityRole={CONST.ROLE.BUTTON}
                                 accessibilityLabel="distance-label"
@@ -347,8 +340,14 @@ function MapView({
                     </MarkerView>
                 )}
             </Mapbox.MapView>
+            <Compass
+                interactive={interactive}
+                shouldDisplayCompass={shouldDisplayCompass}
+                cameraRef={cameraRef}
+                mapHeading={mapHeading}
+            />
             {interactive && (
-                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
+                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, styles.zIndex1]}>
                     <Button
                         onPress={centerMap}
                         iconFill={theme.icon}

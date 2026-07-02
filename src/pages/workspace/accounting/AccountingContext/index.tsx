@@ -8,7 +8,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
-import {isControlPolicy} from '@libs/PolicyUtils';
+import {isControlPolicy, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/PolicyUtils';
 import {getAccountingIntegrationData} from '@pages/workspace/accounting/utils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -29,9 +29,11 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
     const [activeIntegration, setActiveIntegration] = useState<ActiveIntegrationState>();
     const {translate} = useLocalize();
     const policyID = policy?.id;
-    const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare']);
+    const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare', 'CertiniaSquare', 'RilletSquare']);
     const hasReusablePoliciesConnectedToSageIntacct = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, policyID);
     const hasReusablePoliciesConnectedToQBD = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.QBD, policyID);
+    const hasReusablePoliciesConnectedToCertinia = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.CERTINIA, policyID);
+    const hasReusablePoliciesConnectedToRillet = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.RILLET, policyID);
 
     const startIntegrationFlow = useCallback(
         (newActiveIntegration: ActiveIntegration) => {
@@ -39,11 +41,20 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 return;
             }
 
+            if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias)) {
+                return;
+            }
+
             const accountingIntegrationData = getAccountingIntegrationData(
                 newActiveIntegration.name,
                 policyID,
                 translate,
-                {sageIntacct: hasReusablePoliciesConnectedToSageIntacct, qbd: hasReusablePoliciesConnectedToQBD},
+                {
+                    sageIntacct: hasReusablePoliciesConnectedToSageIntacct,
+                    qbd: hasReusablePoliciesConnectedToQBD,
+                    certinia: hasReusablePoliciesConnectedToCertinia,
+                    rillet: hasReusablePoliciesConnectedToRillet,
+                },
                 undefined,
                 undefined,
                 newActiveIntegration.integrationToDisconnect,
@@ -51,6 +62,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 undefined,
                 accountingIcons,
             );
+
             const workspaceUpgradeNavigationDetails = accountingIntegrationData?.workspaceUpgradeNavigationDetails;
             if (workspaceUpgradeNavigationDetails && !isControlPolicy(policy)) {
                 Navigation.navigate(
@@ -63,7 +75,16 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 key: Math.random(),
             });
         },
-        [policy, policyID, translate, hasReusablePoliciesConnectedToSageIntacct, hasReusablePoliciesConnectedToQBD, accountingIcons],
+        [
+            policy,
+            policyID,
+            translate,
+            hasReusablePoliciesConnectedToSageIntacct,
+            hasReusablePoliciesConnectedToQBD,
+            hasReusablePoliciesConnectedToCertinia,
+            hasReusablePoliciesConnectedToRillet,
+            accountingIcons,
+        ],
     );
 
     const closeConfirmationModal = () => {
@@ -103,7 +124,12 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             activeIntegration.name,
             policyID,
             translate,
-            {sageIntacct: hasReusablePoliciesConnectedToSageIntacct, qbd: hasReusablePoliciesConnectedToQBD},
+            {
+                sageIntacct: hasReusablePoliciesConnectedToSageIntacct,
+                qbd: hasReusablePoliciesConnectedToQBD,
+                certinia: hasReusablePoliciesConnectedToCertinia,
+                rillet: hasReusablePoliciesConnectedToRillet,
+            },
             policy,
             activeIntegration.key,
             undefined,
@@ -149,4 +175,3 @@ function useAccountingActions(): AccountingActionsContextType {
 }
 
 export {AccountingContextProvider, useAccountingState, useAccountingActions};
-export type {AccountingActionsContextType, AccountingStateContextType, ActiveIntegration} from './types';

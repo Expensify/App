@@ -6,10 +6,14 @@ import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {NewLogin} from '@src/types/onyx';
+import redirectToSignIn from '../../src/libs/actions/SignInRedirect';
 import * as UserActions from '../../src/libs/actions/User';
+import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API');
+jest.mock('../../src/libs/actions/SignInRedirect');
+
 const mockAPI = API as jest.Mocked<typeof API>;
 
 describe('actions/User', () => {
@@ -33,10 +37,10 @@ describe('actions/User', () => {
             UserActions.clearContactMethod(contactMethods);
             await waitForBatchedUpdates();
 
-            // Then LOGIN_LIST should remain unchanged (null/undefined)
+            // Then LOGINS should remain unchanged (null/undefined)
             const loginList = await new Promise<Record<string, unknown> | null>((resolve) => {
                 const connection = Onyx.connect({
-                    key: ONYXKEYS.LOGIN_LIST,
+                    key: ONYXKEYS.LOGINS,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value ?? null);
@@ -51,23 +55,24 @@ describe('actions/User', () => {
             // Given a login list with a contact method
             const contactMethod = 'test@example.com';
             const initialLoginList = {
-                [contactMethod]: {
+                [`1_${contactMethod}`]: {
+                    partnerID: 1,
                     partnerUserID: contactMethod,
                     validatedDate: '2024-01-01',
                 },
             };
 
-            await Onyx.merge(ONYXKEYS.LOGIN_LIST, initialLoginList);
+            await Onyx.merge(ONYXKEYS.LOGINS, initialLoginList);
             await waitForBatchedUpdates();
 
             // When clearContactMethod is called with that contact method
             UserActions.clearContactMethod([contactMethod]);
             await waitForBatchedUpdates();
 
-            // Then the contact method should be set to null in LOGIN_LIST
+            // Then the contact method should be set to null in LOGINS
             const loginList = await new Promise<Record<string, unknown> | null>((resolve) => {
                 const connection = Onyx.connect({
-                    key: ONYXKEYS.LOGIN_LIST,
+                    key: ONYXKEYS.LOGINS,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value ?? null);
@@ -84,21 +89,24 @@ describe('actions/User', () => {
             const contactMethod2 = 'test2@example.com';
             const contactMethod3 = 'test3@example.com';
             const initialLoginList = {
-                [contactMethod1]: {
+                [`1_${contactMethod1}`]: {
+                    partnerID: 1,
                     partnerUserID: contactMethod1,
                     validatedDate: '2024-01-01',
                 },
-                [contactMethod2]: {
+                [`1_${contactMethod2}`]: {
+                    partnerID: 1,
                     partnerUserID: contactMethod2,
                     validatedDate: '2024-01-02',
                 },
-                [contactMethod3]: {
+                [`1_${contactMethod3}`]: {
+                    partnerID: 1,
                     partnerUserID: contactMethod3,
                     validatedDate: '2024-01-03',
                 },
             };
 
-            await Onyx.merge(ONYXKEYS.LOGIN_LIST, initialLoginList);
+            await Onyx.merge(ONYXKEYS.LOGINS, initialLoginList);
             await waitForBatchedUpdates();
 
             // When clearContactMethod is called with multiple contact methods
@@ -108,7 +116,7 @@ describe('actions/User', () => {
             // Then the specified contact methods should be set to null, while others remain unchanged
             const loginList = await new Promise<Record<string, unknown> | null>((resolve) => {
                 const connection = Onyx.connect({
-                    key: ONYXKEYS.LOGIN_LIST,
+                    key: ONYXKEYS.LOGINS,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value ?? null);
@@ -117,7 +125,8 @@ describe('actions/User', () => {
             });
 
             expect(loginList).toEqual({
-                [contactMethod2]: {
+                [`1_${contactMethod2}`]: {
+                    partnerID: 1,
                     partnerUserID: contactMethod2,
                     validatedDate: '2024-01-02',
                 },
@@ -129,23 +138,24 @@ describe('actions/User', () => {
             const existingContactMethod = 'existing@example.com';
             const nonExistentContactMethod = 'nonexistent@example.com';
             const initialLoginList = {
-                [existingContactMethod]: {
+                [`1_${existingContactMethod}`]: {
+                    partnerID: 1,
                     partnerUserID: existingContactMethod,
                     validatedDate: '2024-01-01',
                 },
             };
 
-            await Onyx.merge(ONYXKEYS.LOGIN_LIST, initialLoginList);
+            await Onyx.merge(ONYXKEYS.LOGINS, initialLoginList);
             await waitForBatchedUpdates();
 
             // When clearContactMethod is called with both existing and non-existent contact methods
             UserActions.clearContactMethod([existingContactMethod, nonExistentContactMethod]);
             await waitForBatchedUpdates();
 
-            // Then both should be set to null in LOGIN_LIST
+            // Then both should be set to null in LOGINS
             const loginList = await new Promise<Record<string, unknown> | null>((resolve) => {
                 const connection = Onyx.connect({
-                    key: ONYXKEYS.LOGIN_LIST,
+                    key: ONYXKEYS.LOGINS,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value ?? null);
@@ -158,15 +168,9 @@ describe('actions/User', () => {
     });
 
     describe('verifyAddSecondaryLoginCode', () => {
-        it('should call API.write with correct parameters and reset validateCodeSent', async () => {
+        it('should call API.write with correct parameters', async () => {
             // Given a validate code
             const validateCode = '123456';
-
-            // Set initial state for VALIDATE_ACTION_CODE
-            await Onyx.merge(ONYXKEYS.VALIDATE_ACTION_CODE, {
-                validateCodeSent: true,
-            });
-            await waitForBatchedUpdates();
 
             // When verifyAddSecondaryLoginCode is called
             UserActions.verifyAddSecondaryLoginCode(validateCode);
@@ -182,19 +186,6 @@ describe('actions/User', () => {
                     failureData: expect.any(Array) as Array<{key: string; value: unknown}>,
                 }),
             );
-
-            // Verify validateCodeSent is reset to false
-            const validateActionCode = await new Promise<{validateCodeSent?: boolean} | null>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.VALIDATE_ACTION_CODE,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value ?? null);
-                    },
-                });
-            });
-
-            expect(validateActionCode?.validateCodeSent).toBe(false);
         });
 
         it('should apply optimisticData correctly', async () => {
@@ -323,6 +314,29 @@ describe('actions/User', () => {
         });
     });
 
+    describe('requestValidateCodeAction', () => {
+        it('should set lastValidateCodeRequestedAt optimistically and clear it on failure', () => {
+            // When requestValidateCodeAction is called
+            UserActions.requestValidateCodeAction();
+
+            return waitForBatchedUpdates().then(() => {
+                // Then API.write targets RESEND_VALIDATE_CODE, stamping a numeric request time optimistically
+                // (so the gate can de-duplicate reloads within the resend window) and reverting it to null on
+                // failure (so a failed request never suppresses the next send).
+                const onyxData = mockAPI.write.mock.calls.at(0)?.[2];
+                const optimisticUpdate = onyxData?.optimisticData?.find((update) => update.key === ONYXKEYS.VALIDATE_ACTION_CODE);
+                const failureUpdate = onyxData?.failureData?.find((update) => update.key === ONYXKEYS.VALIDATE_ACTION_CODE);
+
+                // expect.any(...) is typed as `any`; hold it in an `unknown` so the matcher can be used without an unsafe assignment.
+                const anyNumber: unknown = expect.any(Number);
+
+                expect(mockAPI.write.mock.calls.at(0)?.[0]).toBe(WRITE_COMMANDS.RESEND_VALIDATE_CODE);
+                expect(optimisticUpdate?.value).toEqual(expect.objectContaining({lastValidateCodeRequestedAt: anyNumber}));
+                expect(failureUpdate?.value).toEqual(expect.objectContaining({lastValidateCodeRequestedAt: null}));
+            });
+        });
+    });
+
     describe('addNewContactMethod', () => {
         it('should call API.write with correct parameters when validateCode is provided', async () => {
             // Given a contact method and validate code
@@ -381,13 +395,14 @@ describe('actions/User', () => {
 
             expect(optimisticData).toHaveLength(3);
 
-            // Verify LOGIN_LIST update
-            const loginListUpdate = optimisticData.find((update) => update.key === ONYXKEYS.LOGIN_LIST);
+            // Verify LOGINS update
+            const loginListUpdate = optimisticData.find((update) => update.key === ONYXKEYS.LOGINS);
             expect(loginListUpdate).toEqual({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.LOGIN_LIST,
+                key: ONYXKEYS.LOGINS,
                 value: {
-                    [contactMethod]: {
+                    [`1_${contactMethod}`]: {
+                        partnerID: 1,
                         partnerUserID: contactMethod,
                         validatedDate: '',
                         errorFields: {
@@ -471,7 +486,7 @@ describe('actions/User', () => {
             const [, , onyxData] = calls.at(0) as [unknown, unknown, {failureData?: Array<{key: string; value: unknown}>}];
             const failureData = onyxData.failureData ?? [];
 
-            expect(failureData).toHaveLength(4);
+            expect(failureData).toHaveLength(3);
 
             // Verify ACCOUNT failure update
             const accountUpdate = failureData.find((update) => update.key === ONYXKEYS.ACCOUNT);
@@ -479,14 +494,6 @@ describe('actions/User', () => {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {isLoading: false},
-            });
-
-            // Verify VALIDATE_ACTION_CODE failure update
-            const validateActionCodeUpdate = failureData.find((update) => update.key === ONYXKEYS.VALIDATE_ACTION_CODE);
-            expect(validateActionCodeUpdate).toEqual({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.VALIDATE_ACTION_CODE,
-                value: {validateCodeSent: null},
             });
 
             // Verify PENDING_CONTACT_ACTION failure update
@@ -530,10 +537,10 @@ describe('actions/User', () => {
             UserActions.addNewContactMethod(contactMethod);
             await waitForBatchedUpdates();
 
-            // Then LOGIN_LIST should be updated with the new contact method
+            // Then LOGINS should be updated with the new contact method
             const loginList = await new Promise<Record<string, unknown> | null>((resolve) => {
                 const connection = Onyx.connect({
-                    key: ONYXKEYS.LOGIN_LIST,
+                    key: ONYXKEYS.LOGINS,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value ?? null);
@@ -541,7 +548,8 @@ describe('actions/User', () => {
                 });
             });
 
-            expect(loginList?.[contactMethod]).toEqual({
+            expect(loginList?.[`1_${contactMethod}`]).toEqual({
+                partnerID: 1,
                 partnerUserID: contactMethod,
                 validatedDate: '',
                 errorFields: {},
@@ -590,9 +598,10 @@ describe('actions/User', () => {
     });
 
     describe('lockAccount', () => {
+        const currentUserAccountID = 999;
         it('should execute with explicit accountID ', async () => {
             const accountID = 123456;
-            UserActions.lockAccount(accountID);
+            UserActions.lockAccount(currentUserAccountID, accountID, undefined, undefined);
 
             await waitForBatchedUpdates();
 
@@ -608,14 +617,10 @@ describe('actions/User', () => {
         });
 
         it('should execute without accountID (uses current user)', async () => {
-            UserActions.lockAccount();
+            UserActions.lockAccount(currentUserAccountID, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
-            expect(mockAPI.makeRequestWithSideEffects).toHaveBeenCalledWith(
-                SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT,
-                expect.objectContaining({accountID: expect.any(Number) as number}),
-                expect.any(Object),
-            );
+            expect(mockAPI.makeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT, {accountID: currentUserAccountID}, expect.any(Object));
         });
 
         it('should pass domainAccountID and domainName as params when provided', async () => {
@@ -623,7 +628,7 @@ describe('actions/User', () => {
             const domainAccountID = 200;
             const domainName = 'expensify.com';
 
-            UserActions.lockAccount(accountID, domainAccountID, domainName);
+            UserActions.lockAccount(currentUserAccountID, accountID, domainAccountID, domainName);
             await waitForBatchedUpdates();
 
             expect(mockAPI.makeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT, {accountID, domainAccountID, domainName}, expect.any(Object));
@@ -631,7 +636,7 @@ describe('actions/User', () => {
 
         describe('when locking current user (no accountID or matching currentUserAccountID)', () => {
             it('should include correct ACCOUNT optimistic, success, and failure data', async () => {
-                UserActions.lockAccount();
+                UserActions.lockAccount(currentUserAccountID, undefined, undefined, undefined);
                 await waitForBatchedUpdates();
 
                 const calls = (mockAPI.makeRequestWithSideEffects as jest.Mock).mock.calls;
@@ -675,7 +680,7 @@ describe('actions/User', () => {
             });
 
             it('should NOT include domain-related onyx data', async () => {
-                UserActions.lockAccount();
+                UserActions.lockAccount(currentUserAccountID, undefined, undefined, undefined);
                 await waitForBatchedUpdates();
 
                 const calls = (mockAPI.makeRequestWithSideEffects as jest.Mock).mock.calls;
@@ -704,7 +709,7 @@ describe('actions/User', () => {
             const userLockKey = `${CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX}${accountID}`;
 
             it('should include correct domain optimistic, success, and failure data', async () => {
-                UserActions.lockAccount(accountID, domainAccountID, domainName);
+                UserActions.lockAccount(currentUserAccountID, accountID, domainAccountID, domainName);
                 await waitForBatchedUpdates();
 
                 const calls = (mockAPI.makeRequestWithSideEffects as jest.Mock).mock.calls;
@@ -773,7 +778,7 @@ describe('actions/User', () => {
                 await Onyx.merge(ONYXKEYS.SESSION, {accountID: 999, email: 'admin@expensify.com'});
                 await waitForBatchedUpdates();
 
-                UserActions.lockAccount(accountID, domainAccountID, domainName);
+                UserActions.lockAccount(currentUserAccountID, accountID, domainAccountID, domainName);
                 await waitForBatchedUpdates();
 
                 const calls = (mockAPI.makeRequestWithSideEffects as jest.Mock).mock.calls;
@@ -880,10 +885,10 @@ describe('actions/User', () => {
             const partnerID = CONST.PARTNER_ID.IPHONE;
             const partnerUserID = 'device_123';
             const loginKey = `${partnerID}_${partnerUserID}`;
-            const login = {partnerID, partnerUserID} as NewLogin;
+            const login = createMock<NewLogin>({partnerID, partnerUserID});
 
             // When revokeDevice is called
-            UserActions.revokeDevice(login);
+            UserActions.revokeDevice(login, 'a');
             await waitForBatchedUpdates();
 
             // Then API.write should be called with correct command and parameters
@@ -935,6 +940,23 @@ describe('actions/User', () => {
                     },
                 },
             });
+        });
+
+        it('should call redirectToSignIn when the device belongs to the current user', async () => {
+            // Given a device to revoke that belongs to the current user
+            const partnerID = CONST.PARTNER_ID.IPHONE;
+            const partnerUserID = 'device_123';
+            const autoGeneratedLogin = 'device_123';
+            const login = createMock<NewLogin>({partnerID, partnerUserID});
+
+            (mockAPI.write as jest.Mock).mockResolvedValue(null);
+
+            // When revokeDevice is called
+            UserActions.revokeDevice(login, autoGeneratedLogin);
+            await waitForBatchedUpdates();
+
+            // Then redirectToSignIn should be called
+            expect(redirectToSignIn).toHaveBeenCalled();
         });
     });
 });

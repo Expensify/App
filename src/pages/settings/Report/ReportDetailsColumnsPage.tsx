@@ -9,6 +9,7 @@ import {setReportDetailsColumns} from '@libs/actions/ReportLayout';
 import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {isIOUReport} from '@libs/ReportUtils';
 import {getColumnsToShow} from '@libs/SearchUIUtils';
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
@@ -75,11 +76,13 @@ function ReportDetailsColumnsPage() {
         const visibleColumns = getColumnsToShow({
             currentAccountID: currentUserDetails?.accountID,
             data: reportTransactions,
+            report,
             isExpenseReportView: true,
             isExpenseReportViewFromIOUReport: isIOUReport(report),
             shouldShowBillableColumn: isBillableEnabledOnPolicy(policy),
             shouldShowReimbursableColumn: hasNonReimbursableTransactions(reportTransactions),
             reportCurrency: report?.currency,
+            isPolicyTaxEnabled: isPolicyTaxEnabled(policy),
         });
 
         // Filter to only columns available in the custom columns list (drops RECEIPT/TYPE/COMMENTS etc.)

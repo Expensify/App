@@ -64,8 +64,8 @@ function WorkspaceTravelInvoicingMonthlyLimitPage({route}: WorkspaceTravelInvoic
             return;
         }
         showConfirmModal({
-            title: translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.reduceLimitTitle'),
-            prompt: translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.reduceLimitWarning'),
+            title: translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.reduceLimitTitle'),
+            prompt: translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.reduceLimitWarning'),
             confirmText: translate('common.confirm'),
             cancelText: translate('common.cancel'),
             danger: true,
@@ -84,7 +84,7 @@ function WorkspaceTravelInvoicingMonthlyLimitPage({route}: WorkspaceTravelInvoic
             testID="WorkspaceTravelInvoicingMonthlyLimitPage"
         >
             <HeaderWithBackButton
-                title={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.monthlySpendLimitLabel')}
+                title={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.monthlySpendLimitLabel')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <FormProvider
@@ -109,7 +109,7 @@ function WorkspaceTravelInvoicingMonthlyLimitPage({route}: WorkspaceTravelInvoic
                         displayAsTextInput
                     />
                     <Text style={[styles.mutedNormalTextLabel, styles.mt2]}>
-                        {translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.monthlySpendLimitDescription')}
+                        {translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.monthlySpendLimitDescription')}
                     </Text>
                 </View>
             </FormProvider>

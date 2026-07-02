@@ -14,6 +14,7 @@ import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -21,6 +22,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
+import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
@@ -33,6 +36,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
+import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionGroupListExpandedProps, TransactionListItemType} from './types';
 
@@ -56,10 +60,10 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     shouldDisplayEmptyView,
     searchTransactions,
     isInSingleTransactionReport,
-    policyForMovingExpenses,
     onLongPress,
     nonPersonalAndWorkspaceCards,
     onUndelete,
+    hideSearchTableHeader,
 }: TransactionGroupListExpandedProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -69,8 +73,13 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
     const transactionsSnapshotMetadata = transactionsSnapshot?.search;
 
@@ -110,9 +119,25 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         if (!transactionsSnapshot?.data) {
             currentColumns = [];
         } else {
-            currentColumns = getColumnsToShow({currentAccountID: accountID, data: transactionsSnapshot?.data, visibleColumns, type: transactionsSnapshot?.search.type});
+            currentColumns = getColumnsToShow({
+                currentAccountID: accountID,
+                data: transactionsSnapshot?.data,
+                visibleColumns,
+                type: transactionsSnapshot?.search.type,
+                fallbackPolicyID: policyForMovingExpensesID,
+            });
         }
     }
+
+    const getTransactionPolicyID = (transaction: TransactionListItemType) =>
+        [transaction.policyID, transaction.policy?.id, transaction.report?.policyID].find(Boolean) ??
+        (transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? policyForMovingExpensesID : undefined);
+
+    const getPolicyCategoriesForTransaction = (transaction: TransactionListItemType) =>
+        policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(getTransactionPolicyID(transaction))}`];
+
+    const getPolicyTagListsForTransaction = (transaction: TransactionListItemType) =>
+        policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(getTransactionPolicyID(transaction))}`];
 
     // Currently only the transaction report groups have transactions where the empty view makes sense
     const shouldDisplayShowMoreButton = isExpenseReportType ? transactions.length > transactionsVisibleLimit : !!transactionsSnapshotMetadata?.hasMoreResults && !isOffline;
@@ -132,7 +157,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const isActionColumnWide = transactions.some((transaction) => !!transaction.isActionColumnWide || isDeletedTransaction(transaction));
 
     const {markReportIDAsExpense} = useWideRHPActions();
-    const selectRow = onSelectRow as (item: TItem, transactionPreviewData?: TransactionPreviewData) => void;
+    const selectRow = onSelectRow as (item: TItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
     const getTransactionPreviewData = (transactionItem: TransactionListItemType): TransactionPreviewData => {
         const parentReportAction = getReportAction(transactionItem?.reportID, transactionItem?.reportAction?.reportActionID);
         const parentReport = getReportOrDraftReport(transactionItem?.reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportID}`]);
@@ -153,30 +178,54 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         };
     };
 
-    const openReportInRHP = (transactionItem: TransactionListItemType) => {
+    const openReportInRHP = (transactionItem: TransactionListItemType, event?: ModifiedMouseEvent) => {
         const backTo = Navigation.getActiveRoute();
         const reportID = getReportIDForTransaction(transactionItem, transactionItem?.reportAction?.childReportID);
 
         const navigateToTransactionThread = () => {
             if (!transactionItem?.reportAction?.childReportID) {
-                createAndOpenSearchTransactionThread(
-                    transactionItem,
+                if (isModifiedMousePress(event)) {
+                    const targetReportID = createAndOpenSearchTransactionThread({
+                        item: transactionItem,
+                        introSelected,
+                        backTo,
+                        currentUserLogin: currentUserDetails.email ?? '',
+                        currentUserAccountID: currentUserDetails.accountID,
+                        betas,
+                        isSelfTourViewed,
+                        hasCompletedGuidedSetupFlow,
+                        IOUTransactionID: transactionItem?.reportAction?.childReportID,
+                        shouldNavigate: false,
+                    });
+                    if (targetReportID) {
+                        openInternalRouteInNewTab(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo}), event);
+                    }
+                    return;
+                }
+                createAndOpenSearchTransactionThread({
+                    item: transactionItem,
                     introSelected,
                     backTo,
-                    currentUserDetails.email ?? '',
-                    currentUserDetails.accountID,
+                    currentUserLogin: currentUserDetails.email ?? '',
+                    currentUserAccountID: currentUserDetails.accountID,
                     betas,
-                    transactionItem?.reportAction?.childReportID,
-                );
+                    isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow,
+                    IOUTransactionID: transactionItem?.reportAction?.childReportID,
+                });
                 return;
             }
             markReportIDAsExpense(reportID);
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
+            const route = ROUTES.SEARCH_REPORT.getRoute({reportID, backTo});
+            if (openInternalRouteInNewTab(route, event)) {
+                return;
+            }
+            Navigation.navigate(route);
         };
 
         // The arrow navigation in RHP is only allowed for group-by:reports
         if (!isExpenseReportType) {
-            selectRow(transactionItem as unknown as TItem, getTransactionPreviewData(transactionItem));
+            selectRow(transactionItem as unknown as TItem, getTransactionPreviewData(transactionItem), event);
             return;
         }
 
@@ -186,10 +235,13 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
         // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
         // to display prev/next arrows in RHP for navigation
-        setActiveTransactionIDs(siblingTransactionIDs).then(() => {
-            // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
+        if (isModifiedMousePress(event)) {
+            setActiveTransactionIDs(siblingTransactionIDs);
             navigateToTransactionThread();
-        });
+            return;
+        }
+
+        setActiveTransactionIDs(siblingTransactionIDs).then(navigateToTransactionThread);
     };
 
     const onShowMoreButtonPress = () => {
@@ -218,20 +270,21 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         );
     }
 
-    const handleOnPress = (transaction: TransactionListItemType) => {
-        if (isMobileSelectionModeEnabled) {
+    const handleOnPress = (transaction: TransactionListItemType, event?: ModifiedMouseEvent) => {
+        // A deleted transaction has no report to open, so a row press toggles its selection instead of dead-ending in navigation.
+        if (isMobileSelectionModeEnabled || isDeletedTransaction(transaction) || isTransactionPendingDelete(transaction)) {
             onSelectionButtonPress?.(transaction as unknown as TItem);
             return;
         }
-        openReportInRHP(transaction);
+        openReportInRHP(transaction, event);
     };
 
-    const handleButtonPress = (transaction: TransactionListItemType) => {
+    const handleButtonPress = (transaction: TransactionListItemType, event?: ModifiedMouseEvent) => {
         if (transaction.action === CONST.SEARCH.ACTION_TYPES.UNDELETE) {
             onUndelete?.(transaction);
             return;
         }
-        openReportInRHP(transaction);
+        openReportInRHP(transaction, event);
     };
 
     const dataColumns = currentColumns.filter((column) => !column.startsWith(CONST.SEARCH.GROUP_COLUMN_PREFIX)) ?? [];
@@ -240,7 +293,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
     const content = (
         <View style={[styles.flexColumn, styles.flex1]}>
-            {isLargeScreenWidth && !(isEmpty && shouldDisplayLoadingIndicator) && (
+            {isLargeScreenWidth && !hideSearchTableHeader && !(isEmpty && shouldDisplayLoadingIndicator) && (
                 <>
                     <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl8, styles.borderNone]}>
                         <SearchTableHeader
@@ -273,7 +326,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         key={transaction.transactionID}
                     >
                         <PressableWithFeedback
-                            onPress={isDeletedOrPendingDelete && !canSelectMultiple ? undefined : () => handleOnPress(transaction)}
+                            onPress={isDeletedOrPendingDelete && !canSelectMultiple ? undefined : (event) => handleOnPress(transaction, event)}
                             disabled={isTransactionPendingDelete(transaction) && !transaction.isSelected}
                             onLongPress={() => onLongPress?.(transaction)}
                             accessibilityRole={CONST.ROLE.BUTTON}
@@ -290,6 +343,8 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                                 <TransactionItemRow
                                     report={transaction.report}
                                     policy={transaction.policy}
+                                    policyCategories={getPolicyCategoriesForTransaction(transaction)}
+                                    policyTagLists={getPolicyTagListsForTransaction(transaction)}
                                     transactionItem={transaction}
                                     violations={getTransactionViolations(
                                         transaction,
@@ -310,15 +365,14 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                                     checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPANDED_TRANSACTION_ROW_CHECKBOX}
                                     onCheckboxPress={() => onSelectionButtonPress?.(transaction as unknown as TItem)}
                                     columns={currentColumns}
-                                    onButtonPress={() => handleButtonPress(transaction)}
-                                    style={[styles.noBorderRadius, isLargeScreenWidth ? [styles.p3, styles.pv2, styles.searchTableRowHeight] : styles.p4, styles.flex1]}
+                                    onButtonPress={(event) => handleButtonPress(transaction, event)}
+                                    style={[styles.noBorderRadius, isLargeScreenWidth ? [styles.p3, styles.pv2, styles.tableRowHeight] : styles.p4, styles.flex1]}
                                     isReportItemChild
                                     isInSingleTransactionReport={isInSingleTransactionReport}
                                     shouldShowBottomBorder={shouldShowBottomBorder}
-                                    onArrowRightPress={isDeletedOrPendingDelete ? undefined : () => openReportInRHP(transaction)}
+                                    onArrowRightPress={isDeletedOrPendingDelete ? undefined : (event) => openReportInRHP(transaction, event)}
                                     shouldShowArrowRightOnNarrowLayout
                                     reportActions={exportedReportActions}
-                                    policyForMovingExpenses={policyForMovingExpenses}
                                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                                     isActionColumnWide={isActionColumnWide}
                                     isHover={hovered}

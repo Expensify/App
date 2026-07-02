@@ -1,21 +1,21 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setMoneyRequestMerchant} from '@libs/actions/IOU';
+import {clearMoneyRequestMerchant, setMoneyRequestMerchant} from '@libs/actions/IOU/MoneyRequest';
 import Navigation from '@libs/Navigation/Navigation';
-import {getMerchant, hasReceipt, isMerchantMissing} from '@libs/TransactionUtils';
-import {isValidInputLength} from '@libs/ValidationUtils';
+import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type * as OnyxTypes from '@src/types/onyx';
+import {merchantStateSelector} from './selectors';
+import useTransactionSelector from './useTransactionSelector';
 
 type MerchantFieldProps = {
     isMerchantRequired: boolean | undefined;
@@ -29,8 +29,6 @@ type MerchantFieldProps = {
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
     reportID: string;
     reportActionID: string | undefined;
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
-    isEditingSplitBill: boolean;
 };
 
 function MerchantField({
@@ -45,27 +43,32 @@ function MerchantField({
     iouType,
     reportID,
     reportActionID,
-    transaction,
-    isEditingSplitBill,
 }: MerchantFieldProps) {
+    const {isEditingSplitBill} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
-    const iouMerchant = getMerchant(transaction);
-    const isMerchantEmpty = !iouMerchant || isMerchantMissing(transaction);
+    const merchantState = useTransactionSelector(transactionID, merchantStateSelector);
+
+    const merchantValue = merchantState?.merchant ?? '';
+    const displayMerchantValue = !merchantState?.isMerchantSet && isInvalidMerchantValue(merchantValue) ? '' : merchantValue;
+    const transactionHasReceipt = merchantState?.hasReceipt ?? false;
 
     // Determine if the merchant error should be displayed
     const merchantErrorText = (() => {
-        const merchantValue = iouMerchant ?? '';
         const {isValid, byteLength} = isValidInputLength(merchantValue, CONST.MERCHANT_NAME_MAX_BYTES);
 
         if (!isValid) {
             return translate('common.error.characterLimitExceedCounter', byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
         }
 
-        if ((shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantRequired && isMerchantEmpty) {
+        if (formError === 'iou.error.invalidMerchant') {
+            return translate('iou.error.invalidMerchant');
+        }
+
+        if (shouldDisplayFieldError && isMerchantRequired && !displayMerchantValue) {
             return translate('common.error.fieldRequired');
         }
 
@@ -82,18 +85,27 @@ function MerchantField({
         // When editing a split expense, persist directly to the split draft so that
         // SplitBillDetailsPage and completeSplitBill read the latest value.
         if (isEditingSplitBill) {
+            if (newMerchant.trim() === '') {
+                setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: '', isMerchantSet: false});
+                return;
+            }
             setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: newMerchant});
             return;
         }
 
-        setMoneyRequestMerchant(transactionID, newMerchant, true, hasReceipt(transaction));
+        if (newMerchant.trim() === '') {
+            clearMoneyRequestMerchant(transactionID);
+            return;
+        }
+
+        setMoneyRequestMerchant(transactionID, newMerchant, true, transactionHasReceipt);
     };
 
     if (isNewManualExpenseFlowEnabled && !isReadOnly) {
         return (
             <View style={[styles.mh4, styles.mv2]}>
                 <TextInput
-                    value={isMerchantEmpty ? '' : (iouMerchant ?? '')}
+                    value={displayMerchantValue}
                     readOnly={didConfirm}
                     onChangeText={handleMerchantInputChange}
                     label={translate('common.merchant')}
@@ -107,7 +119,7 @@ function MerchantField({
     return (
         <MenuItemWithTopDescription
             shouldShowRightIcon={!isReadOnly}
-            title={isMerchantEmpty ? '' : iouMerchant}
+            title={displayMerchantValue}
             description={translate('common.merchant')}
             style={[styles.moneyRequestMenuItem]}
             titleStyle={styles.flex1}

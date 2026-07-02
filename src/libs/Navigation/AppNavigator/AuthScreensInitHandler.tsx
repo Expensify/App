@@ -7,6 +7,7 @@ import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReconcileHighContrastIntent from '@hooks/useReconcileHighContrastIntent';
 import useReportAttributes from '@hooks/useReportAttributes';
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
@@ -15,11 +16,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import {getReportIDFromLink} from '@libs/ReportUtils';
+import {registerPusherReinitializeHandler} from '@libs/requestPusherReinitialize';
+import type {PusherReinitializeHandlerParams} from '@libs/requestPusherReinitialize';
 import * as SessionUtils from '@libs/SessionUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getSearchParamFromUrl} from '@libs/Url';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
+import {clearStaleExportDownloads} from '@userActions/Export';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
@@ -70,6 +74,25 @@ function AuthScreensInitHandler() {
     // We use a ref so the Pusher callback (registered once on mount) always reads the latest value without re-subscribing.
     const reportAttributesRef = useRef(reportAttributes);
     reportAttributesRef.current = reportAttributes;
+
+    useReconcileHighContrastIntent();
+
+    useEffect(() => {
+        registerPusherReinitializeHandler(({accountID, email}: PusherReinitializeHandlerParams = {}) => {
+            const currentAccountID = accountID ?? session?.accountID;
+            const currentEmail = email ?? session?.email ?? '';
+
+            if (currentAccountID === undefined) {
+                return Promise.resolve();
+            }
+
+            return initializePusher(currentAccountID, currentEmail, () => reportAttributesRef.current);
+        });
+
+        return () => {
+            registerPusherReinitializeHandler(null);
+        };
+    }, [session?.accountID, session?.email]);
 
     useEffect(() => {
         if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
@@ -140,6 +163,7 @@ function AuthScreensInitHandler() {
         );
 
         Download.clearDownloads();
+        clearStaleExportDownloads();
 
         return () => {
             Session.cleanupSession();

@@ -11,6 +11,14 @@ on:
         description: 'Build HybridApp artifacts'
         required: false
         type: boolean
+      app_pull_request_url:
+        description: 'The Expensify/App pull request URL.'
+        required: false
+        default: ''
+      mobile_expensify_pull_request_url:
+        description: 'The Expensify/Mobile-Expensify pull request URL to check out the submodule.'
+        required: false
+        default: ''
   push:
     branches:
       - main
@@ -28,12 +36,9 @@ jobs:
     runs-on: 'blacksmith-4vcpu-ubuntu-2404'
     outputs:
       build_targets: ${{ steps.getArtifactBuildTargets.outputs.BUILD_TARGETS }}
-      hybrid_app_patches_hash: ${{ steps.getNewPatchesHash.outputs.HYBRID_APP_HASH }}
-      standalone_patches_hash: ${{ steps.getNewPatchesHash.outputs.STANDALONE_APP_HASH }}
     steps:
       - name: Checkout
-        # v6
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           submodules: true
           ref: ${{ github.event.before || 'main' }}
@@ -43,8 +48,8 @@ jobs:
         if: ${{ github.event_name != 'workflow_dispatch' }}
         id: getOldPatchesHash
         run: |
-            echo "HYBRID_APP_HASH=$(./scripts/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
-            echo "STANDALONE_APP_HASH=$(./scripts/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
+          echo "HYBRID_APP_HASH=$(./scripts/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
+          echo "STANDALONE_APP_HASH=$(./scripts/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
 
       - name: Get previous react-native version
         if: ${{ github.event_name != 'workflow_dispatch' }}
@@ -61,8 +66,8 @@ jobs:
       - name: Get new patches hash
         id: getNewPatchesHash
         run: |
-            echo "HYBRID_APP_HASH=$(./scripts/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
-            echo "STANDALONE_APP_HASH=$(./scripts/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
+          echo "HYBRID_APP_HASH=$(./scripts/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
+          echo "STANDALONE_APP_HASH=$(./scripts/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
 
       - name: Get new react-native version
         if: ${{ github.event_name != 'workflow_dispatch' }}
@@ -123,10 +128,19 @@ jobs:
             echo "BUILD_TARGETS=[\"true\"]" >> "$GITHUB_OUTPUT"
           fi
 
+  getMobileExpensifyRef:
+    name: Resolve Mobile-Expensify ref
+    uses: ./.github/workflows/resolveMobileExpensifyRef.yml
+    with:
+      APP_PULL_REQUEST_URL: ${{ inputs.app_pull_request_url }}
+      MOBILE_EXPENSIFY_PULL_REQUEST_URL: ${{ inputs.mobile_expensify_pull_request_url }}
+    secrets:
+      OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+
   buildAndPublishReactNativeArtifacts:
     name: Build and Publish React Native Artifacts
     runs-on: ${{ github.repository_owner == 'Expensify' && 'blacksmith-16vcpu-ubuntu-2404' || 'blacksmith-2vcpu-ubuntu-2404' }}
-    needs: verifyPatches
+    needs: [verifyPatches, getMobileExpensifyRef]
     if: needs.verifyPatches.outputs.build_targets != ''
     strategy:
       # Disable fail-fast to prevent cancelling both jobs when only one needs to be stopped due to concurrency limits
@@ -139,11 +153,28 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Checkout Code
-        # v6
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           submodules: ${{ matrix.is_hybrid }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Checkout Mobile-Expensify to specified branch or commit
+        if: ${{ matrix.is_hybrid == 'true' && needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF != '' }}
+        run: |
+          cd Mobile-Expensify
+          git fetch origin ${{ needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF }}
+          git checkout ${{ needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF }}
+
+      # Recompute the patches hash from the actually checked-out tree (which may include a custom Mobile-Expensify
+      # ref) so the published artifact is tagged with a hash that consumers will match against.
+      - name: Compute patches hash
+        id: computePatchesHash
+        run: |
+          if [[ '${{ matrix.is_hybrid }}' == 'true' ]]; then
+            echo "PATCHES_HASH=$(./scripts/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
+          else
+            echo "PATCHES_HASH=$(./scripts/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -155,13 +186,14 @@ jobs:
         uses: ./.github/actions/composite/getJavaVersion
 
       - name: Setup Java
-        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654
         with:
           distribution: oracle
           java-version: ${{ steps.get-java-version.outputs.version }}
 
+      # v6.1.0
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244
+        uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e
 
       - name: Determine new patched RN version
         id: getNewPatchedVersion
@@ -195,7 +227,7 @@ jobs:
           GH_PUBLISH_TOKEN: ${{ github.token }}
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
           PATCHED_VERSION: ${{ steps.getNewPatchedVersion.outputs.NEW_PATCHED_VERSION }}
-          PATCHES_HASH: ${{ matrix.is_hybrid == 'true' && needs.verifyPatches.outputs.hybrid_app_patches_hash || needs.verifyPatches.outputs.standalone_patches_hash }}
+          PATCHES_HASH: ${{ steps.computePatchesHash.outputs.PATCHES_HASH }}
           CMAKE_VERSION: 3.31.6
 
       - name: Announce failed workflow in Slack
@@ -204,3 +236,4 @@ jobs:
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           CHANNEL: '#expensify-open-source'
+

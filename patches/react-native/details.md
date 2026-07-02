@@ -264,3 +264,51 @@
 - Reason: Fixes an Android-specific issue (reproducible on certain Samsung models) where `onPress` events do not trigger for `Pressable` components when used inside a `Tooltip`. The root cause is that in the new architecture, `Pressability.measure()` reads stale layout information from the shadow tree instead of the actual native view hierarchy. This patch introduces a new `measureAsyncOnUI` method that measures the view asynchronously using the native layout hierarchy on the UI thread, bypassing stale shadow tree data.
 - Upstream PR/issue: [facebook/react-native#51835](https://github.com/facebook/react-native/pull/51835)
 - E/App issue: [#59953](https://github.com/Expensify/App/issues/59953)
+
+### [react-native+0.83.1+036+fix-turbomodule-event-emitter-uaf.patch](react-native+0.83.1+036+fix-turbomodule-event-emitter-uaf.patch)
+
+- Reason: Fixes an Android use-after-free crash in `JavaTurboModule::configureEventEmitterCallback`. The event-emitter callback lambda captured `this` by reference (`[&]`), so when the C++ TurboModule was deallocated (e.g. on screen unmount) a background thread invoking the callback would dereference freed memory via `eventEmitterMap_[name]` and crash with `SIGSEGV`. The fix copies the `shared_ptr` map by value into the lambda and replaces `operator[]` with `find()` + null-check, which both keeps the map alive for the callback's lifetime and avoids inserting empty entries on missing keys.
+- Upstream PR/issue: [facebook/react-native#55398](https://github.com/facebook/react-native/pull/55398)
+- E/App issue: [#90623](https://github.com/Expensify/App/issues/90623)
+
+### [react-native+0.83.1+037+fix-deadlock-APP-7B2.patch](react-native+0.83.1+037+fix-deadlock-APP-7B2.patch)
+
+- Reason: Fixes a fatal iOS app hang (APP-7B2) caused by a deadlock in Fabric's `ComponentDescriptorRegistry`. During HybridApp OldDot->NewDot transitions, a background thread lazily registering legacy interop component descriptors via `ComponentDescriptorRegistry::add()` holds a `unique_lock(mutex_)` while constructing a descriptor that calls `RCTUnsafeExecuteOnMainQueueSync`. Simultaneously, the main thread (driven by `CADisplayLink` animation ticks) tries to acquire `shared_lock(mutex_)` in `findComponentDescriptorByHandle_DO_NOT_USE_THIS_IS_BROKEN`. This creates a circular dependency: main waits for the lock, background waits for main. The fix moves descriptor construction outside the `unique_lock`, so the lock is only held for the two map insertions.
+- Upstream PR/issue: https://github.com/facebook/react-native/issues/53128
+- E/App issue: https://github.com/Expensify/App/issues/91292
+- PR introducing patch: https://github.com/Expensify/App/pull/91736
+
+
+### [react-native+0.83.1+038+fix-nil-BlobModule-crash-APP-8BM.patch](react-native+0.83.1+038+fix-nil-BlobModule-crash-APP-8BM.patch)
+
+- Reason: Fixes a fatal iOS crash (APP-8BM) in HybridApp where `RCTNetworking`'s default URL-request-handler provider builds its handler list using an Objective-C array literal (`@[...]`) with `[moduleRegistry moduleForName:"BlobModule"]` at index 3. During OldDot↔NewDot bridge transitions, the `__weak _turboModuleRegistry` in `RCTModuleRegistry` is zeroed by ARC at the start of `TurboModuleManager` dealloc — before `[RCTNetworking invalidate]` clears the handler cache — leaving a window where a concurrent in-flight network request calls `prioritizedHandlers`, finds the cache empty, and tries to rebuild it with a nil `BlobModule`. Since `@[…]` compiles to `+[NSArray arrayWithObjects:count:]` which raises `NSInvalidArgumentException` on any nil element, the crash is fatal. The fix replaces the literal with an `NSMutableArray` built from the three always-non-nil handlers (`RCTHTTPRequestHandler`, `RCTDataRequestHandler`, `RCTFileRequestHandler`) and conditionally appends `BlobModule` only when the registry lookup is non-nil, turning a guaranteed crash into a graceful "no blob handler for this window".
+- Upstream PR/issue: 🛑
+- E/App issue: https://github.com/Expensify/App/issues/92413
+- PR introducing patch: https://github.com/Expensify/App/pull/92918
+
+### [react-native+0.83.1+039+nested-text-border-radius.patch](react-native+0.83.1+039+nested-text-border-radius.patch)
+
+- Reason:
+
+    ```
+    Adds borderRadius / per-corner radius support for nested <Text> backgrounds on iOS and Android.
+    On the C++ side, borderRadius + borderTopLeftRadius / borderTopRightRadius /
+    borderBottomLeftRadius / borderBottomRightRadius fields are added to TextAttributes and wired
+    through BaseTextProps and conversions. borderRadius acts as a fallback for unset individual
+    corners; unset corners default to 0 when any radius prop is present. On Android, a custom
+    DrawCommandSpan with ReactBackgroundDrawSpan draws rounded-rect backgrounds using the four
+    effective corner radii. On iOS, a custom NSLayoutManager subclass
+    (RCTTextLayoutManagerWithBorderRadius) overrides fillBackgroundRectArray to draw per-corner
+    rounded rectangles using CGPath, with per-line outer-corner rounding for multiline spans.
+    ```
+
+- Upstream PR/issue: 🛑
+- E/App issue: https://github.com/Expensify/App/issues/78873
+- PR introducing patch: https://github.com/Expensify/App/pull/84556
+
+### [react-native+0.83.1+040+fix-runtime-scheduler-delegate-uaf-APP-25V.patch](react-native+0.83.1+040+fix-runtime-scheduler-delegate-uaf-APP-25V.patch)
+
+- Reason: Fixes a fatal iOS HybridApp crash (APP-25V) where `RuntimeScheduler_Modern::runEventLoopTick` can drain deferred Fabric rendering updates after the captured `SchedulerDelegate` has been torn down. RN 0.83.1 queues `Scheduler::uiManagerDidFinishTransaction` and `Scheduler::uiManagerDidDispatchCommand` callbacks with lambdas that capture the raw `delegate_` pointer by value. During OldDot↔NewDot lifecycle churn, the delegate can be replaced or destroyed before the scheduled rendering update runs, causing `EXC_BAD_ACCESS` when the lambda dereferences stale native memory. This patch backports the upstream RN scheduler-delegate invalidation guard by adding a per-delegate `shared_ptr<atomic<bool>>` token, invalidating the old token on delegate changes and Scheduler destruction, and making already-queued lambdas no-op before touching a stale delegate.
+- Upstream PR/issue: https://github.com/facebook/react-native/pull/56680 / https://github.com/facebook/react-native/commit/aadbe965792bd900ca70412d6704b76e339d1aca
+- E/App issue: https://github.com/Expensify/App/issues/92412
+- PR introducing patch: 🛑
