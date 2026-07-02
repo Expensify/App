@@ -3456,6 +3456,7 @@ const CONST = {
             SSN: 'ssnError',
             KBA: 'kbaNeeded',
             KYC: 'kycFailed',
+            INCORRECT_MAGIC_CODE: 'incorrectMagicCode',
             FULL_SSN_NOT_FOUND: 'Full SSN not found',
             MISSING_FIELD: 'Missing required additional details fields',
             WRONG_ANSWERS: 'Wrong answers',

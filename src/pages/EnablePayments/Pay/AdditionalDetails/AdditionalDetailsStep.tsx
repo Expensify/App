@@ -1,5 +1,5 @@
 import {subYears} from 'date-fns';
-import React from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
@@ -10,11 +10,15 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
+import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {UpdatePersonalDetailsForWalletParams} from '@libs/API/parameters';
+import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import {extractFirstAndLastNameFromAvailableDetails} from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import {
@@ -30,7 +34,8 @@ import {
 } from '@libs/ValidationUtils';
 import IdologyQuestions from '@pages/EnablePayments/shared/IdologyQuestions';
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
-import {setAdditionalDetailsQuestions, updatePersonalDetails} from '@userActions/Wallet';
+import {requestValidateCodeAction} from '@userActions/User';
+import {clearWalletAdditionalDetailsErrors, setAdditionalDetailsQuestions, updatePersonalDetails} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/AdditionalDetailStepForm';
@@ -70,10 +75,35 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [walletAdditionalDetails = DEFAULT_WALLET_ADDITIONAL_DETAILS] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
+    const [formData] = useOnyx(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS);
+    const primaryLogin = usePrimaryContactMethod();
     const currentDate = new Date();
     const minDate = subYears(currentDate, CONST.DATE_BIRTH.MAX_AGE);
     const maxDate = subYears(currentDate, CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
     const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN;
+
+    // The details the user submitted, held while we prompt for a magic code to confirm a phone number change
+    const submittedPersonalDetailsRef = useRef<UpdatePersonalDetailsForWalletParams | null>(null);
+    const [isConfirmingMagicCode, setIsConfirmingMagicCode] = useState(false);
+
+    // The backend requires a valid magic code to change an existing phone number. Keep the prompt open if the
+    // submitted code was missing or invalid, even when the change wasn't detected client-side.
+    const isMagicCodeRequired = isConfirmingMagicCode || walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.INCORRECT_MAGIC_CODE;
+
+    // Once a submission finishes, keep prompting only if the magic code was missing or invalid; otherwise dismiss the
+    // prompt so the flow can advance (e.g. to Onfido or KBA questions).
+    const wasSubmittingRef = useRef(false);
+    useEffect(() => {
+        if (formData?.isLoading) {
+            wasSubmittingRef.current = true;
+            return;
+        }
+        if (!wasSubmittingRef.current) {
+            return;
+        }
+        wasSubmittingRef.current = false;
+        setIsConfirmingMagicCode(walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.INCORRECT_MAGIC_CODE);
+    }, [formData?.isLoading, walletAdditionalDetails?.errorCode]);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
         const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
@@ -113,7 +143,7 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
     };
 
     const activateWallet = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>) => {
-        const personalDetails = {
+        const personalDetails: UpdatePersonalDetailsForWalletParams = {
             phoneNumber: (values.phoneNumber && parsePhoneNumber(values.phoneNumber, {regionCode: CONST.COUNTRY.US}).number?.significant) ?? '',
             legalFirstName: values.legalFirstName ?? '',
             legalLastName: values.legalLastName ?? '',
@@ -124,9 +154,46 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
             dob: values.dob ?? '',
             ssn: values.ssn ?? '',
         };
+        submittedPersonalDetailsRef.current = personalDetails;
+
+        // Changing an existing phone number is protected by a magic code because it is used for card 3DS verification
+        const hasPhoneNumberChanged = !!currentUserPersonalDetails.phoneNumber && personalDetails.phoneNumber !== currentUserPersonalDetails.phoneNumber;
+        if (hasPhoneNumberChanged) {
+            setIsConfirmingMagicCode(true);
+            return;
+        }
+
         // Attempt to set the personal details
         updatePersonalDetails(personalDetails);
     };
+
+    const confirmPersonalDetailsWithMagicCode = (validateCode: string) => {
+        if (!submittedPersonalDetailsRef.current) {
+            return;
+        }
+        updatePersonalDetails({...submittedPersonalDetailsRef.current, validateCode});
+    };
+
+    const closeMagicCodePrompt = () => {
+        setIsConfirmingMagicCode(false);
+        clearWalletAdditionalDetailsErrors();
+    };
+
+    if (isMagicCodeRequired) {
+        return (
+            <ValidateCodeActionContent
+                validateCodeActionErrorField="walletPhoneNumber"
+                handleSubmitForm={confirmPersonalDetailsWithMagicCode}
+                isLoading={formData?.isLoading}
+                title={translate('delegate.makeSureItIsYou')}
+                descriptionPrimary={translate('contacts.enterMagicCode', primaryLogin ?? '')}
+                sendValidateCode={() => requestValidateCodeAction()}
+                validateError={getLatestErrorMessageField(walletAdditionalDetails)}
+                clearError={clearWalletAdditionalDetailsErrors}
+                onClose={closeMagicCodePrompt}
+            />
+        );
+    }
 
     if (walletAdditionalDetails?.questions && walletAdditionalDetails.questions.length > 0) {
         return (
