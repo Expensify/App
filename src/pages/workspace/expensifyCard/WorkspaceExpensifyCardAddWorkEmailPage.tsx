@@ -1,5 +1,5 @@
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -7,16 +7,16 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAddWorkspaceWorkEmailForm from '@hooks/useAddWorkspaceWorkEmailForm';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
 import {setContactMethodAsDefault} from '@libs/actions/User';
-import {addErrorMessage, getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
@@ -25,8 +25,6 @@ import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {linkCardFeedToPolicy} from '@userActions/CompanyCards';
-import {setErrorFields} from '@userActions/FormActions';
-import {AddWorkEmail} from '@userActions/Session';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,7 +37,6 @@ type WorkspaceExpensifyCardAddWorkEmailPageProps = PlatformStackScreenProps<Sett
 
 function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardAddWorkEmailPageProps) {
     const {policyID, fundID} = route.params;
-    const primaryContactMethod = usePrimaryContactMethod();
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
@@ -47,11 +44,24 @@ function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardA
 
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
-    const [email, setEmail] = useState('');
-    const emailLoginKey = email ? Object.keys(loginList ?? {}).find((login) => login.toLowerCase() === email.toLowerCase()) : undefined;
-    const isWorkEmailValidated = emailLoginKey ? !!loginList?.[emailLoginKey]?.validatedDate : false;
 
     const {inputCallbackRef} = useAutoFocusInput();
+    const {setAddWorkEmailError, submitAddWorkspaceWorkEmail} = useAddWorkspaceWorkEmailForm();
+
+    const linkWorkspaceExpensifyCardFeed = () => {
+        setLoading(true);
+        linkCardFeedToPolicy(Number(fundID), policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.EXPENSIFY_CARD)
+            .then(() => {
+                updateSelectedExpensifyCardFeed(Number(fundID), policyID);
+                Navigation.closeRHPFlow();
+            })
+            .catch((error: TranslationPaths) => {
+                setAddWorkEmailError(translate(error));
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    };
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM>) => {
         const submittedEmail = values[INPUT_IDS.EMAIL].trim();
@@ -60,37 +70,15 @@ function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardA
 
         if (existingLoginKey) {
             if (!isExistingLoginValidated) {
-                setEmail(submittedEmail);
                 Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, fundID));
                 return;
             }
             setContactMethodAsDefault(currentUserPersonalDetails, existingLoginKey, formatPhoneNumber, undefined, true, '');
-            setLoading(true);
-            linkCardFeedToPolicy(Number(fundID), policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.EXPENSIFY_CARD)
-                .then(() => {
-                    updateSelectedExpensifyCardFeed(Number(fundID), policyID);
-                    Navigation.closeRHPFlow();
-                })
-                .catch((error: TranslationPaths) => {
-                    setErrorFields(ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM, {
-                        [INPUT_IDS.EMAIL]: getMicroSecondOnyxErrorWithMessage(translate(error)),
-                    });
-                })
-                .finally(() => {
-                    setLoading(false);
-                });
+            linkWorkspaceExpensifyCardFeed();
         } else {
-            AddWorkEmail(submittedEmail);
+            submitAddWorkspaceWorkEmail(submittedEmail, ROUTES.WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, fundID), linkWorkspaceExpensifyCardFeed);
         }
-        setEmail(submittedEmail);
     };
-
-    useEffect(() => {
-        if (!email || !primaryContactMethod || primaryContactMethod.toLowerCase() !== email.toLowerCase() || isWorkEmailValidated) {
-            return;
-        }
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, fundID));
-    }, [primaryContactMethod, email, policyID, fundID, isWorkEmailValidated]);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM>): Errors => {
         const errors = {};

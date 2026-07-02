@@ -1549,6 +1549,52 @@ function AddWorkEmail(workEmail: string) {
     });
 }
 
+function AddWorkspaceWorkEmail(workEmail: string) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM,
+            value: {
+                isLoading: true,
+                errors: null,
+                errorFields: null,
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    // We need the response so workspace flows can route to their verify step and surface errors on their own form.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(
+        SIDE_EFFECT_REQUEST_COMMANDS.ADD_WORK_EMAIL,
+        {workEmail},
+        {
+            optimisticData,
+            successData,
+            failureData,
+        },
+    );
+}
+
 function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: string, accountID: number | undefined) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY | typeof ONYXKEYS.ACCOUNT>> = [
         {
@@ -1719,6 +1765,7 @@ export {
     signUpUser,
     setupNewDotAfterTransitionFromOldDot,
     AddWorkEmail,
+    AddWorkspaceWorkEmail,
     MergeIntoAccountAndLogin,
     resetSMSDeliveryFailureStatus,
     clearDisableTwoFactorAuthErrors,

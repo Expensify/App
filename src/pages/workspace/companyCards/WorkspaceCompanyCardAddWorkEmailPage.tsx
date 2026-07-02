@@ -1,5 +1,5 @@
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -7,13 +7,13 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAddWorkspaceWorkEmailForm from '@hooks/useAddWorkspaceWorkEmailForm';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCardFeedsForActivePolicies from '@hooks/useCardFeedsForActivePolicies';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setContactMethodAsDefault} from '@libs/actions/User';
 import {getFeedInfo} from '@libs/CardFeedUtils';
@@ -28,7 +28,6 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {updateSelectedFeed} from '@userActions/Card';
 import {linkCardFeedToPolicy} from '@userActions/CompanyCards';
-import {AddWorkEmail} from '@userActions/Session';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,7 +42,6 @@ type WorkspaceCompanyCardAddWorkEmailPageProps = PlatformStackScreenProps<Settin
 
 function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWorkEmailPageProps) {
     const {policyID, feed} = route.params;
-    const primaryContactMethod = usePrimaryContactMethod();
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
@@ -53,11 +51,30 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
 
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
-    const [email, setEmail] = React.useState('');
-    const emailLoginKey = email ? Object.keys(loginList ?? {}).find((login) => login.toLowerCase() === email.toLowerCase()) : undefined;
-    const isWorkEmailValidated = emailLoginKey ? !!loginList?.[emailLoginKey]?.validatedDate : false;
 
     const {inputCallbackRef} = useAutoFocusInput();
+    const {setAddWorkEmailError, submitAddWorkspaceWorkEmail} = useAddWorkspaceWorkEmailForm();
+
+    const linkWorkspaceCompanyCardFeed = () => {
+        if (!feedInfo) {
+            setAddWorkEmailError(translate('workspace.companyCards.error.feedCouldNotBeLoadedMessage'));
+            return;
+        }
+
+        setLoading(true);
+        const feedValue = getCardFeedWithDomainID(feedInfo.feed, feedInfo.fundID) as CompanyCardFeedWithDomainID;
+        linkCardFeedToPolicy(Number(feedInfo.fundID), policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.COMPANY_CARD, feedInfo?.country, feedInfo.feed as CompanyCardFeedWithNumber)
+            .then(() => {
+                updateSelectedFeed(feedValue, policyID);
+                Navigation.closeRHPFlow();
+            })
+            .catch((error: TranslationPaths) => {
+                setAddWorkEmailError(translate(error));
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    };
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM>) => {
         const submittedEmail = values[INPUT_IDS.EMAIL].trim();
@@ -66,40 +83,15 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
 
         if (existingLoginKey) {
             if (!isExistingLoginValidated) {
-                setEmail(submittedEmail);
                 Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, feed));
                 return;
             }
             setContactMethodAsDefault(currentUserPersonalDetails, existingLoginKey, formatPhoneNumber, undefined, true, '');
-            if (!feedInfo) {
-                setEmail(submittedEmail);
-                return;
-            }
-            setLoading(true);
-            const feedValue = getCardFeedWithDomainID(feedInfo.feed, feedInfo.fundID) as CompanyCardFeedWithDomainID;
-            linkCardFeedToPolicy(Number(feedInfo.fundID), policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.COMPANY_CARD, feedInfo?.country, feedInfo.feed as CompanyCardFeedWithNumber)
-                .then(() => {
-                    updateSelectedFeed(feedValue, policyID);
-                    Navigation.closeRHPFlow();
-                })
-                .catch((error: TranslationPaths) => {
-                    addErrorMessage({}, INPUT_IDS.EMAIL, translate(error));
-                })
-                .finally(() => {
-                    setLoading(false);
-                });
+            linkWorkspaceCompanyCardFeed();
         } else {
-            AddWorkEmail(submittedEmail);
+            submitAddWorkspaceWorkEmail(submittedEmail, ROUTES.WORKSPACE_COMPANY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, feed), linkWorkspaceCompanyCardFeed);
         }
-        setEmail(submittedEmail);
     };
-
-    useEffect(() => {
-        if (!email || !primaryContactMethod || primaryContactMethod.toLowerCase() !== email.toLowerCase() || isWorkEmailValidated) {
-            return;
-        }
-        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, feed));
-    }, [primaryContactMethod, email, policyID, feed, isWorkEmailValidated]);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM>): Errors => {
         const errors = {};
