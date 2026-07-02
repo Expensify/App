@@ -49,14 +49,10 @@ function resetSessionFlag() {
  */
 function shouldShowSubmitPlanWelcomeModal(): boolean {
     const isSubmit2026BetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.SUBMIT_2026, betas, betaConfiguration);
+    const hasEmployerIntent = introSelected?.choice === CONST.ONBOARDING_CHOICES.EMPLOYER;
+    const groupPolicies = getGroupPoliciesWhereReportCanBeCreated(policies, isSubmit2026BetaEnabled, session?.email);
 
-    return (
-        isSubmit2026BetaEnabled &&
-        introSelected?.choice === CONST.ONBOARDING_CHOICES.EMPLOYER &&
-        !!hasCompletedGuidedSetupFlow &&
-        getGroupPoliciesWhereReportCanBeCreated(policies, isSubmit2026BetaEnabled, session?.email).length === 0 &&
-        !hasShownSubmitMigrationModal
-    );
+    return isSubmit2026BetaEnabled && hasEmployerIntent && !!hasCompletedGuidedSetupFlow && groupPolicies.length === 0 && !hasShownSubmitMigrationModal;
 }
 
 /**
