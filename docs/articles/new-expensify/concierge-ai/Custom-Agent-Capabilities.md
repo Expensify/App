@@ -54,7 +54,7 @@ Example phrases for your agent's instructions:
 
 ## How to write instructions that un-submit expense reports
 
-Unsubmits a submitted expense report, returning it to draft so the submitter can edit it.
+Un-submits a submitted expense report, returning it to draft so the submitter can edit it.
 
 Example phrases for your agent's instructions:
 - Retract my submitted report so I can edit it

@@ -67,7 +67,7 @@ Example phrases for your agent's instructions:
 - When a submitter recalls or withdraws their report
 - When someone takes back a report they submitted
 - When an employee retracts their own expense report
-- When someone unsubmits a report
+- When someone un-submits a report
 
 **An individual expense on a report was placed on hold, flagging it for follow-up while allowing the rest of the report to move forward.**
 
