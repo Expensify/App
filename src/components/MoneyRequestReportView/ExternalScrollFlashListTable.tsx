@@ -26,7 +26,9 @@ function createScrollOffsetStore(): ScrollOffsetStore {
                 return;
             }
             offset = next;
-            listeners.forEach((listener) => listener());
+            for (const listener of listeners) {
+                listener();
+            }
         },
         subscribe: (listener: () => void) => {
             listeners.add(listener);
@@ -50,13 +52,17 @@ type MinimalScrollRef = {
 
 // `store` and `offsetTop` are injected at runtime by FlashList via `overrideProps`, never by FlashList's own typed
 // call site — declaring them optional makes the driver structurally a ScrollView component, so no cast is needed to
-// pass it as `renderScrollComponent`.
-type ExternalScrollDriverProps = ScrollViewProps & {
+// pass it as `renderScrollComponent`. FlashList's renderScrollComponent wrapper passes the ref as a prop, so the
+// driver takes `ref` directly (React 19 style) rather than via forwardRef.
+type ExternalScrollDriverProps = Omit<ScrollViewProps, 'ref'> & {
     /** Source of the parent list's vertical scroll offset. */
     store?: ScrollOffsetStore;
 
     /** Where the table region starts within the parent page's scrollable content (px from the top). */
     offsetTop?: number;
+
+    /** Imperative handle FlashList drives (scrollTo/scrollToEnd/getScrollableNode…). */
+    ref?: React.Ref<MinimalScrollRef>;
 };
 
 /**
@@ -67,7 +73,7 @@ type ExternalScrollDriverProps = ScrollViewProps & {
  * corrections settle below the fold exactly like the parent-driven windowing. Must be a stable module-level component:
  * FlashList memoizes its scroll component on identity.
  */
-const ExternalScrollDriver = React.forwardRef<MinimalScrollRef, ExternalScrollDriverProps>(function ExternalScrollDriver({store, offsetTop = 0, onScroll, children, style}, ref) {
+function ExternalScrollDriver({store, offsetTop = 0, onScroll, children, style, ref}: ExternalScrollDriverProps) {
     const nodeRef = useRef<View>(null);
 
     useImperativeHandle(
@@ -91,6 +97,9 @@ const ExternalScrollDriver = React.forwardRef<MinimalScrollRef, ExternalScrollDr
             // the header height — internally). Only `contentOffset.y` is read for a vertical list, so nothing else is
             // populated; windowing comes from the `overrideWindowSize` prop, not this event.
             const y = Math.max(0, store.getOffset() - offsetTop);
+            // Synthesizing a native scroll event requires an assertion: NativeSyntheticEvent's target/currentTarget are
+            // RN HostInstances that can't be constructed in JS. FlashList's vertical handler reads only contentOffset.y.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             onScroll?.({nativeEvent: {contentOffset: {x: 0, y}}} as NativeSyntheticEvent<NativeScrollEvent>);
         };
         // Seed the initial window, then track subsequent parent scrolls. Re-subscribes only when the store, the
@@ -107,7 +116,7 @@ const ExternalScrollDriver = React.forwardRef<MinimalScrollRef, ExternalScrollDr
             {children}
         </View>
     );
-});
+}
 
 type ExternalScrollFlashListTableProps<T> = {
     /** Rows to render. FlashList windows and recycles them against the parent's scroll offset. */
@@ -123,7 +132,7 @@ type ExternalScrollFlashListTableProps<T> = {
     renderItem: (item: T, index: number, meta: {isFirst: boolean; isLast: boolean}) => React.ReactElement | null;
 
     /** Column header rendered above the rows and scrolled horizontally with them. */
-    renderHeader: () => React.ReactElement;
+    renderHeader: () => React.ReactElement | null;
 
     /** Estimated row height used before a row has been measured. */
     estimatedRowHeight: number;

@@ -98,8 +98,11 @@ type TransactionListItemData = {type: 'section-header'; groupKey: string; group:
  * same locals across multiple call sites without earning an abstraction.
  */
 type MoneyRequestReportTransactionListController = {
-    /** Chrome rendered above the transaction items (group-by dropdown, columns button, table header, or empty state). */
+    /** Chrome rendered above the transaction items: group-by dropdown + columns button (or empty state). Always page-pinned. */
     beforeListContent: React.ReactElement;
+
+    /** The sortable column-header row. Rendered inside the table's horizontal scroller so it tracks the columns; null on narrow layouts and empty reports. */
+    tableColumnHeader: React.ReactElement | null;
 
     /** Flat array of items to render between beforeListContent and afterListContent. */
     transactionListItems: TransactionListItemData[];
@@ -952,9 +955,13 @@ function MoneyRequestReportTransactionList({
                     />
                 )}
             </View>
-            {!shouldUseNarrowLayout && tableHeaderContent}
         </View>
     );
+
+    // The column-header row is kept separate from beforeListContent so the horizontal-table layout can render it
+    // inside the table's horizontal scroller (it must track the columns) while the group-by/columns controls above
+    // stay pinned to the page. In the inline layout the two are rendered back-to-back, preserving the original order.
+    const tableColumnHeader = isEmptyTransactions || shouldUseNarrowLayout ? null : tableHeaderContent;
 
     const afterListContent = isEmptyTransactions ? null : (
         <View style={[shouldUseNarrowLayout ? styles.pb2 : styles.pb4]}>
@@ -1060,6 +1067,7 @@ function MoneyRequestReportTransactionList({
 
     const controller: MoneyRequestReportTransactionListController = {
         beforeListContent,
+        tableColumnHeader,
         transactionListItems: isEmptyTransactions ? [] : listItems,
         renderTransactionListItem,
         afterListContent,

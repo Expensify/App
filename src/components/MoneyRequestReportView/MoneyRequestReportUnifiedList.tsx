@@ -178,14 +178,11 @@ function MoneyRequestReportUnifiedList({
     const linkedActionLocalIndex = linkedReportActionID ? visibleReportActions.findIndex((action) => action.reportActionID === linkedReportActionID) : -1;
     const initialScrollIndex = linkedActionLocalIndex >= 0 ? linkedActionLocalIndex + reportActionIndexOffset : undefined;
 
-    // Only measure the header height when the horizontal table needs it as its offset; otherwise this state is unused.
     const reportFieldsHeader = (
-        <View onLayout={isHorizontalTable ? (event: LayoutChangeEvent) => setTableOffsetTop(event.nativeEvent.layout.height) : undefined}>
-            <MoneyRequestViewReportFields
-                report={report}
-                policy={policy}
-            />
-        </View>
+        <MoneyRequestViewReportFields
+            report={report}
+            policy={policy}
+        />
     );
 
     return (
@@ -212,13 +209,18 @@ function MoneyRequestReportUnifiedList({
             ListHeaderComponent={
                 isHorizontalTable ? (
                     <>
-                        {reportFieldsHeader}
+                        {/* Report fields + group-by/columns controls stay pinned to the page; only the column header and
+                            rows scroll horizontally. Measured together so the table's offset into the page is exact. */}
+                        <View onLayout={(event: LayoutChangeEvent) => setTableOffsetTop(event.nativeEvent.layout.height)}>
+                            {reportFieldsHeader}
+                            {controller.beforeListContent}
+                        </View>
                         <ExternalScrollFlashListTable<TransactionListItemData>
                             items={controller.transactionListItems}
                             keyExtractor={unifiedListKeyExtractor}
                             getItemType={unifiedListItemType}
                             renderItem={(item, _index, meta) => controller.renderTransactionListItem(item, meta)}
-                            renderHeader={() => controller.beforeListContent}
+                            renderHeader={() => controller.tableColumnHeader}
                             estimatedRowHeight={variables.tableRowHeight}
                             contentWidth={controller.tableMinWidth}
                             store={scrollOffsetStore}
@@ -232,6 +234,7 @@ function MoneyRequestReportUnifiedList({
                     <>
                         {reportFieldsHeader}
                         {controller.beforeListContent}
+                        {controller.tableColumnHeader}
                     </>
                 )
             }
