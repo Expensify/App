@@ -44,6 +44,11 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
     const compareItems: CompareItemsCallback<SpendRuleTableItem, SpendRulesTableColumnKey> = (a, b, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
 
+        // Keep the built-in default rule grouped so section headers stay contiguous when sorting.
+        if (a.isDefault !== b.isDefault) {
+            return a.isDefault ? -1 : 1;
+        }
+
         if (activeSorting.columnKey === 'type') {
             const aVal = a.isBlock ? 0 : 1;
             const bVal = b.isBlock ? 0 : 1;
@@ -94,7 +99,7 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
             narrowLayoutSortColumn="card"
             title={translate('workspace.rules.tabs.cardRestrictions')}
         >
-            {isEmpty && !!emptyStateContent && <View style={[styles.flex1, styles.mnh0]}>{emptyStateContent}</View>}
+            {isEmpty && !!emptyStateContent && <View style={[styles.flex1, styles.mnh0, styles.w100]}>{emptyStateContent}</View>}
             {!isEmpty && (
                 <>
                     {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.rules.spendRules.findRule')} />}

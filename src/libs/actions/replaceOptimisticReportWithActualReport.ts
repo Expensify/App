@@ -1,8 +1,8 @@
-// eslint-disable-next-line no-restricted-imports
-import {DeviceEventEmitter, InteractionManager} from 'react-native';
+import {DeviceEventEmitter} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isMoneyRequest, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -83,126 +83,136 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
         }
     }
 
-    InteractionManager.runAfterInteractions(() => {
-        // It is possible that we optimistically created a DM/group-DM for a set of users for which a report already exists.
-        // Or we optimistically created a transaction thread chat report for an IOU report action that already has an associated child chat report.
-        // Or we optimistically created a thread report under a comment that already has an associated child chat report.
-        // In this case, the API will let us know by returning a preexistingReportID.
-        // We should clear out the optimistically created report and re-route the user to the preexisting report.
-        const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
-        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
-        let callback = () => {
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, null);
+    TransitionTracker.runAfterTransitions({
+        callback: () => {
+            // It is possible that we optimistically created a DM/group-DM for a set of users for which a report already exists.
+            // Or we optimistically created a transaction thread chat report for an IOU report action that already has an associated child chat report.
+            // Or we optimistically created a thread report under a comment that already has an associated child chat report.
+            // In this case, the API will let us know by returning a preexistingReportID.
+            // We should clear out the optimistically created report and re-route the user to the preexisting report.
+            const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
+            const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
+            let callback = () => {
+                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, null);
 
-            if (!parentReportActionID) {
-                // DMs and group-DMs don't have parent actions, so we only need to merge report data and preserve existing participants
-                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
-                    ...report,
-                    reportID: preexistingReportID,
-                    preexistingReportID: null,
-                    // Replacing the existing report's participants to avoid duplicates
-                    participants: existingReport?.participants ?? report.participants,
-                });
-            } else {
-                // Thread reports have parent actions that need their childReportID updated to point to the preexisting thread
-                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
-                    ...report,
-                    reportID: preexistingReportID,
-                    preexistingReportID: null,
-                });
-                // Non-optimistic parent actions already exist, so we update their childReportID;
-                // optimistic actions were already cleaned up above
-                const parentReportAction = parentReportID ? allReportActions?.[parentReportID]?.[parentReportActionID] : null;
-                if (parentReportAction && !parentReportAction.isOptimisticAction) {
-                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
-                        [parentReportActionID]: {childReportID: preexistingReportID},
+                if (!parentReportActionID) {
+                    // DMs and group-DMs don't have parent actions, so we only need to merge report data and preserve existing participants
+                    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
+                        ...report,
+                        reportID: preexistingReportID,
+                        preexistingReportID: null,
+                        // Replacing the existing report's participants to avoid duplicates
+                        participants: existingReport?.participants ?? report.participants,
                     });
-                }
-            }
-        };
-
-        const isParentOneTransactionReport = isOneTransactionReport(parentReport);
-
-        // One-transaction reports display the expense via the parent IOU report screen, not the thread, so the draft belongs there
-        const reportToCopyDraftTo = !!parentReportID && isParentOneTransactionReport ? parentReportID : preexistingReportID;
-
-        if (!navigationRef.isReady()) {
-            callback();
-            return;
-        }
-
-        // Use Navigation.getActiveRoute() instead of navigationRef.getCurrentRoute()?.path because
-        // getCurrentRoute().path can be undefined during first navigation.
-        // We still need getCurrentRoute() for params and screen name as getActiveRoute() only returns the path string.
-        const activeRoute = Navigation.getActiveRoute();
-        const currentRouteInfo = navigationRef.getCurrentRoute();
-        const backTo = (currentRouteInfo?.params as {backTo?: Route})?.backTo;
-        const screenName = currentRouteInfo?.name;
-
-        // Besides the central-pane report route (/r/:reportID), the optimistic report can also be focused
-        // in the RHP transaction-thread carousel (search/view/:reportID) used by the "Review X expenses"
-        // flow. Matched via route name + reportID param (not a path substring) since the carousel's nested
-        // backTo can contain other report IDs. Without this, the report is cleared out from under the user
-        // and ReportNavigateAwayHandler treats it as removed, dismissing the RHP and navigating to the parent.
-        const isOptimisticReportFocusedInSearchRHP =
-            screenName === SCREENS.RIGHT_MODAL.SEARCH_REPORT &&
-            !!currentRouteInfo?.params &&
-            typeof currentRouteInfo.params === 'object' &&
-            'reportID' in currentRouteInfo.params &&
-            currentRouteInfo.params.reportID === reportID;
-        const isOptimisticReportFocused = activeRoute.includes(`/r/${reportID}`) || isOptimisticReportFocusedInSearchRHP;
-
-        // Fix specific case: https://github.com/Expensify/App/pull/77657#issuecomment-3678696730.
-        // When user is editing a money request report (/e/:reportID route) and has
-        // an optimistic report in the background that should be replaced with preexisting report
-        const isOptimisticReportInBackground = screenName === SCREENS.RIGHT_MODAL.EXPENSE_REPORT && backTo && backTo.includes(`/r/${reportID}`);
-
-        // Only re-route them if they are still looking at the optimistically created report
-        if (isOptimisticReportFocused || isOptimisticReportInBackground) {
-            const currCallback = callback;
-            callback = () => {
-                if (isOptimisticReportFocused) {
-                    if (!parentReportActionID || !isParentOneTransactionReport) {
-                        // We are either in a DM/group-DM that do not have a parent report,
-                        // a thread under any comment,
-                        // or transaction thread report under an IOU report action that its parent IOU report is not a one expense report,
-                        // we need to navigate to the preexisting report chat
-                        // because we will clear the optimistically created report in the currCallback
-                        Navigation.setParams({reportID: preexistingReportID.toString()});
-                    } else {
-                        // We are in a transaction thread report under an IOU report action where the parent IOU report is a one transaction report
-                        // We need to navigate to the one expense report screen instead of the preexisting report chat
-                        // because we will clear the optimistically created transaction thread report in the currCallback
-                        // and the one transaction should be accessed via the one expense report screen and not the preexisting report chat
-                        Navigation.setParams({reportID: parentReportID});
+                } else {
+                    // Thread reports have parent actions that need their childReportID updated to point to the preexisting thread
+                    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
+                        ...report,
+                        reportID: preexistingReportID,
+                        preexistingReportID: null,
+                    });
+                    // Non-optimistic parent actions already exist, so we update their childReportID;
+                    // optimistic actions were already cleaned up above
+                    const parentReportAction = parentReportID ? allReportActions?.[parentReportID]?.[parentReportActionID] : null;
+                    if (parentReportAction && !parentReportAction.isOptimisticAction) {
+                        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                            [parentReportActionID]: {childReportID: preexistingReportID},
+                        });
                     }
-                } else if (isOptimisticReportInBackground) {
-                    // Navigate to the correct backTo route with the preexisting report ID
-                    Navigation.navigate(backTo.replace(`/r/${reportID}`, `/r/${preexistingReportID}`) as Route);
                 }
-                currCallback();
             };
 
-            // The report screen will listen to this event and transfer the draft comment to the existing report
-            // This will allow the newest draft comment to be transferred to the existing report
-            DeviceEventEmitter.emit(`switchToPreExistingReport_${reportID}`, {
-                preexistingReportID,
-                reportToCopyDraftTo,
-                callback,
-            });
+            const isParentOneTransactionReport = isOneTransactionReport(parentReport);
 
-            return;
-        }
+            // One-transaction reports display the expense via the parent IOU report screen, not the thread, so the draft belongs there
+            const reportToCopyDraftTo = !!parentReportID && isParentOneTransactionReport ? parentReportID : preexistingReportID;
 
-        if (
-            parentReportID &&
-            isParentOneTransactionReport &&
-            (activeRoute.includes(ROUTES.REPORT_WITH_ID.getRoute(parentReportID)) || activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID})))
-        ) {
-            if (draftReportComment) {
-                // Draft must be saved first because the callback will clear the optimistic report and its associated draft
-                saveReportDraftComment(parentReportID, draftReportComment, () => {
+            if (!navigationRef.isReady()) {
+                callback();
+                return;
+            }
+
+            // Use Navigation.getActiveRoute() instead of navigationRef.getCurrentRoute()?.path because
+            // getCurrentRoute().path can be undefined during first navigation.
+            // We still need getCurrentRoute() for params and screen name as getActiveRoute() only returns the path string.
+            const activeRoute = Navigation.getActiveRoute();
+            const currentRouteInfo = navigationRef.getCurrentRoute();
+            const backTo = (currentRouteInfo?.params as {backTo?: Route})?.backTo;
+            const screenName = currentRouteInfo?.name;
+
+            // Besides the central-pane report route (/r/:reportID), the optimistic report can also be focused
+            // in the RHP transaction-thread carousel (search/view/:reportID) used by the "Review X expenses"
+            // flow. Matched via route name + reportID param (not a path substring) since the carousel's nested
+            // backTo can contain other report IDs. Without this, the report is cleared out from under the user
+            // and ReportNavigateAwayHandler treats it as removed, dismissing the RHP and navigating to the parent.
+            const isOptimisticReportFocusedInSearchRHP =
+                screenName === SCREENS.RIGHT_MODAL.SEARCH_REPORT &&
+                !!currentRouteInfo?.params &&
+                typeof currentRouteInfo.params === 'object' &&
+                'reportID' in currentRouteInfo.params &&
+                currentRouteInfo.params.reportID === reportID;
+            const isOptimisticReportFocused = activeRoute.includes(`/r/${reportID}`) || isOptimisticReportFocusedInSearchRHP;
+
+            // Fix specific case: https://github.com/Expensify/App/pull/77657#issuecomment-3678696730.
+            // When user is editing a money request report (/e/:reportID route) and has
+            // an optimistic report in the background that should be replaced with preexisting report
+            const isOptimisticReportInBackground = screenName === SCREENS.RIGHT_MODAL.EXPENSE_REPORT && backTo && backTo.includes(`/r/${reportID}`);
+
+            // Only re-route them if they are still looking at the optimistically created report
+            if (isOptimisticReportFocused || isOptimisticReportInBackground) {
+                const currCallback = callback;
+                callback = () => {
+                    if (isOptimisticReportFocused) {
+                        if (!parentReportActionID || !isParentOneTransactionReport) {
+                            // We are either in a DM/group-DM that do not have a parent report,
+                            // a thread under any comment,
+                            // or transaction thread report under an IOU report action that its parent IOU report is not a one expense report,
+                            // we need to navigate to the preexisting report chat
+                            // because we will clear the optimistically created report in the currCallback
+                            Navigation.setParams({reportID: preexistingReportID.toString()});
+                        } else {
+                            // We are in a transaction thread report under an IOU report action where the parent IOU report is a one transaction report
+                            // We need to navigate to the one expense report screen instead of the preexisting report chat
+                            // because we will clear the optimistically created transaction thread report in the currCallback
+                            // and the one transaction should be accessed via the one expense report screen and not the preexisting report chat
+                            Navigation.setParams({reportID: parentReportID});
+                        }
+                    } else if (isOptimisticReportInBackground) {
+                        // Navigate to the correct backTo route with the preexisting report ID
+                        Navigation.navigate(backTo.replace(`/r/${reportID}`, `/r/${preexistingReportID}`) as Route);
+                    }
+                    currCallback();
+                };
+
+                // The report screen will listen to this event and transfer the draft comment to the existing report
+                // This will allow the newest draft comment to be transferred to the existing report
+                DeviceEventEmitter.emit(`switchToPreExistingReport_${reportID}`, {
+                    preexistingReportID,
+                    reportToCopyDraftTo,
+                    callback,
+                });
+
+                return;
+            }
+
+            if (
+                parentReportID &&
+                isParentOneTransactionReport &&
+                (activeRoute.includes(ROUTES.REPORT_WITH_ID.getRoute(parentReportID)) || activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID})))
+            ) {
+                if (draftReportComment) {
+                    // Draft must be saved first because the callback will clear the optimistic report and its associated draft
+                    saveReportDraftComment(parentReportID, draftReportComment, () => {
+                        callback();
+
+                        // We are already on the parent one expense report, so just call the API to fetch report data
+                        // betas is safe to pass as undefined because introSelected is undefined, so the code path
+                        // that uses betas is never reached. Passing it explicitly so the compiler flags this when
+                        // betas becomes required. Refactor issue: https://github.com/Expensify/App/issues/66424
+                        openReport({reportID: parentReportID, introSelected: undefined, betas: undefined});
+                    });
+                } else {
                     callback();
 
                     // We are already on the parent one expense report, so just call the API to fetch report data
@@ -210,27 +220,19 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                     // that uses betas is never reached. Passing it explicitly so the compiler flags this when
                     // betas becomes required. Refactor issue: https://github.com/Expensify/App/issues/66424
                     openReport({reportID: parentReportID, introSelected: undefined, betas: undefined});
-                });
-            } else {
-                callback();
-
-                // We are already on the parent one expense report, so just call the API to fetch report data
-                // betas is safe to pass as undefined because introSelected is undefined, so the code path
-                // that uses betas is never reached. Passing it explicitly so the compiler flags this when
-                // betas becomes required. Refactor issue: https://github.com/Expensify/App/issues/66424
-                openReport({reportID: parentReportID, introSelected: undefined, betas: undefined});
+                }
+                return;
             }
-            return;
-        }
 
-        // In case the user is not on the report screen, we will transfer the report draft comment directly to the existing report
-        // after that clear the optimistically created report
-        if (!draftReportComment) {
-            callback();
-            return;
-        }
+            // In case the user is not on the report screen, we will transfer the report draft comment directly to the existing report
+            // after that clear the optimistically created report
+            if (!draftReportComment) {
+                callback();
+                return;
+            }
 
-        saveReportDraftComment(reportToCopyDraftTo, draftReportComment, callback);
+            saveReportDraftComment(reportToCopyDraftTo, draftReportComment, callback);
+        },
     });
 }
 

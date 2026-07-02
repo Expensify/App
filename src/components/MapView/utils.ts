@@ -122,7 +122,8 @@ function areCoordinatesEqual(coordinate1: Coordinate | undefined, coordinate2: C
     return coordinate1[0] === coordinate2[0] && coordinate1[1] === coordinate2[1];
 }
 
-function interpolateCoordinate(start: Coordinate, end: Coordinate, progress: number): Coordinate {
+// Simple linear interpolation of a coordinate between two points
+function simpleInterpolateCoordinate(start: Coordinate, end: Coordinate, progress: number): Coordinate {
     return [start[0] + (end[0] - start[0]) * progress, start[1] + (end[1] - start[1]) * progress];
 }
 
@@ -144,6 +145,6 @@ export default {
     areCoordinatesEqual,
     findClosestCoordinateOnLineFromCenter,
     getBoundsCenter,
-    interpolateCoordinate,
+    simpleInterpolateCoordinate,
     isSingleSegmentRoute,
 };

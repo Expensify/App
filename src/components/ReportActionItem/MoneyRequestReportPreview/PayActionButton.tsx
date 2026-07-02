@@ -46,7 +46,7 @@ type PayActionButtonProps = {
     startApprovedAnimation: () => void;
     onPaymentOptionsShow?: () => void;
     onPaymentOptionsHide?: () => void;
-    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean) => void;
+    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => void;
     buttonMaxWidth: {maxWidth?: number};
     reportPreviewAction: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>;
 };
@@ -149,7 +149,6 @@ function PayActionButton({
             approveMoneyRequest({
                 expenseReport: iouReport,
                 expenseReportPolicy: policy,
-                policy: activePolicy,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: currentUserEmail,
                 hasViolations,
@@ -173,7 +172,7 @@ function PayActionButton({
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
         } else if (hasHeldExpensesReportUtils(transactions)) {
-            onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.PAY, type, shouldShowPayButton);
+            onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.PAY, type, shouldShowPayButton, methodID);
         } else if (chatReport && iouReport) {
             const currentChatReport = getReportOrDraftReport(chatReportID) ?? chatReport;
             if (isInvoiceReportUtils(iouReport)) {
@@ -214,6 +213,7 @@ function PayActionButton({
                     userBillingGracePeriodEnds,
                     amountOwed,
                     ownerBillingGracePeriodEnd,
+                    methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
                     onPaid: startAnimation,
                     chatReportActions: getChatReportActions(false),
                 });
