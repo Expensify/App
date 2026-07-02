@@ -163,7 +163,7 @@ describe('getBestMatchingPath', () => {
     it('redirects old workspace tag routes to the new dynamic suffix shape', () => {
         expect(getMatchingNewRoute('/workspaces/p123/tags/settings')).toBe('/workspaces/p123/tags/tags-settings');
         expect(getMatchingNewRoute('/workspaces/p123/tags/new')).toBe('/workspaces/p123/tags/tag-create');
-        expect(getMatchingNewRoute('/workspaces/p123/tag-list/0')).toBe('/workspaces/p123/tags/tag-list/0');
+        expect(getMatchingNewRoute('/workspaces/p123/tag-list/0')).toBe('/workspaces/p123/tags/workspace-tag-list/0');
         expect(getMatchingNewRoute('/workspaces/p123/tags/import')).toBe('/workspaces/p123/tags/workspace-tags-import');
         expect(getMatchingNewRoute('/workspaces/p123/tags/imported')).toBe('/workspaces/p123/tags/workspace-tags-imported');
         expect(getMatchingNewRoute('/workspaces/p123/tags/10/edit')).toBe('/workspaces/p123/tags/tags-settings/workspace-edit-tags/10');
@@ -176,7 +176,7 @@ describe('getBestMatchingPath', () => {
     it('preserves query params when redirecting old workspace tag routes', () => {
         expect(getMatchingNewRoute('/workspaces/p123/tags/settings?backTo=/home')).toBe('/workspaces/p123/tags/tags-settings?backTo=/home');
         expect(getMatchingNewRoute('/workspaces/p123/tags/new?backTo=/home')).toBe('/workspaces/p123/tags/tag-create?backTo=/home');
-        expect(getMatchingNewRoute('/workspaces/p123/tag-list/0?backTo=/home')).toBe('/workspaces/p123/tags/tag-list/0?backTo=/home');
+        expect(getMatchingNewRoute('/workspaces/p123/tag-list/0?backTo=/home')).toBe('/workspaces/p123/tags/workspace-tag-list/0?backTo=/home');
         expect(getMatchingNewRoute('/workspaces/p123/tags/import?backTo=/home')).toBe('/workspaces/p123/tags/workspace-tags-import?backTo=/home');
         expect(getMatchingNewRoute('/workspaces/p123/tags/imported?backTo=/home')).toBe('/workspaces/p123/tags/workspace-tags-imported?backTo=/home');
         expect(getMatchingNewRoute('/workspaces/p123/tags/10/edit?backTo=/home')).toBe('/workspaces/p123/tags/tags-settings/workspace-edit-tags/10?backTo=/home');
@@ -186,7 +186,7 @@ describe('getBestMatchingPath', () => {
     it('does not redirect the new workspace tag dynamic routes', () => {
         expect(getMatchingNewRoute('/workspaces/p123/tags/tags-settings')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/p123/tags/tag-create')).toBe(undefined);
-        expect(getMatchingNewRoute('/workspaces/p123/tags/tag-list/0')).toBe(undefined);
+        expect(getMatchingNewRoute('/workspaces/p123/tags/workspace-tag-list/0')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/p123/tags/workspace-tags-import')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/p123/tags/workspace-tags-imported')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/p123/tags/tags-settings/workspace-edit-tags/10')).toBe(undefined);
