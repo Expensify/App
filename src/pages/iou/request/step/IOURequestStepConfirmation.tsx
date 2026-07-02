@@ -25,6 +25,7 @@ import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import useParticipantsPolicies from '@hooks/useParticipantsPolicies';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
@@ -118,6 +119,7 @@ function IOURequestStepConfirmation({
     const participantsAutoAssignedFromRoute = route.name === SCREENS.MONEY_REQUEST.STEP_CONFIRMATION ? (params as StepConfirmationParams).participantsAutoAssigned : undefined;
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const personalPolicy = usePersonalPolicy();
     const selfDMReport = useSelfDMReport();
     const personalDetails = usePersonalDetails();
     const allPolicyCategories = usePolicyCategories();
@@ -362,7 +364,7 @@ function IOURequestStepConfirmation({
                                 lastSelectedDistanceRates,
                                 expenseDate: transaction?.created,
                             });
-                            setCustomUnitRateID(activeTransactionID, p2pRateID, transaction, undefined);
+                            setCustomUnitRateID(activeTransactionID, p2pRateID, transaction, undefined, false, personalPolicy?.outputCurrency);
                         }
                         setMoneyRequestCategory(activeTransactionID, '', undefined);
                     }
@@ -383,6 +385,7 @@ function IOURequestStepConfirmation({
             isDistanceRequest,
             lastSelectedDistanceRates,
             transaction,
+            personalPolicy?.outputCurrency,
         ],
     );
 
