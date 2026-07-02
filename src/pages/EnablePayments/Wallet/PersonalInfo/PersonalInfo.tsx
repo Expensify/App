@@ -1,15 +1,21 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
+import type {UpdatePersonalDetailsForWalletParams} from '@libs/API/parameters';
+import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import IdologyQuestions from '@pages/EnablePayments/shared/IdologyQuestions';
 import getInitialSubstepForPersonalInfo from '@pages/EnablePayments/Wallet/utils/getInitialSubstepForPersonalInfo';
 import getSubstepValues from '@pages/EnablePayments/Wallet/utils/getSubstepValues';
-import {setAdditionalDetailsQuestions, updateCurrentStep, updatePersonalDetails} from '@userActions/Wallet';
+import {requestValidateCodeAction} from '@userActions/User';
+import {clearWalletAdditionalDetailsErrors, setAdditionalDetailsQuestions, updateCurrentStep, updatePersonalDetails} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import type {EnablePaymentsSubPageType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,12 +45,38 @@ function PersonalInfoPage() {
 
     const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
     const [walletAdditionalDetailsDraft] = useOnyx(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT);
+    const [formData] = useOnyx(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const primaryLogin = usePrimaryContactMethod();
 
     const showIdologyQuestions = walletAdditionalDetails?.questions && walletAdditionalDetails?.questions.length > 0;
 
+    // The details the user submitted, held while we prompt for a magic code to confirm a phone number change
+    const submittedPersonalDetailsRef = useRef<UpdatePersonalDetailsForWalletParams | null>(null);
+    const [isConfirmingMagicCode, setIsConfirmingMagicCode] = useState(false);
+
+    // The backend requires a valid magic code to change an existing phone number. Keep the prompt open if the
+    // submitted code was missing or invalid, even when the change wasn't detected client-side.
+    const isMagicCodeRequired = isConfirmingMagicCode || walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.INCORRECT_MAGIC_CODE;
+
+    // Once a submission finishes, keep prompting only if the magic code was missing or invalid; otherwise dismiss the
+    // prompt so the flow can advance (e.g. to Onfido or KBA questions).
+    const wasSubmittingRef = useRef(false);
+    useEffect(() => {
+        if (formData?.isLoading) {
+            wasSubmittingRef.current = true;
+            return;
+        }
+        if (!wasSubmittingRef.current) {
+            return;
+        }
+        wasSubmittingRef.current = false;
+        setIsConfirmingMagicCode(walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.INCORRECT_MAGIC_CODE);
+    }, [formData?.isLoading, walletAdditionalDetails?.errorCode]);
+
     const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, walletAdditionalDetailsDraft, walletAdditionalDetails), [walletAdditionalDetails, walletAdditionalDetailsDraft]);
     const submit = () => {
-        const personalDetails = {
+        const personalDetails: UpdatePersonalDetailsForWalletParams = {
             phoneNumber: (values.phoneNumber && parsePhoneNumber(values.phoneNumber, {regionCode: CONST.COUNTRY.US}).number?.significant) ?? '',
             legalFirstName: values?.[PERSONAL_INFO_STEP_KEYS.FIRST_NAME] ?? '',
             legalLastName: values?.[PERSONAL_INFO_STEP_KEYS.LAST_NAME] ?? '',
@@ -55,8 +87,29 @@ function PersonalInfoPage() {
             dob: values?.[PERSONAL_INFO_STEP_KEYS.DOB] ?? '',
             ssn: values?.[PERSONAL_INFO_STEP_KEYS.SSN_LAST_4] ?? '',
         };
+        submittedPersonalDetailsRef.current = personalDetails;
+
+        // Changing an existing phone number is protected by a magic code because it is used for card 3DS verification
+        const hasPhoneNumberChanged = !!currentUserPersonalDetails.phoneNumber && personalDetails.phoneNumber !== currentUserPersonalDetails.phoneNumber;
+        if (hasPhoneNumberChanged) {
+            setIsConfirmingMagicCode(true);
+            return;
+        }
+
         // Attempt to set the personal details
         updatePersonalDetails(personalDetails);
+    };
+
+    const confirmPersonalDetailsWithMagicCode = (validateCode: string) => {
+        if (!submittedPersonalDetailsRef.current) {
+            return;
+        }
+        updatePersonalDetails({...submittedPersonalDetailsRef.current, validateCode});
+    };
+
+    const closeMagicCodePrompt = () => {
+        setIsConfirmingMagicCode(false);
+        clearWalletAdditionalDetailsErrors();
     };
 
     const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(values), [values]);
@@ -94,6 +147,22 @@ function PersonalInfoPage() {
 
     if (isRedirecting) {
         return <FullScreenLoadingIndicator reasonAttributes={{context: 'EnablePaymentsPersonalInfo', isRedirecting}} />;
+    }
+
+    if (isMagicCodeRequired) {
+        return (
+            <ValidateCodeActionContent
+                validateCodeActionErrorField="walletPhoneNumber"
+                handleSubmitForm={confirmPersonalDetailsWithMagicCode}
+                isLoading={formData?.isLoading}
+                title={translate('delegate.makeSureItIsYou')}
+                descriptionPrimary={translate('contacts.enterMagicCode', primaryLogin ?? '')}
+                sendValidateCode={() => requestValidateCodeAction()}
+                validateError={getLatestErrorMessageField(walletAdditionalDetails)}
+                clearError={clearWalletAdditionalDetailsErrors}
+                onClose={closeMagicCodePrompt}
+            />
+        );
     }
 
     return (
