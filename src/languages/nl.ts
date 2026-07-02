@@ -5481,6 +5481,11 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             subsidiarySelectDescription: 'Kies het dochterbedrijf in Rillet waarvan je gegevens wilt importeren.',
             noSubsidiariesFound: 'Geen dochterondernemingen gevonden',
             noSubsidiariesFoundDescription: 'Voeg alsjeblieft een dochteronderneming toe in Rillet en synchroniseer de verbinding opnieuw',
+            accountTypesDescription: 'Je Rillet-accounts worden geïmporteerd als categorieën.',
+            enableNewAccountsTitle: 'Nieuw geïmporteerde accounts inschakelen',
+            enableNewAccountsDescription: 'Nieuwe Rillet-rekeningen zijn beschikbaar als categorieën.',
+            dimensionsImport: 'Alle Rillet-dimensies worden als tags geïmporteerd',
+            importDescription: 'Kies welke codeerconfiguraties je uit Rillet wilt importeren.',
         },
         type: {
             free: 'Gratis',
@@ -6237,6 +6242,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             importedFromAccountingSoftware: 'De onderstaande belastingen zijn geïmporteerd uit je',
             taxCode: 'Belastingcode',
             updateTaxCodeFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de belastingcode, probeer het opnieuw.',
+            taxRates: 'Belastingtarieven',
         },
         duplicateWorkspace: {
             title: 'Geef je nieuwe workspace een naam',

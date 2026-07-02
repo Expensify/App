@@ -5472,6 +5472,11 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             subsidiarySelectDescription: 'Escolha a subsidiária no Rillet da qual você gostaria de importar dados.',
             noSubsidiariesFound: 'Nenhuma subsidiária encontrada',
             noSubsidiariesFoundDescription: 'Adicione uma subsidiária no Rillet e sincronize a conexão novamente',
+            accountTypesDescription: 'Suas contas Rillet serão importadas como categorias.',
+            enableNewAccountsTitle: 'Ativar novas contas importadas',
+            enableNewAccountsDescription: 'Novas contas Rillet estarão disponíveis como categorias.',
+            dimensionsImport: 'Todas as dimensões Rillet são importadas como tags',
+            importDescription: 'Escolha quais configurações de codificação importar do Rillet.',
         },
         type: {
             free: 'Grátis',
@@ -6230,6 +6235,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             importedFromAccountingSoftware: 'Os impostos abaixo são importados do seu',
             taxCode: 'Código tributário',
             updateTaxCodeFailureMessage: 'Ocorreu um erro ao atualizar o código de imposto, tente novamente',
+            taxRates: 'Alíquotas de imposto',
         },
         duplicateWorkspace: {
             title: 'Dê um nome ao seu novo workspace',
