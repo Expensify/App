@@ -1115,8 +1115,8 @@ type WriteCommandParameters = {
 
     [WRITE_COMMANDS.CONNECT_POLICY_TO_RILLET]: Parameters.ConnectPolicyToRilletParams;
     [WRITE_COMMANDS.UPDATE_RILLET_SUBSIDIARY]: Parameters.UpdateRilletSubsidiaryParams;
-    [WRITE_COMMANDS.UPDATE_RILLET_ENABLE_NEW_CATEGORIES]: Parameters.UpdateRilletGenericTypeParams;
-    [WRITE_COMMANDS.UPDATE_RILLET_SYNC_TAX_RATES]: Parameters.UpdateRilletGenericTypeParams;
+    [WRITE_COMMANDS.UPDATE_RILLET_ENABLE_NEW_CATEGORIES]: Parameters.UpdateRilletEnableNewCategoriesParams;
+    [WRITE_COMMANDS.UPDATE_RILLET_SYNC_TAX_RATES]: Parameters.UpdateRilletSyncTaxRatesParams;
     [WRITE_COMMANDS.UPDATE_RILLET_FIELD_MAPPING]: Parameters.UpdateRilletFieldMappingParams;
     [WRITE_COMMANDS.UPDATE_RILLET_CREDIT_CARD_ACCOUNT]: Parameters.UpdateRilletCreditCardAccountParams;
     [WRITE_COMMANDS.UPDATE_RILLET_DEFAULT_VENDOR]: Parameters.UpdateRilletDefaultVendorParams;

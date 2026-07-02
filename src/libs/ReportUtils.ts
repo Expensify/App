@@ -106,6 +106,7 @@ import {removeDraftTransactionsByIDs} from './actions/TransactionEdit';
 import type {OnboardingCompanySize, OnboardingMessage, OnboardingPurpose, OnboardingTaskLinks} from './actions/Welcome/OnboardingFlow';
 import {getOnboardingMessages} from './actions/Welcome/OnboardingFlow';
 import type {AddCommentOrAttachmentParams} from './API/parameters';
+import {convertAttendeesToArray} from './AttendeeUtils';
 import {getCategoryGLCode} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -148,12 +149,14 @@ import {
     getPolicyRole,
     getRuleApprovers,
     getSubmitToAccountID,
+    getTagGLCode,
     hasDependentTags as hasDependentTagsPolicyUtils,
     hasDynamicExternalWorkflow,
     isExpensifyTeam,
     isGroupPolicy as isGroupPolicyPolicyUtils,
     isInstantSubmitEnabled,
     isPendingDeletePolicy,
+    isPerDiemEnabled,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
     isPolicyOwner,
@@ -245,6 +248,7 @@ import {
     getOriginalAmount,
     getOriginalAmountForDisplay,
     getOriginalCurrency,
+    getPostedDate,
     getRateID,
     getRecentTransactions,
     getReimbursable,
@@ -368,6 +372,8 @@ type OptimisticExpenseReport = Pick<
     | 'unheldTotal'
     | 'nonReimbursableTotal'
     | 'unheldNonReimbursableTotal'
+    | 'reimbursableTotal'
+    | 'unheldReimbursableTotal'
     | 'parentReportID'
     | 'created'
     | 'lastVisibleActionCreated'
@@ -388,6 +394,8 @@ type OptimisticNewReport = Pick<
     | 'currency'
     | 'total'
     | 'nonReimbursableTotal'
+    | 'reimbursableTotal'
+    | 'unheldReimbursableTotal'
     | 'parentReportID'
     | 'created'
     | 'lastVisibleActionCreated'
@@ -797,6 +805,8 @@ type OptimisticIOUReport = Pick<
     | 'unheldTotal'
     | 'nonReimbursableTotal'
     | 'unheldNonReimbursableTotal'
+    | 'reimbursableTotal'
+    | 'unheldReimbursableTotal'
     | 'reportName'
     | 'parentReportID'
     | 'created'
@@ -1079,9 +1089,11 @@ Onyx.connect({
             return;
         }
 
-        deprecatedReportsByPolicyID = Object.entries(value).reduce<ReportByPolicyMap>((acc, [reportID, report]) => {
+        deprecatedReportsByPolicyID = {};
+        for (const reportID of Object.keys(value)) {
+            const report = value[reportID];
             if (!report) {
-                return acc;
+                continue;
             }
 
             // Get all reports, which are the ones that are:
@@ -1089,18 +1101,11 @@ Onyx.connect({
             // - Are either open or submitted
             // - Belong to the same workspace
             if (report.policyID && report.ownerAccountID === deprecatedCurrentUserAccountID && (report.stateNum ?? 0) <= 1) {
-                if (!acc[report.policyID]) {
-                    acc[report.policyID] = {};
-                }
-
-                acc[report.policyID] = {
-                    ...acc[report.policyID],
-                    [reportID]: report,
-                };
+                const reportsForPolicy = deprecatedReportsByPolicyID[report.policyID] ?? {};
+                reportsForPolicy[reportID] = report;
+                deprecatedReportsByPolicyID[report.policyID] = reportsForPolicy;
             }
-
-            return acc;
-        }, {});
+        }
     },
 });
 
@@ -4520,6 +4525,30 @@ function requiresAttentionFromCurrentUser(
 }
 
 /**
+ * Returns the freshly computed reimbursableTotal from the backend, falling back to the legacy
+ * derivation (`total - nonReimbursableTotal`) when the local copy of the report does not yet have
+ * the fresh field set.
+ */
+function getReimbursableTotal(report: OnyxInputOrEntry<Report> | Pick<Report, 'total' | 'nonReimbursableTotal' | 'reimbursableTotal'> | undefined): number {
+    if (!report) {
+        return 0;
+    }
+    return report.reimbursableTotal ?? (report.total ?? 0) - (report.nonReimbursableTotal ?? 0);
+}
+
+/**
+ * Returns the freshly computed unheldReimbursableTotal from the backend, falling back to the legacy
+ * derivation (`unheldTotal - unheldNonReimbursableTotal`) when the local copy of the report does
+ * not yet have the fresh field set.
+ */
+function getUnheldReimbursableTotal(report: OnyxInputOrEntry<Report> | Pick<Report, 'unheldTotal' | 'unheldNonReimbursableTotal' | 'unheldReimbursableTotal'> | undefined): number {
+    if (!report) {
+        return 0;
+    }
+    return report.unheldReimbursableTotal ?? (report.unheldTotal ?? 0) - (report.unheldNonReimbursableTotal ?? 0);
+}
+
+/**
  * Checks if the report contains at least one Non-Reimbursable transaction
  */
 function hasNonReimbursableTransactions(iouReportID: string | undefined, reportsTransactionsParam: Record<string, Transaction[]> = deprecatedReportsTransactions): boolean {
@@ -4538,9 +4567,13 @@ function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchR
     }
     if (moneyRequestReport) {
         let nonReimbursableSpend = moneyRequestReport.nonReimbursableTotal ?? 0;
-        let totalSpend = moneyRequestReport.total ?? 0;
+        // Prefer the freshly computed reimbursableTotal from the backend over deriving from the stored
+        // total column (which can be stale). Fall back to total - nonReimbursableTotal when the fresh
+        // field is not yet present on the local copy of the report.
+        const reimbursableSpendStored = getReimbursableTotal(moneyRequestReport);
+        let totalSpend = reimbursableSpendStored + nonReimbursableSpend;
 
-        if (nonReimbursableSpend + totalSpend !== 0) {
+        if (totalSpend !== 0) {
             // There is a possibility that if the Expense report has a negative total.
             // This is because there are instances where you can get a credit back on your card,
             // or you enter a negative expense to "offset" future expenses
@@ -5175,7 +5208,7 @@ function canEditFieldOfMoneyRequest({
                 // For unreported per diem expenses, check if there's a valid policy with rates.
                 const perDiemPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
                 const perDiemCustomUnit = getPerDiemCustomUnit(perDiemPolicy);
-                if (!perDiemPolicy?.arePerDiemRatesEnabled || isEmptyObject(perDiemCustomUnit?.rates)) {
+                if (!isPerDiemEnabled(perDiemPolicy) || isEmptyObject(perDiemCustomUnit?.rates)) {
                     return false;
                 }
             }
@@ -5634,7 +5667,7 @@ function getReportPreviewMessage(params: GetReportPreviewMessageBaseParams & {is
 
     const formattedAmount = convertToDisplayString(totalAmount, report.currency);
 
-    if (isReportApproved({report}) && isPaidGroupPolicy(report)) {
+    if (isReportApproved({report}) && isReportInGroupPolicy(report)) {
         return translateLocal('iou.managerApprovedAmount', payerName ?? '', formattedAmount);
     }
 
@@ -6182,11 +6215,15 @@ function hasReportNameError(report: OnyxEntry<Report>): boolean {
  * For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
  * For longer comments, skip parsing, but still escape the text, and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
  */
-function getParsedComment(text: string, parsingDetails?: ParsingDetails, mediaAttributes?: Record<string, string>, disabledRules?: string[]): string {
+function getParsedComment(text: string, parsingDetails?: ParsingDetails, mediaAttributes?: Record<string, string>, disabledRules?: string[], isGroupPolicyReportParam?: boolean): string {
     let isGroupPolicyReport = false;
     if (parsingDetails?.reportID) {
-        const currentReport = getReportOrDraftReport(parsingDetails?.reportID);
-        isGroupPolicyReport = isReportInGroupPolicy(currentReport);
+        if (isGroupPolicyReportParam !== undefined) {
+            isGroupPolicyReport = isGroupPolicyReportParam;
+        } else {
+            const currentReport = getReportOrDraftReport(parsingDetails.reportID);
+            isGroupPolicyReport = isReportInGroupPolicy(currentReport);
+        }
     }
 
     if (parsingDetails?.policyID) {
@@ -6527,6 +6564,8 @@ function buildOptimisticIOUReport(
         unheldTotal: total,
         nonReimbursableTotal: 0,
         unheldNonReimbursableTotal: 0,
+        reimbursableTotal: total,
+        unheldReimbursableTotal: total,
 
         // We don't translate reportName because the server response is always in English
         reportName: `${payerEmail} owes ${formattedTotal}`,
@@ -6558,10 +6597,15 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
 
     const createdDate = report.lastVisibleActionCreated ? new Date(report.lastVisibleActionCreated) : undefined;
 
-    const totalAmount = report.total !== undefined && !Number.isNaN(report.total) ? Math.abs(report.total) : 0;
-    const nonReimbursableTotal =
-        'nonReimbursableTotal' in report && report.nonReimbursableTotal !== undefined && !Number.isNaN(report.nonReimbursableTotal) ? Math.abs(report.nonReimbursableTotal) : 0;
-    const reimbursableAmount = totalAmount - nonReimbursableTotal;
+    const reportTotal = report.total ?? undefined;
+    const totalAmount = reportTotal !== undefined && !Number.isNaN(reportTotal) ? Math.abs(reportTotal) : 0;
+    const reportNonReimbursableTotal = 'nonReimbursableTotal' in report ? (report.nonReimbursableTotal ?? undefined) : undefined;
+    const nonReimbursableTotal = reportNonReimbursableTotal !== undefined && !Number.isNaN(reportNonReimbursableTotal) ? Math.abs(reportNonReimbursableTotal) : 0;
+    // Prefer the freshly computed reimbursableTotal from the backend over deriving it from the stored
+    // total column (which can be stale).
+    const reportReimbursableTotal = 'reimbursableTotal' in report ? (report.reimbursableTotal ?? undefined) : undefined;
+    const freshReimbursableTotal = reportReimbursableTotal !== undefined && !Number.isNaN(reportReimbursableTotal) ? Math.abs(reportReimbursableTotal) : undefined;
+    const reimbursableAmount = freshReimbursableTotal ?? totalAmount - nonReimbursableTotal;
 
     const result = formula
         // We don't translate because the server response is always in English
@@ -6748,6 +6792,8 @@ function buildOptimisticExpenseReport({
         unheldTotal: storedTotal,
         nonReimbursableTotal: storedNonReimbursableTotal,
         unheldNonReimbursableTotal: storedNonReimbursableTotal,
+        reimbursableTotal: storedTotal - storedNonReimbursableTotal,
+        unheldReimbursableTotal: storedTotal - storedNonReimbursableTotal,
         participants: {
             [payeeAccountID]: {
                 notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
@@ -6800,6 +6846,8 @@ function buildOptimisticEmptyReport(
         statusNum,
         total: 0,
         nonReimbursableTotal: 0,
+        reimbursableTotal: 0,
+        unheldReimbursableTotal: 0,
         participants: {},
         created: timeOfCreation,
         lastVisibleActionCreated: timeOfCreation,
@@ -9407,6 +9455,7 @@ type ShouldReportBeInOptionListParams = {
     includeDomainEmail?: boolean;
     isReportArchived: boolean | undefined;
     draftComment: string | undefined;
+    conciergeReportID?: string;
     /** Pre-computed value from reportAttributes derived value. When provided, skips the expensive requiresAttentionFromCurrentUser recomputation. */
     requiresAttention?: boolean;
 };
@@ -9426,6 +9475,7 @@ function reasonForReportToBeInOptionList({
     currentUserAccountID,
     includeDomainEmail = false,
     isReportArchived,
+    conciergeReportID,
     requiresAttention,
 }: ShouldReportBeInOptionListParams): ValueOf<typeof CONST.REPORT_IN_LHN_REASONS> | null {
     const isInDefaultMode = !isInFocusMode;
@@ -9571,7 +9621,7 @@ function reasonForReportToBeInOptionList({
         isChatReport(report) &&
         !isPolicyExpenseChat(report) &&
         !isTripRoom(report) &&
-        !isConciergeChatReport(report) &&
+        !isConciergeChatReport(report, conciergeReportID) &&
         !isSystemChatReport &&
         !isSelfDMWithVisiblePreference &&
         canHideReport
@@ -10814,11 +10864,20 @@ function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, shouldExcludeNonR
     // if the report is an expense report, the total amount should be negated
     const coefficient = isExpenseReport(iouReport) ? -1 : 1;
 
-    let total = iouReport?.total ?? 0;
-    let unheldTotal = iouReport?.unheldTotal ?? 0;
+    // Prefer the freshly computed totals from the backend. The stored total column can lag behind the
+    // sum of the underlying transactions, so deriving from reimbursableTotal/nonReimbursableTotal keeps
+    // displayed amounts in sync with what the user actually entered.
+    const reimbursableTotal = getReimbursableTotal(iouReport);
+    const unheldReimbursableTotal = getUnheldReimbursableTotal(iouReport);
+
+    let total: number;
+    let unheldTotal: number;
     if (shouldExcludeNonReimbursables) {
-        total -= iouReport?.nonReimbursableTotal ?? 0;
-        unheldTotal -= iouReport?.unheldNonReimbursableTotal ?? 0;
+        total = reimbursableTotal;
+        unheldTotal = unheldReimbursableTotal;
+    } else {
+        total = reimbursableTotal + (iouReport?.nonReimbursableTotal ?? 0);
+        unheldTotal = iouReport?.unheldTotal ?? unheldReimbursableTotal + (iouReport?.unheldNonReimbursableTotal ?? 0);
     }
 
     const adjustedUnheldTotal = unheldTotal * coefficient;
@@ -10970,7 +11029,7 @@ function canBeAutoReimbursed(report: OnyxInputOrEntry<Report>, policy: OnyxInput
     const reimbursableTotal = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
     const autoReimbursementLimit = policy?.autoReimbursement?.limit ?? policy?.autoReimbursementLimit ?? 0;
     const isAutoReimbursable =
-        isReportInGroupPolicy(report) &&
+        isGroupPolicyPolicyUtils(policy) &&
         policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES &&
         autoReimbursementLimit >= reimbursableTotal &&
         reimbursableTotal > 0 &&
@@ -11256,6 +11315,8 @@ type CreateDraftTransactionParams = {
     currentUserAccountID: number;
     currentUserEmail: string;
     currentUserLocalCurrency: string;
+    filteredPoliciesCount: number;
+    firstPolicyID: string | undefined;
 };
 
 function createDraftTransactionAndNavigateToParticipantSelector({
@@ -11274,6 +11335,8 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     currentUserAccountID,
     currentUserEmail,
     currentUserLocalCurrency,
+    filteredPoliciesCount,
+    firstPolicyID,
 }: CreateDraftTransactionParams): void {
     const transactionID = transaction?.transactionID;
     if (!transactionID || !reportID) {
@@ -11322,24 +11385,6 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         participants: [],
     } as Transaction);
 
-    let firstPolicy: Policy | undefined;
-    let filteredPoliciesCount = 0;
-    for (const policy of policiesArray) {
-        if (!shouldShowPolicy(policy, false, deprecatedCurrentUserEmail)) {
-            continue;
-        }
-
-        if (filteredPoliciesCount === 0) {
-            firstPolicy = policy;
-        }
-        filteredPoliciesCount++;
-
-        // Short-circuit once we find 2 policies
-        if (filteredPoliciesCount > 1) {
-            break;
-        }
-    }
-
     if (actionName === CONST.IOU.ACTION.CATEGORIZE) {
         if (activePolicy && shouldRestrictUserBillableActions(activePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
@@ -11380,15 +11425,14 @@ function createDraftTransactionAndNavigateToParticipantSelector({
             return;
         }
 
-        const policyID = firstPolicy?.id;
-        const policyExpenseReportID = getPolicyExpenseChat(deprecatedCurrentUserAccountID, policyID)?.reportID;
+        const policyExpenseReportID = getPolicyExpenseChat(deprecatedCurrentUserAccountID, firstPolicyID)?.reportID;
         setMoneyRequestParticipants(transactionID, [
             {
                 selected: true,
                 accountID: 0,
                 isPolicyExpenseChat: true,
                 reportID: policyExpenseReportID,
-                policyID,
+                policyID: firstPolicyID,
                 searchText: activePolicy?.name,
             },
         ]);
@@ -11405,7 +11449,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         return;
     }
 
-    if (actionName === CONST.IOU.ACTION.SUBMIT || (allPolicies && filteredPoliciesCount > 0)) {
+    if (actionName === CONST.IOU.ACTION.SUBMIT || filteredPoliciesCount > 0) {
         // Check if user is restricted to preferred workspace for submit tracked expenses
         if (isRestrictedToPreferredPolicy && preferredPolicyID) {
             const policyExpenseReport = getPolicyExpenseChat(deprecatedCurrentUserAccountID, preferredPolicyID);
@@ -13107,12 +13151,15 @@ function getReportFieldMaps(report: OnyxEntry<Report>, fieldList: Record<string,
 
 const sortableColumnNames = [
     CONST.SEARCH.TABLE_COLUMNS.DATE,
+    CONST.SEARCH.TABLE_COLUMNS.POSTED,
     CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
     CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
     CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE,
     CONST.SEARCH.TABLE_COLUMNS.TAG,
+    CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE,
+    CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE,
     CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
     CONST.SEARCH.TABLE_COLUMNS.TOTAL,
     CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
@@ -13125,6 +13172,8 @@ const sortableColumnNames = [
     CONST.SEARCH.TABLE_COLUMNS.TAX_RATE,
     CONST.SEARCH.TABLE_COLUMNS.CARD,
     CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
+    CONST.SEARCH.TABLE_COLUMNS.ATTENDEES,
+    CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
     CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
     CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
     CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
@@ -13162,10 +13211,14 @@ function getTransactionSortValue(
     report: Report,
     policy: OnyxEntry<Policy>,
     policyCategories?: PolicyCategories,
+    policyTagLists?: PolicyTagLists,
 ): string | number | undefined {
     switch (key) {
         case CONST.SEARCH.TABLE_COLUMNS.DATE:
             return getTransactionCreated(transaction);
+        case CONST.SEARCH.TABLE_COLUMNS.POSTED:
+            // Posted date is stored as a "yyyyMMdd" string, which already sorts chronologically as a string (mirrors the Search sort path that sorts on the posted date).
+            return getPostedDate(transaction);
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             return getMerchant(transaction);
         case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
@@ -13175,6 +13228,9 @@ function getTransactionSortValue(
             return getCategoryGLCode(policyCategories, getCategory(transaction));
         case CONST.SEARCH.TABLE_COLUMNS.TAG:
             return getTag(transaction);
+        case CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE:
+        case CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE:
+            return getTagGLCode(policyTagLists, getTag(transaction));
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
             return getTransactionAmount(transaction, isExpenseReport(report), transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
@@ -13201,6 +13257,16 @@ function getTransactionSortValue(
             return transaction.cardID ?? CONST.DEFAULT_NUMBER_ID;
         case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
             return transaction.withdrawalID ? transaction.withdrawalID : '';
+        case CONST.SEARCH.TABLE_COLUMNS.ATTENDEES:
+            return convertAttendeesToArray(transaction.comment?.attendees).length;
+        case CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE: {
+            const attendeesCount = convertAttendeesToArray(transaction.comment?.attendees).length;
+            if (!attendeesCount) {
+                return 0;
+            }
+            const totalAmount = getTransactionAmount(transaction, isExpenseReport(report), transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
+            return totalAmount / attendeesCount;
+        }
         case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID:
         case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID:
         case CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS:
@@ -13343,6 +13409,8 @@ export {
     getLastVisibleMessage,
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
+    getReimbursableTotal,
+    getUnheldReimbursableTotal,
     getOptimisticDataForAncestors,
     getOriginalReportID,
     getOutstandingChildRequest,
@@ -13438,7 +13506,6 @@ export {
     isGroupChat,
     isGroupChatAdmin,
     isHarvestCreatedExpenseReport,
-    isReportInGroupPolicy,
     isHoldCreator,
     isIOUOwnedByCurrentUser,
     isIOUReport,
@@ -13469,6 +13536,7 @@ export {
     isReportFieldDisabled,
     isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
+    isReportInGroupPolicy,
     isReportManager,
     isReportOwner,
     isReportParticipant,

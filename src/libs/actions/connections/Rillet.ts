@@ -1,16 +1,17 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import {write} from '@libs/API';
 import type {
     ConnectPolicyToRilletParams,
     UpdateRilletCreditCardAccountParams,
     UpdateRilletDefaultVendorParams,
+    UpdateRilletEnableNewCategoriesParams,
     UpdateRilletExportDateParams,
     UpdateRilletExporterParams,
     UpdateRilletFieldMappingParams,
-    UpdateRilletGenericTypeParams,
     UpdateRilletSubsidiaryParams,
+    UpdateRilletSyncTaxRatesParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -354,26 +355,20 @@ function updateRilletSubsidiary(policyID: string, subsidiaryID: RilletConnection
     write(WRITE_COMMANDS.UPDATE_RILLET_SUBSIDIARY, params, onyxData);
 }
 
-function updateRilletEnableNewCategories(
-    policyID: string,
-    enableNewCategories: RilletConnectionsConfig['enableNewCategories'],
-    oldEnableNewCategories?: RilletConnectionsConfig['enableNewCategories'],
-) {
-    const onyxData = prepareRilletOptimisticData(policyID, CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES, enableNewCategories, oldEnableNewCategories ?? null);
-    const parameters: UpdateRilletGenericTypeParams = {
+function updateRilletEnableNewCategories(policyID: string, enabled: RilletConnectionsConfig['enableNewCategories'], oldEnabled?: RilletConnectionsConfig['enableNewCategories']) {
+    const onyxData = prepareRilletOptimisticData(policyID, CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES, enabled, oldEnabled ?? null);
+    const parameters: UpdateRilletEnableNewCategoriesParams = {
         policyID,
-        settingValue: JSON.stringify(enableNewCategories),
-        idempotencyKey: CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES,
+        enabled,
     };
     write(WRITE_COMMANDS.UPDATE_RILLET_ENABLE_NEW_CATEGORIES, parameters, onyxData);
 }
 
-function updateRilletSyncTaxRates(policyID: string, syncTaxRates: RilletCoding['syncTaxRates'], oldSyncTaxRates?: RilletCoding['syncTaxRates']) {
-    const onyxData = prepareRilletCodingOptimisticData(policyID, CONST.RILLET_CONFIG.SYNC_TAX_RATES, syncTaxRates, oldSyncTaxRates ?? null);
-    const parameters: UpdateRilletGenericTypeParams = {
+function updateRilletSyncTaxRates(policyID: string, enabled: RilletCoding['syncTaxRates'], oldEnabled?: RilletCoding['syncTaxRates']) {
+    const onyxData = prepareRilletCodingOptimisticData(policyID, CONST.RILLET_CONFIG.SYNC_TAX_RATES, enabled, oldEnabled ?? null);
+    const parameters: UpdateRilletSyncTaxRatesParams = {
         policyID,
-        settingValue: JSON.stringify(syncTaxRates),
-        idempotencyKey: CONST.RILLET_CONFIG.SYNC_TAX_RATES,
+        enabled,
     };
     write(WRITE_COMMANDS.UPDATE_RILLET_SYNC_TAX_RATES, parameters, onyxData);
 }

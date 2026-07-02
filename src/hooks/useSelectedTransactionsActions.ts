@@ -48,6 +48,7 @@ import useLocalize from './useLocalize';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import usePersonalPolicy from './usePersonalPolicy';
 import useReportIsArchived from './useReportIsArchived';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import {shouldShowBulkDuplicateOption} from './useSearchBulkActions';
@@ -97,6 +98,7 @@ function useSelectedTransactionsActions({
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const firstSelectedTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionIDs.at(0)}`];
     const splitEffectivePolicy = useSplitEffectivePolicy(report, undefined, firstSelectedTransaction);
+    const personalPolicy = usePersonalPolicy();
     const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const {getCurrencyDecimals} = useCurrencyListActions();
 
@@ -501,7 +503,7 @@ function useSelectedTransactionsActions({
                 icon: expensifyIcons.ArrowSplit,
                 value: SPLIT,
                 onSelected: () => {
-                    initSplitExpense(firstTransaction, report, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, {isProduction});
+                    initSplitExpense(firstTransaction, report, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, personalPolicy?.outputCurrency, {isProduction});
                 },
             });
         }
