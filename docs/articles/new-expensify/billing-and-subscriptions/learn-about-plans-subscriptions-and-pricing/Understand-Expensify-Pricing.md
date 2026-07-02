@@ -18,7 +18,19 @@ For an explanation of how subscription charges are calculated, see How Your Plan
 
 Select your billing currency to view the subscription prices.
 
-<div class="currency-block" data-currency="usd">
+<p><strong>Select your billing currency:</strong></p>
+
+<select id="currency-selector">
+  <option value="usd" selected>USD ($)</option>
+  <option value="gbp">GBP (£)</option>
+  <option value="eur">EUR (€)</option>
+  <option value="aud">AUD (AU$)</option>
+  <option value="nzd">NZD (NZ$)</option>
+</select>
+
+<br><br>
+
+<div class="currency-block" data-currency="usd" markdown="1">
 
 | Workspace plan | Subscription | Price |
 | -------------- | ------------ | ----- |
@@ -30,7 +42,7 @@ Select your billing currency to view the subscription prices.
 
 </div>
 
-<div class="currency-block" data-currency="gbp" style="display:none;">
+<div class="currency-block" data-currency="gbp" style="display:none;" markdown="1">
 
 | Workspace plan | Subscription | Price |
 | -------------- | ------------ | ----- |
@@ -40,7 +52,7 @@ Select your billing currency to view the subscription prices.
 
 </div>
 
-<div class="currency-block" data-currency="eur" style="display:none;">
+<div class="currency-block" data-currency="eur" style="display:none;" markdown="1">
 
 | Workspace plan | Subscription | Price |
 | -------------- | ------------ | ----- |
@@ -50,7 +62,7 @@ Select your billing currency to view the subscription prices.
 
 </div>
 
-<div class="currency-block" data-currency="aud" style="display:none;">
+<div class="currency-block" data-currency="aud" style="display:none;" markdown="1">
 
 | Workspace plan | Subscription | Price |
 | -------------- | ------------ | ----- |
@@ -60,7 +72,7 @@ Select your billing currency to view the subscription prices.
 
 </div>
 
-<div class="currency-block" data-currency="nzd" style="display:none;">
+<div class="currency-block" data-currency="nzd" style="display:none;" markdown="1">
 
 | Workspace plan | Subscription | Price |
 | -------------- | ------------ | ----- |
@@ -69,6 +81,24 @@ Select your billing currency to view the subscription prices.
 | **Control** | Pay-per-use | **NZ$64** per active member/month |
 
 </div>
+
+<script>
+  (function () {
+    var selector = document.getElementById('currency-selector');
+    var blocks = document.querySelectorAll('.currency-block');
+
+    function updateCurrency() {
+      var value = selector.value;
+      blocks.forEach(function (block) {
+        block.style.display =
+          block.getAttribute('data-currency') === value ? 'block' : 'none';
+      });
+    }
+
+    selector.addEventListener('change', updateCurrency);
+    updateCurrency();
+  })();
+</script>
 
 ---
 
