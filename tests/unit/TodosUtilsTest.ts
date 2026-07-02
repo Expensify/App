@@ -249,7 +249,7 @@ describe('TodosUtils', () => {
         });
 
         it('excludes a report whose expenses are all pending card transactions', () => {
-            const pendingOverride: Partial<Transaction> = {status: CONST.TRANSACTION.STATUS.PENDING};
+            const pendingOverride: Partial<Transaction> = {status: CONST.TRANSACTION.STATUS.PENDING, bank: CONST.EXPENSIFY_CARD.BANK};
             const submitReport = createMockReport('pending_submit', {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
@@ -340,7 +340,7 @@ describe('TodosUtils', () => {
         });
 
         it('excludes a report whose expenses are all pending card transactions from its bucket', () => {
-            const pendingOverride: Partial<Transaction> = {status: CONST.TRANSACTION.STATUS.PENDING};
+            const pendingOverride: Partial<Transaction> = {status: CONST.TRANSACTION.STATUS.PENDING, bank: CONST.EXPENSIFY_CARD.BANK};
             const submitReport = createMockReport('pending_submit', {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
