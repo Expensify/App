@@ -456,7 +456,15 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             style={[styles.w100]}
                             text={translate('common.save')}
                             onPress={() => {
-                                updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, transaction, effectivePolicy, isSelfDMSplit);
+                                updateSplitExpenseField(
+                                    splitExpenseDraftTransaction,
+                                    originalTransactionDraft,
+                                    splitExpenseTransactionID,
+                                    transaction,
+                                    effectivePolicy,
+                                    isSelfDMSplit,
+                                    personalPolicy?.outputCurrency,
+                                );
                                 Navigation.goBack(backTo);
                             }}
                             pressOnEnter
