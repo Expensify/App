@@ -28,6 +28,7 @@ function Portal({children}: PortalProps) {
             visible
             animationType="none"
             statusBarTranslucent
+            supportedOrientations={['portrait', 'portrait-upside-down', 'landscape', 'landscape-left', 'landscape-right']}
             onRequestClose={handleAndroidBack}
         >
             <View style={StyleSheet.absoluteFill}>{children}</View>
