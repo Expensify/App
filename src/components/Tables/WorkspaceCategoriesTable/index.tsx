@@ -1,7 +1,7 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableHeaderComponent} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -141,13 +141,7 @@ export default function WorkspaceCategoriesTable({
     const isEmpty = categories.length === 0;
     const shouldShowSearchBar = categories.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const searchBarComponent = shouldShowSearchBar ? <Table.SearchBar label={translate('workspace.categories.findCategory')} /> : undefined;
-    const tableHeaderComponent =
-        headerComponent || searchBarComponent ? (
-            <>
-                {headerComponent}
-                {searchBarComponent}
-            </>
-        ) : undefined;
+    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
 
     return (
         <Table

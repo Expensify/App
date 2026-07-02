@@ -1,7 +1,7 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableHeaderComponent} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -76,13 +76,7 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
     );
     const shouldShowSearchBar = taxes.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const searchBarComponent = shouldShowSearchBar ? <Table.SearchBar label={translate('workspace.taxes.findTaxRate')} /> : undefined;
-    const tableHeaderComponent =
-        headerComponent || searchBarComponent ? (
-            <>
-                {headerComponent}
-                {searchBarComponent}
-            </>
-        ) : undefined;
+    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
 
     return (
         <Table

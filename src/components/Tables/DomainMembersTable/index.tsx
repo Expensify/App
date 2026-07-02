@@ -2,7 +2,7 @@ import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableHeaderComponent} from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -137,18 +137,15 @@ export default function DomainMembersTable({
     );
 
     const shouldShowTableControls = !isEmpty;
-    const tableHeaderComponent =
-        headerComponent || (shouldShowTableControls && (shouldShowGroupFilter || shouldShowSearchBar)) ? (
-            <>
-                {headerComponent}
-                {shouldShowTableControls && shouldShowGroupFilter && (
-                    <View style={[styles.mh5, styles.mb3]}>
-                        <Table.FilterButtons />
-                    </View>
-                )}
-                {shouldShowTableControls && shouldShowSearchBar && <Table.SearchBar label={translate('domain.members.findMember')} />}
-            </>
-        ) : undefined;
+    const tableHeaderComponent = composeTableHeaderComponent(
+        headerComponent,
+        shouldShowTableControls && shouldShowGroupFilter ? (
+            <View style={[styles.mh5, styles.mb3]}>
+                <Table.FilterButtons />
+            </View>
+        ) : undefined,
+        shouldShowTableControls && shouldShowSearchBar ? <Table.SearchBar label={translate('domain.members.findMember')} /> : undefined,
+    );
 
     return (
         <Table

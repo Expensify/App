@@ -1,7 +1,7 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useEffect, useRef} from 'react';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableHeaderComponent} from '@components/Table';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -74,12 +74,7 @@ function WorkspaceRoomsTable({rooms, highlightedReportID, headerComponent}: Work
         />
     );
 
-    const tableHeaderComponent = (
-        <>
-            {headerComponent}
-            <Table.SearchBar label={translate('workspace.common.findRoom')} />
-        </>
-    );
+    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, <Table.SearchBar label={translate('workspace.common.findRoom')} />);
 
     return (
         <Table

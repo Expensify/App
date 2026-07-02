@@ -1,7 +1,7 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableHeaderComponent} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -81,13 +81,7 @@ export default function PersonalExpenseRulesTable({EmptyStateComponent, headerCo
     );
 
     const searchBarComponent = personalExpenseRules.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? <Table.SearchBar label={translate('expenseRulesPage.findRule')} /> : undefined;
-    const tableHeaderComponent =
-        headerComponent || searchBarComponent ? (
-            <>
-                {headerComponent}
-                {searchBarComponent}
-            </>
-        ) : undefined;
+    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
 
     return (
         <Table

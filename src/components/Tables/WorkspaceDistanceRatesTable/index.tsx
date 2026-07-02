@@ -1,6 +1,6 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useMemo} from 'react';
-import Table from '@components/Table';
+import Table, {composeTableHeaderComponent} from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -123,13 +123,7 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
     const isEmpty = ratesData.length === 0;
     const shouldShowSearchBar = ratesData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const searchBarComponent = shouldShowSearchBar ? <Table.SearchBar label={translate('workspace.distanceRates.findRate')} /> : undefined;
-    const tableHeaderComponent =
-        headerComponent || searchBarComponent ? (
-            <>
-                {headerComponent}
-                {searchBarComponent}
-            </>
-        ) : undefined;
+    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
 
     return (
         <Table

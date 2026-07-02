@@ -3,7 +3,7 @@ import React from 'react';
 import type {ValueOf} from 'type-fest';
 import DomainListEmptyState from '@components/Domain/DomainListEmptyState';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableHeaderComponent} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -65,13 +65,7 @@ export default function DomainListTable({domains, headerComponent}: DomainListTa
 
     const shouldShowSearchBar = domains.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const searchBarComponent = shouldShowSearchBar ? <Table.SearchBar label={translate('workspace.common.findDomain')} /> : undefined;
-    const tableHeaderComponent =
-        headerComponent || searchBarComponent ? (
-            <>
-                {headerComponent}
-                {searchBarComponent}
-            </>
-        ) : undefined;
+    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
 
     const renderTableItem = ({item, index}: ListRenderItemInfo<DomainRowData>) => {
         return (

@@ -3,7 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableHeaderComponent} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -294,17 +294,15 @@ export default function WorkspaceMembersTable({
             />
         );
     };
-    const tableHeaderComponent = (
-        <>
-            {headerComponent}
-            <View style={[styles.gap3, styles.alignItemsCenter, styles.mb5, styles.mh5, styles.flexRow, !shouldUseNarrowLayout && styles.justifyContentBetween]}>
-                <Table.SearchBar
-                    label={translate('workspace.people.findMember')}
-                    style={[styles.mb0, styles.mh0, shouldUseNarrowTableLayout && styles.flex1]}
-                />
-                <Table.FilterButtons style={[styles.mw50, styles.flexShrink1]} />
-            </View>
-        </>
+    const tableHeaderComponent = composeTableHeaderComponent(
+        headerComponent,
+        <View style={[styles.gap3, styles.alignItemsCenter, styles.mb5, styles.mh5, styles.flexRow, !shouldUseNarrowLayout && styles.justifyContentBetween]}>
+            <Table.SearchBar
+                label={translate('workspace.people.findMember')}
+                style={[styles.mb0, styles.mh0, shouldUseNarrowTableLayout && styles.flex1]}
+            />
+            <Table.FilterButtons style={[styles.mw50, styles.flexShrink1]} />
+        </View>,
     );
 
     return (

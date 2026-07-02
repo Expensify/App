@@ -2,7 +2,7 @@ import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
 import type {ValueOf} from 'type-fest';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableHeaderComponent} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -109,13 +109,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
 
     const shouldShowSearchBar = workspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const searchBarComponent = shouldShowSearchBar ? <Table.SearchBar label={translate('workspace.common.findWorkspace')} /> : undefined;
-    const tableHeaderComponent =
-        headerComponent || searchBarComponent ? (
-            <>
-                {headerComponent}
-                {searchBarComponent}
-            </>
-        ) : undefined;
+    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
 
     const renderTableItem = ({item, index}: ListRenderItemInfo<WorkspaceRowData>) => {
         return (
