@@ -114,7 +114,7 @@ Legacy Collect pricing is:
 
 Legacy Collect subscriptions use active members for billing instead of unique members.
 
-To learn about the difference between active members and unique members, see Understand Billing Terms and Definitions.
+To learn about the difference between active members and unique members, see [Understand Billing Terms and Definitions](/articles/new-expensify/billing-and-subscriptions/Understand-Billing-Terms-and-Definition#what-member-terms-mean).
 
 ---
 
@@ -122,11 +122,7 @@ To learn about the difference between active members and unique members, see Und
 
 ## Does every customer qualify for the current Collect price?
 
-No. The current Collect price applies only if your organization's first Workspace was created on or after **April 1, 2025**.
-
-## Why does Control pricing start at a lower price for some customers?
-
-Annual Control subscriptions can receive up to 50% off through qualifying Expensify Card usage. The discount depends on the percentage of approved workspace spend made using the Expensify Card.
+No. The current Collect price applies only if your organization's first Workspace was created on or after April 1, 2025.
 
 ## Are localized prices converted from USD?
 
@@ -135,5 +131,3 @@ No. Expensify uses fixed regional pricing rather than converting prices based on
 ## Are taxes included in the prices shown?
 
 No. Applicable taxes are calculated separately based on your billing location and tax status.
-
-
