@@ -222,6 +222,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         <AccountManagerBookCallButton
             calendarLink={accountManagerDetails?.accountManagerCalendarLink ?? ''}
             accountManagerAccountID={shouldShowAccountManagerBookCallInConcierge ? accountManagerDetails?.accountManagerAccountID : undefined}
+            style={shouldUseNarrowLayout ? styles.w100 : undefined}
         />
     );
 
@@ -456,9 +457,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                     )}
                 </View>
                 {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
-                {shouldShowAccountManagerBookCall && shouldUseNarrowLayout && (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.ph5, styles.pb3]}>{accountManagerBookCallButton}</View>
-                )}
+                {shouldShowAccountManagerBookCall && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{accountManagerBookCallButton}</View>}
                 <View style={shouldShowOnBoardingHelpDropdownButton && [styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.ph5]}>
                     {!shouldShowEarlyDiscountBanner && shouldShowOnBoardingHelpDropdownButton && shouldUseNarrowLayout && (
                         <View style={[styles.flex1, styles.pb3]}>{onboardingHelpDropdownButton}</View>

@@ -47,7 +47,7 @@ function AccountManagerBookCallButton({calendarLink, accountManagerAccountID, st
             role={CONST.ROLE.BUTTON}
             onPress={callFunctionIfActionIsAllowed(() => openExternalLink(calendarLink))}
             sentryLabel={CONST.SENTRY_LABEL.ACCOUNT_MANAGER_BOOK_CALL.BUTTON}
-            style={[styles.buttonMedium, styles.flexRow, styles.alignItemsCenter, styles.gap2, style]}
+            style={[styles.buttonMedium, styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap2, style]}
         >
             {accountManagerAccountID ? (
                 <Avatar
