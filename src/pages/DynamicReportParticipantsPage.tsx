@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -58,9 +58,9 @@ import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 type DynamicReportParticipantsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DYNAMIC_ROOT>;
 function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPageProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_PARTICIPANTS.path);
-    const navigateBackToReportDetails = useCallback(() => {
+    const navigateBackToReportDetails = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
     const icons = useMemoizedLazyExpensifyIcons(['MakeAdmin', 'Plus', 'RemoveMembers', 'User']);
     const {translate, formatPhoneNumber} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -100,9 +100,8 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     const firstSelectedMember = selectedMembers?.at(0);
     const [firstSelectedMemberDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(firstSelectedMember)});
 
-    // The Table stores selection as string keys, while this page tracks accountIDs as numbers. A stable callback keeps the
-    // Table's selection middleware from re-clearing the selection on every render.
-    const onRowSelectionChange = useCallback((keys: string[]) => setSelectedMembers(keys.map(Number)), [setSelectedMembers]);
+    // The Table stores selection as string keys, while this page tracks accountIDs as numbers.
+    const onRowSelectionChange = (keys: string[]) => setSelectedMembers(keys.map(Number));
 
     // Get the active chat members by filtering out the pending members with delete action
     const activeParticipants = participantsForDisplay.filter((participant) => isOffline || !participant.isPendingDelete);
