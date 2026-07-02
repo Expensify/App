@@ -8842,7 +8842,6 @@ describe('actions/Report', () => {
                 email: currentUserEmail,
                 policy,
                 policyTagList: {},
-                transactions: [transaction1, transaction2],
                 allReports: {
                     [`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]: destinationReport,
                     [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`]: sourceReport1,
@@ -8907,7 +8906,6 @@ describe('actions/Report', () => {
                 email: currentUserEmail,
                 policy,
                 policyTagList: {},
-                transactions: [transaction1, transaction2],
                 allReports: {
                     [`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]: destinationReport,
                     [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`]: sourceReport1,
@@ -8961,7 +8959,6 @@ describe('actions/Report', () => {
                 email: currentUserEmail,
                 policy,
                 policyTagList: {},
-                transactions: [transaction1, transaction2],
                 allReports: {
                     [`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]: destinationReport,
                     [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`]: sourceReport1,

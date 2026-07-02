@@ -419,9 +419,9 @@ type MergeReportsProps = {
     reportNextStep?: OnyxEntry<ReportNextStepDeprecated>;
     policyCategories?: OnyxEntry<PolicyCategories>;
     policyTagList: OnyxEntry<PolicyTagLists>;
-    transactions: Transaction[];
     allTransactionViolation?: OnyxCollection<TransactionViolation[]>;
     allReports: OnyxCollection<Report>;
+    allReportsTransactions?: Record<string, Transaction[]>;
     hash?: string;
 };
 
@@ -7951,13 +7951,14 @@ function mergeReports({
     policyCategories,
     policyTagList,
     allTransactionViolation,
+    allReportsTransactions
 }: MergeReportsProps) {
     const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
 
     const transactionsToMove: Transaction[] = [];
     const transactionIDsToMove: string[] = [];
     for (const sourceReportID of sourceReportIDs) {
-        const transactions = getReportTransactions(sourceReportID);
+        const transactions = getReportTransactions(sourceReportID, allReportsTransactions);
         transactionsToMove.push(...transactions);
         transactionIDsToMove.push(...transactions.map((t) => t.transactionID));
     }
