@@ -163,6 +163,7 @@ function SubmitExpenseOrchestrator({
     // for correct handler selection (e.g. SEARCH_DISMISS) and telemetry.
     const isFromGlobalCreateFromTransaction = !!(isFromGlobalCreateOnTransaction || isFromFloatingActionButtonOnTransaction);
     const isFromGlobalCreateForNavigation = !!(isFromGlobalCreate || isFromGlobalCreateFromTransaction);
+    const searchDataType = iouType === CONST.IOU.TYPE.INVOICE ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
 
     const startSubmitSpans = () => {
         const hasReceiptFiles = Object.values(receiptFiles).some((receipt) => !!receipt);
@@ -223,8 +224,7 @@ function SubmitExpenseOrchestrator({
 
         if (isFromNativeShortcutOnTransaction) {
             // Native shortcuts may have a report pre-inserted, so replace it with the search route.
-            const searchType = iouType === CONST.IOU.TYPE.INVOICE ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
-            const searchRoute = ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: searchType})});
+            const searchRoute = ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: searchDataType})});
             Navigation.revealRouteBeforeDismissingModal(searchRoute, {afterTransition});
         } else {
             Navigation.dismissModal({afterTransition});
@@ -284,8 +284,7 @@ function SubmitExpenseOrchestrator({
     // elapsed - SEARCH_PRE_INSERT is the primary narrow handler.
     const handleSearchDismiss = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.SEARCH_DISMISS, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
-        const searchType = iouType === CONST.IOU.TYPE.INVOICE ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
-        const isSameType = getCurrentSearchQueryJSON()?.type === searchType;
+        const isSameType = getCurrentSearchQueryJSON()?.type === searchDataType;
         const isNarrow = getIsNarrowLayout();
         setPendingSubmitFollowUpAction(isSameType ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
@@ -313,7 +312,7 @@ function SubmitExpenseOrchestrator({
         };
 
         if (!isSameType && !isNarrow) {
-            dismissWideToNewSearchType(searchType, runAfterDismiss);
+            dismissWideToNewSearchType(searchDataType, runAfterDismiss);
             return;
         }
 
@@ -325,7 +324,7 @@ function SubmitExpenseOrchestrator({
                         return;
                     }
 
-                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: searchType})}), {forceReplace: true});
+                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: searchDataType})}), {forceReplace: true});
                 });
             },
         });

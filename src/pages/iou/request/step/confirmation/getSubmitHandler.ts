@@ -65,6 +65,7 @@ function canUseDismissModalFastPath(snapshot: SubmitNavigationSnapshot): boolean
  *
  * Decision tree (evaluated top to bottom):
  *   isPreInserted && !isReportPreInserted                                       -> SEARCH_PRE_INSERT
+ *   isFromNativeShortcut && isFromGlobalCreate                                  -> SEARCH_PRE_INSERT
  *   isReportPreInserted                                                         -> REPORT_PRE_INSERT
  *   canUseDismissModalFastPath()                                                -> DISMISS_MODAL
  *   isFromGlobalCreate && canDismissFromSearch && isSearchTopmostFullScreen      -> SEARCH_DISMISS
@@ -77,9 +78,9 @@ function getSubmitHandler(snapshot: SubmitNavigationSnapshot): SubmitHandler {
     if (snapshot.isPreInserted && !snapshot.isReportPreInserted) {
         return SUBMIT_HANDLER.SEARCH_PRE_INSERT;
     }
-    // Native shortcut flows should always land on Spend > Expenses, even if a report
-    // route was pre-inserted. Treat it the same as a search pre-insert.
-    if (snapshot.isReportPreInserted && snapshot.isFromNativeShortcut) {
+    // Native shortcut flows should always land on Spend > Expenses regardless of
+    // what was pre-inserted or whether the pre-insert timer has fired yet.
+    if (snapshot.isFromNativeShortcut && snapshot.isFromGlobalCreate) {
         return SUBMIT_HANDLER.SEARCH_PRE_INSERT;
     }
     if (snapshot.isReportPreInserted) {

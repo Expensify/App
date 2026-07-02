@@ -194,11 +194,13 @@ function IOURequestStartPage({
 
     useEffect(() => {
         // Native home-screen shortcuts bypass startMoneyRequest (which sets isFromFloatingActionButton),
-        // so if this is a global create without that flag, it must be a native shortcut.
-        if (!isFromGlobalCreate || transaction?.isFromFloatingActionButton) {
+        // so if this is a global create without that flag and the draft is stale/missing
+        // (not freshly initialized by startMoneyRequest), it must be a native shortcut.
+        if (!isFromGlobalCreate || transaction?.isFromFloatingActionButton || (transaction && !isStaleTransactionDraft)) {
             return;
         }
         setNativeShortcutFlag(route.params.transactionID);
+        // Only run once on mount to capture the original creation source; later transaction/route changes must not re-mark the flag.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
