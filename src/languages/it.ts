@@ -7349,6 +7349,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 importColumnMerchantContains: 'L’esercente contiene',
                 importColumnUpdatedMerchant: 'Esercente aggiornato',
                 importColumnUpdatedCategory: 'Categoria aggiornata',
+                importColumnUpdatedTag: 'Tag aggiornato',
                 importColumnUpdatedDescription: 'Descrizione aggiornata',
                 expensesWith: 'Per le spese con:',
                 expensesExactlyMatching: 'Per le spese che corrispondono esattamente a:',

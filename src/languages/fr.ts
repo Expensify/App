@@ -7393,6 +7393,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 importColumnMerchantContains: 'Le marchand contient',
                 importColumnUpdatedMerchant: 'Marchand mis à jour',
                 importColumnUpdatedCategory: 'Catégorie mise à jour',
+                importColumnUpdatedTag: 'Tag mis à jour',
                 importColumnUpdatedDescription: 'Description mise à jour',
                 expensesWith: 'Pour les dépenses avec :',
                 expensesExactlyMatching: 'Pour les dépenses correspondant exactement :',

@@ -7367,6 +7367,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 importColumnMerchantContains: 'Händler enthält',
                 importColumnUpdatedMerchant: 'Aktualisierter Händler',
                 importColumnUpdatedCategory: 'Aktualisierte Kategorie',
+                importColumnUpdatedTag: 'Aktualisiertes Tag',
                 importColumnUpdatedDescription: 'Aktualisierte Beschreibung',
                 expensesWith: 'Für Ausgaben mit:',
                 expensesExactlyMatching: 'Für Ausgaben mit genau folgender Übereinstimmung:',

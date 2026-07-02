@@ -157,7 +157,14 @@ function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
             break;
 
         case 'reimbursable':
+        case 'reimburseable':
             attribute = CONST.CSV_IMPORT_COLUMNS.REIMBURSABLE;
+            break;
+
+        case 'preferredmerchantname':
+        case 'preferredmerchant(vendor)name':
+        case 'preferredvendorname':
+            attribute = CONST.CSV_IMPORT_COLUMNS.MERCHANT_IS;
             break;
 
         case 'billable':
@@ -198,6 +205,12 @@ function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
         if (!isAvailable) {
             if (attribute === CONST.CSV_IMPORT_COLUMNS.DATE && columnRoles.some((role) => role.value === CONST.CSV_IMPORT_COLUMNS.POSTED_DATE)) {
                 return CONST.CSV_IMPORT_COLUMNS.POSTED_DATE;
+            }
+            if (attribute === CONST.CSV_IMPORT_COLUMNS.MERCHANT && columnRoles.some((role) => role.value === CONST.CSV_IMPORT_COLUMNS.UPDATED_MERCHANT)) {
+                return CONST.CSV_IMPORT_COLUMNS.UPDATED_MERCHANT;
+            }
+            if (attribute === CONST.CSV_IMPORT_COLUMNS.NAME && columnRoles.some((role) => role.value === CONST.CSV_IMPORT_COLUMNS.TAG)) {
+                return CONST.CSV_IMPORT_COLUMNS.TAG;
             }
             return '';
         }
@@ -252,7 +265,10 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
         isSelected: spreadsheet?.columns?.[columnIndex] === item.value,
     }));
 
-    const columnValuesString = column.slice(containsHeader ? 1 : 0).join(', ');
+    const columnValuesString = column
+        .slice(containsHeader ? 1 : 0)
+        .filter((value) => String(value).trim() !== '')
+        .join(', ');
 
     const currentColumnValue = spreadsheet?.columns?.[columnIndex];
     // Treat 'ignore' as unmapped so auto-detection can still run

@@ -242,6 +242,11 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
  * @param rules - Coding rule values keyed by client-generated ruleID
  */
 async function importMerchantRulesSpreadsheet(policyID: string, rules: Record<string, ImportedMerchantRule>): Promise<ImportFinalModal> {
+    // The API rejects an empty rules object, so fail fast when the spreadsheet produced no importable rules
+    if (Object.keys(rules).length === 0) {
+        return getImportFailedFinalModal();
+    }
+
     const importFinalModal: ImportFinalModal = {
         titleKey: 'spreadsheet.importSuccessfulTitle',
         promptKey: 'spreadsheet.importMerchantRulesSuccessfulDescription',

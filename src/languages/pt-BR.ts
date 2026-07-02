@@ -7322,6 +7322,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 importColumnMerchantContains: 'O comerciante contém',
                 importColumnUpdatedMerchant: 'Comerciante atualizado',
                 importColumnUpdatedCategory: 'Categoria atualizada',
+                importColumnUpdatedTag: 'Tag atualizada',
                 importColumnUpdatedDescription: 'Descrição atualizada',
                 expensesWith: 'Para despesas com:',
                 expensesExactlyMatching: 'Para despesas que correspondam exatamente:',

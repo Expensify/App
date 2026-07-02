@@ -28,6 +28,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 const ACTION_COLUMNS: string[] = [
     CONST.CSV_IMPORT_COLUMNS.UPDATED_MERCHANT,
     CONST.CSV_IMPORT_COLUMNS.CATEGORY,
+    CONST.CSV_IMPORT_COLUMNS.TAG,
     CONST.CSV_IMPORT_COLUMNS.COMMENT,
     CONST.CSV_IMPORT_COLUMNS.REIMBURSABLE,
     CONST.CSV_IMPORT_COLUMNS.BILLABLE,
@@ -66,6 +67,7 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
         {text: translate('workspace.rules.merchantRules.importColumnMerchantContains'), value: CONST.CSV_IMPORT_COLUMNS.MERCHANT_CONTAINS},
         {text: translate('workspace.rules.merchantRules.importColumnUpdatedMerchant'), value: CONST.CSV_IMPORT_COLUMNS.UPDATED_MERCHANT},
         {text: translate('workspace.rules.merchantRules.importColumnUpdatedCategory'), value: CONST.CSV_IMPORT_COLUMNS.CATEGORY},
+        {text: translate('workspace.rules.merchantRules.importColumnUpdatedTag'), value: CONST.CSV_IMPORT_COLUMNS.TAG},
         {text: translate('workspace.rules.merchantRules.importColumnUpdatedDescription'), value: CONST.CSV_IMPORT_COLUMNS.COMMENT},
         {text: translate('common.reimbursable'), value: CONST.CSV_IMPORT_COLUMNS.REIMBURSABLE},
         {text: translate('common.billable'), value: CONST.CSV_IMPORT_COLUMNS.BILLABLE},
@@ -111,6 +113,7 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
         const merchantContainsColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.MERCHANT_CONTAINS);
         const updatedMerchantColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.UPDATED_MERCHANT);
         const categoryColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.CATEGORY);
+        const tagColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.TAG);
         const commentColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.COMMENT);
         const reimbursableColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.REIMBURSABLE);
         const billableColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.BILLABLE);
@@ -135,9 +138,15 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
 
             const updatedMerchant = getCellValue(updatedMerchantColumn, rowIndex);
             const category = getCellValue(categoryColumn, rowIndex);
+            const tag = getCellValue(tagColumn, rowIndex);
             const comment = getCellValue(commentColumn, rowIndex);
             const reimbursable = parseCsvBooleanValue(getCellValue(reimbursableColumn, rowIndex));
             const billable = parseCsvBooleanValue(getCellValue(billableColumn, rowIndex));
+
+            // Skip rows where every action cell is empty since the resulting rule would never change anything
+            if (!updatedMerchant && !category && !tag && !comment && reimbursable === undefined && billable === undefined) {
+                continue;
+            }
 
             rules[rand64()] = {
                 filters: {
@@ -147,6 +156,7 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
                 },
                 ...(updatedMerchant && {merchant: updatedMerchant}),
                 ...(category && {category}),
+                ...(tag && {tag}),
                 ...(comment && {comment: Parser.replace(comment)}),
                 ...(reimbursable !== undefined && {reimbursable}),
                 ...(billable !== undefined && {billable}),

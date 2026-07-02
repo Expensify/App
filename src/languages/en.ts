@@ -7563,6 +7563,7 @@ const translations = {
                 importColumnMerchantContains: 'Merchant contains',
                 importColumnUpdatedMerchant: 'Updated merchant',
                 importColumnUpdatedCategory: 'Updated category',
+                importColumnUpdatedTag: 'Updated tag',
                 importColumnUpdatedDescription: 'Updated description',
                 expensesWith: 'For expenses with:',
                 expensesExactlyMatching: 'For expenses exactly matching:',
