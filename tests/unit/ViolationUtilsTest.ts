@@ -2114,7 +2114,7 @@ describe('getViolationsOnyxData', () => {
                     attendees: [{email: 'other@example.com', displayName: 'Other', avatarUrl: ''}],
                 };
                 const result = ViolationsUtils.getViolationsOnyxData({
-                    ownerLogin: undefined,
+                    ownerLogin,
                     updatedTransaction: transaction,
                     transactionViolations,
                     policy,
