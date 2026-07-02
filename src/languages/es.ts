@@ -9,8 +9,7 @@
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
-import {CONST as COMMON_CONST} from 'expensify-common';
-import dedent from '@libs/StringUtils/dedent';
+import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import CONST from '@src/CONST';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
@@ -463,6 +462,7 @@ const translations: TranslationDeepObject<typeof en> = {
         goToConcierge: 'Ir a Concierge',
         allSet: '¡Todo listo!',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
+        apiKey: 'Clave API',
         editor: 'Editor',
         restrictions: 'Restricciones',
         tagGLCode: 'Etiquetar código GL',
@@ -2213,7 +2213,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noAuthenticatorApp: 'Ya no necesitarás una aplicación de autenticación para iniciar sesión en Expensify.',
         stepCodes: 'Códigos de recuperación',
         keepCodesSafe: '¡Guarda estos códigos en un lugar seguro!',
-        codesLoseAccess: dedent(`
+        codesLoseAccess: Str.dedent(`
             Si pierdes el acceso a tu aplicación de autenticación y no tienes estos códigos, quedarás bloqueado fuera de tu cuenta.<br><br>
             <strong>Nota</strong>: Al habilitar la autenticación de dos factores, se cerrará tu sesión en todas las demás sesiones.
         `),
@@ -3047,7 +3047,7 @@ ${amount} para ${merchant} - ${date}`,
             addExpenseApprovalsTask: {
                 title: 'Añadir aprobaciones de gastos',
                 description: ({workspaceMoreFeaturesLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Añade aprobaciones de gastos* para revisar los gastos de tu equipo y mantenerlos bajo control.
 
                         Así es como puedes añadir aprobaciones de gastos:
@@ -3070,7 +3070,7 @@ ${amount} para ${merchant} - ${date}`,
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `Crea un [espacio de trabajo](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Crea un espacio de trabajo* para organizar gastos, escanear recibos, chatear y más.
 
                         1. Haz clic en *Espacios de trabajo* > *Nuevo espacio de trabajo*.
@@ -3081,7 +3081,7 @@ ${amount} para ${merchant} - ${date}`,
             setupCategoriesTask: {
                 title: ({workspaceCategoriesLink}) => `Configura [categorías](${workspaceCategoriesLink})`,
                 description: ({workspaceCategoriesLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Configura categorías* para que tu equipo pueda clasificar los gastos y facilitar los informes.
 
                         1. Haz clic en *Espacios de trabajo*.
@@ -3096,8 +3096,9 @@ ${amount} para ${merchant} - ${date}`,
             },
             combinedTrackSubmitExpenseTask: {
                 title: 'Crea un gasto',
-                description: dedent(`
+                description: Str.dedent(`
                     *Crea un gasto* introduciendo un importe o escaneando un recibo.
+
 
                     1. Haz clic en el botón *+*.
                     2. Elige *Crear gasto*.
@@ -3110,8 +3111,9 @@ ${amount} para ${merchant} - ${date}`,
             },
             adminSubmitExpenseTask: {
                 title: 'Crea un gasto',
-                description: dedent(`
+                description: Str.dedent(`
                     *Crea un gasto* introduciendo un importe o escaneando un recibo.
+
 
                     1. Haz clic en el botón *+*.
                     2. Elige *Crear gasto*.
@@ -3124,7 +3126,7 @@ ${amount} para ${merchant} - ${date}`,
             },
             trackExpenseTask: {
                 title: 'Organiza un gasto',
-                description: dedent(`
+                description: Str.dedent(`
                     *Organiza un gasto* en cualquier moneda, tengas recibo o no.
 
                     1. Haz clic en el botón *+*.
@@ -3140,7 +3142,7 @@ ${amount} para ${merchant} - ${date}`,
                 title: ({integrationName, workspaceAccountingLink}) =>
                     `Conéctate${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' a'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'tu' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         Conéctate ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'tu' : 'a'} ${integrationName} para la clasificación y sincronización automática de gastos, lo que facilita el cierre de fin de mes.
 
                         1. Haz clic en *Espacios de trabajo*.
@@ -3155,7 +3157,7 @@ ${amount} para ${merchant} - ${date}`,
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Conecta [tu tarjeta corporativa](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         Conecta tu tarjeta corporativa para importar y clasificar gastos automáticamente.
 
                         1. Haz clic en *Espacios de trabajo*.
@@ -3169,7 +3171,7 @@ ${amount} para ${merchant} - ${date}`,
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Invita a [tu equipo](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Invita a tu equipo* a Expensify para que empiecen a organizar gastos hoy mismo.
 
                         1. Haz clic en *Espacios de trabajo*.
@@ -3185,7 +3187,7 @@ ${amount} para ${merchant} - ${date}`,
             setupCategoriesAndTags: {
                 title: ({workspaceCategoriesLink, workspaceTagsLink}) => `Configura [categorías](${workspaceCategoriesLink}) y [etiquetas](${workspaceTagsLink})`,
                 description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Configura categorías y etiquetas* para que tu equipo pueda clasificar los gastos fácilmente.
 
                         Impórtalas automáticamente al [conectarte con tu software contable](${workspaceAccountingLink}), o configúralas manualmente en tu [configuración del espacio de trabajo](${workspaceCategoriesLink}).
@@ -3194,7 +3196,7 @@ ${amount} para ${merchant} - ${date}`,
             setupTagsTask: {
                 title: ({workspaceTagsLink}) => `Configura [etiquetas](${workspaceTagsLink})`,
                 description: ({workspaceMoreFeaturesLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         Usa etiquetas para añadir detalles como proyectos, clientes, ubicaciones y departamentos. Si necesitas múltiples niveles, puedes mejorar al plan Controlar.
 
                         1. Haz clic en *Espacios de trabajo*.
@@ -3211,7 +3213,7 @@ ${amount} para ${merchant} - ${date}`,
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `Invita a tu [contador](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Invita a tu contador* para que colabore en tu espacio de trabajo y gestione los gastos de tu negocio.
 
                         1. Haz clic en *Espacios de trabajo*.
@@ -3225,7 +3227,7 @@ ${amount} para ${merchant} - ${date}`,
             },
             startChatTask: {
                 title: 'Inicia un chat',
-                description: dedent(`
+                description: Str.dedent(`
                     *Inicia un chat* con cualquier persona usando su correo o número.
 
                     1. Haz clic en el botón *+*.
@@ -3239,7 +3241,7 @@ ${amount} para ${merchant} - ${date}`,
             },
             splitExpenseTask: {
                 title: 'Divide un gasto',
-                description: dedent(`
+                description: Str.dedent(`
                     *Divide gastos* con una o más personas.
 
                     1. Haz clic en el botón *+*.
@@ -3254,7 +3256,7 @@ ${amount} para ${merchant} - ${date}`,
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `Revisa tu [configuración del espacio de trabajo](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         Aquí te mostramos cómo revisar y actualizar la configuración de tu espacio de trabajo:
                         1. Haz clic en Espacios de trabajo.
                         2. Selecciona tu espacio de trabajo.
@@ -3264,7 +3266,7 @@ ${amount} para ${merchant} - ${date}`,
             },
             createReportTask: {
                 title: 'Crea tu primer informe',
-                description: dedent(`
+                description: Str.dedent(`
                     Así es como puedes crear un informe:
 
                     1. Haz clic en el botón *+*.
@@ -3285,11 +3287,11 @@ ${amount} para ${merchant} - ${date}`,
             onboardingPersonalSpendMessage: 'Aquí tienes cómo organizar tus gastos en unos pocos clics.',
             onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
                 isOnboardingFlow
-                    ? dedent(`
+                    ? Str.dedent(`
                         # ¡Tu prueba gratuita ha comenzado! Vamos a configurarte.
                         👋 Hola, soy tu ejecutivo de cuenta de Expensify. Ya he creado un espacio de trabajo para ayudarte a gestionar los recibos y gastos de tu equipo. Para aprovechar al máximo tu prueba gratuita de 30 días, solo sigue los pasos de configuración restantes a continuación.
                     `)
-                    : dedent(`
+                    : Str.dedent(`
                         # ¡Tu prueba gratuita ha comenzado! Vamos a configurarte.
                         👋 Hola, soy tu ejecutivo de cuenta de Expensify. Ahora que has creado un espacio de trabajo, aprovecha al máximo tus 30 días de prueba gratuita siguiendo los pasos a continuación.
                     `),
@@ -3699,7 +3701,7 @@ ${amount} para ${merchant} - ${date}`,
             electronicFundsStandardDetails:
                 "'No hay cargo por transferir fondos desde tu Billetera Expensify a tu cuenta bancaria utilizando la opción estándar. Esta transferencia generalmente se completa en 1-3 días laborables.",
             electronicFundsInstantDetails: (percentage, amount) =>
-                dedent(`
+                Str.dedent(`
                     Hay una tarifa para transferir fondos desde tu Billetera Expensify a la tarjeta de débito vinculada utilizando la opción de transferencia instantánea. Esta transferencia generalmente se completa dentro de varios minutos. La tarifa es el ${percentage}% del importe de la transferencia (con una tarifa mínima de ${amount}).
                 `),
             fdicInsuranceBancorp: (amount) =>
@@ -4093,7 +4095,7 @@ ${amount} para ${merchant} - ${date}`,
         subheader: 'Verificación',
         verificationFailed: 'La verificación falló, por lo que necesitaremos documentos adicionales para verificarte a ti y a tu empresa',
         taxIDVerification: 'Verificación del ID fiscal',
-        taxIDVerificationDescription: dedent(`
+        taxIDVerificationDescription: Str.dedent(`
             Por favor, sube uno de los siguientes archivos:
             • Carta de asignación de TIN/EIN del IRS
             • Confirmación de solicitud de TIN/EIN del IRS (normalmente indica "Congratulations! The EIN has been successfully assigned")
@@ -4102,7 +4104,7 @@ ${amount} para ${merchant} - ${date}`,
         nameChangeDocument: 'Documento de cambio de nombre',
         nameChangeDocumentDescription: 'Si el nombre de tu empresa cambió desde que solicitaste el TIN/EIN, necesitamos este documento para verificar el número de ID fiscal proporcionado',
         companyAddressVerification: 'Verificación de la dirección de la empresa',
-        companyAddressVerificationDescription: dedent(`
+        companyAddressVerificationDescription: Str.dedent(`
             Por favor, sube uno de los siguientes archivos:
             • Factura reciente de servicios públicos con nombre y dirección de la empresa
             • Estado de cuenta bancario con nombre y dirección de la empresa
@@ -4111,7 +4113,7 @@ ${amount} para ${merchant} - ${date}`,
             • Documento de asignación de TIN con nombre y dirección de la empresa
         `),
         userAddressVerification: 'Verificación de dirección',
-        userAddressVerificationDescription: dedent(`
+        userAddressVerificationDescription: Str.dedent(`
             Por favor, sube uno de los siguientes archivos:
             • Tarjeta de registro de votante
             • Licencia de conducir
@@ -5054,12 +5056,12 @@ ${amount} para ${merchant} - ${date}`,
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL]: {
                         label: 'Facturas de proveedores',
-                        reimbursableDescription: dedent(`
+                        reimbursableDescription: Str.dedent(`
                             Los gastos reembolsables se exportarán como facturas pagaderas al proveedor especificado en NetSuite.
 
                             Si deseas establecer un proveedor específico para cada tarjeta, ve a *Configuraciones > Dominios > Tarjetas de Empresa*.
                         `),
-                        nonReimbursableDescription: dedent(`
+                        nonReimbursableDescription: Str.dedent(`
                             Los gastos no reembolsables se exportarán como facturas pagaderas al proveedor especificado en NetSuite.
 
                             Si deseas establecer un proveedor específico para cada tarjeta, ve a *Configuraciones > Dominios > Tarjetas de Empresa*.
@@ -5067,12 +5069,12 @@ ${amount} para ${merchant} - ${date}`,
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY]: {
                         label: 'Asientos contables',
-                        reimbursableDescription: dedent(`
+                        reimbursableDescription: Str.dedent(`
                             Los gastos reembolsables se exportarán como asientos contables a la cuenta especificada en NetSuite.
 
                             Si deseas establecer un proveedor específico para cada tarjeta, ve a *Configuraciones > Dominios > Tarjetas de Empresa*.
                         `),
-                        nonReimbursableDescription: dedent(`
+                        nonReimbursableDescription: Str.dedent(`
                             Los gastos no reembolsables se exportarán como asientos contables a la cuenta especificada en NetSuite.
 
                             Si deseas establecer un proveedor específico para cada tarjeta, ve a *Configuraciones > Dominios > Tarjetas de Empresa*.
@@ -5358,6 +5360,16 @@ ${amount} para ${merchant} - ${date}`,
                         return 'asignaciones';
                 }
             },
+        },
+        rillet: {
+            rilletSetup: 'Configuración de Rillet',
+            enterCredentials: 'Introduce tu clave de API de Rillet',
+            howToFindAPIKey:
+                '<strong>Encontrar tu clave de API.</strong><ol><li>Inicia sesión en Rillet</li><li>Ve a Cuenta -> Configuración</li><li>Copia la clave de API de abajo</li></ol>',
+            subsidiary: 'Filial',
+            subsidiarySelectDescription: 'Elige la filial en Rillet desde la que te gustaría importar datos.',
+            noSubsidiariesFound: 'No se encontraron filiales',
+            noSubsidiariesFoundDescription: 'Por favor, añade una filial en Rillet y sincroniza de nuevo la conexión',
         },
         type: {
             free: 'Gratis',
@@ -6214,6 +6226,10 @@ ${amount} para ${merchant} - ${date}`,
                 one: 'Convertir en auditor',
                 other: 'Convertir en auditores',
             }),
+            makePeopleAdmin: () => ({
+                one: 'Hacer administrador de personas',
+                other: 'Hacer administradores de personas',
+            }),
             selectAll: 'Seleccionar todo',
             error: {
                 genericAdd: 'Ha ocurrido un problema al añadir el miembro al espacio de trabajo',
@@ -6249,6 +6265,7 @@ ${amount} para ${merchant} - ${date}`,
             syncWithHR: (providerName: string) => `Sincronizar con ${providerName}`,
             makeCardAdmin: () => ({one: 'Hacer administrador de tarjetas', other: 'Hacer administradores de tarjetas'}),
             cardAdmins: 'Administradores de tarjetas',
+            peopleAdmins: 'Administradores de personas',
             members: 'Miembros',
         },
         accounting: {
@@ -6260,6 +6277,7 @@ ${amount} para ${merchant} - ${date}`,
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            rillet: 'Rillet',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6277,6 +6295,8 @@ ${amount} para ${merchant} - ${date}`,
                         return 'NetSuite';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
+                    case CONST.POLICY.CONNECTIONS.NAME.RILLET:
+                        return 'Rillet';
                     default: {
                         return '';
                     }
@@ -6503,6 +6523,12 @@ ${amount} para ${merchant} - ${date}`,
                             return 'Importando dimensiones';
                         case 'financialForceMarkAsReimbursed':
                             return 'Marcando informes como reembolsados';
+                        case 'rilletSyncTitle':
+                            return 'Sincronizando datos de Rillet';
+                        case 'rilletSyncConnection':
+                            return 'Iniciando conexión con Rillet';
+                        case 'rilletSyncImportData':
+                            return 'Cargando datos';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
@@ -6925,6 +6951,12 @@ ${amount} para ${merchant} - ${date}`,
                 description: `Disfruta de la sincronización automatizada y reduce las entradas manuales con la integración Expensify + Certinia. Alinea dimensiones de codificación de gastos y la sincronización de impuestos con tu configuración de Certinia para una visibilidad financiera más clara.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Nuestra integración con Certinia solo está disponible en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                title: 'Rillet',
+                description: `Disfruta de la sincronización automatizada y reduce las entradas manuales con la integración Expensify + Rillet. Alinea dimensiones de codificación de gastos y la sincronización de impuestos con tu configuración de Rillet para una visibilidad financiera más clara.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Nuestra integración con Rillet solo está disponible en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Aprobaciones anticipadas',
@@ -7461,7 +7493,13 @@ ${amount} para ${merchant} - ${date}`,
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Para aplicar tus reglas de agente, hemos creado un agente para ti y lo hemos añadido como administrador de tu espacio de trabajo.<br><br>Edita los datos de tu agente en <a href="${agentsRoute}">Cuenta &gt; Agentes</a>.</muted-text>`,
             },
-            tabs: {general: 'General', cardRestrictions: 'Restricciones de la tarjeta', expenseDefaults: 'Valores predeterminados de gastos'},
+            tabs: {
+                general: 'General',
+                cardRestrictions: 'Restricciones de la tarjeta',
+                expenseDefaults: 'Valores predeterminados de gastos',
+                requireFields: 'Campos obligatorios',
+                flagForReview: 'Marcar para revisión',
+            },
             bulkActions: {
                 deleteMultiple: () => ({
                     one: 'Eliminar regla',
@@ -7518,6 +7556,10 @@ ${amount} para ${merchant} - ${date}`,
                 restrictCardSpendDescription: 'Bloquea o limita el gasto en el punto de venta',
                 applyExpenseDefaults: 'Aplicar valores predeterminados de gastos',
                 applyExpenseDefaultsDescription: 'Actualizar campos sin que quien los envía haga nada',
+                flagForReview: 'Marcar para revisión',
+                flagForReviewDescription: 'Notificar a los aprobadores cuando los gastos superen los límites de categoría',
+                requireFields: 'Campos obligatorios',
+                requireFieldsDescription: 'Asegúrate de que los campos clave estén rellenos antes de enviar los gastos',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Tipo',
@@ -7527,6 +7569,59 @@ ${amount} para ${merchant} - ${date}`,
                 rename: 'Cambiar nombre',
                 update: 'Actualizar',
                 merchantIs: (merchant: string) => `El comercio es «${merchant}»`,
+                merchantTypeIs: (merchantType: string) => `El tipo de comercio es "${merchantType}"`,
+            },
+            merchantTypeRule: {merchantType: 'Tipo de comercio', saveRule: 'Guardar regla', confirmErrorCategory: 'Por favor, selecciona una categoría.'},
+            requireFieldsTable: {
+                tableColumnType: 'Tipo',
+                tableColumnCondition: 'Condición',
+                tableColumnRule: 'Regla',
+                findRule: 'Buscar regla',
+                typeLabel: 'Campos obligatorios',
+                conditionCategoryIs: (category: string) => `La categoría es «${category}»`,
+                requireDescription: 'Requerir descripción',
+                requireAttendees: 'Requerir asistentes',
+                requireItemizedReceipt: 'Requerir recibo desglosado',
+                requireItemizedReceiptOver: (amount: string) => `Requerir recibo desglosado por encima de ${amount}`,
+                alwaysRequireReceipt: 'Solicitar siempre recibo',
+                requireReceiptOver: (amount: string) => `Solicitar recibo para importes superiores a ${amount}`,
+            },
+            requireFieldsEmptyState: {
+                title: 'Detecta los datos que faltan desde el principio',
+                subtitle: 'Asegúrate de que los campos clave estén completos antes de enviar los gastos.',
+                cta: 'Crear regla de requisito',
+            },
+            requireFieldsRule: {
+                title: 'Campos obligatorios',
+                subtitle: 'Solicita recibos, categorías, etc., al enviar.',
+                thenWarnMember: 'Luego, avisa al miembro si faltan campos:',
+                itemizedReceipt: 'Recibo desglosado',
+                saveRule: 'Guardar regla',
+                confirmErrorCategory: 'Por favor, selecciona una categoría.',
+                confirmErrorField: 'Por favor, selecciona al menos un campo como obligatorio.',
+            },
+            flagForReviewTable: {
+                tableColumnType: 'Tipo',
+                tableColumnCondition: 'Condición',
+                tableColumnRule: 'Regla',
+                findRule: 'Buscar regla',
+                typeLabel: 'Marcar',
+                conditionCategoryAndAmount: (category: string, amount: string) => `La categoría es «${category}» y el importe es superior a ${amount}`,
+                conditionCategoryAndDailyAmount: (category: string, amount: string) => `La categoría es "${category}" y el total diario de la categoría supera ${amount}`,
+                flagForReview: 'Marcar para revisión',
+            },
+            flagForReviewEmptyState: {
+                title: 'Destaca los gastos que necesitan una revisión más detallada',
+                subtitle: 'Avisa a los aprobadores cuando ciertos gastos merezcan una revisión adicional.',
+                cta: 'Crear regla de marca',
+            },
+            flagForReviewRule: {
+                title: 'Marcar para revisión',
+                subtitle: 'Notificar a los aprobadores cuando se cumplan las siguientes condiciones.',
+                saveRule: 'Guardar regla',
+                confirmErrorCategory: 'Por favor, selecciona una categoría.',
+                confirmErrorAmount: 'Por favor, introduce una cantidad.',
+                thenFlagForReview: 'Luego marcar para revisión cuando:',
             },
         },
         emptyDomain: {
@@ -9490,6 +9585,9 @@ ${amount} para ${merchant} - ${date}`,
         resolvedDuplicates: 'resolvió el duplicado',
         companyCardRequired: 'Se requieren compras con la tarjeta de la empresa.',
         noRoute: 'Por favor, selecciona una dirección válida',
+        customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `La tasa solo es válida desde ${startDate} hasta ${endDate}`,
+        customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `La tasa solo es válida desde ${startDate}`,
+        customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `La tasa solo es válida hasta ${endDate}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName) => `${fieldName} es obligatorio`,
