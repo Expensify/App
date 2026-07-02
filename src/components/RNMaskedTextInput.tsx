@@ -37,7 +37,6 @@ function RNMaskedTextInputWithRef({ref, forwardedFSClass = CONST.FULLSTORY.CLASS
             }}
             // eslint-disable-next-line react/forbid-component-props
             fsClass={forwardedFSClass}
-            // eslint-disable-next-line
             {...props}
         />
     );
