@@ -221,6 +221,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
     const [cardFeedErrors] = useOnyx(ONYXKEYS.DERIVED.CARD_FEED_ERRORS);
+    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const currentUserLogin = currentUserPersonalDetails.login ?? sessionEmail ?? '';
     const activePolicyEntry = Array.isArray(activePolicy) ? undefined : activePolicy;
     const reportID = useMemo(() => generateReportID(), []);
@@ -469,7 +470,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
                     action: () =>
                         replaceTopmostModalWithAction(() => {
                             interceptAnonymousUser(() => {
-                                startDistanceRequest(CONST.IOU.TYPE.CREATE, reportID, draftTransactionIDs, undefined, undefined, undefined, true);
+                                startDistanceRequest(CONST.IOU.TYPE.CREATE, reportID, draftTransactionIDs, lastDistanceExpenseType, undefined, undefined, true);
                             });
                         }),
                     keyForList: 'create_trackDistance',
@@ -536,6 +537,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
             icons,
             isCreateReportVisible,
             isTravelVisible,
+            lastDistanceExpenseType,
             reportID,
             shouldOpenTravelDirectly,
             shouldShowNewWorkspaceButton,
