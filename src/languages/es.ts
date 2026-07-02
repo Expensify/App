@@ -6647,6 +6647,7 @@ ${amount} para ${merchant} - ${date}`,
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>Conectado. ${setupLink ? `<a href="${setupLink}">Completa la configuración</a>` : 'Completar configuración'} para importar empleados.</muted-text-label>`,
                 groups: {title: 'Grupos', description: 'Elige los grupos de empleados que te gustaría sincronizar con este espacio de trabajo'},
+                syncLimitReached: {title: 'Inténtalo de nuevo mañana', prompt: 'Has alcanzado tu límite de sincronización de hoy.'},
             },
         },
         export: {

@@ -7602,6 +7602,7 @@ ${reportName}`,
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>接続されました。従業員をインポートするには ${setupLink ? `<a href="${setupLink}">セットアップを完了</a>` : '設定を完了'} に接続してください。</muted-text-label>`,
                 groups: {title: 'グループ', description: 'このワークスペースと同期したい従業員グループを選択してください'},
+                syncLimitReached: {title: '明日もう一度お試しください', prompt: '本日の同期上限に達しました。'},
             },
         },
         emptyDomain: {

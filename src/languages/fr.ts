@@ -7738,6 +7738,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>Connecté. ${setupLink ? `<a href="${setupLink}">Terminer la configuration</a>` : 'Terminer la configuration'} pour importer les employés.</muted-text-label>`,
                 groups: {title: 'Groupes', description: 'Choisissez les groupes d’employés que vous souhaitez synchroniser avec cet espace de travail'},
+                syncLimitReached: {title: 'Réessayez demain', prompt: "Vous avez atteint votre limite de synchronisation pour aujourd'hui."},
             },
         },
         emptyDomain: {

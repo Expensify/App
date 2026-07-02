@@ -7659,6 +7659,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>Conectado. ${setupLink ? `<a href="${setupLink}">Concluir configuração</a>` : 'Concluir configuração'} para importar funcionários.</muted-text-label>`,
                 groups: {title: 'Grupos', description: 'Escolha os grupos de funcionários que você gostaria de sincronizar com este workspace'},
+                syncLimitReached: {title: 'Tente novamente amanhã', prompt: 'Você atingiu o limite de sincronizações de hoje.'},
             },
         },
         emptyDomain: {
