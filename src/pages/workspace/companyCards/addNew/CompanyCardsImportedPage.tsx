@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
@@ -8,6 +8,7 @@ import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirm
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import {applyCompanyCardSavedColumnMappings} from '@libs/actions/ImportSpreadsheet';
 import {getCSVFeedType} from '@libs/CardUtils';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -50,7 +51,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
 
-    const columnRoles: ColumnRole[] = (() => {
+    const columnRoles: ColumnRole[] = useMemo(() => {
         const baseRoles: ColumnRole[] = [
             {text: translate('workspace.companyCards.addNewCard.csvColumns.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
             {text: translate('workspace.companyCards.addNewCard.csvColumns.cardNumber'), value: CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER, isRequired: true},
@@ -74,7 +75,34 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
         ];
 
         return [...baseRoles, ...advancedRoles];
-    })();
+    }, [translate, shouldUseAdvancedFields]);
+
+    const savedColumnMappings = workspaceCardFeeds?.settings?.companyCards?.[layoutType]?.uploadLayoutSettings?.columnMappings;
+    const hasAppliedSavedMappings = useRef(false);
+    const lastProcessedDataRef = useRef(spreadsheet?.data);
+
+    useEffect(() => {
+        // Reset the flag when new spreadsheet data is loaded
+        if (spreadsheet?.data !== lastProcessedDataRef.current) {
+            hasAppliedSavedMappings.current = false;
+            lastProcessedDataRef.current = spreadsheet?.data;
+        }
+
+        if (hasAppliedSavedMappings.current) {
+            return;
+        }
+
+        if (!spreadsheet?.data || isEmptyObject(savedColumnMappings)) {
+            return;
+        }
+
+        hasAppliedSavedMappings.current = true;
+        applyCompanyCardSavedColumnMappings(
+            spreadsheet.data,
+            savedColumnMappings,
+            columnRoles.map((role) => role.value),
+        );
+    }, [spreadsheet?.data, savedColumnMappings, columnRoles]);
 
     const requiredColumns = columnRoles.filter((role) => role.isRequired);
 

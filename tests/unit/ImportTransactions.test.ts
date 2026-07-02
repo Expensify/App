@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import Onyx from 'react-native-onyx';
-import {applySavedColumnMappings, getImportFinalModalOnyxData} from '@libs/actions/ImportSpreadsheet';
+import {applyCompanyCardSavedColumnMappings, applySavedColumnMappings, getImportFinalModalOnyxData} from '@libs/actions/ImportSpreadsheet';
 import importTransactionsFromCSV, {buildColumnLayout, buildTransactionListFromSpreadsheet, getColumnIndexes} from '@libs/actions/ImportTransactions';
 import * as API from '@libs/API';
 import CONST from '@src/CONST';
@@ -769,6 +769,98 @@ describe('ImportTransactions', () => {
             };
 
             applySavedColumnMappings(spreadsheetData, savedLayout);
+
+            expect(Onyx.merge).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('applyCompanyCardSavedColumnMappings', () => {
+        const availableRoles = [
+            CONST.CSV_IMPORT_COLUMNS.IGNORE,
+            CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER,
+            CONST.CSV_IMPORT_COLUMNS.POSTED_DATE,
+            CONST.CSV_IMPORT_COLUMNS.MERCHANT,
+            CONST.CSV_IMPORT_COLUMNS.AMOUNT,
+            CONST.CSV_IMPORT_COLUMNS.CURRENCY,
+        ];
+
+        // Column-major spreadsheet data (each entry is a column)
+        const spreadsheetData = [
+            ['Card', '4111', '4111'],
+            ['Posted', '2024-01-01', '2024-01-02'],
+            ['Merchant', 'Store A', 'Store B'],
+            ['Amount', '10.00', '20.00'],
+            ['Currency', 'USD', 'USD'],
+        ];
+
+        it('should apply saved company card column mappings by index', () => {
+            const savedColumnMappings = {
+                cardNumber: '0',
+                postedDate: '1',
+                merchant: '2',
+                amount: '3',
+                currency: '4',
+            };
+
+            applyCompanyCardSavedColumnMappings(spreadsheetData, savedColumnMappings, availableRoles);
+
+            expect(Onyx.merge).toHaveBeenCalledWith(ONYXKEYS.IMPORTED_SPREADSHEET, {
+                columns: {
+                    0: CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER,
+                    1: CONST.CSV_IMPORT_COLUMNS.POSTED_DATE,
+                    2: CONST.CSV_IMPORT_COLUMNS.MERCHANT,
+                    3: CONST.CSV_IMPORT_COLUMNS.AMOUNT,
+                    4: CONST.CSV_IMPORT_COLUMNS.CURRENCY,
+                },
+            });
+        });
+
+        it('should skip roles that are not selectable in the current context', () => {
+            const savedColumnMappings = {
+                cardNumber: '0',
+                merchant: '2',
+                amount: '3',
+                // Advanced field not available when advanced fields are disabled
+                originalAmount: '1',
+                // Auto-generated column that is never a selectable role
+                externalID: '4',
+            };
+
+            applyCompanyCardSavedColumnMappings(spreadsheetData, savedColumnMappings, availableRoles);
+
+            expect(Onyx.merge).toHaveBeenCalledWith(ONYXKEYS.IMPORTED_SPREADSHEET, {
+                columns: {
+                    0: CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER,
+                    2: CONST.CSV_IMPORT_COLUMNS.MERCHANT,
+                    3: CONST.CSV_IMPORT_COLUMNS.AMOUNT,
+                },
+            });
+        });
+
+        it('should skip the ignore role and out-of-range indexes', () => {
+            const savedColumnMappings = {
+                ignore: '0',
+                merchant: '2',
+                amount: '99',
+                currency: '-1',
+            };
+
+            applyCompanyCardSavedColumnMappings(spreadsheetData, savedColumnMappings, availableRoles);
+
+            expect(Onyx.merge).toHaveBeenCalledWith(ONYXKEYS.IMPORTED_SPREADSHEET, {
+                columns: {
+                    2: CONST.CSV_IMPORT_COLUMNS.MERCHANT,
+                },
+            });
+        });
+
+        it('should not call Onyx.merge when no columns can be mapped', () => {
+            const savedColumnMappings = {
+                originalAmount: '1',
+                originalCurrency: '4',
+            };
+
+            applyCompanyCardSavedColumnMappings(spreadsheetData, savedColumnMappings, availableRoles);
 
             expect(Onyx.merge).not.toHaveBeenCalled();
         });
