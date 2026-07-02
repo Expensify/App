@@ -618,6 +618,7 @@
         "genkey",
         "getenv",
         "getprop",
+        "getsentry",
         "gibsdk",
         "glcode",
         "googleusercontent",
