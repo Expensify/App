@@ -4,7 +4,7 @@ import useOnyx from '@hooks/useOnyx';
 import {clearMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {saveUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';
-import {cancelSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import {getOptimisticChatReport, saveReportDraft} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -62,6 +62,10 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
                     saveUnknownUserDetails(participant);
                     const optimisticReport = getOptimisticChatReport(accountID, currentUserAccountID);
                     reportID = optimisticReport.reportID;
+
+                    if (isSubmitFlow) {
+                        getSpan(CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_REPORT_ID, reportID.toString());
+                    }
 
                     setSelectedReportID(reportID);
                     saveReportDraft(reportID, optimisticReport).then(() => {
