@@ -2114,7 +2114,12 @@ function updateGeneralSettings(policy: OnyxEntry<Policy>, name: string, currency
     });
 }
 
-function updateWorkspaceDescription(policyID: string, description: string, currentDescription: string | undefined) {
+function updateWorkspaceDescription(
+    policyID: string,
+    description: string,
+    currentDescription: string | undefined,
+    reviewWorkspaceSettingsTaskData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {},
+) {
     if (description === currentDescription) {
         return;
     }
@@ -2164,9 +2169,10 @@ function updateWorkspaceDescription(policyID: string, description: string, curre
     };
 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_DESCRIPTION, params, {
-        optimisticData,
+        optimisticData: [...optimisticData, ...(reviewWorkspaceSettingsTaskData.optimisticData ?? [])],
         finallyData,
-        failureData,
+        successData: reviewWorkspaceSettingsTaskData.successData ?? [],
+        failureData: [...failureData, ...(reviewWorkspaceSettingsTaskData.failureData ?? [])],
     });
 }
 

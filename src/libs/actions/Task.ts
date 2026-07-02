@@ -1463,6 +1463,33 @@ function clearTaskErrors(
     });
 }
 
+/** Onboarding task info resolved by the `useOnboardingTaskInformation` hook. */
+type OnboardingTaskInformation = {
+    taskReport: OnyxEntry<OnyxTypes.Report>;
+    taskParentReport: OnyxEntry<OnyxTypes.Report>;
+    isOnboardingTaskParentReportArchived: boolean;
+    hasOutstandingChildTask: boolean;
+    parentReportAction: OnyxEntry<ReportAction> | undefined;
+};
+
+/**
+ * Build the optimistic Onyx data that completes the "Review your workspace settings" onboarding task.
+ * Resolve `taskInformation` in the calling component with `useOnboardingTaskInformation(REVIEW_WORKSPACE_SETTINGS)`
+ * and spread the result into the onyxData of a workspace-settings write command: the backend completes the task
+ * itself when it processes that command, so this only mirrors the completion optimistically (no separate
+ * CompleteTask call). Returns {} (no-op) when the task isn't tracked, can't be actioned, or is already complete.
+ */
+function getReviewWorkspaceSettingsTaskCompletionData(
+    taskInformation: OnboardingTaskInformation,
+    currentUserAccountID: number,
+): OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> {
+    const {taskReport, taskParentReport, isOnboardingTaskParentReportArchived, hasOutstandingChildTask, parentReportAction} = taskInformation;
+    if (!taskReport?.reportID) {
+        return {};
+    }
+    return getFinishOnboardingTaskOnyxData(taskReport, taskParentReport, isOnboardingTaskParentReportArchived, currentUserAccountID, hasOutstandingChildTask, parentReportAction, undefined);
+}
+
 function getFinishOnboardingTaskOnyxData(
     taskReport: OnyxEntry<OnyxTypes.Report>,
     taskParentReport: OnyxEntry<OnyxTypes.Report>,
@@ -1517,6 +1544,7 @@ export {
     reopenTask,
     buildTaskData,
     completeTask,
+    getReviewWorkspaceSettingsTaskCompletionData,
     clearOutTaskInfoAndNavigate,
     startOutCreateTaskQuickAction,
     getAssignee,
