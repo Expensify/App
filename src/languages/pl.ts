@@ -5037,6 +5037,7 @@ ${amount} dla ${merchant} - ${date}`,
                 oauth: 'Zaloguj się przez Salesforce',
                 oauthDescription: 'Aby zakończyć konfigurację, musisz się zalogować przez Salesforce i Certinia.\n\nUżyj przycisku poniżej, żeby kontynuować.',
                 connectButton: 'Połącz z Certinia',
+                connectSandboxButton: 'Połącz z Certinia Sandbox',
             },
             import: {
                 chartOfAccounts: 'Plan kont',

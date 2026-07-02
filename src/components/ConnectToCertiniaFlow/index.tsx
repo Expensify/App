@@ -52,7 +52,8 @@ function ConnectToCertiniaFlow({policyID}: ConnectToCertiniaFlowProps) {
             icon: icons.LinkCopy,
             text: translate('workspace.certinia.prerequisites.connectSandboxButton'),
             onSelected: () => {
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID, CONST.CERTINIA_PREREQUISITES.PAGE_NAME.INSTALL_BUNDLE, true));
+                const isSandbox = true;
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID, CONST.CERTINIA_PREREQUISITES.PAGE_NAME.INSTALL_BUNDLE, isSandbox));
                 setIsReuseConnectionsPopoverOpen(false);
             },
         },

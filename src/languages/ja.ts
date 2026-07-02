@@ -5007,6 +5007,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 oauth: 'Salesforce からログイン',
                 oauthDescription: '設定を完了するには、Salesforce と Certinia を通じてサインインする必要があります。\n\n続行するには、下のボタンを使用してください。',
                 connectButton: 'Certinia に接続',
+                connectSandboxButton: 'Certinia Sandbox に接続',
             },
             import: {
                 chartOfAccounts: '勘定科目表',

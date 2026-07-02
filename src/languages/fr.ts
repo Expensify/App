@@ -5081,6 +5081,7 @@ ${amount} pour ${merchant} - ${date}`,
                 oauth: 'Se connecter via Salesforce',
                 oauthDescription: 'Pour terminer la configuration, vous devez vous connecter via Salesforce et Certinia.\n\nUtilisez le bouton ci-dessous pour continuer.',
                 connectButton: 'Se connecter à Certinia',
+                connectSandboxButton: 'Se connecter à Certinia Sandbox',
             },
             import: {
                 chartOfAccounts: 'Plan comptable',
