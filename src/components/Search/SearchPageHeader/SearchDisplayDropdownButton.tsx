@@ -21,6 +21,11 @@ type SearchDisplayDropdownButtonProps = {
     onSort: () => void;
 };
 
+const DISPLAY_POPOVER_ANCHOR_ALIGNMENT = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+} as const;
+
 function SearchDisplayDropdownButton({queryJSON, searchResults, onSort}: SearchDisplayDropdownButtonProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -47,10 +52,7 @@ function SearchDisplayDropdownButton({queryJSON, searchResults, onSort}: SearchD
         return (
             <FilterPopupButton
                 PopoverComponent={displayPopup}
-                popoverAnchorAlignment={{
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                }}
+                popoverAnchorAlignment={DISPLAY_POPOVER_ANCHOR_ALIGNMENT}
                 renderButton={({ref, onPress}) => (
                     <PressableWithFeedback
                         ref={ref}
@@ -79,10 +81,7 @@ function SearchDisplayDropdownButton({queryJSON, searchResults, onSort}: SearchD
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_DISPLAY}
             value={null}
             PopoverComponent={displayPopup}
-            popoverAnchorAlignment={{
-                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-            }}
+            popoverAnchorAlignment={DISPLAY_POPOVER_ANCHOR_ALIGNMENT}
         />
     );
 }
