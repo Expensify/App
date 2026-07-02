@@ -167,8 +167,6 @@
 "../../src/components/EmptySelectionListContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/EnvironmentBadge.tsx"	"no-restricted-syntax"	1
 "../../src/components/ExplanationModal.tsx"	"no-restricted-syntax"	1
-"../../src/components/FeatureTrainingContent/FeatureTrainingContentIllustration.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/components/FeatureTrainingModal/FeatureTrainingModalIllustration.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/FeedbackSurvey.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/FilePicker/index.native.tsx"	"react-hooks/refs"	1
 "../../src/components/FilePicker/index.tsx"	"react-hooks/refs"	1
