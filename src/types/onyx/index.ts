@@ -48,16 +48,13 @@ import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type {
     CardFeedErrorsDerivedValue,
-    FlaggedExpensesDerivedValue,
+    LoginToAccountIDMapDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
-    OpenAndSubmittedReportsByPolicyIDDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     ReportAttributesDerivedValue,
     ReportTransactionsAndViolationsDerivedValue,
     SortedReportActionsDerivedValue,
-    TodoMetadata,
-    TodosDerivedValue,
     VisibleReportActionsDerivedValue,
 } from './DerivedValues';
 import type DeviceBiometrics from './DeviceBiometrics';
@@ -113,7 +110,7 @@ import type Pages from './Pages';
 import type PendingConciergeResponse from './PendingConciergeResponse';
 import type {PendingContactAction} from './PendingContactAction';
 import type PersonalBankAccount from './PersonalBankAccount';
-import type {AddNewPersonalCard, PersonalCardFeed} from './PersonalCard';
+import type {AddNewPersonalCard} from './PersonalCard';
 import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
 import type PlaidData from './PlaidData';
@@ -211,7 +208,6 @@ export type {
     Beta,
     AddNewPersonalCard,
     BetaConfiguration,
-    PersonalCardFeed,
     BlockedFromConcierge,
     Card,
     CardList,
@@ -396,15 +392,12 @@ export type {
     LastSearchParams,
     ReportTransactionsAndViolationsDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
-    OpenAndSubmittedReportsByPolicyIDDerivedValue,
     VisibleReportActionsDerivedValue,
     SortedReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
-    TodosDerivedValue,
-    TodoMetadata,
-    FlaggedExpensesDerivedValue,
+    LoginToAccountIDMapDerivedValue,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     VacationDelegate,

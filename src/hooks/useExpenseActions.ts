@@ -2,8 +2,6 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import {useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -32,6 +30,7 @@ import {
     isSelfDM,
     navigateOnDeleteExpense,
 } from '@libs/ReportUtils';
+import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     getChildTransactions,
@@ -60,8 +59,11 @@ import useGetIOUReportFromReportAction from './useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
+import useParentReportAction from './useParentReportAction';
 import usePermissions from './usePermissions';
 import useReportIsArchived from './useReportIsArchived';
+import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
+import useSplitEffectivePolicy from './useSplitEffectivePolicy';
 import useTheme from './useTheme';
 import useThrottledButtonState from './useThrottledButtonState';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
@@ -96,6 +98,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
     // Report data
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const parentReportAction = useParentReportAction(moneyRequestReport);
+    const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
 
@@ -113,6 +117,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     }
 
     const currentTransaction = transactions.at(0);
+    const splitEffectivePolicy = useSplitEffectivePolicy(moneyRequestReport, undefined, currentTransaction);
+    const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
@@ -295,7 +301,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 if (transactions.length !== 1) {
                     return;
                 }
-                initSplitExpense(currentTransaction, policy, moneyRequestReport, accountID, {isProduction});
+                initSplitExpense(currentTransaction, moneyRequestReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, {isProduction});
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.MERGE]: {
@@ -323,7 +329,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 }
 
                 if (hasCustomUnitOutOfPolicyViolation) {
-                    showConfirmModal({
+                    showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                         title: translate('common.duplicateExpense'),
                         prompt: translate('iou.correctRateError'),
                         confirmText: translate('common.buttonConfirm'),
@@ -333,7 +339,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 }
 
                 if (isDistanceExpenseUnsupportedForDuplicating) {
-                    showConfirmModal({
+                    showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                         title: translate('common.duplicateExpense'),
                         prompt: translate('iou.cannotDuplicateDistanceExpense'),
                         confirmText: translate('common.buttonConfirm'),
@@ -343,7 +349,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 }
 
                 if (isPerDiemRequestOnNonDefaultWorkspace) {
-                    showConfirmModal({
+                    showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                         title: translate('common.duplicateExpense'),
                         prompt: translate('iou.duplicateNonDefaultWorkspacePerDiemError'),
                         confirmText: translate('common.buttonConfirm'),
@@ -389,28 +395,26 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 const targetChatForDuplicate = isSourcePolicyValid ? chatReport : activePolicyExpenseChat;
                 const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyForDuplicate?.id}`] ?? {};
 
-                InteractionManager.runAfterInteractions(() => {
-                    duplicateReportAction({
-                        sourceReport: moneyRequestReport,
-                        sourceReportTransactions: nonPendingDeleteTransactions,
-                        sourceReportName: moneyRequestReport?.reportName ?? '',
-                        targetPolicy: targetPolicyForDuplicate ?? undefined,
-                        targetPolicyCategories: activePolicyCategories,
-                        targetPolicyTags: allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyForDuplicate?.id}`] ?? {},
-                        parentChatReport: targetChatForDuplicate,
-                        ownerPersonalDetails: currentUserPersonalDetails,
-                        isASAPSubmitBetaEnabled,
-                        betas,
-                        personalDetails,
-                        quickAction,
-                        policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                        isSelfTourViewed,
-                        transactionViolations: allTransactionViolations,
-                        translate,
-                        recentWaypoints: recentWaypoints ?? [],
-                        currentUserAccountID: currentUserPersonalDetails?.accountID,
-                        currentUserLogin: currentUserPersonalDetails?.email ?? '',
-                    });
+                duplicateReportAction({
+                    sourceReport: moneyRequestReport,
+                    sourceReportTransactions: nonPendingDeleteTransactions,
+                    sourceReportName: moneyRequestReport?.reportName ?? '',
+                    targetPolicy: targetPolicyForDuplicate ?? undefined,
+                    targetPolicyCategories: activePolicyCategories,
+                    targetPolicyTags: allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyForDuplicate?.id}`] ?? {},
+                    parentChatReport: targetChatForDuplicate,
+                    ownerPersonalDetails: currentUserPersonalDetails,
+                    isASAPSubmitBetaEnabled,
+                    betas,
+                    personalDetails,
+                    quickAction,
+                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                    isSelfTourViewed,
+                    transactionViolations: allTransactionViolations,
+                    translate,
+                    recentWaypoints: recentWaypoints ?? [],
+                    currentUserAccountID: currentUserPersonalDetails?.accountID,
+                    currentUserLogin: currentUserPersonalDetails?.email ?? '',
                 });
             },
         },
@@ -480,7 +484,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         return;
                     }
 
-                    const result = await showConfirmModal({
+                    const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                         title: translate('iou.deleteExpense', {count: 1}),
                         prompt: translate('iou.deleteConfirmation', {count: 1}),
                         confirmText: translate('common.delete'),
@@ -541,7 +545,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     return;
                 }
 
-                const result = await showConfirmModal({
+                const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                     title: translate('iou.deleteReport', {count: 1}),
                     prompt: translate('iou.deleteReportConfirmation', {count: 1}),
                     confirmText: translate('common.delete'),
@@ -566,6 +570,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                             setTimeout(() => {
                                 deleteAppReport({
                                     report: moneyRequestReport,
+                                    reportActions: moneyRequestReportActions,
+                                    parentReportAction,
                                     selfDMReport,
                                     currentUserEmailParam: email ?? '',
                                     currentUserAccountIDParam: accountID,

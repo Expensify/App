@@ -74,7 +74,11 @@ function SortableTableHeader({
                     const isSortable = shouldShowSorting && isColumnSortable;
                     const sortByColumnName = sortColumnName ?? columnName;
                     const isActive = sortBy === sortByColumnName;
-                    const textStyle = columnName === CONST.SEARCH.TABLE_COLUMNS.RECEIPT ? StyleUtils.getTextOverflowStyle('clip') : null;
+                    const isReimbursableOrBillableColumn = columnName === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE || columnName === CONST.SEARCH.TABLE_COLUMNS.BILLABLE;
+                    const textStyle = [
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.RECEIPT ? StyleUtils.getTextOverflowStyle('clip') : null,
+                        isReimbursableOrBillableColumn ? styles.flexShrink1 : null,
+                    ];
 
                     return (
                         <SortableHeaderText
@@ -85,8 +89,8 @@ function SortableTableHeader({
                             sortOrder={sortOrder ?? CONST.SEARCH.SORT_ORDER.ASC}
                             isActive={isActive}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.SORTABLE_HEADER}
+                            innerContainerStyle={canEdit && styles.editableCellHeader}
                             containerStyle={[
-                                canEdit && styles.editableCellHeader,
                                 StyleUtils.getReportTableColumnStyles(columnName, {
                                     isDateColumnWide: dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     isSubmittedColumnWide: submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,

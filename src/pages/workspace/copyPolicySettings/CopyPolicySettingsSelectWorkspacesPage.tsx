@@ -129,8 +129,17 @@ function CopyPolicySettingsSelectWorkspacesPage() {
         if (!sourcePolicyID) {
             return;
         }
-        setCopyPolicySettingsData({sourcePolicyID, targetPolicyIDs: resolvedSelectedTargetIDs});
-        Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_SELECT_FEATURES.getRoute(sourcePolicyID));
+
+        const previousTargetIDs = copyPolicySettings?.targetPolicyIDs ?? [];
+        const shouldClearParts = previousTargetIDs.length !== resolvedSelectedTargetIDs.length || !previousTargetIDs.every((id) => resolvedSelectedTargetIDs.includes(id));
+
+        setCopyPolicySettingsData({
+            sourcePolicyID,
+            targetPolicyIDs: resolvedSelectedTargetIDs,
+            ...(shouldClearParts ? {parts: []} : {}),
+        }).then(() => {
+            Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_SELECT_FEATURES.getRoute(sourcePolicyID));
+        });
     };
 
     const confirmButtonOptions: ConfirmButtonOptions<ListItem> = {

@@ -23,7 +23,9 @@ import {
     generateReportID,
     getDisplayedReportID,
     getOptimisticDataForAncestors,
+    getReimbursableTotal,
     getReportOrDraftReport,
+    getUnheldReimbursableTotal,
     isExpenseReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isProcessingReport,
@@ -127,6 +129,7 @@ function putOnHold(
             value: {
                 unheldTotal: (iouReport.unheldTotal ?? 0) - transactionAmount,
                 unheldNonReimbursableTotal: !transaction?.reimbursable ? (iouReport.unheldNonReimbursableTotal ?? 0) - transactionAmount : iouReport.unheldNonReimbursableTotal,
+                unheldReimbursableTotal: transaction?.reimbursable ? getUnheldReimbursableTotal(iouReport) - transactionAmount : getUnheldReimbursableTotal(iouReport),
             },
         });
     }
@@ -436,6 +439,7 @@ function unholdRequest(
             value: {
                 unheldTotal: (iouReport.unheldTotal ?? 0) + transactionAmount,
                 unheldNonReimbursableTotal: !transaction?.reimbursable ? (iouReport.unheldNonReimbursableTotal ?? 0) + transactionAmount : iouReport.unheldNonReimbursableTotal,
+                unheldReimbursableTotal: transaction?.reimbursable ? getUnheldReimbursableTotal(iouReport) + transactionAmount : getUnheldReimbursableTotal(iouReport),
             },
         });
     }
@@ -725,8 +729,10 @@ function getReportFromHoldRequestsOnyxData({
 
     const coefficient = isExpenseReport(iouReport) ? -1 : 1;
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
-    const holdAmount = ((iouReport?.total ?? 0) - (iouReport?.unheldTotal ?? 0)) * coefficient;
-    const holdNonReimbursableAmount = ((iouReport?.nonReimbursableTotal ?? 0) - (iouReport?.unheldNonReimbursableTotal ?? 0)) * coefficient;
+    const holdReimbursable = getReimbursableTotal(iouReport) - getUnheldReimbursableTotal(iouReport);
+    const holdNonReimbursable = (iouReport?.nonReimbursableTotal ?? 0) - (iouReport?.unheldNonReimbursableTotal ?? 0);
+    const holdAmount = (holdReimbursable + holdNonReimbursable) * coefficient;
+    const holdNonReimbursableAmount = holdNonReimbursable * coefficient;
 
     // Pass held transactions for formula computation (e.g., {report:startdate})
     const reportTransactions: Record<string, OnyxTypes.Transaction> = {};
@@ -800,10 +806,8 @@ function getReportFromHoldRequestsOnyxData({
         addHoldReportActions[reportActionID] = {
             ...holdReportAction,
             reportActionID,
-            originalMessage: {
-                ...originalMessage,
-                IOUReportID: optimisticExpenseReport.reportID,
-            },
+            reportID: optimisticExpenseReport.reportID,
+            originalMessage,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         };
         addHoldReportActionsSuccess[reportActionID] = {
@@ -852,6 +856,7 @@ function getReportFromHoldRequestsOnyxData({
                 ...optimisticExpenseReport,
                 unheldTotal: 0,
                 unheldNonReimbursableTotal: 0,
+                unheldReimbursableTotal: 0,
                 ...(isProcessingReport(iouReport) && isApprovalEnabled
                     ? {
                           stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -896,6 +901,7 @@ function getReportFromHoldRequestsOnyxData({
             value: {
                 total: iouReport?.unheldTotal ?? 0,
                 nonReimbursableTotal: iouReport?.unheldNonReimbursableTotal ?? 0,
+                reimbursableTotal: getUnheldReimbursableTotal(iouReport),
             },
         });
     }
@@ -972,6 +978,7 @@ function getReportFromHoldRequestsOnyxData({
             value: {
                 total: iouReport?.total,
                 nonReimbursableTotal: iouReport?.nonReimbursableTotal,
+                reimbursableTotal: iouReport?.reimbursableTotal,
             },
         });
     }

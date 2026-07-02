@@ -40,7 +40,6 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExistingTransactionID, resolveReportForMoneyRequest} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
-import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
@@ -48,6 +47,7 @@ import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isGroupPolicy} from '@libs/PolicyUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
+import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
 import DraftWorkspaceOpener from '@pages/iou/request/step/confirmation/DraftWorkspaceOpener';
 import CONST from '@src/CONST';
@@ -126,6 +126,23 @@ function SubmitDetailsPage({
     const fileName = shouldUsePreValidatedFile ? getFileName(validFilesToUpload?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
     const fileType = shouldUsePreValidatedFile ? (validFilesToUpload?.type ?? CONST.RECEIPT_ALLOWED_FILE_TYPES.JPEG) : (currentAttachment?.mimeType ?? '');
     const [hasOnlyPersonalPolicies = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesUtil});
+
+    const hasEndedOpenSubmitFlowSpan = useRef(false);
+    const endOpenSubmitFlowSpan = () => {
+        if (hasEndedOpenSubmitFlowSpan.current) {
+            return;
+        }
+        hasEndedOpenSubmitFlowSpan.current = true;
+        endSpan(CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW);
+    };
+
+    // Cancel the still-open span if the user leaves before the confirm container's onLayout ends it, so an abandoned attempt is not recorded as a never-ending span.
+    useEffect(
+        () => () => {
+            cancelSpan(CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW);
+        },
+        [],
+    );
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
@@ -421,7 +438,7 @@ function SubmitDetailsPage({
                             setIsConfirming(false);
                             return;
                         }
-                        navigateAfterInteraction(() => performUpload(participant, true));
+                        performUpload(participant, true);
                     }}
                     onDeny={(wasUserInitiated) => {
                         setStartLocationPermissionFlow(false);
@@ -433,11 +450,14 @@ function SubmitDetailsPage({
                             setIsConfirming(false);
                             return;
                         }
-                        navigateAfterInteraction(() => performUpload(participant, false));
+                        performUpload(participant, false);
                     }}
                     onInitialGetLocationCompleted={() => setIsConfirming(false)}
                 />
-                <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
+                <View
+                    style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}
+                    onLayout={endOpenSubmitFlowSpan}
+                >
                     <MoneyRequestConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}

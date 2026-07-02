@@ -29,8 +29,8 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
     const dynamicRouteKeys = Object.keys(DYNAMIC_ROUTES) as DynamicRouteKey[];
 
     for (const suffixMatch of allSuffixMatches) {
-        const {pattern, actualSuffix, pathParams} = suffixMatch;
-        const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(normalizedPathAfterRedirection, actualSuffix, pattern);
+        const {pattern, actualSuffix, pathParams, pathUsedForMatching, strippedTabPath} = suffixMatch;
+        const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(pathUsedForMatching, actualSuffix, pattern);
 
         // Find the DYNAMIC_ROUTES config key whose path matches the extracted pattern.
         const dynamicRoute = dynamicRouteKeys.find((key) => DYNAMIC_ROUTES[key].path === pattern) ?? '';
@@ -48,7 +48,7 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
                 ...(focusedRoute?.params as Record<string, unknown> | undefined),
                 ...pathParams,
             };
-            return getStateForDynamicRoute(normalizedPath, dynamicRoute as DynamicRouteKey, mergedParams);
+            return getStateForDynamicRoute(normalizedPath, dynamicRoute as DynamicRouteKey, mergedParams, strippedTabPath);
         }
 
         // If the base path is empty there's no underlying screen - show Not Found immediately.

@@ -31,9 +31,12 @@ import {
     generateReportID,
     getChatByParticipants,
     getParsedComment,
+    getReimbursableTotal,
     getReportNotificationPreference,
     getReportOrDraftReport,
+    getReportTransactions,
     getTransactionDetails,
+    getUnheldReimbursableTotal,
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
@@ -77,6 +80,7 @@ import {
 } from './MoneyRequestBuilder';
 import type {BuildOnyxDataForMoneyRequestKeys, OneOnOneIOUReport} from './MoneyRequestBuilder';
 import {dismissModalAndOpenReportInInboxTab, handleNavigateAfterExpenseCreate, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
+import {isOneToTwoTransactionTransition} from './PendingNewTransactions';
 import type BasePolicyParams from './types/BasePolicyParams';
 import type BaseTransactionParams from './types/BaseTransactionParams';
 
@@ -514,6 +518,7 @@ function startSplitBill({
         participants,
         transactionID: splitTransaction.transactionID,
         isOwnPolicyExpenseChat,
+        iouReportID: splitChatReport.reportID,
         // delegateAccountIDParam: will be threaded in PR 11; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
         delegateAccountIDParam: undefined,
     });
@@ -1011,9 +1016,20 @@ function completeSplitBill(
                   })
                 : buildOptimisticIOUReport(sessionAccountID, participant.accountID ?? CONST.DEFAULT_NUMBER_ID, splitAmount, oneOnOneChatReport?.reportID, currency ?? '');
         } else if (isPolicyExpenseChat) {
-            if (typeof oneOnOneIOUReport?.total === 'number') {
-                // Because of the Expense reports are stored as negative values, we subtract the total from the amount
-                oneOnOneIOUReport.total -= splitAmount;
+            if (oneOnOneIOUReport) {
+                // Capture previous fresh reimbursable totals before mutating, so the diff applies whether or
+                // not the oneOnOneIOUReport already had reimbursableTotal/unheldReimbursableTotal populated locally.
+                const previousReimbursableTotal = getReimbursableTotal(oneOnOneIOUReport);
+                const previousUnheldReimbursableTotal = getUnheldReimbursableTotal(oneOnOneIOUReport);
+                if (typeof oneOnOneIOUReport.total === 'number') {
+                    // Because of the Expense reports are stored as negative values, we subtract the total from the amount
+                    oneOnOneIOUReport.total -= splitAmount;
+                }
+                oneOnOneIOUReport.reimbursableTotal = previousReimbursableTotal - splitAmount;
+                if (typeof oneOnOneIOUReport.unheldTotal === 'number') {
+                    oneOnOneIOUReport.unheldTotal -= splitAmount;
+                }
+                oneOnOneIOUReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - splitAmount;
             }
         } else {
             oneOnOneIOUReport = updateIOUOwnerAndTotal(oneOnOneIOUReport, sessionAccountID, splitAmount, currency ?? '');
@@ -1431,6 +1447,7 @@ function createSplitsAndOnyxData({
         participants,
         transactionID: splitTransaction.transactionID,
         isOwnPolicyExpenseChat,
+        iouReportID: splitChatReport.reportID,
         delegateAccountIDParam: delegateAccountID,
     });
 
@@ -1690,13 +1707,21 @@ function createSplitsAndOnyxData({
         } else if (isOwnPolicyExpenseChat) {
             // Because of the Expense reports are stored as negative values, we subtract the total from the amount
             if (oneOnOneIOUReport?.currency === currency) {
+                // Capture previous fresh reimbursable totals before mutating, so the diff applies whether or
+                // not the oneOnOneIOUReport already had reimbursableTotal/unheldReimbursableTotal populated locally.
+                const previousReimbursableTotal = getReimbursableTotal(oneOnOneIOUReport);
+                const previousUnheldReimbursableTotal = getUnheldReimbursableTotal(oneOnOneIOUReport);
                 if (typeof oneOnOneIOUReport.total === 'number') {
                     oneOnOneIOUReport.total -= splitAmount;
                 }
 
+                oneOnOneIOUReport.reimbursableTotal = previousReimbursableTotal - splitAmount;
+
                 if (typeof oneOnOneIOUReport.unheldTotal === 'number') {
                     oneOnOneIOUReport.unheldTotal -= splitAmount;
                 }
+
+                oneOnOneIOUReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - splitAmount;
             }
         } else {
             oneOnOneIOUReport = updateIOUOwnerAndTotal(oneOnOneIOUReport, currentUserAccountID, splitAmount, currency);
@@ -2175,6 +2200,8 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     };
 
+    const isOneToTwoTransition = isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID));
+
     deferOrExecuteWrite(apiWrite, {
         shouldDeferForSearch: shouldDeferForSearch || !!(shouldHandleNavigation && isFromGlobalCreate && !isReportTopmostSplitNavigator()),
         optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
@@ -2185,17 +2212,19 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
     if (shouldHandleNavigation) {
         TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
-        const navigationActiveReportID = backToReport ?? activeReportID;
         highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, parameters.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
-        handleNavigateAfterExpenseCreate({
-            activeReportID: navigationActiveReportID,
-            isFromGlobalCreate,
-            transactionID: parameters.transactionID,
-            shouldAddPendingNewTransactionIDs: navigationActiveReportID === parameters.chatReportID,
-        });
     } else {
         removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     }
+
+    const navigationActiveReportID = backToReport ?? activeReportID;
+    handleNavigateAfterExpenseCreate({
+        activeReportID: navigationActiveReportID,
+        isFromGlobalCreate,
+        transactionID: parameters.transactionID,
+        shouldAddPendingNewTransactionIDs: isOneToTwoTransition || (shouldHandleNavigation && navigationActiveReportID === parameters.chatReportID),
+        shouldNavigate: shouldHandleNavigation,
+    });
 
     if (!isMoneyRequestReport) {
         notifyNewAction(activeReportID, undefined, true);

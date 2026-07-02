@@ -1,10 +1,10 @@
-import {StackActions} from '@react-navigation/native';
+import {StackActions, useFocusEffect} from '@react-navigation/native';
 import {delegateEmailSelector} from '@selectors/Account';
+import {createFilteredPoliciesInfoSelector} from '@selectors/Policy';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
@@ -50,6 +50,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {ReportDetailsNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
@@ -215,6 +216,9 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createFilteredPoliciesInfoSelector(currentUserPersonalDetails?.email)}, [
+        currentUserPersonalDetails?.email,
+    ]);
     const {showConfirmModal} = useConfirmModal();
     const isPolicyAdmin = useMemo(() => isPolicyAdminUtil(policy), [policy]);
     const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtil(report?.policyID, policy), [report?.policyID, policy]);
@@ -248,14 +252,14 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const ancestors = useAncestors(report);
 
     const chatRoomSubtitle = useMemo(() => {
-        const subtitle = getChatRoomSubtitle(report, policy, false, isReportArchived);
+        const subtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translate, false, isReportArchived);
 
         if (subtitle) {
             return subtitle;
         }
 
         return '';
-    }, [isReportArchived, report, policy]);
+    }, [isReportArchived, report, policy, conciergeReportID, translate]);
 
     const isSystemChat = useMemo(() => isSystemChatUtil(report), [report]);
     const isGroupChat = useMemo(() => isGroupChatUtil(report), [report]);
@@ -382,8 +386,12 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, currentUserPersonalDetails?.accountID, !!reportNameValuePairs?.private_isArchived);
 
-    // Only show the "Go to room" row when the Details page was opened from a screen other than the room report itself (e.g. the Workspace rooms list).
-    const isRoomCurrentlyOpen = isReportTopmostSplitNavigator() && Navigation.getTopmostReportId() === report?.reportID;
+    // Snapshot on focus whether the room is the screen behind the Details page, so the row doesn't flip while the page
+    // is closing after it's tapped, yet still reflects the correct screen on later visits.
+    const [isRoomCurrentlyOpen, setIsRoomCurrentlyOpen] = useState(() => isReportTopmostSplitNavigator() && Navigation.getTopmostReportId() === report?.reportID);
+    useFocusEffect(() => {
+        setIsRoomCurrentlyOpen(isReportTopmostSplitNavigator() && Navigation.getTopmostReportId() === report?.reportID);
+    });
     const shouldShowGoToRoom = (isChatRoom || isPolicyExpenseChat) && !isRoomCurrentlyOpen;
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending && !shouldShowGoToRoom;
 
@@ -455,7 +463,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     if (shouldOpenRoomMembersPage) {
                         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_MEMBERS.path));
                     } else {
-                        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID, Navigation.getActiveRoute()));
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS.path));
                     }
                 },
             });
@@ -480,7 +488,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
-                    Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID, Navigation.getActiveRoute()));
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS.path));
                 },
             });
         }
@@ -513,6 +521,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                         currentUserAccountID: currentUserPersonalDetails.accountID,
                         currentUserEmail: currentUserPersonalDetails.email ?? '',
                         currentUserLocalCurrency,
+                        filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
+                        firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
                     });
                 },
             });
@@ -538,6 +548,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                             currentUserAccountID: currentUserPersonalDetails.accountID,
                             currentUserEmail: currentUserPersonalDetails.email ?? '',
                             currentUserLocalCurrency,
+                            filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
+                            firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
                         });
                     },
                 });
@@ -562,6 +574,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                             currentUserAccountID: currentUserPersonalDetails.accountID,
                             currentUserEmail: currentUserPersonalDetails.email ?? '',
                             currentUserLocalCurrency,
+                            filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
+                            firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
                         });
                     },
                 });
@@ -705,6 +719,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         amountOwed,
         ownerBillingGracePeriodEnd,
         iouTransaction,
+        filteredPoliciesInfo?.filteredPoliciesCount,
+        filteredPoliciesInfo?.firstPolicyID,
         parentReport,
         delegateEmail,
         conciergeReportID,
@@ -832,7 +848,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                         shouldShowRightIcon={false}
                         interactive={false}
                         description={translate('workspace.common.workspace')}
-                        title={getPolicyName({report})}
+                        title={getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')})}
                         numberOfLinesTitle={2}
                         shouldBreakWord
                     />
@@ -864,6 +880,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     textStyles={[styles.popoverMenuText, styles.flexShrink1, styles.preWrap, styles.mw100]}
                     subtitleNumberOfLines={2}
                     shouldShowFromPrefix={false}
+                    openParentReportInCurrentTab
                 />
             }
             description={translate('threads.from')}
@@ -1081,9 +1098,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
             navigateToTargetUrl();
             // Delay deletion until the RHP close animation finishes to prevent a brief
             // "Not Found" flash inside the animating-out panel on slower devices.
-            InteractionManager.runAfterInteractions(() => {
-                deleteTransaction();
-            });
+            TransitionTracker.runAfterTransitions({callback: deleteTransaction, waitForUpcomingTransition: true});
         });
     }, [showConfirmModal, translate, caseID, iouTransactionID, shouldOpenSplitExpenseEditFlowOnDelete, navigateToTargetUrl, deleteTransaction]);
 

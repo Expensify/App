@@ -26,8 +26,9 @@ import {navigateToAndCreateGroupChat, setGroupDraft} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {hasSeenTourSelector} from '@src/selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@src/selectors/Onboarding';
 import type {Participant} from '@src/types/onyx/IOU';
+import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function navigateBack() {
@@ -118,7 +119,7 @@ function NewChatConfirmPage() {
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
 
     const participants = newGroupDraft?.participants ?? [];
@@ -162,19 +163,34 @@ function NewChatConfirmPage() {
             return;
         }
 
-        const logins: string[] = (newGroupDraft.participants ?? []).map((participant) => participant.login).filter((login): login is string => !!login);
-        navigateToAndCreateGroupChat(
-            logins,
-            newGroupDraft.reportName ?? '',
-            personalData.login ?? '',
-            optimisticReportID.current,
+        // Build the participants' personal details so the action can derive logins/accountIDs and tell which participants are new
+        // (entries flagged with isOptimisticPersonalDetail) without reading the global personal details list.
+        const participantsPersonalDetails: PersonalDetailsList = {};
+        for (const participant of newGroupDraft.participants ?? []) {
+            const {accountID, login} = participant;
+            if (!accountID || !login) {
+                continue;
+            }
+            participantsPersonalDetails[accountID] = allPersonalDetails?.[accountID] ?? {
+                accountID,
+                login,
+                displayName: login,
+                isOptimisticPersonalDetail: true,
+            };
+        }
+        navigateToAndCreateGroupChat({
+            participantsPersonalDetails,
+            reportName: newGroupDraft.reportName ?? '',
+            currentUserLogin: personalData.login ?? '',
+            optimisticReportID: optimisticReportID.current,
             introSelected,
-            isSelfTourViewed,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
             betas,
-            personalData.accountID,
-            newGroupDraft.avatarUri ?? '',
+            currentUserAccountID: personalData.accountID,
+            avatarUri: newGroupDraft.avatarUri ?? '',
             avatarFile,
-        );
+        });
     };
 
     return (
