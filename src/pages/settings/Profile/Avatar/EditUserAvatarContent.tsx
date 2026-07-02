@@ -70,7 +70,7 @@ function EditUserAvatarContent() {
         setIsAvatarCropModalOpen(false);
     };
 
-    const onPress = () => {
+    const saveAvatar = () => {
         notifySaving();
 
         if (imageData.file) {
@@ -191,11 +191,11 @@ function EditUserAvatarContent() {
                     size={CONST.BUTTON_SIZE.LARGE}
                     variant="success"
                     isDisabled={!isDirty}
-                    onPress={onPress}
+                    onPress={saveAvatar}
                 >
                     <Button.KeyboardShortcut
                         pressOnEnter
-                        onPress={onPress}
+                        onPress={saveAvatar}
                         isDisabled={!isDirty}
                     />
                     <Button.Text>{translate('common.save')}</Button.Text>

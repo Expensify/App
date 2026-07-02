@@ -126,7 +126,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
     };
 
     const itemRightSideComponent = (item: ListItem) => {
-        const onUnsharePress = () => setUnshareUser({login: item?.login, text: item?.text});
+        const promptUnshare = () => setUnshareUser({login: item?.login, text: item?.text});
         const isUnshareButtonLoading = isLoading && unsharedBankAccountData?.email === item?.login;
 
         return (
@@ -135,11 +135,11 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                 size={CONST.BUTTON_SIZE.SMALL}
                 isDisabled={isLoading}
                 variant="danger"
-                onPress={onUnsharePress}
+                onPress={promptUnshare}
             >
                 <Button.KeyboardShortcut
                     pressOnEnter
-                    onPress={onUnsharePress}
+                    onPress={promptUnshare}
                     isDisabled={isLoading}
                     isLoading={isUnshareButtonLoading}
                 />

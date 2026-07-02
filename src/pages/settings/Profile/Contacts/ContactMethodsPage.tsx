@@ -48,7 +48,7 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
 
     const options = useMemo(() => getContactMethodsOptions(translate, loginList, session?.email), [translate, loginList, session?.email]);
 
-    const onNewContactMethodButtonPress = useCallback(() => {
+    const addNewContactMethod = useCallback(() => {
         if (isActingAsDelegate) {
             showDelegateNoAccessModal();
             return;
@@ -101,11 +101,11 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
                     <Button
                         size={CONST.BUTTON_SIZE.LARGE}
                         variant="success"
-                        onPress={onNewContactMethodButtonPress}
+                        onPress={addNewContactMethod}
                     >
                         <Button.KeyboardShortcut
                             pressOnEnter
-                            onPress={onNewContactMethodButtonPress}
+                            onPress={addNewContactMethod}
                         />
                         <Button.Text>{translate('contacts.newContactMethod')}</Button.Text>
                     </Button>
