@@ -72,6 +72,27 @@ jest.mock('@components/ReportActionAvatars', () => {
     return MockReportActionAvatars;
 });
 
+jest.mock('@components/Icon', () => {
+    function MockIcon() {
+        return null;
+    }
+    return MockIcon;
+});
+
+jest.mock('@components/TextWithTooltip', () => {
+    const {Text} = jest.requireActual<typeof ReactNative>('react-native');
+    function MockTextWithTooltip({text}: {text: string}) {
+        return <Text>{text}</Text>;
+    }
+    return MockTextWithTooltip;
+});
+
+jest.mock('react-native-reanimated', () => {
+    const Reanimated = jest.requireActual('react-native-reanimated/mock');
+    Reanimated.default.View = jest.requireActual<typeof ReactNative>('react-native').View;
+    return Reanimated;
+});
+
 jest.mock('@components/OfflineWithFeedback', () => {
     function MockOfflineWithFeedback({children}: {children: React.ReactNode}) {
         return children;
@@ -85,10 +106,10 @@ jest.mock('@components/Button', () => {
         return (
             <TouchableOpacity
                 accessibilityRole="button"
-                accessibilityLabel={accessibilityLabel}
+                accessibilityLabel={accessibilityLabel ?? text}
                 onPress={onPress}
             >
-                <Text>{text}</Text>
+                {!!text && <Text>{text}</Text>}
             </TouchableOpacity>
         );
     }
@@ -97,13 +118,23 @@ jest.mock('@components/Button', () => {
 
 jest.mock('@components/Pressable/PressableWithFeedback', () => {
     const {TouchableOpacity} = jest.requireActual<typeof ReactNative>('react-native');
-    function MockPressableWithFeedback({children, onPress, accessibilityLabel}: {children: React.ReactNode; onPress: () => void; accessibilityLabel?: string}) {
+    function MockPressableWithFeedback({
+        children,
+        onPress,
+        accessibilityLabel,
+    }: {
+        children: React.ReactNode | ((state: {hovered: boolean; pressed: boolean}) => React.ReactNode);
+        onPress: () => void;
+        accessibilityLabel?: string;
+    }) {
+        const content = typeof children === 'function' ? children({hovered: false, pressed: false}) : children;
+
         return (
             <TouchableOpacity
                 onPress={onPress}
                 accessibilityLabel={accessibilityLabel}
             >
-                {children}
+                {content}
             </TouchableOpacity>
         );
     }
