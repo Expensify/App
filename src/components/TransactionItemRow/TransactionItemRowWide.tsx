@@ -25,7 +25,7 @@ import {getCategoryGLCode} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {getTagGLCode} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {isExpenseReport} from '@libs/ReportUtils';
+import {getReimbursableTotal, isExpenseReport} from '@libs/ReportUtils';
 import {
     getAmount,
     getConvertedAmount,
@@ -319,7 +319,7 @@ function TransactionItemRowWide({
                                 reportID={transactionItem.reportID}
                                 policyID={report?.policyID}
                                 hash={transactionItem?.hash}
-                                amount={report?.total}
+                                amount={getReimbursableTotal(report)}
                                 shouldDisablePointerEvents={isDisabled || shouldDisableActionPointerEvents}
                                 isMarkAsDone={isMarkAsDone}
                             />

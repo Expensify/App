@@ -16,7 +16,7 @@ import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {canIOUBePaid} from '@libs/actions/IOU/ReportWorkflow';
 import {getSearchPayOnyxData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isIndividualInvoiceRoom, isInvoiceReport} from '@libs/ReportUtils';
+import {getReimbursableTotal, isIndividualInvoiceRoom, isInvoiceReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -152,7 +152,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 shouldUseShortForm
                 buttonSize={CONST.BUTTON_SIZE.SMALL}
                 currency={currency}
-                formattedAmount={convertToDisplayString(Math.abs(iouReport?.total ?? 0), currency)}
+                formattedAmount={convertToDisplayString(Math.abs(getReimbursableTotal(iouReport)), currency)}
                 policyID={policyID || iouReport?.policyID}
                 iouReport={iouReport}
                 chatReportID={iouReport?.chatReportID}
