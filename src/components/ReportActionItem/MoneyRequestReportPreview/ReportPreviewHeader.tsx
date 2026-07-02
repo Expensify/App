@@ -1,3 +1,4 @@
+import {reportNameSelector} from '@selectors/ReportAttributes';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -17,7 +18,6 @@ import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportS
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {reportNameSelector} from '@src/selectors/Attributes';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 import {useReportPreviewActions, useReportPreviewCarouselState, useReportPreviewData, useReportPreviewUIState} from './MoneyRequestReportPreviewContext';
 
