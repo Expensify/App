@@ -1,7 +1,7 @@
 import {WRITE_COMMANDS} from '@libs/API/types';
 import hasGalleryWritePermission from '@libs/fileDownload/hasGalleryWritePermission';
 import saveLocalFileToGallery from '@libs/fileDownload/saveLocalFileToGallery';
-import getPendingReceiptRequests from '@libs/savePendingReceiptsToGallery/getPendingReceiptRequests';
+import getPendingReceiptRequests, {getSaveablePendingReceiptRequests} from '@libs/savePendingReceiptsToGallery/getPendingReceiptRequests';
 import saveReceiptsToGallery from '@libs/savePendingReceiptsToGallery/saveReceiptsToGallery';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import type {AnyRequest} from '@src/types/onyx/Request';
@@ -94,6 +94,40 @@ describe('getPendingReceiptRequests', () => {
             {localPath: 'file:///policy.jpg', filename: 'policy.jpg', type: 'image/jpeg'},
             {localPath: 'file:///send.jpg', filename: 'send.jpg', type: 'image/jpeg'},
         ]);
+    });
+});
+
+describe('getSaveablePendingReceiptRequests', () => {
+    beforeEach(() => {
+        mockedGetAll.mockReset();
+        mockedGetOngoing.mockReset();
+        mockedGetOngoing.mockReturnValue(null);
+    });
+
+    it('drops non-image receipts that the native gallery API cannot accept (PDF, DOC, HTML, ZIP)', () => {
+        mockedGetAll.mockReturnValue([
+            buildRequest(WRITE_COMMANDS.REQUEST_MONEY, {source: 'file:///image.jpg', filename: 'image.jpg', type: 'image/jpeg'}),
+            buildRequest(WRITE_COMMANDS.REQUEST_MONEY, {source: 'file:///doc.pdf', filename: 'doc.pdf', type: 'application/pdf'}),
+            buildRequest(WRITE_COMMANDS.REQUEST_MONEY, {source: 'file:///page.html', filename: 'page.html', type: 'text/html'}),
+            buildRequest(WRITE_COMMANDS.REQUEST_MONEY, {source: 'file:///bundle.zip', filename: 'bundle.zip', type: 'application/zip'}),
+        ]);
+
+        expect(getSaveablePendingReceiptRequests()).toEqual([{localPath: 'file:///image.jpg', filename: 'image.jpg', type: 'image/jpeg'}]);
+    });
+
+    it('falls back to the filename extension when the mime type is missing', () => {
+        mockedGetAll.mockReturnValue([
+            buildRequest(WRITE_COMMANDS.REPLACE_RECEIPT, {uri: 'file:///IMG_0001.HEIC', name: 'IMG_0001.HEIC'}),
+            buildRequest(WRITE_COMMANDS.REPLACE_RECEIPT, {uri: 'file:///doc.pdf', name: 'doc.pdf'}),
+        ]);
+
+        expect(getSaveablePendingReceiptRequests()).toEqual([{localPath: 'file:///IMG_0001.HEIC', filename: 'IMG_0001.HEIC', type: undefined}]);
+    });
+
+    it('returns an empty list when the queue holds only non-image receipts (offline-warning modal covers the loss)', () => {
+        mockedGetAll.mockReturnValue([buildRequest(WRITE_COMMANDS.REQUEST_MONEY, {source: 'file:///only.pdf', filename: 'only.pdf', type: 'application/pdf'})]);
+
+        expect(getSaveablePendingReceiptRequests()).toEqual([]);
     });
 });
 

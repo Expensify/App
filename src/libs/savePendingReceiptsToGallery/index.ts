@@ -1,4 +1,4 @@
-import getPendingReceiptRequests from './getPendingReceiptRequests';
+import getPendingReceiptRequests, {getSaveablePendingReceiptRequests} from './getPendingReceiptRequests';
 import saveReceiptsToGallery from './saveReceiptsToGallery';
 
-export {getPendingReceiptRequests, saveReceiptsToGallery};
+export {getPendingReceiptRequests, getSaveablePendingReceiptRequests, saveReceiptsToGallery};

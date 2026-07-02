@@ -52,4 +52,20 @@ function getPendingReceiptRequests(): PendingReceipt[] {
     }, []);
 }
 
+const IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'gif', 'heic', 'heif', 'tif', 'tiff', 'webp', 'bmp']);
+
+function isImageReceipt({type, filename, localPath}: PendingReceipt): boolean {
+    if (type && type.toLowerCase().startsWith('image/')) {
+        return true;
+    }
+    const extension = (filename ?? localPath).split('.').pop()?.toLowerCase();
+    return extension !== undefined && IMAGE_EXTENSIONS.has(extension);
+}
+
+/** Native gallery APIs (`CameraRoll.saveAsset`, Android's MediaStore image collection) accept only image/video assets. Non-image receipt formats permitted by `CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS` (PDF, DOC, HTML, ZIP, ...) would silently fail; filtering them out here keeps the sign-out modal from promising a save it can't deliver. Those receipts fall under the general offline-data-loss warning. */
+function getSaveablePendingReceiptRequests(): PendingReceipt[] {
+    return getPendingReceiptRequests().filter(isImageReceipt);
+}
+
 export default getPendingReceiptRequests;
+export {getSaveablePendingReceiptRequests};

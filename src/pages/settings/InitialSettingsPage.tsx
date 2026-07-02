@@ -41,10 +41,11 @@ import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
+import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPendingReceiptRequests} from '@libs/savePendingReceiptsToGallery';
+import {getSaveablePendingReceiptRequests, saveReceiptsToGallery} from '@libs/savePendingReceiptsToGallery';
 import {useIsAgentAccount} from '@libs/SessionUtils';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -234,15 +235,16 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     };
 
     const signOut = async (shouldForceSignout = false) => {
+        // Forced sign-out (expired session, SAML re-auth) must be non-interactive: it must not touch the gallery flow, which can trigger OS permission prompts and delay the redirect.
         if (shouldForceSignout) {
             return signOutAndRedirectToSignIn();
         }
 
-        // `getPendingReceiptRequests` is platform-split: it returns `[]` on web via its default implementation, so no runtime platform gate is needed here.
-        const pendingReceiptCount = getPendingReceiptRequests().length;
+        // `getSaveablePendingReceiptRequests` is platform-split (web returns `[]`) and image-filtered so we do not promise a save the native gallery API can not deliver.
+        const saveableReceipts = getSaveablePendingReceiptRequests();
         const shouldWarnBeforeSignOut = network.isOffline || isTrackingGPS;
 
-        if (!shouldWarnBeforeSignOut && pendingReceiptCount === 0) {
+        if (!shouldWarnBeforeSignOut && saveableReceipts.length === 0) {
             return signOutAndRedirectToSignIn();
         }
 
@@ -253,10 +255,17 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             }
         }
 
-        if (pendingReceiptCount > 0) {
-            const result = await showSaveReceiptsModal(pendingReceiptCount);
+        if (saveableReceipts.length > 0) {
+            const result = await showSaveReceiptsModal(saveableReceipts.length);
             if (result.action !== ModalActions.CONFIRM) {
                 return;
+            }
+            // Save must complete before the forced-signout branch below dispatches `Onyx.clear`, which wipes the persisted queue that holds these local file paths.
+            try {
+                const {savedCount, failedCount} = await saveReceiptsToGallery(saveableReceipts);
+                Log.info('[Receipt] Saved pending receipts to gallery before sign-out', false, {savedCount, failedCount});
+            } catch (error) {
+                Log.alert('[Receipt] Unexpected rejection from saveReceiptsToGallery; sign-out continued', {error});
             }
         }
 
