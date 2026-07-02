@@ -593,6 +593,19 @@ const DYNAMIC_ROUTES = {
         path: 'tags-settings',
         entryScreens: [SCREENS.WORKSPACE.TAGS],
     },
+    WORKSPACE_TAG_LIST_VIEW: {
+        path: 'workspace-tag-list/:orderWeight',
+        entryScreens: [SCREENS.WORKSPACE.TAGS],
+        getRoute: (orderWeight: number) => `workspace-tag-list/${orderWeight}`,
+    },
+    WORKSPACE_TAGS_IMPORT: {
+        path: 'workspace-tags-import',
+        entryScreens: [SCREENS.WORKSPACE.TAGS],
+    },
+    WORKSPACE_TAGS_IMPORTED: {
+        path: 'workspace-tags-imported',
+        entryScreens: [SCREENS.WORKSPACE.TAGS],
+    },
     WORKSPACE_CATEGORY_CREATE: {
         path: 'category-new',
         entryScreens: [SCREENS.WORKSPACE.CATEGORIES],
@@ -706,15 +719,19 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT],
         getRoute: (orderWeight: number) => `tag-list/${orderWeight}`,
     },
+    SETTINGS_TAGS_SETTINGS: {
+        path: 'settings-tags-settings',
+        entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT],
+    },
     SETTINGS_TAG_SETTINGS: {
         path: 'tag-settings/:orderWeight/:tagName',
         entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT, SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW],
         getRoute: (orderWeight: number, tagName: string) => `tag-settings/${orderWeight}/${encodeURIComponent(tagName)}`,
     },
     SETTINGS_TAGS_EDIT: {
-        path: 'edit/:orderWeight',
-        entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT, SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_SETTINGS, SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW],
-        getRoute: (orderWeight: number) => `edit/${orderWeight}`,
+        path: 'settings-tags-edit/:orderWeight',
+        entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT, SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_SETTINGS, SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW],
+        getRoute: (orderWeight: number) => `settings-tags-edit/${orderWeight}`,
     },
     SETTINGS_TAG_EDIT: {
         path: 'tag-edit/:orderWeight/:tagName',
@@ -1836,11 +1853,6 @@ const ROUTES = {
             return getUrlWithBackToParam(`settings/${policyID}/tags`, backTo);
         },
     },
-    SETTINGS_TAGS_SETTINGS: {
-        route: 'settings/:policyID/tags/settings',
-
-        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags/settings` as const, backTo),
-    },
     SETTINGS_TAGS_IMPORT: {
         route: 'settings/:policyID/tags/import',
 
@@ -2614,17 +2626,9 @@ const ROUTES = {
         route: 'workspaces/:policyID/tag/:orderWeight/:tagName/approver',
         getRoute: (policyID: string, orderWeight: number, tagName: string) => `workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/approver` as const,
     },
-    WORKSPACE_TAG_LIST_VIEW: {
-        route: 'workspaces/:policyID/tag-list/:orderWeight',
-        getRoute: (policyID: string, orderWeight: number) => `workspaces/${policyID}/tag-list/${orderWeight}` as const,
-    },
     WORKSPACE_TAG_GL_CODE: {
         route: 'workspaces/:policyID/tag/:orderWeight/:tagName/gl-code',
         getRoute: (policyID: string, orderWeight: number, tagName: string) => `workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/gl-code` as const,
-    },
-    WORKSPACE_TAGS_IMPORT: {
-        route: 'workspaces/:policyID/tags/import',
-        getRoute: (policyID: string) => `workspaces/${policyID}/tags/import` as const,
     },
     WORKSPACE_MULTI_LEVEL_TAGS_IMPORT_SETTINGS: {
         route: 'workspaces/:policyID/tags/import/multi-level',
@@ -2633,10 +2637,6 @@ const ROUTES = {
     WORKSPACE_TAGS_IMPORT_OPTIONS: {
         route: 'workspaces/:policyID/tags/import/import-options',
         getRoute: (policyID: string) => `workspaces/${policyID}/tags/import/import-options` as const,
-    },
-    WORKSPACE_TAGS_IMPORTED: {
-        route: 'workspaces/:policyID/tags/imported',
-        getRoute: (policyID: string) => `workspaces/${policyID}/tags/imported` as const,
     },
     WORKSPACE_TAGS_IMPORTED_MULTI_LEVEL: {
         route: 'workspaces/:policyID/tags/imported/multi-level',

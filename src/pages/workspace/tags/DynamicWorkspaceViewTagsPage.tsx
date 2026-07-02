@@ -64,11 +64,11 @@ import type {PolicyTag} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {TagListItem} from './types';
 
-type WorkspaceViewTagsProps =
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_LIST_VIEW>
+type DynamicWorkspaceViewTagsProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_LIST_VIEW>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW>;
 
-function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
+function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
     const {policyID, orderWeight: orderWeightParam} = route.params;
     const orderWeight = Number(orderWeightParam);
 
@@ -91,7 +91,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const currentPolicyTag = policyTags?.[currentTagListName];
     const {canWrite: canWriteTags, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW;
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAG_LIST_VIEW.path);
+    const backPath = useDynamicBackPath(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_LIST_VIEW.path : DYNAMIC_ROUTES.WORKSPACE_TAG_LIST_VIEW.path);
     const fetchTags = useCallback(() => {
         openPolicyTagsPage(policyID);
     }, [policyID]);
@@ -125,7 +125,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         onClearSelection: () => {
             setSelectedTags([]);
         },
-        onNavigationCallBack: () => Navigation.goBack(isQuickSettingsFlow ? backPath : undefined),
+        onNavigationCallBack: () => Navigation.goBack(backPath),
     });
 
     const updateWorkspaceTagEnabled = useCallback(
@@ -391,7 +391,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID="WorkspaceViewTagsPage"
+                testID="DynamicWorkspaceViewTagsPage"
             >
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : currentTagListName}
@@ -401,7 +401,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             turnOffMobileSelectionMode();
                             return;
                         }
-                        Navigation.goBack(isQuickSettingsFlow ? backPath : undefined);
+                        Navigation.goBack(backPath);
                     }}
                 >
                     {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
@@ -496,4 +496,4 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     );
 }
 
-export default WorkspaceViewTagsPage;
+export default DynamicWorkspaceViewTagsPage;

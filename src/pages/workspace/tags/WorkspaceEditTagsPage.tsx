@@ -58,7 +58,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
         }
         Navigation.goBack(
             isMultiLevelTagsEnabled
-                ? ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(route?.params?.policyID, orderWeight)
+                ? createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(orderWeight), ROUTES.WORKSPACE_TAGS.getRoute(route?.params?.policyID))
                 : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAGS_SETTINGS.path, ROUTES.WORKSPACE_TAGS.getRoute(route?.params?.policyID)),
         );
     };

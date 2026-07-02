@@ -144,31 +144,45 @@ describe('getBestMatchingPath', () => {
     });
 
     it('redirects old settings tag routes to the new dynamic suffix shape', () => {
-        expect(getMatchingNewRoute('/settings/p123/tags/10/edit')).toBe('/settings/p123/tags/settings/edit/10');
+        expect(getMatchingNewRoute('/settings/p123/tags/10/edit')).toBe('/settings/p123/tags/settings-tags-settings/settings-tags-edit/10');
         expect(getMatchingNewRoute('/settings/p123/tags/new')).toBe('/settings/p123/tags/tag-new');
         expect(getMatchingNewRoute('/settings/p123/tag/10/Meals')).toBe('/settings/p123/tags/tag-settings/10/Meals');
         expect(getMatchingNewRoute('/settings/p123/tag/10/Meals/edit')).toBe('/settings/p123/tags/tag-settings/10/Meals/tag-edit/10/Meals');
         expect(getMatchingNewRoute('/settings/p123/tag/10/Meals/gl-code')).toBe('/settings/p123/tags/tag-settings/10/Meals/gl-code/10/Meals');
+        expect(getMatchingNewRoute('/settings/p123/tags/settings')).toBe('/settings/p123/tags/settings-tags-settings');
+        expect(getMatchingNewRoute('/settings/p123/tags/settings/edit/0')).toBe('/settings/p123/tags/settings-tags-settings/settings-tags-edit/0');
+        expect(getMatchingNewRoute('/settings/p123/tags/settings-tags-settings/edit/0')).toBe('/settings/p123/tags/settings-tags-settings/settings-tags-edit/0');
+        expect(getMatchingNewRoute('/settings/p123/tags/settings-tags-settings/settings-tags-edit/0')).toBe(undefined);
+        expect(getMatchingNewRoute('/settings/p123/tags/settings-tags-settings')).toBe(undefined);
     });
 
     it('preserves query params when redirecting old settings tag routes', () => {
-        expect(getMatchingNewRoute('/settings/p123/tags/10/edit?backTo=/home')).toBe('/settings/p123/tags/settings/edit/10?backTo=/home');
+        expect(getMatchingNewRoute('/settings/p123/tags/10/edit?backTo=/home')).toBe('/settings/p123/tags/settings-tags-settings/settings-tags-edit/10?backTo=/home');
         expect(getMatchingNewRoute('/settings/p123/tag/10/Meals?parentTagsFilter=Food')).toBe('/settings/p123/tags/tag-settings/10/Meals?parentTagsFilter=Food');
     });
 
     it('redirects old workspace tag routes to the new dynamic suffix shape', () => {
         expect(getMatchingNewRoute('/workspaces/p123/tags/settings')).toBe('/workspaces/p123/tags/tags-settings');
         expect(getMatchingNewRoute('/workspaces/p123/tags/new')).toBe('/workspaces/p123/tags/tag-create');
+        expect(getMatchingNewRoute('/workspaces/p123/tag-list/0')).toBe('/workspaces/p123/tags/workspace-tag-list/0');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/import')).toBe('/workspaces/p123/tags/workspace-tags-import');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/imported')).toBe('/workspaces/p123/tags/workspace-tags-imported');
     });
 
     it('preserves query params when redirecting old workspace tag routes', () => {
         expect(getMatchingNewRoute('/workspaces/p123/tags/settings?backTo=/home')).toBe('/workspaces/p123/tags/tags-settings?backTo=/home');
         expect(getMatchingNewRoute('/workspaces/p123/tags/new?backTo=/home')).toBe('/workspaces/p123/tags/tag-create?backTo=/home');
+        expect(getMatchingNewRoute('/workspaces/p123/tag-list/0?backTo=/home')).toBe('/workspaces/p123/tags/workspace-tag-list/0?backTo=/home');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/import?backTo=/home')).toBe('/workspaces/p123/tags/workspace-tags-import?backTo=/home');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/imported?backTo=/home')).toBe('/workspaces/p123/tags/workspace-tags-imported?backTo=/home');
     });
 
     it('does not redirect the new workspace tag dynamic routes', () => {
         expect(getMatchingNewRoute('/workspaces/p123/tags/tags-settings')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/p123/tags/tag-create')).toBe(undefined);
+        expect(getMatchingNewRoute('/workspaces/p123/tags/workspace-tag-list/0')).toBe('/workspaces/p123/tags/workspace-tag-list/0');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/workspace-tags-import')).toBe(undefined);
+        expect(getMatchingNewRoute('/workspaces/p123/tags/workspace-tags-imported')).toBe('/workspaces/p123/tags/workspace-tags-imported');
     });
 
     it('redirects old flag comment path to report-based dynamic route', () => {
