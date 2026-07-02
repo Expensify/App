@@ -195,6 +195,4 @@ function TaskSearchView({
     );
 }
 
-TaskSearchView.displayName = 'TaskSearchView';
-
 export default TaskSearchView;
