@@ -2,7 +2,7 @@ import {useLayoutEffect} from 'react';
 import type {RefObject} from 'react';
 import asHostElement from '@components/Overlay/libs/asHostElement';
 import type {AnchorNode} from '@components/Overlay/libs/measureAnchor';
-import {OVERLAY_PORTAL_DATASET_KEY} from '@components/Overlay/libs/portalMarkers';
+import OVERLAY_PORTAL_DATASET_KEY from '@components/Overlay/libs/portalMarkers';
 
 type SavedAttrs = {
     priorAriaHidden: string | null;
@@ -59,7 +59,7 @@ function release(rootSibling: Element): void {
             rootSibling.setAttribute('aria-hidden', existing.priorAriaHidden);
         }
     }
-    if (rootSibling.getAttribute('inert') !== null) {
+    if (rootSibling.getAttribute('inert') === '') {
         if (existing.priorInert === null) {
             rootSibling.removeAttribute('inert');
         } else {

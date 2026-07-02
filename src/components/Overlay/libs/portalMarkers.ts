@@ -1,3 +1,3 @@
 const OVERLAY_PORTAL_DATASET_KEY = 'overlayPortal';
 
-export {OVERLAY_PORTAL_DATASET_KEY};
+export default OVERLAY_PORTAL_DATASET_KEY;

@@ -72,13 +72,14 @@ describe('useControlledState', () => {
             expect(onChange).toHaveBeenNthCalledWith(2, 99);
         });
 
-        it('chained functional updaters compose like React.useState (within-tick cache, regardless of parent acceptance)', () => {
+        it('functional updaters resolve from the committed value, so a toggle retry after a silent rejection re-fires', () => {
             const onChange = jest.fn();
-            const {result} = renderHook(() => useControlledState<number>(5, 0, onChange));
-            act(() => result.current[1]((prev) => prev + 1));
-            act(() => result.current[1]((prev) => prev + 1));
-            expect(onChange).toHaveBeenNthCalledWith(1, 6);
-            expect(onChange).toHaveBeenNthCalledWith(2, 7);
+            const {result} = renderHook(() => useControlledState<boolean>(false, false, onChange));
+            act(() => result.current[1]((previous) => !previous));
+            act(() => result.current[1]((previous) => !previous));
+            expect(onChange).toHaveBeenCalledTimes(2);
+            expect(onChange).toHaveBeenNthCalledWith(1, true);
+            expect(onChange).toHaveBeenNthCalledWith(2, true);
         });
     });
 

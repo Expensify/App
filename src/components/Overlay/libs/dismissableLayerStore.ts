@@ -17,8 +17,6 @@ function nextLayerMountId(): number {
     return id;
 }
 
-// Module-level observable store read via `useSyncExternalStore` (PERF-14) — same shape as the
-// existing `RevealedCardSecretsStore` / `SearchSidebarCollapseStore` module stores.
 const EMPTY_SNAPSHOT: readonly DismissableLayerEntry[] = Object.freeze([]);
 let snapshot: readonly DismissableLayerEntry[] = EMPTY_SNAPSHOT;
 const listeners = new Set<() => void>();
@@ -38,7 +36,6 @@ function subscribe(listener: () => void): () => void {
     };
 }
 
-// Passing the current snapshot back (same reference) is the no-op signal — it bails without notifying.
 function setSnapshot(next: readonly DismissableLayerEntry[]): void {
     if (Object.is(next, snapshot)) {
         return;

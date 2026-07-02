@@ -27,11 +27,9 @@ function useControlledState<T>(controlledValue: T | undefined, defaultValue: T, 
     const [setValue] = useState<Dispatch<SetStateAction<T>>>(() => {
         const isUpdater = (a: SetStateAction<T>): a is (prevState: T) => T => typeof a === 'function';
         const apply: Dispatch<SetStateAction<T>> = (action) => {
-            const resolved = isUpdater(action) ? action(cachedRef.current) : action;
-            // Dedup against the committed value when controlled (so a retry after a silent parent rejection still fires
-            // onChange) and against the pending value when uncontrolled (so chained same-tick updates compose).
-            const dedupeAgainst = isControlledRef.current ? currentRef.current : cachedRef.current;
-            if (Object.is(resolved, dedupeAgainst)) {
+            const reference = isControlledRef.current ? currentRef.current : cachedRef.current;
+            const resolved = isUpdater(action) ? action(reference) : action;
+            if (Object.is(resolved, reference)) {
                 return;
             }
             cachedRef.current = resolved;

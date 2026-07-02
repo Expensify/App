@@ -29,8 +29,6 @@ function isPopoverEntry(entry: OverlayEntry): entry is PopoverOverlayEntry {
     return entry.kind === CONST.MODAL.MODAL_TYPE.POPOVER;
 }
 
-// Module-level observable store read via `useSyncExternalStore` (PERF-14) — same shape as the
-// existing `RevealedCardSecretsStore` / `SearchSidebarCollapseStore` module stores.
 const EMPTY_SNAPSHOT: readonly OverlayEntry[] = Object.freeze([]);
 let snapshot: readonly OverlayEntry[] = EMPTY_SNAPSHOT;
 const listeners = new Set<() => void>();
@@ -50,7 +48,6 @@ function subscribe(listener: () => void): () => void {
     };
 }
 
-// Passing the current snapshot back (same reference) is the no-op signal — it bails without notifying.
 function setSnapshot(next: readonly OverlayEntry[]): void {
     if (Object.is(next, snapshot)) {
         return;

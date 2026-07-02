@@ -65,6 +65,22 @@ describe('useAriaHideSiblings (web)', () => {
             expect(attrs(sibling)).toEqual({ariaHidden: 'false', inert: 'true'});
         });
 
+        it('does not clobber a concurrent aria-hidden / inert mutation made by another owner during the lock', () => {
+            const sibling = createBodyChild('sibling-concurrent');
+            const portalRoot = createBodyChild('portal-root');
+            const container = document.createElement('div');
+            portalRoot.appendChild(container);
+
+            const {unmount} = renderHook(() => useAriaHideSiblings(refTo(container), true));
+            expect(attrs(sibling)).toEqual({ariaHidden: 'true', inert: ''});
+
+            sibling.setAttribute('aria-hidden', 'false');
+            sibling.setAttribute('inert', 'concurrent');
+
+            unmount();
+            expect(attrs(sibling)).toEqual({ariaHidden: 'false', inert: 'concurrent'});
+        });
+
         it('is a no-op when isActive is false', () => {
             const sibling = createBodyChild('sibling');
             const portalRoot = createBodyChild('portal-root');
