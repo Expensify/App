@@ -1,5 +1,4 @@
 ---
-
 title: Act as a Copilot
 description: Learn how to switch into another member's account as a Copilot, act on their behalf, and remove your access when it's no longer needed.
 keywords: [act as a copilot, copilot access, switch to a copilot account, switch accounts, delegated access, delegated account access, copilot account, access another account, account switching, proxy access, manage someone else's account, executive assistant, accountant, bookkeeper, shared account access, remove copilot access, remove my copilot access, forward receipts, submit expenses on behalf of someone, act on behalf of another user, copilot permissions]
@@ -50,7 +49,7 @@ Once removed, you can no longer access that account unless the account owner gra
 ## How to forward receipts as a Copilot
 
 1. Forward the receipt email to [receipts@expensify.com](mailto:receipts@expensify.com).
-2. Include the account owner's email address in the subject line.
+2. Replace the email subject with the account owner's email address.
 
 The receipt is automatically SmartScanned to the account owner's Expensify account.
 
