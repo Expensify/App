@@ -9,6 +9,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
+import EXPENSE_RULE_INPUT_IDS from '@src/types/form/ExpenseRuleForm';
 
 // Moved to a separate file to avoid cyclic dependencies.
 const config: LinkingOptions<RootNavigatorParamList>['config'] = {
@@ -363,38 +364,38 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_RULES_ADD.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.RULES.ADD_MERCHANT]: ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.MERCHANT),
-                        [SCREENS.SETTINGS.RULES.ADD_RENAME_MERCHANT]: ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.RENAME_MERCHANT),
-                        [SCREENS.SETTINGS.RULES.ADD_CATEGORY]: ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.CATEGORY),
+                        [SCREENS.SETTINGS.RULES.ADD_MERCHANT]: ROUTES.SETTINGS_RULES_ADD.getRoute(EXPENSE_RULE_INPUT_IDS.MERCHANT),
+                        [SCREENS.SETTINGS.RULES.ADD_RENAME_MERCHANT]: ROUTES.SETTINGS_RULES_ADD.getRoute(EXPENSE_RULE_INPUT_IDS.RENAME_MERCHANT),
+                        [SCREENS.SETTINGS.RULES.ADD_CATEGORY]: ROUTES.SETTINGS_RULES_ADD.getRoute(EXPENSE_RULE_INPUT_IDS.CATEGORY),
                         [SCREENS.SETTINGS.RULES.ADD_TAG]: {
-                            path: ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.TAG, -1),
+                            path: ROUTES.SETTINGS_RULES_ADD.getRoute(EXPENSE_RULE_INPUT_IDS.TAG, -1),
                             parse: {
                                 index: Number,
                             },
                         },
-                        [SCREENS.SETTINGS.RULES.ADD_TAX]: ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.TAX),
-                        [SCREENS.SETTINGS.RULES.ADD_DESCRIPTION]: ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.DESCRIPTION),
-                        [SCREENS.SETTINGS.RULES.ADD_REIMBURSABLE]: ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.REIMBURSABLE),
-                        [SCREENS.SETTINGS.RULES.ADD_BILLABLE]: ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.BILLABLE),
-                        [SCREENS.SETTINGS.RULES.ADD_REPORT]: ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.REPORT),
+                        [SCREENS.SETTINGS.RULES.ADD_TAX]: ROUTES.SETTINGS_RULES_ADD.getRoute(EXPENSE_RULE_INPUT_IDS.TAX),
+                        [SCREENS.SETTINGS.RULES.ADD_DESCRIPTION]: ROUTES.SETTINGS_RULES_ADD.getRoute(EXPENSE_RULE_INPUT_IDS.DESCRIPTION),
+                        [SCREENS.SETTINGS.RULES.ADD_REIMBURSABLE]: ROUTES.SETTINGS_RULES_ADD.getRoute(EXPENSE_RULE_INPUT_IDS.REIMBURSABLE),
+                        [SCREENS.SETTINGS.RULES.ADD_BILLABLE]: ROUTES.SETTINGS_RULES_ADD.getRoute(EXPENSE_RULE_INPUT_IDS.BILLABLE),
+                        [SCREENS.SETTINGS.RULES.ADD_REPORT]: ROUTES.SETTINGS_RULES_ADD.getRoute(EXPENSE_RULE_INPUT_IDS.REPORT),
                         [SCREENS.SETTINGS.RULES.EDIT]: {
                             path: ROUTES.SETTINGS_RULES_EDIT.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.RULES.EDIT_MERCHANT]: ROUTES.SETTINGS_RULES_EDIT.getRoute(undefined, CONST.EXPENSE_RULES.FIELDS.MERCHANT),
-                        [SCREENS.SETTINGS.RULES.EDIT_RENAME_MERCHANT]: ROUTES.SETTINGS_RULES_EDIT.getRoute(undefined, CONST.EXPENSE_RULES.FIELDS.RENAME_MERCHANT),
-                        [SCREENS.SETTINGS.RULES.EDIT_CATEGORY]: ROUTES.SETTINGS_RULES_EDIT.getRoute(undefined, CONST.EXPENSE_RULES.FIELDS.CATEGORY),
+                        [SCREENS.SETTINGS.RULES.EDIT_MERCHANT]: ROUTES.SETTINGS_RULES_EDIT.getRoute(undefined, EXPENSE_RULE_INPUT_IDS.MERCHANT),
+                        [SCREENS.SETTINGS.RULES.EDIT_RENAME_MERCHANT]: ROUTES.SETTINGS_RULES_EDIT.getRoute(undefined, EXPENSE_RULE_INPUT_IDS.RENAME_MERCHANT),
+                        [SCREENS.SETTINGS.RULES.EDIT_CATEGORY]: ROUTES.SETTINGS_RULES_EDIT.getRoute(undefined, EXPENSE_RULE_INPUT_IDS.CATEGORY),
                         [SCREENS.SETTINGS.RULES.EDIT_TAG]: {
-                            path: ROUTES.SETTINGS_RULES_EDIT.getRoute(undefined, CONST.EXPENSE_RULES.FIELDS.TAG, -1),
+                            path: ROUTES.SETTINGS_RULES_EDIT.getRoute(undefined, EXPENSE_RULE_INPUT_IDS.TAG, -1),
                             parse: {
                                 index: Number,
                             },
                         },
-                        [SCREENS.SETTINGS.RULES.EDIT_TAX]: ROUTES.SETTINGS_RULES_EDIT.getRoute(undefined, CONST.EXPENSE_RULES.FIELDS.TAX),
-                        [SCREENS.SETTINGS.RULES.EDIT_DESCRIPTION]: ROUTES.SETTINGS_RULES_EDIT.getRoute(undefined, CONST.EXPENSE_RULES.FIELDS.DESCRIPTION),
-                        [SCREENS.SETTINGS.RULES.EDIT_REIMBURSABLE]: ROUTES.SETTINGS_RULES_EDIT.getRoute(undefined, CONST.EXPENSE_RULES.FIELDS.REIMBURSABLE),
-                        [SCREENS.SETTINGS.RULES.EDIT_BILLABLE]: ROUTES.SETTINGS_RULES_EDIT.getRoute(undefined, CONST.EXPENSE_RULES.FIELDS.BILLABLE),
-                        [SCREENS.SETTINGS.RULES.EDIT_REPORT]: ROUTES.SETTINGS_RULES_EDIT.getRoute(undefined, CONST.EXPENSE_RULES.FIELDS.REPORT),
+                        [SCREENS.SETTINGS.RULES.EDIT_TAX]: ROUTES.SETTINGS_RULES_EDIT.getRoute(undefined, EXPENSE_RULE_INPUT_IDS.TAX),
+                        [SCREENS.SETTINGS.RULES.EDIT_DESCRIPTION]: ROUTES.SETTINGS_RULES_EDIT.getRoute(undefined, EXPENSE_RULE_INPUT_IDS.DESCRIPTION),
+                        [SCREENS.SETTINGS.RULES.EDIT_REIMBURSABLE]: ROUTES.SETTINGS_RULES_EDIT.getRoute(undefined, EXPENSE_RULE_INPUT_IDS.REIMBURSABLE),
+                        [SCREENS.SETTINGS.RULES.EDIT_BILLABLE]: ROUTES.SETTINGS_RULES_EDIT.getRoute(undefined, EXPENSE_RULE_INPUT_IDS.BILLABLE),
+                        [SCREENS.SETTINGS.RULES.EDIT_REPORT]: ROUTES.SETTINGS_RULES_EDIT.getRoute(undefined, EXPENSE_RULE_INPUT_IDS.REPORT),
                         [SCREENS.SETTINGS.PROFILE.PRONOUNS]: {
                             path: ROUTES.SETTINGS_PRONOUNS,
                             exact: true,
@@ -1280,6 +1281,48 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.RULES_SPEND_NEW]: {
                             path: ROUTES.RULES_SPEND_NEW.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_NEW]: {
+                            path: ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_EDIT]: {
+                            path: ROUTES.RULES_REQUIRE_FIELDS_RULE_EDIT.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_CATEGORY]: {
+                            path: ROUTES.RULES_REQUIRE_FIELDS_RULE_CATEGORY.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_CATEGORY_EDIT]: {
+                            path: ROUTES.RULES_REQUIRE_FIELDS_RULE_CATEGORY_EDIT.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_NEW]: {
+                            path: ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_EDIT]: {
+                            path: ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY]: {
+                            path: ROUTES.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY_EDIT]: {
+                            path: ROUTES.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY_EDIT.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT]: {
+                            path: ROUTES.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT_EDIT]: {
+                            path: ROUTES.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT_EDIT.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE]: {
+                            path: ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE_EDIT]: {
+                            path: ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE_EDIT.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_TYPE_EDIT]: {
+                            path: ROUTES.RULES_MERCHANT_TYPE_EDIT.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_TYPE_CATEGORY]: {
+                            path: ROUTES.RULES_MERCHANT_TYPE_CATEGORY.route,
                         },
                         [SCREENS.WORKSPACE.RULES_SPEND_EDIT]: {
                             path: ROUTES.RULES_SPEND_EDIT.route,

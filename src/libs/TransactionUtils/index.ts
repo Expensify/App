@@ -1,5 +1,5 @@
 import {format, isValid, parse} from 'date-fns';
-import {Str} from 'expensify-common';
+import {SafeString, Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import lodashDeepClone from 'lodash/cloneDeep';
 import lodashSet from 'lodash/set';
@@ -87,7 +87,6 @@ import type {
     WaypointCollection,
 } from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import SafeString from '@src/utils/SafeString';
 import getDistanceInMeters from './getDistanceInMeters';
 
 type TransactionParams = {

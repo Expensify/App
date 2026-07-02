@@ -155,6 +155,7 @@ import {
     isGroupPolicy as isGroupPolicyPolicyUtils,
     isInstantSubmitEnabled,
     isPendingDeletePolicy,
+    isPerDiemEnabled,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
     isPolicyOwner,
@@ -5059,7 +5060,7 @@ function canUnreportedPerDiemBeMoved(transaction: OnyxEntry<Transaction>, polici
     }
     const perDiemPolicy = getPolicyByCustomUnitID(transaction, policies);
     const perDiemCustomUnit = getPerDiemCustomUnit(perDiemPolicy);
-    return !!perDiemPolicy?.arePerDiemRatesEnabled && !isEmptyObject(perDiemCustomUnit?.rates);
+    return isPerDiemEnabled(perDiemPolicy) && !isEmptyObject(perDiemCustomUnit?.rates);
 }
 
 /**

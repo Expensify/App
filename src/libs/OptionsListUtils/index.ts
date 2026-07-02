@@ -21,6 +21,7 @@ import MaxHeap from '@libs/MaxHeap';
 import MinHeap from '@libs/MinHeap';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
+import {getIsOffline} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import type {OptionData as PersonalDetailOptionData} from '@libs/PersonalDetailOptionsListUtils/types';
 import {getDisplayNameOrDefault, getLoginByAccountID, getPersonalDetailByEmail, getPersonalDetailsByIDs, getPersonalDetailsListByIDs} from '@libs/PersonalDetailsUtils';
@@ -262,7 +263,7 @@ Onyx.connect({
             // If the report is a one-transaction report, we need to return the combined reportActions so that the LHN can display modifications
             // to the transaction thread or the report itself.
             // Cache the result for O(1) lookup in renderItem.
-            const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, actions[reportActions[0]]);
+            const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, actions[reportActions[0]], getIsOffline());
             deprecatedCachedOneTransactionThreadReportIDs[reportID] = transactionThreadReportID;
 
             if (transactionThreadReportID) {
@@ -2325,13 +2326,14 @@ function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, 
  * Not every property of the report option can be computed on the initial computing in the OptionListContextProvider. Some of them are based on the context (config) so they are computed here.
  *
  * @param options - Array of report options to prepare
+ * @param isOffline - Whether the app is currently offline. Passed in to keep this function pure.
  * @param config - Configuration object specifying display preferences and filtering criteria
  * @returns Array of enriched and filtered report options ready for UI display
  */
 function prepareReportOptionsForDisplay(
     options: Array<SearchOption<Report>>,
     policiesCollection: OnyxCollection<Policy>,
-    currentUserAccountID: number,
+    isOffline: boolean,
     config: GetValidReportsConfig,
     conciergeReportID: string | undefined,
     sortedActions: Record<string, ReportAction[]> | undefined,
@@ -2394,7 +2396,7 @@ function prepareReportOptionsForDisplay(
             const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
             const oneTransactionThreadReportID =
                 report.type === CONST.REPORT.TYPE.IOU || report.type === CONST.REPORT.TYPE.EXPENSE || report.type === CONST.REPORT.TYPE.INVOICE
-                    ? getOneTransactionThreadReportID(report, chatReport, sortedActions?.[report.reportID])
+                    ? getOneTransactionThreadReportID(report, chatReport, sortedActions?.[report.reportID], isOffline)
                     : undefined;
             const oneTransactionThreadReport = oneTransactionThreadReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`] : undefined;
 
@@ -2493,6 +2495,7 @@ function getValidOptions(
         reportAttributesDerived,
         sortedActions,
         isTrackIntentUser,
+        isOffline,
         ...config
     }: GetOptionsConfig = {},
 ): OptionsResult {
@@ -2536,6 +2539,8 @@ function getValidOptions(
     let hasMore = false;
 
     const searchTerms = processSearchString(searchString);
+    /** TODO: getIsOffline should be removed in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
+    const isOfflineNetworkState = isOffline ?? getIsOffline();
     if (includeRecentReports) {
         // if maxElements is passed, filter the recent reports by searchString and return only most recent reports (@see recentReportsComparator)
 
@@ -2615,7 +2620,7 @@ function getValidOptions(
             selfDMChat = prepareReportOptionsForDisplay(
                 selfDMChats,
                 policiesCollection,
-                currentUserAccountID,
+                isOfflineNetworkState,
                 {
                     ...getValidReportsConfig,
                     selectedOptions,
@@ -2640,7 +2645,7 @@ function getValidOptions(
         recentReportOptions = prepareReportOptionsForDisplay(
             recentReportOptions,
             policiesCollection,
-            currentUserAccountID,
+            isOfflineNetworkState,
             {
                 ...getValidReportsConfig,
                 selectedOptions,
@@ -2661,7 +2666,7 @@ function getValidOptions(
         workspaceChats = prepareReportOptionsForDisplay(
             workspaceChats,
             policiesCollection,
-            currentUserAccountID,
+            isOfflineNetworkState,
             {
                 ...getValidReportsConfig,
                 selectedOptions,
