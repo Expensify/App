@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -25,7 +26,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const illustrations = useMemoizedLazyIllustrations(['CardReaderAlt', 'ReportReceipt']);
+    const illustrations = useMemoizedLazyIllustrations(['CardReaderAlt', 'Flag', 'CheckboxText', 'ReportReceipt']);
 
     return (
         <AccessOrNotFoundWrapper
@@ -36,35 +37,67 @@ function RulesNewPage({route}: RulesNewPageProps) {
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
             shouldBeBlocked={!isRulesRevampEnabled}
         >
-            <ScreenWrapper testID="RulesNewPage">
+            <ScreenWrapper
+                testID="RulesNewPage"
+                enableEdgeToEdgeBottomSafeAreaPadding
+            >
                 <HeaderWithBackButton title={translate('workspace.rules.newRule.title')} />
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.rules.newRule.subtitle')}</Text>
-                <View style={styles.mh5}>
-                    <MenuItem
-                        icon={illustrations.CardReaderAlt}
-                        title={translate('workspace.rules.newRule.restrictCardSpend')}
-                        description={translate('workspace.rules.newRule.restrictCardSpendDescription')}
-                        shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID))}
-                        displayInDefaultIconColor
-                        iconWidth={variables.iconSizeExtraLarge}
-                        iconHeight={variables.iconSizeExtraLarge}
-                        wrapperStyle={styles.rulesNewMenuItem}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM}
-                    />
-                    <MenuItem
-                        icon={illustrations.ReportReceipt}
-                        title={translate('workspace.rules.newRule.applyExpenseDefaults')}
-                        description={translate('workspace.rules.newRule.applyExpenseDefaultsDescription')}
-                        shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID))}
-                        displayInDefaultIconColor
-                        iconWidth={variables.iconSizeExtraLarge}
-                        iconHeight={variables.iconSizeExtraLarge}
-                        wrapperStyle={styles.rulesNewMenuItem}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM}
-                    />
-                </View>
+                <ScrollView
+                    style={[styles.flexGrow1]}
+                    addBottomSafeAreaPadding
+                >
+                    <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.rules.newRule.subtitle')}</Text>
+                    <View style={styles.mh5}>
+                        <MenuItem
+                            icon={illustrations.CardReaderAlt}
+                            title={translate('workspace.rules.newRule.restrictCardSpend')}
+                            description={translate('workspace.rules.newRule.restrictCardSpendDescription')}
+                            shouldShowRightIcon
+                            onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID))}
+                            displayInDefaultIconColor
+                            iconWidth={variables.iconSizeExtraLarge}
+                            iconHeight={variables.iconSizeExtraLarge}
+                            wrapperStyle={styles.rulesNewMenuItem}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_RESTRICT_CARD_SPEND}
+                        />
+                        <MenuItem
+                            icon={illustrations.ReportReceipt}
+                            title={translate('workspace.rules.newRule.applyExpenseDefaults')}
+                            description={translate('workspace.rules.newRule.applyExpenseDefaultsDescription')}
+                            shouldShowRightIcon
+                            onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID))}
+                            displayInDefaultIconColor
+                            iconWidth={variables.iconSizeExtraLarge}
+                            iconHeight={variables.iconSizeExtraLarge}
+                            wrapperStyle={styles.rulesNewMenuItem}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_APPLY_EXPENSE_DEFAULTS}
+                        />
+                        <MenuItem
+                            icon={illustrations.CheckboxText}
+                            title={translate('workspace.rules.newRule.requireFields')}
+                            description={translate('workspace.rules.newRule.requireFieldsDescription')}
+                            shouldShowRightIcon
+                            onPress={() => Navigation.navigate(ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID))}
+                            displayInDefaultIconColor
+                            iconWidth={variables.iconSizeExtraLarge}
+                            iconHeight={variables.iconSizeExtraLarge}
+                            wrapperStyle={styles.rulesNewMenuItem}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_REQUIRE_FIELDS}
+                        />
+                        <MenuItem
+                            icon={illustrations.Flag}
+                            title={translate('workspace.rules.newRule.flagForReview')}
+                            description={translate('workspace.rules.newRule.flagForReviewDescription')}
+                            shouldShowRightIcon
+                            onPress={() => Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID))}
+                            displayInDefaultIconColor
+                            iconWidth={variables.iconSizeExtraLarge}
+                            iconHeight={variables.iconSizeExtraLarge}
+                            wrapperStyle={styles.rulesNewMenuItem}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_FLAG_FOR_REVIEW}
+                        />
+                    </View>
+                </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

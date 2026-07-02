@@ -13,6 +13,7 @@ import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsCon
 import NavigationDeferredMount from '@components/NavigationDeferredMount';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import {ReportSubmitToPopoverAnchor} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
@@ -75,6 +76,11 @@ type MoneyReportHeaderSecondaryActionsProps = {
     isReportInSearch?: boolean;
     backTo?: Route;
     dropdownMenuRef?: React.RefObject<ButtonWithDropdownMenuRef>;
+};
+
+const MORE_MENU_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
 function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef}: MoneyReportHeaderSecondaryActionsProps) {
@@ -284,7 +290,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     }
 
     // Domain hooks
-    const lifecycleActions = useLifecycleActions({
+    const {actions: lifecycleActionEntries, confirmApproval} = useLifecycleActions({
         reportID,
         startApprovedAnimation,
         startAnimation,
@@ -320,7 +326,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         onRejectModalOpen: openRejectModal,
     });
 
-    const {exportActionEntries} = useExportActions({
+    const {exportActionEntries, exportDownloadStatusModal} = useExportActions({
         reportID,
         policy,
         onPDFModalOpen: openPDFDownload,
@@ -352,7 +358,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         : [];
 
     // Merge all action implementations
-    const secondaryActionsImplementation: Record<string, (typeof lifecycleActions.actions)[string]> = {
+    const secondaryActionsImplementation: Record<string, (typeof lifecycleActionEntries)[string]> = {
         [CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
             text: translate('iou.viewDetails'),
@@ -363,7 +369,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             },
         },
         ...exportActionEntries,
-        ...lifecycleActions.actions,
+        ...lifecycleActionEntries,
         ...expenseActions,
         ...holdRejectActions,
         [CONST.REPORT.SECONDARY_ACTIONS.PAY]: {
@@ -397,7 +403,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             hasViolations,
             isASAPSubmitBetaEnabled,
             isUserValidated,
-            confirmApproval: () => lifecycleActions.confirmApproval(),
+            confirmApproval: () => confirmApproval(),
             iouReport: moneyRequestReport,
             iouReportNextStep: nextStep,
             betas,
@@ -409,21 +415,24 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     };
 
     if (!applicableSecondaryActions.length) {
-        return null;
+        return exportDownloadStatusModal;
     }
 
     return (
-        <MoneyReportHeaderKYCDropdown
-            chatReportID={chatReport?.reportID}
-            iouReport={moneyRequestReport}
-            onPaymentSelect={onPaymentSelect}
-            onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
-            primaryAction={primaryAction}
-            applicableSecondaryActions={applicableSecondaryActions}
-            dropdownMenuRef={dropdownMenuRef}
-            onOptionsMenuHide={handleOptionsMenuHide}
-            ref={kycWallRef}
-        />
+        <>
+            {exportDownloadStatusModal}
+            <MoneyReportHeaderKYCDropdown
+                chatReportID={chatReport?.reportID}
+                iouReport={moneyRequestReport}
+                onPaymentSelect={onPaymentSelect}
+                onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
+                primaryAction={primaryAction}
+                applicableSecondaryActions={applicableSecondaryActions}
+                dropdownMenuRef={dropdownMenuRef}
+                onOptionsMenuHide={handleOptionsMenuHide}
+                ref={kycWallRef}
+            />
+        </>
     );
 }
 
@@ -434,7 +443,7 @@ function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction}: {primaryA
     const {shouldUseNarrowLayout, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const shouldTakeRemainingWidth = (shouldUseNarrowLayout || isMediumScreenWidth) && !primaryAction && !isInLandscapeMode;
-    const wrapperStyle = shouldTakeRemainingWidth ? styles.flex1 : undefined;
+    const wrapperStyle = shouldTakeRemainingWidth ? [styles.w100, styles.mnw0] : undefined;
     // Match the inner styles the real ButtonWithDropdownMenu applies when isSplitButton=false so text placement stays put on swap.
     const innerStyles = [StyleUtils.getDropDownButtonHeight(CONST.DROPDOWN_BUTTON_SIZE.MEDIUM), styles.dropDownButtonCartIconView];
     return (
@@ -444,6 +453,7 @@ function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction}: {primaryA
                 iconRight={icons.DownArrow}
                 shouldShowRightIcon
                 innerStyles={innerStyles}
+                style={shouldTakeRemainingWidth ? styles.w100 : undefined}
                 onPress={() => {}}
             />
         </View>
@@ -451,21 +461,31 @@ function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction}: {primaryA
 }
 
 function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef}: MoneyReportHeaderSecondaryActionsProps) {
+    const styles = useThemeStyles();
+    const {shouldUseNarrowLayout, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const shouldTakeRemainingWidth = (shouldUseNarrowLayout || isMediumScreenWidth) && !primaryAction && !isInLandscapeMode;
+
     return (
-        <NavigationDeferredMount
-            placeholder={<MoneyReportHeaderSecondaryActionsPlaceholder primaryAction={primaryAction} />}
-            // RHPReportScreen remounts this tree on setParams arrow-nav without firing a transition,
-            // so we must not wait for one — see https://github.com/Expensify/App/issues/88931.
-            waitForUpcomingTransition={false}
+        <ReportSubmitToPopoverAnchor
+            reportID={reportID}
+            wrapperStyle={shouldTakeRemainingWidth ? styles.w100 : undefined}
+            anchorAlignment={MORE_MENU_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT}
         >
-            <MoneyReportHeaderSecondaryActionsInner
-                reportID={reportID}
-                primaryAction={primaryAction}
-                isReportInSearch={isReportInSearch}
-                backTo={backTo}
-                dropdownMenuRef={dropdownMenuRef}
-            />
-        </NavigationDeferredMount>
+            <NavigationDeferredMount
+                placeholder={<MoneyReportHeaderSecondaryActionsPlaceholder primaryAction={primaryAction} />}
+                // RHPReportScreen remounts this tree on setParams arrow-nav without firing a transition,
+                // so we must not wait for one — see https://github.com/Expensify/App/issues/88931.
+                waitForUpcomingTransition={false}
+            >
+                <MoneyReportHeaderSecondaryActionsInner
+                    reportID={reportID}
+                    primaryAction={primaryAction}
+                    isReportInSearch={isReportInSearch}
+                    backTo={backTo}
+                    dropdownMenuRef={dropdownMenuRef}
+                />
+            </NavigationDeferredMount>
+        </ReportSubmitToPopoverAnchor>
     );
 }
 

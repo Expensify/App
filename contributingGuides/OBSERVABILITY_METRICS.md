@@ -42,7 +42,7 @@ This document lists all implemented telemetry metrics in the Expensify App.
 - Technical: Report actions list rendered (onLayout event)
   - Report data loaded from Onyx (reportID, type, chatType)
   - Report actions list layout complete (we are waiting for the first page data render, so if there is any data in the Onyx, we'll not wait for the API)
-  - Called in [`src/pages/home/report/ReportActionsView.tsx`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/pages/home/report/ReportActionsView.tsx#L272) and [`src/components/MoneyRequestReportActionsList.tsx`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/components/MoneyRequestReportActionsList.tsx#L649)
+  - Called in the list body `src/pages/inbox/report/ReportActionsList.tsx`
 **Span ID**: `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`
 **Attributes**: `is_transaction_thread`, `is_one_transaction_report`, `report_type`, `chat_type`
 
@@ -129,6 +129,19 @@ This document lists all implemented telemetry metrics in the Expensify App.
 - Technical: Request step page mounted ([`src/pages/iou/request/IOURequestStartPage.tsx`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/pages/iou/request/IOURequestStartPage.tsx#L143), [`src/pages/iou/request/DistanceRequestStartPage.tsx`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/pages/iou/request/DistanceRequestStartPage.tsx#L96), [`src/pages/iou/request/step/IOURequestStepParticipants.tsx`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/pages/iou/request/step/IOURequestStepParticipants.tsx#L141), [`src/pages/iou/request/step/IOURequestStepConfirmation.tsx`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/pages/iou/request/step/IOURequestStepConfirmation.tsx#L320))
 **Span ID**: Based on reportID
 **Attributes**: `iou_type`, `iou_request_type`, `report_id`, `route_from`
+
+### Open Share Extension Submit Flow
+
+**Constant**: `CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW`
+**Sentry Name**: `ShareExtensionOpenSubmitFlow`
+**Threshold**: TBD (P90) — baseline observed at 3–4s, target to be defined
+**What's Measured**: Time from selecting a recipient (workspace chat or DM) in the iOS Share Extension to the submit-details (confirm) screen rendering
+**Start**: Recipient selected in the Share Extension participants selector — an existing report or a new DM created from the selected account (`src/components/Share/ShareTabParticipantsSelector.tsx`, `onParticipantsAdded`)
+**End**:
+- User sees: Confirm-details screen
+- Technical: Confirm-details container layout complete (onLayout event)
+**Attributes**: `report_id`, `route_from`
+**Notes**: Scoped to the submit flow only (route `SHARE_SUBMIT_DETAILS`); the shared selector's track/share flow (`SHARE_DETAILS`) is not instrumented. Abandoned attempts (user backs out before the screen renders) are canceled on unmount and tagged `canceled`.
 
 ### Send Message
 

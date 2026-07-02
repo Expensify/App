@@ -43,7 +43,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections, hasTags, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
+import {arePolicyRulesEnabled, getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections, hasTags, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {close} from '@userActions/Modal';
@@ -257,7 +257,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     }, [categories, policy?.rules?.approvalRules]);
 
     const shouldShowGLCodeColumn = Object.values(policyCategories ?? {}).some((category) => !!category['GL Code']) && isControlPolicyWithWideLayout;
-    const shouldShowApproverColumn = isControlPolicyWithWideLayout && !!policy?.areRulesEnabled && Object.keys(categoryApproverEmails).length > 0;
+    const shouldShowApproverColumn = isControlPolicyWithWideLayout && arePolicyRulesEnabled(policy, policyCategories) && Object.keys(categoryApproverEmails).length > 0;
 
     const categoryRows = useMemo<WorkspaceCategoryTableRowData[]>(() => {
         return categories.reduce<WorkspaceCategoryTableRowData[]>((acc, value) => {
@@ -706,7 +706,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             selectedKeys={selectedCategoryKeys}
                             shouldShowGLCodeColumn={shouldShowGLCodeColumn}
                             shouldShowApproverColumn={shouldShowApproverColumn}
-                            onRowSelectionChange={(selectedRowKeys) => setSelectedCategoryKeys(selectedRowKeys)}
+                            onRowSelectionChange={setSelectedCategoryKeys}
                             EmptyStateComponent={emptyStateContent}
                         />
                     </>

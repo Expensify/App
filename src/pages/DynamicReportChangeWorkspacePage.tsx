@@ -40,7 +40,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import {doesPersonalDetailExistSelector, personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {DismissedProductTraining} from '@src/types/onyx';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
@@ -69,6 +69,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isReportLastVisibleArchived = useReportIsArchived(report?.parentReportID);
     const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)}, [report?.ownerAccountID]);
+    const [doesSubmitterPersonalDetailExist] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: doesPersonalDetailExistSelector(report?.ownerAccountID)}, [report?.ownerAccountID]);
     const [managerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.managerID)}, [report?.managerID]);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const {isBetaEnabled} = usePermissions();
@@ -102,6 +103,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 filteredReportActions,
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 submitterLogin,
+                doesSubmitterPersonalDetailExist ?? false,
                 reportTransactions,
             );
             if (!invite?.policyExpenseChatReportID) {
@@ -145,6 +147,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             policy,
             currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: session?.email ?? '',
+            ownerLogin: submitterLogin,
             managerLogin,
             hasViolationsParam: hasViolations,
             isChangePolicyTrainingModalDismissed,
