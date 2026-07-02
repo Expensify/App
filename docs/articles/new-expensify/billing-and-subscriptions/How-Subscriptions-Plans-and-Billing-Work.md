@@ -53,8 +53,8 @@ To learn more, see [How Your Plan and Subscription Determine Your Bill](understa
 
 ## Who pays the monthly bill 
 
-Each Workspace has an Owner who is responsible for the monthly bill. 
+Each Workspace has an owner, sometimes called the billing owner, who is responsible for the monthly bill. 
 
-Workspace Owners can add and update payment cards, view billing receipts, and manage workspace plan and subscription settings.
+Workspace owners can add and update payment cards, view billing receipts, and manage workspace plan and subscription settings.
 
-To learn more, see [Understand Workspace Ownership](Understand-Workspace-Ownership.md).
+To learn more, see [Understand WWorkspace Ownership](Understand-Workspace-Ownership.md).
