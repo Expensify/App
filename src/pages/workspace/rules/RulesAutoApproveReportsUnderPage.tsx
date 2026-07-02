@@ -41,8 +41,9 @@ function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderP
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
             shouldBeBlocked={isWorkflowsEnabled && (!policy?.shouldShowAutoApprovalOptions || workflowApprovalsUnavailable)}
         >
             <ScreenWrapper

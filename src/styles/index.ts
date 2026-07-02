@@ -5017,24 +5017,6 @@ const staticStyles = (theme: ThemeColors) =>
             maxHeight: 100,
         },
 
-        listBoundaryLoader: {
-            position: 'absolute',
-            top: 0,
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: CONST.CHAT_HEADER_LOADER_HEIGHT,
-        },
-        listBoundaryError: {
-            paddingVertical: 15,
-            paddingHorizontal: 20,
-        },
-        listBoundaryErrorText: {
-            color: theme.textSupporting,
-            fontSize: variables.fontSizeLabel,
-            marginBottom: 10,
-        },
-
         videoContainer: {
             ...flex.flex1,
             ...flex.alignItemsCenter,
@@ -5513,6 +5495,11 @@ const staticStyles = (theme: ThemeColors) =>
         cardRulesEmptyStateIllustration: {
             width: variables.cardRulesEmptyStateIllustrationWidth,
             height: variables.cardRulesEmptyStateIllustrationHeight,
+        },
+
+        sortingMachineRulesEmptyStateIllustration: {
+            width: variables.sortingMachineRulesEmptyStateIllustrationWidth,
+            height: variables.sortingMachineRulesEmptyStateIllustrationHeight,
         },
 
         emptyStateSamlIllustration: {
