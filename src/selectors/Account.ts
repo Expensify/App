@@ -15,6 +15,12 @@ const requiresTwoFactorAuthSelector = (data: OnyxEntry<Account>) => data?.requir
 
 const accountGuideDetailsSelector = (account: OnyxEntry<Account>) => account?.guideDetails;
 
+const accountManagerDetailsSelector = (account: OnyxEntry<Account>) => ({
+    accountManagerAccountID: account?.accountManagerAccountID,
+    accountManagerReportID: account?.accountManagerReportID,
+    accountManagerCalendarLink: account?.accountManagerCalendarLink,
+});
+
 const mfaCredentialIDsSelector = (data: OnyxEntry<Account>) => data?.multifactorAuthenticationPublicKeyIDs;
 
 const isFromInternalDomainSelector = (account: OnyxEntry<Account>) => account?.isFromInternalDomain;
@@ -29,6 +35,7 @@ export {
     delegatesSelector,
     requiresTwoFactorAuthSelector,
     accountGuideDetailsSelector,
+    accountManagerDetailsSelector,
     mfaCredentialIDsSelector,
     isFromInternalDomainSelector,
     canDowngradeSelector,

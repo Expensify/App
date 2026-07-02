@@ -7850,6 +7850,9 @@ const CONST = {
         BILLING_BANNER: {
             RIGHT_ICON: 'BillingBanner-RightIcon',
         },
+        ACCOUNT_MANAGER_BOOK_CALL: {
+            BUTTON: 'AccountManagerBookCallButton-Button',
+        },
         HIGH_CONTRAST_MODE_SWITCHER: {
             TOGGLE: 'HighContrastModeSwitcher-Toggle',
         },
