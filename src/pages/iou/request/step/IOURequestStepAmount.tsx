@@ -155,11 +155,12 @@ function IOURequestStepAmount({
     };
 
     const handleSubmit = ({amount, paymentMethod}: {amount: string; paymentMethod?: PaymentMethodType}) => {
-        notifySaving();
         const submitData = submitDataRef.current;
         if (!submitData) {
+            Log.hmmm('......')
             return;
         }
+        notifySaving();
         submitAmount({
             report,
             transaction,
