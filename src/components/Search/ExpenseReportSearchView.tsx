@@ -230,6 +230,4 @@ function ExpenseReportSearchView({
     );
 }
 
-ExpenseReportSearchView.displayName = 'ExpenseReportSearchView';
-
 export default ExpenseReportSearchView;

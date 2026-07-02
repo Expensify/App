@@ -197,6 +197,4 @@ function ChatSearchView({
     );
 }
 
-ChatSearchView.displayName = 'ChatSearchView';
-
 export default ChatSearchView;
