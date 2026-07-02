@@ -87,11 +87,8 @@ jest.mock('@components/TextWithTooltip', () => {
     return MockTextWithTooltip;
 });
 
-jest.mock('react-native-reanimated', () => {
-    const Reanimated = jest.requireActual('react-native-reanimated/mock');
-    Reanimated.default.View = jest.requireActual<typeof ReactNative>('react-native').View;
-    return Reanimated;
-});
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return -- react-native-reanimated mock is untyped
+jest.mock('react-native-reanimated', () => jest.requireActual('react-native-reanimated/mock'));
 
 jest.mock('@components/OfflineWithFeedback', () => {
     function MockOfflineWithFeedback({children}: {children: React.ReactNode}) {
