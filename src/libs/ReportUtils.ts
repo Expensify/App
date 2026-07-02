@@ -5060,7 +5060,10 @@ function canUnreportedPerDiemBeMoved(transaction: OnyxEntry<Transaction>, polici
     }
     const perDiemPolicy = getPolicyByCustomUnitID(transaction, policies);
     const perDiemCustomUnit = getPerDiemCustomUnit(perDiemPolicy);
-    return isPerDiemEnabled(perDiemPolicy) && !isEmptyObject(perDiemCustomUnit?.rates);
+    if (!isPerDiemEnabled(perDiemPolicy) || isEmptyObject(perDiemCustomUnit?.rates)) {
+        return false;
+    }
+    return true;
 }
 
 /**
