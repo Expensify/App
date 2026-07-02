@@ -1,5 +1,5 @@
 import React, {useImperativeHandle, useRef, useState} from 'react';
-import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -34,19 +34,22 @@ type ReportFieldBaseProps = {
     ref: React.Ref<ReportFieldHandle>;
     values: ReportFieldValues | undefined;
     selectedField: PolicyReportField | null;
+    hasFeed: boolean;
+    style?: StyleProp<ViewStyle>;
     onFieldSelected: (field: PolicyReportField | null) => void;
 };
 
 type SelectedReportFieldProps = {
     ref: React.Ref<ReportFieldHandle>;
     field: PolicyReportField;
-    value: string;
+    value: string | undefined;
 };
 
 type SelectedDateReportFieldProps = {
     ref: React.Ref<ReportFieldHandle>;
     field: PolicyReportField;
     value: Record<ReportFieldDateKey, string | undefined>;
+    hasFeed: boolean;
     selectedDateModifier: SearchDateModifier | null;
     onDateModifierSelected: (modifier: SearchDateModifier | null) => void;
 };
@@ -61,7 +64,7 @@ function getFilterKey(fieldName: string) {
 }
 
 function SelectedReportField({ref, field, value: initialValue}: SelectedReportFieldProps) {
-    const [value, setValue] = useState<string>(initialValue);
+    const [value, setValue] = useState(initialValue);
     const fieldType = field.type as Exclude<ValueOf<typeof CONST.REPORT_FIELD_TYPES>, typeof CONST.REPORT_FIELD_TYPES.FORMULA | typeof CONST.REPORT_FIELD_TYPES.DATE>;
 
     const UpdateReportFieldComponent = {
@@ -91,7 +94,7 @@ function SelectedReportField({ref, field, value: initialValue}: SelectedReportFi
     );
 }
 
-function SelectedDateReportField({ref, field, value: initialValue, selectedDateModifier, onDateModifierSelected}: SelectedDateReportFieldProps) {
+function SelectedDateReportField({ref, field, value: initialValue, selectedDateModifier, hasFeed, onDateModifierSelected}: SelectedDateReportFieldProps) {
     const filterKey = getFilterKey(field.name);
     const suffix = getFieldNameAsKey(field.name);
     const onKey = `${CONST.SEARCH.REPORT_FIELD.ON_PREFIX}${suffix}` as const;
@@ -127,7 +130,6 @@ function SelectedDateReportField({ref, field, value: initialValue, selectedDateM
         isDateModifierSelected: () => !!selectedDateModifier,
         applySelectedFieldAndGoBack: () => {
             dateFilterRef.current?.save();
-            onDateModifierSelected(null);
         },
     }));
 
@@ -148,7 +150,7 @@ function SelectedDateReportField({ref, field, value: initialValue, selectedDateM
                 selectedDateModifier={selectedDateModifier}
                 onSelectDateModifier={onDateModifierSelected}
                 defaultDateValues={value}
-                presets={getDatePresets(filterKey, true)}
+                presets={getDatePresets(filterKey, hasFeed)}
                 onSubmit={() => {}}
                 shouldShowActionButtons={false}
             />
@@ -156,7 +158,7 @@ function SelectedDateReportField({ref, field, value: initialValue, selectedDateM
     );
 }
 
-function ReportFieldBase({ref, values: initialValues = {}, selectedField, onFieldSelected}: ReportFieldBaseProps) {
+function ReportFieldBase({ref, values: initialValues = {}, selectedField, hasFeed, style, onFieldSelected}: ReportFieldBaseProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const policyReportFieldsSelector = (policies: OnyxCollection<Policy>) => createAllPolicyReportFieldsSelector(policies, localeCompare);
@@ -169,7 +171,7 @@ function ReportFieldBase({ref, values: initialValues = {}, selectedField, onFiel
 
     const getValue = (fieldName: string) => {
         const filterKey = getFilterKey(fieldName);
-        return values[filterKey]?.trim() ?? '';
+        return values[filterKey]?.trim();
     };
 
     const getDateValue = (fieldName: string) => {
@@ -225,7 +227,7 @@ function ReportFieldBase({ref, values: initialValues = {}, selectedField, onFiel
 
     if (selectedField) {
         return (
-            <View style={[styles.gap2, styles.flexShrink1]}>
+            <>
                 {!selectedDateModifier && (
                     <HeaderWithBackButton
                         style={[styles.h10]}
@@ -238,6 +240,7 @@ function ReportFieldBase({ref, values: initialValues = {}, selectedField, onFiel
                         ref={selectedFieldRef}
                         field={selectedField}
                         value={getDateValue(selectedField.name)}
+                        hasFeed={hasFeed}
                         selectedDateModifier={selectedDateModifier}
                         onDateModifierSelected={setSelectedDateModifier}
                     />
@@ -248,7 +251,7 @@ function ReportFieldBase({ref, values: initialValues = {}, selectedField, onFiel
                         value={getValue(selectedField.name)}
                     />
                 )}
-            </View>
+            </>
         );
     }
 
@@ -261,7 +264,7 @@ function ReportFieldBase({ref, values: initialValues = {}, selectedField, onFiel
     });
 
     return (
-        <ScrollView>
+        <ScrollView contentContainerStyle={[style]}>
             {listItems.map((item) => (
                 <MenuItem
                     key={item.key}

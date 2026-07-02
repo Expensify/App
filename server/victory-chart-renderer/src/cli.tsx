@@ -1,4 +1,4 @@
-import CLI from '@scripts/utils/CLI';
+import CLI from 'expensify-common/CLI';
 import loadChartFontsForCli from './loadChartFontsForCli';
 import parseChartXml from './parseChartXml';
 import renderChartToPng from './renderChartToPng';
@@ -22,10 +22,18 @@ const cli = new CLI({
     },
 });
 
-const xmlString = cli.namedArgs['chart-xml'];
-const outPath = cli.namedArgs.out;
-const tnode = parseChartXml(xmlString);
-const canvasSize = resolveCanvasSize(tnode);
-const fonts = await loadChartFontsForCli();
+try {
+    const xmlString = cli.namedArgs['chart-xml'];
+    const outPath = cli.namedArgs.out;
+    const tnode = parseChartXml(xmlString);
+    const canvasSize = resolveCanvasSize(tnode);
+    const fonts = await loadChartFontsForCli();
 
-await renderChartToPng(tnode, fonts, canvasSize, outPath);
+    await renderChartToPng(tnode, fonts, canvasSize, outPath);
+
+    // Onyx and network modules register listeners/timers during init; exit explicitly so CI smoke tests do not hang.
+    process.exit(0);
+} catch (error) {
+    console.error(error instanceof Error ? error.message : error);
+    process.exit(1);
+}

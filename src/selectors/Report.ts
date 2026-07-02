@@ -1,11 +1,19 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
-import {canShowReportRecipientLocalTime, getPolicyIDsWithEmptyReportsForAccount, isChatRoom, isOpenExpenseReport, isPolicyExpenseChat, isThread} from '@libs/ReportUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
+import {
+    canShowReportRecipientLocalTime,
+    getPolicyIDsWithEmptyReportsForAccount,
+    isArchivedReport,
+    isChatRoom,
+    isClosedReport,
+    isOpenExpenseReport,
+    isPolicyExpenseChat,
+    isThread,
+} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Report, ReportActions, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Report, ReportActions, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import {getLastClosedReportAction} from './ReportAction';
 
 type OpenExpenseReportIDMap = Record<string, true>;
@@ -41,7 +49,7 @@ const policyIDsWithEmptyReportsSelector =
     };
 
 const policyChatRoomsSelector =
-    (policyID: string | undefined, archivedReportsIdSet: ArchivedReportsIDSet) =>
+    (policyID: string | undefined, reportNameValuePairs: OnyxCollection<ReportNameValuePairs>) =>
     (reports: OnyxCollection<Report>): Report[] => {
         if (!policyID || !reports) {
             return [];
@@ -58,7 +66,10 @@ const policyChatRoomsSelector =
             if (!isChatRoom(report) && !isPolicyExpenseChat(report)) {
                 continue;
             }
-            if (archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`)) {
+            if (isClosedReport(report)) {
+                continue;
+            }
+            if (isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`])) {
                 continue;
             }
             list.push(report);
@@ -130,6 +141,9 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         created: report.created,
         submitted: report.submitted,
         approved: report.approved,
+        submitterUserID: report.submitterUserID,
+        submitterPayrollID: report.submitterPayrollID,
+        orderDealNumbers: report.orderDealNumbers,
         chatType: report.chatType,
         hasOutstandingChildRequest: report.hasOutstandingChildRequest,
         hasOutstandingChildTask: report.hasOutstandingChildTask,

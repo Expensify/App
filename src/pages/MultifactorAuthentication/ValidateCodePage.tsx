@@ -8,6 +8,7 @@ import MagicCodeInput from '@components/MagicCodeInput';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
 import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
+import useMFACancelOnEscape from '@components/MultifactorAuthentication/useMFACancelOnEscape';
 import MultifactorAuthenticationValidateCodeResendButton from '@components/MultifactorAuthentication/ValidateCodeResendButton';
 import type {MultifactorAuthenticationValidateCodeResendButtonHandle} from '@components/MultifactorAuthentication/ValidateCodeResendButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -50,7 +51,7 @@ function MultifactorAuthenticationValidateCodePage() {
     const {requestCancel} = useMultifactorAuthentication();
 
     const {dispatch} = useMultifactorAuthenticationActions();
-    const {continuableError} = useMultifactorAuthenticationState();
+    const {continuableError, isCancelConfirmVisible} = useMultifactorAuthenticationState();
 
     // Refs
     const inputRef = useRef<MagicCodeInputHandle>(null);
@@ -198,20 +199,16 @@ function MultifactorAuthenticationValidateCodePage() {
         dispatch({type: 'SET_VALIDATE_CODE', payload: inputCode});
     };
 
-    // Outside-clicks and Escape route through the central cancel handler; return
-    // false to keep the focus trap intact while the confirm modal opens.
-    const interceptFocusTrapEscape = () => {
-        requestCancel();
-        return false;
-    };
+    const interceptFocusTrapEscape = useMFACancelOnEscape();
 
     return (
         <ScreenWrapper
             testID={MultifactorAuthenticationValidateCodePage.displayName}
             focusTrapSettings={{
+                // Turn the trap off while the cancel confirmation modal is up so it can't swallow
+                // the modal's clicks, and back on when it closes. See https://github.com/Expensify/App/issues/93193
+                active: isCancelConfirmVisible ? false : undefined,
                 focusTrapOptions: {
-                    allowOutsideClick: interceptFocusTrapEscape,
-                    clickOutsideDeactivates: interceptFocusTrapEscape,
                     escapeDeactivates: interceptFocusTrapEscape,
                 },
             }}

@@ -1,4 +1,4 @@
-import {getAgentAccountIDFlags, getReportParticipantAccountIDs} from '@selectors/AgentZeroChat';
+import {getCustomAgentParticipantAccountID, getReportParticipantAccountIDs} from '@selectors/AgentZeroChat';
 import {getReportChatType} from '@selectors/Report';
 import {agentZeroProcessingAgentIDsSelector} from '@selectors/ReportNameValuePairs';
 import {accountIDSelector} from '@selectors/Session';
@@ -41,24 +41,19 @@ const AgentZeroStatusActionsContext = createContext<AgentZeroStatusActions>(defa
  * metadata. For non-AgentZero reports (the common case), returns children directly.
  *
  * AgentZero chats include Concierge DMs, policy #admins rooms, and custom-agent chats (any
- * report with a participant — other than the current user — whose accountID has a
- * `SHARED_NVP_AGENT_PROMPT_<accountID>` entry, populated by `OpenAgentsPage` for agents the
- * current user owns).
+ * report with a participant whose personalDetails carries `isCustomAgent: true`, stamped
+ * server-side in `Account::formatNewDotPersonalDetails`).
  */
 function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{reportID: string | undefined}>) {
     const [chatType] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportChatType});
     const [participantAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportParticipantAccountIDs});
-    const [agentAccountIDFlags] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT, {selector: getAgentAccountIDFlags});
+    const [agentParticipantAccountID] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: getCustomAgentParticipantAccountID(participantAccountIDs)});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
 
     const isConciergeChat = reportID === conciergeReportID;
     const isAdmin = chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
-    // A custom-agent chat has a participant — excluding the current user — whose accountID owns
-    // an agent prompt. Excluding the current user prevents a user who owns agents from turning
-    // their own DMs into agent chats.
-    const hasAgentParticipant = participantAccountIDs?.some((accountID) => accountID !== currentUserAccountID && !!agentAccountIDFlags?.[accountID]) ?? false;
-    const isAgentZeroChat = isConciergeChat || isAdmin || hasAgentParticipant;
+    const isCustomAgentChat = agentParticipantAccountID !== undefined;
+    const isAgentZeroChat = isConciergeChat || isAdmin || isCustomAgentChat;
 
     if (!reportID || !isAgentZeroChat) {
         return children;
@@ -78,6 +73,23 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
 function AgentZeroStatusGate({reportID, includeConcierge, children}: React.PropsWithChildren<{reportID: string; includeConcierge: boolean}>) {
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [serverAgentIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: agentZeroProcessingAgentIDsSelector});
+
+    // When the agent's reply (ADDCOMMENT) lands before the server's indicator-clear NVP update,
+    // the thinking bubble would remain visible briefly. Suppress any agent whose reply is already
+    // the newest action in the report so the bubble hides as soon as the reply renders.
+    const [latestReplyActorID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        selector: (actions) => {
+            const list = Object.values(actions ?? {}).filter(Boolean);
+            if (list.length === 0) {
+                return undefined;
+            }
+            const newest = list.reduce((a, b) => ((a.created ?? '') >= (b.created ?? '') ? a : b));
+            if (newest.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) {
+                return undefined;
+            }
+            return newest.actorAccountID;
+        },
+    });
 
     // One reasoning Pusher subscription per report (not per agent). The handler in Report
     // actions routes each event to the right agent's reasoning history by its actorAccountID.
@@ -113,6 +125,13 @@ function AgentZeroStatusGate({reportID, includeConcierge, children}: React.Props
     }
     if (currentUserAccountID !== undefined) {
         candidateIDs.delete(currentUserAccountID);
+    }
+    // Suppress an agent whose reply is already the newest action. The server's indicator-clear NVP
+    // can arrive up to ~250ms after the reply Pusher event, leaving the bubble visible on top of
+    // the completed response. Dropping the agent here as soon as their ADDCOMMENT lands prevents
+    // that flash without waiting for the NVP clear.
+    if (latestReplyActorID !== undefined) {
+        candidateIDs.delete(latestReplyActorID);
     }
     // Render Concierge's bubble first, then any custom agents ascending by accountID — a stable,
     // intentional order instead of relying on Set insertion order.

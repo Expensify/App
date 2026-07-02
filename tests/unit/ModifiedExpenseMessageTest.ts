@@ -893,6 +893,35 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
+        describe('when the date change also changes the distance rate', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    oldMerchant: '56.36 mi @ $0.70 / mi',
+                    merchant: '56.36 mi @ $0.99 / mi',
+                    oldAmount: 3945,
+                    amount: 5580,
+                    oldCurrency: CONST.CURRENCY.USD,
+                    currency: CONST.CURRENCY.USD,
+                    oldCreated: '2025-06-19',
+                    created: '2026-06-19',
+                },
+            };
+
+            it('then the message reports both the rate change and the date change', () => {
+                const expectedResult = `changed the rate to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $55.80 (previously $39.45)\nchanged the date to 2026-06-19 (previously 2025-06-19)`;
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
         describe('when moving an expense', () => {
             it('returns the movedFromOrToReportMessage message when provided', () => {
                 const reportAction = {
@@ -1165,7 +1194,7 @@ describe('ModifiedExpenseMessage', () => {
                 environmentURL = await getEnvironmentURL();
             });
 
-            const policyRulesPolicy = {id: policyRulesPolicyId, areRulesEnabled: true} as Policy;
+            const policyRulesPolicy = {id: policyRulesPolicyId, areRulesEnabled: true, type: CONST.POLICY.TYPE.CORPORATE} as Policy;
 
             beforeEach(() => {
                 // Default: current user has policy rule access (admin + rules enabled), so link points to workspace rules
@@ -2154,6 +2183,122 @@ describe('ModifiedExpenseMessage', () => {
                 });
 
                 expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('vendor changes', () => {
+            // QBO policy with two named vendors used by the resolver. No `config` block — the resolver
+            // must look up vendors regardless of the workspace's current export mode so historical
+            // chat entries keep rendering the vendor name after an admin switches export modes away
+            // from CC/DC. The fourth case below omits a vendor from the list to exercise the
+            // externalID fallback path.
+            const policyWithVendors: Policy = {
+                id: 'p-1',
+                name: 'My Workspace',
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: 'test@example.com',
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                connections: {
+                    quickbooksOnline: {
+                        data: {
+                            vendors: [
+                                {id: 'v-acme', name: 'Acme', currency: 'USD', email: ''},
+                                {id: 'v-office', name: 'Office Supplies', currency: 'USD', email: ''},
+                            ],
+                        },
+                    },
+                },
+            } as Policy;
+
+            describe('when the vendor is set for the first time (oldVendor key stripped by Onyx null-merge)', () => {
+                // Onyx merges with `shouldRemoveNestedNulls: true`, so the optimistic
+                // `oldVendor: null` we write is stripped from storage. The rendered action
+                // must still treat the missing key as a "set" rather than falling back to
+                // the generic "changed the expense" message.
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        vendor: {externalID: 'v-acme', isManuallySet: true},
+                    },
+                };
+
+                it('renders "set the vendor to X"', () => {
+                    const result = getForReportAction({
+                        translate: translateLocal,
+                        reportAction,
+                        policy: policyWithVendors,
+                        policyTags: undefined,
+                        currentUserLogin: CURRENT_USER_LOGIN,
+                    });
+                    expect(result).toEqual('set the vendor to "Acme"');
+                });
+            });
+
+            describe('when the vendor is changed from one to another', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        oldVendor: {externalID: 'v-acme', isManuallySet: false},
+                        vendor: {externalID: 'v-office', isManuallySet: true},
+                    },
+                };
+
+                it('renders "changed the vendor to Y (previously X)"', () => {
+                    const result = getForReportAction({
+                        translate: translateLocal,
+                        reportAction,
+                        policy: policyWithVendors,
+                        policyTags: undefined,
+                        currentUserLogin: CURRENT_USER_LOGIN,
+                    });
+                    expect(result).toEqual('changed the vendor to "Office Supplies" (previously "Acme")');
+                });
+            });
+
+            describe('when the vendor is removed (vendor key stripped by Onyx null-merge)', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        oldVendor: {externalID: 'v-acme', isManuallySet: true},
+                    },
+                };
+
+                it('renders "removed the vendor X"', () => {
+                    const result = getForReportAction({
+                        translate: translateLocal,
+                        reportAction,
+                        policy: policyWithVendors,
+                        policyTags: undefined,
+                        currentUserLogin: CURRENT_USER_LOGIN,
+                    });
+                    expect(result).toEqual('removed the vendor (previously "Acme")');
+                });
+            });
+
+            describe('when the vendor is set to an ID no longer in the QBO vendor list (e.g. deleted from QBO)', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        vendor: {externalID: 'v-deleted', isManuallySet: false},
+                    },
+                };
+
+                it('falls back to rendering the externalID so the fragment still identifies which vendor was set', () => {
+                    const result = getForReportAction({
+                        translate: translateLocal,
+                        reportAction,
+                        policy: policyWithVendors,
+                        policyTags: undefined,
+                        currentUserLogin: CURRENT_USER_LOGIN,
+                    });
+                    expect(result).toEqual('set the vendor to "v-deleted"');
+                });
             });
         });
     });

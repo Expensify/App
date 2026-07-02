@@ -8,6 +8,7 @@ import {
 } from '@libs/actions/connections/FinancialForce';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type {FinancialForceConnectionConfig, FinancialForceFFAExportStatus} from '@src/types/onyx/Policy';
 
 const CERTINIA_DIMENSION_PARAMS = [
     CONST.CERTINIA_CONFIG.CODING_DIMENSION1,
@@ -18,7 +19,12 @@ const CERTINIA_DIMENSION_PARAMS = [
 
 type CertiniaDimensionParam = TupleToUnion<typeof CERTINIA_DIMENSION_PARAMS>;
 
+const CERTINIA_FFA_EXPORT_STATUSES: FinancialForceFFAExportStatus[] = [CONST.CERTINIA_EXPORT_STATUS.COMPLETE, CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS];
+
 type CertiniaMappingValue = ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE>;
+type CertiniaExportStatus = ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>;
+type CertiniaReportExportStatus = ValueOf<typeof CONST.CERTINIA_REPORT_EXPORT_STATUS>;
+type CertiniaParentTagMapping = ValueOf<typeof CONST.CERTINIA_PARENT_TAG_MAPPING>;
 
 function dimensionParamToNumber(dimension: string): number {
     return Number(dimension.replace('dimension', ''));
@@ -31,6 +37,55 @@ function getDisplayTypeLabel(mappingValue: CertiniaMappingValue | undefined, tra
 
 function getDimensionLabel(dimension: CertiniaDimensionParam, translate: LocaleContextProps['translate']): string {
     return translate(`workspace.certinia.import.dimensions.${dimension}` as TranslationPaths);
+}
+
+function getParentTagMappingLabel(parentTagMapping: CertiniaParentTagMapping | undefined, translate: LocaleContextProps['translate']): string {
+    const value = parentTagMapping ?? CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_PROJECTS_AND_ASSIGNMENTS;
+    return translate(`workspace.certinia.import.parentTagMappingTypes.${value}` as TranslationPaths);
+}
+
+function normalizeCertiniaExportStatus(status: string): string {
+    return status.trim().toUpperCase().replaceAll(/\s+/g, '_');
+}
+
+/**
+ * Maps a stored export status onto its native value. The config holds native values ("Complete", "In Progress",
+ * "Approved", "Submitted"), but older app versions wrote uppercase identifiers ("APPROVED", "IN_PROGRESS",
+ * "SUBMITTED"), so both forms are matched case- and separator-insensitively.
+ */
+function getCertiniaExportStatusValue(status: string | undefined): CertiniaExportStatus | undefined {
+    if (!status) {
+        return undefined;
+    }
+
+    const normalizedStatus = normalizeCertiniaExportStatus(status);
+    return Object.values(CONST.CERTINIA_EXPORT_STATUS).find((value) => normalizeCertiniaExportStatus(value) === normalizedStatus);
+}
+
+/**
+ * Same as getCertiniaExportStatusValue, but only returns statuses that apply to FFA payable invoices.
+ * The uppercase identifier "APPROVED" maps to COMPLETE: it was only ever written by the pre-native FFA
+ * picker, whose "APPROVED" option was labeled "Complete". The native PSA value "Approved" stays excluded.
+ */
+function getCertiniaFFAExportStatusValue(status: string | undefined): FinancialForceFFAExportStatus | undefined {
+    if (status === 'APPROVED') {
+        return CONST.CERTINIA_EXPORT_STATUS.COMPLETE;
+    }
+
+    const value = getCertiniaExportStatusValue(status);
+    return CERTINIA_FFA_EXPORT_STATUSES.find((ffaStatus) => ffaStatus === value);
+}
+
+function getCertiniaReportExportStatusValue(status: string | undefined): CertiniaReportExportStatus | undefined {
+    const normalizedStatus = getCertiniaExportStatusValue(status);
+    switch (normalizedStatus) {
+        case CONST.CERTINIA_EXPORT_STATUS.APPROVED:
+            return CONST.CERTINIA_REPORT_EXPORT_STATUS.APPROVED;
+        case CONST.CERTINIA_EXPORT_STATUS.SUBMITTED:
+            return CONST.CERTINIA_REPORT_EXPORT_STATUS.SUBMITTED;
+        default:
+            return undefined;
+    }
 }
 
 function updateFinancialForceDimensionMapping(policyID: string | undefined, dimension: CertiniaDimensionParam, value: CertiniaMappingValue, previousValue: CertiniaMappingValue | null) {
@@ -60,5 +115,21 @@ function isCertiniaDimensionParam(dimension: string): dimension is CertiniaDimen
     return (CERTINIA_DIMENSION_PARAMS as readonly string[]).includes(dimension);
 }
 
-export {CERTINIA_DIMENSION_PARAMS, dimensionParamToNumber, getDimensionLabel, getDisplayTypeLabel, isCertiniaDimensionParam, updateFinancialForceDimensionMapping};
-export type {CertiniaDimensionParam, CertiniaMappingValue};
+function isCertiniaSRPConnection(config: FinancialForceConnectionConfig | undefined): boolean {
+    return !!config?.hasPSA && config?.hasPSAOnly === false;
+}
+
+export {
+    CERTINIA_DIMENSION_PARAMS,
+    CERTINIA_FFA_EXPORT_STATUSES,
+    dimensionParamToNumber,
+    getCertiniaReportExportStatusValue,
+    getCertiniaFFAExportStatusValue,
+    getDimensionLabel,
+    getDisplayTypeLabel,
+    getParentTagMappingLabel,
+    isCertiniaSRPConnection,
+    isCertiniaDimensionParam,
+    updateFinancialForceDimensionMapping,
+};
+export type {CertiniaDimensionParam, CertiniaMappingValue, CertiniaParentTagMapping, CertiniaReportExportStatus};

@@ -68,12 +68,7 @@ jest.mock('@userActions/App', () => ({
     openApp: jest.fn(),
     reconnectApp: jest.fn(),
     setUpPoliciesAndNavigate: jest.fn(),
-    confirmReadyToOpenApp: jest.fn(),
     setLocale: jest.fn(),
-}));
-
-jest.mock('@userActions/Agent', () => ({
-    openAgentsPage: jest.fn(),
 }));
 
 jest.mock('@userActions/Download', () => ({

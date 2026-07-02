@@ -138,6 +138,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                chatReport={undefined}
                                 report={undefined}
                                 transactionThreadReport={undefined}
                                 parentReportAction={undefined}
@@ -251,6 +252,16 @@ describe('ReportActionItem', () => {
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
             expect(screen.getByText(translateLocal('iou.forwarded'))).toBeOnTheScreen();
+        });
+
+        it('FORWARDED action with memo', async () => {
+            const memo = 'Testing approval memo';
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.FORWARDED, {automaticAction: false, message: memo});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.forwarded', memo))).toBeOnTheScreen();
         });
 
         it('SUBMITTED action', async () => {
@@ -424,6 +435,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -472,6 +484,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -524,6 +537,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -568,6 +582,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -642,6 +657,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={report}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -703,6 +719,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={report}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -786,6 +803,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={report}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -965,6 +983,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={report}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1012,6 +1031,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={report}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1028,6 +1048,264 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(translateLocal('violations.smartscanFailed', {canEdit: false}))).toBeOnTheScreen();
+        });
+
+        it('RECEIPT_SCAN_FAILED action shows Explain link when action has reasoning (submitter)', async () => {
+            const parentReportID = 'parentReport3';
+            const parentReportActionID = 'iouAction3';
+
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                    [parentReportActionID]: {
+                        reportActionID: parentReportActionID,
+                        actorAccountID: ACTOR_ACCOUNT_ID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        created: '2025-07-12 09:03:17.653',
+                        message: [{type: 'COMMENT', html: '', text: ''}],
+                        originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 100, currency: 'USD'},
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const report = {reportID: 'scanReport3', parentReportID, parentReportActionID};
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED, {
+                reasoning: "The date couldn't be read from this receipt.",
+            });
+
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <ReportActionItem
+                                    chatReport={undefined}
+                                    report={report}
+                                    transactionThreadReport={undefined}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    isFirstVisibleReportAction={false}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('violations.smartscanFailed', {canEdit: true}))).toBeOnTheScreen();
+            expect(screen.getByText('Explain')).toBeOnTheScreen();
+        });
+
+        it('RECEIPT_SCAN_FAILED action shows Explain link when action has reasoning (non-submitter)', async () => {
+            // Guards both canEdit branches: the Explain affordance must render regardless of
+            // whether the viewer is the submitter, because hasReasoning() is independent of canEdit.
+            const parentReportID = 'parentReport4';
+            const parentReportActionID = 'iouAction4';
+            const OTHER_ACCOUNT_ID = 999999;
+
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                    [parentReportActionID]: {
+                        reportActionID: parentReportActionID,
+                        actorAccountID: OTHER_ACCOUNT_ID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        created: '2025-07-12 09:03:17.653',
+                        message: [{type: 'COMMENT', html: '', text: ''}],
+                        originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 100, currency: 'USD'},
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const report = {reportID: 'scanReport4', parentReportID, parentReportActionID};
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED, {
+                reasoning: "The merchant couldn't be read from this receipt.",
+            });
+
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <ReportActionItem
+                                    chatReport={undefined}
+                                    report={report}
+                                    transactionThreadReport={undefined}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    isFirstVisibleReportAction={false}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('violations.smartscanFailed', {canEdit: false}))).toBeOnTheScreen();
+            expect(screen.getByText('Explain')).toBeOnTheScreen();
+        });
+
+        it('RECEIPT_SCAN_FAILED action does not show Explain link when action has no reasoning (backward compat)', async () => {
+            // Backward-compat guard: pre-Auth-21123 actions had no `reasoning` field on originalMessage.
+            // Those actions must continue to render the plain message with no inline Explain affordance.
+            const parentReportID = 'parentReport5';
+            const parentReportActionID = 'iouAction5';
+
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                    [parentReportActionID]: {
+                        reportActionID: parentReportActionID,
+                        actorAccountID: ACTOR_ACCOUNT_ID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        created: '2025-07-12 09:03:17.653',
+                        message: [{type: 'COMMENT', html: '', text: ''}],
+                        originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 100, currency: 'USD'},
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const report = {reportID: 'scanReport5', parentReportID, parentReportActionID};
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED, {});
+
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <ReportActionItem
+                                    chatReport={undefined}
+                                    report={report}
+                                    transactionThreadReport={undefined}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    isFirstVisibleReportAction={false}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('violations.smartscanFailed', {canEdit: true}))).toBeOnTheScreen();
+            expect(screen.queryByText('Explain')).not.toBeOnTheScreen();
+        });
+
+        it('RECEIPT_SCAN_FAILED action with missingFields and reasoning shows field-specific message plus Explain', async () => {
+            const parentReportID = 'parentReport6';
+            const parentReportActionID = 'iouAction6';
+
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                    [parentReportActionID]: {
+                        reportActionID: parentReportActionID,
+                        actorAccountID: ACTOR_ACCOUNT_ID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        created: '2025-07-12 09:03:17.653',
+                        message: [{type: 'COMMENT', html: '', text: ''}],
+                        originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 100, currency: 'USD'},
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const report = {reportID: 'scanReport6', parentReportID, parentReportActionID};
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED, {
+                missingFields: ['merchant', 'date'],
+                reasoning: 'The merchant and date could not be read from this receipt.',
+            });
+
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <ReportActionItem
+                                    chatReport={undefined}
+                                    report={report}
+                                    transactionThreadReport={undefined}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    isFirstVisibleReportAction={false}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Partial match because the WithExplain branch strips the trailing period
+            // before the AskToExplain link suffix is rendered into a separate text node.
+            expect(screen.getByText(/missing merchant and date/)).toBeOnTheScreen();
+            expect(screen.getByText('Explain')).toBeOnTheScreen();
+        });
+
+        it('RECEIPT_SCAN_FAILED action with reasoning does not produce double period before Explain', async () => {
+            const parentReportID = 'parentReport7';
+            const parentReportActionID = 'iouAction7';
+
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                    [parentReportActionID]: {
+                        reportActionID: parentReportActionID,
+                        actorAccountID: ACTOR_ACCOUNT_ID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        created: '2025-07-12 09:03:17.653',
+                        message: [{type: 'COMMENT', html: '', text: ''}],
+                        originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 100, currency: 'USD'},
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const report = {reportID: 'scanReport7', parentReportID, parentReportActionID};
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED, {
+                missingFields: ['amount'],
+                reasoning: "The amount couldn't be read from this receipt.",
+            });
+
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <ReportActionItem
+                                    chatReport={undefined}
+                                    report={report}
+                                    transactionThreadReport={undefined}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    isFirstVisibleReportAction={false}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // The rendered text must not contain ".." before "Explain"
+            expect(screen.getByText('Explain')).toBeOnTheScreen();
+            expect(document.body.textContent).not.toMatch(/\.\.\s*Explain/);
         });
 
         it('HOLD_COMMENT action renders via ReportActionItemBasicMessage', async () => {
@@ -1166,6 +1444,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={report}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1345,6 +1624,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{reportID: 'testReport', policyID: 'pol123'}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1446,6 +1726,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{reportID: 'testReport'}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1481,6 +1762,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1518,6 +1800,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1560,6 +1843,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{
                                         reportID: 'threadReport',
                                         type: CONST.REPORT.TYPE.CHAT,
@@ -1602,6 +1886,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1642,6 +1927,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1680,6 +1966,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={undefined}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1717,6 +2004,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={undefined}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1757,6 +2045,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={undefined}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1798,6 +2087,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={undefined}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1923,6 +2213,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{reportID: 'testReport', type: CONST.REPORT.TYPE.CHAT}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1960,6 +2251,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{reportID: 'testReport', isWaitingOnBankAccount: true}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -2510,7 +2802,7 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(/marked as complete/i)).toBeOnTheScreen();
         });
 
-        it('isIOURequestReportAction renders TransactionPreview', async () => {
+        it('isIOURequestReportAction renders TransactionPreview in a SELF_DM chat', async () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}txn123`, {
                     transactionID: 'txn123',
@@ -2518,28 +2810,31 @@ describe('ReportActionItem', () => {
                     currency: 'USD',
                     merchant: 'TestMerchant',
                     created: '2025-07-12',
-                    reportID: 'iouReport1',
+                    reportID: 'chatReport1',
                 });
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}iouReport1`, {
-                    reportID: 'iouReport1',
-                    type: CONST.REPORT.TYPE.IOU,
-                    chatReportID: 'chatReport1',
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}chatReport1`, {
+                    reportID: 'chatReport1',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
                 });
             });
             await waitForBatchedUpdatesWithAct();
 
-            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
-                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                IOUTransactionID: 'txn123',
-                IOUReportID: 'iouReport1',
-            });
+            const action = {
+                ...createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    IOUTransactionID: 'txn123',
+                }),
+                reportID: 'chatReport1',
+            } as ReportAction;
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
-                                    report={{reportID: 'testReport', chatReportID: 'chatReport1'}}
+                                    chatReport={undefined}
+                                    report={{reportID: 'chatReport1', chatReportID: 'chatReport1', type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
@@ -2555,6 +2850,61 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(/TestMerchant/)).toBeOnTheScreen();
+        });
+
+        it('isIOURequestReportAction renders TransactionPreview when the action lives in an expense report', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}txn456`, {
+                    transactionID: 'txn456',
+                    amount: 1200,
+                    currency: 'USD',
+                    merchant: 'ExpenseReportMerchant',
+                    created: '2026-06-16',
+                    reportID: 'expenseReport1',
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}expenseReport1`, {
+                    reportID: 'expenseReport1',
+                    chatReportID: 'workspaceChat1',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}workspaceChat1`, {
+                    reportID: 'workspaceChat1',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const action = {
+                ...createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    IOUTransactionID: 'txn456',
+                }),
+                reportID: 'expenseReport1',
+            } as ReportAction;
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <ReportActionItem
+                                    chatReport={undefined}
+                                    report={{reportID: 'expenseReport1', chatReportID: 'workspaceChat1', type: CONST.REPORT.TYPE.EXPENSE}}
+                                    transactionThreadReport={undefined}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    isFirstVisibleReportAction={false}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/ExpenseReportMerchant/)).toBeOnTheScreen();
         });
 
         it('isTripPreview renders TripRoomPreview', async () => {
@@ -2638,6 +2988,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     transactionThreadReport={undefined}
                                     report={{reportID: HARVEST_REPORT_ID}}
                                     parentReportAction={undefined}
@@ -2679,6 +3030,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{reportID: HARVEST_REPORT_ID}}
                                     parentReportAction={undefined}
                                     transactionThreadReport={undefined}
@@ -2728,6 +3080,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={undefined}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -2810,11 +3163,11 @@ describe('ReportActionItem', () => {
 
                 const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
                     type: subtype,
-                    IOUReportID: TEST_REPORT_ID,
                     IOUTransactionID: TEST_TRANSACTION_ID,
                     amount: 4200,
                     currency: 'USD',
                 });
+                action.reportID = TEST_REPORT_ID;
                 renderItemWithAction(action);
                 await waitForBatchedUpdatesWithAct();
 
@@ -2828,11 +3181,11 @@ describe('ReportActionItem', () => {
         it('renders flagged content text instead of IOU display when isHidden is true', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
                 type: CONST.IOU.REPORT_ACTION_TYPE.REJECT,
-                IOUReportID: TEST_REPORT_ID,
                 IOUTransactionID: TEST_TRANSACTION_ID,
                 amount: 4200,
                 currency: 'USD',
             });
+            action.reportID = TEST_REPORT_ID;
 
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>

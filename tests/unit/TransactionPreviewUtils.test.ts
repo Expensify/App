@@ -12,7 +12,6 @@ import {
 } from '@libs/TransactionPreviewUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
-import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions, Transaction} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
@@ -231,11 +230,16 @@ describe('TransactionPreviewUtils', () => {
         it('should include "Approved" in the preview when the report is approved, regardless of whether RBR is shown', () => {
             const functionArgs = {
                 ...basicProps,
-                iouReport: {...basicProps.iouReport, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED},
+                iouReport: {
+                    ...basicProps.iouReport,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                },
+                policy: createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                 shouldShowRBR: true,
                 originalTransaction: undefined,
             };
-            jest.spyOn(ReportUtils, 'isPaidGroupPolicyExpenseReport').mockReturnValue(true);
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
 
             expect(result.previewHeaderText).toContainEqual({translationPath: 'iou.approved'});
@@ -645,6 +649,26 @@ describe('TransactionPreviewUtils', () => {
 
         test('returns text when only receiptRequired exists', () => {
             expect(getViolationTranslatePath([receiptRequiredViolation], false, message, false, false)).toEqual({text: message});
+        });
+
+        test('returns text for customUnitRateOutOfDateRange when shouldShowOnlyViolations is true', () => {
+            const rateDateViolation = {
+                name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                type: CONST.VIOLATION_TYPES.WARNING,
+                showInReview: true,
+                data: {startDate: '2025-01-01', endDate: '2025-12-31'},
+            };
+
+            expect(getViolationTranslatePath([rateDateViolation], false, message, false, true)).toEqual({text: message});
+        });
+
+        test('filters other warning violations when shouldShowOnlyViolations is true', () => {
+            const warnings = [
+                {name: CONST.VIOLATIONS.MODIFIED_AMOUNT, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true},
+                {name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true},
+            ];
+
+            expect(getViolationTranslatePath(warnings, false, message, false, true)).toEqual({text: message});
         });
     });
 

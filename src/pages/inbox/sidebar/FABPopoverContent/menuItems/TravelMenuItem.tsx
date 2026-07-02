@@ -7,7 +7,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink, shouldOpenTravelDotLinkWeb} from '@libs/openTravelDotLink';
 import Permissions from '@libs/Permissions';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {isPaidGroupPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
 import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,7 +30,7 @@ function TravelMenuItem() {
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
     const isVisible = !!activePolicy?.isTravelEnabled;
 
-    const isPolicyProvisioned = activePolicy?.travelSettings?.spotnanaCompanyID ?? activePolicy?.travelSettings?.associatedTravelDomainAccountID;
+    const isPolicyProvisioned = isWorkspaceProvisionedForTravel(activePolicy?.travelSettings);
     const isTravelEnabled =
         !isBlockedFromSpotnanaTravel &&
         !!primaryContactMethod &&

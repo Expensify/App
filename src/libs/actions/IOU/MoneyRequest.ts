@@ -10,7 +10,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
-import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {
     getReportOrDraftReport,
     isInvoiceRoom,
@@ -24,7 +24,10 @@ import {
     getCategoryTaxDetails,
     getDefaultTaxCode,
     getDistanceInMeters,
+    getDistanceRateTaxUpdates,
     getIsFromGlobalCreate,
+    isDistanceRequest,
+    isExpenseUnreported,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -297,7 +300,7 @@ function initMoneyRequest({
     }
 
     const comment: Comment = {
-        attendees: formatCurrentUserToAttendee(currentUserPersonalDetails, reportID),
+        attendees: formatCurrentUserToAttendee(currentUserPersonalDetails),
     };
     let requestCategory: string | null = null;
 
@@ -407,6 +410,10 @@ function startMoneyRequest(
     isFromFloatingActionButton?: boolean,
 ) {
     const sourceRoute = Navigation.getActiveRoute();
+    // Only the split flow exposes a Distance tab from here, so prefetch the default P2P mileage rate solely for splits to avoid an unnecessary read on other flows.
+    if (iouType === CONST.IOU.TYPE.SPLIT) {
+        getDefaultP2PMileageRate();
+    }
     startSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE, {
         name: '/money-request-create',
         op: CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE,
@@ -611,7 +618,7 @@ function setMoneyRequestTimeCount(transactionID: string, count: number, isDraft:
  * if passed transaction previously had it to make sure that transaction does not have inconsistent
  * states (for example distanceUnit not matching distance unit of the new customUnitRateID)
  */
-function setCustomUnitRateID(transactionID: string, customUnitRateID: string | undefined, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>) {
+function setCustomUnitRateID(transactionID: string, customUnitRateID: string | undefined, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, rateAutoUpdated = false) {
     const isFakeP2PRate = customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
     let newDistanceUnit: Unit | undefined;
@@ -648,6 +655,7 @@ function setCustomUnitRateID(transactionID: string, customUnitRateID: string | u
                 ...(!isFakeP2PRate && {defaultP2PRate: null}),
                 distanceUnit: newDistanceUnit,
                 quantity: newQuantity,
+                rateAutoUpdated,
             },
         },
     });
@@ -729,6 +737,7 @@ function setMoneyRequestDistanceRate(currentTransaction: OnyxEntry<Transaction>,
                 ...(!!policy && {defaultP2PRate: null}),
                 ...(newDistanceUnit && {distanceUnit: newDistanceUnit}),
                 ...(newDistance && {quantity: newDistance}),
+                rateAutoUpdated: false,
             },
         },
     });
@@ -811,6 +820,70 @@ function setMoneyRequestReimbursable(transactionID: string, reimbursable: boolea
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {reimbursable});
 }
 
+function clearMoneyRequestRateAutoUpdated(transactionID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        comment: {
+            customUnit: {
+                rateAutoUpdated: false,
+            },
+        },
+    });
+}
+
+/**
+ * Recalculates the distance rate when the expense date changes during expense creation.
+ * Sets rateAutoUpdated when the selected rate changes so the confirmation page can show the educational tooltip.
+ */
+function updateDistanceRateOnExpenseDateChange({
+    transactionID,
+    transaction,
+    newCreated,
+    reportID,
+    isPolicyExpenseChat,
+    isTrackExpense,
+    policy,
+    policyForTrackExpense,
+    lastSelectedDistanceRates,
+    isDraft,
+}: {
+    transactionID: string;
+    transaction: OnyxEntry<Transaction>;
+    newCreated: string;
+    reportID: string;
+    isPolicyExpenseChat: boolean;
+    isTrackExpense: boolean;
+    policy: OnyxEntry<Policy>;
+    policyForTrackExpense: OnyxEntry<Policy>;
+    lastSelectedDistanceRates: OnyxEntry<LastSelectedDistanceRates>;
+    isDraft: boolean;
+}) {
+    if (!isDistanceRequest(transaction) || !(isPolicyExpenseChat || isTrackExpense)) {
+        return;
+    }
+
+    const effectivePolicy = isTrackExpense ? policyForTrackExpense : policy;
+    const rateID = DistanceRequestUtils.getCustomUnitRateID({
+        reportID,
+        isPolicyExpenseChat,
+        policy: effectivePolicy,
+        lastSelectedDistanceRates,
+        isTrackDistanceExpense: isTrackExpense,
+        expenseDate: newCreated,
+    });
+    const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
+    const rateChanged = rateID !== currentRateID;
+    setCustomUnitRateID(transactionID, rateID, transaction, effectivePolicy, rateChanged);
+
+    if (rateChanged && rateID && isTaxTrackingEnabled(isPolicyExpenseChat || isTrackExpense || isExpenseUnreported(transaction), effectivePolicy, isDistanceRequest(transaction))) {
+        const mileageRates = DistanceRequestUtils.getMileageRates(effectivePolicy);
+        const distanceUnit = mileageRates[rateID] ? DistanceRequestUtils.getDistanceUnit(transaction, mileageRates[rateID]) : transaction?.comment?.customUnit?.distanceUnit;
+        const {taxAmount, taxCode, taxValue} = getDistanceRateTaxUpdates(effectivePolicy, transaction, rateID, distanceUnit);
+        setMoneyRequestTaxRate(transactionID, taxCode || null, isDraft);
+        setMoneyRequestTaxAmount(transactionID, taxAmount, isDraft);
+        setMoneyRequestTaxValue(transactionID, taxValue ?? null, isDraft);
+    }
+}
+
 function setMoneyRequestReportID(transactionID: string, reportID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {reportID});
 }
@@ -837,6 +910,8 @@ export {
     setMoneyRequestTimeRate,
     setMoneyRequestTimeCount,
     setCustomUnitRateID,
+    updateDistanceRateOnExpenseDateChange,
+    clearMoneyRequestRateAutoUpdated,
     setGPSTransactionDraftData,
     resetDraftTransactionsCustomUnit,
     setCustomUnitID,
