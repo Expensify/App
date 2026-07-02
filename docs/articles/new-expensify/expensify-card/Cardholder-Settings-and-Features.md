@@ -8,7 +8,7 @@ Once you receive your Expensify Visa® Commercial Card, you can activate it and 
 
 ---
 
-# Order Your Physical Card
+## How to order your physical Expensify Card
 
 To order a physical Expensify Card, go to **Account > Wallet > Expensify Card** and follow the prompts. 
 

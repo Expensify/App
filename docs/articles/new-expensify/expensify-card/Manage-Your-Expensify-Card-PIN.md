@@ -2,6 +2,7 @@
 title: Manage Your Expensify Card PIN (GBP/EUR Cards Only)
 description: Learn how to set, view, change, and unblock the PIN on your UK/EU Expensify Card.
 keywords: [Expensify Card, PIN, GBP, EUR, UK, EU, set PIN, change PIN, reveal PIN, card locked, biometrics]
+internalScope: Audience is GBP/EUR cardholders. Covers PIN setup, reveal, change, and unblock workflows. Does not cover US card management or virtual cards.
 ---
 
 Physical Expensify Cards issued on the GBP or EUR program have a card PIN that is used for in-person transactions. You can manage your PIN directly in New Expensify. Virtual cards and US Expensify Cards do not have PINs.
@@ -10,7 +11,7 @@ All PIN actions require identity verification via biometrics (on mobile) or pass
 
 ---
 
-# Set your PIN
+## How to set your Expensify Card PIN
 
 When you order a physical GBP/EUR Expensify Card, you'll set a 4-digit PIN as part of the ordering process.
 
@@ -24,7 +25,7 @@ Your PIN will be active once the card is activated.
 
 ---
 
-# Reveal your PIN
+## How to reveal your Expensify Card PIN
 
 If you need to check your PIN, you can reveal it from the card details page.
 
@@ -36,11 +37,11 @@ Your PIN will be displayed on the card details page until you navigate away.
 
 ---
 
-# Change your PIN
+## How to change your Expensify Card PIN
 
 You can change your PIN from the card details page. The process depends on your region.
 
-## Online PIN countries (most of Europe)
+### How to change your PIN in online PIN countries (most of Europe)
 
 1. Go to **Account > Wallet** and select your physical Expensify Card.
 2. Tap **Change PIN**.
@@ -49,7 +50,7 @@ You can change your PIN from the card details page. The process depends on your 
 
 You'll see a confirmation page once your PIN is changed.
 
-## Offline PIN countries (UK, France, Ireland, Finland, Iceland, Israel)
+### How to change your PIN in offline PIN countries (UK, France, Ireland, Finland, Iceland, Israel)
 
 Cardholders in offline PIN countries cannot change their PIN in the app. When you tap **Change PIN**, you'll be directed to change your PIN at any ATM instead.
 
