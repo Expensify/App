@@ -18,6 +18,10 @@ import PreRenderer from './PreRenderer';
 import RBRRenderer from './RBRRenderer';
 import ShortMentionRenderer from './ShortMentionRenderer';
 import SparklesIconRenderer from './SparklesIconRenderer';
+import TableCellRenderer from './TableCellRenderer';
+import TableRenderer from './TableRenderer';
+import TableRowRenderer from './TableRowRenderer';
+import TableSectionRenderer from './TableSectionRenderer';
 import TaskTitleRenderer from './TaskTitleRenderer';
 import TransactionHistoryLinkRenderer from './TransactionHistoryLinkRenderer';
 import ULRenderer from './ULRenderer';
@@ -36,6 +40,12 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     ol: OLRenderer,
     ul: ULRenderer,
     video: VideoRenderer,
+    table: TableRenderer,
+    thead: TableSectionRenderer,
+    tbody: TableSectionRenderer,
+    tr: TableRowRenderer,
+    th: TableCellRenderer,
+    td: TableCellRenderer,
 
     // Custom tag renderers
     edited: EditedRenderer,

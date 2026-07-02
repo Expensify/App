@@ -2656,6 +2656,56 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.tableHeaderContentHeight,
         },
 
+        htmlTableScrollContainerContent: {
+            flexGrow: 1,
+        },
+
+        htmlTable: {
+            minWidth: '100%',
+            marginVertical: 8,
+            borderRadius: variables.componentBorderRadius,
+            backgroundColor: theme.highlightBG,
+            overflow: 'hidden',
+        },
+
+        htmlTableHeaderRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: variables.tableRowPaddingHorizontal,
+            paddingVertical: variables.tableRowPaddingVertical,
+            borderBottomWidth: 1,
+            borderColor: theme.border,
+        },
+
+        htmlTableRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            minHeight: variables.htmlTableRowMinHeight,
+            paddingHorizontal: variables.tableRowPaddingHorizontal,
+            borderBottomWidth: 1,
+            borderColor: theme.border,
+        },
+
+        htmlTableLastRow: {
+            borderBottomWidth: 0,
+        },
+
+        htmlTableCell: {
+            flex: 1,
+            minWidth: variables.htmlTableColumnMinWidth,
+            paddingEnd: 8,
+        },
+
+        htmlTableCellText: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
+        },
+
+        htmlTableHeaderCellText: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeLabel,
+        },
+
         borderBottom: {
             borderBottomWidth: 1,
             borderColor: theme.border,
