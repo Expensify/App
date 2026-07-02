@@ -629,11 +629,11 @@ const DYNAMIC_ROUTES = {
     },
     WORKSPACE_OWNER_CHANGE_SUCCESS: {
         path: 'owner-change-success',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK],
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK, SCREENS.WORKSPACE.MEMBER_DETAILS],
     },
     WORKSPACE_OWNER_CHANGE_ERROR: {
         path: 'owner-change-failure',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK],
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK, SCREENS.WORKSPACE.MEMBER_DETAILS],
     },
     WORKSPACE_OWNER_CHANGE_CHECK: {
         path: 'change-owner/:policyID/:accountID/:error',
