@@ -1045,7 +1045,7 @@ function Search({
     const isFlatExpenseView = type === CONST.SEARCH.DATA_TYPES.EXPENSE && !validGroupBy;
     const isExpenseGroupedView = type === CONST.SEARCH.DATA_TYPES.EXPENSE && !!validGroupBy;
 
-    // Flat-expense and grouped-expense each render through a dedicated view composed over BaseSearchList; the
+    // Flat-expense, grouped-expense and chat each render through a dedicated view composed over BaseSearchList; the
     // remaining types keep the legacy SearchList shell. The snapshot, lifecycle and selection providers stay
     // here so the data layer runs once.
     let searchListContent: React.JSX.Element;
@@ -1077,66 +1077,6 @@ function Search({
     } else if (isExpenseGroupedView) {
         searchListContent = (
             <ExpenseGroupedSearchView
-                ref={searchListRef}
-                queryJSON={queryJSON}
-                data={stableSortedData}
-                columns={columnsToShow}
-                onSelectRow={onSelectRow}
-                canSelectMultiple={canSelectMultiple}
-                SearchTableHeader={searchTableHeader}
-                tableHeaderVisible={tableHeaderVisible}
-                contentContainerStyle={[styles.pb3, contentContainerStyle]}
-                containerStyle={[styles.pv0]}
-                onScroll={onSearchListScroll}
-                onEndReached={fetchMoreResults}
-                ListFooterComponent={listFooterComponent}
-                onLayout={onLayout}
-                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                newTransactions={newTransactions}
-                hasLoadedAllTransactions={hasLoadedAllTransactions}
-                isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
-                nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                isActionColumnWide={isTask || hasDeletedTransaction}
-            />
-        );
-    } else {
-        searchListContent = (
-            <SearchList
-                ref={searchListRef}
-                data={stableSortedData}
-                ListItem={ListItem}
-                onSelectRow={onSelectRow}
-                canSelectMultiple={canSelectMultiple}
-                shouldPreventLongPressRow={isChat || isTask}
-                SearchTableHeader={searchTableHeader}
-                contentContainerStyle={[styles.pb3, contentContainerStyle]}
-                containerStyle={[styles.pv0]}
-                onScroll={onSearchListScroll}
-                onEndReachedThreshold={0.75}
-                onEndReached={fetchMoreResults}
-                ListFooterComponent={listFooterComponent}
-                queryJSON={queryJSON}
-                columns={columnsToShow}
-                onLayout={onLayout}
-                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
-                newTransactions={newTransactions}
-                hasLoadedAllTransactions={hasLoadedAllTransactions}
-                isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
-                nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                policyTags={policyTags}
-                isActionColumnWide={isTask || hasDeletedTransaction}
-            />
-        );
-    }
-
-    // Flat-expense and chat each render through a dedicated view composed over BaseSearchList; the remaining
-    // types keep the legacy SearchList shell. The snapshot, lifecycle and selection providers stay here so
-    // the data layer runs once.
-    let searchListContent: React.JSX.Element;
-    if (isFlatExpenseView) {
-        searchListContent = (
-            <ExpenseFlatSearchView
                 ref={searchListRef}
                 queryJSON={queryJSON}
                 data={stableSortedData}
