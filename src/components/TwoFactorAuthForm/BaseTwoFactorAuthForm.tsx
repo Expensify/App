@@ -26,6 +26,7 @@ function BaseTwoFactorAuthForm({
     shouldAllowRecoveryCode = false,
     descriptionKey = 'twoFactorAuth.explainProcessToRemove',
     descriptionKeyWithRecovery = 'twoFactorAuth.explainProcessToRemoveWithRecovery',
+    descriptionStyle,
     onSubmit,
     onInputChange,
     errorMessage,
@@ -190,7 +191,7 @@ function BaseTwoFactorAuthForm({
 
     return (
         <>
-            {shouldAllowRecoveryCode && <Text style={[styles.mb3]}>{translate(isUsingRecoveryCode ? descriptionKeyWithRecovery : descriptionKey)}</Text>}
+            {shouldAllowRecoveryCode && <Text style={[styles.mb3, descriptionStyle]}>{translate(isUsingRecoveryCode ? descriptionKeyWithRecovery : descriptionKey)}</Text>}
             {shouldAllowRecoveryCode && isUsingRecoveryCode ? (
                 <TextInput
                     ref={(input) => {
