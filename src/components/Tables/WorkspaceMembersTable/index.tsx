@@ -39,7 +39,7 @@ type WorkspaceMembersTableProps = {
     ref?: React.Ref<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>> | undefined;
     members: WorkspaceMemberRowData[];
     policy: OnyxEntry<Policy>;
-    isPolicyAdmin: boolean;
+    canSelectMembers: boolean;
     selectedKeys: string[];
     shouldShowCustomField1Column: boolean;
     shouldShowCustomField2Column: boolean;
@@ -53,11 +53,12 @@ const WORKSPACE_MEMBER_FILTER_VALUES = {
     CARD_ADMINS: 'cardAdmins',
     EDITORS: 'editors',
     MEMBERS: 'members',
+    PEOPLE_ADMINS: 'peopleAdmins',
 } as const;
 
 export default function WorkspaceMembersTable({
     ref,
-    isPolicyAdmin,
+    canSelectMembers,
     policy,
     selectedKeys,
     shouldShowCustomField1Column,
@@ -222,6 +223,11 @@ export default function WorkspaceMembersTable({
             return true;
         }
 
+        const isPeopleAdmin = item.role === CONST.POLICY.ROLE.PEOPLE_ADMIN;
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.PEOPLE_ADMINS) && isPeopleAdmin) {
+            return true;
+        }
+
         const isEditor = item.role === CONST.POLICY.ROLE.EDITOR;
         if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.EDITORS) && isEditor) {
             return true;
@@ -250,6 +256,11 @@ export default function WorkspaceMembersTable({
         filterConfig.role.options.push({
             label: translate('workspace.people.cardAdmins'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.CARD_ADMINS,
+        });
+
+        filterConfig.role.options.push({
+            label: translate('workspace.people.peopleAdmins'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.PEOPLE_ADMINS,
         });
 
         filterConfig.role.options.push({
@@ -288,7 +299,7 @@ export default function WorkspaceMembersTable({
             data={members}
             filters={filterConfig}
             selectedKeys={selectedKeys}
-            selectionEnabled={isPolicyAdmin}
+            selectionEnabled={canSelectMembers}
             columns={workspaceMembersColumns}
             initialSortColumn="member"
             title={translate('common.members')}
