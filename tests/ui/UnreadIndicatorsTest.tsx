@@ -449,7 +449,7 @@ describe('Unread Indicators', () => {
                 });
                 // It's difficult to trigger marking a report comment as unread since we would have to mock the long press event and then
                 // another press on the context menu item so we will do it via the action directly and then test if the UI has updated properly
-                markCommentAsUnread(REPORT_ID, reportActions, createdReportAction, USER_A_ACCOUNT_ID);
+                markCommentAsUnread(REPORT_ID, reportActions, createdReportAction, USER_A_ACCOUNT_ID, false);
                 return waitForBatchedUpdates();
             })
             .then(async () => {
@@ -571,7 +571,7 @@ describe('Unread Indicators', () => {
                     });
                 });
                 // Mark a previous comment as unread and verify the unread action indicator returns
-                markCommentAsUnread(REPORT_ID, reportActions, createdReportAction, USER_A_ACCOUNT_ID);
+                markCommentAsUnread(REPORT_ID, reportActions, createdReportAction, USER_A_ACCOUNT_ID, false);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -672,7 +672,7 @@ describe('Unread Indicators', () => {
         const firstNewReportAction = reportActions ? lastItem(reportActions) : undefined;
 
         if (firstNewReportAction) {
-            markCommentAsUnread(REPORT_ID, reportActions, firstNewReportAction, USER_A_ACCOUNT_ID);
+            markCommentAsUnread(REPORT_ID, reportActions, firstNewReportAction, USER_A_ACCOUNT_ID, false);
 
             await waitForBatchedUpdates();
 
@@ -840,7 +840,7 @@ describe('Unread Indicators', () => {
                 },
             });
         });
-        markCommentAsUnread(REPORT_ID, reportActions, {reportActionID: -1} as unknown as ReportAction, USER_A_ACCOUNT_ID); // Marking the chat as unread from LHN passing a dummy reportActionID
+        markCommentAsUnread(REPORT_ID, reportActions, {reportActionID: -1} as unknown as ReportAction, USER_A_ACCOUNT_ID, false); // Marking the chat as unread from LHN passing a dummy reportActionID
 
         await waitForBatchedUpdates();
         const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
@@ -879,7 +879,7 @@ describe('Unread Indicators', () => {
             });
         });
         // Then USER_A mark the report as unread
-        markCommentAsUnread(REPORT_ID, reportActions, {reportActionID: -1} as unknown as ReportAction, USER_A_ACCOUNT_ID);
+        markCommentAsUnread(REPORT_ID, reportActions, {reportActionID: -1} as unknown as ReportAction, USER_A_ACCOUNT_ID, false);
         await waitForBatchedUpdates();
 
         // Then the lastReadTime of report should same as last action from USER_B

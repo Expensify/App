@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/refs -- Refs in this hook are used inside callbacks that capture stable references; the lint rule flags false positives for these patterns */
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
+// eslint-disable-next-line no-restricted-imports -- InteractionManager is only exposed on the react-native root module; there is no internal re-export to import from
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -436,6 +436,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'IntacctSquare',
         'QBDSquare',
         'CertiniaSquare',
+        'RilletSquare',
         'GustoSquare',
         'Pencil',
         'Workflows',
@@ -912,6 +913,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return;
         }
 
+        // InteractionManager is deprecated but still required here to defer showing the confirm modal until pending interactions settle, matching the production behavior this PR restores (see https://github.com/Expensify/App/issues/95114).
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(async () => {
             const result = await showConfirmModal({
                 title: deleteModalTitle,
@@ -924,6 +927,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
             const validTransactions = Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, Transaction] => entry[1] !== undefined));
+            // Defer the actual deletion until after the confirm modal's dismiss interaction completes.
+            // Dispatching it synchronously as the modal closes caused the delete to be dropped (see https://github.com/Expensify/App/issues/95114).
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 if (isExpenseReportType) {
                     for (const reportID of selectedReportIDs) {
@@ -1242,9 +1248,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             if (paidReportCount > 0) {
                 playSound(SOUNDS.SUCCESS);
-                InteractionManager.runAfterInteractions(() => {
-                    clearSelectedTransactions();
-                });
+                clearSelectedTransactions();
             }
         },
         [
@@ -1985,9 +1989,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             transactionViolations,
                         );
                     }
-                    InteractionManager.runAfterInteractions(() => {
-                        clearSelectedTransactions();
-                    });
+                    clearSelectedTransactions();
                 },
             });
         }
