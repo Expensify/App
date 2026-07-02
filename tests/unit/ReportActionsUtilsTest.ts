@@ -5466,7 +5466,7 @@ describe('ReportActionsUtils', () => {
             ).toBe(false);
         });
 
-        it('returns false when message is from current user and is already present (not new, not optimistic) and no existing marker', () => {
+        it('returns true when the current user explicitly marks their own already-present message as unread and no marker exists yet', () => {
             const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'});
             const prevSortedVisibleReportActionsObjects = {
                 [message.reportActionID]: makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'}),
@@ -5479,7 +5479,7 @@ describe('ReportActionsUtils', () => {
                     prevUnreadMarkerReportActionID: null,
                     isOffline: false,
                 }),
-            ).toBe(false);
+            ).toBe(true);
         });
 
         it('returns true when message is from current user, already present, and marker is being relocated after deletion', () => {

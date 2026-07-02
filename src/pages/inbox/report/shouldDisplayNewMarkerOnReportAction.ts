@@ -46,7 +46,6 @@ const shouldDisplayNewMarkerOnReportAction = ({
     prevSortedVisibleReportActionsObjects,
     isScrolledOverThreshold,
     isOffline,
-    prevUnreadMarkerReportActionID,
     hasWindowFocus = true,
 }: ShouldDisplayNewMarkerOnReportActionParams): boolean => {
     const isNextMessageUnread = !!nextMessage && isReportActionUnread(nextMessage, unreadMarkerTime);
@@ -86,13 +85,10 @@ const shouldDisplayNewMarkerOnReportAction = ({
     const shouldIgnoreUnreadForCurrentUserMessage = isNewMessage || isPreviouslyOptimistic;
 
     if (isFromCurrentUser) {
-        // When an existing marker is being relocated (e.g. after the original unread message is deleted),
-        // allow the marker to land on a self-authored action.
-        // Otherwise, never anchor the "New" marker above a self-authored action on first open/re-entry.
-        if (prevUnreadMarkerReportActionID) {
-            return !shouldIgnoreUnreadForCurrentUserMessage;
-        }
-        return false;
+        // Only suppress the "New" marker for a self-authored message that was just sent (newly added or still
+        // transitioning from an optimistic action). An existing self-authored action that the user explicitly
+        // marked as unread should anchor the marker even when no marker exists yet (e.g. on first open/re-entry).
+        return !shouldIgnoreUnreadForCurrentUserMessage;
     }
 
     return !isNewMessage || isScrolledOverThreshold || !hasWindowFocus;
