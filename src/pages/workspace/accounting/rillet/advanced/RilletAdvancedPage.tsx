@@ -1,36 +1,43 @@
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearRilletErrorField} from '@libs/actions/connections/Rillet';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-function RilletExportPage({policy}: WithPolicyConnectionsProps) {
+function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
-    const policyOwner = policy?.owner;
     const rilletConfig = policy?.connections?.rillet?.config;
     const rilletData = policy?.connections?.rillet?.data;
-    const exporter = rilletConfig?.export?.exporter ?? policyOwner;
-    const exportReimbursable = rilletConfig?.export?.reimbursable ?? CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL;
-    const exportDate = rilletConfig?.export?.exportDate ?? CONST.RILLET_EXPORT_DATE.LAST_EXPENSE;
-    const exportCompanyCard = rilletConfig?.export?.companyCard ?? CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD;
-    const defaultCompanyCardVendor = rilletData?.vendors?.find((vendor) => vendor.id === rilletConfig?.export?.defaultVendorID);
-    const companyCardAccount = rilletData?.accounts?.find((account) => account.code === rilletConfig?.export?.creditCardAccountCode);
+    const autoSync = rilletConfig?.autoSync?.enabled ?? true;
+    const accountingMethod = rilletConfig?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL;
+    const syncReimbursedReports = rilletConfig?.sync?.syncReimbursedReports ?? true;
+    const billPaymentAccount = rilletData?.accounts?.find((account) => account.code === rilletConfig?.sync?.billPaymentAccountCode);
+    const syncExpensifyCardSettlements = rilletConfig?.sync?.syncExpensifyCardSettlements ?? true;
+    const settlementsBankAccount = rilletData?.bankAccounts?.find((bankAccount) => bankAccount.id === rilletConfig?.sync?.settlementsBankAccountID);
+    const syncTravelInvoicingSettlements = rilletConfig?.sync?.syncTravelInvoicingSettlements ?? true;
+    const travelInvoicingSettlementsBankAccount = rilletData?.bankAccounts?.find((bankAccount) => bankAccount.id === rilletConfig?.sync?.travelInvoicingSettlementsBankAccountID);
+    const isExpensifyCardsEnabled = true; // s77rt
+    const isTravelInvoicingEnabled = true; // s77rt
+    // s77rt use Accordion
 
     return (
         <ConnectionLayout
-            displayName="RilletExportPage"
-            headerTitle="workspace.accounting.export"
+            displayName="RilletAdvancedPage"
+            headerTitle="workspace.accounting.advanced"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -38,69 +45,122 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.RILLET}
         >
-            <View style={[styles.mv3, styles.mh5]}>
-                <Text>{translate('workspace.rillet.exportDescription')}</Text>
-            </View>
-            <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.EXPORTER], rilletConfig?.pendingFields)}>
-                <MenuItemWithTopDescription
-                    title={exporter}
-                    description={translate('workspace.accounting.preferredExporter')}
-                    onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_PREFERRED_EXPORTER.getRoute(policyID)) : undefined)}
-                    shouldShowRightIcon
-                    brickRoadIndicator={areSettingsInErrorFields([CONST.RILLET_CONFIG.EXPORTER], rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
-            </OfflineWithFeedback>
+            <ToggleSettingOptionRow
+                title={translate('workspace.accounting.autoSync')}
+                subtitle={translate('workspace.rillet.autoSyncDescription')}
+                switchAccessibilityLabel={translate('workspace.accounting.autoSync')}
+                shouldPlaceSubtitleBelowSwitch
+                wrapperStyle={[styles.mv3, styles.mh5]}
+                isActive={autoSync}
+                onToggle={() => policyID && updateRilletAutoSync(policyID, !autoSync, autoSync)}
+                pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.AUTO_SYNC], rilletConfig?.pendingFields)}
+                errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.AUTO_SYNC)}
+                onCloseError={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.AUTO_SYNC)}
+            />
+            {autoSync && (
+                <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.ACCOUNTING_METHOD], rilletConfig?.pendingFields)}>
+                    <MenuItemWithTopDescription
+                        title={translate(`workspace.rillet.accountingMethods.values.${accountingMethod}`)}
+                        description={translate('workspace.rillet.accountingMethods.label')}
+                        hintText={translate(`workspace.rillet.accountingMethods.alternateText.${accountingMethod}`)}
+                        onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT_METHOD.getRoute(policyID)) : undefined)}
+                        shouldShowRightIcon
+                        brickRoadIndicator={
+                            areSettingsInErrorFields([CONST.RILLET_CONFIG.ACCOUNTING_METHOD], rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
+                        }
+                    />
+                </OfflineWithFeedback>
+            )}
             <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
-            <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.REIMBURSABLE], rilletConfig?.pendingFields)}>
-                <MenuItemWithTopDescription
-                    title={translate(`workspace.rillet.exportReimbursable.values.${exportReimbursable}.label`)}
-                    description={translate('workspace.rillet.exportReimbursable.label')}
-                    onPress={() => {}}
-                    interactive={false}
-                    brickRoadIndicator={areSettingsInErrorFields([CONST.RILLET_CONFIG.REIMBURSABLE], rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
-            </OfflineWithFeedback>
-            <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.EXPORT_DATE], rilletConfig?.pendingFields)}>
-                <MenuItemWithTopDescription
-                    title={translate(`workspace.rillet.exportDate.values.${exportDate}.label`)}
-                    description={translate('workspace.rillet.exportDate.label')}
-                    onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_VENDOR_BILL_DATE.getRoute(policyID)) : undefined)}
-                    shouldShowRightIcon
-                    brickRoadIndicator={areSettingsInErrorFields([CONST.RILLET_CONFIG.EXPORT_DATE], rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
-            </OfflineWithFeedback>
-            <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
-            <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.COMPANY_CARD], rilletConfig?.pendingFields)}>
-                <MenuItemWithTopDescription
-                    title={translate(`workspace.rillet.exportCompanyCard.values.${exportCompanyCard}.label`)}
-                    description={translate('workspace.rillet.exportCompanyCard.label')}
-                    onPress={() => {}}
-                    interactive={false}
-                    brickRoadIndicator={areSettingsInErrorFields([CONST.RILLET_CONFIG.COMPANY_CARD], rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
-            </OfflineWithFeedback>
-            <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.DEFAULT_VENDORID], rilletConfig?.pendingFields)}>
-                <MenuItemWithTopDescription
-                    title={defaultCompanyCardVendor?.name}
-                    description={translate('workspace.rillet.defaultCompanyCardVendor.label')}
-                    onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_DEFAULT_COMPANY_CARD_VENDOR.getRoute(policyID)) : undefined)}
-                    shouldShowRightIcon
-                    brickRoadIndicator={areSettingsInErrorFields([CONST.RILLET_CONFIG.DEFAULT_VENDORID], rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
-            </OfflineWithFeedback>
-            <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE], rilletConfig?.pendingFields)}>
-                <MenuItemWithTopDescription
-                    title={companyCardAccount?.name}
-                    description={translate('workspace.rillet.companyCardAccount.label')}
-                    onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_COMPANY_CARD_ACCOUNT.getRoute(policyID)) : undefined)}
-                    shouldShowRightIcon
-                    brickRoadIndicator={
-                        areSettingsInErrorFields([CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE], rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
-                    }
-                />
-            </OfflineWithFeedback>
+            <ToggleSettingOptionRow
+                title={translate('workspace.rillet.syncReimbursedReports')}
+                subtitle={translate('workspace.rillet.syncReimbursedReportsDescription')}
+                switchAccessibilityLabel={translate('workspace.rillet.syncReimbursedReports')}
+                shouldPlaceSubtitleBelowSwitch
+                wrapperStyle={[styles.mv3, styles.mh5]}
+                isActive={syncReimbursedReports}
+                onToggle={() => policyID && updateRilletSyncReimbursedReports(policyID, !syncReimbursedReports, syncReimbursedReports)}
+                pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.SYNC_REIMBURSED_REPORTS], rilletConfig?.pendingFields)}
+                errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.SYNC_REIMBURSED_REPORTS)}
+                onCloseError={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.SYNC_REIMBURSED_REPORTS)}
+            />
+            {syncReimbursedReports && (
+                <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE], rilletConfig?.pendingFields)}>
+                    <MenuItemWithTopDescription
+                        title={billPaymentAccount?.name}
+                        description={translate('workspace.rillet.billPaymentAccount.label')}
+                        onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_BILL_PAYMENT_ACCOUNT.getRoute(policyID)) : undefined)}
+                        shouldShowRightIcon
+                        brickRoadIndicator={
+                            areSettingsInErrorFields([CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE], rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
+                        }
+                    />
+                </OfflineWithFeedback>
+            )}
+            {isExpensifyCardsEnabled && (
+                <>
+                    <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
+                    <ToggleSettingOptionRow
+                        title={translate('workspace.rillet.syncExpensifyCardSettlements')}
+                        switchAccessibilityLabel={translate('workspace.rillet.syncExpensifyCardSettlements')}
+                        shouldPlaceSubtitleBelowSwitch
+                        wrapperStyle={[styles.mv3, styles.mh5]}
+                        isActive={syncExpensifyCardSettlements}
+                        onToggle={() => policyID && updateRilletSyncExpensifyCardSettlements(policyID, !syncExpensifyCardSettlements, syncExpensifyCardSettlements)}
+                        pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS], rilletConfig?.pendingFields)}
+                        errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS)}
+                        onCloseError={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS)}
+                    />
+                    {syncExpensifyCardSettlements && (
+                        <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID], rilletConfig?.pendingFields)}>
+                            <MenuItemWithTopDescription
+                                title={settlementsBankAccount?.name}
+                                description={translate('workspace.rillet.settlementAccount.label')}
+                                onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT.getRoute(policyID)) : undefined)}
+                                shouldShowRightIcon
+                                brickRoadIndicator={
+                                    areSettingsInErrorFields([CONST.RILLET_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID], rilletConfig?.errorFields)
+                                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                        : undefined
+                                }
+                            />
+                        </OfflineWithFeedback>
+                    )}
+                </>
+            )}
+            {isTravelInvoicingEnabled && (
+                <>
+                    <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
+                    <ToggleSettingOptionRow
+                        title={translate('workspace.rillet.syncTravelInvoicingSettlements')}
+                        switchAccessibilityLabel={translate('workspace.rillet.syncTravelInvoicingSettlements')}
+                        shouldPlaceSubtitleBelowSwitch
+                        wrapperStyle={[styles.mv3, styles.mh5]}
+                        isActive={syncTravelInvoicingSettlements}
+                        onToggle={() => policyID && updateRilletSyncTravelInvoicingSettlements(policyID, !syncTravelInvoicingSettlements, syncTravelInvoicingSettlements)}
+                        pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.SYNC_TRAVEL_INVOICING_SETTLEMENTS], rilletConfig?.pendingFields)}
+                        errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.SYNC_TRAVEL_INVOICING_SETTLEMENTS)}
+                        onCloseError={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.SYNC_TRAVEL_INVOICING_SETTLEMENTS)}
+                    />
+                    {syncTravelInvoicingSettlements && (
+                        <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID], rilletConfig?.pendingFields)}>
+                            <MenuItemWithTopDescription
+                                title={travelInvoicingSettlementsBankAccount?.name}
+                                description={translate('workspace.rillet.travelInvoicingSettlementAccount.label')}
+                                onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT.getRoute(policyID)) : undefined)}
+                                shouldShowRightIcon
+                                brickRoadIndicator={
+                                    areSettingsInErrorFields([CONST.RILLET_CONFIG.TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID], rilletConfig?.errorFields)
+                                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                        : undefined
+                                }
+                            />
+                        </OfflineWithFeedback>
+                    )}
+                </>
+            )}
         </ConnectionLayout>
     );
 }
 
-export default withPolicyConnections(RilletExportPage);
+export default withPolicyConnections(RilletAdvancedPage);

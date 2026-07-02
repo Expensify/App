@@ -674,6 +674,7 @@ const SCREENS = {
             RILLET_EXPORT_METHOD: 'Policy_Accounting_Rillet_Export_Method',
             RILLET_BILL_PAYMENT_ACCOUNT: 'Policy_Accounting_Rillet_Bill_Payment_Account',
             RILLET_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT: 'Policy_Accounting_Rillet_Expensify_Card_Settlement_Account',
+            RILLET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT: 'Policy_Accounting_Rillet_Travel_Invoicing_Settlement_Account',
             CARD_RECONCILIATION: 'Policy_Accounting_Card_Reconciliation',
             CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC: 'Policy_Accounting_Card_Reconciliation_Sage_Intacct_Auto_Sync',
             DYNAMIC_RECONCILIATION_ACCOUNT_SETTINGS: 'Dynamic_Policy_Accounting_Reconciliation_Account_Settings',

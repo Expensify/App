@@ -5630,8 +5630,13 @@ const translations = {
                 description: "Choose where to pay bills from and we'll create the payment in Rillet.",
             },
             syncExpensifyCardSettlements: 'Sync Expensify Card settlements',
-            settlementsAccount: {
+            settlementAccount: {
                 label: 'Expensify Card settlement account',
+                description: "Choose your settlement account and we'll create the payment in Rillet.",
+            },
+            syncTravelInvoicingSettlements: 'Sync Travel Invoicing settlements',
+            travelInvoicingSettlementAccount: {
+                label: 'Travel Invoicing settlement account',
                 description: "Choose your settlement account and we'll create the payment in Rillet.",
             },
         },
