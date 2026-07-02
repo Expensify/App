@@ -112,7 +112,6 @@ function EditPromptPage({route}: EditPromptPageProps) {
                         multiline
                         containerStyles={[styles.h100]}
                         touchableInputWrapperStyle={[styles.flex1]}
-                        textInputContainerStyles={[styles.flex0]}
                         inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
                         onFocus={handleInputFocus}
                     />
