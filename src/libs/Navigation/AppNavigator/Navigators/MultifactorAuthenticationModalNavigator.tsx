@@ -148,6 +148,7 @@ function MultifactorAuthenticationModalNavigator() {
                 <Animated.View style={[StyleSheet.absoluteFill, styles.overlayBackground, backdropAnimatedStyle]}>
                     <PressableWithoutFeedback
                         sentryLabel={CONST.SENTRY_LABEL.MFA_OVERLAY.BACKDROP}
+                        testID="MultifactorAuthenticationModalBackdrop"
                         style={StyleSheet.absoluteFill}
                         onPress={requestCancel}
                         accessibilityLabel={translate('common.close')}

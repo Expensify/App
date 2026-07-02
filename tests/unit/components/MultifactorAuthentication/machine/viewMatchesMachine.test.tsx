@@ -24,9 +24,9 @@ jest.mock('@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHis
 jest.mock('@libs/Navigation/Navigation', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').navigationMock());
 
 // These UI markers distinguish the closed, closing, and outcome states. `OutcomeScreenBase` identifies the
-// outcome screen, while the backdrop's `Close` label exists only when the MFA navigator is mounted.
+// outcome screen, while the backdrop exists only when the MFA navigator is mounted.
 const OUTCOME_SCREEN_TEST_ID = 'OutcomeScreenBase';
-const MODAL_OVERLAY_LABEL = 'Close';
+const MODAL_BACKDROP_TEST_ID = 'MultifactorAuthenticationModalBackdrop';
 
 // This stable testID keeps the test independent of translated button text.
 const CONFIRM_BUTTON_TEST_ID = 'MultifactorAuthenticationOutcomeConfirmButton';
@@ -68,15 +68,15 @@ const testConfig = {
     events: mfaEventExecutors,
     states: {
         [MFA_STATE.CLOSED]: () => {
-            expect(screen.queryAllByLabelText(MODAL_OVERLAY_LABEL)).toHaveLength(0);
+            expect(screen.queryAllByTestId(MODAL_BACKDROP_TEST_ID)).toHaveLength(0);
             expect(screen.queryAllByTestId(OUTCOME_SCREEN_TEST_ID)).toHaveLength(0);
         },
         [`${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`]: () => {
-            expect(screen.queryAllByLabelText(MODAL_OVERLAY_LABEL)).not.toHaveLength(0);
+            expect(screen.queryAllByTestId(MODAL_BACKDROP_TEST_ID)).not.toHaveLength(0);
             expect(screen.queryAllByTestId(OUTCOME_SCREEN_TEST_ID)).not.toHaveLength(0);
         },
         [MFA_STATE.CLOSING]: () => {
-            expect(screen.queryAllByLabelText(MODAL_OVERLAY_LABEL)).not.toHaveLength(0);
+            expect(screen.queryAllByTestId(MODAL_BACKDROP_TEST_ID)).not.toHaveLength(0);
             expect(screen.queryAllByTestId(OUTCOME_SCREEN_TEST_ID)).toHaveLength(0);
         },
     },
