@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import cardScarf from '@assets/images/card-scarf.svg';
+import ActivityIndicator from '@components/ActivityIndicator';
 import AddToWalletButton from '@components/AddToWalletButton/index';
 import Button from '@components/Button';
 import CardPreview from '@components/CardPreview';
@@ -22,7 +23,6 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -30,12 +30,11 @@ import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {freezeCard, unfreezeCard} from '@libs/actions/Card';
-import {resetValidateActionCodeSent} from '@libs/actions/User';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {
     formatCardExpiration,
-    getCardCurrency,
     getCardHintText,
+    getCardOrFeedCurrency,
     getDomainCards,
     getTranslationKeyForLimitType,
     isCardFrozen,
@@ -64,6 +63,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {useExpensifyCardActions, useExpensifyCardState} from './ExpensifyCardContextProvider';
 
 type ExpensifyCardPageProps =
@@ -90,12 +90,14 @@ function getLimitTypeTranslationKeys(limitType: ValueOf<typeof CONST.EXPENSIFY_C
 }
 
 function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
-    const {isProduction} = useEnvironment();
     const {cardID} = route.params;
     const {convertToDisplayString} = useCurrencyListActions();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const cardList = useNonPersonalCardList();
+    const [, cardListResult] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${cardList?.[cardID]?.fundID}`);
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -150,7 +152,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     // Cards that are already activated and working (OPEN) and cards shipped but not activated yet can be reported as missing or damaged
     const shouldShowReportLostCardButton = currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED || currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
 
-    const currency = getCardCurrency(currentCard, cardSettings);
+    const currency = getCardOrFeedCurrency(currentCard, cardSettings);
     const shouldShowPIN = currency !== CONST.CURRENCY.USD;
     const shouldShowChangePINRow = isUkEuExpensifyCard(currentPhysicalCard) && currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
     const canRevealPIN = shouldShowChangePINRow && revealedPIN === undefined;
@@ -175,7 +177,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                 return undefined;
             }
 
-            return Object.values(allPolicies ?? {}).find((policy) => policy?.workspaceAccountID === workspaceAccountID);
+            return Object.values(allPolicies ?? {}).find((policy) => policy?.policyAccountID === workspaceAccountID);
         },
         [currentCard?.fundID],
     );
@@ -211,8 +213,8 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     );
     const shouldShowReportVirtualCardFraudRows = !isSignedInAsDelegate && virtualCards.length > 0;
     const shouldShowReportTravelCardFraudRows = !isSignedInAsDelegate && isTravelCard(cardList?.[cardID]) && travelCards.length > 0;
-    const shouldShowSpendRulesSummary = !isProduction && isWorkspaceAdmin && spendRulesSummary.length > 0;
-    const shouldShowEditSpendRules = !isProduction && isWorkspaceAdmin;
+    const shouldShowEditSpendRules = isWorkspaceAdmin;
+    const shouldShowSpendRulesSummary = isWorkspaceAdmin && spendRulesSummary.length > 0;
     const shouldShowActionRows =
         shouldShowReportVirtualCardFraudRows || shouldShowReportTravelCardFraudRows || shouldShowReportLostCardButton || shouldShowSpendRulesSummary || shouldShowEditSpendRules;
     const shouldShowPhysicalCardFooterButton =
@@ -274,6 +276,27 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
     const navigateToTransactions = () => navigateToCardTransactions(cardID);
 
+    // Show the loading indicator instead of the NotFoundPage while the card could still arrive: Before the app has loaded for the first time (hasLoadedApp),
+    // while an OpenApp/reconnect is in flight (isLoadingApp), or while CARD_LIST is still hydrating.
+    const isLoadingCardData = !currentCard && (!hasLoadedApp || !!isLoadingApp || isLoadingOnyxValue(cardListResult));
+
+    if (isLoadingCardData) {
+        return (
+            <ScreenWrapper testID="ExpensifyCardPage">
+                <HeaderWithBackButton
+                    title={pageTitle}
+                    onBackButtonPress={() => Navigation.closeRHPFlow()}
+                />
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={{context: 'ExpensifyCardPage', isOffline, hasLoadedApp: !!hasLoadedApp, isLoadingApp: !!isLoadingApp}}
+                    />
+                </View>
+            </ScreenWrapper>
+        );
+    }
+
     if (!currentCard) {
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
     }
@@ -331,7 +354,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                             title={translate('cardPage.suspiciousBannerTitle')}
                             description={translate('cardPage.suspiciousBannerDescription')}
                         />
-
                         <Button
                             style={[styles.mh5, styles.mb5]}
                             text={translate('cardPage.reviewTransaction')}
@@ -344,7 +366,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                     <>
                         {(!isCardFrozen(currentCard) || !canManageCardFreeze) && (
                             <CardDetailsActionButtons style={styles.mb0}>
-                                {canManageCardFreeze && !isCardFrozen(currentCard) && (
+                                {canManageCardFreeze && currentCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN && !isCardFrozen(currentCard) && (
                                     <CardDetailsActionButton
                                         text={translate('cardPage.freezeCard')}
                                         icon={expensifyIcons.FreezeCard}
@@ -377,6 +399,15 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     small
                                 />
                             </View>
+                        )}
+                        {shouldShowSpendRulesSummary && (
+                            <MenuItemWithTopDescription
+                                interactive={false}
+                                description={translate('cardPage.spendRules')}
+                                descriptionTextStyle={[styles.fontSizeLabel]}
+                                titleComponent={spendRulesTitleComponent}
+                                accessibilityLabel={spendRulesSummary.join('. ')}
+                            />
                         )}
                         <MenuItemWithTopDescription
                             description={translate('cardPage.availableSpend')}
@@ -447,13 +478,20 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                 }
                                                 Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.getRoute(domain));
                                             }}
-                                            limitType={card?.nameValuePairs?.limitType}
-                                            cardHintText={getCardHintText(
-                                                card?.nameValuePairs?.validFrom,
-                                                card?.nameValuePairs?.validThru,
-                                                personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.timezone?.selected,
-                                                translate,
-                                            )}
+                                            // The top-level "Limit type" row already shows the current card's limit. On combo card pages the
+                                            // revealed virtual card differs from the current (physical) card, so render its own limit here to
+                                            // avoid losing it; otherwise omit it to prevent a duplicate row for a single card.
+                                            limitType={card.cardID === currentCard.cardID ? undefined : card?.nameValuePairs?.limitType}
+                                            cardHintText={
+                                                card.cardID === currentCard.cardID
+                                                    ? undefined
+                                                    : getCardHintText(
+                                                          card?.nameValuePairs?.validFrom,
+                                                          card?.nameValuePairs?.validThru,
+                                                          personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.timezone?.selected,
+                                                          translate,
+                                                      )
+                                            }
                                         />
                                     ) : (
                                         <>
@@ -481,7 +519,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                                     return;
                                                                 }
 
-                                                                resetValidateActionCodeSent();
                                                                 if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL) {
                                                                     Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(String(card.cardID)));
                                                                     return;
@@ -600,18 +637,13 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                         showLockedAccountModal();
                                                         return;
                                                     }
-                                                    Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(String(currentPhysicalCard?.cardID)));
+                                                    Navigation.navigate(
+                                                        ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(
+                                                            String(currentPhysicalCard?.cardID),
+                                                            route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL,
+                                                        ),
+                                                    );
                                                 }}
-                                            />
-                                        )}
-
-                                        {shouldShowSpendRulesSummary && (
-                                            <MenuItemWithTopDescription
-                                                description={translate('cardPage.spendRules')}
-                                                descriptionTextStyle={[styles.fontSizeLabel]}
-                                                titleComponent={spendRulesTitleComponent}
-                                                onPress={navigateToSpendRulesPage}
-                                                accessibilityLabel={spendRulesSummary.join('. ')}
                                             />
                                         )}
 
@@ -642,7 +674,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                     success
                     large
                     style={[styles.w100, styles.p5]}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(String(currentPhysicalCard?.cardID)))}
+                    onPress={() =>
+                        Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(String(currentPhysicalCard?.cardID), route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL))
+                    }
                     text={translate('activateCardPage.activatePhysicalCard')}
                 />
             )}

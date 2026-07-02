@@ -8,7 +8,6 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
-import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isDelayedSubmissionEnabled} from '@libs/PolicyUtils';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {
@@ -24,6 +23,7 @@ import {
     generateReportID,
     getDisplayedReportID,
     getParsedComment,
+    getReimbursableTotal,
     getReportTransactions,
     hasOutstandingChildRequest,
     isIOUReport,
@@ -116,9 +116,13 @@ function prepareRejectMoneyRequestData(
     betas: OnyxEntry<OnyxTypes.Beta[]>,
     options?: RejectMoneyRequestOptions,
     shouldUseBulkAction?: boolean,
+    // TODO: delegateAccountID will be made required in PR 13 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined,
 ): RejectMoneyRequestData | undefined {
     const allTransactions = getAllTransactions();
     const allReports = getAllReports();
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
 
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -210,6 +214,7 @@ function prepareRejectMoneyRequestData(
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
                         total: (report?.total ?? 0) + transactionAmount,
+                        reimbursableTotal: getReimbursableTotal(report) + transactionAmount,
                         pendingFields: {
                             total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
@@ -240,6 +245,7 @@ function prepareRejectMoneyRequestData(
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     total: report?.total ?? 0,
+                    reimbursableTotal: getReimbursableTotal(report),
                     pendingFields: {total: null},
                 },
             });
@@ -367,6 +373,7 @@ function prepareRejectMoneyRequestData(
 
         if (existingOpenReport) {
             const originalRejectedReportTotal = existingOpenReport?.total ?? 0;
+            const originalRejectedReimbursableTotal = getReimbursableTotal(existingOpenReport);
             movedToReport = {
                 ...existingOpenReport,
                 total: originalRejectedReportTotal - transactionAmount,
@@ -380,12 +387,14 @@ function prepareRejectMoneyRequestData(
                 amount: transactionAmount,
                 currency: getCurrency(transaction),
                 comment: parsedComment,
-                payeeEmail: getLoginByAccountID(report.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID) ?? '',
+                // We only care for the iouAction and it doesn't use payeeEmail at all
+                payeeEmail: '',
                 participants: [{accountID: report?.ownerAccountID}],
                 transactionID: transaction.transactionID,
                 existingTransactionThreadReportID: childReportID,
                 shouldGenerateTransactionThreadReport: false,
                 currentUserAccountID: currentUserAccountIDParam,
+                delegateAccountIDParam: delegateAccountID,
             });
             createdIOUReportActionID = iouAction.reportActionID;
 
@@ -396,6 +405,7 @@ function prepareRejectMoneyRequestData(
                     value: {
                         ...movedToReport,
                         total: (movedToReport?.total ?? 0) - transactionAmount,
+                        reimbursableTotal: getReimbursableTotal(movedToReport) - transactionAmount,
                     },
                 },
                 {
@@ -434,6 +444,7 @@ function prepareRejectMoneyRequestData(
                     key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReport?.reportID}`,
                     value: {
                         total: originalRejectedReportTotal,
+                        reimbursableTotal: originalRejectedReimbursableTotal,
                         pendingFields: {total: null},
                     },
                 },
@@ -478,9 +489,10 @@ function prepareRejectMoneyRequestData(
                 existingTransactionThreadReportID: childReportID,
                 shouldGenerateTransactionThreadReport: false,
                 currentUserAccountID: currentUserAccountIDParam,
+                delegateAccountIDParam: delegateAccountID,
             });
 
-            reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, undefined, transaction, undefined);
+            reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, undefined, transaction, undefined, undefined, delegateAccountID);
             movedTransactionAction = buildOptimisticMovedTransactionAction(childReportID, newExpenseReport.reportID);
             createdIOUReportActionID = iouAction.reportActionID;
             expenseMovedReportActionID = movedTransactionAction.reportActionID;
@@ -625,6 +637,7 @@ function prepareRejectMoneyRequestData(
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     total: (report?.total ?? 0) + transactionAmount,
+                    reimbursableTotal: getReimbursableTotal(report) + transactionAmount,
                 },
             },
             {
@@ -663,6 +676,7 @@ function prepareRejectMoneyRequestData(
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 total: report?.total ?? 0,
+                reimbursableTotal: getReimbursableTotal(report),
             },
         });
 
@@ -837,7 +851,7 @@ function prepareRejectMoneyRequestData(
         });
     }
 
-    const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(optimisticRejectReportAction.created, 1);
+    const lastReadTime = optimisticRejectReportAction.created;
     // Add optimistic data for all reports
     for (const {reportID: targetReportID, lastVisibleActionCreated} of reportsToUpdate) {
         optimisticData.push({
@@ -846,6 +860,7 @@ function prepareRejectMoneyRequestData(
             value: {
                 lastReadTime,
                 lastVisibleActionCreated,
+                lastActorAccountID: currentUserAccountIDParam,
             },
         });
     }
@@ -918,6 +933,8 @@ function markRejectViolationAsResolved(transactionID: string, isOffline: boolean
         return;
     }
 
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
 
     const currentViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];

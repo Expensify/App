@@ -26,6 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import getShouldShowBrokenConnectionError from './getShouldShowBrokenConnectionError';
 
 const FEED_SELECTOR_SKELETON_WIDTH = 289;
 
@@ -42,11 +43,14 @@ type WorkspaceCompanyCardsTableHeaderButtonsProps = {
     /** Whether to show the table controls */
     showTableControls: boolean;
 
+    /** Whether the current member can edit company cards */
+    canWriteCompanyCards: boolean;
+
     /** Card feed icon */
     CardFeedIcon: React.ReactNode;
 };
 
-function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading, showTableControls, CardFeedIcon}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
+function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading, showTableControls, canWriteCompanyCards, CardFeedIcon}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
     const styles = useThemeStyles();
 
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -68,10 +72,9 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
 
     const {cardFeedErrors, shouldShowRbrForFeedNameWithDomainID} = useCardFeedErrors();
     const feedErrors = cardFeedErrors[feedName];
-    const hasFeedErrors = feedErrors?.hasFeedErrors;
-    const isFeedConnectionBroken = feedErrors?.isFeedConnectionBroken;
     const hasOtherFeedWithRBR = Object.keys(companyFeeds ?? {}).some((feed) => feed !== feedName && shouldShowRbrForFeedNameWithDomainID[feed]);
     const shouldShowFeedSelectorRBR = hasOtherFeedWithRBR || !!feedErrors?.hasWorkspaceErrors;
+    const shouldShowBrokenConnectionError = getShouldShowBrokenConnectionError(feedName, feedErrors);
 
     const openBankConnection = () => {
         if (!feedName) {
@@ -154,7 +157,10 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                 >
                     {!isLoading && showTableControls && (
                         <View style={[styles.mnw200]}>
-                            <Table.SearchBar label={translate('workspace.companyCards.findCard')} />
+                            <Table.SearchBar
+                                style={[styles.mh0, styles.mb0]}
+                                label={translate('workspace.companyCards.findCard')}
+                            />
                         </View>
                     )}
 
@@ -162,22 +168,24 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                         {!isLoading && (
                             <>
                                 {showTableControls && <Table.FilterButtons style={shouldShowNarrowLayout && [styles.flex1]} />}
-                                <ButtonWithDropdownMenu
-                                    success={false}
-                                    onPress={() => {}}
-                                    shouldUseOptionIcon
-                                    customText={translate('common.more')}
-                                    options={secondaryActions}
-                                    isSplitButton={false}
-                                    wrapperStyle={shouldShowNarrowLayout ? styles.flex1 : styles.flexGrow0}
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.MORE_DROPDOWN}
-                                />
+                                {canWriteCompanyCards && (
+                                    <ButtonWithDropdownMenu
+                                        success={false}
+                                        onPress={() => {}}
+                                        shouldUseOptionIcon
+                                        customText={translate('common.more')}
+                                        options={secondaryActions}
+                                        isSplitButton={false}
+                                        wrapperStyle={shouldShowNarrowLayout ? styles.flex1 : styles.flexGrow0}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.MORE_DROPDOWN}
+                                    />
+                                )}
                             </>
                         )}
                     </View>
                 </View>
             </View>
-            {!isLoading && (isFeedConnectionBroken || hasFeedErrors) && (
+            {!isLoading && canWriteCompanyCards && shouldShowBrokenConnectionError && (
                 <View style={[styles.flexRow, styles.ph5, styles.alignItemsCenter]}>
                     <Icon
                         src={icons.DotIndicator}

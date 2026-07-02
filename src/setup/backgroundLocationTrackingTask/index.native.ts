@@ -21,6 +21,10 @@ defineTask<BackgroundLocationTrackingTaskData>(BACKGROUND_LOCATION_TRACKING_TASK
     // in NetworkState.ts hasn't been populated via Onyx/NetInfo subscribers.
     const [gpsDraftDetailsPromiseResult, netInfoState] = await Promise.all([OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS).catch(() => undefined), NetInfo.fetch()]);
     const gpsDraftDetails = gpsDraftDetailsPromiseResult ?? undefined;
+    if (!gpsDraftDetails) {
+        return;
+    }
+
     const isOffline = netInfoState.isConnected === false;
 
     const newGpsPoints = data.locations.map((location) => ({lat: location.coords.latitude, long: location.coords.longitude}));

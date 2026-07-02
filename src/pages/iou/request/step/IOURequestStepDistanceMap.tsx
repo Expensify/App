@@ -10,6 +10,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
@@ -34,7 +35,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
-import {getRateID, getRequestType, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
+import {doesMoneyRequestDraftHaveUserInput, getRateID, getRequestType, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -138,6 +139,10 @@ function IOURequestStepDistanceMap({
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, currentTransaction);
 
+    const {notifySaving} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => isCreatingNewRequest && doesMoneyRequestDraftHaveUserInput(transaction),
+    });
+
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
@@ -232,6 +237,7 @@ function IOURequestStepDistanceMap({
 
     const navigateToNextStep = useDistanceNavigation({
         iouType,
+        action,
         report,
         policy,
         transaction,
@@ -242,6 +248,7 @@ function IOURequestStepDistanceMap({
         waypoints,
         currentUserLogin: currentUserEmailParam,
         currentUserAccountID: currentUserAccountIDParam,
+        currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
         backTo,
         backToReport,
         shouldSkipConfirmation,
@@ -359,6 +366,7 @@ function IOURequestStepDistanceMap({
             return;
         }
 
+        notifySaving();
         navigateToNextStep();
     }, [
         duplicateWaypointsError,
@@ -369,6 +377,7 @@ function IOURequestStepDistanceMap({
         isLoading,
         isCreatingNewRequest,
         navigateToNextStep,
+        notifySaving,
         isEditingSplit,
         transaction,
         transactionBackup,

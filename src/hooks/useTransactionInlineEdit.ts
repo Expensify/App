@@ -20,11 +20,15 @@ import {
     getTransactionEditPermissions,
 } from '@libs/actions/TransactionInlineEdit';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {isExpenseUnreported, isPerDiemRequest} from '@libs/TransactionUtils';
+import {isTrackExpenseReportNew} from '@libs/ReportUtils';
+import {isDistanceRequest, isExpenseUnreported, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
+import useDistanceRateOriginalPolicy from './useDistanceRateOriginalPolicy';
+import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import usePolicyForTransaction from './usePolicyForTransaction';
@@ -127,7 +131,16 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const {hasSelectedTransactions} = useSearchSelectionContext();
 
     const isPerDiem = isPerDiemRequest(transaction);
-    const {shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiem);
+    const {shouldSelectPolicy, policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiem);
+
+    const isTrackExpense = isTrackExpenseReportNew(transactionThreadReport, effectiveParentReport, parentReportAction);
+
+    const editPolicy = completePolicy ?? policy;
+    const customUnitRateID = isDistanceRequest(transaction) ? transaction?.comment?.customUnit?.customUnitRateID : undefined;
+    const shouldLookupDistancePolicy = !!customUnitRateID && !getDistanceRateCustomUnitRate(editPolicy, customUnitRateID);
+    const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
+
+    const {isOffline} = useNetwork();
 
     const permissions = getTransactionEditPermissions({
         transaction,
@@ -154,13 +167,16 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             parentReportAction,
             transactionThreadReport,
             policy: completePolicy ?? policy,
+            policyForTrackExpense: isTrackExpense ? policyForMovingExpenses : undefined,
             policyCategories,
             policyTags,
             policyRecentlyUsedCategories,
             policyRecentlyUsedTags,
             parentReportNextStep,
+            isOffline,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed ?? false,
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow ?? false,
+            distanceOriginalPolicy,
         };
     };
 

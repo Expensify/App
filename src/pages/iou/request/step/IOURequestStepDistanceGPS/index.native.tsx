@@ -1,8 +1,8 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import DistanceMapView from '@components/DistanceMapView';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import type {Coordinate, MapViewHandle} from '@components/MapView/MapViewTypes';
+import GPSMapView from '@components/MapView/GPSMapView';
+import type {Coordinate} from '@components/MapView/MapViewTypes';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
@@ -17,13 +17,15 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {handleMoneyRequestStepDistanceNavigation, setGPSTransactionDraftData} from '@libs/actions/IOU/MoneyRequest';
+import {setGPSTransactionDraftData} from '@libs/actions/IOU/MoneyRequest';
 import {init as initMapboxToken, stop as stopMapboxToken} from '@libs/actions/MapboxToken';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getGPSConvertedDistance, getGpsPoints, getGPSWaypoints, getLastGpsPoint, getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
+import {getGPSConvertedDistance, getGpsPoints, getGPSWaypoints, getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
+import {rand64} from '@libs/NumberUtils';
+import {generateReportID, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
+import handleMoneyRequestStepDistanceNavigation from '@pages/iou/request/step/IOURequestStepDistance/handleMoneyRequestStepDistanceNavigation';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
@@ -50,8 +52,6 @@ function IOURequestStepDistanceGPS({
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const isInLandscapeMode = useIsInLandscapeMode();
-
-    const mapRef = useRef<MapViewHandle>(null);
 
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const isArchived = useReportIsArchived(report?.reportID);
@@ -87,7 +87,14 @@ function IOURequestStepDistanceGPS({
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
-    const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd);
+    const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(
+        iouType,
+        defaultExpensePolicy,
+        amountOwed,
+        userBillingGracePeriodEnds,
+        ownerBillingGracePeriodEnd,
+        currentUserAccountIDParam,
+    );
 
     const unit = DistanceRequestUtils.getRate({
         transaction,
@@ -105,9 +112,12 @@ function IOURequestStepDistanceGPS({
         setGPSTransactionDraftData(transactionID, gpsDraftDetails, distance);
 
         const waypoints = getGPSWaypoints(gpsDraftDetails);
+        const optimisticTransactionID = rand64();
+        const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
 
         handleMoneyRequestStepDistanceNavigation({
             iouType,
+            action,
             report,
             policy,
             transaction,
@@ -118,6 +128,7 @@ function IOURequestStepDistanceGPS({
             waypoints,
             currentUserLogin: currentUserEmailParam,
             currentUserAccountID: currentUserAccountIDParam,
+            currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             backToReport,
             shouldSkipConfirmation,
             defaultExpensePolicy,
@@ -130,7 +141,6 @@ function IOURequestStepDistanceGPS({
             quickAction,
             policyRecentlyUsedCurrencies,
             introSelected,
-            privateIsArchived: isArchived,
             gpsCoordinates,
             gpsDistance: distance,
             selfDMReport,
@@ -145,6 +155,8 @@ function IOURequestStepDistanceGPS({
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
             conciergeReportID,
+            optimisticTransactionID,
+            optimisticChatReportID,
             reportDraft,
         });
     };
@@ -166,18 +178,6 @@ function IOURequestStepDistanceGPS({
         return stopMapboxToken;
     }, []);
 
-    // Fly to the latest point on location updates when the trip is ongoing
-    useEffect(() => {
-        if (!gpsDraftDetails?.isTracking) {
-            return;
-        }
-        const latestPoint = getLastGpsPoint(gpsDraftDetails);
-        if (!latestPoint) {
-            return;
-        }
-        mapRef.current?.flyTo([latestPoint.long, latestPoint.lat], CONST.MAPBOX.DEFAULT_ZOOM, 1000);
-    }, [gpsDraftDetails]);
-
     const waypointMarkers = useGPSWaypointMarkers();
 
     const directionCoordinates: Coordinate[][] = getGpsPoints(gpsDraftDetails).map((points): Coordinate[] => points.map(({lat, long}) => [long, lat]));
@@ -192,20 +192,15 @@ function IOURequestStepDistanceGPS({
         >
             <View style={[styles.flex1, isInLandscapeMode && styles.flexRow, styles.w100]}>
                 <View style={[styles.mapViewContainer, {minHeight: undefined}]}>
-                    <DistanceMapView
+                    <GPSMapView
                         accessToken={mapboxAccessToken?.token ?? ''}
                         mapPadding={CONST.MAPBOX.PADDING}
                         pitchEnabled={false}
-                        initialState={{
-                            zoom: CONST.MAPBOX.DEFAULT_ZOOM,
-                            location: waypointMarkers?.at(0)?.coordinate ?? CONST.MAPBOX.DEFAULT_COORDINATE,
-                        }}
                         style={[styles.mapView, styles.mapEditView]}
-                        overlayStyle={styles.mapEditView}
                         styleURL={CONST.MAPBOX.STYLE_URL}
                         waypoints={waypointMarkers}
                         directionCoordinates={directionCoordinates}
-                        ref={mapRef}
+                        isTrackingGPS={!!gpsDraftDetails?.isTracking}
                     />
                 </View>
 

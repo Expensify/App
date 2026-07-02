@@ -21,7 +21,7 @@ import {hasFlexColumn} from '@libs/SearchUIUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {CardList, Policy, Report, TransactionViolations} from '@src/types/onyx';
+import type {CardList, Policy, PolicyCategories, PolicyTagLists, Report, TransactionViolations} from '@src/types/onyx';
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
 
 type MoneyRequestReportTransactionItemProps = {
@@ -36,6 +36,12 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Policy to which the transaction belongs */
     policy: OnyxEntry<Policy>;
+
+    /** Categories for the policy to which the transaction belongs */
+    policyCategories?: PolicyCategories;
+
+    /** Tag lists for the policy to which the transaction belongs */
+    policyTagLists?: PolicyTagLists;
 
     /** Whether the mobile selection mode is enabled */
     isSelectionModeEnabled: boolean;
@@ -81,6 +87,10 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Whether the list is horizontally scrollable */
     shouldScrollHorizontally?: boolean;
+
+    /** Precomputed transaction-thread report ID for this transaction. Lets the RBR row early-return for clean rows
+     * instead of mounting the heavy RBR inner; the parent computes it once so rows don't scan report actions individually. */
+    transactionThreadReportID?: string;
 };
 
 type MoneyRequestReportTransactionItemBodyProps = MoneyRequestReportTransactionItemProps & {
@@ -96,6 +106,8 @@ function MoneyRequestReportTransactionItemBody({
     violations,
     report,
     policy,
+    policyCategories,
+    policyTagLists,
     isSelectionModeEnabled,
     toggleTransaction,
     isSelected,
@@ -111,6 +123,7 @@ function MoneyRequestReportTransactionItemBody({
     nonPersonalAndWorkspaceCards,
     isLastItem = false,
     shouldScrollHorizontally = false,
+    transactionThreadReportID,
     inlineEdit,
     animatedHighlightStyle,
 }: MoneyRequestReportTransactionItemBodyProps) {
@@ -191,6 +204,9 @@ function MoneyRequestReportTransactionItemBody({
                         violations={violations}
                         report={report}
                         policy={policy}
+                        policyCategories={policyCategories}
+                        policyTagLists={policyTagLists}
+                        transactionThreadReportID={transactionThreadReportID}
                         isSelected={isSelected}
                         dateColumnSize={dateColumnSize}
                         amountColumnSize={amountColumnSize}

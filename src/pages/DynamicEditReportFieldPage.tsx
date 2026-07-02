@@ -1,4 +1,4 @@
-import reportByIDsSelector from '@selectors/Attributes';
+import reportByIDsSelector from '@selectors/ReportAttributes';
 import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -26,8 +26,8 @@ import {
     getReportFieldKey,
     getTitleFieldWithFallback,
     hasViolations as hasViolationsReportUtils,
+    isGroupPolicyExpenseReport,
     isInvoiceReport,
-    isPaidGroupPolicyExpenseReport,
     isReportFieldDisabled,
     isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
@@ -77,7 +77,7 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
     const {showConfirmModal} = useConfirmModal();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const isReportFieldTitle = isReportFieldOfTypeTitle(reportField);
-    const reportFieldsEnabled = ((isPaidGroupPolicyExpenseReport(report) || isInvoiceReport(report)) && !!policy?.areReportFieldsEnabled) || isReportFieldTitle;
+    const reportFieldsEnabled = ((isGroupPolicyExpenseReport(report) || isInvoiceReport(report)) && !!policy?.areReportFieldsEnabled) || isReportFieldTitle;
     const hasOtherViolations =
         report?.fieldList && Object.entries(report.fieldList).some(([key, field]) => key !== fieldKey && field.value === '' && !isReportFieldDisabled(report, reportField, policy));
 

@@ -42,6 +42,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {getStableReportSelector} from '@src/selectors/Report';
 import type {TransactionPreviewContentProps} from './types';
 
 function TransactionPreviewContent({
@@ -83,10 +84,9 @@ function TransactionPreviewContent({
     const {amount, comment: requestComment, merchant, tag, category, currency: requestCurrency} = transactionDetails;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {selector: getStableReportSelector});
     const managerID = report?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = report?.ownerAccountID ?? reportPreviewAction?.childOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const isReportAPolicyExpenseChat = isPolicyExpenseChat(chatReport);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.reportID)}`);
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -111,12 +111,12 @@ function TransactionPreviewContent({
             createTransactionPreviewConditionals({
                 ...transactionPreviewCommonArguments,
                 areThereDuplicates,
-                isReportAPolicyExpenseChat,
+                isReportAPolicyExpenseChat: isParentPolicyExpenseChat,
                 currentUserEmail,
                 currentUserAccountID,
                 reportActions,
             }),
-        [areThereDuplicates, transactionPreviewCommonArguments, isReportAPolicyExpenseChat, currentUserEmail, currentUserAccountID, reportActions],
+        [areThereDuplicates, transactionPreviewCommonArguments, isParentPolicyExpenseChat, currentUserEmail, currentUserAccountID, reportActions],
     );
 
     const {shouldShowRBR, shouldShowMerchant, shouldShowSplitShare, shouldShowTag, shouldShowCategory, shouldShowSkeleton, shouldShowDescription} = conditionals;
@@ -136,6 +136,7 @@ function TransactionPreviewContent({
         ? ViolationsUtils.getViolationTranslation({
               violation: firstViolation,
               translate,
+              convertToDisplayString,
               canEdit,
               companyCardPageURL,
               connectionLink,
@@ -231,10 +232,10 @@ function TransactionPreviewContent({
             }
         }
 
-        return calculateAmount(isReportAPolicyExpenseChat ? 1 : originalParticipantCount - 1, amount ?? 0, requestCurrency ?? '', actorAccountID === sessionAccountID);
+        return calculateAmount(isParentPolicyExpenseChat ? 1 : originalParticipantCount - 1, amount ?? 0, requestCurrency ?? '', actorAccountID === sessionAccountID);
     }, [
         shouldShowSplitShare,
-        isReportAPolicyExpenseChat,
+        isParentPolicyExpenseChat,
         participantAccountIDs.length,
         transaction?.comment?.splits,
         amount,

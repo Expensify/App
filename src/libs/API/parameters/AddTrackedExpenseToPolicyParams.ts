@@ -23,6 +23,7 @@ type AddTrackedExpenseToPolicyParams = {
     modifiedExpenseReportActionID: string;
     moneyRequestCreatedReportActionID: string | undefined;
     moneyRequestPreviewReportActionID: string;
+    shouldDeferAutoSubmit?: boolean;
 };
 
 export default AddTrackedExpenseToPolicyParams;

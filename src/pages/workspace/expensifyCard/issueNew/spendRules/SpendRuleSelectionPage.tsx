@@ -1,10 +1,11 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import SelectionList from '@components/SelectionList';
 import SpendRuleListItem from '@components/SelectionList/ListItem/SpendRuleListItem';
@@ -18,6 +19,7 @@ import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setIssueNewCardData} from '@libs/actions/Card';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -25,8 +27,9 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type SpendRuleSelectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_SELECTION>;
 
@@ -38,14 +41,27 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
     const {cardRules, isLoadingCardRules} = useExpensifyCardRules(policyID);
-    const [issueCardForm] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const [issueCardForm, issueCardFormMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
     const [shouldShowError, setShouldShowError] = useState(false);
     const [cardRuleID, setCardRuleID] = useState(issueCardForm?.data?.spendRuleID);
+
+    const isLoadingIssueCardForm = isLoadingOnyxValue(issueCardFormMetadata);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_SELECTION.path);
 
+    useEffect(() => {
+        if (issueCardForm?.data || isLoadingIssueCardForm) {
+            return;
+        }
+
+        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
+    }, [isLoadingIssueCardForm, issueCardForm?.data, policyID]);
+
     // We only allow cards that share the same currency to be on a spend rule
-    const availableCardRules = cardRules.filter((cardRule) => cardRule.currencyCode === issueCardForm?.data?.currency);
+    const availableCardRules = cardRules.filter(
+        (cardRule) => cardRule.currencyCode === issueCardForm?.data?.currency && cardRule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    );
+
     const cardRuleListItems: SpendRuleListItemType[] = availableCardRules.map((cardRule) => ({
         keyForList: cardRule.ruleID,
         action: cardRule.action,
@@ -93,13 +109,15 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
         />
     );
 
-    const isLoadedAndEmpty = !isLoadingCardRules && !cardRules.length;
-    const isLoadedWithContent = !isLoadingCardRules && cardRules.length > 0;
+    const isLoadedAndEmpty = !isLoadingCardRules && !availableCardRules.length;
+    const isLoadedWithContent = !isLoadingCardRules && availableCardRules.length > 0;
 
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <ScreenWrapper
                 testID="SpendRuleSelectionPage"
@@ -126,13 +144,18 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
                 )}
 
                 {isLoadedAndEmpty && (
-                    <GenericEmptyStateComponent
-                        headerMedia={illustrations.EmptyShelves}
-                        headerContentStyles={styles.emptyShelvesIllustration}
-                        title={translate('workspace.card.issueNewCard.spendRulesEmptyStateTitle')}
-                        subtitle={translate('workspace.card.issueNewCard.spendRulesEmptyStateSubtitle')}
-                        headerStyles={styles.emptyStateCardIllustrationContainer}
-                    />
+                    <ScrollView
+                        contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+                        addBottomSafeAreaPadding
+                    >
+                        <GenericEmptyStateComponent
+                            headerMedia={illustrations.EmptyShelves}
+                            headerContentStyles={styles.emptyShelvesIllustration}
+                            title={translate('workspace.card.issueNewCard.spendRulesEmptyStateTitle')}
+                            subtitle={translate('workspace.card.issueNewCard.spendRulesEmptyStateSubtitle')}
+                            headerStyles={styles.emptyStateCardIllustrationContainer}
+                        />
+                    </ScrollView>
                 )}
 
                 {isLoadedWithContent && (

@@ -1,4 +1,4 @@
-import {getOdometerImageName, getOdometerImageType, getOdometerImageUri} from '@libs/OdometerImageUtils';
+import {getOdometerImageName, getOdometerImageType, getOdometerImageUri} from '@libs/OdometerUtils';
 import stitchOdometerImages from '@libs/stitchOdometerImages';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
@@ -56,4 +56,3 @@ async function stitchTask({startImage, endImage, signal}: StitchTaskArgs): Promi
 }
 
 export default stitchTask;
-export type {StitchTaskArgs, StitchTaskResult};

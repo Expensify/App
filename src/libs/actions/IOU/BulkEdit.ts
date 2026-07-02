@@ -6,7 +6,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import * as NumberUtils from '@libs/NumberUtils';
-import {hasDependentTags} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getPolicyForDistanceRateID, hasDependentTags} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {
@@ -24,14 +24,23 @@ import {
     isSelfDM,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
-import {calculateTaxAmount, getAmount, getClearedPendingFields, getCurrency, getTaxValue, getUpdatedTransaction, isOnHold, isSplitChildTransaction} from '@libs/TransactionUtils';
+import {
+    calculateTaxAmount,
+    getAmount,
+    getClearedPendingFields,
+    getCurrency,
+    getTaxValue,
+    getUpdatedTransaction,
+    isDistanceRequest,
+    isOnHold,
+    isSplitChildTransaction,
+} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
-import {getAllTransactionViolations} from '.';
 import {getUpdatedMoneyRequestReportData} from './MoneyRequestBuilder';
 
 function removeUnchangedBulkEditFields(
@@ -78,6 +87,7 @@ type UpdateMultipleMoneyRequestsParams = {
     reportActions: OnyxCollection<OnyxTypes.ReportActions>;
     policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>;
     policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>;
+    violations: OnyxCollection<OnyxTypes.TransactionViolations>;
     hash?: number;
     allPolicies?: OnyxCollection<OnyxTypes.Policy>;
     currentUserAccountID: number;
@@ -93,6 +103,7 @@ function updateMultipleMoneyRequests({
     reportActions,
     policyCategories,
     policyTags,
+    violations,
     hash,
     allPolicies,
     currentUserAccountID,
@@ -341,7 +352,7 @@ function updateMultipleMoneyRequests({
         let optimisticViolationsData: ReturnType<typeof ViolationsUtils.getViolationsOnyxData> | undefined;
         let currentTransactionViolations: OnyxTypes.TransactionViolation[] | undefined;
         if (transactionPolicy && !isUnreportedExpense) {
-            currentTransactionViolations = getAllTransactionViolations()[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+            currentTransactionViolations = violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
             let optimisticViolations =
                 transactionChanges.amount !== undefined || transactionChanges.created || transactionChanges.currency
                     ? currentTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
@@ -352,18 +363,22 @@ function updateMultipleMoneyRequests({
                     : optimisticViolations;
             const transactionPolicyTagList = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${transactionPolicy?.id}`] ?? {};
             const transactionPolicyCategories = policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${transactionPolicy?.id}`] ?? {};
-            optimisticViolationsData = ViolationsUtils.getViolationsOnyxData(
+            const customUnitRateID = isDistanceRequest(updatedTransaction) ? updatedTransaction.comment?.customUnit?.customUnitRateID : undefined;
+            const distanceOriginalPolicy =
+                customUnitRateID && !getDistanceRateCustomUnitRate(transactionPolicy, customUnitRateID) ? getPolicyForDistanceRateID(customUnitRateID, allPolicies) : undefined;
+            optimisticViolationsData = ViolationsUtils.getViolationsOnyxData({
                 updatedTransaction,
-                optimisticViolations,
-                transactionPolicy,
-                transactionPolicyTagList,
-                transactionPolicyCategories,
-                hasDependentTags(transactionPolicy, transactionPolicyTagList),
-                isInvoiceReportReportUtils(iouReport),
-                isSelfDM(iouReport),
+                transactionViolations: optimisticViolations,
+                policy: transactionPolicy,
+                policyTagList: transactionPolicyTagList,
+                policyCategories: transactionPolicyCategories,
+                hasDependentTags: hasDependentTags(transactionPolicy, transactionPolicyTagList),
+                isInvoiceTransaction: isInvoiceReportReportUtils(iouReport),
+                isSelfDM: isSelfDM(iouReport),
                 iouReport,
                 isFromExpenseReport,
-            );
+                distanceOriginalPolicy,
+            });
             optimisticData.push(optimisticViolationsData);
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,

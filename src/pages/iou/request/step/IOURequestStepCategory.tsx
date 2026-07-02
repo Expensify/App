@@ -1,7 +1,6 @@
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useEffect} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
@@ -32,8 +31,8 @@ import {isCategoryMissing} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {hasAccountingConnections, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getTransactionDetails, isGroupPolicy, isReportInGroupPolicy, isSelfDM} from '@libs/ReportUtils';
+import {hasAccountingConnections, isGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getRequestType} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -64,8 +63,9 @@ function IOURequestStepCategory({
     const requestType = getRequestType(transaction);
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const transactionReport = useReportOrReportDraft(transaction?.reportID);
-    const report = reportReal ?? reportDraft ?? transactionReport;
-    const policyIdReal = getIOURequestPolicyID(transaction, reportReal ?? transactionReport);
+    const participantReport = useReportOrReportDraft(transaction?.participants?.at(0)?.reportID);
+    const report = reportReal ?? reportDraft ?? transactionReport ?? participantReport;
+    const policyIdReal = getIOURequestPolicyID(transaction, reportReal ?? transactionReport ?? participantReport);
     const policyIdDraft = getIOURequestPolicyID(transaction, reportDraft);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
@@ -116,7 +116,7 @@ function IOURequestStepCategory({
         : undefined;
 
     const shouldShowCategory =
-        (isReportInGroupPolicy(report) || isGroupPolicy(policy?.type ?? '')) &&
+        isGroupPolicy(policy) &&
         // The transactionCategory can be an empty string, so to maintain the logic we'd like to keep it in this shape until utils refactor
 
         (!!categoryForDisplay || hasEnabledOptions(Object.values(policyCategories ?? {})));
@@ -239,7 +239,7 @@ function IOURequestStepCategory({
                                     if (!policy?.areCategoriesEnabled) {
                                         enablePolicyCategories({...policyData, categories: policyCategories}, true, false);
                                     }
-                                    InteractionManager.runAfterInteractions(() => {
+                                    requestAnimationFrame(() => {
                                         Navigation.navigate(
                                             ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
                                                 policyID,

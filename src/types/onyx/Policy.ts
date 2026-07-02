@@ -1,6 +1,6 @@
 import type {CONST as COMMON_CONST} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
-import type {HrSyncResult} from '@libs/API/HrSyncResult';
+import type HrSyncResult from '@libs/API/HrSyncResult';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
@@ -66,10 +66,10 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
         index?: number;
 
         /** ISO 8601 date string for when this rate becomes effective */
-        startDate?: string;
+        startDate?: string | null;
 
         /** ISO 8601 date string for when this rate expires */
-        endDate?: string;
+        endDate?: string | null;
     },
     keyof TaxRateAttributes
 >;
@@ -141,7 +141,7 @@ type UberReceiptPartner = {
     /**
      * form data for uber partner
      */
-    connectFormData: string;
+    connectFormData?: string;
     /**
      * auto invite for uber connection
      */
@@ -1389,6 +1389,12 @@ type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 /** Certinia (FinancialForce) export destination — FFA Payable Invoice vs PSA Expense Report */
 type FinancialForceExportDestination = ValueOf<typeof CONST.CERTINIA_EXPORT_DESTINATION>;
 
+/** Certinia export statuses that apply to FFA payable invoices */
+type FinancialForceFFAExportStatus = typeof CONST.CERTINIA_EXPORT_STATUS.COMPLETE | typeof CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS;
+
+/** Certinia export statuses that apply to PSA reports */
+type FinancialForceReportExportStatus = ValueOf<typeof CONST.CERTINIA_REPORT_EXPORT_STATUS>;
+
 /** Certinia PSA parent tag mapping mode */
 type FinancialForceParentTagMappingMode = ValueOf<typeof CONST.CERTINIA_PARENT_TAG_MAPPING>;
 
@@ -1464,7 +1470,7 @@ type FinancialForceExportConfig = {
     nonReimbursable?: FinancialForceExportDestination;
 
     /** Payable invoice / expense report export status. */
-    exportStatus?: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>;
+    exportStatus?: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS> | FinancialForceReportExportStatus;
 
     /** Date basis for export */
     exportDate?: ValueOf<typeof CONST.CERTINIA_EXPORT_DATE>;
@@ -1477,9 +1483,6 @@ type FinancialForceExportConfig = {
 
     /** PSA / SRP: company ID for export */
     companyID?: string;
-
-    /** PSA: report-level export status. */
-    reportExportStatus?: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>;
 };
 
 /** Certinia auto-sync */
@@ -1536,6 +1539,331 @@ type FinancialForceConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     FinancialForceOfflineStateKeys
 >;
 
+/**
+ * Supported subsidiary types in Rillet.
+ */
+type RilletSubsidiaryType = 'LEGAL_ENTITY';
+
+/**
+ * A subsidiary (legal entity) configured in Rillet.
+ */
+type RilletSubsidiary = {
+    /** Unique identifier for the subsidiary. */
+    id: string;
+
+    /** Display or trade name of the subsidiary. */
+    tradeName: string;
+
+    /** Base accounting currency for the subsidiary (ISO currency code). */
+    currency: string;
+
+    /** Time zone used by the subsidiary. */
+    timezone: string;
+
+    /** Type of subsidiary. */
+    type: RilletSubsidiaryType;
+};
+
+/**
+ * Supported account statuses in Rillet.
+ */
+type RilletAccountStatus = 'ACTIVE' | 'INACTIVE';
+
+/**
+ * Supported chart of account categories in Rillet.
+ */
+type RilletAccountType = 'ASSET' | 'LIABILITY' | 'EQUITY' | 'EXPENSE' | 'INCOME';
+
+/**
+ * A chart of accounts entry in Rillet.
+ */
+type RilletAccount = {
+    /** Unique identifier for the account. */
+    id: string;
+
+    /** Account code used in the chart of accounts. */
+    code: string;
+
+    /** Human-readable account name. */
+    name: string;
+
+    /** High-level account classification. */
+    type: RilletAccountType;
+
+    /** More specific account classification defined in Rillet. */
+    subtype: string;
+
+    /** Current status of the account. */
+    status: RilletAccountStatus;
+
+    /** Whether the account is used for intercompany transactions. */
+    intercompany: boolean;
+
+    /** Timestamp of the most recent update. */
+    updatedAt: string;
+};
+
+/**
+ * A selectable value belonging to a custom field.
+ */
+type RilletFieldValue = {
+    /** Unique identifier for the field value. */
+    id: string;
+
+    /** Display name of the field value. */
+    name: string;
+
+    /** Whether the value has been deactivated. */
+    deactivated: boolean;
+};
+
+/**
+ * A custom accounting field available in Rillet.
+ */
+type RilletField = {
+    /** Unique identifier for the field. */
+    id: string;
+
+    /** Display name of the field. */
+    name: string;
+
+    /** Available values that can be assigned to the field. */
+    values: RilletFieldValue[];
+
+    /** Timestamp of the most recent update. */
+    updatedAt: string;
+};
+
+/**
+ * A tax rate configured in Rillet.
+ */
+type RilletTaxRate = {
+    /** Unique identifier for the tax rate. */
+    id: string;
+
+    /** Tax code used for accounting purposes. */
+    code: string;
+
+    /** Country where the tax rate applies. */
+    country: string;
+
+    /** Description of the tax rate. */
+    description: string;
+
+    /** Tax percentage represented as a string value. */
+    percentage: string;
+};
+
+/**
+ * A vendor or supplier configured in Rillet.
+ */
+type RilletVendor = {
+    /** Unique identifier for the vendor. */
+    id: string;
+
+    /** Vendor display name. */
+    name: string;
+
+    /** Vendor contact email address. */
+    email?: string;
+
+    /** Associated accounts payable account code. */
+    accountCode?: string;
+
+    /** Timestamp of the most recent update. */
+    updatedAt: string;
+};
+
+/**
+ * Supported bank account statuses in Rillet.
+ */
+type RilletBankAccountStatus = 'ACTIVE' | 'INACTIVE';
+
+/**
+ * A bank account configured in Rillet.
+ */
+type RilletBankAccount = {
+    /** Unique identifier for the bank account. */
+    id: string;
+
+    /** Display name of the bank account. */
+    name: string;
+
+    /** Currency of the bank account (ISO currency code). */
+    currency: string;
+
+    /** Name of the financial institution. */
+    bankName: string;
+
+    /** Identifier of the associated subsidiary, if applicable. */
+    subsidiaryID?: string;
+
+    /** Associated general ledger account code, if applicable. */
+    accountCode?: string;
+
+    /** Current status of the bank account. */
+    status: RilletBankAccountStatus;
+};
+
+/**
+ * Cached reference data retrieved from Rillet and used for configuration.
+ */
+type RilletConnectionData = {
+    /** Collection of subsidiaries. */
+    subsidiaries: RilletSubsidiary[];
+
+    /** Collection of accounts. */
+    accounts: RilletAccount[];
+
+    /** Collection of custom fields. */
+    fields: RilletField[];
+
+    /** Collection of tax rates. */
+    taxRates: RilletTaxRate[];
+
+    /** Collection of vendors. */
+    vendors: RilletVendor[];
+
+    /** Collection of bank accounts. */
+    bankAccounts: RilletBankAccount[];
+};
+
+/**
+ * Supported mappings for Rillet coding fields.
+ */
+type RilletCodingFieldMappingValue = 'NONE' | 'TAG';
+
+/**
+ * Coding configuration used when exporting data to Rillet.
+ */
+type RilletCoding = {
+    /**
+     * Mapping of Rillet field IDs to their configured mapping behavior.
+     */
+    fieldMappings: Record<string, RilletCodingFieldMappingValue>;
+
+    /** Whether tax rates should be synchronized from Rillet. */
+    syncTaxRates: boolean;
+};
+
+/**
+ * Available dates that can be used as the export date.
+ */
+type RilletExportDate = 'LAST_EXPENSE' | 'REPORT_EXPORTED' | 'REPORT_SUBMITTED';
+
+/**
+ * Export strategy for reimbursable expenses.
+ */
+type RilletExportReimbursable = 'VENDOR_BILL';
+
+/**
+ * Export strategy for company card expenses.
+ */
+type RilletExportCompanyCard = 'CREDIT_CARD';
+
+/**
+ * Export configuration for sending accounting data to Rillet.
+ */
+type RilletExport = {
+    /** Identifier of the export implementation to use. */
+    exporter: string;
+
+    /** Date source used when generating exported transactions. */
+    exportDate: RilletExportDate;
+
+    /** Export behavior for reimbursable expenses. */
+    reimbursable: RilletExportReimbursable;
+
+    /** Export behavior for company card expenses. */
+    companyCard: RilletExportCompanyCard;
+
+    /** Default vendor to associate with exported transactions. */
+    defaultVendorID: string;
+
+    /** Credit card liability account code. */
+    creditCardAccountCode: string;
+
+    /**
+     * Whether card transactions should be exported to multiple
+     * accounts based on card program mappings.
+     */
+    exportToMultipleAccounts: boolean;
+
+    /**
+     * Mapping of card program identifiers to account codes.
+     */
+    cardProgramAccounts: Record<string, string>;
+
+    /** Accounting method used during export. */
+    accountingMethod: string;
+};
+
+/**
+ * Automatic synchronization settings for Rillet.
+ */
+type RilletAutoSync = {
+    /** Whether automatic synchronization is enabled. */
+    enabled: boolean;
+};
+
+/**
+ * Synchronization settings for importing and updating data in Rillet.
+ */
+type RilletSync = {
+    /** Whether reimbursed expense reports should be synchronized. */
+    syncReimbursedReports: boolean;
+
+    /** Account code used for bill payment transactions. */
+    billPaymentAccountCode: string;
+
+    /** Whether Expensify Card settlement transactions should be synchronized. */
+    syncExpensifyCardSettlements: boolean;
+
+    /** Bank account used for Expensify Card settlements. */
+    settlementsBankAccountID: string;
+
+    /** Whether travel invoicing settlement transactions should be synchronized. */
+    syncTravelInvoicingSettlements: boolean;
+
+    /** Bank account used for travel invoicing settlements. */
+    travelInvoicingSettlementsBankAccountID: string;
+};
+
+/**
+ * Connection config for Rillet
+ */
+type RilletConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** The internalID of the selected subsidiary in Rillet */
+        subsidiaryID: string;
+
+        /** Whether the connection has been configured */
+        isConfigured: boolean;
+
+        /** Whether to enable a new Expense Category into Expensify */
+        enableNewCategories: boolean;
+
+        /** Coding settings */
+        coding: RilletCoding;
+
+        /** Export settings */
+        export: RilletExport;
+
+        /** Auto-sync settings */
+        autoSync?: RilletAutoSync;
+
+        /** Sync settings */
+        sync: RilletSync;
+
+        /** Collection of errors coming from BE */
+        errors?: OnyxCommon.Errors;
+
+        /** Collection of form field errors  */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    keyof RilletCoding | keyof RilletExport | keyof RilletAutoSync | keyof RilletSync
+>;
+
 /** Gusto connection data */
 type GustoConnectionData = Record<string, never>;
 
@@ -1557,8 +1885,23 @@ type GustoConnectionConfig = HRConnectionConfigBase & {
     approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null;
 };
 
+/** A group of employees the admin can choose to import from (e.g. a company, cost center, department). */
+type MergeHRGroup = {
+    /** Group ID */
+    id: string;
+
+    /** Human-readable name of the group */
+    name: string;
+
+    /** Group type (department/division etc.) */
+    type: string;
+};
+
 /** Merge HR connection data */
-type MergeHRConnectionData = Record<string, never>;
+type MergeHRConnectionData = {
+    /** Groups available to import employees from. Distinct from `config.groups`, which is the admin's selection. */
+    groups?: MergeHRGroup[];
+};
 
 /** Merge HR connection config */
 type MergeHRConnectionConfig = HRConnectionConfigBase &
@@ -1568,6 +1911,13 @@ type MergeHRConnectionConfig = HRConnectionConfigBase &
 
         /** Approval mode controlling how reports are routed for approval */
         approvalMode: ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE> | null;
+
+        /**
+         * Groups the admin chose to import employees from.
+         * - `string[]` with one or more IDs — setup complete, sync only those groups.
+         * - `null` — setup not yet complete.
+         */
+        groups: string[] | null;
     }>;
 
 /** TriNet (Zenefits) connection data */
@@ -1629,6 +1979,9 @@ type QBDExportConfig = {
 
     /** Default vendor of non reimbursable bill */
     nonReimbursableBillDefaultVendor: string;
+
+    /** Account ID that receives the exported travel payable */
+    travelInvoicingPayableAccountID?: string;
 
     /** Accounting method for QBD */
     accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
@@ -1713,6 +2066,9 @@ type Connections = {
     /** Certinia integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: Connection<FinancialForceConnectionData, FinancialForceConnectionConfig>;
 
+    /** Rillet integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.RILLET]: Connection<RilletConnectionData, RilletConnectionsConfig>;
+
     /** Gusto integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: Connection<GustoConnectionData, GustoConnectionConfig>;
 
@@ -1774,6 +2130,18 @@ type ACHAccount = {
     /** Emails of users who have had the bank account shared with them */
     sharees?: string[];
 };
+
+/** Commuter exclusion configuration for a policy */
+type CommuterExclusions = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** How commuter mileage is excluded - R2 will add 'homeAndOffice' */
+    method: ValueOf<typeof CONST.POLICY.COMMUTER_EXCLUSION_METHOD>;
+
+    /** Distance subtracted from each claim when method is 'fixedDistance' */
+    fixedDistance?: number;
+
+    /** Distance unit stored alongside fixedDistance ('mi' or 'km'). Mirrors the policy distance custom unit at the time it was set. */
+    fixedDistanceUnit?: string;
+}>;
 
 /** Prohibited expense types */
 type ProhibitedExpenses = OnyxCommon.OnyxValueWithOfflineFeedback<{
@@ -2019,6 +2387,27 @@ type CodingRule = {
     errors?: OnyxCommon.Errors;
 };
 
+/** Policy Agent rule data model */
+type AgentRule = {
+    /** Unique identifier for the rule */
+    ruleID: string;
+
+    /** The Agent prompt (i.e. the rule defined with natural language) */
+    prompt: string;
+
+    /** Short one-line summary generated server-side from the prompt */
+    title?: string;
+
+    /** When this rule was created */
+    created: string;
+
+    /** The type of action that's pending  */
+    pendingAction?: OnyxCommon.PendingAction;
+
+    /** Error objects keyed by field name containing errors keyed by microtime */
+    errors?: OnyxCommon.Errors;
+};
+
 /** Model of policy data */
 type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
@@ -2229,7 +2618,13 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
             /** A set of coding rules for automatic expense field population based on merchant matching */
             codingRules?: Record<string, CodingRule>;
+
+            /** A set of Agent rules defined with natural language - The rules are run by the "RuleBot" */
+            agentRules?: Record<string, AgentRule>;
         };
+
+        /** The "RuleBot" agent account ID */
+        ruleBotAccountID?: number;
 
         /** A set of custom rules defined with natural language */
         customRules?: string;
@@ -2300,6 +2695,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Settings for the Policy's prohibited expenses */
         prohibitedExpenses?: ProhibitedExpenses;
 
+        /** Commuter exclusion configuration applied to distance expenses on this workspace */
+        commuterExclusions?: CommuterExclusions;
+
         /** Indicates if the Policy is in loading state */
         isLoading?: boolean;
 
@@ -2345,10 +2743,10 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Policy MCC Group settings */
         mccGroup?: Record<string, MccGroup>;
 
-        /** Workspace account ID configured for Expensify Card */
-        workspaceAccountID?: number;
+        /** Policy account ID configured for Expensify Card */
+        policyAccountID?: number;
 
-        /** Setup specialist guide assigned for the policy */
+        /** Account executive guide assigned for the policy */
         assignedGuide?: {
             /** The guide's email */
             email: string;
@@ -2428,7 +2826,6 @@ export type {
     XeroTrackingCategory,
     NetSuiteConnection,
     ConnectionLastSync,
-    MergeHRConnectionLastSync,
     QBDReimbursableExportAccountType,
     NetSuiteSubsidiary,
     NetSuiteCustomList,
@@ -2446,7 +2843,8 @@ export type {
     SageIntacctConnectionsConfig,
     SageIntacctExportConfig,
     FinancialForceConnectionConfig,
-    FinancialForceConnectionData,
+    FinancialForceFFAExportStatus,
+    FinancialForceReportExportStatus,
     ACHAccount,
     ApprovalRule,
     ExpenseRule,
@@ -2457,11 +2855,11 @@ export type {
     MccGroup,
     Subrate,
     ProhibitedExpenses,
+    CommuterExclusions,
     NetSuiteConnectionData,
-    HRConnectionConfigBase,
     MergeHRConnectionConfig,
     GustoConnectionConfig,
     ZenefitsConnectionConfig,
-    MergeHRConnectionData,
     Vendor,
+    AgentRule,
 };

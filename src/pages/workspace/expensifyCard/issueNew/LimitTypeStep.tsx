@@ -8,7 +8,6 @@ import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/ty
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import Text from '@components/Text';
 import ValuePicker from '@components/ValuePicker';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,11 +37,11 @@ type LimitTypeStepProps = {
 function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isProduction} = useEnvironment();
 
     const policyID = policy?.id;
     const formRef = useRef<FormRef | null>(null);
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
     const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const defaultType = getDefaultExpensifyCardLimitType(policy);
@@ -50,17 +49,17 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
     const [typeSelected, setTypeSelected] = useState(issueNewCard?.data?.limitType ?? defaultType);
 
     const isEditing = issueNewCard?.isEditing;
-    const isSpendRuleAvailable = !isProduction && isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED);
+    const areSpendRulesAvailable = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, policyCategories);
 
     const nextStep = useMemo(() => {
         if (isEditing) {
             return CONST.EXPENSIFY_CARD.STEP.CONFIRMATION;
         }
-        if (isSpendRuleAvailable || issueNewCard?.data.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL) {
+        if (areSpendRulesAvailable || issueNewCard?.data.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL) {
             return CONST.EXPENSIFY_CARD.STEP.SPEND_RULES;
         }
         return CONST.EXPENSIFY_CARD.STEP.CARD_NAME;
-    }, [isSpendRuleAvailable, isEditing, issueNewCard?.data.cardType]);
+    }, [areSpendRulesAvailable, isEditing, issueNewCard?.data.cardType]);
 
     const onInputFocus = useCallback(() => {
         formRef.current?.scrollToEnd();

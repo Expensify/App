@@ -6,7 +6,7 @@
   1. **Screen resize / item shrink**: When items shrink, `tallestItemHeight` was updated prematurely, causing the next cycle to skip re-normalization. Fixed by resetting tallest item tracking when `targetMinHeight === 0` so the next repaint re-detects the tallest item.
   2. **Tallest item removed**: When the tallest item is deleted from the list, all remaining items kept the old `minHeight` forever because no item could pass the `height > minHeight` check. Fixed by detecting when `tallestItem` is no longer in `this.layouts` and resetting tracking with a repaint.
   3. **New smaller item added**: When the tallest item is already tracked, newly added items never got `minHeight` applied because there was no code path to normalize them. Fixed by applying `minHeight`/`height` to any unnormalized items when a tallest item is already tracked.
-- Upstream PR/issue: TBD
+- Upstream PR/issue: https://github.com/Shopify/flash-list/pull/2096
 - E/App issue: https://github.com/Expensify/App/issues/33725
 - PR introducing patch: https://github.com/Expensify/App/pull/81566
 
@@ -33,7 +33,7 @@
 ### [@shopify+flash-list+2.3.0+004+fix-inverted-first-item-offset.patch](@shopify+flash-list+2.3.0+004+fix-inverted-first-item-offset.patch)
 
 - Reason: Fixes inverted lists rendering only a few items with white space on scroll. FlashList's `RecyclerView` measures `firstItemOffset` by calling `measureFirstChildLayout` relative to the outer container. When `inverted` is true, the outer container has `scaleY: -1`, which flips the coordinate system — causing the measured y-offset to equal the container height instead of 0. This makes all scroll offsets negative after adjustment (`adjustedOffset = scrollOffset - firstItemOffset`), so the viewport thinks it's in negative space where no items exist. Only items caught by the draw-distance buffer render. The fix forces `firstItemOffset` to 0 for inverted lists, since the transform already handles visual inversion.
-- Upstream PR/issue: TBD
+- Upstream PR/issue: https://github.com/Shopify/flash-list/pull/2300
 - E/App issue: https://github.com/Expensify/App/issues/33725
 - PR introducing patch: https://github.com/Expensify/App/pull/85114
 
@@ -57,7 +57,7 @@
 - Files changed: Both `src/recyclerview/RecyclerView.tsx` and `dist/recyclerview/RecyclerView.js`.
 - Upstream PR/issue: TBD
 - E/App issue: https://github.com/Expensify/App/issues/33725
-- PR introducing patch: TBD
+- PR introducing patch: https://github.com/Expensify/App/pull/88923
 
 ### [@shopify+flash-list+2.3.0+008+increase-timeout.patch](@shopify+flash-list+2.3.0+008+increase-timeout.patch)
 
@@ -129,3 +129,15 @@
 - Upstream PR/issue: https://github.com/Shopify/flash-list/issues/1955
 - E/App issue: https://github.com/Expensify/App/issues/86126
 - PR introducing patch: https://github.com/Expensify/App/pull/85825
+
+### [@shopify+flash-list+2.3.0+012+fix-scrollbar-oscillation-crash.patch](@shopify+flash-list+2.3.0+012+fix-scrollbar-oscillation-crash.patch)
+
+- Reason: Fixes a "Maximum update depth exceeded" (#185) infinite render loop on web with classic (non-overlay) scrollbars — i.e. Windows/Linux Chrome and macOS with "Always show scroll bars". For a vertical list FlashList derives its cross-axis bounded size from `firstChildViewLayout.width` (the scroll viewport's **client** width, which excludes the scrollbar). When the vertical scrollbar toggles, that width steps by the scrollbar size (e.g. 375 ↔ 355); each change re-triggers layout, which changes content height, which toggles the scrollbar again — an infinite loop. This patch breaks the loop inside `LinearLayoutManager.updateLayoutParams` by detecting the scrollbar ping-pong and settling `boundedSize` instead of thrashing it — reserving no width. A change is treated as scrollbar-induced only when all hold, so a real window resize is never misread:
+  1. **Strict alternation**: the last 4 *rounded* cross-axis sizes form a clean `A,B,A,B` (exactly two values, three consecutive flips). A manual drag sweeps through many distinct values and never matches; rounding keeps the equality robust against subpixel drift.
+  2. **Scrollbar-sized delta**: the two values differ by no more than `SCROLLBAR_OSCILLATION_TOLERANCE` (25px — classic scrollbars are ~15–17px, with headroom for thicker/zoomed bars).
+
+  When detected, `boundedSize` settles on the **smaller** of the two values, which already accounts for the scrollbar so items never overflow the client width.
+- Files changed: `dist/recyclerview/layout-managers/LinearLayoutManager.js` only.
+- Upstream PR/issue: https://github.com/Shopify/flash-list/issues/2334
+- E/App issue: https://github.com/Expensify/App/issues/91584, https://github.com/Expensify/App/issues/92263
+- PR introducing patch: https://github.com/Expensify/App/pull/92520

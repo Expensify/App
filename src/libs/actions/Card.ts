@@ -147,20 +147,13 @@ function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
  * @param reason - reason for replacement
  */
 function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReason, validateCode: string) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM | typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
             value: {
                 isLoading: true,
                 errors: null,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.VALIDATE_ACTION_CODE,
-            value: {
-                validateCodeSent: null,
             },
         },
     ];
@@ -696,7 +689,7 @@ function updateSettlementFrequency(
     ];
 
     const parameters = {
-        workspaceAccountID,
+        policyAccountID: workspaceAccountID,
         settlementFrequency,
     };
 
@@ -738,7 +731,7 @@ function toggleCashbackToBill(workspaceAccountID: number, programKey: CardProgra
     ];
 
     const parameters = {
-        workspaceAccountID,
+        policyAccountID: workspaceAccountID,
         shouldApplyCashbackToBill,
     };
 
@@ -1575,12 +1568,12 @@ type ContinuousReconciliationUpdate = OnyxUpdate<
 function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseContinuousReconciliation: boolean, connectionName: ConnectionName, oldConnectionName?: ConnectionName) {
     const parameters = shouldUseContinuousReconciliation
         ? {
-              workspaceAccountID,
+              policyAccountID: workspaceAccountID,
               shouldUseContinuousReconciliation,
               expensifyCardContinuousReconciliationConnection: connectionName,
           }
         : {
-              workspaceAccountID,
+              policyAccountID: workspaceAccountID,
               shouldUseContinuousReconciliation,
           };
 

@@ -1,4 +1,4 @@
-import {Str} from 'expensify-common';
+import {SafeString, Str} from 'expensify-common';
 import React, {memo, useEffect, useState} from 'react';
 import type {RotationDegrees} from 'react-fast-pdf';
 import type {GestureResponderEvent, ImageURISource, StyleProp, ViewStyle} from 'react-native';
@@ -35,7 +35,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import SafeString from '@src/utils/SafeString';
 import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
 import AttachmentViewVideo from './AttachmentViewVideo';

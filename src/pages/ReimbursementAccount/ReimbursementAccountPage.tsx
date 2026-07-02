@@ -28,7 +28,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
 import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {hasInProgressUSDVBBA, hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
+import {hasInProgressUSDVBBA, hasInProgressVBBA, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isFullScreenName} from '@navigation/helpers/isNavigatorName';
@@ -97,6 +97,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const requestorStepRef = useRef<View>(null);
+    const hasRequestedNewBankAccountRef = useRef(false);
+    const hasClearedStalePlaidErrorsRef = useRef(false);
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
     const achData = reimbursementAccount?.achData;
@@ -230,7 +232,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     }
 
     useEffect(() => {
-        if ((isPreviousPolicy && !!reimbursementAccount) || isLoadingOnyxValue(reimbursementAccountMetadata)) {
+        // Consume this route intent only once so the response changing isPreviousPolicy does not trigger another request.
+        const shouldOpenNewBankAccount = route.params.stepToOpen === REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW && !hasRequestedNewBankAccountRef.current;
+        if ((!shouldOpenNewBankAccount && isPreviousPolicy && !!reimbursementAccount) || isLoadingOnyxValue(reimbursementAccountMetadata)) {
             return;
         }
 
@@ -245,6 +249,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             setBankAccountSubStep(null);
             setPlaidEvent(null);
         }
+        if (shouldOpenNewBankAccount) {
+            hasRequestedNewBankAccountRef.current = true;
+        }
         fetchData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isPreviousPolicy]); // Only re-run this effect when isPreviousPolicy changes, which happens once when the component first loads
@@ -258,6 +265,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         if (policyCurrency === CONST.CURRENCY.USD && achData?.state === CONST.BANK_ACCOUNT.STATE.PENDING) {
             setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.VALIDATION);
             goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.VALIDATION);
+            setShouldShowContinueSetupButton(shouldShowContinueSetupButtonValue);
             return;
         }
 
@@ -288,6 +296,14 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
     useEffect(
         () => {
+            const isOnPlaidBankAccountStep = currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && achData?.subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
+
+            // Reset the "stale errors cleared" guard whenever we leave the Plaid bank account step, so the next
+            // fresh entry into the Plaid step clears any old errors exactly once.
+            if (!isOnPlaidBankAccountStep) {
+                hasClearedStalePlaidErrorsRef.current = false;
+            }
+
             // Check for network change from offline to online
             if (prevIsOffline && !isOffline && prevReimbursementAccount && prevReimbursementAccount.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 fetchData(true);
@@ -310,8 +326,10 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
             const currentStepRouteParam = getStepToOpenFromRouteParams(route, hasConfirmedUSDCurrency);
             if (currentStepRouteParam === currentStep) {
-                // If the user is connecting online with plaid, reset any bank account errors so we don't persist old data from a potential previous connection
-                if (currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && achData?.subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+                // If the user is connecting online with plaid, reset any bank account errors so we don't persist old data from a potential previous connection.
+                // Guard with a ref so this only happens once per Plaid-step entry.
+                if (isOnPlaidBankAccountStep && !hasClearedStalePlaidErrorsRef.current) {
+                    hasClearedStalePlaidErrorsRef.current = true;
                     hideBankAccountErrors();
                 }
 
@@ -356,6 +374,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 [CONST.BANK_ACCOUNT.STEP.COMPANY]: CONST.BANK_ACCOUNT.PAGE_NAMES.COMPANY,
                 [CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS]: CONST.BANK_ACCOUNT.PAGE_NAMES.BENEFICIAL_OWNERS,
                 [CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT]: CONST.BANK_ACCOUNT.PAGE_NAMES.ACH_CONTRACT,
+                [CONST.BANK_ACCOUNT.STEP.KYB_DOCS]: CONST.BANK_ACCOUNT.PAGE_NAMES.KYB_DOCS,
                 [CONST.BANK_ACCOUNT.STEP.VALIDATION]: CONST.BANK_ACCOUNT.PAGE_NAMES.VALIDATION,
             };
             const page = stepToPageName[currentStep] ?? CONST.BANK_ACCOUNT.PAGE_NAMES.COUNTRY;

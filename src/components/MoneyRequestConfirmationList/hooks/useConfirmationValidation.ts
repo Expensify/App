@@ -2,12 +2,22 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {isValidPerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
 import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
-import {isValidMoneyRequestAmount, validateAmount} from '@libs/MoneyRequestUtils';
+import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import {isTaxAmountInvalid, isValidMoneyRequestAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import type {getTagLists as getTagListsFn} from '@libs/PolicyUtils';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {hasEnabledTags, hasMatchingTag} from '@libs/TagsOptionsListUtils';
 import {isValidTimeExpenseAmount} from '@libs/TimeTrackingUtils';
-import {areRequiredFieldsEmpty, getTag, hasTaxRateWithMatchingValue, isMerchantMissing, isScanRequest as isScanRequestUtil} from '@libs/TransactionUtils';
+import {
+    areRequiredFieldsEmpty,
+    getCalculatedTaxAmount,
+    getTag,
+    getTaxAmount,
+    hasTaxRateWithMatchingValue,
+    isCreatedMissing,
+    isMerchantMissing,
+    isScanRequest as isScanRequestUtil,
+} from '@libs/TransactionUtils';
 import {isValidInputLength} from '@libs/ValidationUtils';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -100,6 +110,12 @@ type UseConfirmationValidationParams = {
 
     /** Whether the new manual expense flow is enabled */
     isNewManualExpenseFlowEnabled: boolean;
+
+    /** Whether the confirmation fields are read-only (date is not inline-editable) */
+    isReadOnly: boolean;
+
+    /** Whether the date field is shown for this flow (mirrors the footer's date visibility) */
+    shouldShowDate: boolean;
 };
 
 /**
@@ -144,6 +160,8 @@ function useConfirmationValidation({
     isTimeRequest,
     routeError,
     isNewManualExpenseFlowEnabled,
+    isReadOnly,
+    shouldShowDate,
 }: UseConfirmationValidationParams): {validate: (paymentType?: PaymentMethodType) => ValidationResult | null} {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const selectedParticipantsCount = selectedParticipants.length;
@@ -178,6 +196,13 @@ function useConfirmationValidation({
             !isValidMoneyRequestAmount(iouAmount, iouType, true, isP2P)
         ) {
             return {errorKey: 'common.error.invalidAmount'};
+        }
+        // The date is an inline, clearable required field in the new manual flow for every type that shows it
+        // (manual, distance, time, invoice, ...). Block confirmation when the user cleared it. Gating on the same
+        // `shouldShowDate && !isReadOnly` condition that renders the inline picker keeps validation and UI in sync,
+        // and skips read-only/scan flows where the date is populated server-side.
+        if (isNewManualExpenseFlowEnabled && shouldShowDate && !isReadOnly && isCreatedMissing(transaction)) {
+            return {errorKey: 'common.error.fieldRequired'};
         }
         const merchantValue = iouMerchant ?? '';
         const {isValid: isMerchantLengthValid} = isValidInputLength(merchantValue, CONST.MERCHANT_NAME_MAX_BYTES);
@@ -232,6 +257,18 @@ function useConfirmationValidation({
 
         if (shouldShowTax && !!transaction?.taxCode && !hasTaxRateWithMatchingValue(policy, transaction)) {
             return {errorKey: 'violations.taxOutOfPolicy'};
+        }
+
+        // In the new manual expense flow the tax amount is edited inline, so the standalone tax amount step's
+        // guard (tax amount can't exceed the tax computed from the rate and the expense amount) runs here.
+        // This also blocks creation when an invalid tax amount was persisted to the draft and then reloaded.
+        if (isNewManualExpenseFlowEnabled && shouldShowTax && !isDistanceRequest) {
+            const decimals = getCurrencyDecimals(iouCurrencyCode);
+            const maxTaxAmount = getCalculatedTaxAmount(policy, transaction, iouCurrencyCode, decimals);
+            const currentTaxAmount = convertToFrontendAmountAsString(Math.abs(getTaxAmount(transaction, false)), decimals);
+            if (isTaxAmountInvalid(currentTaxAmount, maxTaxAmount, decimals)) {
+                return {errorKey: 'iou.error.invalidTaxAmount'};
+            }
         }
 
         if (isPerDiemRequest && (transaction?.comment?.customUnit?.subRates ?? []).length === 0) {

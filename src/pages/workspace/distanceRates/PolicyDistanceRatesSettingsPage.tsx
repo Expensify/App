@@ -13,6 +13,8 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,7 +24,7 @@ import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {clearPolicyDistanceRatesErrorFields} from '@userActions/Policy/DistanceRate';
+import {clearPolicyCommuterExclusionsErrors, clearPolicyDistanceRatesErrorFields} from '@userActions/Policy/DistanceRate';
 import {enableDistanceRequestTax} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,7 +41,10 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
+    const isCommuterExclusionsEnabled = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS);
     const customUnit = getDistanceRateCustomUnit(policy);
+    const {canWrite: canWriteDistanceRates, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
     const isDistanceTrackTaxEnabled = !!customUnit?.attributes?.taxEnabled;
     const isPolicyTrackTaxEnabled = !!policy?.tax?.trackingEnabled;
 
@@ -70,6 +75,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -92,12 +98,36 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                     onClose={() => clearErrorFields('attributes')}
                                 >
                                     <MenuItemWithTopDescription
-                                        shouldShowRightIcon
+                                        shouldShowRightIcon={canWriteDistanceRates}
                                         title={defaultUnit ? Str.recapitalize(translate(getUnitTranslationKey(defaultUnit))) : ''}
                                         description={translate('workspace.distanceRates.unit')}
                                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_UNIT.getRoute(policyID))}
+                                        interactive={canWriteDistanceRates}
                                         wrapperStyle={[styles.ph5, styles.mt3]}
                                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.UNIT_SELECTOR}
+                                    />
+                                </OfflineWithFeedback>
+                            )}
+                            {isCommuterExclusionsEnabled && (
+                                <OfflineWithFeedback
+                                    errors={getLatestErrorField(policy ?? {}, 'commuterExclusions')}
+                                    pendingAction={policy?.pendingFields?.commuterExclusions}
+                                    errorRowStyles={styles.mh5}
+                                    onClose={() => clearPolicyCommuterExclusionsErrors(policyID)}
+                                >
+                                    <MenuItemWithTopDescription
+                                        shouldShowRightIcon
+                                        title={
+                                            policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE && policy?.commuterExclusions?.fixedDistance != null
+                                                ? translate('workspace.distanceRates.commuterExclusions.summaryFixedDistance', {
+                                                      distance: policy.commuterExclusions.fixedDistance,
+                                                      unit: policy.commuterExclusions.fixedDistanceUnit ?? defaultUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                                                  })
+                                                : translate('workspace.distanceRates.commuterExclusions.summaryDisabled')
+                                        }
+                                        description={translate('workspace.distanceRates.commuterExclusions.title')}
+                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS.getRoute(policyID))}
+                                        wrapperStyle={[styles.ph5, styles.mt3]}
                                     />
                                 </OfflineWithFeedback>
                             )}
@@ -113,6 +143,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                         defaultValue={defaultCategory}
                                         wrapperStyle={[styles.ph5, styles.mt3]}
                                         customUnitID={customUnit.customUnitID}
+                                        interactive={canWriteDistanceRates}
                                     />
                                 </OfflineWithFeedback>
                             )}
@@ -134,7 +165,9 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                             isOn={isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled}
                                             accessibilityLabel={translate('workspace.distanceRates.trackTax')}
                                             onToggle={onToggleTrackTax}
-                                            disabled={!isPolicyTrackTaxEnabled}
+                                            disabled={!canWriteDistanceRates || !isPolicyTrackTaxEnabled}
+                                            disabledAction={withReadOnlyFallback()}
+                                            showLockIcon={!canWriteDistanceRates}
                                         />
                                     </View>
                                 </View>

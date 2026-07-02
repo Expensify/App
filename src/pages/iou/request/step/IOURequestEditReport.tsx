@@ -1,13 +1,15 @@
 import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import useTransactionsByID from '@hooks/useTransactionsByID';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -42,7 +44,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const session = useSession();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -55,23 +57,21 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         () => getPersonalDetailsForAccountID(selectedReport?.ownerAccountID, personalDetails) as PersonalDetails,
         [personalDetails, selectedReport?.ownerAccountID],
     );
-    const selectedReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport?.policyID}`];
-
     const hasPerDiemTransactions = useHasPerDiemTransactions(transactionIDs);
 
     // When moving an expense that belongs to another user, or when the selection includes per diem
     // transactions, use the policy of their report (or the transaction's policy as fallback) so the
     // selected workspace is preserved.
     // For the current user's own non-per-diem expenses, fall back to undefined to let the default workspace apply.
-    const isOwnedByOther = selectedReport?.ownerAccountID !== session?.accountID;
+    const isOwnedByOther = selectedReport?.ownerAccountID !== currentUserPersonalDetails.accountID;
     const isOwnedByOtherOrHasPerDiem = isOwnedByOther || hasPerDiemTransactions;
     const targetExpensePolicyID = isOwnedByOtherOrHasPerDiem ? selectedReport?.policyID : undefined;
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions, undefined, targetExpensePolicyID);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [transactions] = useTransactionsByID(transactionIDs);
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (transactionIDs.length === 0 || item.value === reportID) {
             Navigation.dismissToSuperWideRHP();
@@ -85,14 +85,16 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             changeTransactionsReport({
                 transactionIDs,
                 isASAPSubmitBetaEnabled,
-                accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                email: session?.email ?? '',
+                accountID: currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                email: currentUserPersonalDetails.email ?? '',
                 newReport,
                 policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
                 reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-                allTransactions,
                 policyTagList,
+                transactions,
+                allTransactionViolation: transactionViolations,
+                allReports,
             });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
@@ -109,11 +111,13 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         changeTransactionsReport({
             transactionIDs,
             isASAPSubmitBetaEnabled,
-            accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-            email: session?.email ?? '',
+            accountID: currentUserPersonalDetails.accountID,
+            email: currentUserPersonalDetails.email ?? '',
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
-            allTransactions,
             policyTagList,
+            transactions,
+            allTransactionViolation: transactionViolations,
+            allReports,
         });
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
@@ -127,12 +131,12 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             return;
         }
 
-        const policyForNewReport = hasPerDiemTransactions ? selectedReportPolicy : policyForMovingExpenses;
-        const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, betas, false, shouldDismissEmptyReportsConfirmation);
+        const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpenses, betas, false, shouldDismissEmptyReportsConfirmation);
         selectReport(
             {
                 value: optimisticReport.reportID,
                 keyForList: optimisticReport.reportID,
+                policyID: policyForMovingExpenses?.id,
             },
             optimisticReport,
         );
@@ -146,8 +150,11 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     });
 
     const createReport = () => {
-        const restrictionPolicy = hasPerDiemTransactions ? selectedReportPolicy : policyForMovingExpenses;
-        if (restrictionPolicy && shouldRestrictUserBillableActions(restrictionPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, session?.accountID)) {
+        const restrictionPolicy = policyForMovingExpenses;
+        if (
+            restrictionPolicy &&
+            shouldRestrictUserBillableActions(restrictionPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)
+        ) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictionPolicy.id));
             return;
         }

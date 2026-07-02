@@ -24,6 +24,12 @@ type ParticipantPickerProps = {
     /** Whether this is a time expense request */
     isTimeRequest?: boolean;
 
+    /** Whether the IOU is workspaces only */
+    isWorkspacesOnly?: boolean;
+
+    /** Whether to exclude P2P recipients (and the invite-by-email option) from the list. Used for negative amounts, which P2P chats don't support. */
+    shouldExcludeP2P?: boolean;
+
     /** Callback fired when participants are updated */
     onParticipantsAdded: (value: Participant[]) => void;
 
@@ -35,6 +41,9 @@ type ParticipantPickerProps = {
 
     /** Callback fired when picker should close */
     onClose?: () => void;
+
+    /** Callback fired when the modal backdrop (the area outside the picker) is pressed. Falls back to onClose when omitted. */
+    onBackdropPress?: () => void;
 };
 
 function ParticipantPicker({
@@ -43,10 +52,13 @@ function ParticipantPicker({
     action,
     isPerDiemRequest = false,
     isTimeRequest = false,
+    isWorkspacesOnly = false,
+    shouldExcludeP2P = false,
     onParticipantsAdded,
     onFinish,
     isVisible = true,
     onClose,
+    onBackdropPress,
 }: ParticipantPickerProps) {
     const {translate} = useLocalize();
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
@@ -62,7 +74,10 @@ function ParticipantPicker({
             action={action}
             isPerDiemRequest={isPerDiemRequest}
             isTimeRequest={isTimeRequest}
+            isWorkspacesOnly={isWorkspacesOnly}
+            shouldExcludeP2P={shouldExcludeP2P}
             onRestrictedParticipantSelected={onClose}
+            onCloseParticipantPicker={onClose}
             initiallySelectedReportID={selectedParticipant?.reportID}
             shouldMoveSelectedToTop
         />
@@ -77,6 +92,7 @@ function ParticipantPicker({
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
             onClose={onClose}
+            onBackdropPress={onBackdropPress}
             onModalHide={onClose}
             enableEdgeToEdgeBottomSafeAreaPadding
         >

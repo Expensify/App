@@ -1,3 +1,4 @@
+import {SafeString} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useEffect} from 'react';
 import type {GestureResponderEvent} from 'react-native';
@@ -35,12 +36,12 @@ import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMa
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy as isPaidGroupPolicyFn} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
-import SafeString from '@src/utils/SafeString';
 
 type MoneyRequestAttendeesSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
@@ -73,7 +74,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const reportAttributesDerived = useReportAttributes();
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -85,7 +86,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         ...attendee,
         reportID: CONST.DEFAULT_NUMBER_ID.toString(),
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        keyForList: String(attendee.accountID) || attendee.email || attendee.displayName,
+        keyForList: attendee.email || attendee.displayName,
         selected: true,
         // Use || to fall back to displayName for name-only attendees (empty email)
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

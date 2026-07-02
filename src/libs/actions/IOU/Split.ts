@@ -1,6 +1,4 @@
 import {fastMerge} from 'expensify-common';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -16,6 +14,7 @@ import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
@@ -32,9 +31,12 @@ import {
     generateReportID,
     getChatByParticipants,
     getParsedComment,
+    getReimbursableTotal,
     getReportNotificationPreference,
     getReportOrDraftReport,
+    getReportTransactions,
     getTransactionDetails,
+    getUnheldReimbursableTotal,
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
@@ -66,7 +68,7 @@ import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt, ReceiptSource, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {buildParticipantsPolicyTags, getAllPersonalDetails, getAllReports, getAllTransactionDrafts, getAllTransactions, getMoneyRequestPolicyTags} from './index';
+import {buildParticipantsPolicyTags, getAllPersonalDetails, getAllReports, getAllTransactionDrafts, getAllTransactions} from './index';
 import {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
@@ -78,6 +80,7 @@ import {
 } from './MoneyRequestBuilder';
 import type {BuildOnyxDataForMoneyRequestKeys, OneOnOneIOUReport} from './MoneyRequestBuilder';
 import {dismissModalAndOpenReportInInboxTab, handleNavigateAfterExpenseCreate, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
+import {isOneToTwoTransactionTransition} from './PendingNewTransactions';
 import type BasePolicyParams from './types/BasePolicyParams';
 import type BaseTransactionParams from './types/BaseTransactionParams';
 
@@ -107,6 +110,7 @@ type DistanceRequestTransactionParams = BaseTransactionParams & {
     odometerStart?: number;
     odometerEnd?: number;
     gpsCoordinates?: string;
+    distanceRequestType?: string;
 };
 
 type CreateDistanceRequestInformation = {
@@ -134,6 +138,8 @@ type CreateDistanceRequestInformation = {
     optimisticReportPreviewActionID?: string;
     shouldDeferAutoSubmit?: boolean;
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
+    // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined;
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -157,6 +163,8 @@ type CreateSplitsAndOnyxDataParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     participantsPolicyTags: Record<string, OnyxTypes.PolicyTagLists>;
+    // TODO: delegateAccountID will be made required in PR 11 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined;
 };
 
 type StartSplitBilActionParams = {
@@ -214,6 +222,8 @@ type SplitBillActionsParams = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     shouldHandleNavigation?: boolean;
     shouldDeferForSearch?: boolean;
+    // TODO: delegateAccountID will be made required in PR 11 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined;
 };
 
 /**
@@ -249,6 +259,7 @@ function splitBill({
     personalDetails,
     shouldHandleNavigation = true,
     shouldDeferForSearch = false,
+    delegateAccountID,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -282,6 +293,7 @@ function splitBill({
         personalDetails,
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         participantsPolicyTags: buildParticipantsPolicyTags(participants),
+        delegateAccountID,
     });
 
     const parameters: SplitBillParams = {
@@ -317,10 +329,11 @@ function splitBill({
             onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
         },
     );
-    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-
     if (shouldHandleNavigation) {
+        TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
         dismissModalAndOpenReportInInboxTab(existingSplitChatReportID);
+    } else {
+        removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     }
 
     notifyNewAction(splitData.chatReportID, undefined, true);
@@ -358,6 +371,7 @@ function splitBillAndOpenReport({
     personalDetails,
     shouldHandleNavigation = true,
     shouldDeferForSearch = false,
+    delegateAccountID,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -391,6 +405,7 @@ function splitBillAndOpenReport({
         personalDetails,
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         participantsPolicyTags: buildParticipantsPolicyTags(participants),
+        delegateAccountID,
     });
 
     const parameters: SplitBillParams = {
@@ -426,10 +441,11 @@ function splitBillAndOpenReport({
             onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
         },
     );
-    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-
     if (shouldHandleNavigation) {
+        TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
         dismissModalAndOpenReportInInboxTab(splitData.chatReportID);
+    } else {
+        removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     }
     notifyNewAction(splitData.chatReportID, undefined, true);
 }
@@ -502,6 +518,9 @@ function startSplitBill({
         participants,
         transactionID: splitTransaction.transactionID,
         isOwnPolicyExpenseChat,
+        iouReportID: splitChatReport.reportID,
+        // delegateAccountIDParam: will be threaded in PR 11; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+        delegateAccountIDParam: undefined,
     });
 
     splitChatReport.lastReadTime = DateUtils.getDBTime();
@@ -997,9 +1016,20 @@ function completeSplitBill(
                   })
                 : buildOptimisticIOUReport(sessionAccountID, participant.accountID ?? CONST.DEFAULT_NUMBER_ID, splitAmount, oneOnOneChatReport?.reportID, currency ?? '');
         } else if (isPolicyExpenseChat) {
-            if (typeof oneOnOneIOUReport?.total === 'number') {
-                // Because of the Expense reports are stored as negative values, we subtract the total from the amount
-                oneOnOneIOUReport.total -= splitAmount;
+            if (oneOnOneIOUReport) {
+                // Capture previous fresh reimbursable totals before mutating, so the diff applies whether or
+                // not the oneOnOneIOUReport already had reimbursableTotal/unheldReimbursableTotal populated locally.
+                const previousReimbursableTotal = getReimbursableTotal(oneOnOneIOUReport);
+                const previousUnheldReimbursableTotal = getUnheldReimbursableTotal(oneOnOneIOUReport);
+                if (typeof oneOnOneIOUReport.total === 'number') {
+                    // Because of the Expense reports are stored as negative values, we subtract the total from the amount
+                    oneOnOneIOUReport.total -= splitAmount;
+                }
+                oneOnOneIOUReport.reimbursableTotal = previousReimbursableTotal - splitAmount;
+                if (typeof oneOnOneIOUReport.unheldTotal === 'number') {
+                    oneOnOneIOUReport.unheldTotal -= splitAmount;
+                }
+                oneOnOneIOUReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - splitAmount;
             }
         } else {
             oneOnOneIOUReport = updateIOUOwnerAndTotal(oneOnOneIOUReport, sessionAccountID, splitAmount, currency ?? '');
@@ -1040,13 +1070,16 @@ function completeSplitBill(
                 participants: [participant],
                 transactionID: oneOnOneTransaction.transactionID,
                 currentUserAccountID: sessionAccountID,
+                // delegateAccountIDParam: will be threaded in PR 11; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+                delegateAccountIDParam: undefined,
             });
 
         let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport?.reportID, oneOnOneIOUReport?.reportID);
         if (oneOnOneReportPreviewAction) {
             oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
         } else {
-            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction);
+            // delegateAccountID: will be threaded in PR 11; buildOptimisticReportPreview falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction, undefined, undefined, undefined);
         }
         const hasViolations = hasViolationsReportUtils(oneOnOneIOUReport.reportID, transactionViolations, sessionAccountID, sessionEmail ?? '');
 
@@ -1082,6 +1115,8 @@ function completeSplitBill(
             },
             quickAction,
             personalDetails,
+            // delegateAccountID: will be threaded in PR 11; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+            delegateAccountID: undefined,
         });
 
         splits.push({
@@ -1137,7 +1172,7 @@ function completeSplitBill(
 
     playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.COMPLETE_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
-    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
+    TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
     dismissModalAndOpenReportInInboxTab(chatReportID);
     notifyNewAction(chatReportID, undefined, true);
 }
@@ -1361,6 +1396,7 @@ function createSplitsAndOnyxData({
     betas,
     personalDetails,
     participantsPolicyTags,
+    delegateAccountID,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -1411,6 +1447,8 @@ function createSplitsAndOnyxData({
         participants,
         transactionID: splitTransaction.transactionID,
         isOwnPolicyExpenseChat,
+        iouReportID: splitChatReport.reportID,
+        delegateAccountIDParam: delegateAccountID,
     });
 
     splitChatReport.lastReadTime = DateUtils.getDBTime();
@@ -1669,13 +1707,21 @@ function createSplitsAndOnyxData({
         } else if (isOwnPolicyExpenseChat) {
             // Because of the Expense reports are stored as negative values, we subtract the total from the amount
             if (oneOnOneIOUReport?.currency === currency) {
+                // Capture previous fresh reimbursable totals before mutating, so the diff applies whether or
+                // not the oneOnOneIOUReport already had reimbursableTotal/unheldReimbursableTotal populated locally.
+                const previousReimbursableTotal = getReimbursableTotal(oneOnOneIOUReport);
+                const previousUnheldReimbursableTotal = getUnheldReimbursableTotal(oneOnOneIOUReport);
                 if (typeof oneOnOneIOUReport.total === 'number') {
                     oneOnOneIOUReport.total -= splitAmount;
                 }
 
+                oneOnOneIOUReport.reimbursableTotal = previousReimbursableTotal - splitAmount;
+
                 if (typeof oneOnOneIOUReport.unheldTotal === 'number') {
                     oneOnOneIOUReport.unheldTotal -= splitAmount;
                 }
+
+                oneOnOneIOUReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - splitAmount;
             }
         } else {
             oneOnOneIOUReport = updateIOUOwnerAndTotal(oneOnOneIOUReport, currentUserAccountID, splitAmount, currency);
@@ -1723,6 +1769,7 @@ function createSplitsAndOnyxData({
                 participants: [participant],
                 transactionID: oneOnOneTransaction.transactionID,
                 currentUserAccountID,
+                delegateAccountIDParam: delegateAccountID,
             });
 
         // Add optimistic personal details for new participants
@@ -1748,7 +1795,7 @@ function createSplitsAndOnyxData({
         if (oneOnOneReportPreviewAction) {
             oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
         } else {
-            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport);
+            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction, undefined, undefined, delegateAccountID);
         }
 
         const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories) : [];
@@ -1802,6 +1849,7 @@ function createSplitsAndOnyxData({
             hasViolations,
             quickAction,
             personalDetails,
+            delegateAccountID,
         });
 
         const individualSplit = {
@@ -1883,8 +1931,9 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         optimisticReportPreviewActionID,
         shouldDeferAutoSubmit,
         previousOdometerDraft,
+        delegateAccountID,
     } = distanceRequestInformation;
-    const {policy, policyCategories, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
+    const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
     transactionParams.comment = parsedComment;
     const {
@@ -1911,6 +1960,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         odometerEnd,
         isFromGlobalCreate,
         gpsCoordinates,
+        distanceRequestType,
     } = transactionParams;
 
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
@@ -1972,6 +2022,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             personalDetails,
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             participantsPolicyTags: buildParticipantsPolicyTags(participants),
+            delegateAccountID,
         });
         onyxData = splitOnyxData;
 
@@ -2000,6 +2051,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             odometerStart,
             odometerEnd,
             gpsCoordinates,
+            distanceRequestType,
         };
     } else {
         const participant = participants.at(0) ?? {};
@@ -2028,7 +2080,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             policyParams: {
                 policy,
                 policyCategories,
-                policyTagList: getMoneyRequestPolicyTags({existingIOUReport, moneyRequestReportID, parentChatReport: currentChatReport, participant}),
+                policyTagList,
                 policyRecentlyUsedCategories,
                 policyRecentlyUsedTags,
             },
@@ -2061,6 +2113,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             personalDetails,
             betas,
             optimisticReportPreviewActionID,
+            delegateAccountID,
         });
 
         onyxData = moneyRequestOnyxData;
@@ -2114,6 +2167,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             description: parsedComment,
             attendees: attendees ? JSON.stringify(attendees) : undefined,
             gpsCoordinates,
+            distanceRequestType,
             shouldDeferAutoSubmit,
         };
     }
@@ -2146,25 +2200,31 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     };
 
+    const isOneToTwoTransition = isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID));
+
     deferOrExecuteWrite(apiWrite, {
         shouldDeferForSearch: shouldDeferForSearch || !!(shouldHandleNavigation && isFromGlobalCreate && !isReportTopmostSplitNavigator()),
         optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
     });
 
-    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
 
     if (shouldHandleNavigation) {
-        const navigationActiveReportID = backToReport ?? activeReportID;
+        TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
         highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, parameters.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
-        handleNavigateAfterExpenseCreate({
-            activeReportID: navigationActiveReportID,
-            isFromGlobalCreate,
-            transactionID: parameters.transactionID,
-            shouldAddPendingNewTransactionIDs: navigationActiveReportID === parameters.chatReportID,
-        });
+    } else {
+        removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     }
+
+    const navigationActiveReportID = backToReport ?? activeReportID;
+    handleNavigateAfterExpenseCreate({
+        activeReportID: navigationActiveReportID,
+        isFromGlobalCreate,
+        transactionID: parameters.transactionID,
+        shouldAddPendingNewTransactionIDs: isOneToTwoTransition || (shouldHandleNavigation && navigationActiveReportID === parameters.chatReportID),
+        shouldNavigate: shouldHandleNavigation,
+    });
 
     if (!isMoneyRequestReport) {
         notifyNewAction(activeReportID, undefined, true);

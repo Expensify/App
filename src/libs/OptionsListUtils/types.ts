@@ -194,6 +194,7 @@ type IsValidReportsConfig = Pick<
 > & {
     currentUserAccountID: number;
     currentUserLogin: string;
+    conciergeReportID: string | undefined;
 };
 
 type GetOptionsConfig = {
@@ -214,6 +215,9 @@ type GetOptionsConfig = {
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     sortedActions?: Record<string, ReportAction[]>;
+    isTrackIntentUser?: boolean;
+    /** TODO: Should be required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
+    isOffline?: boolean;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
@@ -296,6 +300,11 @@ type OrderReportOptionsConfig = {
 
 type ReportAndPersonalDetailOptions = Pick<Options, 'recentReports' | 'personalDetails' | 'workspaceChats'>;
 
+type OptionsResult = {
+    options: Options;
+    hasMore?: boolean;
+};
+
 export type {
     FilterUserToInviteConfig,
     GetOptionsConfig,
@@ -317,4 +326,5 @@ export type {
     SelectionListSections,
     SectionForSearchTerm,
     IsValidReportsConfig,
+    OptionsResult,
 };

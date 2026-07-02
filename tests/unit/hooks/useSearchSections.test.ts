@@ -35,11 +35,6 @@ jest.mock('@hooks/useActionLoadingReportIDs', () => ({
     default: () => new Set(),
 }));
 
-jest.mock('@hooks/useArchivedReportsIdSet', () => ({
-    __esModule: true,
-    default: () => new Set(),
-}));
-
 const mockGetSortedSections = jest.fn();
 const mockGetSections = jest.fn();
 jest.mock('@libs/SearchUIUtils', () => ({

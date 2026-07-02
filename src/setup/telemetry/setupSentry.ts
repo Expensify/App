@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/react-native';
 import {isDevelopment} from '@libs/Environment/Environment';
-import {breadcrumbsIntegration, browserProfilingIntegration, consoleIntegration, navigationIntegration, tracingIntegration} from '@libs/telemetry/integrations';
+import {breadcrumbsIntegration, browserProfilingIntegration, consoleIntegration, navigationIntegration, reportingObserverIntegration, tracingIntegration} from '@libs/telemetry/integrations';
 import {processBeforeSendLogs, processBeforeSendTransactions} from '@libs/telemetry/middlewares';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -8,7 +8,9 @@ import pkg from '../../../package.json';
 import makeDebugTransport from './debugTransport';
 
 function setupSentry(): void {
-    const integrations = [navigationIntegration, tracingIntegration, browserProfilingIntegration, breadcrumbsIntegration, consoleIntegration];
+    const integrations = [navigationIntegration, tracingIntegration, browserProfilingIntegration, breadcrumbsIntegration, consoleIntegration, reportingObserverIntegration].filter(
+        (integration): integration is NonNullable<typeof integration> => integration !== undefined,
+    );
 
     Sentry.init({
         dsn: CONFIG.SENTRY_DSN,
@@ -23,12 +25,14 @@ function setupSentry(): void {
         integrations,
         environment: CONFIG.ENVIRONMENT,
         release: `${pkg.name}@${pkg.version}`,
+        // UPDATE_REQUIRED is not a real error and makes our errors in Spotnana spike and get rate limited when we bump the app min version, so ignore it
+        ignoreErrors: [CONST.ERROR.UPDATE_REQUIRED],
         beforeSendTransaction: processBeforeSendTransactions,
         enableLogs: true,
         beforeSendLog: processBeforeSendLogs,
-        // In HybridApp, native SDK is initialized early in Application.onCreate (Android) and
-        // AppDelegate (iOS) to capture breadcrumbs during native startup before JS loads.
-        autoInitializeNativeSdk: !CONFIG.IS_HYBRID_APP,
+        // Native SDK is initialized early in Application.onCreate (Android) and AppDelegate (iOS)
+        // via SentryNativeSDKManager so native code can report to Sentry before JS loads.
+        autoInitializeNativeSdk: false,
         // We set experimental lifecycle value to enable profiling for whole spans. Without this option profile often is dropped early and we haven't the whole picture
         // See https://github.com/Expensify/App/issues/87489
         // eslint-disable-next-line @typescript-eslint/naming-convention

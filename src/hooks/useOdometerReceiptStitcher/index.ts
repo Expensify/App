@@ -3,8 +3,8 @@ import {useEffect, useReducer, useRef} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImagesFailure';
 import Log from '@libs/Log';
-import {getOdometerImageUri} from '@libs/OdometerImageUtils';
 import {deriveOdometerReceipt, stitchTask} from '@libs/OdometerReceipt';
+import {getOdometerImageUri} from '@libs/OdometerUtils';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type {OdometerReceiptState, UseOdometerReceiptStitcherArgs, UseOdometerReceiptStitcherResult} from './types';
@@ -143,5 +143,5 @@ function useOdometerReceiptStitcher({
     return {state, isReady, isStitching, error, hasVerifiedBlobs};
 }
 
-export type {OdometerReceiptState, UseOdometerReceiptStitcherArgs, UseOdometerReceiptStitcherResult} from './types';
+export type {UseOdometerReceiptStitcherArgs} from './types';
 export default useOdometerReceiptStitcher;

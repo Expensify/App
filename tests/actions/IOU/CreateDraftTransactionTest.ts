@@ -96,6 +96,7 @@ jest.mock('@src/libs/SearchQueryUtils', () => {
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
+    isGroupPolicy: jest.fn().mockReturnValue(true),
     isPolicyOwner: jest.fn().mockImplementation((policy?: OnyxEntry<Policy>, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
 }));
 
@@ -161,6 +162,8 @@ describe('actions/IOU', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
+                filteredPoliciesCount: 0,
+                firstPolicyID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -212,6 +215,8 @@ describe('actions/IOU', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
+                filteredPoliciesCount: 0,
+                firstPolicyID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -252,6 +257,8 @@ describe('actions/IOU', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
+                filteredPoliciesCount: 0,
+                firstPolicyID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -287,6 +294,8 @@ describe('actions/IOU', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
+                filteredPoliciesCount: 0,
+                firstPolicyID: undefined,
             });
             await waitForBatchedUpdates();
 

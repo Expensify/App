@@ -4,12 +4,16 @@ import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {useRef} from 'react';
 import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {resolveEarlyReportID} from '@libs/IOUUtils';
+import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
 import {initMoneyRequest} from '@userActions/IOU/MoneyRequest';
-import type {IOURequestType} from '@src/CONST';
+import {setTransactionReport} from '@userActions/Transaction';
+import type {IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDefaultParticipants from './useDefaultParticipants';
 import useOdometerDraftHydrator from './useOdometerDraftHydrator';
 import useOnyx from './useOnyx';
 import usePersonalPolicy from './usePersonalPolicy';
@@ -34,6 +38,9 @@ type UseResetIOUTypeParams = {
     /** The current transaction request type derived from tab/transaction state */
     transactionRequestType: IOURequestType | undefined;
 
+    /** The IOU type from the route params, used to resolve the global-create participant fallback */
+    iouType?: IOUType;
+
     /** The policy resolved for this transaction */
     policy?: OnyxEntry<Policy>;
 
@@ -42,6 +49,10 @@ type UseResetIOUTypeParams = {
 
     /** Whether to skip keyboard dismiss for per diem tab */
     skipKeyboardDismissForPerDiem?: boolean;
+
+    /** Whether the new manual expense flow beta is enabled. When true, the fresh transaction is seeded with
+     * participants from the current report so the embedded confirmation's auto-assign useEffect short-circuits. */
+    isNewManualExpenseFlowEnabled?: boolean;
 };
 
 /**
@@ -55,9 +66,11 @@ function useResetIOUType({
     isLoadingTransaction = false,
     isLoadingSelectedTab = false,
     transactionRequestType,
+    iouType,
     policy,
     isTrackDistanceExpense = false,
     skipKeyboardDismissForPerDiem = false,
+    isNewManualExpenseFlowEnabled = false,
 }: UseResetIOUTypeParams): (newIOUType: IOURequestType) => void {
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [hasOnlyPersonalPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesSelector});
@@ -75,24 +88,42 @@ function useResetIOUType({
         isLoadingSelectedTab,
     });
 
-    const resetIOUTypeIfChanged = (newIOUType: IOURequestType) => {
-        if (!(skipKeyboardDismissForPerDiem && newIOUType === CONST.IOU.REQUEST_TYPE.PER_DIEM)) {
-            Keyboard.dismiss();
-        }
+    // For the new manual flow, derive participants from the current report (or the global-create fallback) so the
+    // freshly-rebuilt transaction already includes them. This prevents the embedded confirmation's auto-assign
+    // useEffect from re-firing on every cleanup and dragging back unrelated draft state (receipt, billable, etc.).
+    const resolvedDefaultParticipants = useDefaultParticipants({
+        sourceReport: report,
+        transaction,
+        iouType,
+        isNewManualExpenseFlowEnabled,
+    });
+    const defaultParticipants = resolvedDefaultParticipants.length > 0 ? resolvedDefaultParticipants : undefined;
 
+    const resetIOUTypeIfChanged = (newIOUType: IOURequestType) => {
         if (transaction?.iouRequestType === newIOUType) {
             return;
         }
 
+        if (!(skipKeyboardDismissForPerDiem && newIOUType === CONST.IOU.REQUEST_TYPE.PER_DIEM)) {
+            Keyboard.dismiss();
+        }
+
         const isFromGlobalCreate = !report?.reportID;
 
+        // Resolve early so we can decide whether to seed participants below.
+        const earlyReportID = resolveEarlyReportID(isFromGlobalCreate, defaultParticipants);
+        const isSelfDMDefault = earlyReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+
+        // Skip seeding self-DM participants here. The confirmation's auto-assign
+        // useEffect is the only place that can both set the reportID and switch
+        // iouType to TRACK; seeding them early would short-circuit that effect.
         initMoneyRequest({
             reportID,
             policy,
             personalPolicy,
             isFromGlobalCreate,
             isTrackDistanceExpense,
-            isFromFloatingActionButton: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate ?? isFromGlobalCreate,
+            isFromFloatingActionButton: getIsFromGlobalCreate(transaction) ?? isFromGlobalCreate,
             currentIouRequestType: transaction?.iouRequestType,
             newIouRequestType: newIOUType,
             report,
@@ -102,7 +133,16 @@ function useResetIOUType({
             currentUserPersonalDetails,
             hasOnlyPersonalPolicies: hasOnlyPersonalPolicies ?? true,
             draftTransactionIDs,
+            defaultParticipants: isSelfDMDefault ? undefined : defaultParticipants,
         });
+
+        // Set the transaction reportID early for global-create flows with resolved default
+        // participants. This ensures destinationReportID is defined from the confirmation's
+        // first render, preventing the pre-insert useEffect from seeing an undefined-to-value
+        // transition that would tear down and fail to re-fire the pre-insert.
+        if (earlyReportID && !isSelfDMDefault) {
+            setTransactionReport(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, {reportID: earlyReportID}, true);
+        }
 
         // Layer odometer draft fields onto the freshly-rebuilt transaction. The merge queues after
         // initMoneyRequest's Onyx.set, so the odometer fields land on top.

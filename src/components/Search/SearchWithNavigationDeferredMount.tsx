@@ -5,6 +5,7 @@ import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {endSpanWithAttributes} from '@libs/telemetry/activeSpans';
+import {endNavigateToReportsFirstPaint} from '@libs/telemetry/navigateToReportsSpans';
 import {endSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import CONST from '@src/CONST';
 import Search from './index';
@@ -13,6 +14,7 @@ const REASON_ATTRIBUTES = {context: 'SearchPage.NavigationDeferred'} as const;
 
 function handleSkeletonLayout() {
     endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
+    endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_FIRST);
 
     // Skeleton paint is the first user-perceivable signal that the submit destination
     // (Search) is up. End the submit-to-destination-visible span here for any pending
@@ -27,7 +29,7 @@ function handleSkeletonLayout() {
 function SearchWithNavigationDeferredMount(props: ComponentProps<typeof Search>) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const containerStyle = shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!props.hasFilterBars) : styles.mt3;
+    const containerStyle = shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!props.hasFilterBars) : undefined;
 
     return (
         <NavigationDeferredMount

@@ -50,6 +50,24 @@ type DateInputWithPickerProps = DatePickerBaseProps &
          * @default false
          */
         shouldHideClearButton?: boolean;
+
+        /**
+         * Defers showing the popover until the anchor position has been freshly measured, and opens the picker on
+         * press instead of focus. Use in scrollable contexts where the field position can
+         * change after mount: it prevents the popover from blinking at a stale position, and the press-based open
+         * prevents the picker from reopening when focus returns to the input as it is dismissed.
+         * @default false
+         */
+        shouldDeferShowUntilPositioned?: boolean;
+
+        /**
+         * Blurs any focused text input and dismisses the keyboard when opening the picker, then prevents focus from
+         * returning when the picker closes. Use in multi-field forms where another text input may still be focused
+         * (e.g. a name field above the date picker) to avoid a brief keyboard flash after closing the calendar.
+         * The picker opens immediately after blur; keyboard dismissal runs in parallel rather than blocking the open.
+         * @default false
+         */
+        shouldDismissKeyboardBeforeShow?: boolean;
     };
 
 type DatePickerProps = {

@@ -12,7 +12,7 @@ import {translateLocal} from '@libs/Localize';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import {hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isReportPreviewAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
@@ -26,7 +26,9 @@ import {
     generateReportID,
     getChatByParticipants,
     getOutstandingChildRequest,
+    getReimbursableTotal,
     getReportTransactions,
+    getUnheldReimbursableTotal,
     hasViolations as hasViolationsReportUtils,
     isDeprecatedGroupDM,
     isExpenseReport,
@@ -158,12 +160,13 @@ type RequestMoneyInformation = {
     transactionParams: RequestMoneyTransactionParams;
     isRetry?: boolean;
     shouldPlaySound?: boolean;
-    shouldHandleNavigation?: boolean;
-    backToReport?: string;
+    /** Retry-path cleanup only; the action itself never reads this. */
+    draftTransactionIDs?: string[];
     optimisticChatReportID?: string;
     optimisticCreatedReportActionID?: string;
     optimisticIOUReportID?: string;
     optimisticReportPreviewActionID?: string;
+    optimisticTransactionID?: string;
     shouldGenerateTransactionThreadReport: boolean;
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
@@ -173,12 +176,12 @@ type RequestMoneyInformation = {
     policyRecentlyUsedCurrencies: string[];
     existingTransactionDraft: OnyxEntry<OnyxTypes.Transaction>;
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
-    draftTransactionIDs: string[] | undefined;
     isSelfTourViewed: boolean;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     shouldDeferAutoSubmit?: boolean;
-    shouldDeferForSearch?: boolean;
+    // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined;
 };
 
 type MoneyRequestInformationParams = {
@@ -190,6 +193,7 @@ type MoneyRequestInformationParams = {
     policyParams?: BasePolicyParams;
     moneyRequestReportID?: string;
     existingTransactionID?: string;
+    optimisticTransactionID?: string;
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
     newReportTotal?: number;
@@ -211,6 +215,8 @@ type MoneyRequestInformationParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -258,6 +264,8 @@ type BuildOnyxDataForMoneyRequestParams = {
     transactionViolations?: OnyxCollection<OnyxTypes.TransactionViolations>;
     hasViolations: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined;
     personalDetails?: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     /** Whether this is a selfDM split transaction */
     isSelfDMSplit?: boolean;
@@ -293,9 +301,12 @@ function buildMinimalTransactionForFormula(
     };
 }
 
-function getReportPreviewAction(chatReportID: string | undefined, iouReportID: string | undefined): OnyxInputValue<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> {
-    const allReportActions = getAllReportActionsFromIOU();
-    const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {};
+function getReportPreviewAction(
+    chatReportID: string | undefined,
+    iouReportID: string | undefined,
+    chatReportActions?: OnyxEntry<OnyxTypes.ReportActions>,
+): OnyxInputValue<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> {
+    const reportActions = chatReportActions ?? getAllReportActionsFromIOU()?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {};
 
     // Find the report preview action from the chat report
     return (
@@ -347,6 +358,8 @@ function buildOnyxDataForTestDriveIOU(
         iouReportID: testDriveIOUParams.iouOptimisticParams.report.reportID,
         transactionID: testDriveIOUParams.transaction.transactionID,
         reportActionID: testDriveIOUParams.iouOptimisticParams.action.reportActionID,
+        // delegateAccountIDParam: will be threaded in PR 14; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+        delegateAccountIDParam: undefined,
     });
     const text = translateLocal('testDrive.employeeInviteMessage', getAllPersonalDetails()?.[testDriveIOUParams.currentUserAccountIDParam]?.firstName ?? '');
     // delegateAccountIDParam: will be threaded in PR 15; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
@@ -473,10 +486,10 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         // If it's CREATE and IOUReportID is 0, MoneyRequestAction returns null because the IOU report doesn't exist.
         const patchedSelfDMIouAction = {
             ...iou.action,
+            reportID: selfDMReportID,
             originalMessage: {
                 ...(getOriginalMessage(iou.action) ?? {}),
                 type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
-                IOUReportID: undefined,
             },
         } as OnyxTypes.ReportAction;
         onyxData.optimisticData?.push({
@@ -544,8 +557,8 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                     ...chat.report,
                     lastReadTime: DateUtils.getDBTime(),
                     ...(shouldCreateNewMoneyRequestReport ? {lastVisibleActionCreated: chat.reportPreviewAction.created} : {}),
-                    // do not update iouReportID if auto submit beta is enabled and it is a scan request
-                    ...(isASAPSubmitBetaEnabled && isScanRequest ? {} : {iouReportID: iou.report.reportID}),
+                    // do not update iouReportID if auto submit beta is enabled and it is a scan request, or when adding to an existing report
+                    ...((isASAPSubmitBetaEnabled && isScanRequest) || !shouldCreateNewMoneyRequestReport ? {} : {iouReportID: iou.report.reportID}),
                     ...outstandingChildRequest,
                     ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
                 },
@@ -1074,19 +1087,19 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         }
     }
 
-    // We don't need to compute violations unless we're on a paid policy
-    if (!policy || !isPaidGroupPolicy(policy) || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+    // We don't need to compute violations unless we're on a group policy
+    if (!policy || !isGroupPolicy(policy) || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         return onyxData;
     }
-    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
-        transaction,
-        [],
+    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData({
+        updatedTransaction: transaction,
+        transactionViolations: [],
         policy,
-        policyTagList ?? {},
-        policyCategories ?? {},
-        hasDependentTags(policy, policyTagList ?? {}),
-        false,
-    );
+        policyTagList: policyTagList ?? {},
+        policyCategories: policyCategories ?? {},
+        hasDependentTags: hasDependentTags(policy, policyTagList ?? {}),
+        isInvoiceTransaction: false,
+    });
 
     if (violationsOnyxData) {
         const reportTransactions = [...getReportTransactions(iou.report.reportID).filter((reportTransaction) => reportTransaction.transactionID !== transaction.transactionID), transaction];
@@ -1198,6 +1211,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         policyParams = {},
         existingTransaction,
         existingTransactionID,
+        optimisticTransactionID: providedOptimisticTransactionID,
         moneyRequestReportID = '',
         retryParams,
         newReportTotal,
@@ -1220,6 +1234,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         policyRecentlyUsedCurrencies,
         personalDetails,
         betas,
+        delegateAccountID,
     } = moneyRequestInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -1323,7 +1338,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         : shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, betas, action, !!moneyRequestReportID);
 
     // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
-    const optimisticTransactionID = existingTransactionID ?? rand64();
+    const optimisticTransactionID = existingTransactionID ?? providedOptimisticTransactionID ?? rand64();
     const optimisticReportID = optimisticIOUReportID ?? generateReportID();
 
     if (!iouReport || shouldCreateNewMoneyRequestReport) {
@@ -1344,6 +1359,10 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
               })
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency, undefined, undefined, optimisticReportID);
     } else if (isPolicyExpenseChat) {
+        // Capture previous fresh reimbursable totals before mutating, so the diff applies whether or
+        // not the iouReport already had reimbursableTotal/unheldReimbursableTotal populated locally.
+        const previousReimbursableTotal = getReimbursableTotal(iouReport);
+        const previousUnheldReimbursableTotal = getUnheldReimbursableTotal(iouReport);
         iouReport = {...iouReport};
         // Because of the Expense reports are stored as negative values, we subtract the total from the amount
         if (iouReport?.currency === currency) {
@@ -1361,6 +1380,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                     } else {
                         iouReport.nonReimbursableTotal = (iouReport.nonReimbursableTotal ?? 0) - amount;
                     }
+                } else {
+                    // Reimbursable transaction: reflect the change in the freshly tracked reimbursableTotal too.
+                    iouReport.reimbursableTotal = previousReimbursableTotal - amount;
                 }
 
                 iouReport = maybeUpdateReportNameForFormulaTitle(iouReport, policy);
@@ -1371,6 +1393,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                     iouReport.unheldTotal = newReportTotal;
                 } else {
                     iouReport.unheldTotal -= amount;
+                }
+                if (reimbursable) {
+                    iouReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - amount;
                 }
             }
         }
@@ -1497,6 +1522,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             ...(shouldGenerateTransactionThreadReport !== undefined ? {shouldGenerateTransactionThreadReport} : {}),
             reportActionID: currentReportActionID,
             currentUserAccountID: currentUserAccountIDParam,
+            delegateAccountIDParam: delegateAccountID,
         });
 
     let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
@@ -1504,7 +1530,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     if (reportPreviewAction) {
         reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
     } else {
-        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction, undefined, optimisticReportPreviewActionID);
+        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction, undefined, optimisticReportPreviewActionID, delegateAccountID);
         chatReport.lastVisibleActionCreated = reportPreviewAction.created;
 
         // Generated ReportPreview action is a parent report action of the iou report.
@@ -1598,6 +1624,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         hasViolations,
         quickAction,
         personalDetails,
+        delegateAccountID,
         isSelfDMSplit,
         selfDMReportID,
     });
@@ -1665,6 +1692,10 @@ function getUpdatedMoneyRequestReportData(
     if (!iouReport) {
         updatedMoneyRequestReport = null;
     } else if ((isExpenseReport(iouReport) || isInvoiceReportReportUtils(iouReport)) && !Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
+        // Capture previous fresh reimbursable totals before mutating, so the diff applies whether or
+        // not the iouReport already had reimbursableTotal/unheldReimbursableTotal populated locally.
+        const previousReimbursableTotal = getReimbursableTotal(iouReport);
+        const previousUnheldReimbursableTotal = getUnheldReimbursableTotal(iouReport);
         updatedMoneyRequestReport = {
             ...iouReport,
             total: iouReport.total - diff,
@@ -1675,6 +1706,16 @@ function getUpdatedMoneyRequestReportData(
         if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable && typeof updatedMoneyRequestReport.nonReimbursableTotal === 'number') {
             updatedMoneyRequestReport.nonReimbursableTotal += updatedTransaction.reimbursable ? -updatedTransaction.amount : updatedTransaction.amount;
         }
+        // Seed the freshly tracked reimbursable totals from the helpers above so the diff applies
+        // even when the local copy of the report hasn't yet received the new fields.
+        let nextReimbursableTotal = previousReimbursableTotal;
+        if (transaction?.reimbursable) {
+            nextReimbursableTotal -= diff;
+        }
+        if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable) {
+            nextReimbursableTotal += updatedTransaction.reimbursable ? updatedTransaction.amount : -updatedTransaction.amount;
+        }
+        updatedMoneyRequestReport.reimbursableTotal = nextReimbursableTotal;
         if (!isTransactionOnHold) {
             if (typeof updatedMoneyRequestReport.unheldTotal === 'number') {
                 updatedMoneyRequestReport.unheldTotal -= diff;
@@ -1685,6 +1726,14 @@ function getUpdatedMoneyRequestReportData(
             if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable && typeof updatedMoneyRequestReport.unheldNonReimbursableTotal === 'number') {
                 updatedMoneyRequestReport.unheldNonReimbursableTotal += updatedTransaction.reimbursable ? -updatedTransaction.amount : updatedTransaction.amount;
             }
+            let nextUnheldReimbursableTotal = previousUnheldReimbursableTotal;
+            if (transaction?.reimbursable) {
+                nextUnheldReimbursableTotal -= diff;
+            }
+            if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable) {
+                nextUnheldReimbursableTotal += updatedTransaction.reimbursable ? updatedTransaction.amount : -updatedTransaction.amount;
+            }
+            updatedMoneyRequestReport.unheldReimbursableTotal = nextUnheldReimbursableTotal;
         }
         if (transactionChanges && 'reimbursable' in transactionChanges) {
             updatedMoneyRequestReport = maybeUpdateReportNameForFormulaTitle(updatedMoneyRequestReport, policy);

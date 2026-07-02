@@ -127,7 +127,7 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
                     // When an expense is put on hold
-                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID);
+                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, []);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -188,7 +188,7 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
                     // When an expense is put on hold without existing transaction thread (undefined initialReportID)
-                    putOnHold(transaction.transactionID, comment, undefined, false, RORY_EMAIL, RORY_ACCOUNT_ID);
+                    putOnHold(transaction.transactionID, comment, undefined, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, []);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -266,7 +266,7 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
                     // When multiple transactions are put on hold
-                    putTransactionsOnHold([transaction1.transactionID, transaction2.transactionID], comment, iouReport.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID);
+                    putTransactionsOnHold([transaction1.transactionID, transaction2.transactionID], comment, iouReport.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, []);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -358,7 +358,7 @@ describe('actions/IOU/Hold', () => {
                 .then(() => {
                     jest.mocked(Navigation.setNavigationActionToMicrotaskQueue).mockClear();
                     // When transactions are put on hold while offline (isOffline: true)
-                    putTransactionsOnHold([transaction1.transactionID, transaction2.transactionID], comment, iouReport.reportID, true, RORY_EMAIL, RORY_ACCOUNT_ID);
+                    putTransactionsOnHold([transaction1.transactionID, transaction2.transactionID], comment, iouReport.reportID, true, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, []);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -403,7 +403,7 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
                     jest.mocked(Navigation.setNavigationActionToMicrotaskQueue).mockClear();
-                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID);
+                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, []);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -411,7 +411,7 @@ describe('actions/IOU/Hold', () => {
                     expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
 
                     jest.mocked(Navigation.setNavigationActionToMicrotaskQueue).mockClear();
-                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, true, RORY_EMAIL, RORY_ACCOUNT_ID);
+                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, true, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, []);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -463,12 +463,14 @@ describe('actions/IOU/Hold', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID);
+                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, []);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
                     // When an expense is unhold
-                    unholdRequest(transaction.transactionID, transactionThread.reportID, policy, false, RORY_EMAIL, RORY_ACCOUNT_ID);
+                    unholdRequest(transaction.transactionID, transactionThread.reportID, policy, false, RORY_EMAIL, RORY_ACCOUNT_ID, [
+                        {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+                    ]);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -536,13 +538,15 @@ describe('actions/IOU/Hold', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID);
+                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, []);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
                     mockFetch.fail();
                     mockFetch?.resume?.();
-                    unholdRequest(transaction.transactionID, transactionThread.reportID, policy, false, RORY_EMAIL, RORY_ACCOUNT_ID);
+                    unholdRequest(transaction.transactionID, transactionThread.reportID, policy, false, RORY_EMAIL, RORY_ACCOUNT_ID, [
+                        {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+                    ]);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -576,7 +580,15 @@ describe('actions/IOU/Hold', () => {
             };
         };
 
-        const buildScenario = (overrides: {total: number; nonReimbursableTotal: number; unheldTotal?: number; unheldNonReimbursableTotal?: number; heldAmount?: number}) => {
+        const buildScenario = (overrides: {
+            total: number;
+            nonReimbursableTotal: number;
+            unheldTotal?: number;
+            unheldNonReimbursableTotal?: number;
+            reimbursableTotal?: number;
+            unheldReimbursableTotal?: number;
+            heldAmount?: number;
+        }) => {
             const baseIouReport = buildOptimisticIOUReport(1, 2, overrides.total, '99', 'USD');
             const iouReport: Report = {
                 ...baseIouReport,
@@ -584,6 +596,8 @@ describe('actions/IOU/Hold', () => {
                 nonReimbursableTotal: overrides.nonReimbursableTotal,
                 unheldTotal: overrides.unheldTotal,
                 unheldNonReimbursableTotal: overrides.unheldNonReimbursableTotal,
+                reimbursableTotal: overrides.reimbursableTotal ?? overrides.total - overrides.nonReimbursableTotal,
+                unheldReimbursableTotal: overrides.unheldReimbursableTotal ?? (overrides.unheldTotal ?? 0) - (overrides.unheldNonReimbursableTotal ?? 0),
             };
             const chatReport: Report = {
                 reportID: '99',
@@ -641,7 +655,7 @@ describe('actions/IOU/Hold', () => {
                     });
                     const totalsUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE && entry.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
                     expect(totalsUpdate).toBeDefined();
-                    expect(totalsUpdate?.value).toEqual({total: 200, nonReimbursableTotal: 30});
+                    expect(totalsUpdate?.value).toEqual({total: 200, nonReimbursableTotal: 30, reimbursableTotal: 170});
                 });
         });
 
@@ -671,7 +685,7 @@ describe('actions/IOU/Hold', () => {
                         const value = entry.value as Partial<Report> | undefined;
                         return value?.total !== undefined || value?.nonReimbursableTotal !== undefined;
                     });
-                    expect(totalsRestore?.value).toEqual({total: 300, nonReimbursableTotal: 50});
+                    expect(totalsRestore?.value).toEqual({total: 300, nonReimbursableTotal: 50, reimbursableTotal: 250});
                 });
         });
 

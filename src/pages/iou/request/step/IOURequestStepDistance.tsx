@@ -13,6 +13,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
@@ -27,6 +28,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
+import useSkipConfirmationPreInsert from '@hooks/useSkipConfirmationPreInsert';
 import useWaypointItems from '@hooks/useWaypointItems';
 import {setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
@@ -42,7 +44,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
-import {getDistanceInMeters, getRateID, getRequestType, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
+import {doesMoneyRequestDraftHaveUserInput, getDistanceInMeters, getRateID, getRequestType, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -155,6 +157,10 @@ function IOURequestStepDistance({
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, currentTransaction);
 
+    const {notifySaving} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => isCreatingNewRequest && doesMoneyRequestDraftHaveUserInput(transaction),
+    });
+
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     // Manual distance editing state
@@ -247,6 +253,9 @@ function IOURequestStepDistance({
 
         return iouType !== CONST.IOU.TYPE.SPLIT && !isArchived && !(isPolicyExpenseChatUtil(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
     }, [report, skipConfirmation, policy?.requiresCategory, policy?.requiresTag, isArchived, iouType]);
+
+    useSkipConfirmationPreInsert(shouldSkipConfirmation, report?.reportID);
+
     let buttonText = !isCreatingNewRequest ? translate('common.save') : translate('common.next');
     if (shouldSkipConfirmation) {
         if (iouType === CONST.IOU.TYPE.SPLIT) {
@@ -349,6 +358,7 @@ function IOURequestStepDistance({
 
     const navigateToNextStep = useDistanceNavigation({
         iouType,
+        action,
         report,
         policy,
         transaction,
@@ -359,6 +369,7 @@ function IOURequestStepDistance({
         waypoints,
         currentUserLogin: currentUserEmailParam,
         currentUserAccountID: currentUserAccountIDParam,
+        currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
         backTo,
         backToReport,
         shouldSkipConfirmation,
@@ -491,6 +502,7 @@ function IOURequestStepDistance({
             return;
         }
 
+        notifySaving();
         navigateToNextStep();
     }, [
         duplicateWaypointsError,
@@ -502,6 +514,7 @@ function IOURequestStepDistance({
         isCreatingNewRequest,
         navigateToNextStep,
         navigateBackAfterSave,
+        notifySaving,
         isEditingSplit,
         originalSplitTransactionDraft,
         transactionBackup,

@@ -87,7 +87,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
             testID="DomainSamlPage"
         >
             <FullPageNotFoundView
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAINS_LIST.route)}
                 shouldShow={!doesDomainExist || !isAdmin}
                 shouldForceFullScreen
                 shouldDisplaySearchRouter
@@ -154,7 +154,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                                 ctaText={translate('domain.verifyDomain.title')}
                                 ctaAccessibilityLabel={translate('domain.verifyDomain.title')}
                                 onCtaPress={() => {
-                                    Navigation.navigate(ROUTES.DOMAIN_VERIFY.getRoute(domainAccountID));
+                                    Navigation.navigate(ROUTES.DOMAIN_SAML_VERIFY.getRoute(domainAccountID));
                                 }}
                                 illustrationBackgroundColor={colors.blue700}
                                 illustration={illustrations.LaptopOnDeskWithCoffeeAndKey}

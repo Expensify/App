@@ -39,14 +39,16 @@ import getCurrentPosition from '@libs/getCurrentPosition';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExistingTransactionID, resolveReportForMoneyRequest} from '@libs/IOUUtils';
 import Log from '@libs/Log';
-import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
+import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
+import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isGroupPolicy} from '@libs/PolicyUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
-import {isSelfDM} from '@libs/ReportUtils';
-import {getDefaultTaxCode, getTaxValue} from '@libs/TransactionUtils';
+import {isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
+import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
+import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
 import DraftWorkspaceOpener from '@pages/iou/request/step/confirmation/DraftWorkspaceOpener';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -68,6 +70,9 @@ function SubmitDetailsPage({
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
     const [personalDetails] = useOnyx(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`);
     const report: OnyxEntry<ReportType> = useReportOrReportDraft(reportOrAccountID);
+    const routeReportID = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
+    const draftReportID = unknownUserDetails ? unknownUserDetails.reportID : routeReportID;
+    const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${draftReportID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
     const transactionReport = useReportOrReportDraft(transaction?.reportID);
@@ -122,6 +127,23 @@ function SubmitDetailsPage({
     const fileType = shouldUsePreValidatedFile ? (validFilesToUpload?.type ?? CONST.RECEIPT_ALLOWED_FILE_TYPES.JPEG) : (currentAttachment?.mimeType ?? '');
     const [hasOnlyPersonalPolicies = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesUtil});
 
+    const hasEndedOpenSubmitFlowSpan = useRef(false);
+    const endOpenSubmitFlowSpan = () => {
+        if (hasEndedOpenSubmitFlowSpan.current) {
+            return;
+        }
+        hasEndedOpenSubmitFlowSpan.current = true;
+        endSpan(CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW);
+    };
+
+    // Cancel the still-open span if the user leaves before the confirm container's onLayout ends it, so an abandoned attempt is not recorded as a never-ending span.
+    useEffect(
+        () => () => {
+            cancelSpan(CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW);
+        },
+        [],
+    );
+
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
             return;
@@ -175,7 +197,7 @@ function SubmitDetailsPage({
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
         return participant?.accountID
             ? getParticipantsOption(participant, personalDetails)
-            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived);
+            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft);
     });
 
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
@@ -190,7 +212,7 @@ function SubmitDetailsPage({
     }, [defaultBillable]);
 
     useEffect(() => {
-        const defaultReimbursable = (isPolicyExpenseChat && isPaidGroupPolicy(policy)) || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
+        const defaultReimbursable = (isPolicyExpenseChat && isGroupPolicy(policy)) || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
         setMoneyRequestReimbursable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, defaultReimbursable);
     }, [policy, isPolicyExpenseChat, isCreatingTrackExpense]);
 
@@ -217,6 +239,9 @@ function SubmitDetailsPage({
         if (!transaction) {
             return;
         }
+
+        // `transaction.transactionID` is the draft placeholder; mirror the action's `existingTransactionID ?? rand64()` chain so cleanup nav targets the created expense.
+        const optimisticTransactionID = existingTransactionID ?? rand64();
 
         if (isSelfDM(report)) {
             trackExpense({
@@ -255,6 +280,8 @@ function SubmitDetailsPage({
                 betas,
                 draftTransactionIDs,
                 isSelfTourViewed,
+                optimisticTransactionID,
+                currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             });
         } else {
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
@@ -298,8 +325,18 @@ function SubmitDetailsPage({
                 isSelfTourViewed,
                 betas,
                 personalDetails,
+                optimisticTransactionID,
             });
         }
+        cleanupAndNavigateAfterExpenseCreate({
+            report: isSelfDM(report) ? report : reportToSubmit,
+            action: CONST.IOU.ACTION.CREATE,
+            draftTransactionIDs,
+            transactionID: optimisticTransactionID,
+            isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+            optimisticChatReportID: reportOrAccountID,
+            linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
+        });
     };
 
     const onSuccess = (participant: Participant, file: File, locationPermissionGranted?: boolean) => {
@@ -401,21 +438,26 @@ function SubmitDetailsPage({
                             setIsConfirming(false);
                             return;
                         }
-                        navigateAfterInteraction(() => performUpload(participant, true));
+                        performUpload(participant, true);
                     }}
-                    onDeny={() => {
-                        updateLastLocationPermissionPrompt();
+                    onDeny={(wasUserInitiated) => {
                         setStartLocationPermissionFlow(false);
+                        if (wasUserInitiated) {
+                            updateLastLocationPermissionPrompt();
+                        }
                         const participant = selectedParticipantList.at(0) ?? selectedParticipants.at(0);
                         if (!participant) {
                             setIsConfirming(false);
                             return;
                         }
-                        navigateAfterInteraction(() => performUpload(participant, false));
+                        performUpload(participant, false);
                     }}
                     onInitialGetLocationCompleted={() => setIsConfirming(false)}
                 />
-                <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
+                <View
+                    style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}
+                    onLayout={endOpenSubmitFlowSpan}
+                >
                     <MoneyRequestConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}

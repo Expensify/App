@@ -1,10 +1,10 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -16,14 +16,13 @@ import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
 import type {SearchOption} from '@libs/OptionsListUtils';
-import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport} from '@libs/ReportUtils';
+import {canCreateTaskInReport, canUserPerformWriteAction, isArchivedReport, isCanceledTaskReport} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {setShareDestinationValue} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportNameValuePairs} from '@src/types/onyx';
 
 const selectReportHandler = (option: unknown) => {
     HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
@@ -37,10 +36,10 @@ const selectReportHandler = (option: unknown) => {
     Navigation.goBack(ROUTES.NEW_TASK.getRoute());
 };
 
-const reportFilter = (reportOptions: Array<SearchOption<Report>>, archivedReportsIDList: ArchivedReportsIDSet) =>
+const reportFilter = (reportOptions: Array<SearchOption<Report>>, reportNameValuePairs: OnyxCollection<ReportNameValuePairs>) =>
     (reportOptions ?? []).reduce((filtered: Array<SearchOption<Report>>, option) => {
         const report = option.item;
-        const isReportArchived = archivedReportsIDList.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
+        const isReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]);
         if (canUserPerformWriteAction(report, isReportArchived) && canCreateTaskInReport(report) && !isCanceledTaskReport(report)) {
             filtered.push(option);
         }
@@ -64,15 +63,15 @@ function TaskShareDestinationSelectorModal() {
         onSingleSelect: selectReportHandler,
     });
 
-    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
     const filteredOptions = useMemo(() => {
-        const filteredReports = reportFilter(availableOptions.recentReports as Array<SearchOption<Report>>, archivedReportsIdSet);
+        const filteredReports = reportFilter(availableOptions.recentReports as Array<SearchOption<Report>>, reportNameValuePairs);
         return {
             ...availableOptions,
             recentReports: filteredReports ?? [],
         };
-    }, [availableOptions, archivedReportsIdSet]);
+    }, [availableOptions, reportNameValuePairs]);
 
     const data = useMemo(
         () =>

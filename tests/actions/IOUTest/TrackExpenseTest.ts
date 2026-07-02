@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import type {RenderAPI} from '@testing-library/react-native';
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -20,6 +21,7 @@ import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
 import {createDraftTransactionAndNavigateToParticipantSelector} from '@libs/ReportUtils';
+import SidebarUtils from '@libs/SidebarUtils';
 import {getValidWaypoints, isDistanceRequest as isDistanceRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -34,12 +36,12 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
-import currencyList from '../../unit/currencyList.json';
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomPolicyCategories from '../../utils/collections/policyCategory';
 import {createRandomReport} from '../../utils/collections/reports';
-import createRandomTransaction from '../../utils/collections/transaction';
+import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
+import initCurrencyListContext from '../../utils/initCurrencyListContext';
 import PusherHelper from '../../utils/PusherHelper';
 import type {MockFetch} from '../../utils/TestHelper';
 import * as TestHelper from '../../utils/TestHelper';
@@ -80,6 +82,12 @@ jest.mock('@src/libs/actions/Report', () => {
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    __esModule: true,
+    default: {
+        isHybridApp: jest.fn(),
+    },
+}));
 
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
@@ -103,33 +111,129 @@ OnyxUpdateManager();
 
 describe('actions/IOU/TrackExpense', () => {
     let mockFetch: MockFetch;
+    let currencyListProvider: RenderAPI;
 
     beforeAll(() => {
-        Onyx.init({
-            keys: ONYXKEYS,
-            initialKeyStates: {
-                [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
-                [ONYXKEYS.CURRENCY_LIST]: currencyList,
-            },
-        });
+        Onyx.init({keys: ONYXKEYS});
         initOnyxDerivedValues();
         IntlStore.load(CONST.LOCALES.EN);
         return waitForBatchedUpdates();
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.clearAllTimers();
         global.fetch = getGlobalFetchMock();
         mockFetch = fetch as MockFetch;
-        return Onyx.clear().then(waitForBatchedUpdates);
+        await Onyx.clear();
+        currencyListProvider = await initCurrencyListContext({
+            keys: ONYXKEYS,
+            initialKeyStates: {
+                [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                },
+            },
+        });
     });
 
-    afterEach(() => {
+    afterEach(async () => {
+        currencyListProvider.unmount();
+        await mockFetch?.resume?.();
+        await waitForBatchedUpdates();
         jest.clearAllMocks();
     });
 
     describe('trackExpense', () => {
+        it('makes a hidden Self DM visible when tracking a distance expense optimistically', async () => {
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                type: CONST.REPORT.TYPE.CHAT,
+                // createRandomReport randomizes isPinned/isOwnPolicyExpenseChat; either being true would force a hidden
+                // report to display in the LHN (shouldOverrideHidden), so pin them down to keep this test deterministic.
+                isPinned: false,
+                isOwnPolicyExpenseChat: false,
+                participants: {
+                    [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                },
+            };
+            const selfDMReportKey = `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`;
+            const distanceTransaction = createRandomDistanceRequestTransaction(1, true);
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+            const hiddenReportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
+                currentReportId: undefined,
+                reports: {[selfDMReportKey]: selfDMReport},
+                betas: [],
+                priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                draftComments: {},
+                transactionViolations: {},
+                transactions: {},
+                isOffline: false,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                reportNameValuePairs: {},
+                reportAttributes: undefined,
+            });
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${distanceTransaction.transactionID}`, distanceTransaction);
+            mockFetch?.pause?.();
+
+            trackExpense({
+                report: selfDMReport,
+                isDraftPolicy: true,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: distanceTransaction.amount,
+                    currency: distanceTransaction.currency,
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: distanceTransaction.merchant,
+                    billable: false,
+                    validWaypoints: getValidWaypoints(distanceTransaction.comment?.waypoints, true),
+                    customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                },
+                existingTransaction: distanceTransaction,
+                isASAPSubmitBetaEnabled: false,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                introSelected: undefined,
+                quickAction: undefined,
+                recentWaypoints,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const optimisticSelfDMReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`);
+            if (!optimisticSelfDMReport) {
+                throw new Error('Expected optimistic Self DM report to exist.');
+            }
+
+            const optimisticReportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
+                currentReportId: 'different-report-id',
+                reports: {[selfDMReportKey]: optimisticSelfDMReport},
+                betas: [],
+                priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                draftComments: {},
+                transactionViolations: {},
+                transactions: {},
+                isOffline: false,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                reportNameValuePairs: {},
+                reportAttributes: undefined,
+            });
+
+            expect(hiddenReportsToDisplay).not.toHaveProperty(selfDMReportKey);
+            expect(optimisticSelfDMReport?.participants?.[RORY_ACCOUNT_ID]?.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE);
+            expect(optimisticReportsToDisplay).toHaveProperty(selfDMReportKey);
+
+            await mockFetch?.resume?.();
+        });
+
         it('category a distance expense of selfDM report', async () => {
             /*
              * This step simulates the following steps:
@@ -220,8 +324,8 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
-                draftTransactionIDs: [fakeTransaction.transactionID],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -279,6 +383,8 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
+                filteredPoliciesCount: 0,
+                firstPolicyID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -319,14 +425,15 @@ describe('actions/IOU/TrackExpense', () => {
                     linkedTrackedExpenseReportID: transactionDraft?.linkedTrackedExpenseReportID,
                     customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
                 },
+                optimisticTransactionID: 'optimistic-ignored-for-move-from-track',
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
-                draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -343,6 +450,9 @@ describe('actions/IOU/TrackExpense', () => {
                         // Then the transaction must remain a distance request, ensuring that the optimistic data is correctly built and the transaction type remains accurate.
                         const isDistanceRequest = isDistanceRequestUtil(categorizedTransaction);
                         expect(isDistanceRequest).toBe(true);
+
+                        // Move-from-track must keep the tracked transaction id, not the UI-provided optimisticTransactionID.
+                        expect(transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}optimistic-ignored-for-move-from-track`]).toBeUndefined();
 
                         // Then the transaction category must match the original category
                         expect(categorizedTransaction?.category).toBe(Object.keys(fakeCategories).at(0) ?? '');
@@ -412,8 +522,8 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
-                draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -466,8 +576,8 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
-                draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -548,8 +658,8 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
-                draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -602,8 +712,8 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
-                draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -689,6 +799,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -742,6 +853,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -825,6 +937,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -878,6 +991,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -980,6 +1094,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1034,6 +1149,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1095,8 +1211,8 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 recentWaypoints: [],
                 betas: [CONST.BETAS.ALL],
-                draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             };
         }
 
@@ -1271,6 +1387,8 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
+                filteredPoliciesCount: 1,
+                firstPolicyID: policy.id,
             });
             await waitForBatchedUpdates();
 
@@ -1315,9 +1433,9 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
-                draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1406,8 +1524,8 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 recentWaypoints: [],
                 betas: [CONST.BETAS.ALL],
-                draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1521,6 +1639,49 @@ describe('actions/IOU/TrackExpense', () => {
 
             const selfDMReports = Object.values(reports ?? {}).filter((r) => r?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM);
             expect(selfDMReports.length).toBeGreaterThan(0);
+        });
+
+        it('should use optimisticChatReportID as the new self-DM reportID when no self-DM exists', async () => {
+            const optimisticSelfDMReportID = 'optimistic-self-dm-42';
+
+            trackExpense({
+                ...getDefaultTrackExpenseParams(undefined, {amount: 3000, merchant: 'Optimistic SelfDM ID Test'}),
+                optimisticChatReportID: optimisticSelfDMReportID,
+            });
+            await waitForBatchedUpdates();
+            const reports = await new Promise<OnyxCollection<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+
+            expect(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${optimisticSelfDMReportID}`]?.chatType).toBe(CONST.REPORT.CHAT_TYPE.SELF_DM);
+        });
+
+        it('should create the optimistic transaction under the UI-provided optimisticTransactionID when there is no existing transaction', async () => {
+            const optimisticTransactionID = 'optimistic-txn-99';
+
+            trackExpense({
+                ...getDefaultTrackExpenseParams(undefined, {amount: 3000, merchant: 'Optimistic Txn ID Test'}),
+                optimisticTransactionID,
+            });
+            await waitForBatchedUpdates();
+
+            let transactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (val) => {
+                    transactions = val;
+                },
+            });
+
+            expect(transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransactionID}`]?.merchant).toBe('Optimistic Txn ID Test');
         });
 
         it('should handle API failure gracefully with failure data', async () => {
@@ -1702,6 +1863,7 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 ...getDefaultTrackExpenseParams(selfDMReport, {amount: 12000, merchant: 'Tour Viewed Merchant'}),
                 isSelfTourViewed: true,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1734,6 +1896,7 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 ...getDefaultTrackExpenseParams(selfDMReport, {amount: 9000, merchant: 'Tour Not Viewed Merchant'}),
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1788,6 +1951,7 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
+                currentUserLocalCurrency: undefined,
             });
 
             // Then the result should contain valid track expense data
@@ -1833,6 +1997,7 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
 
             // Then the result should contain valid track expense data
@@ -1880,6 +2045,7 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
+                currentUserLocalCurrency: undefined,
             });
 
             // Then result should be valid
@@ -1918,6 +2084,7 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
 
             expect(resultWithoutTourViewed).toBeDefined();
@@ -2078,8 +2245,8 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
-                draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2163,10 +2330,10 @@ describe('actions/IOU/TrackExpense', () => {
                 [CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.MEMBER},
             });
 
-            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs);
-            jest.advanceTimersByTime(10);
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
+            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
+            jest.advanceTimersByTime(10);
             const participants = userLogins.map((login, index) => ({
                 login,
                 accountID: participantAccountIDs.at(index),
@@ -2274,10 +2441,10 @@ describe('actions/IOU/TrackExpense', () => {
                 [CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.MEMBER},
             });
 
-            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs);
-            jest.advanceTimersByTime(10);
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
+            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
+            jest.advanceTimersByTime(10);
             const participants = userLogins.map((login, index) => ({
                 login,
                 accountID: participantAccountIDs.at(index),
@@ -2382,8 +2549,8 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
-                draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2568,6 +2735,7 @@ describe('actions/IOU/TrackExpense', () => {
                     policyRecentlyUsedCurrencies: [],
                     quickAction: undefined,
                     personalDetails: testPersonalDetails,
+                    policyTagList: undefined,
                     betas: [CONST.BETAS.ALL],
                 });
             }).not.toThrow();
@@ -2638,6 +2806,7 @@ describe('actions/IOU/TrackExpense', () => {
                     policyRecentlyUsedCurrencies: [],
                     quickAction: undefined,
                     personalDetails: testPersonalDetails,
+                    policyTagList: undefined,
                     betas: [CONST.BETAS.ALL],
                 });
             }).not.toThrow();
@@ -2678,6 +2847,7 @@ describe('actions/IOU/TrackExpense', () => {
                     policyRecentlyUsedCurrencies: [],
                     quickAction: undefined,
                     personalDetails: undefined,
+                    policyTagList: undefined,
                     betas: [CONST.BETAS.ALL],
                 });
             }).not.toThrow();
@@ -2718,6 +2888,7 @@ describe('actions/IOU/TrackExpense', () => {
                     policyRecentlyUsedCurrencies: [],
                     quickAction: undefined,
                     personalDetails: undefined,
+                    policyTagList: undefined,
                     betas: [CONST.BETAS.ALL],
                 });
             }).not.toThrow();

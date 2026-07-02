@@ -1,3 +1,4 @@
+import {SafeString} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -20,7 +21,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import type {CorpayFormField} from '@src/types/onyx';
-import SafeString from '@src/utils/SafeString';
 
 function getInputComponent(field: CorpayFormField) {
     if (CONST.CORPAY_FIELDS.SPECIAL_LIST_ADDRESS_KEYS.includes(field.id)) {
@@ -77,7 +77,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: fieldIds as Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>>,
         onNext,
-        shouldSaveDraft: isEditing,
+        shouldSaveDraft: true,
     });
 
     const corpayFieldsLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'BankAccountDetails', isLoading: !!corpayFields?.isLoading};
