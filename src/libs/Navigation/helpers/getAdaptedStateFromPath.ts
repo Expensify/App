@@ -3,7 +3,7 @@ import pick from 'lodash/pick';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
 import {RHP_TO_DOMAIN, RHP_TO_HOME, RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACES_LIST} from '@libs/Navigation/linkingConfig/RELATIONS';
-import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
+import type {NavigationPartialRoute, NavigationRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {getSearchParamFromPath} from '@libs/Url';
 import CONST from '@src/CONST';
@@ -33,12 +33,11 @@ type GetAdaptedStateFromPath = (...args: [...Parameters<typeof RNGetStateFromPat
 const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<NavigationState> => ({routes, index: routes.length - 1});
 
 /**
- * Screens that are registered in PublicScreens (unauthenticated navigator) and should not
- * have TabNavigator prepended, because when the user is unauthenticated TabNavigator does
- * not exist in the navigator tree and the RESET action would fail.
+ * Standalone full-screen public pages registered in PublicScreens (unauthenticated navigator) that
+ * should NOT have TabNavigator prepended — they render on their own, with no tab navigator underneath.
  *
- * Keep in sync with the screens registered in PublicScreens.tsx (excluding SCREENS.HOME,
- * which doubles as the authenticated home tab, and navigator entries).
+ * Keep in sync with the screens registered in PublicScreens.tsx (excluding TAB_NAVIGATOR, which hosts
+ * the SignInPage at the root, and the other navigator entries).
  */
 const PUBLIC_SCREENS = new Set<string>([
     SCREENS.VALIDATE_LOGIN,
@@ -57,11 +56,11 @@ function getTabNavigatorState(selectedTabRoute: NavigationPartialRoute): Navigat
     return {name: NAVIGATORS.TAB_NAVIGATOR, state: buildTabNavigatorNestedState(selectedTabRoute)};
 }
 
-function isRouteWithBackToParam(route: NavigationPartialRoute): route is Route<string, {backTo: string}> {
+function isRouteWithBackToParam(route: NavigationRoute): route is Route<string, {backTo: string}> {
     return route.params !== undefined && 'backTo' in route.params && typeof route.params.backTo === 'string';
 }
 
-function isRouteWithReportID(route: NavigationPartialRoute): route is Route<string, {reportID: string}> {
+function isRouteWithReportID(route: NavigationRoute): route is Route<string, {reportID: string}> {
     return route.params !== undefined && 'reportID' in route.params && typeof route.params.reportID === 'string';
 }
 
@@ -71,7 +70,7 @@ function isRouteWithReportID(route: NavigationPartialRoute): route is Route<stri
  * When a split tab route is accessed from search context (path contains '/search'),
  * we use SPLIT_EXPENSE_SEARCH for the mapping lookup instead of the tab name.
  */
-function getSearchScreenNameForRoute(route: NavigationPartialRoute): string {
+function getSearchScreenNameForRoute(route: NavigationRoute): string {
     const splitTabNames = Object.values(CONST.TAB.SPLIT) as string[];
     const isSplitTabRoute = splitTabNames.includes(route.name);
 
@@ -82,7 +81,7 @@ function getSearchScreenNameForRoute(route: NavigationPartialRoute): string {
     return route.name;
 }
 
-function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
+function getMatchingFullScreenRoute(route: NavigationRoute) {
     const isDynamicScreen = isDynamicRouteScreen(route.name as Screen);
 
     // Check for backTo param. One screen with different backTo value may need different screens visible under the overlay.
@@ -223,9 +222,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     if (route.path) {
         const allSuffixMatches = findAllMatchingDynamicSuffixes(route.path);
         for (const suffixMatch of allSuffixMatches) {
-            // Strip the suffix from the URL. For parametric routes we pass both the actual URL
-            // suffix and the registered pattern so query params can be resolved correctly.
-            const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(route.path, suffixMatch.actualSuffix, suffixMatch.pattern);
+            const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(suffixMatch.pathUsedForMatching, suffixMatch.actualSuffix, suffixMatch.pattern);
 
             if (!pathWithoutDynamicSuffix) {
                 continue;
@@ -264,7 +261,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
 // It is the reports split navigator with report. If the reportID is defined in the focused route, we want to use it for the default report.
 // This is separated from getMatchingFullScreenRoute because we want to use it only for the initial state.
 // We don't want to make this route mandatory e.g. after deep linking or opening a specific flow.
-function getDefaultFullScreenRoute(route?: NavigationPartialRoute) {
+function getDefaultFullScreenRoute(route?: NavigationRoute) {
     if (route && isRouteWithReportID(route)) {
         const reportID = route.params.reportID;
 
@@ -414,8 +411,8 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
         normalizedPath = '/';
     }
 
-    // PublicScreens registers SCREENS.HOME ('Home') without a path mapping, so React Navigation derives `/Home` as the URL.
-    // The authenticated config maps SCREENS.HOME to lowercase 'home', and the case-sensitive mismatch falls to NOT_FOUND.
+    // `/Home` (capital H) has no route mapping — the config maps SCREENS.HOME to lowercase 'home' — so it would
+    // fall through to NOT_FOUND. Redirect legacy/cached `/Home` paths to the root instead.
     if (normalizedPath === `/${SCREENS.HOME}`) {
         normalizedPath = '/';
     }

@@ -119,6 +119,7 @@ function DebugReportPage({
             draftComment,
             currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID,
+            conciergeReportID,
         });
 
         return [
@@ -179,6 +180,7 @@ function DebugReportPage({
         priorityMode,
         draftComment,
         translate,
+        conciergeReportID,
     ]);
 
     const icons = useMemoizedLazyExpensifyIcons(['Eye']);
