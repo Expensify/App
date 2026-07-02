@@ -102,7 +102,6 @@ function toggleEmojiReaction(
     existingReactions: OnyxEntry<ReportActionReactions>,
     paramSkinTone: number,
     currentUserAccountID: number,
-    ignoreSkinToneOnCompare = false,
 ) {
     const originalReportID = getOriginalReportID(reportID, reportAction, undefined);
 
@@ -122,7 +121,6 @@ function toggleEmojiReaction(
 
     // Only use skin tone if emoji supports it
     const skinTone = emoji.types === undefined ? CONST.EMOJI_DEFAULT_SKIN_TONE : paramSkinTone;
-    const skinToneToCheck = ignoreSkinToneOnCompare ? undefined : skinTone;
 
     // When both a legacy name-keyed and a hex-keyed entry exist for the same emoji, find the
     // key under which the current user has actually reacted so we remove the right entry.
@@ -131,8 +129,8 @@ function toggleEmojiReaction(
     const hexEntry = emoji.hexcode ? existingReactions?.[emoji.hexcode] : undefined;
     const nameEntry = existingReactions?.[emoji.name];
 
-    const userReactedUnderName = !!nameEntry && hasAccountIDEmojiReacted(currentUserAccountID, nameEntry.users, skinToneToCheck);
-    const userReactedUnderHex = !!hexEntry && hasAccountIDEmojiReacted(currentUserAccountID, hexEntry.users, skinToneToCheck);
+    const userReactedUnderName = !!nameEntry && hasAccountIDEmojiReacted(currentUserAccountID, nameEntry.users, skinTone);
+    const userReactedUnderHex = !!hexEntry && hasAccountIDEmojiReacted(currentUserAccountID, hexEntry.users, skinTone);
 
     if (userReactedUnderHex && emoji.hexcode) {
         removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji, currentUserAccountID, emoji.hexcode);
