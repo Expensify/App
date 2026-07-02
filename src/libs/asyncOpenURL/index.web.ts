@@ -2,6 +2,7 @@ import {Linking} from 'react-native';
 import type {Linking as LinkingWeb} from 'react-native-web';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
+import {isExternalLinkSchemeAllowed} from '@libs/Url';
 import CONST from '@src/CONST';
 import type AsyncOpenURL from './types';
 
@@ -20,7 +21,12 @@ const asyncOpenURL: AsyncOpenURL = (promise, url, shouldSkipCustomSafariLogic, s
     if (!isSafari || !!shouldSkipCustomSafariLogic || !!shouldOpenInSameTab) {
         promise
             .then((params) => {
-                (Linking.openURL as LinkingWeb['openURL'])(typeof url === 'string' ? url : url(params), shouldOpenInSameTab && canOpenURLInSameTab ? '_self' : undefined);
+                const resolvedURL = typeof url === 'string' ? url : url(params);
+                if (!isExternalLinkSchemeAllowed(resolvedURL)) {
+                    Log.warn('[asyncOpenURL] blocked URL with disallowed scheme', {url: resolvedURL});
+                    return;
+                }
+                (Linking.openURL as LinkingWeb['openURL'])(resolvedURL, shouldOpenInSameTab && canOpenURLInSameTab ? '_self' : undefined);
             })
             .catch(() => {
                 Log.warn('[asyncOpenURL] error occurred while opening URL', {url});
@@ -29,11 +35,17 @@ const asyncOpenURL: AsyncOpenURL = (promise, url, shouldSkipCustomSafariLogic, s
         const windowRef = window.open();
         promise
             .then((params) => {
-                if (!windowRef) {
-                    (Linking.openURL as LinkingWeb['openURL'])(typeof url === 'string' ? url : url(params), '_self');
+                const resolvedURL = typeof url === 'string' ? url : url(params);
+                if (!isExternalLinkSchemeAllowed(resolvedURL)) {
+                    Log.warn('[asyncOpenURL] blocked URL with disallowed scheme', {url: resolvedURL});
+                    windowRef?.close();
                     return;
                 }
-                windowRef.location = typeof url === 'string' ? url : url(params);
+                if (!windowRef) {
+                    (Linking.openURL as LinkingWeb['openURL'])(resolvedURL, '_self');
+                    return;
+                }
+                windowRef.location = resolvedURL;
             })
             .catch(() => {
                 windowRef?.close();

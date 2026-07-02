@@ -56,6 +56,21 @@ function appendParam(url: string, paramName: string, paramValue: string) {
     return `${url}${separator}${paramName}=${paramValue}` as Route;
 }
 
+/**
+ * Guards against scheme injection (javascript:, data:, custom app schemes) before opening an external URL.
+ * Schemeless values (relative/anchor paths) are allowed through since they are handled by navigation, not external opens.
+ */
+function isExternalLinkSchemeAllowed(url: string): boolean {
+    const scheme = url
+        .trim()
+        .match(/^([a-z][a-z0-9+.-]*):/i)?.[1]
+        ?.toLowerCase();
+    if (!scheme) {
+        return true;
+    }
+    return (CONST.ALLOWED_EXTERNAL_LINK_SCHEMES as readonly string[]).includes(`${scheme}:`);
+}
+
 function hasURL(text: string) {
     const urlPattern = /((https|http)?:\/\/[^\s]+)/g;
 
@@ -151,4 +166,15 @@ function getUrlWithParams<TBase extends string, TParams extends UrlParams>(baseU
     return (queryString ? `${path}?${queryString}` : path) as UrlWithParams<TBase>;
 }
 
-export {getSearchParamFromUrl, getSearchParamFromPath, hasSameExpensifyOrigin, getPathFromURL, appendParam, hasURL, addLeadingForwardSlash, extractUrlDomain, getUrlWithParams};
+export {
+    getSearchParamFromUrl,
+    getSearchParamFromPath,
+    hasSameExpensifyOrigin,
+    getPathFromURL,
+    appendParam,
+    hasURL,
+    addLeadingForwardSlash,
+    extractUrlDomain,
+    getUrlWithParams,
+    isExternalLinkSchemeAllowed,
+};
