@@ -166,8 +166,11 @@ describe('the generated coverage itself stays complete', () => {
     });
 
     // Shortest paths keep a single incoming route per distinct state-and-context vertex, so a transition can
-    // silently drop out of the walk once another route to its target is shorter. The fix for a failure here
-    // is an explicit journey in `DRIVING_JOURNEYS` that drives the dropped transition.
+    // silently drop out of the walk once another route to its target is shorter. A failure here has two
+    // possible causes. When a transition was added to the machine, the fix is an explicit journey in
+    // `DRIVING_JOURNEYS` that drives it. When the machine stopped resetting part of its context, the same
+    // state value splits into a second vertex whose transitions have no route, so compare the failing
+    // vertex's context with the intended one and fix the machine instead of adding a journey.
     describe('every UI-drivable state-changing transition is exercised', () => {
         const exercisedTransitionKeys = getExercisedTransitionKeys(walkedPaths);
 
