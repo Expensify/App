@@ -4,6 +4,7 @@ description: Learn how Workspaces, plans, subscriptions, billing, and pricing wo
 keywords: [Expensify billing, plans, subscriptions, billing overview, Workspace billing]
 internalScope: Audience is anyone using or evaluating Expensify. Covers the relationship between plans, subscriptions, pricing, and billing. Does not cover changing plans, subscription management, or billing tasks.
 contentType: concept
+order: 1
 ---
 
 # Overview of How Subscriptions Plans and Billing Work

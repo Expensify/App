@@ -200,7 +200,9 @@ function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof pla
 
         for (const fileOrFolder of fs.readdirSync(basePath)) {
             if (fileOrFolder.endsWith('.md')) {
-                const articleObj = getArticleObj(fileOrFolder);
+                const entryPath = `${basePath}/${fileOrFolder}`;
+                const order = getOrderFromArticleFrontMatter(entryPath);
+                const articleObj = getArticleObj(fileOrFolder, order);
                 pushOrCreateEntry(routeHubs, hub, 'articles', articleObj);
                 continue;
             }

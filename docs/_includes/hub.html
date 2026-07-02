@@ -15,9 +15,9 @@
 {% assign hubSections = hub.sections | default: emptyItems %}
 
 {% if hub.articles %}
-    {% assign sortedSectionsAndArticles = hubSections | concat: hubArticles | sort: 'title' %}
+    {% assign sortedSectionsAndArticles = hubSections | concat: hubArticles | sort: 'order' %}
 {% else %}
-    {% assign sortedSectionsAndArticles = hubSections | sort: 'title' %}
+    {% assign sortedSectionsAndArticles = hubSections | sort: 'order' %}
 {% endif%}
 
 <section>
