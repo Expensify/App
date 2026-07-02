@@ -81,6 +81,7 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
             onClose={() => {
                 navigateBack();
             }}
+            isLoading={privatePersonalDetails?.isLoading}
         />
     );
 }
