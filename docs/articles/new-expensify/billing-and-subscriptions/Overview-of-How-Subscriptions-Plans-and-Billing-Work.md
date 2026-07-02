@@ -1,5 +1,5 @@
 ---
-title: How Subscriptions Plans and Billing Work
+title: Overview of How Subscriptions Plans and Billing Work
 description: Learn how Workspaces, plans, subscriptions, billing, and pricing work together in Expensify.
 keywords: [Expensify billing, plans, subscriptions, billing overview, Workspace billing]
 internalScope: Audience is anyone using or evaluating Expensify. Covers the relationship between plans, subscriptions, pricing, and billing. Does not cover changing plans, subscription management, or billing tasks.
@@ -7,7 +7,7 @@ contentType: concept
 order: 1
 ---
 
-# How Subscriptions Plans and Billing Work
+# Overview of How Subscriptions Plans and Billing Work
 
 Expensify organizes billing around three core concepts: your workspace plan, your subscription, and your organization's Expensify Card usage. Together, these determine the features available to your organization and the pricing you qualify for.
 
