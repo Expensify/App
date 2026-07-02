@@ -16,7 +16,7 @@ If you just need someone to handle approvals while you're away, [learn how to as
 
 ## Who can add a Copilot
 
-Any Expensify member can grant Copilot access to another member.
+Any Expensify member can grant another member Copilot access to their own Expensify account.
 
 You can invite someone who doesn't yet have an Expensify account. They'll receive an invitation to create one before accessing yours.
 
@@ -79,9 +79,11 @@ After you remove a Copilot:
 
 # FAQ
 
-## Can I add someone who doesn't have an Expensify account?
+## Can a Workspace Admin add a Copilot to another member's account?
 
-Yes. They'll receive an invitation to create an account before accessing yours.
+No. Copilot access can only be granted by the owner of the Expensify account. Workspace Admins can't add, remove, or manage Copilots for other members' personal accounts, even if they administer the Workspace.
+
+If another member needs a Copilot, they must sign in to their own Expensify account and add the Copilot themselves.
 
 ## Can a Copilot add or remove other Copilots?
 
