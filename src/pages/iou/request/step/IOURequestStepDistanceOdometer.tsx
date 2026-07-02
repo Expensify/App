@@ -87,9 +87,9 @@ function IOURequestStepDistanceOdometer({
     const startReadingInputRef = useRef<BaseTextInputRef | null>(null);
     const endReadingInputRef = useRef<BaseTextInputRef | null>(null);
     const lastFocusedInputRef = useRef<BaseTextInputRef | null>(null);
-    const shouldRestoreFocusRef = useRef(false);
 
     const [isDiscardModalVisible, setIsDiscardModalVisible] = useState(false);
+    const [focusRestoreRequestId, setFocusRestoreRequestId] = useState(0);
 
     const didSaveEditingConfirmationRef = useRef(false);
     const shouldBypassDiscardConfirmationRef = useRef(false);
@@ -516,16 +516,19 @@ function IOURequestStepDistanceOdometer({
     // flagged visible (i.e. synchronously, before React commits the `isDiscardModalVisible: false` update) is a
     // no-op on native. Defer to the layout effect below, which fires once that commit has actually landed.
     const restoreLastInputFocus = () => {
-        shouldRestoreFocusRef.current = true;
+        setFocusRestoreRequestId((id) => id + 1);
     };
 
+    // onCancel always fires either synchronously with `onVisibilityChange(false)` in the same callback (swipe-back/
+    // hardware-back flow, see useDiscardChangesConfirmation — batched into one render) or without ever toggling
+    // isDiscardModalVisible at all (tab-switch flow, see useRegisterTabSwitchGuard). Either way isDiscardModalVisible
+    // is already false by the time this effect runs, so it doesn't need to be checked here.
     useLayoutEffect(() => {
-        if (isDiscardModalVisible || !shouldRestoreFocusRef.current) {
+        if (focusRestoreRequestId === 0) {
             return;
         }
-        shouldRestoreFocusRef.current = false;
         lastFocusedInputRef.current?.focus();
-    }, [isDiscardModalVisible]);
+    }, [focusRestoreRequestId]);
 
     useDiscardChangesConfirmation({
         getHasUnsavedChanges,
