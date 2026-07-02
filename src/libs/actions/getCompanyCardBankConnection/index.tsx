@@ -1,7 +1,9 @@
 import {getApiRoot} from '@libs/ApiUtils';
+import {splitCardFeedWithDomainID} from '@libs/CardUtils';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 
 type CompanyCardBankConnection = {
     authToken: string;
@@ -17,7 +19,7 @@ type PersonalCardBankConnection = {
     scrapeMinDate: string;
 };
 
-function getCompanyCardBankConnection(policyID?: string, bankName?: string | null) {
+function getCompanyCardBankConnection(policyID?: string, bankName?: string | null, feed?: CompanyCardFeedWithDomainID) {
     const bankConnection = Object.keys(CONST.COMPANY_CARDS.BANKS).find((key) => CONST.COMPANY_CARDS.BANKS[key as keyof typeof CONST.COMPANY_CARDS.BANKS] === bankName);
 
     if (!bankName || !bankConnection || !policyID) {
@@ -31,6 +33,14 @@ function getCompanyCardBankConnection(policyID?: string, bankName?: string | nul
         isCorporate: 'true',
         scrapeMinDate: '',
     };
+
+    // When repairing an existing feed (a feed is provided) pass the originating domain's account ID, which is
+    // embedded in the CompanyCardFeedWithDomainID. This lets the server refresh credentials on the feed the cards
+    // actually belong to (e.g. a Classic domain-level feed surfaced into a workspace via "preferred workspace")
+    // instead of always targeting the synthetic workspace-policy domain.
+    const domainID = feed ? splitCardFeedWithDomainID(feed)?.domainID : undefined;
+    const queryParams: Record<string, string> = domainID ? {...params, domainAccountID: String(domainID)} : params;
+
     const bank = CONST.COMPANY_CARDS.BANK_CONNECTIONS[bankConnection as keyof typeof CONST.COMPANY_CARDS.BANK_CONNECTIONS];
 
     // The Amex connection whitelists only our production servers, so we need to always use the production API for American Express
@@ -41,7 +51,7 @@ function getCompanyCardBankConnection(policyID?: string, bankName?: string | nul
         },
         forceProductionAPI,
     );
-    return `${commandURL}partners/banks/${bank}/oauth_callback.php?${new URLSearchParams(params).toString()}`;
+    return `${commandURL}partners/banks/${bank}/oauth_callback.php?${new URLSearchParams(queryParams).toString()}`;
 }
 
 function getPersonalCardBankConnection(bankName?: string | null) {

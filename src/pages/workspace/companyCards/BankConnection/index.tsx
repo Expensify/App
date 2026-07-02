@@ -64,7 +64,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
     const isPlaid = !!plaidToken;
 
-    const url = getCompanyCardBankConnection(policyID, bankName);
+    const url = getCompanyCardBankConnection(policyID, bankName, feed);
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.[feed]) : false;
     const headerTitleAddCards = translate('workspace.companyCards.addCards');
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
