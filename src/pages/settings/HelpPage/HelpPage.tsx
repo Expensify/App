@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import AccountManagerBookCallButton from '@components/AccountManagerBookCallButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -73,6 +74,7 @@ function HelpPage() {
           }
         : null;
 
+    const accountManagerCalendarLink = account?.accountManagerCalendarLink;
     const accountManagerItem = accountManagerDetails
         ? {
               key: accountManagerDetails.login,
@@ -81,7 +83,9 @@ function HelpPage() {
               icon: accountManagerDetails.avatar,
               iconType: CONST.ICON_TYPE_AVATAR,
               onPress: () => navigateToAndOpenReportWithAccountIDs([accountManagerDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas, personalDetails),
-              shouldShowRightIcon: true,
+              shouldShowRightIcon: !accountManagerCalendarLink,
+              shouldShowRightComponent: !!accountManagerCalendarLink,
+              rightComponent: accountManagerCalendarLink ? <AccountManagerBookCallButton calendarLink={accountManagerCalendarLink} /> : undefined,
               wrapperStyle: [styles.sectionMenuItemTopDescription],
               sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.ACCOUNT_MANAGER,
           }
