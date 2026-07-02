@@ -11,7 +11,6 @@ import KYCWallContextProvider from '@components/KYCWall/KYCWallContext';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
 import {MultifactorAuthenticationContextProviders} from '@components/MultifactorAuthentication/Context';
 import OpenAppFailureModal from '@components/OpenAppFailureModal';
-import OptionsListContextProvider from '@components/OptionListContextProvider';
 import PriorityModeController from '@components/PriorityModeController';
 import {ProductTrainingContextProvider} from '@components/ProductTrainingContext';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
@@ -60,7 +59,6 @@ import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavi
 import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
 import MultifactorAuthenticationModalNavigator from './Navigators/MultifactorAuthenticationModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
-import TestDriveModalNavigator from './Navigators/TestDriveModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
 import ThreeDSAuthHandler from './ThreeDSAuthHandler';
@@ -174,7 +172,6 @@ function AuthScreens() {
                         WideRHPContextProvider,
                         KeyboardDismissibleFlatListContextProvider,
                         CurrencyListContextProvider,
-                        OptionsListContextProvider,
                         SidebarOrderedReportsContextProvider,
                         SearchContextProvider,
                         LockedAccountModalProvider,
@@ -303,13 +300,8 @@ function AuthScreens() {
                         />
                         <RootStack.Screen
                             name={NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.basicModalNavigator}
+                            options={rootNavigatorScreenOptions.centeredModalNavigator}
                             component={MigratedUserWelcomeModalNavigator}
-                        />
-                        <RootStack.Screen
-                            name={NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.basicModalNavigator}
-                            component={TestDriveModalNavigator}
                         />
                         <RootStack.Screen
                             name={NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR}
@@ -318,7 +310,7 @@ function AuthScreens() {
                         />
                         <RootStack.Screen
                             name={NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.basicModalNavigator}
+                            options={rootNavigatorScreenOptions.centeredModalNavigator}
                             component={FeatureTrainingModalNavigator}
                             listeners={modalScreenListeners}
                         />

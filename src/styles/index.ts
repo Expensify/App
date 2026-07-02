@@ -4,7 +4,7 @@ import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
 import type {LineLayerSpecification} from 'react-map-gl/mapbox';
 // eslint-disable-next-line no-restricted-imports
-import type {Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
+import type {Animated, DimensionValue, ImageStyle, TextStyle, ViewStyle} from 'react-native';
 import {Platform, StyleSheet} from 'react-native';
 import type {PickerStyle} from 'react-native-picker-select';
 import type {SharedValue} from 'react-native-reanimated';
@@ -815,6 +815,10 @@ const staticStyles = (theme: ThemeColors) =>
             minWidth: variables.componentSizeSmall,
             paddingHorizontal: 12,
             backgroundColor: theme.buttonDefaultBG,
+        },
+
+        minHeightComponentSizeSmall: {
+            minHeight: variables.componentSizeSmall,
         },
 
         buttonExtraSmall: {
@@ -4528,6 +4532,16 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 8,
         },
 
+        rulesNewMenuItem: {
+            backgroundColor: theme.cardBG,
+            borderRadius: 8,
+            paddingHorizontal: 12,
+            paddingVertical: 16,
+            alignItems: 'center',
+            marginBottom: 8,
+            minHeight: variables.rulesNewMenuItemMinHeight,
+        },
+
         willChangeTransform: {
             willChange: 'transform',
         },
@@ -5007,24 +5021,6 @@ const staticStyles = (theme: ThemeColors) =>
             maxHeight: 100,
         },
 
-        listBoundaryLoader: {
-            position: 'absolute',
-            top: 0,
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: CONST.CHAT_HEADER_LOADER_HEIGHT,
-        },
-        listBoundaryError: {
-            paddingVertical: 15,
-            paddingHorizontal: 20,
-        },
-        listBoundaryErrorText: {
-            color: theme.textSupporting,
-            fontSize: variables.fontSizeLabel,
-            marginBottom: 10,
-        },
-
         videoContainer: {
             ...flex.flex1,
             ...flex.alignItemsCenter,
@@ -5084,8 +5080,10 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchActionsBarContainer: {
+            marginTop: 12,
             marginBottom: 16,
             paddingHorizontal: 20,
+            gap: 8,
             flexDirection: 'row',
             alignItems: 'flex-start',
             justifyContent: 'space-between',
@@ -5105,13 +5103,9 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: 28,
         },
 
-        searchPageInputWideTouchableWrapper: {height: 32, width: 200},
-        searchPageInputWidePlaceholder: {
-            // Extra 2 to account for the borders
-            height: 34,
-            width: 202,
-        },
-        searchPageInputNarrowTouchableWrapper: {height: 44},
+        // Extra 2 to account for the borders
+        searchPageInputWideTouchableWrapper: {height: 34, width: 202},
+        searchPageInputNarrowTouchableWrapper: {height: 46},
 
         walletStaticIllustration: {
             width: 262,
@@ -5502,6 +5496,16 @@ const staticStyles = (theme: ThemeColors) =>
             ...flex.justifyContentCenter,
         },
 
+        cardRulesEmptyStateIllustration: {
+            width: variables.cardRulesEmptyStateIllustrationWidth,
+            height: variables.cardRulesEmptyStateIllustrationHeight,
+        },
+
+        sortingMachineRulesEmptyStateIllustration: {
+            width: variables.sortingMachineRulesEmptyStateIllustrationWidth,
+            height: variables.sortingMachineRulesEmptyStateIllustrationHeight,
+        },
+
         emptyStateSamlIllustration: {
             width: 183,
             height: 160,
@@ -5513,8 +5517,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         expensifyCardEmptyIllustration: {
-            width: 280,
-            height: 172,
+            width: variables.expensifyCardEmptyIllustrationWidth,
+            height: variables.expensifyCardEmptyIllustrationHeight,
         },
 
         errorStateCardIllustration: {
@@ -5887,13 +5891,6 @@ const staticStyles = (theme: ThemeColors) =>
             border: 'none',
         },
 
-        featureTrainingModalImage: {
-            width: '100%',
-            height: '100%',
-            borderTopLeftRadius: variables.componentBorderRadiusLarge,
-            borderTopRightRadius: variables.componentBorderRadiusLarge,
-        },
-
         twoColumnLayoutCol: {
             flexGrow: 1,
             flexShrink: 1,
@@ -6116,12 +6113,28 @@ const staticStyles = (theme: ThemeColors) =>
             ...FontUtils.fontFamily.platform.MONOSPACE,
             ...wordBreak.breakWord,
         },
+        copyableTextFieldMinHeight: {
+            minHeight: variables.componentSizeNormal + 32,
+        },
+
         copyableTextFieldButton: {
             width: 28,
             height: 28,
             borderRadius: variables.buttonBorderRadius,
             justifyContent: 'center',
             alignItems: 'center',
+        },
+        // Single-line code blocks keep the copy button tight to the corner.
+        codeBlockCopyButtonWrapper: {
+            position: 'absolute',
+            top: 4,
+            right: 4,
+        },
+        // Multi-line code blocks get extra breathing room around the copy button.
+        codeBlockCopyButtonWrapperMultiline: {
+            position: 'absolute',
+            top: 8,
+            right: 8,
         },
         moneyRequestView: {
             position: 'relative',
@@ -6599,13 +6612,6 @@ const dynamicStyles = (theme: ThemeColors) =>
             return {maxHeight: Math.min(CONST.POPOVER_DROPDOWN_MAX_HEIGHT, windowHeight * heightRatio)};
         },
 
-        testDriveModalContainer: (shouldUseNarrowLayout: boolean) => ({
-            // On small/medium screens, we need to remove the top padding
-            paddingTop: 0,
-            // On larger screens, we need to prevent the modal from becoming too big
-            maxWidth: shouldUseNarrowLayout ? undefined : 500,
-        }),
-
         getMoneyRequestViewImage: (showBorderless: boolean) => ({
             ...spacing.mh5,
             overflow: 'hidden',
@@ -6615,6 +6621,27 @@ const dynamicStyles = (theme: ThemeColors) =>
             height: 180,
             maxWidth: '100%',
         }),
+
+        getCenteredModalOuterView: (shouldUseNarrowLayout: boolean) =>
+            ({
+                justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
+            }) as const,
+
+        getCenteredModalInnerView: (shouldUseNarrowLayout: boolean, width?: number, height?: DimensionValue) => {
+            const borderBottomRadius = shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge;
+
+            return {
+                width: shouldUseNarrowLayout ? '100%' : (width ?? variables.featureTrainingModalWidth),
+                // No default height - the card hugs its content (children must have intrinsic height)
+                height,
+                maxHeight: '100%' as const,
+                borderRadius: variables.componentBorderRadiusLarge,
+                borderBottomRightRadius: borderBottomRadius,
+                borderBottomLeftRadius: borderBottomRadius,
+                overflow: 'hidden' as const,
+                backgroundColor: theme.componentBG,
+            };
+        },
 
         getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
             justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',

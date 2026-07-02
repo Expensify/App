@@ -1,6 +1,5 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -91,22 +90,10 @@ function IOURequestStepUpgrade({
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
-    // Build transactions map from selectedTransactions (search results) instead of Onyx TRANSACTION collection
-    // This ensures that transactions selected from search are properly included in the map passed to changeTransactionsReport
-    const allTransactions = useMemo(
-        () =>
-            Object.values(selectedTransactions).reduce(
-                (transactionsCollection, transactionItem) => {
-                    if (transactionItem.transaction) {
-                        // eslint-disable-next-line no-param-reassign
-                        transactionsCollection[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transaction.transactionID}`] = transactionItem.transaction;
-                    }
-                    return transactionsCollection;
-                },
-                {} as NonNullable<OnyxCollection<Transaction>>,
-            ),
-        [selectedTransactions],
-    );
+    // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
+    const transactions = Object.values(selectedTransactions)
+        .map((transactionItem) => transactionItem.transaction)
+        .filter((item): item is Transaction => !!item);
 
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -150,8 +137,8 @@ function IOURequestStepUpgrade({
                 policy: newPolicy,
                 reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`],
-                allTransactions,
                 policyTagList,
+                transactions,
                 allTransactionViolation: transactionViolations,
                 allReports,
             });
@@ -194,8 +181,9 @@ function IOURequestStepUpgrade({
                 const shouldKeepOriginalReport = isTrack || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
                 if (!shouldKeepOriginalReport) {
                     setTransactionReport(transactionID, {reportID: expenseReportID}, true);
-                    // Let the confirmation step decide the distance rate because policy data is not fully available at this step
-                    setCustomUnitRateID(transactionID, '-1', undefined, undefined);
+                    // Let the confirmation step decide the distance rate because policy data is not fully available at this step.
+                    // personalPolicyOutputCurrency is intentionally omitted: no transaction is passed, so setCustomUnitRateID never resolves a rate and the currency is never read.
+                    setCustomUnitRateID(transactionID, '-1', undefined, undefined, false, undefined);
                     Navigation.setParams({reportID: expenseReportID});
                 }
 
@@ -244,7 +232,7 @@ function IOURequestStepUpgrade({
         session?.accountID,
         session?.email,
         ownerPersonalDetails,
-        allTransactions,
+        transactions,
         betas,
         iouType,
         isTrack,

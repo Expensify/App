@@ -230,6 +230,35 @@ describe('RecentlyAddedSection', () => {
         });
     });
 
+    describe('anonymous user', () => {
+        it('hides the entire section (including the empty state) for guests', async () => {
+            mockUseRecentlyAddedData.mockReturnValue({transactions: []});
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderRecentlyAddedSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId('recentlyAddedEmptyState')).not.toBeOnTheScreen();
+            expect(screen.queryByText('homePage.recentlyAddedSection.title')).not.toBeOnTheScreen();
+        });
+
+        it('still hides the section for guests even when expenses are present', async () => {
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [ROW_1]});
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderRecentlyAddedSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId('recentlyAddedRow-t1')).not.toBeOnTheScreen();
+        });
+    });
+
     describe('rows', () => {
         it('renders one row per expense with the merchant name', async () => {
             mockUseRecentlyAddedData.mockReturnValue({transactions: [ROW_1, ROW_2]});
@@ -303,11 +332,14 @@ describe('RecentlyAddedSection', () => {
             expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo: ROUTES.HOME}));
         });
 
-        it('opens the parent report directly for an expense in a one-transaction report', async () => {
+        it('opens (creating if needed) the transaction thread for an expense in a one-transaction report, not the parent report', async () => {
             setWideLayout();
             const parentReportID = 'report_single';
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {reportID: parentReportID, type: CONST.REPORT.TYPE.EXPENSE, transactionCount: 1});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                    a1: {reportActionID: 'a1', actionName: CONST.REPORT.ACTIONS.TYPE.IOU, originalMessage: {IOUTransactionID: 't1'}},
+                });
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -319,8 +351,9 @@ describe('RecentlyAddedSection', () => {
             fireEvent.press(screen.getByTestId('recentlyAddedRow-t1'));
             await waitForBatchedUpdatesWithAct();
 
+            expect(mockCreateTransactionThreadReport).toHaveBeenCalledTimes(1);
             expect(mockNavigate).toHaveBeenCalledTimes(1);
-            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, backTo: ROUTES.HOME}));
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: 'created_thread_report', backTo: ROUTES.HOME}));
         });
 
         it('seeds the prev/next carousel with the IDs and a lazy descriptor for every recently added expense', async () => {

@@ -35,7 +35,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getDistanceRateCustomUnitRate, getTagLists, hasAnyPaidPolicy, isGroupPolicyByType} from '@libs/PolicyUtils';
+import {arePolicyRulesEnabled, getDistanceRateCustomUnitRate, getTagLists, hasAnyPaidPolicy, isGroupPolicyByType} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
@@ -145,7 +145,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const isCategoryRequired = !!effectivePolicy?.requiresCategory && !isSelfDMSplit;
     const reportAttributes = useReportAttributes();
     const reportName = getReportName(currentReport, reportAttributes) || parentReport?.reportName;
-    const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, effectivePolicy?.areRulesEnabled);
+    const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, arePolicyRulesEnabled(effectivePolicy, policyCategories));
 
     // Mirror MoneyRequestView's `shouldShowTag`, plus always surface the row when the original
     // (parent) transaction carried a tag — same rationale as `shouldShowCategory` above: workspace
@@ -456,7 +456,15 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             style={[styles.w100]}
                             text={translate('common.save')}
                             onPress={() => {
-                                updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, transaction, effectivePolicy, isSelfDMSplit);
+                                updateSplitExpenseField(
+                                    splitExpenseDraftTransaction,
+                                    originalTransactionDraft,
+                                    splitExpenseTransactionID,
+                                    transaction,
+                                    effectivePolicy,
+                                    isSelfDMSplit,
+                                    personalPolicy?.outputCurrency,
+                                );
                                 Navigation.goBack(backTo);
                             }}
                             pressOnEnter

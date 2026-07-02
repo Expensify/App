@@ -196,6 +196,7 @@ import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils
 import {isExpenseSplit, isPerDiemRequest} from '@libs/TransactionUtils';
 import {setDownload} from '@userActions/Download';
 import {toggleEmojiReaction} from '@userActions/EmojiReactions';
+import {openOldDotLink} from '@userActions/Link';
 import {
     explain,
     markCommentAsUnread,
@@ -206,6 +207,7 @@ import {
     togglePinnedState,
     toggleSubscribeToChildReport,
 } from '@userActions/Report';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -268,6 +270,8 @@ type ShouldShow = (args: {
     isOffline: boolean;
     isMini: boolean;
     isProduction: boolean;
+    isDevelopment: boolean;
+    isStaging: boolean;
     moneyRequestAction: ReportAction | undefined;
     areHoldRequirementsMet: boolean;
     isDebugModeEnabled: OnyxEntry<boolean>;
@@ -361,6 +365,7 @@ type ContextMenuActionWithIcon = WithSentryLabel & {
         | 'Trashcan'
         | 'Exit'
         | 'Concierge'
+        | 'Eye'
     >;
     successTextTranslateKey?: TranslationPaths;
     successIcon?: Extract<
@@ -486,8 +491,8 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
             return (type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isDynamicWorkflowRoutedAction) || (type === CONST.CONTEXT_MENU_TYPES.REPORT && !isUnreadChat);
         },
-        onPress: (closePopover, {reportActions, reportAction, reportID, currentUserAccountID}) => {
-            markCommentAsUnread(reportID, reportActions, reportAction, currentUserAccountID);
+        onPress: (closePopover, {reportActions, reportAction, reportID, currentUserAccountID, isOffline}) => {
+            markCommentAsUnread(reportID, reportActions, reportAction, currentUserAccountID, isOffline);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
@@ -1443,6 +1448,25 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_ONYX_DATA,
+    },
+    {
+        isAnonymousAction: true,
+        textTranslateKey: 'reportActionContextMenu.viewAgentZeroTrace',
+        icon: 'Eye',
+        shouldShow: ({type, reportAction, isProduction}) =>
+            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
+            !isProduction &&
+            !!(isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) && getOriginalMessage(reportAction)?.agentZeroRequestID),
+        onPress: (closePopover, {reportAction}) => {
+            const agentZeroRequestID = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) ? getOriginalMessage(reportAction)?.agentZeroRequestID : undefined;
+            if (agentZeroRequestID) {
+                // On dev there are no Victoria logs to query, so point the tracer at the local syslog instead.
+                openOldDotLink(CONST.OLDDOT_URLS.AGENT_ZERO_TRACER(agentZeroRequestID, CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV));
+            }
+            hideContextMenu(true, ReportActionComposeFocusManager.focus);
+        },
+        getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.VIEW_AGENT_ZERO_TRACE,
     },
     {
         isAnonymousAction: true,
