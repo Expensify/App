@@ -16,6 +16,7 @@ import usePrevious from './usePrevious';
 import useResponsiveLayout from './useResponsiveLayout';
 import useStyleUtils from './useStyleUtils';
 import useThemeStyles from './useThemeStyles';
+import useViewportOffsetTop from './useViewportOffsetTop';
 import useWindowDimensions from './useWindowDimensions';
 
 const popoverDimensions = {
@@ -47,6 +48,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
+    const viewportOffsetTop = useViewportOffsetTop();
     const isInLandscapeMode = useIsInLandscapeMode();
     // Bottom-docked Modal path only; aligns with Popover path that omits modal shell padding chrome
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -194,12 +196,22 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         [reportID, willAlertModalBecomeVisible, showReportSubmitToPopover],
     );
 
+    const popoverContainerStyle = useMemo(() => (isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH}), [isSmallScreenWidth, styles.w100]);
+
+    const outerStyle = useMemo(
+        () => ({
+            ...(isSmallScreenWidth ? StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop) : {}),
+            ...popoverContainerStyle,
+        }),
+        [StyleUtils, isSmallScreenWidth, popoverContainerStyle, viewportOffsetTop, windowHeight],
+    );
+
     const innerContainerStyle = useMemo(
         () => ({
-            ...(isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH}),
+            ...popoverContainerStyle,
             ...(isBottomDockedInLandscape ? styles.getPopoverMaxHeight(windowHeight, true) : {minHeight: popoverDimensions.minHeight}),
         }),
-        [isSmallScreenWidth, isBottomDockedInLandscape, windowHeight, styles],
+        [popoverContainerStyle, isBottomDockedInLandscape, windowHeight, styles],
     );
 
     const reportSubmitToPopover = useMemo(() => {
@@ -210,6 +222,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         return (
             <PopoverWithMeasuredContent
                 innerContainerStyle={innerContainerStyle}
+                outerStyle={outerStyle}
                 anchorRef={anchorRef}
                 isVisible={isVisible}
                 onClose={closeReportSubmitToPopover}
@@ -223,11 +236,12 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
                 shouldSkipRemeasurement
                 shouldDisplayBelowModals
                 shouldUseModalPaddingStyle
+                avoidKeyboard
                 shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
             >
                 <View
                     collapsable={false}
-                    style={[StyleUtils.getHeight(submitToPopoverContentHeight), styles.flexColumn, styles.pt4]}
+                    style={[StyleUtils.getHeight(submitToPopoverContentHeight), styles.flexColumn, styles.flex1, styles.w100, styles.pt4]}
                 >
                     <ReportSubmitToContent
                         key={submitToContentKey}
@@ -246,8 +260,11 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     }, [
         StyleUtils,
         styles.flexColumn,
+        styles.flex1,
         styles.pt4,
+        styles.w100,
         innerContainerStyle,
+        outerStyle,
         submitToPopoverContentHeight,
         shouldRenderSubmitToPopover,
         isVisible,
