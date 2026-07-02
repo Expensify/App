@@ -134,6 +134,12 @@ function MoneyRequestReportUnifiedList({
     // Lazy useState initializer (not useRef.current) so it is created exactly once without reading a ref during render.
     const [scrollOffsetStore] = useState(createScrollOffsetStore);
 
+    // Reset the offset to the top whenever the report changes. A report view opens at the top, but the store only
+    // updates from onScroll — so without this a stale offset
+    useEffect(() => {
+        scrollOffsetStore.setOffset(0);
+    }, [report.reportID, scrollOffsetStore]);
+
     const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         if (isHorizontalTable) {
             // Emitter, not state: the nested FlashList updates its own render stack without re-rendering the parent.
