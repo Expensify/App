@@ -65,7 +65,9 @@ To learn more, see How Your Plan and Subscription Determine Your Bill.
 
 ## Can I change my workspace plan later?
 
-Yes. If your organization's needs change, you can switch between the Collect and Control plans. However, if you are on an annual subscription, you may need to wait until your current subscription term ends before downgrading your plan. To learn more, see Change Your Workspace Plan.
+Yes. If your organization's needs change, you can switch between the Collect and Control plans. However, if you are on an annual subscription, you may need to wait until your current subscription term ends before downgrading your plan.
+
+To learn more, see [Change Your Workspace Plan](/articles/new-expensify/billing-and-subscriptions/manage-your-plan-and-subscription/Change-Your-Workspace-Plan).
 
 ## Does every Workspace need a plan?
 
@@ -73,4 +75,6 @@ Yes. Every Workspace is created with either the Collect or Control plan.
 
 ## Does the Expensify Card work with both plans?
 
-Yes. The Expensify Card is available with both plans. However, only the Control plan offers subscription pricing that nets a discount on qualifying Expensify Card usage. To learn more, see Understand Expensify Pricing. 
+Yes. The Expensify Card is available with both plans. However, only the Control plan offers subscription pricing that nets a discount on qualifying Expensify Card usage.
+
+To learn more, see [How the Expensify Card Discount Works](/articles/new-expensify/billing-and-subscriptions/learn-about-plans-and-subscriptions/Understand-Expensify-Pricing#how-the-expensify-card-discount-works).  
