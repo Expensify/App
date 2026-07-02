@@ -144,6 +144,14 @@ Major action categories:
 - `Search.ts`: Search operations
 - `Travel.ts`: Travel features
 
+### Reading Onyx data (`useOnyx` vs `Onyx.connectWithoutView`)
+Read Onyx data in this order of preference, always choosing the earliest that fits:
+1. A **pure function** that receives the data as parameters — no Onyx connection.
+2. **`useOnyx`** (`@hooks/useOnyx`) — the default for anything a component renders.
+3. **`Onyx.connectWithoutView`** — only for non-render logic (module-level state in actions/libraries) that genuinely can't use the above.
+
+Pure functions always take precedence. Do not add a new `Onyx.connectWithoutView` by copying existing usage — justify each one on its own. Using it in a component for performance requires `@frontend-performance` approval on Slack (link it in the PR description). See [Onyx Data Management](contributingGuides/philosophies/ONYX-DATA-MANAGEMENT.md#reading-onyx-data-useonyx-vs-onyxconnectwithoutview).
+
 ## Build & Deployment
 
 ### CI/CD Workflows
