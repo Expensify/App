@@ -42,7 +42,7 @@ Depending on the reason payment couldn't be processed, you might see messages su
  - Your subscription payment is overdue.
  - A payment dispute is preventing the charge from being processed.
 
-For instructions on resolving a specific billing issue, see [Fix a Billing Issue](/articles/new-expensify/billing-and-subscriptions/manage-billing/resolve-billing-issues/Fix-a-Billing-Issue.md).
+For instructions on resolving a specific billing issue, see [Fix a Billing Issue](/articles/new-expensify/billing-and-subscriptions/manage-billing/resolve-billing-issues/Fix-a-Billing-Issue).
 
 ---
 
