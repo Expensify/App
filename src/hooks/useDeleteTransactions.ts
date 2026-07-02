@@ -68,6 +68,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const [allPolicyRecentlyUsedCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -268,15 +269,16 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
 
                 const parentTransactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
                 const expenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE ? report : parentTransactionReport;
-                const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${expenseReport?.policyID}`] ?? {};
                 const activeGroupSearchHashes =
                     currentSearchHash !== undefined && currentSearchHash >= 0 ? getActiveGroupSearchHashes(currentSearchResults?.data, currentSearchQueryJSON) : [];
 
                 updateSplitTransactions({
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
+                    allReportActionsList: allReportActions,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     allSnapshots,
+                    allPolicyTags,
                     transactionData: {
                         reportID: report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
                         originalTransactionID: transactionID,
@@ -299,7 +301,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     quickAction,
                     iouReportNextStep,
                     betas,
-                    policyTags,
                     personalDetails,
                     transactionReport: report,
                     expenseReport,
@@ -350,6 +351,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             allPolicyRecentlyUsedCategories,
             allReportNameValuePairs,
             allReports,
+            allReportActions,
             allSnapshots,
             allTransactions,
             currentUserPersonalDetails,

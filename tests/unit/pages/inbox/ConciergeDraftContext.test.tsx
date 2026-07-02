@@ -123,7 +123,7 @@ describe('ConciergeDraftContext', () => {
 
     it('resumes pending completion after remount and applies the cached final HTML', async () => {
         // Given a cached draft with pending completion
-        const visibleDraft = applyConciergeDraftEvent(null, createDraftEvent('H'), REPORT_ID);
+        const visibleDraft = applyConciergeDraftEvent(null, createDraftEvent('H'), REPORT_ID, false);
         if (!visibleDraft) {
             throw new Error('Expected visible draft to be created');
         }

@@ -11,9 +11,9 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {isValidValidateCode} from '@libs/ValidationUtils';
 import {handleExitToNavigation, initAutoAuthState, signInWithValidateCode} from '@userActions/Session';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {Session as SessionType} from '@src/types/onyx';
 import type ValidateLoginPageProps from './types';
 
@@ -110,18 +110,16 @@ function ValidateLoginPage({
     useEffect(() => {
         let ignore = false;
         if (canCompleteTwoFactorOnSignIn) {
-            // Show the sign-in page so its ValidateCodeForm renders the authenticator-code stage.
-            // ROUTES.HOME ('home') is nested under the authenticated TAB_NAVIGATOR, so navigate/goBack
-            // to it no-op from the public /v/ route; reset the stack to SCREENS.HOME instead — the same
-            // mechanism logout uses to surface the public SignInPage. The "2FA required" modal stays
-            // rendered as the fallback so a failed hand-off shows it, not a blank or an endless loader.
+            // Surface the sign-in page so its ValidateCodeForm renders the authenticator-code stage. navigate/goBack
+            // no-op from the public /v/ route, so reset the stack to TAB_NAVIGATOR (which hosts the public SignInPage).
+            // The "2FA required" modal stays rendered as the fallback so a failed hand-off shows it, not a blank screen.
             Navigation.isNavigationReady().then(() => {
                 // Bail if the effect re-ran (e.g. `isSignedIn` flipped true) before this resolved, so a
                 // stale callback can't reset the stack out from under the new state.
                 if (ignore) {
                     return;
                 }
-                navigationRef.reset({index: 0, routes: [{name: SCREENS.HOME}]});
+                navigationRef.reset({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
             });
         }
 

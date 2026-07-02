@@ -170,7 +170,7 @@ const mockPersonalDetails: PersonalDetailsList = {
     },
 };
 
-const getPolicyTags = async (reportID: string) => {
+const getAllPolicyTags = async (): Promise<OnyxCollection<PolicyTagLists>> => {
     let allPolicyTags: OnyxCollection<PolicyTagLists>;
     await getOnyxData({
         key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
@@ -179,12 +179,7 @@ const getPolicyTags = async (reportID: string) => {
             allPolicyTags = value;
         },
     });
-
-    const splitTransactionReport = getReportOrDraftReport(reportID);
-    const splitParentTransactionReport = getReportOrDraftReport(splitTransactionReport?.parentReportID);
-    const splitExpenseReport = splitTransactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? splitTransactionReport : splitParentTransactionReport;
-    const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${splitExpenseReport?.policyID}`] ?? {};
-    return policyTags;
+    return allPolicyTags;
 };
 const getParticipantsPolicyTags = async (participants: IOUParticipant[]) => {
     let participantsPolicyTags: Record<string, PolicyTagLists> = {};
@@ -1258,13 +1253,14 @@ describe('split expense', () => {
             },
         });
 
-        const policyTags = await getPolicyTags(reportID);
+        const allPolicyTags = await getAllPolicyTags();
         const reports = getTransactionAndExpenseReports(reportID);
 
         // When splitting the expense
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -1287,7 +1283,7 @@ describe('split expense', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            policyTags,
+            allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
@@ -1765,12 +1761,13 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-        const policyTags = await getPolicyTags(reportID);
+        const allPolicyTags = await getAllPolicyTags();
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -1793,7 +1790,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            policyTags,
+            allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
@@ -1885,12 +1882,13 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-        const policyTags = await getPolicyTags(reportID);
+        const allPolicyTags = await getAllPolicyTags();
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -1913,7 +1911,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            policyTags,
+            allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
@@ -2017,12 +2015,13 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-        const policyTags = await getPolicyTags(reportID);
+        const allPolicyTags = await getAllPolicyTags();
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -2045,7 +2044,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            policyTags,
+            allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
@@ -2183,13 +2182,14 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         const reportID = originalReportID ?? String(CONST.DEFAULT_NUMBER_ID);
-        const policyTags = await getPolicyTags(reportID);
+        const allPolicyTags = await getAllPolicyTags();
         let reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -2211,7 +2211,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             iouReportNextStep: undefined,
-            policyTags,
+            allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
@@ -2254,6 +2254,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             allTransactionsList: allTransactions,
             betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -2272,7 +2273,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             iouReportNextStep: undefined,
-            policyTags,
+            allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
@@ -2409,13 +2410,14 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         const reportID = originalReportID ?? String(CONST.DEFAULT_NUMBER_ID);
-        const policyTags = await getPolicyTags(reportID);
+        const allPolicyTags = await getAllPolicyTags();
         let reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -2437,7 +2439,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             iouReportNextStep: undefined,
-            policyTags,
+            allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
@@ -2527,6 +2529,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             allTransactionsList: allTransactions,
             betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -2545,7 +2548,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             iouReportNextStep: undefined,
-            policyTags,
+            allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
@@ -2692,13 +2695,14 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         const reportID1 = expenseReport.reportID;
-        const policyTags1 = await getPolicyTags(reportID1);
+        const allPolicyTags1 = await getAllPolicyTags();
         const reports1 = getTransactionAndExpenseReports(reportID1);
 
         // When the user reduces splits to 1 (triggering a reverse-split that will delete the expense report)
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID: reportID1,
@@ -2721,7 +2725,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            policyTags: policyTags1,
+            allPolicyTags: allPolicyTags1,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports1.transactionReport,
             expenseReport: reports1.expenseReport,
@@ -2827,13 +2831,14 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         const reportID2 = expenseReport.reportID;
-        const policyTags2 = await getPolicyTags(reportID2);
+        const allPolicyTags2 = await getAllPolicyTags();
         const reports2 = getTransactionAndExpenseReports(reportID2);
 
         // When the user reduces splits to 1 (triggering a reverse-split, but the expense report still has another transaction)
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID: reportID2,
@@ -2856,7 +2861,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            policyTags: policyTags2,
+            allPolicyTags: allPolicyTags2,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports2.transactionReport,
             expenseReport: reports2.expenseReport,
@@ -3013,12 +3018,13 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-        const policyTags = await getPolicyTags(reportID);
+        const allPolicyTags = await getAllPolicyTags();
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -3041,7 +3047,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            policyTags,
+            allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
@@ -3191,12 +3197,13 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-        const policyTags = await getPolicyTags(reportID);
+        const allPolicyTags = await getAllPolicyTags();
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -3219,7 +3226,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            policyTags,
+            allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
@@ -3382,13 +3389,14 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-        const policyTags = await getPolicyTags(reportID);
+        const allPolicyTags = await getAllPolicyTags();
         const reports = getTransactionAndExpenseReports(reportID);
 
         // it should use splitExpensesTotal in its calculation
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -3411,7 +3419,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            policyTags,
+            allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
@@ -3597,13 +3605,14 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-        const policyTags = await getPolicyTags(reportID);
+        const allPolicyTags = await getAllPolicyTags();
         const reports = getTransactionAndExpenseReports(reportID);
 
         // When splitting the held expense
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -3626,7 +3635,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            policyTags,
+            allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
@@ -3781,12 +3790,13 @@ describe('updateSplitTransactions', () => {
         await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, waitForCollectionCallback: true, callback: (v) => (allReportNameValuePairs = v)});
 
         const reportID = originalTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-        const policyTags = await getPolicyTags(reportID);
+        const allPolicyTags = await getAllPolicyTags();
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactions({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -3810,7 +3820,7 @@ describe('updateSplitTransactions', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            policyTags,
+            allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
@@ -3914,12 +3924,13 @@ describe('updateSplitTransactions', () => {
         await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, waitForCollectionCallback: true, callback: (v) => (allReportNameValuePairs = v)});
 
         const reportID = originalTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-        const policyTags = await getPolicyTags(reportID);
+        const allPolicyTags = await getAllPolicyTags();
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactions({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -3943,7 +3954,7 @@ describe('updateSplitTransactions', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            policyTags,
+            allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
@@ -4045,12 +4056,13 @@ describe('updateSplitTransactions', () => {
         await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, waitForCollectionCallback: true, callback: (v) => (allReportNameValuePairs = v)});
 
         const reportID = originalTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-        const policyTags = await getPolicyTags(reportID);
+        const allPolicyTags = await getAllPolicyTags();
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactions({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -4074,7 +4086,7 @@ describe('updateSplitTransactions', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            policyTags,
+            allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
@@ -4097,11 +4109,13 @@ describe('updateSplitTransactions', () => {
         let allReports: OnyxCollection<Report>;
         let allReportActions: OnyxCollection<ReportActions>;
         let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+        let allPolicyTagsList: OnyxCollection<PolicyTagLists>;
         await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, waitForCollectionCallback: true, callback: (value) => (allTransactions = value)});
         await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, waitForCollectionCallback: true, callback: (value) => (allReports = value)});
         await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, waitForCollectionCallback: true, callback: (value) => (allReportNameValuePairs = value)});
         await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_ACTIONS, waitForCollectionCallback: true, callback: (value) => (allReportActions = value)});
-        return {allTransactions, allReports, allReportNameValuePairs, allReportActions};
+        await getOnyxData({key: ONYXKEYS.COLLECTION.POLICY_TAGS, waitForCollectionCallback: true, callback: (value) => (allPolicyTagsList = value)});
+        return {allTransactions, allReports, allReportNameValuePairs, allReportActions, allPolicyTagsList};
     };
 
     const createBaseExpense = async () => {
@@ -4221,12 +4235,13 @@ describe('updateSplitTransactions', () => {
         const splitTransactionIDs = new Array(numberOfSplitTransaction).fill(true).map(() => rand64());
         const {allTransactions, allReports, allReportNameValuePairs} = await getCollections();
         const reportID = expenseReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
-        const policyTags = await getPolicyTags(reportID);
+        const allPolicyTags = await getAllPolicyTags();
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactions({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID: expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
@@ -4252,7 +4267,7 @@ describe('updateSplitTransactions', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            policyTags,
+            allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
@@ -4283,7 +4298,7 @@ describe('updateSplitTransactions', () => {
         const splitTransaction1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`);
         const splitTransaction2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID2}`);
         const {allTransactions, allReports, allReportNameValuePairs} = await getCollections();
-        const policyTags = await getPolicyTags(expenseReport.reportID);
+        const allPolicyTags = await getAllPolicyTags();
         const reports = getTransactionAndExpenseReports(expenseReport.reportID);
 
         const APIlib = require('@libs/API') as {write: (...args: unknown[]) => Promise<void>};
@@ -4293,6 +4308,7 @@ describe('updateSplitTransactions', () => {
         updateSplitTransactions({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID: expenseReport.reportID,
@@ -4316,7 +4332,7 @@ describe('updateSplitTransactions', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            policyTags,
+            allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
@@ -4544,17 +4560,19 @@ describe('updateSplitTransactions', () => {
 
         const remainingSplitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`);
         const {allTransactions, allReports, allReportNameValuePairs} = await getCollections();
-        const policyTags = await getPolicyTags(expenseReport.reportID);
+        const allPolicyTags = await getAllPolicyTags();
         const reports = getTransactionAndExpenseReports(expenseReport.reportID);
+        const splitExpenses: SplitExpense[] = [{transactionID: splitTransactionID1, reportID: remainingSplitTransaction?.reportID, amount, created: DateUtils.getDBTime()}];
 
         updateSplitTransactions({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID: expenseReport.reportID,
                 originalTransactionID,
-                splitExpenses: [{transactionID: splitTransactionID1, reportID: remainingSplitTransaction?.reportID, amount, created: DateUtils.getDBTime()}],
+                splitExpenses,
                 splitExpensesTotal: undefined,
             },
             searchContext: {currentSearchHash: -2},
@@ -4570,7 +4588,7 @@ describe('updateSplitTransactions', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            policyTags,
+            allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
@@ -4653,17 +4671,19 @@ describe('updateSplitTransactions', () => {
 
         const remainingSplitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`);
         const {allTransactions, allReports: allReports2, allReportNameValuePairs} = await getCollections();
-        const policyTags = await getPolicyTags(expenseReport.reportID);
+        const allPolicyTags = await getAllPolicyTags();
         const reports = getTransactionAndExpenseReports(expenseReport.reportID);
+        const splitExpenses: SplitExpense[] = [{transactionID: splitTransactionID1, reportID: remainingSplitTransaction?.reportID, amount, created: DateUtils.getDBTime()}];
 
         updateSplitTransactions({
             allTransactionsList: allTransactions,
             allReportsList: allReports2,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID: expenseReport.reportID,
                 originalTransactionID,
-                splitExpenses: [{transactionID: splitTransactionID1, reportID: remainingSplitTransaction?.reportID, amount, created: DateUtils.getDBTime()}],
+                splitExpenses,
                 splitExpensesTotal: undefined,
             },
             searchContext: {currentSearchHash: -2},
@@ -4679,7 +4699,7 @@ describe('updateSplitTransactions', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            policyTags,
+            allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
@@ -4724,12 +4744,13 @@ describe('updateSplitTransactions', () => {
         // Split the original transaction into three parts, then delete one without reverting.
         const {splitTransactionID1, splitTransactionID2} = await splitToThree(expenseReport, originalTransactionID, iouAction);
         const {allTransactions, allReports, allReportNameValuePairs} = await getCollections();
-        const policyTags = await getPolicyTags(expenseReport.reportID);
+        const allPolicyTags = await getAllPolicyTags();
         const reports = getTransactionAndExpenseReports(expenseReport.reportID);
 
         updateSplitTransactions({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID: expenseReport.reportID,
@@ -4753,7 +4774,7 @@ describe('updateSplitTransactions', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            policyTags,
+            allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
@@ -4763,6 +4784,151 @@ describe('updateSplitTransactions', () => {
 
         const updatedReportPreviewAction = getReportPreviewAction(chatReport?.reportID, expenseReport?.reportID);
         expect(updatedReportPreviewAction?.childVisibleActionCount).toEqual(2);
+    });
+
+    it('should resolve the report preview action from the allReportActionsList param', async () => {
+        const {expenseReport, chatReport, originalTransactionID, transactionThreadReportID} = await createBaseExpense();
+
+        if (!originalTransactionID || !expenseReport?.reportID) {
+            throw new Error('Missing original transaction data');
+        }
+
+        // Add a comment so the report preview action has a non-zero childVisibleActionCount to update.
+        const {allReports: allReports1, allReportActions: allReportActions1} = await getCollections();
+        const transactionThreadReport = allReports1?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
+        const ancestors = getAncestors(transactionThreadReport, allReports1, {}, allReportActions1);
+        addComment({
+            report: transactionThreadReport,
+            notifyReportID: transactionThreadReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
+            ancestors,
+            text: 'Testing a comment',
+            timezoneParam: CONST.DEFAULT_TIME_ZONE,
+            currentUserAccountID: CARLOS_ACCOUNT_ID,
+            delegateAccountID: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        const iouAction = getIOUActionForReportID(expenseReport?.reportID, originalTransactionID);
+        const {splitTransactionID1, splitTransactionID2} = await splitToThree(expenseReport, originalTransactionID, iouAction);
+        const {allTransactions, allReports, allReportActions, allReportNameValuePairs} = await getCollections();
+        const allPolicyTags = await getAllPolicyTags();
+        const reports = getTransactionAndExpenseReports(expenseReport.reportID);
+
+        // The preview action lives in the chat report's actions, supplied via the new allReportActionsList param.
+        updateSplitTransactions({
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            allReportActionsList: allReportActions,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            transactionData: {
+                reportID: expenseReport.reportID,
+                originalTransactionID,
+                splitExpenses: [
+                    {transactionID: splitTransactionID1, amount: amount / 2, created: DateUtils.getDBTime()},
+                    {transactionID: splitTransactionID2, amount: amount / 2, created: DateUtils.getDBTime()},
+                ],
+                splitExpensesTotal: undefined,
+            },
+            searchContext: {currentSearchHash: -2},
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: expenseReport,
+            firstIOU: undefined,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            iouReportNextStep: undefined,
+            betas: [CONST.BETAS.ALL],
+            allPolicyTags,
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: reports.transactionReport,
+            expenseReport: reports.expenseReport,
+            isOffline: false,
+        });
+        await waitForBatchedUpdates();
+
+        const updatedReportPreviewAction = getReportPreviewAction(chatReport?.reportID, expenseReport?.reportID);
+        expect(updatedReportPreviewAction?.childVisibleActionCount).toEqual(2);
+    });
+
+    it('should not update the report preview action when allReportActionsList has no matching actions for the chat report', async () => {
+        const {expenseReport, chatReport, originalTransactionID, transactionThreadReportID} = await createBaseExpense();
+
+        if (!originalTransactionID || !expenseReport?.reportID) {
+            throw new Error('Missing original transaction data');
+        }
+
+        const {allReports: allReports1, allReportActions: allReportActions1} = await getCollections();
+        const transactionThreadReport = allReports1?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
+        const ancestors = getAncestors(transactionThreadReport, allReports1, {}, allReportActions1);
+        addComment({
+            report: transactionThreadReport,
+            notifyReportID: transactionThreadReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
+            ancestors,
+            text: 'Testing a comment',
+            timezoneParam: CONST.DEFAULT_TIME_ZONE,
+            currentUserAccountID: CARLOS_ACCOUNT_ID,
+            delegateAccountID: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        const iouAction = getIOUActionForReportID(expenseReport?.reportID, originalTransactionID);
+        const {splitTransactionID1, splitTransactionID2} = await splitToThree(expenseReport, originalTransactionID, iouAction);
+        const {allTransactions, allReports, allReportNameValuePairs} = await getCollections();
+        const allPolicyTags = await getAllPolicyTags();
+        const reports = getTransactionAndExpenseReports(expenseReport.reportID);
+
+        // Capture the preview action's count after the split-to-three setup, before our isolated call.
+        const countBeforeUpdate = getReportPreviewAction(chatReport?.reportID, expenseReport?.reportID)?.childVisibleActionCount;
+
+        // Provide a non-nullish but empty actions slice for the chat report. getReportPreviewAction
+        // uses the param directly (no legacy fallback), finds no preview action, and skips the update.
+        const emptyChatReportActions = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.chatReportID}`]: {}};
+
+        updateSplitTransactions({
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            allReportActionsList: emptyChatReportActions,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            transactionData: {
+                reportID: expenseReport.reportID,
+                originalTransactionID,
+                splitExpenses: [
+                    {transactionID: splitTransactionID1, amount: amount / 2, created: DateUtils.getDBTime()},
+                    {transactionID: splitTransactionID2, amount: amount / 2, created: DateUtils.getDBTime()},
+                ],
+                splitExpensesTotal: undefined,
+            },
+            searchContext: {currentSearchHash: -2},
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: expenseReport,
+            firstIOU: undefined,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            iouReportNextStep: undefined,
+            betas: [CONST.BETAS.ALL],
+            allPolicyTags,
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: reports.transactionReport,
+            expenseReport: reports.expenseReport,
+            isOffline: false,
+        });
+        await waitForBatchedUpdates();
+
+        // Because no preview action was found via the param, the update is skipped and the count stays unchanged.
+        // (The test 'should resolve the report preview action from the allReportActionsList param' proves the
+        // same scenario bumps the count to 2 when the param supplies the preview action.)
+        const reportPreviewAction = getReportPreviewAction(chatReport?.reportID, expenseReport?.reportID);
+        expect(reportPreviewAction?.childVisibleActionCount).toEqual(countBeforeUpdate);
+        expect(reportPreviewAction?.childVisibleActionCount).not.toEqual(2);
     });
 
     it('should preserve report total when deleting a split with correct splitExpensesTotal', async () => {
@@ -4782,7 +4948,7 @@ describe('updateSplitTransactions', () => {
         const totalAfterSplit = reportAfterSplit?.total ?? 0;
 
         const {allTransactions, allReports, allReportNameValuePairs} = await getCollections();
-        const policyTags = await getPolicyTags(reportID);
+        const allPolicyTags = await getAllPolicyTags();
         const reports = getTransactionAndExpenseReports(reportID);
 
         // "Delete" one split by calling updateSplitTransactions with only three remaining splits.
@@ -4793,6 +4959,7 @@ describe('updateSplitTransactions', () => {
         updateSplitTransactions({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -4817,7 +4984,7 @@ describe('updateSplitTransactions', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            policyTags,
+            allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
