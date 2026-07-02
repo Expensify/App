@@ -12,6 +12,7 @@ import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import useIsInLandscapeMode from './useIsInLandscapeMode';
 import useOnyx from './useOnyx';
 import usePopoverPosition from './usePopoverPosition';
+import usePrevious from './usePrevious';
 import useResponsiveLayout from './useResponsiveLayout';
 import useStyleUtils from './useStyleUtils';
 import useThemeStyles from './useThemeStyles';
@@ -67,6 +68,10 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     const pendingSearchSubmitOpenOptionsRef = useRef<ReportSubmitToPopoverOpenOptions | undefined>(undefined);
     const {calculatePopoverPosition} = usePopoverPosition();
     const [isVisible, setIsVisible] = useState(false);
+    const wasPopoverVisible = usePrevious(isVisible);
+    // Do not mount the submit-to popover modal until first open. Avoids a second RN Modal in the tree
+    // while the More menu is open on iOS (which blocks follow-up confirm dialogs such as Cancel payment).
+    const shouldRenderSubmitToPopover = wasPopoverVisible || isVisible;
     const [isDismissGuardActive, setIsDismissGuardActive] = useState(false);
     const [isSearchSubmitFlow, setIsSearchSubmitFlow] = useState(false);
     const [anchorPosition, setAnchorPosition] = useState({
@@ -197,8 +202,12 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         [isSmallScreenWidth, isBottomDockedInLandscape, windowHeight, styles],
     );
 
-    const reportSubmitToPopover = useMemo(
-        () => (
+    const reportSubmitToPopover = useMemo(() => {
+        if (!shouldRenderSubmitToPopover) {
+            return null;
+        }
+
+        return (
             <PopoverWithMeasuredContent
                 innerContainerStyle={innerContainerStyle}
                 anchorRef={anchorRef}
@@ -233,28 +242,28 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
                     />
                 </View>
             </PopoverWithMeasuredContent>
-        ),
-        [
-            StyleUtils,
-            styles.flexColumn,
-            styles.pt4,
-            innerContainerStyle,
-            submitToPopoverContentHeight,
-            isVisible,
-            closeReportSubmitToPopover,
-            handleReportSubmitToPopoverModalHide,
-            anchorPosition,
-            anchorAlignment,
-            anchorRef,
-            report,
-            policy,
-            isLoadingReportData,
-            handleCombinedSubmitSuccess,
-            isSearchSubmitFlow,
-            handleSearchSubmitWithManagerEmail,
-            submitToContentKey,
-        ],
-    );
+        );
+    }, [
+        StyleUtils,
+        styles.flexColumn,
+        styles.pt4,
+        innerContainerStyle,
+        submitToPopoverContentHeight,
+        shouldRenderSubmitToPopover,
+        isVisible,
+        closeReportSubmitToPopover,
+        handleReportSubmitToPopoverModalHide,
+        anchorPosition,
+        anchorAlignment,
+        anchorRef,
+        report,
+        policy,
+        isLoadingReportData,
+        handleCombinedSubmitSuccess,
+        isSearchSubmitFlow,
+        handleSearchSubmitWithManagerEmail,
+        submitToContentKey,
+    ]);
 
     return {
         anchorRef,

@@ -9,6 +9,8 @@ import {useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnc
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getPlatform from '@libs/getPlatform';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getValidConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {
@@ -60,6 +62,26 @@ type UseLifecycleActionsResult = {
     shouldBlockSubmit: boolean;
     isBlockSubmitDueToPreventSelfApproval: boolean;
 };
+
+type ShowConfirmModal = ReturnType<typeof useConfirmModal>['showConfirmModal'];
+type ShowConfirmModalOptions = Parameters<ShowConfirmModal>[0];
+type ShowConfirmModalResult = Awaited<ReturnType<ShowConfirmModal>>;
+
+/** More menu items call this after the popover dismisses; on iOS defer until interactions finish so the confirm modal can present. */
+function showConfirmModalAfterMoreMenuDismiss(showConfirmModal: ShowConfirmModal, options: ShowConfirmModalOptions): Promise<ShowConfirmModalResult> {
+    if (getPlatform() !== CONST.PLATFORM.IOS) {
+        return showConfirmModal(options);
+    }
+
+    return new Promise((resolve) => {
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                showConfirmModal(options).then(resolve);
+            },
+            waitForUpcomingTransition: true,
+        });
+    });
+}
 
 /**
  * Provides report lifecycle transition actions (submit, approve, unapprove, cancel payment, retract, reopen)
@@ -292,7 +314,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     return;
                 }
 
-                const result = await showConfirmModal({
+                const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                     title: translate('iou.confirmPaymentReceivedModalTitle'),
                     prompt: translate('iou.receivedPaymentConfirmation'),
                     confirmText: translate('iou.confirmReceivedPayment'),
@@ -338,7 +360,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         </Text>
                     );
 
-                    const result = await showConfirmModal({
+                    const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                         title: translate('iou.unapproveReport'),
                         prompt: unapproveWarningText,
                         confirmText: translate('iou.unapproveReport'),
@@ -360,7 +382,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             icon: expensifyIcons.Clear,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.CANCEL_PAYMENT,
             onSelected: async () => {
-                const result = await showConfirmModal({
+                const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                     title: translate('iou.cancelPayment'),
                     prompt: translate('iou.cancelPaymentConfirmation'),
                     confirmText: translate('iou.cancelPayment'),
@@ -393,7 +415,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         </Text>
                     );
 
-                    const result = await showConfirmModal({
+                    const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                         title: translate('iou.reopenReport'),
                         prompt: reopenExportedReportWarningText,
                         confirmText: translate('iou.reopenReport'),
@@ -427,7 +449,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         </Text>
                     );
 
-                    const result = await showConfirmModal({
+                    const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                         title: translate('iou.reopenReport'),
                         prompt: reopenExportedReportWarningText,
                         confirmText: translate('iou.reopenReport'),
