@@ -2,8 +2,7 @@ import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboard
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {TextInputProps} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -92,6 +91,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const reportAttributes = useReportAttributes();
 
@@ -120,6 +120,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             translate,
             feedKeysWithCards,
             reportAttributes,
+            bankAccountList,
         });
         const substitutions = buildSubstitutionsMap(
             currentSearchQueryJSON.inputQuery,
@@ -132,6 +133,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             currentUserAccountID,
             translate,
             reportAttributes,
+            bankAccountList,
         );
         return [query, substitutions];
     });
@@ -360,13 +362,11 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const onListItemPress = useCallback(
         (item: OptionData | SearchQueryItem) => {
             const setFocusAndScrollToRight = () => {
-                InteractionManager.runAfterInteractions(() => {
-                    if (!textInputRef.current) {
-                        return;
-                    }
-                    textInputRef.current.focus();
-                    scrollToRight(textInputRef.current);
-                });
+                if (!textInputRef.current) {
+                    return;
+                }
+                textInputRef.current.focus();
+                scrollToRight(textInputRef.current);
             };
 
             if (isSearchQueryItem(item)) {

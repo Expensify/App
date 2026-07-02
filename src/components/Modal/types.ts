@@ -16,10 +16,6 @@ type PopoverAnchorPosition = {
     left?: number;
 };
 
-type WindowState = {
-    shouldGoBack: boolean;
-};
-
 type BaseModalProps = Partial<ReanimatedModalProps> &
     ForwardedFSClassProps & {
         /** Decides whether the modal should cover fullscreen. FullScreen modal has backdrop */
@@ -141,4 +137,4 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
     };
 
 export default BaseModalProps;
-export type {PopoverAnchorPosition, FocusTrapOptions, WindowState};
+export type {PopoverAnchorPosition, FocusTrapOptions};

@@ -48,7 +48,6 @@ import {expensifyLoginsSelector, getProfilePageBrickRoadIndicator, hasDeviceMana
 import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_TO_RHP';
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import {stopGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
-import {confirmReadyToOpenApp} from '@userActions/App';
 import {openExternalLink, openOldDotLink} from '@userActions/Link';
 import {hasPaymentMethodError} from '@userActions/PaymentMethods';
 import {hasStashedSession, isSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
@@ -197,7 +196,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     useEffect(() => {
         openInitialSettingsPage();
-        confirmReadyToOpenApp();
     }, []);
 
     const {showConfirmModal} = useConfirmModal();

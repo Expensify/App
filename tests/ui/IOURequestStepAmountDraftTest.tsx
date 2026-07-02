@@ -71,6 +71,7 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
         params: {},
     })),
     getState: jest.fn(() => ({})),
+    getRootState: jest.fn(() => ({routes: [], index: 0})),
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => {
@@ -91,6 +92,9 @@ jest.mock('@libs/Navigation/Navigation', () => {
         removeScreenByKey: jest.fn(),
         getActiveRouteWithoutParams: jest.fn(() => ''),
         isNavigationReady: jest.fn(() => Promise.resolve()),
+        getIsFullscreenPreInsertedUnderRHP: jest.fn(() => false),
+        removePreInsertedFullscreenIfNeeded: jest.fn(),
+        preInsertFullscreenUnderRHP: jest.fn(),
     };
 });
 
@@ -114,6 +118,7 @@ jest.mock('@react-navigation/native', () => {
         useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn()}),
         useFocusEffect: jest.fn(),
         usePreventRemove: jest.fn(),
+        useRoute: jest.fn(() => ({name: 'Money_Request_Step_Amount'})),
     };
 });
 

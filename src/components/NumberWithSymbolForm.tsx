@@ -463,8 +463,24 @@ function NumberWithSymbolForm({
      */
     const handleFlipPress = useCallback(() => {
         // Toggle the minus sign prefix in the value
-        const newValue = currentNumber.startsWith('-') ? currentNumber.slice(1) : `-${currentNumber}`;
+        const isRemovingSign = currentNumber.startsWith('-');
+        const newValue = isRemovingSign ? currentNumber.slice(1) : `-${currentNumber}`;
+        // Guard the manual selection update the same way setNewNumber/setFormattedNumber do: on native the
+        // controlled TextInput can emit onSelectionChange with the stale selection while the value update is
+        // applied, which would write the old cursor position back and undo the shift below. numberRef lets
+        // handleSelectionChange read the updated value length when computing maxSelection.
+        willSelectionBeUpdatedManually.current = true;
+        numberRef.current = newValue;
         setCurrentNumber(newValue);
+        // Shift the cursor by the length of the toggled sign so it stays in the same logical position
+        // relative to the digits (e.g. on an empty field {0,0} -> {1,1}, placing the cursor after the "-").
+        // Without this the cursor stays before the "-", so typing produces an invalid string like "5-" that
+        // validateAmount rejects, making the entered number disappear.
+        const offset = isRemovingSign ? -1 : 1;
+        setSelection((prevSelection) => ({
+            start: Math.max(prevSelection.start + offset, 0),
+            end: Math.max(prevSelection.end + offset, 0),
+        }));
         onInputChange?.(newValue);
     }, [currentNumber, onInputChange]);
 
