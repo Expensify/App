@@ -138,7 +138,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 )}
             </HeaderWithBackButton>
             {!shouldShowHeaderButtonsInHeaderRow && (
-                <View style={[styles.w100, styles.flexColumn]}>
+                <View style={[styles.w100, styles.flexColumn, styles.gap2]}>
                     <MoneyReportHeaderActions
                         reportID={reportIDProp}
                         primaryAction={primaryAction}
