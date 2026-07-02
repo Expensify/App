@@ -30,22 +30,19 @@ Only the workspace owner can view the **Subscription** page. If you don't see **
 
 ## Related Articles
 
- - Understand Expensify pricing.
- - How your plan and subscription determine your bill
- - Compare Collect and Control plans
+ - [How Subscriptions Plans and Billing Work](/articles/new-expensify/billing-and-subscriptions/How-Subscriptions-Plans-and-Billing-Work)
+ - [Change Your Plan](/articles/new-expensify/billing-and-subscriptions/manage-your-plan-and-subscription/Change-Your-Workspace-Plan)
 
 ---
 
 # FAQ
 
-
 ## Why is my Control rate shown as a starting price?
 
-Control pricing depends on your subscription type and your organization's qualifying Expensify Card usage, so it's displayed as a starting rate per active member. The lowest rate applies when you have an annual subscription and qualifying Expensify Card usage. To learn more, see Understand Expensify Pricing.
+Control pricing depends on your subscription type and your organization's qualifying Expensify Card usage, so it's displayed as a starting rate per active member. The lowest rate applies when you have an annual subscription and qualifying Expensify Card usage. 
+
+To learn more, see [Understand Expensify Pricing](/articles/new-expensify/billing-and-subscriptions/learn-about-plans-and-subscriptions/Understand-Expensify-Pricing).
 
 ## How do I find the workspace owner?
 
-To find the owner of a workspace you're a member of:
-
-1. In the navigation tabs (on the left on web, at the bottom on mobile), go to **Workspaces**.
-2. Find your workspace and check the **Owner** column.
+To find the owner of a workspace you're a member of, see [What is a Workspace Owner](/articles/new-expensify/billing-and-subscriptions/Understand-Workspace-Ownership).
