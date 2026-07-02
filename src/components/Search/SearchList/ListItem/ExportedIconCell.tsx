@@ -20,7 +20,18 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
     const styles = useThemeStyles();
 
     const actions = reportActions ?? [];
-    const icons = useMemoizedLazyExpensifyIcons(['NetSuiteSquare', 'XeroSquare', 'IntacctSquare', 'QBOSquare', 'Table', 'TablePencil', 'ZenefitsSquare', 'BillComSquare', 'CertiniaSquare']);
+    const icons = useMemoizedLazyExpensifyIcons([
+        'NetSuiteSquare',
+        'XeroSquare',
+        'IntacctSquare',
+        'QBOSquare',
+        'Table',
+        'TablePencil',
+        'ZenefitsSquare',
+        'BillComSquare',
+        'CertiniaSquare',
+        'RilletSquare',
+    ]);
 
     let isExportedToStandardTemplate = false;
     let isExportedToCustomTemplate = false;
@@ -30,6 +41,7 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
     let isExportedToQuickbooksOnline = false;
     let isExportedToQuickbooksDesktop = false;
     let isExportedToCertinia = false;
+    let isExportedToRillet = false;
     let isExportedToBillCom = false;
     let isExportedToZenefits = false;
 
@@ -58,6 +70,7 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
             isExportedToZenefits = isExportedToZenefits || label === CONST.EXPORT_LABELS.ZENEFITS;
             isExportedToBillCom = isExportedToBillCom || label === CONST.EXPORT_LABELS.BILLCOM;
             isExportedToCertinia = isExportedToCertinia || label === CONST.EXPORT_LABELS.CERTINIA;
+            isExportedToRillet = isExportedToRillet || label === CONST.EXPORT_LABELS.RILLET;
             isExportedToIntacct = isExportedToIntacct || label === CONST.EXPORT_LABELS.INTACCT || label === CONST.EXPORT_LABELS.SAGE_INTACCT;
         }
     }
@@ -109,6 +122,13 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
             {isExportedToCertinia && (
                 <Avatar
                     source={icons.CertiniaSquare}
+                    type={CONST.ICON_TYPE_AVATAR}
+                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                />
+            )}
+            {isExportedToRillet && (
+                <Avatar
+                    source={icons.RilletSquare}
                     type={CONST.ICON_TYPE_AVATAR}
                     size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
                 />

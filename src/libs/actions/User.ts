@@ -50,7 +50,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ExpenseRuleForm, MerchantRuleForm, SpendRuleForm} from '@src/types/form';
+import type {ExpenseRuleForm, FlagForReviewRuleForm, MerchantRuleForm, MerchantTypeRuleForm, RequireFieldsRuleForm, SpendRuleForm} from '@src/types/form';
 import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, NewLogin, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -1758,6 +1758,29 @@ function deleteExpenseRules(expenseRules: ExpenseRule[], selectedRuleKeys: strin
     });
 }
 
+function clearExpenseRuleErrors(expenseRules: ExpenseRule[], selectedRuleKey: string, getKeyForRule: (rule: ExpenseRule) => string) {
+    const ruleIndex = expenseRules.findIndex((rule, index) => `${getKeyForRule(rule)}-${index}` === selectedRuleKey);
+
+    if (ruleIndex === -1) {
+        return;
+    }
+
+    const updatedExpenseRules = [...expenseRules];
+    const rule = updatedExpenseRules.at(ruleIndex);
+
+    if (!rule) {
+        return;
+    }
+
+    updatedExpenseRules[ruleIndex] = {
+        ...rule,
+        pendingAction: null,
+        errors: undefined,
+    };
+
+    Onyx.set(ONYXKEYS.NVP_EXPENSE_RULES, updatedExpenseRules);
+}
+
 function saveExpenseRule(expenseRules: ExpenseRule[], newRule: ExpenseRule, existingRuleKey: string | undefined, getKeyForRule: (rule: ExpenseRule) => string) {
     const isEditing = !!existingRuleKey;
     const pendingAction = isEditing ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
@@ -1892,6 +1915,42 @@ function clearDraftSpendRule() {
     Onyx.set(ONYXKEYS.FORMS.SPEND_RULE_FORM, null);
 }
 
+function setDraftRequireFieldsRule(ruleData: Partial<RequireFieldsRuleForm>) {
+    Onyx.set(ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM, ruleData);
+}
+
+function updateDraftRequireFieldsRule(ruleData: Partial<RequireFieldsRuleForm>) {
+    Onyx.merge(ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM, ruleData);
+}
+
+function clearDraftRequireFieldsRule() {
+    Onyx.set(ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM, null);
+}
+
+function setDraftFlagForReviewRule(ruleData: Partial<FlagForReviewRuleForm>) {
+    Onyx.set(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM, ruleData);
+}
+
+function updateDraftFlagForReviewRule(ruleData: Partial<FlagForReviewRuleForm>) {
+    Onyx.merge(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM, ruleData);
+}
+
+function clearDraftFlagForReviewRule() {
+    Onyx.set(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM, null);
+}
+
+function setDraftMerchantTypeRule(ruleData: Partial<MerchantTypeRuleForm>) {
+    Onyx.set(ONYXKEYS.FORMS.MERCHANT_TYPE_RULE_FORM, ruleData);
+}
+
+function updateDraftMerchantTypeRule(ruleData: Partial<MerchantTypeRuleForm>) {
+    Onyx.merge(ONYXKEYS.FORMS.MERCHANT_TYPE_RULE_FORM, ruleData);
+}
+
+function clearDraftMerchantTypeRule() {
+    Onyx.set(ONYXKEYS.FORMS.MERCHANT_TYPE_RULE_FORM, null);
+}
+
 export {
     revokeDevice,
     clearRevokeError,
@@ -1944,12 +2003,22 @@ export {
     clearDraftRule,
     saveExpenseRule,
     deleteExpenseRules,
+    clearExpenseRuleErrors,
     setDraftMerchantRule,
     updateDraftMerchantRule,
     clearDraftMerchantRule,
     setDraftSpendRule,
     updateDraftSpendRule,
     clearDraftSpendRule,
+    setDraftRequireFieldsRule,
+    updateDraftRequireFieldsRule,
+    clearDraftRequireFieldsRule,
+    setDraftFlagForReviewRule,
+    updateDraftFlagForReviewRule,
+    clearDraftFlagForReviewRule,
+    setDraftMerchantTypeRule,
+    updateDraftMerchantTypeRule,
+    clearDraftMerchantTypeRule,
     openTroubleshootSettingsPage,
     openMultifactorAuthenticationRevokePage,
 };
