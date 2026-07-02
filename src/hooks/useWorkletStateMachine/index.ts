@@ -1,4 +1,4 @@
-import fastMerge from 'expensify-common/dist/fastMerge';
+import {fastMerge} from 'expensify-common';
 import {useCallback} from 'react';
 import {useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN, scheduleOnUI} from 'react-native-worklets';
