@@ -4,7 +4,6 @@ import forwardLogsToSentry from '@libs/telemetry/forwardLogsToSentry';
 jest.mock('@sentry/react-native', () => ({
     logger: {debug: jest.fn(), info: jest.fn(), warn: jest.fn(), error: jest.fn()},
     addBreadcrumb: jest.fn(),
-    setTag: jest.fn(),
 }));
 
 const packetWith = (message: string, parameters: Record<string, unknown>) => JSON.stringify([{message, parameters}]);
@@ -41,12 +40,9 @@ describe('forwardLogsToSentry', () => {
         const breadcrumb = jest.mocked(Sentry.addBreadcrumb).mock.calls.at(0)?.[0];
         expect(breadcrumb?.data).not.toHaveProperty('source');
         expect(breadcrumb?.data).not.toHaveProperty('fileSizeBytes');
-
-        // And the trace id is tagged on the scope so crashes can be filtered/searched by receipt
-        expect(Sentry.setTag).toHaveBeenCalledWith('receiptTraceId', 'trace-Z');
     });
 
-    it('does not add a breadcrumb or tag for log lines that are not forwarded', () => {
+    it('does not add a breadcrumb for log lines that are not forwarded', () => {
         // Given a log line without a forwarded prefix
         const packet = packetWith('[info] [SequentialQueue] push() called', {command: 'OpenReport'});
 
@@ -55,6 +51,5 @@ describe('forwardLogsToSentry', () => {
 
         // Then nothing is mirrored to Sentry
         expect(Sentry.addBreadcrumb).not.toHaveBeenCalled();
-        expect(Sentry.setTag).not.toHaveBeenCalled();
     });
 });

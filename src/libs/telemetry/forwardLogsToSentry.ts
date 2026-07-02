@@ -128,9 +128,10 @@ function forwardLogsToSentry(logPacket: string | undefined) {
             }
         }
 
-        // Mirror the line as a breadcrumb so the trail rides along on any crash/error event, and tag the scope by
-        // trace id so a crash can be filtered/searched by receipt. Breadcrumb data is the same whitelisted set as the
-        // forwarded log — opaque ids only, never the receipt source/filename/bytes.
+        // Mirror the line as a breadcrumb so the trail rides along on any crash/error event. Breadcrumb data is the same
+        // whitelisted set as the forwarded log — opaque ids only, never the receipt source/filename/bytes. The receipt
+        // trace id is searchable via the breadcrumb's `data.receiptTraceId`; we do NOT call Sentry.setTag because tags
+        // are global and the most recent receipt would overwrite earlier ones, tagging unrelated crashes with the wrong id.
         Sentry.addBreadcrumb({
             category: prefix.replaceAll(/[[\]]/g, '').toLowerCase(),
             type: 'info',
@@ -138,9 +139,6 @@ function forwardLogsToSentry(logPacket: string | undefined) {
             message: logLine.message,
             data: params,
         });
-        if (prefix === '[Receipt]' && params && typeof params.receiptTraceId === 'string') {
-            Sentry.setTag('receiptTraceId', params.receiptTraceId);
-        }
     }
 }
 

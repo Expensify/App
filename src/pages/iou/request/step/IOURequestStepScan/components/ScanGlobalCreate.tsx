@@ -15,6 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {endSpan} from '@libs/telemetry/activeSpans';
+import {getPickerCaptureSource, type ReceiptCaptureSource} from '@libs/telemetry/ReceiptObservability';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
@@ -98,7 +99,7 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
         }
     };
 
-    const processReceipts = (files: FileObject[]) => {
+    const processReceipts = (files: FileObject[], captureSource: ReceiptCaptureSource) => {
         const receiptFiles = buildReceiptFiles({
             files,
             getFileSource,
@@ -110,6 +111,7 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
             isMultiScanEnabled,
             transactions,
             draftTransactionIDsToCleanUp: draftTransactionIDs,
+            captureSource,
         });
 
         if (receiptFiles.length === 0) {
@@ -132,7 +134,7 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
     };
 
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
-        processReceipts(files);
+        processReceipts(files, getPickerCaptureSource());
     });
 
     return (
@@ -141,12 +143,12 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
             <Camera
                 onCapture={(file, source) => {
                     if (isMultiScanEnabled) {
-                        processReceipts([file]);
+                        processReceipts([file], 'camera');
                         return;
                     }
                     // Pre-warm the thumbnail cache before navigating so the confirm page
                     // doesn't flash an un-thumbnail receipt.
-                    precacheReceiptImage(source).then(() => processReceipts([file]));
+                    precacheReceiptImage(source).then(() => processReceipts([file], 'camera'));
                 }}
                 onPicked={validateFiles}
                 onAttachmentPickerStatusChange={setIsLoaderVisible}

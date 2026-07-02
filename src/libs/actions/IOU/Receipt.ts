@@ -204,6 +204,7 @@ function replaceReceipt({
         localSource: null,
         state: state ?? CONST.IOU.RECEIPT_STATE.OPEN,
         filename: file.name,
+        receiptTraceId,
     };
     const newTransaction = transaction && {...transaction, receipt: receiptOptimistic};
     const retryParams: ReplaceReceipt = {transactionID, file: undefined, source, transactionPolicy, transactionPolicyCategories, transactionPolicyTagList, transactionViolations};

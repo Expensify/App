@@ -143,6 +143,22 @@ describe('ReceiptObservability', () => {
             expect(snapshots.at(0)?.params).toMatchObject({command, transactionID: '300', receiptTraceId: 'trace-C'});
         });
 
+        it('skips receipt-bearing commands whose data.receipt is missing (e.g. SplitBill, SendMoney without receipt)', () => {
+            // Given a receipt-bearing command queued WITHOUT a top-level data.receipt — SplitBill nests it in the splits
+            // JSON; SendMoney can be issued with no receipt at all. A snapshot row with no trace id is not joinable to
+            // the capture log and would only add noise.
+            getAllSpy.mockReturnValue([
+                {command: WRITE_COMMANDS.SPLIT_BILL, data: {transactionID: '500', splits: '[...]'}},
+                {command: WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, data: {transactionID: '501'}},
+            ]);
+
+            // When we snapshot the queue
+            logReceiptQueueSnapshot('background');
+
+            // Then no snapshot line is emitted — non-correlatable rows are filtered out
+            expect(logLines.filter((line) => line.params.event === 'snapshot')).toHaveLength(0);
+        });
+
         it('includes the receipt promoted to the ongoing request slot', () => {
             // Given one receipt uploading in the ongoing slot and another still waiting in the queue
             getOngoingRequestSpy.mockReturnValue(receiptRequest('100', 'trace-A'));

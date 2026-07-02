@@ -4,6 +4,7 @@ import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
+import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 /** Prefix on every receipt observability log line, so the logs can be filtered without parsing free text. */
@@ -14,6 +15,15 @@ type ReceiptSnapshotTrigger = 'signOut' | 'background' | 'foreground';
 
 /** How a receipt entered the app. */
 type ReceiptCaptureSource = 'camera' | 'gallery' | 'file' | 'replace';
+
+/**
+ * Maps the picker-driven capture path to a `ReceiptCaptureSource`. On native the picker is the OS gallery; on web the
+ * same callback fires for file-browse and drag-and-drop. Keep the mapping in one place so future platforms only need
+ * one change.
+ */
+function getPickerCaptureSource(): ReceiptCaptureSource {
+    return getPlatform() === CONST.PLATFORM.WEB ? 'file' : 'gallery';
+}
 
 /** Inputs for the enqueued milestone, captured at the moment the receipt request reaches the write queue. */
 type ReceiptEnqueuedParams = {
@@ -145,6 +155,12 @@ function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger) {
         }
 
         const data = (request.data ?? {}) as {transactionID?: string; receipt?: {receiptTraceId?: string}};
+        // Skip when the receipt isn't reachable at data.receipt (e.g. SplitBill nests it inside the splits JSON; SendMoney
+        // without an attached receipt has no receipt field). Logging without a trace id is noise — it cannot be joined to the
+        // capture log and only pollutes the snapshot with non-correlatable rows.
+        if (!data.receipt) {
+            continue;
+        }
         const transactionID = data.transactionID;
         if (transactionID) {
             pendingTransactionIDs.add(transactionID);
@@ -154,7 +170,7 @@ function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger) {
         Log.info(`${RECEIPT_LOG_PREFIX} queue snapshot`, true, {
             event: 'snapshot',
             trigger,
-            receiptTraceId: data.receipt?.receiptTraceId,
+            receiptTraceId: data.receipt.receiptTraceId,
             transactionID,
             command: request.command,
             msSinceEnqueued: enqueuedAt !== undefined ? now - enqueuedAt : undefined,
@@ -171,5 +187,5 @@ function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger) {
     }
 }
 
-export {mintAndStampReceiptTraceId, logReceiptCaptured, logReceiptSubmitted, logReceiptEnqueued, logReceiptQueueSnapshot, RECEIPT_BEARING_COMMANDS};
+export {mintAndStampReceiptTraceId, logReceiptCaptured, logReceiptSubmitted, logReceiptEnqueued, logReceiptQueueSnapshot, getPickerCaptureSource, RECEIPT_BEARING_COMMANDS};
 export type {ReceiptCaptureSource};

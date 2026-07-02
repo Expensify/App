@@ -26,6 +26,7 @@ import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismiss
 import {rand64} from '@libs/NumberUtils';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
+import {getPickerCaptureSource, type ReceiptCaptureSource} from '@libs/telemetry/ReceiptObservability';
 import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
 import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -330,7 +331,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         submitDirectly(files, false);
     };
 
-    const processReceipts = (files: FileObject[]) => {
+    const processReceipts = (files: FileObject[], captureSource: ReceiptCaptureSource) => {
         const newReceiptFiles = buildReceiptFiles({
             files,
             getFileSource,
@@ -341,6 +342,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             shouldAcceptMultipleFiles: true,
             isMultiScanEnabled,
             transactions,
+            captureSource,
         });
 
         if (newReceiptFiles.length === 0) {
@@ -366,7 +368,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     };
 
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
-        processReceipts(files);
+        processReceipts(files, getPickerCaptureSource());
     });
 
     return (
@@ -374,7 +376,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             {PDFValidationComponent}
             <Camera
                 onCapture={(file) => {
-                    processReceipts([file]);
+                    processReceipts([file], 'camera');
                 }}
                 onPicked={validateFiles}
                 onAttachmentPickerStatusChange={setIsLoaderVisible}

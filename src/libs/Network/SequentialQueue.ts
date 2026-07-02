@@ -555,12 +555,16 @@ async function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promis
 
     if (RECEIPT_BEARING_COMMANDS.has(newRequest.command)) {
         const data = (newRequest.data ?? {}) as {transactionID?: string; receipt?: {receiptTraceId?: string}};
-        logReceiptEnqueued({
-            receiptTraceId: data.receipt?.receiptTraceId,
-            transactionID: data.transactionID,
-            command: newRequest.command,
-            persistedQueueLength: currentRequests.length,
-        });
+        // Only log when the receipt is reachable at data.receipt — SplitBill nests it in the splits JSON and SendMoney/etc.
+        // can run without one. A row without a trace id cannot be joined to the capture log and is just noise.
+        if (data.receipt) {
+            logReceiptEnqueued({
+                receiptTraceId: data.receipt.receiptTraceId,
+                transactionID: data.transactionID,
+                command: newRequest.command,
+                persistedQueueLength: currentRequests.length,
+            });
+        }
     }
 
     // Save the request to the persisted queue. The in-memory update inside save()
