@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import type {ReactNode} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -53,8 +53,35 @@ type FloatingHostProps = {
     children: ReactNode;
 };
 
+type Placement = {style: ViewStyle; available: {height: number; width: number}};
+
+function placementsEqual(a: Placement | null, b: Placement): boolean {
+    if (!a) {
+        return false;
+    }
+    return (
+        a.style.top === b.style.top &&
+        a.style.bottom === b.style.bottom &&
+        a.style.left === b.style.left &&
+        a.style.right === b.style.right &&
+        a.available.height === b.available.height &&
+        a.available.width === b.available.width
+    );
+}
+
 function FloatingHost({isOpen, anchor, anchorRect, alignment, offsetPx, fadeDuration, onDismiss, onExitComplete, surfaceStyle, stackId, containFocus = false, children}: FloatingHostProps) {
-    const {style: positionStyle, available, isPositioned, onContentLayout} = useAnchoredPosition({anchorRect, alignment, offsetPx});
+    const {style: livePositionStyle, available: liveAvailable, isPositioned: liveIsPositioned, onContentLayout} = useAnchoredPosition({anchorRect, alignment, offsetPx});
+
+    const [placement, setPlacement] = useState<Placement | null>(null);
+    const livePlacement: Placement = {style: livePositionStyle, available: liveAvailable};
+    if (isOpen && liveIsPositioned && !placementsEqual(placement, livePlacement)) {
+        setPlacement(livePlacement);
+    }
+    const exiting = !isOpen && placement !== null;
+    const positionStyle = exiting ? placement.style : livePositionStyle;
+    const available = exiting ? placement.available : liveAvailable;
+    const isPositioned = exiting ? true : liveIsPositioned;
+
     const enterTiming = fadeDuration ?? CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN;
     const exitTiming = fadeDuration ?? CONST.MODAL.ANIMATION_TIMING.DEFAULT_OUT;
 
