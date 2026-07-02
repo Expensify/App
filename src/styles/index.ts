@@ -3346,7 +3346,7 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'flex-start',
             position: 'absolute',
             width: '100%',
-            top: 20,
+            top: variables.growlNotificationInset,
             ...spacing.pl5,
             ...spacing.pr5,
         },
@@ -3361,9 +3361,8 @@ const staticStyles = (theme: ThemeColors) =>
             maxWidth: variables.sideBarWidth,
             width: '100%',
             right: 0,
-            // Mirrors the `top: 20` inset of the top-positioned growlNotificationContainer, flipped to the
-            // bottom edge so both growl positions share the same 20px screen inset.
-            bottom: 20,
+            // Same inset as the top-anchored growlNotificationContainer, flipped to the bottom edge.
+            bottom: variables.growlNotificationInset,
             ...spacing.pl5,
             ...spacing.pr5,
             ...positioning.pFixed,
