@@ -102,7 +102,7 @@ Each report includes an expense table showing:
   - Amount
   - Workspace violations (if applicable)
 
-Additional columns such as **Attendees** and **Per attendee** can be enabled via the **Columns** picker when attendee tracking is available.
+Additional columns such as **Posted**, **Attendees**, **Per attendee**, and **Original amount** can be enabled via the **Columns** picker. **Attendees** and **Per attendee** appear when attendee tracking is available, **Posted** shows when the expense has a posting date, and **Original amount** shows when the expense was converted from another currency.
 
 Clicking a row opens the full expense details in a side panel (web) or details screen (mobile).
 
