@@ -45,7 +45,7 @@ The table below summarizes the most important differences. For the complete, up-
 | Feature                | **Collect Plan**                             | **Control Plan**                                 |
 |------------------------|----------------------------------------------|--------------------------------------------------|
 | **Best for**           | Small teams with up to 10 members            | Mid-size to large teams with 10–1,000 members    |
-| **Base cost**¹         | $5 per member/month                          | $9–36 per member/month                           |
+| **Base cost**¹         | $5 per unique member/month                   | $9–36 per active member/month                    |
 | **SmartScans**         | ✅ Unlimited                                 | ✅  Unlimited                                    |
 | **Expensify Card**     | ✅  Smart Limits and 1–2% cash back          | ✅  Smart Limits and 1–2% cash back              |
 | **Expense approvals**  | ✅  Single approver                          | ✅  Multiple approvers                           |
@@ -55,11 +55,13 @@ The table below summarizes the most important differences. For the complete, up-
 | **HR & payroll sync**  | ❌ Not available                             | ✅  Gusto, TriNet, Certinia, Workday             |
 | **Security & control** | ❌ Not available                             | ✅  SAML/SSO and admin-enforced controls         |
 
-## How do plans affect pricing?
+
+
+## Where to learn about plan pricing
 
 Your workspace plan is one factor that determines your subscription cost. Pricing also depends on your subscription type and, for Control Workspaces, your organization's Expensify Card usage.
 
-To learn more, see How Your Plan and Subscription Determine Your Bill.
+To learn how plans, subscription pricing, and the Expensify Card discount work, see [Understand Expensify Pricing](/articles/new-expensify/billing-and-subscriptions/learn-about-plans-subscriptions-and-pricing/Understand-Expensify-Pricing).
 
 # FAQ
 
