@@ -84,6 +84,7 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 import ChatSearchView from './ChatSearchView';
 import ExpenseFlatSearchView from './ExpenseFlatSearchView';
 import ExpenseGroupedSearchView from './ExpenseGroupedSearchView';
+import ExpenseReportSearchView from './ExpenseReportSearchView';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
@@ -1045,7 +1046,7 @@ function Search({
     const isFlatExpenseView = type === CONST.SEARCH.DATA_TYPES.EXPENSE && !validGroupBy;
     const isExpenseGroupedView = type === CONST.SEARCH.DATA_TYPES.EXPENSE && !!validGroupBy;
 
-    // Flat-expense, grouped-expense and chat each render through a dedicated view composed over BaseSearchList;
+    // Flat-expense, grouped-expense, expense-report and chat each render through a dedicated view composed over BaseSearchList;
     // the remaining types keep the legacy SearchList shell. The snapshot, lifecycle and selection providers
     // stay here so the data layer runs once.
     let searchListContent: React.JSX.Element;
@@ -1102,6 +1103,29 @@ function Search({
     } else if (isChat) {
         searchListContent = (
             <ChatSearchView
+                ref={searchListRef}
+                queryJSON={queryJSON}
+                data={stableSortedData}
+                columns={columnsToShow}
+                onSelectRow={onSelectRow}
+                canSelectMultiple={canSelectMultiple}
+                SearchTableHeader={searchTableHeader}
+                tableHeaderVisible={tableHeaderVisible}
+                contentContainerStyle={[styles.pb3, contentContainerStyle]}
+                containerStyle={[styles.pv0]}
+                onScroll={onSearchListScroll}
+                onEndReached={fetchMoreResults}
+                ListFooterComponent={listFooterComponent}
+                onLayout={onLayout}
+                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                newTransactions={newTransactions}
+                hasLoadedAllTransactions={hasLoadedAllTransactions}
+                isActionColumnWide={isTask || hasDeletedTransaction}
+            />
+        );
+    } else if (isExpenseReportType) {
+        searchListContent = (
+            <ExpenseReportSearchView
                 ref={searchListRef}
                 queryJSON={queryJSON}
                 data={stableSortedData}
