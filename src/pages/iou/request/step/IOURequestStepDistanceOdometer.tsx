@@ -89,6 +89,8 @@ function IOURequestStepDistanceOdometer({
     const lastFocusedInputRef = useRef<BaseTextInputRef | null>(null);
 
     const [isDiscardModalVisible, setIsDiscardModalVisible] = useState(false);
+    // A counter, not a boolean: a boolean stuck at `true` (nothing resets it) would ignore a second request — React
+    // bails out when setState gets the same value. Incrementing always changes, so every request re-fires the effect.
     const [focusRestoreRequestId, setFocusRestoreRequestId] = useState(0);
 
     const didSaveEditingConfirmationRef = useRef(false);
