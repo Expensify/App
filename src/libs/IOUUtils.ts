@@ -1,3 +1,4 @@
+import {SafeString} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
@@ -6,7 +7,6 @@ import ROUTES from '@src/ROUTES';
 import type {OnyxInputOrEntry, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
-import SafeString from '@src/utils/SafeString';
 import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import {isGroupPolicy} from './PolicyUtils';
@@ -227,16 +227,23 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
     // Let us ensure a valid value before updating the total amount.
     iouReportUpdate.total = iouReportUpdate.total ?? 0;
     iouReportUpdate.unheldTotal = iouReportUpdate.unheldTotal ?? 0;
+    // IOU reports have no non-reimbursable transactions, so reimbursableTotal mirrors total optimistically.
+    iouReportUpdate.reimbursableTotal = iouReportUpdate.reimbursableTotal ?? iouReportUpdate.total;
+    iouReportUpdate.unheldReimbursableTotal = iouReportUpdate.unheldReimbursableTotal ?? iouReportUpdate.unheldTotal;
 
     if (actorAccountID === iouReport.ownerAccountID) {
         iouReportUpdate.total += isDeleting ? -amount : amount;
+        iouReportUpdate.reimbursableTotal += isDeleting ? -amount : amount;
         if (!isOnHold) {
             iouReportUpdate.unheldTotal += isDeleting ? -unHeldAmount : unHeldAmount;
+            iouReportUpdate.unheldReimbursableTotal += isDeleting ? -unHeldAmount : unHeldAmount;
         }
     } else {
         iouReportUpdate.total += isDeleting ? amount : -amount;
+        iouReportUpdate.reimbursableTotal += isDeleting ? amount : -amount;
         if (!isOnHold) {
             iouReportUpdate.unheldTotal += isDeleting ? unHeldAmount : -unHeldAmount;
+            iouReportUpdate.unheldReimbursableTotal += isDeleting ? unHeldAmount : -unHeldAmount;
         }
     }
 
@@ -246,6 +253,8 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
         iouReportUpdate.managerID = iouReport.ownerAccountID;
         iouReportUpdate.total = -iouReportUpdate.total;
         iouReportUpdate.unheldTotal = -iouReportUpdate.unheldTotal;
+        iouReportUpdate.reimbursableTotal = -iouReportUpdate.reimbursableTotal;
+        iouReportUpdate.unheldReimbursableTotal = -iouReportUpdate.unheldReimbursableTotal;
     }
 
     return iouReportUpdate;
@@ -435,7 +444,11 @@ function getInitialPerDiemTargetReport(
     defaultExpensePolicy: OnyxEntry<Pick<Policy, 'autoReporting'>>,
     personalPolicy: OnyxEntry<Pick<Policy, 'autoReporting'>>,
     isFromGlobalCreate: boolean,
-): {targetReport: OnyxEntry<Report>; targetIouType: IOUType; transactionReportID: string | undefined} {
+): {
+    targetReport: OnyxEntry<Report>;
+    targetIouType: IOUType;
+    transactionReportID: string | undefined;
+} {
     let targetReport = report;
     let targetIouType = iouType;
 
