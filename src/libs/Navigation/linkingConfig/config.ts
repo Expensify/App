@@ -2381,6 +2381,10 @@ const normalizedConfigs = Object.keys(config.screens)
         {} as Record<Screen, RouteConfig>,
     );
 
-const screensWithOnyxTabNavigator = collectScreensWithTabNavigator(config.screens as Record<string, ScreenConfigEntry>);
+const {
+    screensWithTabNavigator: screensWithOnyxTabNavigator,
+    dynamicTabPatternToTabPaths,
+    dynamicTabScreensByHost,
+} = collectScreensWithTabNavigator(config.screens as Record<string, ScreenConfigEntry>);
 
-export {normalizedConfigs, config, screensWithOnyxTabNavigator};
+export {normalizedConfigs, config, screensWithOnyxTabNavigator, dynamicTabPatternToTabPaths, dynamicTabScreensByHost};
