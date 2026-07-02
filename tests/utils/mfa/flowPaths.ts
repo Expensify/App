@@ -33,6 +33,14 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
         events: [createInitEvent(), {type: 'CLOSE_MODAL'}, {type: 'MODAL_CLOSED'}],
         endState: MFA_STATE.CLOSED,
     },
+    // Shortest paths keep one route per vertex and a completed flow returns to the initial vertex, so no
+    // generated path ever starts a second flow. This journey is the only coverage that runs flow N+1 over
+    // the module-level state the first flow leaves behind, such as the buffered navigation.
+    {
+        description: 'the re-entry journey starts a second flow after a full teardown',
+        events: [createInitEvent(), {type: 'CLOSE_MODAL'}, {type: 'MODAL_CLOSED'}, createInitEvent()],
+        endState: `${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`,
+    },
 ];
 
 /**
