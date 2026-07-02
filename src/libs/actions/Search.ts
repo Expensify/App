@@ -793,31 +793,31 @@ let savedViewEditRequestID = 0;
 
 /** Enters "Edit filters" mode: flags the view as being edited and re-executes its query so filters can be tweaked. */
 function enterSavedViewEditMode({hash, name, query}: Omit<EditingSavedSearch, 'requestID'>) {
-    savedViewEditRequestID += 1;
-    Onyx.set(ONYXKEYS.SEARCH_EDITING_SAVED_VIEW, {hash, name, query, requestID: savedViewEditRequestID});
+    savedViewEditRequestID++;
+    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_EDITING_SAVED_VIEW, {hash, name, query, requestID: savedViewEditRequestID});
     setSearchContext(false);
     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, name}));
 }
 
 /** Clears the "Edit filters" mode. Used when the filters popover is dismissed (click-outside acts as "leave editing"). */
-function exitSavedViewEditMode() {
-    Onyx.set(ONYXKEYS.SEARCH_EDITING_SAVED_VIEW, null);
+function clearSavedViewEditMode() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_EDITING_SAVED_VIEW, null);
 }
 
 /** Cancels "Edit filters" mode and re-executes the view's original query so the table returns to the saved filters. */
 function cancelSavedViewEdits(editingSavedView: EditingSavedSearch) {
-    Onyx.set(ONYXKEYS.SEARCH_EDITING_SAVED_VIEW, null);
+    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_EDITING_SAVED_VIEW, null);
     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: editingSavedView.query, name: editingSavedView.name}));
 }
 
 /** Carries the edited query to the save page for the narrow "Save as new view" flow (without changing the active search). */
 function setSaveAsNewViewQuery(query: string) {
-    Onyx.set(ONYXKEYS.SEARCH_SAVE_AS_NEW_VIEW_QUERY, query);
+    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_SAVE_AS_NEW_VIEW_QUERY, query);
 }
 
 /** Clears the carried "Save as new view" query (on leaving the save page) so it can't leak into a later save. */
 function clearSaveAsNewViewQuery() {
-    Onyx.set(ONYXKEYS.SEARCH_SAVE_AS_NEW_VIEW_QUERY, null);
+    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_SAVE_AS_NEW_VIEW_QUERY, null);
 }
 
 /** Saves the edited filters back onto the view, passing the old hash as previousHash so the backend updates it in place. */
@@ -825,7 +825,7 @@ function saveSavedViewEdits({queryJSON, editingSavedView}: {queryJSON: Readonly<
     // Re-auto-name auto-named views (name === query) to the edited query; keep custom names.
     const wasAutoNamed = editingSavedView.name === editingSavedView.query;
     saveSearch({queryJSON, newName: wasAutoNamed ? undefined : editingSavedView.name, previousHash: editingSavedView.hash});
-    Onyx.set(ONYXKEYS.SEARCH_EDITING_SAVED_VIEW, null);
+    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_EDITING_SAVED_VIEW, null);
 }
 
 function openSearchPage(params?: OpenSearchPageParams) {
@@ -1871,7 +1871,7 @@ export {
     getReportFromSearchSnapshot,
     resolveSearchPayPaymentMethod,
     enterSavedViewEditMode,
-    exitSavedViewEditMode,
+    clearSavedViewEditMode,
     cancelSavedViewEdits,
     setSaveAsNewViewQuery,
     clearSaveAsNewViewQuery,

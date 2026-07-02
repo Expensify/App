@@ -14,7 +14,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchFilterSync from '@hooks/useSearchFilterSync';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {exitSavedViewEditMode} from '@libs/actions/Search';
+import {cancelSavedViewEdits} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,12 +33,14 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter']);
     const filterFormValues = useFilterFormValues(queryJSON);
     useSearchFilterSync(queryJSON, filterFormValues);
-    const [editingSavedView] = useOnyx(ONYXKEYS.SEARCH_EDITING_SAVED_VIEW);
+    const [editingSavedView] = useOnyx(ONYXKEYS.RAM_ONLY_SEARCH_EDITING_SAVED_VIEW);
     const isEditingSavedView = !!editingSavedView;
 
     // On small screens the filters are a fullscreen route, so "Edit filters" opens it here. Keyed by requestID so each
     // click opens it once. Wait for queryJSON.hash === editingSavedView.hash so the form has the edited view's filters.
     const lastAutoNavRequestIDRef = useRef<number | undefined>(undefined);
+    // Click-outside/Escape/Cancel all revert the edits via onOverlayClose; the Save buttons set this ref to opt out.
+    const skipRevertOnCloseRef = useRef(false);
     useEffect(() => {
         const requestID = editingSavedView?.requestID;
         if (!isSmallScreenWidth || requestID === undefined || lastAutoNavRequestIDRef.current === requestID) {
@@ -106,6 +108,9 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
             queryJSON={queryJSON}
             editingSavedView={editingSavedView}
             closeOverlay={closeOverlay}
+            preventRevertOnClose={() => {
+                skipRevertOnCloseRef.current = true;
+            }}
         />
     );
 
@@ -119,7 +124,19 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
             }}
             renderButton={filterButton}
             autoExpandToken={editingSavedView && queryJSON.hash === editingSavedView.hash ? editingSavedView.requestID : undefined}
-            onOverlayClose={isEditingSavedView ? exitSavedViewEditMode : undefined}
+            onOverlayClose={
+                isEditingSavedView
+                    ? () => {
+                          if (skipRevertOnCloseRef.current) {
+                              skipRevertOnCloseRef.current = false;
+                              return;
+                          }
+                          if (editingSavedView) {
+                              cancelSavedViewEdits(editingSavedView);
+                          }
+                      }
+                    : undefined
+            }
         />
     );
 }

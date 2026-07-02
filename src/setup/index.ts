@@ -74,6 +74,9 @@ export default function () {
             ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD,
             ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
             ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER,
+            // Ephemeral saved-view edit state — RAM-only so a reload can't resume "Edit filters" or carry a stale save query
+            ONYXKEYS.RAM_ONLY_SEARCH_EDITING_SAVED_VIEW,
+            ONYXKEYS.RAM_ONLY_SEARCH_SAVE_AS_NEW_VIEW_QUERY,
         ],
     });
 

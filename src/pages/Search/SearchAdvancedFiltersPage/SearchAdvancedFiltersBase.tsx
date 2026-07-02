@@ -6,7 +6,7 @@ import FilterList from '@components/Search/FilterComponents/AdvancedFilters/Filt
 import SavedViewEditFooter from '@components/Search/SavedViewEditFooter';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {exitSavedViewEditMode} from '@libs/actions/Search';
+import {clearSavedViewEditMode} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {SearchAdvancedFiltersActionContext, SearchAdvancedFiltersContext} from '@pages/Search/SearchAdvancedFiltersProvider';
 import ROUTES from '@src/ROUTES';
@@ -23,7 +23,7 @@ function SearchAdvancedFiltersBase() {
     // Clear edit mode if the route is dismissed by hardware/browser back or swipe (not just the header/Cancel).
     useEffect(
         () => () => {
-            exitSavedViewEditMode();
+            clearSavedViewEditMode();
         },
         [],
     );

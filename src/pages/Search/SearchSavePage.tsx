@@ -24,7 +24,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearSaveAsNewViewQuery, saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getCustomColumnDefault, getSearchColumnTranslationKey, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
@@ -148,30 +148,22 @@ function getAppliedDisplays(searchAdvancedFiltersForm: Partial<SearchAdvancedFil
     return appliedDisplays;
 }
 
-function SearchSavePage() {
+type SearchSaveFormProps = {
+    /** The query being saved — drives the applied-display list and the save itself */
+    queryJSONToSave: SearchQueryJSON | undefined;
+
+    /** The filter form values previewed as "applied filters" */
+    formToDisplay: Partial<SearchAdvancedFiltersForm>;
+
+    /** Set on the small-screen "Save as new view" flow; when present we land on the new view after saving */
+    saveAsNewViewQuery?: string;
+};
+
+function SearchSaveForm({queryJSONToSave, formToDisplay, saveAsNewViewQuery}: SearchSaveFormProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
-    const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    // The narrow "Save as new view" flow carries the edited query here so we save those filters without changing the
-    // active search (mobile filters are a draft). When set, it overrides the active search for both the save and the preview.
-    const [saveAsNewViewQuery] = useOnyx(ONYXKEYS.SEARCH_SAVE_AS_NEW_VIEW_QUERY);
     const [name, setName] = useState('');
-
-    const {currentSearchQueryJSON} = useSearchQueryContext();
-
-    const overrideQueryJSON = saveAsNewViewQuery ? buildSearchQueryJSON(saveAsNewViewQuery) : undefined;
-    const queryJSONToSave = overrideQueryJSON ?? currentSearchQueryJSON;
-    const overrideFormValues = useFilterFormValues(overrideQueryJSON);
-    const formToDisplay = overrideQueryJSON ? overrideFormValues : searchAdvancedFiltersForm;
-
-    // Clear the carried query when leaving this page (saved or backed out) so it can't leak into a later save.
-    useEffect(
-        () => () => {
-            clearSaveAsNewViewQuery();
-        },
-        [],
-    );
 
     const onSaveSearch = () => {
         if (!queryJSONToSave) {
@@ -181,12 +173,12 @@ function SearchSavePage() {
 
         const newName = name.trim() || queryJSONToSave.inputQuery;
         saveSearch({queryJSON: queryJSONToSave, newName});
-        // Clear the carried query immediately (don't rely on unmount timing) so it can't leak into a later save.
-        clearSaveAsNewViewQuery();
 
         // For "Save as new view" land on the newly-created view; for the regular save just return to the current search.
-        if (overrideQueryJSON) {
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildSearchQueryString(overrideQueryJSON)}));
+        if (saveAsNewViewQuery) {
+            // Clear the carried query immediately (don't rely on unmount timing) so it can't leak into a later save.
+            clearSaveAsNewViewQuery();
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: saveAsNewViewQuery}));
         } else {
             Navigation.goBack();
         }
@@ -262,6 +254,47 @@ function SearchSavePage() {
                 )}
             </FormProvider>
         </ScreenWrapper>
+    );
+}
+
+// Only mounts for the small-screen "Save as new view" flow, so useFilterFormValues (which subscribes to the
+// report/policy/card collections) runs only when we actually need to derive the form from the carried query.
+function SearchSaveNewViewForm({saveAsNewViewQuery}: {saveAsNewViewQuery: string}) {
+    const overrideQueryJSON = buildSearchQueryJSON(saveAsNewViewQuery);
+    const formToDisplay = useFilterFormValues(overrideQueryJSON);
+    return (
+        <SearchSaveForm
+            queryJSONToSave={overrideQueryJSON}
+            formToDisplay={formToDisplay}
+            saveAsNewViewQuery={saveAsNewViewQuery}
+        />
+    );
+}
+
+function SearchSavePage() {
+    const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    // The small-screen (mobile) "Save as new view" flow carries the edited query here so we save those filters without
+    // changing the active search (mobile filters are a draft). When set, we derive the form/preview from it instead.
+    const [saveAsNewViewQuery] = useOnyx(ONYXKEYS.RAM_ONLY_SEARCH_SAVE_AS_NEW_VIEW_QUERY);
+    const {currentSearchQueryJSON} = useSearchQueryContext();
+
+    // Clear the carried query when leaving the save page (saved or backed out) so it can't leak into a later save.
+    useEffect(
+        () => () => {
+            clearSaveAsNewViewQuery();
+        },
+        [],
+    );
+
+    if (saveAsNewViewQuery) {
+        return <SearchSaveNewViewForm saveAsNewViewQuery={saveAsNewViewQuery} />;
+    }
+
+    return (
+        <SearchSaveForm
+            queryJSONToSave={currentSearchQueryJSON}
+            formToDisplay={searchAdvancedFiltersForm}
+        />
     );
 }
 

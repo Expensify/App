@@ -9,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
-type SaveViewAction = 'edits' | 'newView';
+type SaveViewAction = 'saveEdits' | 'saveAsNewView';
 
 type SavedViewEditFooterProps = {
     /** Abandons the edits and leaves edit mode */
@@ -32,8 +32,8 @@ function SavedViewEditFooter({onCancel, onSaveEdits, onSaveAsNewView, style}: Sa
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Plus']);
 
     const saveOptions: Array<DropdownOption<SaveViewAction>> = [
-        {value: 'edits', text: translate('search.saveEdits'), icon: icons.Checkmark, onSelected: onSaveEdits},
-        {value: 'newView', text: translate('search.saveAsNewView'), icon: icons.Plus, onSelected: onSaveAsNewView},
+        {value: 'saveEdits', text: translate('search.saveEdits'), icon: icons.Checkmark, onSelected: onSaveEdits},
+        {value: 'saveAsNewView', text: translate('search.saveAsNewView'), icon: icons.Plus, onSelected: onSaveAsNewView},
     ];
 
     return (

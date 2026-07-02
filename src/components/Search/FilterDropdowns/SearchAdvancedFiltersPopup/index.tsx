@@ -11,7 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {cancelSavedViewEdits, saveSavedViewEdits} from '@libs/actions/Search';
+import {saveSavedViewEdits} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {canSaveEditedView} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
@@ -33,9 +33,12 @@ type SearchAdvancedFiltersPopupProps = {
 
     /** Closes the popover (provided by FilterPopupButton) */
     closeOverlay?: () => void;
+
+    /** Called before a Save-triggered close so the popover isn't reverted like a click-outside */
+    preventRevertOnClose?: () => void;
 };
 
-function SearchAdvancedFiltersPopup({queryJSON, editingSavedView, closeOverlay}: SearchAdvancedFiltersPopupProps) {
+function SearchAdvancedFiltersPopup({queryJSON, editingSavedView, closeOverlay, preventRevertOnClose}: SearchAdvancedFiltersPopupProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -53,20 +56,19 @@ function SearchAdvancedFiltersPopup({queryJSON, editingSavedView, closeOverlay}:
     // only appears once the live query differs from the view (and isn't already another saved view).
     const shouldShowEditFooter = isEditingSavedView && canSaveEditedView(savedSearches, queryJSON.hash);
 
-    // The live edits already changed the active search, so cancelling re-executes the view's original query to restore it.
+    // Cancel just closes; onOverlayClose re-executes the view's original query to restore it (same as clicking outside).
     const onCancel = () => {
-        if (editingSavedView) {
-            cancelSavedViewEdits(editingSavedView);
-        }
         closeOverlay?.();
     };
 
     const onSaveAsNewView = () => {
+        preventRevertOnClose?.();
         closeOverlay?.();
         Navigation.navigate(ROUTES.SEARCH_SAVE);
     };
 
     const onSaveEdits = () => {
+        preventRevertOnClose?.();
         if (editingSavedView) {
             saveSavedViewEdits({queryJSON, editingSavedView});
         }
@@ -127,19 +129,19 @@ function SearchAdvancedFiltersPopup({queryJSON, editingSavedView, closeOverlay}:
                         textStyles={styles.textSupporting}
                         shouldUseDefaultHover={false}
                         hoverStyles={styles.hoveredComponentBG}
-                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_BUTTON}
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.EDIT_FILTERS_CANCEL_BUTTON}
                     />
                     <View style={[styles.flexRow, styles.gap2]}>
                         <Button
                             text={translate('search.saveAsNewView')}
                             onPress={onSaveAsNewView}
-                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_VIEW_BUTTON}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_AS_NEW_VIEW_BUTTON}
                         />
                         <Button
                             success
                             text={translate('search.saveEdits')}
                             onPress={onSaveEdits}
-                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_VIEW_BUTTON}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_EDITS_BUTTON}
                         />
                     </View>
                 </View>

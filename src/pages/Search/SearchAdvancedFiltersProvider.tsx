@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 import useOnyx from '@hooks/useOnyx';
-import {exitSavedViewEditMode, saveSavedViewEdits, setSaveAsNewViewQuery, setSearchContext} from '@libs/actions/Search';
+import {clearSavedViewEditMode, saveSavedViewEdits, setSaveAsNewViewQuery, setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, getAdvancedFiltersToReset} from '@libs/SearchQueryUtils';
 import {canSaveEditedView} from '@libs/SearchUIUtils';
@@ -53,7 +53,7 @@ type SearchAdvancedFiltersProviderProps = {
 
 function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProviderProps) {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const [editingSavedView] = useOnyx(ONYXKEYS.SEARCH_EDITING_SAVED_VIEW);
+    const [editingSavedView] = useOnyx(ONYXKEYS.RAM_ONLY_SEARCH_EDITING_SAVED_VIEW);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const {getUpdatedFilterFormValues, setFilterQueryParams, buildFilterQueryString} = useUpdateFilterQuery(currentSearchQueryJSON);
@@ -113,7 +113,7 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
         setSaveAsNewViewQuery(queryString);
         Navigation.dismissModal({
             afterTransition: () => {
-                exitSavedViewEditMode();
+                clearSavedViewEditMode();
                 Navigation.navigate(ROUTES.SEARCH_SAVE);
             },
         });
@@ -122,7 +122,7 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
     // The edited draft isn't applied to the search until a save, so cancelling just leaves edit mode on the original view.
     const cancelEdits = () => {
         Navigation.dismissModal({
-            afterTransition: () => exitSavedViewEditMode(),
+            afterTransition: () => clearSavedViewEditMode(),
         });
     };
 

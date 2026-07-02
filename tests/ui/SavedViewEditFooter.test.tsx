@@ -62,11 +62,11 @@ describe('SavedViewEditFooter', () => {
 
     it('routes each dropdown option to its own handler', async () => {
         await renderFooter();
-        mockDropdownProps?.onPress(undefined, 'edits');
+        mockDropdownProps?.onPress(undefined, 'saveEdits');
         expect(onSaveEdits).toHaveBeenCalledTimes(1);
         expect(onSaveAsNewView).not.toHaveBeenCalled();
 
-        mockDropdownProps?.onPress(undefined, 'newView');
+        mockDropdownProps?.onPress(undefined, 'saveAsNewView');
         expect(onSaveAsNewView).toHaveBeenCalledTimes(1);
     });
 
