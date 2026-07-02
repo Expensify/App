@@ -198,7 +198,7 @@ describe('getAdminExpensifyCardFeedEntries', () => {
         const domainFundID = 1000;
         const workspaceFundID1 = 2001;
         const workspaceFundID2 = 2002;
-        const domainName = 'corporatedomain.com';
+        const domainName = 'corporate.com';
         const multiWorkspaceCardSettings: OnyxCollection<ExpensifyCardSettings> = {
             [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainFundID}`]: configuredFeedSettings({domainName, isEnabled: true}),
             [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceFundID1}`]: configuredFeedSettings({domainName, isEnabled: true}),
