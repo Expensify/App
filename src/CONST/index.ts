@@ -2860,6 +2860,7 @@ const CONST = {
     },
     CERTINIA_FFA_BUNDLE_INSTALL_URL: {
         PRODUCTION: 'https://login.salesforce.com/packaging/installPackage.apexp?p0=04t4p000001UQVo',
+        SANDBOX: 'https://test.salesforce.com/packaging/installPackage.apexp?p0=04t4p000001UQVo',
     },
 
     CERTINIA_PSA_BUNDLE_VERSION: '1.3',

@@ -13,9 +13,10 @@ import type {TranslationPaths} from '@src/languages/types';
 
 type CertiniaPrerequisitesStepProps = SubPageProps & {
     onConnect: () => void;
+    isSandbox: boolean;
 };
 
-function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect}: CertiniaPrerequisitesStepProps) {
+function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect, isSandbox}: CertiniaPrerequisitesStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -37,7 +38,7 @@ function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect}: Certini
                     <Text style={[styles.textStrong, styles.mb2]}>{translate('workspace.certinia.prerequisites.installBundlePSAHeader')}</Text>
                     <RenderHTML
                         html={translate('workspace.certinia.prerequisites.installBundlePSADescription', {
-                            href: CONST.CERTINIA_PSA_BUNDLE_INSTALL_URL.PRODUCTION,
+                            href: isSandbox ? CONST.CERTINIA_PSA_BUNDLE_INSTALL_URL.SANDBOX : CONST.CERTINIA_PSA_BUNDLE_INSTALL_URL.PRODUCTION,
                             version: CONST.CERTINIA_PSA_BUNDLE_VERSION,
                         })}
                     />
@@ -46,7 +47,7 @@ function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect}: Certini
                     <Text style={[styles.textStrong, styles.mb2]}>{translate('workspace.certinia.prerequisites.installBundleFFAHeader')}</Text>
                     <RenderHTML
                         html={translate('workspace.certinia.prerequisites.installBundleFFADescription', {
-                            href: CONST.CERTINIA_FFA_BUNDLE_INSTALL_URL.PRODUCTION,
+                            href: isSandbox ? CONST.CERTINIA_FFA_BUNDLE_INSTALL_URL.SANDBOX : CONST.CERTINIA_FFA_BUNDLE_INSTALL_URL.PRODUCTION,
                             version: CONST.CERTINIA_FFA_BUNDLE_VERSION,
                         })}
                     />

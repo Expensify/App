@@ -5165,6 +5165,7 @@ const translations = {
                 oauth: 'Log in through Salesforce',
                 oauthDescription: "To finish setup, you'll have to sign in through Salesforce and Certinia.\n\nUse the button below to continue.",
                 connectButton: 'Connect to Certinia',
+                connectSandboxButton: 'Connect to Certinia Sandbox',
             },
             import: {
                 chartOfAccounts: 'Chart of accounts',
