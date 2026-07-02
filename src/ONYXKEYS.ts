@@ -1193,6 +1193,8 @@ const ONYXKEYS = {
         ADD_AGENT_RULE_FORM_DRAFT: 'addAgentRuleFormDraft',
         EDIT_AGENT_RULE_FORM: 'editAgentRuleForm',
         EDIT_AGENT_RULE_FORM_DRAFT: 'editAgentRuleFormDraft',
+        RILLET_CREDENTIALS_FORM: 'rilletCredentialsForm',
+        RILLET_CREDENTIALS_FORM_DRAFT: 'rilletCredentialsFormDraft',
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',
@@ -1342,6 +1344,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM]: FormTypes.EditAgentPromptForm;
     [ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM]: FormTypes.AddAgentRuleForm;
     [ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM]: FormTypes.EditAgentRuleForm;
+    [ONYXKEYS.FORMS.RILLET_CREDENTIALS_FORM]: FormTypes.RilletCredentialsForm;
 };
 
 type OnyxFormDraftValuesMapping = {
