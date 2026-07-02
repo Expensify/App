@@ -428,11 +428,13 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
                                         isHorizontal
                                         roundedCorners={{topRight: 8, bottomRight: 8}}
                                     >
-                                        <BarGroup.Bar
-                                            key="horizontal-bars-single-color"
-                                            points={points.y}
-                                            color={defaultBarColor}
-                                        />
+                                        {[
+                                            <BarGroup.Bar
+                                                key="horizontal-bars-single-color"
+                                                points={points.y}
+                                                color={defaultBarColor}
+                                            />,
+                                        ]}
                                     </BarGroup>
                                 ) : (
                                     points.y.map((point, index) => renderHorizontalBar(point, chartBounds, points.y.length, index))

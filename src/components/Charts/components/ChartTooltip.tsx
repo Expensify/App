@@ -94,7 +94,7 @@ function ChartTooltip({label, amount, percentage, chartWidth, initialTooltipPosi
             transform: [{translateX: '-50%'}, {translateY: '-100%'}],
             opacity: tooltipMeasuredWidth.get() > 0 ? 1 : 0,
         };
-    }, [initialTooltipPosition, placement]);
+    }, [initialTooltipPosition, placement, chartWidth]);
 
     /**
      * Animated style for the pointer (triangle).
