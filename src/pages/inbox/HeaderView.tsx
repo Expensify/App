@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import {accountGuideDetailsSelector, accountManagerDetailsSelector} from '@selectors/Account';
+import {accountGuideDetailsSelector} from '@selectors/Account';
 import {isOptimisticPersonalDetailSelector} from '@selectors/PersonalDetails';
 import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
 import {isPast} from 'date-fns';
@@ -118,7 +118,12 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const [accountGuideDetails] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountGuideDetailsSelector});
-    const [accountManagerDetails] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountManagerDetailsSelector});
+    const [accountManagerDetails] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: (account) => ({
+            accountManagerAccountID: account?.accountManagerAccountID,
+            accountManagerCalendarLink: account?.accountManagerCalendarLink,
+        }),
+    });
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingChatMembersSelector});
     const isReportArchived = isArchivedReport(reportNameValuePairs);
