@@ -76,43 +76,13 @@ function isFeedPrimaryForPolicy(entry: ExpensifyCardFeedEntry, policyID: string)
     return isPolicyIDInLinkedExpensifyCardPolicyList(getLinkedPolicyIDsFromExpensifyCardSettings(entry.settings), policyID);
 }
 
-/**
- * Expensify card feeds follow a "one domain ⇒ one feed" model, so when several settings NVPs share the same
- * domainName (e.g. a domain feed shared to multiple workspaces surfaces a workspace-scoped settings entry per
- * workspace) we collapse them to a single feed, preferring the domain-level fund (the fund whose ID matches the
- * domain accountID) and otherwise the lowest fundID for stability. Feeds without a domainName are left untouched —
- * each one is a distinct feed.
- */
-function dedupeExpensifyCardFeedsByDomain(entries: ExpensifyCardFeedEntry[], domains: OnyxCollection<Domain>): ExpensifyCardFeedEntry[] {
-    const result: ExpensifyCardFeedEntry[] = [];
-    const domainGroups = new Map<string, ExpensifyCardFeedEntry[]>();
-
-    for (const entry of entries) {
-        const domainName = getDomainNameFromExpensifyCardSettings(entry.settings);
-        if (!domainName) {
-            result.push(entry);
-            continue;
-        }
-        const group = domainGroups.get(domainName) ?? [];
-        group.push(entry);
-        domainGroups.set(domainName, group);
-    }
-
-    for (const group of domainGroups.values()) {
-        const domainLevelEntry = group.find((entry) => !!getDomainByFundID(domains, entry.fundID));
-        result.push(domainLevelEntry ?? group.reduce((lowest, entry) => (entry.fundID < lowest.fundID ? entry : lowest)));
-    }
-
-    return result;
-}
-
 function getAdminExpensifyCardFeedEntries(
     cardSettingsCollection: OnyxCollection<ExpensifyCardSettings>,
     policies: OnyxCollection<Policy>,
     domains: OnyxCollection<Domain>,
     currentUserAccountID: number,
 ): ExpensifyCardFeedEntry[] {
-    const visibleEntries = Object.entries(cardSettingsCollection ?? {}).flatMap<ExpensifyCardFeedEntry>(([settingsKey, settings]) => {
+    return Object.entries(cardSettingsCollection ?? {}).flatMap(([settingsKey, settings]) => {
         if (!settings) {
             return [];
         }
@@ -122,8 +92,6 @@ function getAdminExpensifyCardFeedEntries(
         }
         return [{settingsKey, fundID, settings}];
     });
-
-    return dedupeExpensifyCardFeedsByDomain(visibleEntries, domains);
 }
 
 function partitionExpensifyCardFeedsForSelector(entries: ExpensifyCardFeedEntry[], policyID: string): {primary: ExpensifyCardFeedEntry[]; other: ExpensifyCardFeedEntry[]} {
