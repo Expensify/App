@@ -34,9 +34,8 @@ function EditPromptPage({route}: EditPromptPageProps) {
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
     const {isKeyboardActive} = useKeyboardState();
-    const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
-    const shouldUseScrollableLayout = isInLandscapeMode || (isMobile() && windowWidth > windowHeight);
-    const shouldShrinkPromptInput = shouldUseScrollableLayout && isKeyboardActive;
+    const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight) || (isMobile() && windowWidth > windowHeight);
+    const shouldShrinkPromptInput = isInLandscapeMode && isKeyboardActive;
     const accountID = route.params.accountID;
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
 
@@ -73,14 +72,13 @@ function EditPromptPage({route}: EditPromptPageProps) {
     });
 
     const formWrapperRef = useRef<FormRef>(null);
-    const handleInputFocus = () => scrollToMultilineInput(formWrapperRef, shouldUseScrollableLayout);
+    const handleInputFocus = () => scrollToMultilineInput(formWrapperRef, isInLandscapeMode);
 
     return (
         <ScreenWrapper
             testID={EditPromptPage.displayName}
             includeSafeAreaPaddingBottom
             offlineIndicatorStyle={styles.mtAuto}
-            shouldEnableMaxHeight={shouldUseScrollableLayout}
         >
             <CollapsibleHeaderOnKeyboard collapsibleHeaderOffset={SUBMIT_BUTTON_HEIGHT}>
                 <HeaderWithBackButton
@@ -94,8 +92,8 @@ function EditPromptPage({route}: EditPromptPageProps) {
                 onSubmit={handleSubmit}
                 submitButtonText={translate('common.save')}
                 style={[styles.flex1, styles.ph5]}
-                shouldUseScrollView={shouldUseScrollableLayout}
-                submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
+                shouldUseScrollView={false}
+                submitFlexEnabled={false}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
                 shouldValidateOnChange
@@ -103,9 +101,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
                 keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
                 ref={formWrapperRef}
             >
-                <View
-                    style={shouldShrinkPromptInput ? {height: PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} : [styles.flex1, shouldUseScrollableLayout ? styles.minHeight42 : undefined]}
-                >
+                <View style={shouldShrinkPromptInput ? {height: PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} : [styles.flex1]}>
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.PROMPT}

@@ -160,11 +160,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
                         spellCheck={false}
                         defaultValue={defaultAgentName}
                     />
-                    <View
-                        style={
-                            shouldShrinkPromptInput ? {height: PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} : [styles.flex1, shouldUseScrollableLayout ? styles.minHeight42 : undefined]
-                        }
-                    >
+                    <View style={shouldShrinkPromptInput ? {height: PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} : [shouldUseScrollableLayout ? styles.h42 : styles.flex1]}>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.PROMPT}
