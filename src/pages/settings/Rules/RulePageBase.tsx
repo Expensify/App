@@ -24,11 +24,11 @@ import {getAllTaxRatesNamesAndValues, getCleanedTagName, getTagLists} from '@lib
 import {getEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ExpenseRuleForm} from '@src/types/form';
+import type {ExpenseRuleForm, ExpenseRuleFormFieldID} from '@src/types/form/ExpenseRuleForm';
+import EXPENSE_RULE_INPUT_IDS from '@src/types/form/ExpenseRuleForm';
 import type {ExpenseRule, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
@@ -52,7 +52,7 @@ type SectionType = {
     items: Array<SectionItemType | undefined>;
 };
 
-const navigateTo = (field: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>, hash?: string, index?: number) => {
+const navigateTo = (field: ExpenseRuleFormFieldID, hash?: string, index?: number) => {
     if (hash) {
         Navigation.navigate(ROUTES.SETTINGS_RULES_EDIT.getRoute(hash, field, index));
     } else {
@@ -65,14 +65,14 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: ExpenseRuleForm) 
         ([key, value]) =>
             (
                 [
-                    CONST.EXPENSE_RULES.FIELDS.BILLABLE,
-                    CONST.EXPENSE_RULES.FIELDS.CATEGORY,
-                    CONST.EXPENSE_RULES.FIELDS.DESCRIPTION,
-                    CONST.EXPENSE_RULES.FIELDS.RENAME_MERCHANT,
-                    CONST.EXPENSE_RULES.FIELDS.REIMBURSABLE,
-                    CONST.EXPENSE_RULES.FIELDS.REPORT,
-                    CONST.EXPENSE_RULES.FIELDS.TAG,
-                    CONST.EXPENSE_RULES.FIELDS.TAX,
+                    EXPENSE_RULE_INPUT_IDS.BILLABLE,
+                    EXPENSE_RULE_INPUT_IDS.CATEGORY,
+                    EXPENSE_RULE_INPUT_IDS.DESCRIPTION,
+                    EXPENSE_RULE_INPUT_IDS.RENAME_MERCHANT,
+                    EXPENSE_RULE_INPUT_IDS.REIMBURSABLE,
+                    EXPENSE_RULE_INPUT_IDS.REPORT,
+                    EXPENSE_RULE_INPUT_IDS.TAG,
+                    EXPENSE_RULE_INPUT_IDS.TAX,
                 ] as string[]
             ).includes(key) && !!value,
     );
@@ -158,7 +158,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                     description: translate('common.merchant'),
                     required: true,
                     title: form?.merchantToMatch,
-                    onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.MERCHANT, hash),
+                    onPress: () => navigateTo(EXPENSE_RULE_INPUT_IDS.MERCHANT, hash),
                 },
             ],
         },
@@ -169,14 +169,14 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                     key: 'merchant',
                     description: translate('common.merchant'),
                     title: form?.merchant,
-                    onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.RENAME_MERCHANT, hash),
+                    onPress: () => navigateTo(EXPENSE_RULE_INPUT_IDS.RENAME_MERCHANT, hash),
                 },
                 form?.category || hasPolicyCategories
                     ? {
                           key: 'category',
                           description: translate('common.category'),
                           title: form?.category ? getDecodedCategoryName(form.category) : undefined,
-                          onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.CATEGORY, hash),
+                          onPress: () => navigateTo(EXPENSE_RULE_INPUT_IDS.CATEGORY, hash),
                       }
                     : undefined,
                 ...policyTags
@@ -187,7 +187,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                             key: `tag-${name}-${orderWeight}`,
                             description: name,
                             title: formTag ? getCleanedTagName(formTag) : undefined,
-                            onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.TAG, hash, orderWeight),
+                            onPress: () => navigateTo(EXPENSE_RULE_INPUT_IDS.TAG, hash, orderWeight),
                         };
                     }),
                 hasTaxRates
@@ -195,33 +195,33 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                           key: 'tax',
                           description: translate('common.tax'),
                           title: selectedTaxRate ? `${selectedTaxRate.name} (${selectedTaxRate.value})` : undefined,
-                          onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.TAX, hash),
+                          onPress: () => navigateTo(EXPENSE_RULE_INPUT_IDS.TAX, hash),
                       }
                     : undefined,
                 {
                     key: 'description',
                     description: translate('common.description'),
                     title: form?.comment ? Parser.replace(form.comment) : undefined,
-                    onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.DESCRIPTION, hash),
+                    onPress: () => navigateTo(EXPENSE_RULE_INPUT_IDS.DESCRIPTION, hash),
                     shouldRenderAsHTML: true,
                 },
                 {
                     key: 'reimbursable',
                     description: translate('common.reimbursable'),
                     title: form?.reimbursable ? translate(form.reimbursable === 'true' ? 'common.yes' : 'common.no') : '',
-                    onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.REIMBURSABLE, hash),
+                    onPress: () => navigateTo(EXPENSE_RULE_INPUT_IDS.REIMBURSABLE, hash),
                 },
                 {
                     key: 'billable',
                     description: translate('common.billable'),
                     title: form?.billable ? translate(form.billable === 'true' ? 'common.yes' : 'common.no') : '',
-                    onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.BILLABLE, hash),
+                    onPress: () => navigateTo(EXPENSE_RULE_INPUT_IDS.BILLABLE, hash),
                 },
                 {
                     key: 'addToReport',
                     description: translate('expenseRulesPage.addRule.addToReport'),
                     title: form?.report,
-                    onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.REPORT, hash),
+                    onPress: () => navigateTo(EXPENSE_RULE_INPUT_IDS.REPORT, hash),
                 },
             ],
         },

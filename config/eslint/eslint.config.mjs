@@ -123,7 +123,7 @@ const restrictedImportPaths = [
         importNames: ['Device', 'ExpensiMark'],
         message: [
             '',
-            "For 'Device', do not import it directly, it's known to make VSCode's IntelliSense crash. Please import the desired module from `expensify-common/dist/Device` instead.",
+            "For 'Device', do not import it directly, it's known to make VSCode's IntelliSense crash. Please import the desired module from `expensify-common/Device` instead.",
             "For 'ExpensiMark', please use '@libs/Parser' instead.",
         ].join('\n'),
     },

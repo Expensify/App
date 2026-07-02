@@ -4,7 +4,7 @@ import {isAnonymousUser} from '@libs/actions/Session';
 import * as API from '@libs/API';
 import type {MarkAllMessagesAsReadParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {getDBTimeWithSkew} from '@libs/NetworkState';
+import {getDBTimeWithSkew, getIsOffline} from '@libs/NetworkState';
 import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import {isArchivedReport, isUnread} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,6 +32,8 @@ function markAllMessagesAsRead(reportNameValuePairs: OnyxCollection<ReportNameVa
     }
 
     const newLastReadTime = getDBTimeWithSkew();
+    // Read the in-memory offline state directly since this is an imperative one-shot action (reactivity is not needed here).
+    const isOffline = getIsOffline();
 
     type PartialReport = {
         lastReadTime: Report['lastReadTime'] | null;
@@ -45,7 +47,7 @@ function markAllMessagesAsRead(reportNameValuePairs: OnyxCollection<ReportNameVa
         }
 
         const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
-        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]);
+        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`], isOffline);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
         const isReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
         if (!isUnread(report, oneTransactionThreadReport, isReportArchived)) {
