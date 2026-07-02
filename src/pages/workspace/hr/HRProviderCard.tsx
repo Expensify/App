@@ -98,6 +98,7 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
                       syncConnection(policy, card.connectionName);
                   },
                   disabled: isOffline,
+                  shouldCallAfterModalHide: true,
               },
         {
             icon: icons.Trashcan,
