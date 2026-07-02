@@ -64,6 +64,6 @@ To learn more, see Take Over Workspace Ownership.
 
 ## Related articles
 
-- Understand billing terms and definitions.
-- How Billing, Plans, and Subscriptions Work.
+- [Understand Billing Terms and Definitions](/articles/new-expensify/billing-and-subscriptions/Understand-Billing-Terms-and-Definitions)
+- [How Subscriptions Plans and Billing Work](/articles/new-expensify/billing-and-subscriptions/How-Subscriptions-Plans-and-Billing-Work)
 
