@@ -103,11 +103,6 @@ jest.mock('@selectors/Onboarding', () => ({
     hasSeenTourSelector: () => false,
 }));
 
-jest.mock('@hooks/useAIFeaturesPromoModal', () => ({
-    __esModule: true,
-    default: jest.fn(),
-}));
-
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
 const mockedPusherInit = jest.mocked(Pusher.init);
