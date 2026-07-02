@@ -33,8 +33,10 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getParsedComment,
     getPolicyExpenseChat,
+    getReimbursableTotal,
     getReportOrDraftReport,
     getTransactionDetails,
+    getUnheldReimbursableTotal,
     isArchivedReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isSelfDM,
@@ -830,6 +832,8 @@ function updateSplitTransactions({
                             unheldTotal: transactionIOUReport.unheldTotal,
                             nonReimbursableTotal: transactionIOUReport.nonReimbursableTotal,
                             unheldNonReimbursableTotal: transactionIOUReport.unheldNonReimbursableTotal,
+                            reimbursableTotal: getReimbursableTotal(transactionIOUReport),
+                            unheldReimbursableTotal: getUnheldReimbursableTotal(transactionIOUReport),
                         },
                     });
                 }

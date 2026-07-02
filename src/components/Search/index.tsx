@@ -81,7 +81,10 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+import ChatSearchView from './ChatSearchView';
 import ExpenseFlatSearchView from './ExpenseFlatSearchView';
+import ExpenseGroupedSearchView from './ExpenseGroupedSearchView';
+import ExpenseReportSearchView from './ExpenseReportSearchView';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
@@ -1042,6 +1045,138 @@ function Search({
         ) : undefined;
 
     const isFlatExpenseView = type === CONST.SEARCH.DATA_TYPES.EXPENSE && !validGroupBy;
+    const isExpenseGroupedView = type === CONST.SEARCH.DATA_TYPES.EXPENSE && !!validGroupBy;
+
+    // Flat-expense, grouped-expense, expense-report and chat each render through a dedicated view composed over BaseSearchList;
+    // the remaining types keep the legacy SearchList shell. The snapshot, lifecycle and selection providers
+    // stay here so the data layer runs once.
+    let searchListContent: React.JSX.Element;
+    if (isFlatExpenseView) {
+        searchListContent = (
+            <ExpenseFlatSearchView
+                ref={searchListRef}
+                queryJSON={queryJSON}
+                data={stableSortedData}
+                columns={columnsToShow}
+                onSelectRow={onSelectRow}
+                canSelectMultiple={canSelectMultiple}
+                SearchTableHeader={searchTableHeader}
+                tableHeaderVisible={tableHeaderVisible}
+                contentContainerStyle={[styles.pb3, contentContainerStyle]}
+                containerStyle={[styles.pv0]}
+                onScroll={onSearchListScroll}
+                onEndReached={fetchMoreResults}
+                ListFooterComponent={listFooterComponent}
+                onLayout={onLayout}
+                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                newTransactions={newTransactions}
+                hasLoadedAllTransactions={hasLoadedAllTransactions}
+                isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
+                nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                isActionColumnWide={isTask || hasDeletedTransaction}
+            />
+        );
+    } else if (isExpenseGroupedView) {
+        searchListContent = (
+            <ExpenseGroupedSearchView
+                ref={searchListRef}
+                queryJSON={queryJSON}
+                data={stableSortedData}
+                columns={columnsToShow}
+                onSelectRow={onSelectRow}
+                canSelectMultiple={canSelectMultiple}
+                SearchTableHeader={searchTableHeader}
+                tableHeaderVisible={tableHeaderVisible}
+                contentContainerStyle={[styles.pb3, contentContainerStyle]}
+                containerStyle={[styles.pv0]}
+                onScroll={onSearchListScroll}
+                onEndReached={fetchMoreResults}
+                ListFooterComponent={listFooterComponent}
+                onLayout={onLayout}
+                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                newTransactions={newTransactions}
+                hasLoadedAllTransactions={hasLoadedAllTransactions}
+                isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
+                nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                isActionColumnWide={isTask || hasDeletedTransaction}
+            />
+        );
+    } else if (isChat) {
+        searchListContent = (
+            <ChatSearchView
+                ref={searchListRef}
+                queryJSON={queryJSON}
+                data={stableSortedData}
+                columns={columnsToShow}
+                onSelectRow={onSelectRow}
+                canSelectMultiple={canSelectMultiple}
+                SearchTableHeader={searchTableHeader}
+                tableHeaderVisible={tableHeaderVisible}
+                contentContainerStyle={[styles.pb3, contentContainerStyle]}
+                containerStyle={[styles.pv0]}
+                onScroll={onSearchListScroll}
+                onEndReached={fetchMoreResults}
+                ListFooterComponent={listFooterComponent}
+                onLayout={onLayout}
+                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                newTransactions={newTransactions}
+                hasLoadedAllTransactions={hasLoadedAllTransactions}
+                isActionColumnWide={isTask || hasDeletedTransaction}
+            />
+        );
+    } else if (isExpenseReportType) {
+        searchListContent = (
+            <ExpenseReportSearchView
+                ref={searchListRef}
+                queryJSON={queryJSON}
+                data={stableSortedData}
+                columns={columnsToShow}
+                onSelectRow={onSelectRow}
+                canSelectMultiple={canSelectMultiple}
+                SearchTableHeader={searchTableHeader}
+                tableHeaderVisible={tableHeaderVisible}
+                contentContainerStyle={[styles.pb3, contentContainerStyle]}
+                containerStyle={[styles.pv0]}
+                onScroll={onSearchListScroll}
+                onEndReached={fetchMoreResults}
+                ListFooterComponent={listFooterComponent}
+                onLayout={onLayout}
+                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                newTransactions={newTransactions}
+                hasLoadedAllTransactions={hasLoadedAllTransactions}
+                isActionColumnWide={isTask || hasDeletedTransaction}
+            />
+        );
+    } else {
+        searchListContent = (
+            <SearchList
+                ref={searchListRef}
+                data={stableSortedData}
+                ListItem={ListItem}
+                onSelectRow={onSelectRow}
+                canSelectMultiple={canSelectMultiple}
+                shouldPreventLongPressRow={isChat || isTask}
+                SearchTableHeader={searchTableHeader}
+                contentContainerStyle={[styles.pb3, contentContainerStyle]}
+                containerStyle={[styles.pv0]}
+                onScroll={onSearchListScroll}
+                onEndReachedThreshold={0.75}
+                onEndReached={fetchMoreResults}
+                ListFooterComponent={listFooterComponent}
+                queryJSON={queryJSON}
+                columns={columnsToShow}
+                onLayout={onLayout}
+                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
+                newTransactions={newTransactions}
+                hasLoadedAllTransactions={hasLoadedAllTransactions}
+                isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
+                nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                policyTags={policyTags}
+                isActionColumnWide={isTask || hasDeletedTransaction}
+            />
+        );
+    }
 
     // Flat-expense and task each render through a dedicated view composed over BaseSearchList; the remaining
     // types keep the legacy SearchList shell. The snapshot, lifecycle and selection providers stay here so

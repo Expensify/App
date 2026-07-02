@@ -434,6 +434,7 @@ function ReportSubmitToContent({
                 isRowMultilineSupported
                 style={{containerStyle: styles.flex1}}
                 disableMaintainingScrollPosition
+                addBottomSafeAreaPadding
             >
                 {hasError && (
                     <FormHelpMessage
