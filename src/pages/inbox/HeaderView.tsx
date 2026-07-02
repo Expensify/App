@@ -1,10 +1,11 @@
 import {useRoute} from '@react-navigation/native';
-import {accountGuideDetailsSelector} from '@selectors/Account';
+import {accountGuideDetailsSelector, accountManagerDetailsSelector} from '@selectors/Account';
 import {isOptimisticPersonalDetailSelector} from '@selectors/PersonalDetails';
 import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
 import {isPast} from 'date-fns';
 import React, {useMemo} from 'react';
 import {Keyboard, View} from 'react-native';
+import AccountManagerBookCallButton from '@components/AccountManagerBookCallButton';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import ChronosTimerHeaderButton from '@components/ChronosTimerHeaderButton';
@@ -116,6 +117,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const [accountGuideDetails] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountGuideDetailsSelector});
+    const [accountManagerDetails] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountManagerDetailsSelector});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingChatMembersSelector});
     const isReportArchived = isArchivedReport(reportNameValuePairs);
@@ -202,6 +204,26 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         !isChatThread &&
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO &&
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL;
+
+    // Show a "Book a call" button linking to the account manager's calendar in the DM with the account manager
+    const shouldShowAccountManagerBookCallInDM =
+        !!accountManagerDetails?.accountManagerCalendarLink &&
+        !!accountManagerDetails?.accountManagerReportID &&
+        report?.reportID === accountManagerDetails.accountManagerReportID &&
+        !!canUserPerformWriteAction(report, isReportArchived) &&
+        !isChatThread;
+
+    // Show a "Book a call" button linking to the account manager's calendar in Concierge when the user has an assigned account manager
+    const shouldShowAccountManagerBookCallInConcierge = isConciergeChat && !!accountManagerDetails?.accountManagerAccountID && !!accountManagerDetails?.accountManagerCalendarLink;
+
+    const shouldShowAccountManagerBookCall = shouldShowAccountManagerBookCallInDM || shouldShowAccountManagerBookCallInConcierge;
+
+    const accountManagerBookCallButton = (
+        <AccountManagerBookCallButton
+            calendarLink={accountManagerDetails?.accountManagerCalendarLink ?? ''}
+            accountManagerAccountID={shouldShowAccountManagerBookCallInConcierge ? accountManagerDetails?.accountManagerAccountID : undefined}
+        />
+    );
 
     const join = callFunctionIfActionIsAllowed(() => joinRoom(report, currentUserAccountID));
 
@@ -399,6 +421,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                                    {shouldShowAccountManagerBookCall && !shouldUseNarrowLayout && accountManagerBookCallButton}
                                     {shouldShowOnBoardingHelpDropdownButton && !shouldUseNarrowLayout && onboardingHelpDropdownButton}
                                     {!shouldUseNarrowLayout && !shouldShowDiscount && isChatUsedForOnboarding && (
                                         <FreeTrial
@@ -433,6 +456,9 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                     )}
                 </View>
                 {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
+                {shouldShowAccountManagerBookCall && shouldUseNarrowLayout && (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.ph5, styles.pb3]}>{accountManagerBookCallButton}</View>
+                )}
                 <View style={shouldShowOnBoardingHelpDropdownButton && [styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.ph5]}>
                     {!shouldShowEarlyDiscountBanner && shouldShowOnBoardingHelpDropdownButton && shouldUseNarrowLayout && (
                         <View style={[styles.flex1, styles.pb3]}>{onboardingHelpDropdownButton}</View>
