@@ -8069,7 +8069,7 @@ describe('ReportUtils', () => {
                             },
                         }).then(() => {
                             const result = ['owner@test.com'];
-                            expect(getApprovalChain(policyTest, expenseReport, undefined)).toStrictEqual(result);
+                            expect(getApprovalChain(policyTest, expenseReport, personalDetails[employeeAccountID]?.login)).toStrictEqual(result);
                         });
                     });
                 });
