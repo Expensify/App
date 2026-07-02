@@ -29,6 +29,12 @@ const allowedReportChatTypes = new Set<ValueOf<typeof CONST.REPORT.CHAT_TYPE>>([
 
 const allowedReportTypes = new Set<ValueOf<typeof CONST.REPORT.TYPE>>([CONST.REPORT.TYPE.IOU, CONST.REPORT.TYPE.EXPENSE, CONST.REPORT.TYPE.INVOICE]);
 
+type FullstoryPropertyValue = string | number | boolean | null | undefined;
+
+type NormalizeFullstoryPropertiesForNativeOptions = {
+    preserveKeys?: ReadonlyArray<string>;
+};
+
 const getChatFSClass: GetChatFSClass = (report) => {
     if (!report) {
         return CONST.FULLSTORY.CLASS.UNMASK;
@@ -73,4 +79,33 @@ const shouldInitializeFullstory: ShouldInitialize = (userMetadata, envName) => {
     return true;
 };
 
-export {getChatFSClass, shouldInitializeFullstory};
+function normalizeFullstoryPropertiesForNative(
+    properties: Record<string, FullstoryPropertyValue>,
+    {preserveKeys = []}: NormalizeFullstoryPropertiesForNativeOptions = {},
+): Record<string, string | number | boolean> {
+    const normalizedProperties: Record<string, string | number | boolean> = {};
+    const preservedKeys = new Set(preserveKeys);
+
+    for (const [key, value] of Object.entries(properties)) {
+        if (value === undefined || value === null) {
+            continue;
+        }
+
+        if (preservedKeys.has(key)) {
+            normalizedProperties[key] = value;
+            continue;
+        }
+
+        if (typeof value === 'string') {
+            normalizedProperties[`${key}_str`] = value;
+        } else if (typeof value === 'number') {
+            normalizedProperties[`${key}_real`] = value;
+        } else if (typeof value === 'boolean') {
+            normalizedProperties[`${key}_bool`] = value;
+        }
+    }
+
+    return normalizedProperties;
+}
+
+export {getChatFSClass, normalizeFullstoryPropertiesForNative, shouldInitializeFullstory};

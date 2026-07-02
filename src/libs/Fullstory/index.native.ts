@@ -1,6 +1,6 @@
 import FullStory, {FSPage} from '@fullstory/react-native';
 import getEnvironment from '@src/libs/Environment/getEnvironment';
-import {getChatFSClass, shouldInitializeFullstory} from './common';
+import {getChatFSClass, normalizeFullstoryPropertiesForNative, shouldInitializeFullstory} from './common';
 import type {Fullstory} from './types';
 
 const FS: Fullstory = {
@@ -17,9 +17,13 @@ const FS: Fullstory = {
     consent: (shouldConsent) => FullStory.consent(shouldConsent),
 
     identify: (userMetadata, envName) => {
-        const localMetadata = userMetadata;
-        localMetadata.environment = envName;
-        FullStory.identify(String(localMetadata.accountID), localMetadata);
+        const localMetadata = {...userMetadata, environment: envName};
+        FullStory.identify(
+            String(localMetadata.accountID),
+            normalizeFullstoryPropertiesForNative(localMetadata, {
+                preserveKeys: ['displayName', 'email'],
+            }),
+        );
     },
 
     consentAndIdentify: (userMetadata) => {
@@ -58,7 +62,7 @@ const FS: Fullstory = {
     },
 
     event: (eventName, eventProperties) => {
-        FullStory.event(eventName, eventProperties ?? {});
+        FullStory.event(eventName, normalizeFullstoryPropertiesForNative(eventProperties ?? {}));
     },
 
     log: (level, message) => {
@@ -72,7 +76,11 @@ const FS: Fullstory = {
     },
 
     setUserVars: (userVars) => {
-        FullStory.setUserVars(userVars);
+        FullStory.setUserVars(
+            normalizeFullstoryPropertiesForNative(userVars, {
+                preserveKeys: ['displayName', 'email'],
+            }),
+        );
     },
 
     resetIdleTimer: () => {
