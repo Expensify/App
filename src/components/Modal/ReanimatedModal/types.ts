@@ -81,14 +81,6 @@ type ReanimatedModalProps = ViewProps &
         /** Whether the modal should have a backdrop */
         hasBackdrop?: boolean;
 
-        /**
-         * Makes the whole modal subtree (incl. the full-screen RNW Modal wrappers) ignore pointer events while
-         * keeping it mounted. Used when a route/RHP is intentionally shown over a kept-mounted popover (e.g. the
-         * dynamic year selector): the modal's z-9996 fullscreen wrappers would otherwise swallow clicks meant for
-         * the RHP. pointer-events:none on the outer wrapper inherits down; the hidden popover content stays inert.
-         */
-        shouldDisablePointerEvents?: boolean;
-
         /** Color of the backdrop */
         backdropColor?: string;
 

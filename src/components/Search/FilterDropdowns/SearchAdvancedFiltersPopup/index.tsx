@@ -1,17 +1,14 @@
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
-import useIsYearSelectorOpen from '@components/DatePicker/useIsYearSelectorOpen';
 import SafeTriangle from '@components/SafeTriangle';
 import FilterList from '@components/Search/FilterComponents/AdvancedFilters/FilterList';
 import SearchAdvancedFiltersContent from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import type {SearchQueryJSON} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import getPlatform from '@libs/getPlatform';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,15 +26,6 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
-    // Match the CalendarPicker's hide condition (isSmallScreenWidth, not shouldUseNarrowLayout) so the popover
-    // frame and the calendar inside hide together while the year-selector RHP is open.
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const isYearSelectorOpen = useIsYearSelectorOpen();
-    // Hide the whole filter menu (FilterList + content) while the year selector is open so the kept-mounted
-    // popover doesn't paint over the RHP year list. The CalendarPicker inside already self-hides the same way.
-    const isDesktopWeb = getPlatform() === CONST.PLATFORM.WEB && !isSmallScreenWidth;
-    const shouldHideForYearSelector = isDesktopWeb && isYearSelectorOpen;
     const [selectedFilter, setSelectedFilter] = useState<SearchFilter['key']>(CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE);
     const filterContentRef = useRef<View>(null);
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
@@ -70,10 +58,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
 
     return (
         <SafeTriangle submenuRef={filterContentRef}>
-            <View
-                style={[styles.flexRow, StyleUtils.getHeight(Math.min(windowHeight, CONST.ADVANCED_FILTERS_POPOVER_HEIGHT)), shouldHideForYearSelector && {opacity: 0, visibility: 'hidden'}]}
-                pointerEvents={shouldHideForYearSelector ? 'none' : undefined}
-            >
+            <View style={[styles.flexRow, StyleUtils.getHeight(Math.min(windowHeight, CONST.ADVANCED_FILTERS_POPOVER_HEIGHT))]}>
                 <FilterList
                     style={[styles.typeFiltersPopupContainer]}
                     type={searchAdvancedFiltersForm?.type}

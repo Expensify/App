@@ -1,10 +1,11 @@
 import {addMonths, addYears, format, isSameDay, parseISO, setDate, setMonth, setYear, startOfDay, subMonths, subYears} from 'date-fns';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import useIsYearSelectorOpen from '@components/DatePicker/useIsYearSelectorOpen';
+import HiddenForOverlayContext from '@components/Modal/ReanimatedModal/HiddenForOverlayContext';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
@@ -127,11 +128,23 @@ function CalendarPicker({
     const maxYear = CONST.CALENDAR_PICKER.MAX_YEAR;
 
     const isYearSelectorOpen = useIsYearSelectorOpen();
-    // On wide-screen web the date popover stays mounted while the @react-navigation year-selector RHP is open
-    // (so the picker context is preserved); hide this CalendarPicker — a z-index-9996 portal that would otherwise
-    // paint over the RHP — and disable its pointer events until the user returns. Narrow/native dismiss the host instead.
+    // On wide-screen web the host popover stays mounted while the @react-navigation year-selector RHP is open
+    // (so the picker context is preserved), but its modal — a z-index-9996 portal — would paint over the RHP and
+    // swallow its clicks. This CalendarPicker is the component that knows the year selector opened, so it asks
+    // the hosting ReanimatedModal to hide in place via context. When there is no modal ancestor (e.g. the picker
+    // is on a navigation card like ScheduleCall), it falls back to hiding itself. Narrow/native dismiss the host instead.
     const isDesktopWeb = getPlatform() === CONST.PLATFORM.WEB && !isSmallScreenWidth;
     const shouldHideForYearSelector = isDesktopWeb && isYearSelectorOpen;
+    const setModalHiddenForOverlay = useContext(HiddenForOverlayContext);
+    const shouldSelfHideForYearSelector = shouldHideForYearSelector && !setModalHiddenForOverlay;
+
+    useEffect(() => {
+        if (!setModalHiddenForOverlay) {
+            return;
+        }
+        setModalHiddenForOverlay(shouldHideForYearSelector);
+        return () => setModalHiddenForOverlay(false);
+    }, [shouldHideForYearSelector, setModalHiddenForOverlay]);
 
     // When the year picker screen writes back a selection for this CalendarPicker instance,
     // apply it to the displayed date and clear the transient result so it isn't re-applied.
@@ -152,6 +165,11 @@ function CalendarPicker({
         // screen is not rendered behind it.
         if (shouldCloseModalOnYearPickerOpen) {
             closeTop();
+        } else if (isDesktopWeb) {
+            // Kept-mounted host: hide the hosting modal before the navigation commits so the year-selector
+            // RHP never renders under a still-visible popover frame for a frame. The effect above keeps the
+            // hidden state in sync afterwards (and restores it when the selector closes).
+            setModalHiddenForOverlay?.(true);
         }
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.YEAR_SELECTOR.getRoute({contextID: pickerContextID, currentYear: currentYearView, minYear, maxYear})));
     };
@@ -255,8 +273,8 @@ function CalendarPicker({
 
     return (
         <View
-            style={[themeStyles.pb4, themeStyles.pt1, containerStyle, shouldHideForYearSelector && {opacity: 0, visibility: 'hidden'}]}
-            pointerEvents={shouldHideForYearSelector ? 'none' : undefined}
+            style={[themeStyles.pb4, themeStyles.pt1, containerStyle, shouldSelfHideForYearSelector && [themeStyles.opacity0, themeStyles.visibilityHidden]]}
+            pointerEvents={shouldSelfHideForYearSelector ? 'none' : undefined}
         >
             <View
                 style={[themeStyles.calendarHeader, themeStyles.flexRow, themeStyles.justifyContentBetween, themeStyles.alignItemsCenter, themeStyles.gap3, headerPaddingStyle]}

@@ -131,10 +131,12 @@ jest.mock('@components/DatePicker/DatePickerModal', () => {
 // The real DatePickerModal is needed for the frame-hide tests; pull it past the jest.mock above.
 const ActualDatePickerModal = jest.requireActual<{default: typeof DatePickerModalType}>('@components/DatePicker/DatePickerModal').default;
 
-// Test 3 asserts what the real DatePickerModal computes for its host popover. PopoverWithMeasuredContent's
+// These tests assert what the real DatePickerModal computes for its host popover. PopoverWithMeasuredContent's
 // real measurement/portal chain is too heavy to render reliably, so stub it with a component that surfaces the
-// props the fix sets onto queryable rendered nodes: innerContainerStyle (+ shouldDisablePointerEvents) on the
-// frame node, and hasBackdrop / shouldDisablePointerEvents as text nodes the test reads back.
+// relevant props onto queryable rendered nodes. Since the hide-in-place moved into ReanimatedModal (driven by
+// the CalendarPicker via HiddenForOverlayContext), the host passes NO hide wiring anymore — the mock renders
+// 'unset' for the props the host no longer manages so the tests can assert exactly that. The mock also provides
+// no HiddenForOverlayContext, so the CalendarPicker inside exercises its no-modal-ancestor self-hide fallback.
 jest.mock('@components/PopoverWithMeasuredContent', () => {
     const ReactNativeActual = jest.requireActual<MockReactNativePrimitives>('react-native');
     const {Text, View} = ReactNativeActual;
@@ -142,13 +144,11 @@ jest.mock('@components/PopoverWithMeasuredContent', () => {
         isVisible,
         innerContainerStyle,
         hasBackdrop,
-        shouldDisablePointerEvents,
         children,
     }: {
         isVisible: boolean;
         innerContainerStyle?: unknown;
         hasBackdrop?: boolean;
-        shouldDisablePointerEvents?: boolean;
         children?: ReactNode;
     }) {
         if (!isVisible) {
@@ -158,10 +158,8 @@ jest.mock('@components/PopoverWithMeasuredContent', () => {
             <View
                 testID="datePickerModalFrame"
                 style={innerContainerStyle}
-                pointerEvents={shouldDisablePointerEvents ? 'none' : undefined}
             >
-                <Text testID="datePickerModalHasBackdrop">{hasBackdrop ? 'true' : 'false'}</Text>
-                <Text testID="datePickerModalDisablePointerEvents">{shouldDisablePointerEvents ? 'true' : 'false'}</Text>
+                <Text testID="datePickerModalHasBackdrop">{hasBackdrop === undefined ? 'unset' : String(hasBackdrop)}</Text>
                 {children}
             </View>
         );
@@ -353,11 +351,17 @@ describe('DatePickerModal year-selector return path (DOB contextID)', () => {
     });
 });
 
-describe('DatePickerModal desktop-web frame hide while the year selector is open', () => {
+describe('DatePickerModal year-selector hide wiring (hide lives in the modal via HiddenForOverlayContext, not the host)', () => {
     const INPUT_ID = 'dob';
     const START_VALUE = '2023-06-15';
     const MIN_DATE = new Date('2000-01-01');
     const MAX_DATE = new Date('2030-12-31');
+
+    // The CalendarPicker's fallback self-hide signature (opacity 0 + pointerEvents none) — exercised here
+    // because the mocked PopoverWithMeasuredContent provides no HiddenForOverlayContext. visibility: 'hidden'
+    // is applied alongside via styles.visibilityHidden, a web-only platform-split utility that resolves to an
+    // empty object under jest's native module resolution, so it is not asserted.
+    const findSelfHiddenNodes = () => screen.UNSAFE_root.findAll((node) => node.props.pointerEvents === 'none' && flattenStyle(node.props.style).opacity === 0);
 
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -365,7 +369,7 @@ describe('DatePickerModal desktop-web frame hide while the year selector is open
 
     beforeEach(() => Onyx.clear().then(waitForBatchedUpdates));
 
-    test('on desktop web the popover frame is hidden (opacity 0 + hidden + pointerEvents none), backdrop removed, and pointer events disabled', () => {
+    test('on desktop web the host passes no hide wiring (the modal hides itself); without a modal ancestor the CalendarPicker self-hides', () => {
         mockedGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
         mockedUseResponsiveLayout.mockReturnValue(WIDE_LAYOUT);
         mockedUseIsYearSelectorOpen.mockReturnValue(true);
@@ -382,22 +386,19 @@ describe('DatePickerModal desktop-web frame hide while the year selector is open
             />,
         );
 
-        // The whole popover frame (innerContainerStyle) carries the full hide signature so the year-selector
-        // RHP renders clean.
+        // The host no longer hides the frame or manages the backdrop — that moved into ReanimatedModal,
+        // driven by the CalendarPicker through HiddenForOverlayContext (see ReanimatedModalHiddenForOverlayTest).
         const frame = screen.getByTestId('datePickerModalFrame');
         const style = flattenStyle(frame.props.style);
-        expect(style.opacity).toBe(0);
-        expect(style.visibility).toBe('hidden');
-        expect(style.pointerEvents).toBe('none');
-        expect(frame.props.pointerEvents).toBe('none');
+        expect(style.opacity).toBeUndefined();
+        expect(screen.getByTestId('datePickerModalHasBackdrop')).toHaveTextContent('unset');
 
-        // ...and the host also drops its backdrop and makes the subtree pointer-transparent so the RHP years
-        // remain clickable through it.
-        expect(screen.getByTestId('datePickerModalHasBackdrop')).toHaveTextContent('false');
-        expect(screen.getByTestId('datePickerModalDisablePointerEvents')).toHaveTextContent('true');
+        // The mocked popover provides no HiddenForOverlayContext, so the CalendarPicker falls back to
+        // hiding itself — the no-modal-ancestor path (same one navigation-card hosts rely on).
+        expect(findSelfHiddenNodes().length).toBeGreaterThanOrEqual(1);
     });
 
-    test('on native the popover frame is NOT hidden even while the year selector is open (the native host dismisses instead)', () => {
+    test('on native nothing hides even while the year selector is open (the native host dismisses instead)', () => {
         mockedGetPlatform.mockReturnValue(CONST.PLATFORM.ANDROID);
         mockedUseResponsiveLayout.mockReturnValue(NARROW_LAYOUT);
         mockedUseIsYearSelectorOpen.mockReturnValue(true);
@@ -417,13 +418,11 @@ describe('DatePickerModal desktop-web frame hide while the year selector is open
         const frame = screen.getByTestId('datePickerModalFrame');
         const style = flattenStyle(frame.props.style);
         expect(style.opacity).toBeUndefined();
-        expect(style.visibility).toBeUndefined();
         expect(frame.props.pointerEvents).toBeUndefined();
-        expect(screen.getByTestId('datePickerModalHasBackdrop')).toHaveTextContent('true');
-        expect(screen.getByTestId('datePickerModalDisablePointerEvents')).toHaveTextContent('false');
+        expect(findSelfHiddenNodes()).toHaveLength(0);
     });
 
-    test('on narrow web the popover frame is NOT hidden even while the year selector is open (the small-screen backdrop handles the overlap)', () => {
+    test('on narrow web nothing hides even while the year selector is open (the small-screen backdrop handles the overlap)', () => {
         mockedGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
         mockedUseResponsiveLayout.mockReturnValue(NARROW_LAYOUT);
         mockedUseIsYearSelectorOpen.mockReturnValue(true);
@@ -443,10 +442,8 @@ describe('DatePickerModal desktop-web frame hide while the year selector is open
         const frame = screen.getByTestId('datePickerModalFrame');
         const style = flattenStyle(frame.props.style);
         expect(style.opacity).toBeUndefined();
-        expect(style.visibility).toBeUndefined();
         expect(frame.props.pointerEvents).toBeUndefined();
-        expect(screen.getByTestId('datePickerModalHasBackdrop')).toHaveTextContent('true');
-        expect(screen.getByTestId('datePickerModalDisablePointerEvents')).toHaveTextContent('false');
+        expect(findSelfHiddenNodes()).toHaveLength(0);
     });
 });
 
