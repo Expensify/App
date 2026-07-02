@@ -5859,52 +5859,6 @@ function getModifiedExpenseOriginalMessage(
 }
 
 /**
- * Parse html of reportAction into text
- */
-function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, reportID: string | undefined, conciergeReportID: string | undefined, childReportID?: string): string {
-    if (!reportAction) {
-        return '';
-    }
-    const key = `${reportID}_${reportAction.reportActionID}_${reportAction.lastModified}`;
-    const cachedText = parsedReportActionMessageCache[key];
-    if (cachedText !== undefined) {
-        return cachedText;
-    }
-
-    const {html, text} = getReportActionMessageReportUtils(reportAction) ?? {};
-
-    if (!html) {
-        return text ?? '';
-    }
-
-    const mentionReportRegex = /<mention-report reportID="?(\d+)"?(?: *\/>|><\/mention-report>)/gi;
-    const matches = html.matchAll(mentionReportRegex);
-
-    const reportIDToName: Record<string, string> = {};
-    for (const match of matches) {
-        if (match[1] !== childReportID) {
-            reportIDToName[match[1]] = getReportName(getReportOrDraftReport(match[1]), reportAttributesDerivedValue) ?? '';
-        }
-    }
-
-    const mentionUserRegex = /(?:<mention-user accountID="?(\d+)"?(?: *\/>|><\/mention-user>))/gi;
-    const accountIDToName: Record<string, string> = {};
-    const accountIDs = Array.from(html.matchAll(mentionUserRegex), (mention) => Number(mention[1]));
-    const logins = getLoginsByAccountIDs(accountIDs);
-    for (const [index, id] of accountIDs.entries()) {
-        const login = logins.at(index);
-        const user = allPersonalDetails?.[id];
-        const displayName = formatPhoneNumberPhoneUtils(login ?? '') || getDisplayNameOrDefault(user);
-        accountIDToName[id] = getShortMentionIfFound(displayName, id.toString(), currentUserPersonalDetails, login) ?? '';
-    }
-
-    const textMessage = Str.removeSMSDomain(Parser.htmlToText(html, {reportIDToName, accountIDToName}));
-    parsedReportActionMessageCache[key] = textMessage;
-
-    return textMessage;
-}
-
-/**
  * Get the payee name given a report.
  */
 function getPayeeName(report: OnyxEntry<Report>): string | undefined {
@@ -13509,7 +13463,6 @@ export {
     navigateToPrivateNotes,
     navigateBackOnDeleteTransaction,
     parseReportRouteParams,
-    parseReportActionHtmlToText,
     requiresAttentionFromCurrentUser,
     selectFilteredReportActions,
     shouldAutoFocusOnKeyPress,

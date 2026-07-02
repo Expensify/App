@@ -148,7 +148,6 @@ import {
     isSortableColumnName,
     isUnread,
     isWorkspaceMemberLeavingWorkspaceRoom,
-    parseReportActionHtmlToText,
     parseReportRouteParams,
     prepareOnboardingOnyxData,
     pushTransactionAutoSelectionsOnyxData,
@@ -3288,40 +3287,6 @@ describe('ReportUtils', () => {
         it('should return reportName and workspaceName when parent report exists and conciergeReportID is undefined', () => {
             const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, false);
             expect(actual).toHaveProperty('reportName');
-        });
-    });
-
-    describe('parseReportActionHtmlToText', () => {
-        it('should return empty string for undefined reportAction', () => {
-            const result = parseReportActionHtmlToText(undefined, '123', undefined);
-            expect(result).toBe('');
-        });
-
-        it('should return text from reportAction message when no html', () => {
-            const reportAction = createMock<ReportAction>({
-                ...createRandomReportAction(1),
-                message: [{type: 'COMMENT', text: 'Hello world'}],
-            });
-            const result = parseReportActionHtmlToText(reportAction, '123', undefined);
-            expect(result).toBe('Hello world');
-        });
-
-        it('should parse html to text with conciergeReportID', () => {
-            const reportAction = createMock<ReportAction>({
-                ...createRandomReportAction(1),
-                message: [{type: 'COMMENT', html: '<p>Hello world</p>', text: 'Hello world'}],
-            });
-            const result = parseReportActionHtmlToText(reportAction, '123', '999');
-            expect(result).toBe('Hello world');
-        });
-
-        it('should handle conciergeReportID being undefined', () => {
-            const reportAction = createMock<ReportAction>({
-                ...createRandomReportAction(1),
-                message: [{type: 'COMMENT', html: '<p>Test message</p>', text: 'Test message'}],
-            });
-            const result = parseReportActionHtmlToText(reportAction, '456', undefined);
-            expect(result).toBe('Test message');
         });
     });
 
