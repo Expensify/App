@@ -1,10 +1,6 @@
 /**
  * Probes whether the current web environment can give Skia/CanvasKit a usable WebGL surface.
  *
- * CanvasKit (loaded by `WithSkiaWeb`) reads `.rangeMin` off `gl.getShaderPrecisionFormat()` without a
- * null check, so on GPUs where that call returns `null` it throws an uncaught
- * `TypeError: Cannot read properties of null (reading 'rangeMin')` during its async GL init.
- *
  * The probe reuses a single long-lived WebGL context instead of creating a throwaway one on every
  * chart mount. Creating and discarding a context per mount churns WebGL contexts, and on
  * context-constrained mobile browsers (e.g. Android Chrome) that pressure can crash the shared GPU
