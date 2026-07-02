@@ -313,19 +313,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const approvalSecondaryActions = useMemo<Array<DropdownOption<ValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>>>(
         () => [
             {
-                icon: expensifyIcons.Plus,
-                text: translate('workflowsPage.addApprovalButton'),
-                onSelected: addApprovalAction,
-                value: CONST.POLICY.SECONDARY_ACTIONS.ADD_APPROVAL_WORKFLOW,
-            },
-            {
                 icon: expensifyIcons.Table,
                 text: translate('spreadsheet.importWorkflows'),
                 onSelected: importWorkflowsAction,
                 value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
             },
         ],
-        [expensifyIcons.Plus, expensifyIcons.Table, translate, addApprovalAction, importWorkflowsAction],
+        [expensifyIcons.Table, translate, importWorkflowsAction],
     );
 
     const isHRAdvancedModeEnabled = isHRAdvancedMode(policy);
@@ -528,20 +522,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 },
                 subMenuItems: (
                     <>
-                        {!shouldBlockApprovalWorkflowEditing && canWriteApprovals && (
-                            <View style={[styles.flexRow, styles.justifyContentEnd, styles.mt6, styles.mbn3]}>
-                                <ButtonWithDropdownMenu
-                                    success={false}
-                                    onPress={() => {}}
-                                    shouldAlwaysShowDropdownMenu
-                                    customText={translate('common.more')}
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.MORE_DROPDOWN}
-                                    options={approvalSecondaryActions}
-                                    isSplitButton={false}
-                                    wrapperStyle={styles.flexGrow0}
-                                />
-                            </View>
-                        )}
                         {isDEWEnabled && (
                             <View style={[styles.border, shouldUseNarrowLayout ? styles.p3 : styles.p4, styles.mt6, styles.mbn3, styles.flexRow, styles.alignItemsCenter]}>
                                 <Icon
@@ -618,6 +598,18 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                             <WorkflowsLoadMoreCard
                                 count={hiddenWorkflowsCount}
                                 onPress={() => setIsWorkflowListExpanded(true)}
+                            />
+                        )}
+                        {!shouldBlockApprovalWorkflowEditing && canWriteApprovals && (
+                            <MenuItem
+                                title={translate('workflowsPage.addApprovalButton')}
+                                titleStyle={styles.textStrong}
+                                icon={expensifyIcons.Plus}
+                                iconHeight={20}
+                                iconWidth={20}
+                                style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
+                                onPress={addApprovalAction}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.ADD_APPROVAL}
                             />
                         )}
                     </>
@@ -847,7 +839,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         searchFilteredWorkflows.length,
         displayedWorkflows,
         hiddenWorkflowsCount,
-        approvalSecondaryActions,
+        addApprovalAction,
         isOffline,
         isPolicyAdmin,
         displayNameForAuthorizedPayer,
@@ -909,6 +901,22 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const isGroupPolicy = isGroupPolicyUtil(policy);
     const isLoading = !!(policy?.isLoading && policy?.reimbursementChoice === undefined);
 
+    const headerButtons =
+        !shouldBlockApprovalWorkflowEditing && canWriteApprovals ? (
+            <View style={[styles.flexRow, styles.gap2]}>
+                <ButtonWithDropdownMenu
+                    success={false}
+                    onPress={() => {}}
+                    shouldAlwaysShowDropdownMenu
+                    customText={translate('common.more')}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.MORE_DROPDOWN}
+                    options={approvalSecondaryActions}
+                    isSplitButton={false}
+                    wrapperStyle={styles.flexGrow0}
+                />
+            </View>
+        ) : undefined;
+
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
@@ -919,6 +927,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 headerText={translate('workspace.common.workflows')}
                 icon={illustrations.Workflows}
                 route={route}
+                headerContent={headerButtons}
                 shouldShowOfflineIndicatorInWideScreen
                 shouldShowNotFoundPage={!isGroupPolicy || !canReadWorkflows}
                 policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS}
