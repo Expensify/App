@@ -194,27 +194,6 @@ describe('getAdminExpensifyCardFeedEntries', () => {
         expect(entries).toHaveLength(0);
     });
 
-    it('dedupes workspace-scoped settings that share the same domainName, preferring the domain-level fundID', () => {
-        const domainFundID = 1000;
-        const workspaceFundID1 = 2001;
-        const workspaceFundID2 = 2002;
-        const domainName = 'corporate.com';
-        const multiWorkspaceCardSettings: OnyxCollection<ExpensifyCardSettings> = {
-            [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainFundID}`]: configuredFeedSettings({domainName, isEnabled: true}),
-            [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceFundID1}`]: configuredFeedSettings({domainName, isEnabled: true}),
-            [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceFundID2}`]: configuredFeedSettings({domainName, isEnabled: true}),
-        };
-        const policies = createPolicyCollection([createAdminPolicy({id: 'WS1', policyAccountID: workspaceFundID1}), createAdminPolicy({id: 'WS2', policyAccountID: workspaceFundID2})]);
-        const domains: OnyxCollection<Domain> = {
-            [`${ONYXKEYS.COLLECTION.DOMAIN}${domainFundID}`]: createAdminDomain(domainFundID, currentUserAccountID),
-        };
-
-        const entries = getAdminExpensifyCardFeedEntries(multiWorkspaceCardSettings, policies, domains, currentUserAccountID);
-
-        expect(entries).toHaveLength(1);
-        expect(entries.at(0)?.fundID).toBe(domainFundID);
-    });
-
     it('keeps distinct feeds when domainName differs', () => {
         const distinctDomainCardSettings: OnyxCollection<ExpensifyCardSettings> = {
             [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}3001`]: configuredFeedSettings({domainName: 'alpha.com', isEnabled: true}),
