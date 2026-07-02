@@ -1335,8 +1335,13 @@ describe('TransactionUtils', () => {
 
             expect(result).toBeDefined();
             expect(result?.email).toBe(OTHER_USER_EMAIL);
+            expect(result?.login).toBe(OTHER_USER_EMAIL);
             expect(result?.displayName).toBe(OTHER_USER_EMAIL);
+            expect(result?.accountID).toBe(SECOND_USER_ID);
+            expect(result?.text).toBe(OTHER_USER_EMAIL);
+            expect(result?.searchText).toBe(OTHER_USER_EMAIL);
             expect(result?.avatarUrl).toBe(avatar);
+            expect(result?.selected).toBe(true);
         });
 
         it('should return current user as attendee for unreported expense', () => {
@@ -1344,8 +1349,13 @@ describe('TransactionUtils', () => {
 
             expect(result).toBeDefined();
             expect(result?.email).toBe(CURRENT_USER_EMAIL);
+            expect(result?.login).toBe(CURRENT_USER_EMAIL);
             expect(result?.displayName).toBe(currentUserPersonalDetails.displayName);
+            expect(result?.accountID).toBe(CURRENT_USER_ID);
+            expect(result?.text).toBe(currentUserPersonalDetails.displayName);
+            expect(result?.searchText).toBe(currentUserPersonalDetails.displayName);
             expect(result?.avatarUrl).toBe('');
+            expect(result?.selected).toBe(true);
         });
     });
 
@@ -1399,13 +1409,19 @@ describe('TransactionUtils', () => {
             const attendees: Attendee[] = [
                 {
                     email: 'attendee1@example.com',
+                    login: 'attendee1@example.com',
                     displayName: 'Attendee One',
                     avatarUrl: '',
+                    accountID: 3,
+                    selected: true,
                 },
                 {
                     email: 'attendee2@example.com',
+                    login: 'attendee2@example.com',
                     displayName: 'Attendee Two',
                     avatarUrl: '',
+                    accountID: 4,
+                    selected: false,
                 },
             ];
             const transaction = generateTransaction({
@@ -1429,29 +1445,30 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            const result = TransactionUtils.getOriginalAttendees(transaction, {email: CURRENT_USER_EMAIL, displayName: '', avatarUrl: ''});
+            const result = TransactionUtils.getOriginalAttendees(transaction, {accountID: CURRENT_USER_ID, displayName: '', avatarUrl: '', selected: true});
 
             expect(result.length).toBe(1);
-            expect(result.at(0)?.email).toBe(CURRENT_USER_EMAIL);
+            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
+            expect(result.at(0)?.selected).toBe(true);
         });
 
-        it('should normalize email-only attendees from comment', () => {
+        it('should normalize login-only attendees from comment', () => {
             const transaction = generateTransaction({
                 reportID: FAKE_OPEN_REPORT_ID,
                 comment: {
-                    attendees: [{displayName: '   ', email: '  email-only@example.com  ', avatarUrl: ''}],
+                    attendees: [{displayName: '   ', login: '  login-only@example.com  ', avatarUrl: ''}],
                 },
             });
 
             const result = TransactionUtils.getOriginalAttendees(transaction, undefined);
 
-            expect(result).toEqual([{displayName: 'email-only@example.com', email: 'email-only@example.com', avatarUrl: ''}]);
+            expect(result).toEqual([{displayName: 'login-only@example.com', login: 'login-only@example.com', avatarUrl: ''}]);
         });
 
         it('should handle attendees stored as a plain object', () => {
             const attendeesArray: Attendee[] = [
-                {email: 'attendee1@example.com', displayName: 'Attendee One', avatarUrl: ''},
-                {email: 'attendee2@example.com', displayName: 'Attendee Two', avatarUrl: ''},
+                {email: 'attendee1@example.com', login: 'attendee1@example.com', displayName: 'Attendee One', avatarUrl: '', accountID: 3, selected: true},
+                {email: 'attendee2@example.com', login: 'attendee2@example.com', displayName: 'Attendee Two', avatarUrl: '', accountID: 4, selected: false},
             ];
             const transaction = generateTransaction({
                 reportID: FAKE_OPEN_REPORT_ID,
@@ -1473,15 +1490,21 @@ describe('TransactionUtils', () => {
             const originalAttendees: Attendee[] = [
                 {
                     email: 'original@example.com',
+                    login: 'original@example.com',
                     displayName: 'Original Attendee',
                     avatarUrl: '',
+                    accountID: 5,
+                    selected: true,
                 },
             ];
             const modifiedAttendees: Attendee[] = [
                 {
                     email: 'modified@example.com',
+                    login: 'modified@example.com',
                     displayName: 'Modified Attendee',
                     avatarUrl: '',
+                    accountID: 6,
+                    selected: true,
                 },
             ];
             const transaction = generateTransaction({
@@ -1503,8 +1526,11 @@ describe('TransactionUtils', () => {
             const attendees: Attendee[] = [
                 {
                     email: 'attendee@example.com',
+                    login: 'attendee@example.com',
                     displayName: 'Attendee',
                     avatarUrl: '',
+                    accountID: 7,
+                    selected: true,
                 },
             ];
             const transaction = generateTransaction({
@@ -1527,10 +1553,11 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            const result = TransactionUtils.getAttendees(transaction, {email: CURRENT_USER_EMAIL, avatarUrl: '', displayName: ''});
+            const result = TransactionUtils.getAttendees(transaction, {accountID: CURRENT_USER_ID, avatarUrl: '', displayName: '', selected: true});
 
             expect(result.length).toBe(1);
-            expect(result.at(0)?.email).toBe(CURRENT_USER_EMAIL);
+            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
+            expect(result.at(0)?.selected).toBe(true);
         });
 
         it('should return empty array when transaction has no reportID and no attendees', () => {
@@ -1550,8 +1577,11 @@ describe('TransactionUtils', () => {
             const originalAttendees: Attendee[] = [
                 {
                     email: 'original@example.com',
+                    login: 'original@example.com',
                     displayName: 'Original Attendee',
                     avatarUrl: '',
+                    accountID: 8,
+                    selected: true,
                 },
             ];
 
@@ -1563,11 +1593,11 @@ describe('TransactionUtils', () => {
                 modifiedAttendees: [],
             });
 
-            const result = TransactionUtils.getAttendees(transaction, {email: CURRENT_USER_EMAIL, avatarUrl: '', displayName: ''});
+            const result = TransactionUtils.getAttendees(transaction, {accountID: CURRENT_USER_ID, avatarUrl: '', displayName: ''});
 
             // When modifiedAttendees is empty array and no report owner fallback applies
             expect(result.length).toBe(1);
-            expect(result.at(0)?.email).toBe(CURRENT_USER_EMAIL);
+            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
         });
 
         it('should normalize modified attendees with undefined email', () => {
@@ -1576,16 +1606,16 @@ describe('TransactionUtils', () => {
                 comment: {
                     attendees: [],
                 },
-                modifiedAttendees: [{displayName: '   ', email: '  edited@example.com  ', avatarUrl: ''}],
+                modifiedAttendees: [{displayName: '   ', login: '  edited@example.com  ', avatarUrl: ''}],
             });
 
             const result = TransactionUtils.getAttendees(transaction);
 
-            expect(result).toEqual([{displayName: 'edited@example.com', email: 'edited@example.com', avatarUrl: ''}]);
+            expect(result).toEqual([{displayName: 'edited@example.com', login: 'edited@example.com', avatarUrl: ''}]);
         });
 
         it('should handle comment attendees stored as a plain object', () => {
-            const attendeesArray: Attendee[] = [{email: 'attendee@example.com', displayName: 'Attendee', avatarUrl: ''}];
+            const attendeesArray: Attendee[] = [{email: 'attendee@example.com', login: 'attendee@example.com', displayName: 'Attendee', avatarUrl: '', accountID: 7, selected: true}];
             const transaction = generateTransaction({
                 reportID: FAKE_OPEN_REPORT_ID,
                 comment: {
@@ -1600,7 +1630,9 @@ describe('TransactionUtils', () => {
         });
 
         it('should handle modifiedAttendees stored as a plain object', () => {
-            const modifiedAttendeesArray: Attendee[] = [{email: 'modified@example.com', displayName: 'Modified Attendee', avatarUrl: ''}];
+            const modifiedAttendeesArray: Attendee[] = [
+                {email: 'modified@example.com', login: 'modified@example.com', displayName: 'Modified Attendee', avatarUrl: '', accountID: 6, selected: true},
+            ];
             const transaction = generateTransaction({
                 reportID: FAKE_OPEN_REPORT_ID,
                 comment: {
@@ -1623,10 +1655,10 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            const result = TransactionUtils.getAttendees(transaction, {email: CURRENT_USER_EMAIL, avatarUrl: '', displayName: ''});
+            const result = TransactionUtils.getAttendees(transaction, {accountID: CURRENT_USER_ID, avatarUrl: '', displayName: ''});
 
             expect(result.length).toBe(1);
-            expect(result.at(0)?.email).toBe(CURRENT_USER_EMAIL);
+            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
         });
 
         it('should fall back to report owner when modifiedAttendees is an empty plain object', () => {
@@ -1638,10 +1670,10 @@ describe('TransactionUtils', () => {
                 modifiedAttendees: {} as unknown as Attendee[],
             });
 
-            const result = TransactionUtils.getAttendees(transaction, {email: CURRENT_USER_EMAIL, avatarUrl: '', displayName: ''});
+            const result = TransactionUtils.getAttendees(transaction, {accountID: CURRENT_USER_ID, avatarUrl: '', displayName: ''});
 
             expect(result.length).toBe(1);
-            expect(result.at(0)?.email).toBe(CURRENT_USER_EMAIL);
+            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
         });
     });
 
@@ -1650,40 +1682,40 @@ describe('TransactionUtils', () => {
 
         it('preserves insertion order when no localeCompare is provided', () => {
             const attendees: Attendee[] = [
-                {email: 'b@x.com', displayName: 'banana', avatarUrl: ''},
-                {email: 'a@x.com', displayName: 'apple', avatarUrl: ''},
+                {email: 'b@x.com', displayName: 'banana', avatarUrl: '', login: 'b@x.com'},
+                {email: 'a@x.com', displayName: 'apple', avatarUrl: '', login: 'a@x.com'},
             ];
             expect(TransactionUtils.getAttendeesListDisplayString(attendees)).toBe('banana, apple');
         });
 
         it('returns attendees alphabetically regardless of insertion order (deploy blocker #89130)', () => {
             const attendees: Attendee[] = [
-                {email: 'b@x.com', displayName: 'banana', avatarUrl: ''},
-                {email: 'a@x.com', displayName: 'apple', avatarUrl: ''},
+                {email: 'b@x.com', displayName: 'banana', avatarUrl: '', login: 'b@x.com'},
+                {email: 'a@x.com', displayName: 'apple', avatarUrl: '', login: 'a@x.com'},
             ];
             expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('apple, banana');
         });
 
         it('uses numeric-aware sort so "User 9" comes before "User 10"', () => {
             const attendees: Attendee[] = [
-                {email: '10@x.com', displayName: 'User 10', avatarUrl: ''},
-                {email: '9@x.com', displayName: 'User 9', avatarUrl: ''},
+                {email: '10@x.com', displayName: 'User 10', avatarUrl: '', login: '10@x.com'},
+                {email: '9@x.com', displayName: 'User 9', avatarUrl: '', login: '9@x.com'},
             ];
             expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('User 9, User 10');
         });
 
         it('compares case-insensitively so the joined string matches pill order', () => {
             const attendees: Attendee[] = [
-                {email: 'b@x.com', displayName: 'Bob', avatarUrl: ''},
-                {email: 'a@x.com', displayName: 'alice', avatarUrl: ''},
+                {email: 'b@x.com', displayName: 'Bob', avatarUrl: '', login: 'b@x.com'},
+                {email: 'a@x.com', displayName: 'alice', avatarUrl: '', login: 'a@x.com'},
             ];
             expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('alice, Bob');
         });
 
         it('strips the @expensify.sms domain so phone-login attendees render the same as in pills', () => {
             const attendees: Attendee[] = [
-                {displayName: '+15551234567@expensify.sms', avatarUrl: ''},
-                {displayName: 'Alice', avatarUrl: ''},
+                {displayName: '+15551234567@expensify.sms', avatarUrl: '', login: '+15551234567@expensify.sms'},
+                {displayName: 'Alice', avatarUrl: '', login: 'alice@x.com'},
             ];
             expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('+15551234567, Alice');
         });
@@ -1694,8 +1726,8 @@ describe('TransactionUtils', () => {
 
         it('does not mutate the input array', () => {
             const attendees: Attendee[] = [
-                {email: 'b@x.com', displayName: 'banana', avatarUrl: ''},
-                {email: 'a@x.com', displayName: 'apple', avatarUrl: ''},
+                {email: 'b@x.com', displayName: 'banana', avatarUrl: '', login: 'b@x.com'},
+                {email: 'a@x.com', displayName: 'apple', avatarUrl: '', login: 'a@x.com'},
             ];
             const snapshot = [...attendees];
             TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare);

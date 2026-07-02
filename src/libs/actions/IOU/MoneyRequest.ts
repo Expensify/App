@@ -300,7 +300,7 @@ function initMoneyRequest({
     }
 
     const comment: Comment = {
-        attendees: formatCurrentUserToAttendee(currentUserPersonalDetails),
+        attendees: formatCurrentUserToAttendee(currentUserPersonalDetails, reportID),
     };
     let requestCategory: string | null = null;
 
