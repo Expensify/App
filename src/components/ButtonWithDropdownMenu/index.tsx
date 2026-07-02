@@ -40,7 +40,7 @@ function DoubleLineButtonText({primaryText, primaryTextStyle, secondLineText}: D
         <View style={[styles.alignItemsCenter, styles.flexColumn, styles.flexShrink1, styles.mw100]}>
             <Button.Text style={primaryTextStyle}>{primaryText}</Button.Text>
             <Text
-                style={[styles.pointerEventsNone, styles.fontWeightNormal, styles.textDoubleDecker, styles.textExtraSmallSupporting, styles.textWhite, styles.textBold]}
+                style={[styles.pointerEventsNone, styles.fontWeightNormal, styles.textDoubleDecker, styles.textExtraSmallSupporting, styles.textWhite, styles.textBold, styles.ph1]}
                 numberOfLines={1}
             >
                 {secondLineText}
