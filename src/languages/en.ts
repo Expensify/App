@@ -62,6 +62,10 @@ const translations = {
         // @context Used as a noun meaning a numerical total or quantity, not the verb “to count.”
         count: 'Count',
         cancel: 'Cancel',
+        // @context Title shown in place of a chart when the device or browser can't render it.
+        unableToDisplayChart: 'Unable to display chart',
+        // @context Shown below "Unable to display chart". "WebGL" is a graphics technology name; keep it untranslated.
+        webGLNotSupported: "Your browser doesn't support WebGL. Please enable it or switch browsers.",
         // @context Refers to closing or hiding a notification or message, not rejecting or ignoring something.
         dismiss: 'Dismiss',
         // @context Used on a button to continue an action or workflow, not the formal or procedural sense of “to proceed.”
@@ -154,6 +158,8 @@ const translations = {
         scanning: 'Scanning',
         analyzing: 'Analyzing...',
         thinking: 'Concierge is thinking...',
+        // @context Generic status text shown in custom-agent DMs while the agent prepares a response.
+        agentThinking: 'Thinking...',
         addCardTermsOfService: 'Expensify Terms of Service',
         perPerson: 'per person',
         phone: 'Phone',
@@ -536,6 +542,7 @@ const translations = {
         goToConcierge: 'Go to Concierge',
         allSet: 'All Set!',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `enter digit ${digitIndex} of ${totalDigits}`,
+        apiKey: 'API key',
     },
     socials: {
         podcast: 'Follow us on Podcast',
@@ -2869,8 +2876,6 @@ const translations = {
         activatePhysicalCard: 'Activate physical card',
         error: {
             thatDidNotMatch: "That didn't match the last 4 digits on your card. Please try again.",
-            throttled:
-                "You've incorrectly entered the last 4 digits of your Expensify Card too many times. If you're sure the numbers are correct, please reach out to Concierge to resolve. Otherwise, try again later.",
         },
     },
     getPhysicalCard: {
@@ -5555,6 +5560,15 @@ const translations = {
                 }
             },
         },
+        rillet: {
+            rilletSetup: 'Rillet setup',
+            enterCredentials: 'Enter your Rillet API key',
+            howToFindAPIKey: '<strong>Finding your API key.</strong><ol><li>Log in to Rillet</li><li>Navigate to Account -> Settings</li><li>Copy the API key below</li></ol>',
+            subsidiary: 'Subsidiary',
+            subsidiarySelectDescription: "Choose the subsidiary in Rillet that you'd like to import data from.",
+            noSubsidiariesFound: 'No subsidiaries found',
+            noSubsidiariesFoundDescription: 'Please add a subsidiary in Rillet and sync the connection again',
+        },
         type: {
             free: 'Free',
             control: 'Control',
@@ -6532,6 +6546,7 @@ const translations = {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            rillet: 'Rillet',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6549,6 +6564,8 @@ const translations = {
                         return 'NetSuite';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
+                    case CONST.POLICY.CONNECTIONS.NAME.RILLET:
+                        return 'Rillet';
                     default: {
                         return '';
                     }
@@ -6777,6 +6794,12 @@ const translations = {
                             return 'Importing dimensions';
                         case 'financialForceMarkAsReimbursed':
                             return 'Marking reports as reimbursed';
+                        case 'rilletSyncTitle':
+                            return 'Syncing Rillet data';
+                        case 'rilletSyncConnection':
+                            return 'Initializing connection to Rillet';
+                        case 'rilletSyncImportData':
+                            return 'Loading data';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
@@ -7120,6 +7143,12 @@ const translations = {
                 description: `Enjoy automated syncing and reduce manual entries with the Expensify + Certinia integration. Align expense coding dimensions and tax sync with your Certinia setup for clearer financial visibility.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Our Certinia integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                title: 'Rillet',
+                description: `Enjoy automated syncing and reduce manual entries with the Expensify + Rillet integration. Align expense coding dimensions and tax sync with your Rillet setup for clearer financial visibility.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Our Rillet integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Advanced Approvals',

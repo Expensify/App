@@ -150,6 +150,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanning: 'Scansione',
         analyzing: 'Analisi in corso...',
         thinking: 'Concierge sta pensando...',
+        agentThinking: 'Sto pensando...',
         addCardTermsOfService: 'Termini di servizio di Expensify',
         perPerson: 'per persona',
         phone: 'Telefono',
@@ -515,6 +516,9 @@ const translations: TranslationDeepObject<typeof en> = {
         restrictions: 'Restrizioni',
         tagGLCode: 'Tag codice GL',
         off: 'Disattivato',
+        unableToDisplayChart: 'Impossibile visualizzare il grafico',
+        webGLNotSupported: 'Il tuo browser non supporta WebGL. Abilitalo oppure passa a un altro browser.',
+        apiKey: 'Chiave API',
     },
     socials: {
         podcast: 'Seguici su Podcast',
@@ -2797,8 +2801,6 @@ ${amount} per ${merchant} - ${date}`,
         activatePhysicalCard: 'Attiva carta fisica',
         error: {
             thatDidNotMatch: 'Quello non corrispondeva alle ultime 4 cifre della tua carta. Riprova.',
-            throttled:
-                'Hai inserito illeggittimamente le ultime 4 cifre della tua Carta Expensify troppe volte. Se sei sicuro che i numeri siano corretti, contatta Concierge per risolvere il problema. Altrimenti, riprova più tardi.',
         },
     },
     getPhysicalCard: {
@@ -5482,6 +5484,15 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 }
             },
         },
+        rillet: {
+            rilletSetup: 'Configurazione Rillet',
+            enterCredentials: 'Inserisci la tua chiave API Rillet',
+            howToFindAPIKey: '<strong>Come trovare la tua chiave API.</strong><ol><li>Accedi a Rillet</li><li>Vai su Account -> Impostazioni</li><li>Copia la chiave API qui sotto</li></ol>',
+            subsidiary: 'Filiale',
+            subsidiarySelectDescription: 'Scegli la consociata in Rillet da cui vuoi importare i dati.',
+            noSubsidiariesFound: 'Nessuna consociata trovata',
+            noSubsidiariesFoundDescription: 'Aggiungi una consociata in Rillet e sincronizza di nuovo la connessione',
+        },
         type: {
             free: 'Gratis',
             control: 'Controllo',
@@ -6460,6 +6471,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            rillet: 'Rillet',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6477,6 +6489,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                         return 'NetSuite';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
+                    case CONST.POLICY.CONNECTIONS.NAME.RILLET:
+                        return 'Rillet';
                     default: {
                         return '';
                     }
@@ -6702,6 +6716,12 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                             return 'Importazione delle dimensioni';
                         case 'financialForceMarkAsReimbursed':
                             return 'Contrassegno dei report come rimborsati';
+                        case 'rilletSyncTitle':
+                            return 'Sincronizzazione dei dati Rillet';
+                        case 'rilletSyncConnection':
+                            return 'Inizializzazione della connessione a Rillet';
+                        case 'rilletSyncImportData':
+                            return 'Caricamento dati';
                         default: {
                             return `Traduzione mancante per lo stato: ${stage}`;
                         }
@@ -6967,6 +6987,12 @@ ${reportName}`,
                 description: `Approfitta della sincronizzazione automatizzata e riduci le registrazioni manuali con l’integrazione Expensify + Certinia. Allinea dimensioni di codifica delle spese e sincronizzazione fiscale alla tua configurazione Certinia per una maggiore visibilità finanziaria.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>La nostra integrazione con Certinia è disponibile solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                title: 'Rillet',
+                description: `Approfitta della sincronizzazione automatizzata e riduci le registrazioni manuali con l’integrazione Expensify + Rillet. Allinea dimensioni di codifica delle spese e sincronizzazione fiscale alla tua configurazione Rillet per una maggiore visibilità finanziaria.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>La nostra integrazione con Rillet è disponibile solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Approvazioni avanzate',
