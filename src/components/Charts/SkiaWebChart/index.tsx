@@ -81,6 +81,4 @@ function SkiaWebChart<TProps extends object>({getComponent, componentProps, reas
     );
 }
 
-SkiaWebChart.displayName = 'SkiaWebChart';
-
 export default SkiaWebChart;
