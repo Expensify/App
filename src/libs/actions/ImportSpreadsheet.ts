@@ -202,10 +202,6 @@ function applySavedColumnMappings(spreadsheetData: string[][], savedLayout: Save
 
 /**
  * Applies saved company card column mappings to the spreadsheet data.
- * Company card layouts (stored in the shared domain NVP) map a field role to a column index,
- * so mappings are re-applied by index. Roles that are not selectable in the current context
- * (e.g. advanced fields when advanced fields are disabled) are skipped so the header heuristics
- * can still fill those columns.
  *
  * @param spreadsheetData - The spreadsheet data in column-major format
  * @param savedColumnMappings - Saved mappings from uploadLayoutSettings, keyed by field role with a column index value
