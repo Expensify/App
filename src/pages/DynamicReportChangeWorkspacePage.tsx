@@ -101,13 +101,14 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 policy,
                 formatPhoneNumber,
                 filteredReportActions,
+                reportPreviewAction,
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 submitterLogin,
                 doesSubmitterPersonalDetailExist ?? false,
                 reportTransactions,
             );
             if (!invite?.policyExpenseChatReportID) {
-                moveIOUReportToPolicy(report, policy, false, reportTransactions);
+                moveIOUReportToPolicy(report, policy, reportPreviewAction, false, reportTransactions);
             }
             return;
             // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
