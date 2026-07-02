@@ -14,6 +14,10 @@ type AvatarSource = IconAsset | string;
 const DEFAULT_AVATAR_URL_PATTERNS = ['images/avatars/avatar_', 'images/avatars/default-avatar_', 'images/avatars/user/default'];
 const LETTER_AVATAR_NAME_REGEX = /^letter-avatar-#[0-9A-F]{6}-#[0-9A-F]{6}-[A-Z]\.png$/;
 
+/** Folds U+00C0-U+017F to the ASCII base letter; '.' entries have no fold. Index = codepoint - 0xC0. */
+const LETTER_AVATAR_ACCENT_FOLD_TABLE =
+    'AAAAAAACEEEEIIIIDNOOOOO.OUUUUYTSAAAAAAACEEEEIIIIDNOOOOO.OUUUUYTYAAAAAACCCCCCCCDDDDEEEEEEEEEEGGGGGGGGHHHHIIIIIIIIIIIIJJKKKLLLLLLLLLLNNNNNNNNNOOOOOOOORRRRRRSSSSSSSSTTTTTTUUUUUUUUUUUUWWYYYZZZZZZS';
+
 /**
  * Avatar naming convention
  *
@@ -228,20 +232,27 @@ function isGeneratedLetterAvatarURL(avatarSource?: AvatarSource): boolean {
 }
 
 /**
- * Returns the first alphanumeric character of a string, uppercased, or '' when none exists.
+ * Returns the first alphanumeric character of a string uppercased, folding Latin accented letters
+ * to their ASCII base letter, or '' when the string yields no initial.
  *
  * @param name - The string to read the first character from
  */
 function firstLetterAvatarCharacter(name: string): string {
     for (const character of name) {
-        // A non-ASCII codepoint has no pre-generated image, so fall back instead of skipping to a
-        // later ASCII letter, which would be a misleading initial for the name.
-        if ((character.codePointAt(0) ?? 0) >= 0x80) {
-            return '';
+        const codePoint = character.codePointAt(0) ?? 0;
+        if (codePoint < 0x80) {
+            if (/[a-z0-9]/i.test(character)) {
+                return character.toUpperCase();
+            }
+            continue;
         }
-        if (/[a-z0-9]/i.test(character)) {
-            return character.toUpperCase();
+        // Latin accents fold to their ASCII base letter; any other non-ASCII codepoint contributes no
+        // initial rather than substituting a later ASCII letter.
+        if (codePoint >= 0xc0 && codePoint <= 0x17f) {
+            const folded = LETTER_AVATAR_ACCENT_FOLD_TABLE.charAt(codePoint - 0xc0);
+            return folded === '.' ? '' : folded;
         }
+        return '';
     }
     return '';
 }

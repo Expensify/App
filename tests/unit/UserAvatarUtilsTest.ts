@@ -1,4 +1,4 @@
-// cspell:ignore Élodie José
+// cspell:ignore Élodie José Øyvind
 import {renderHook} from '@testing-library/react-native';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
@@ -351,9 +351,15 @@ describe('UserAvatarUtils', () => {
             expect(UserAvatarUtils.getLetterAvatarURL(accountID, firstName, lastName, login)).toBe(expected);
         });
 
-        it('falls back instead of using a later ASCII letter when the name starts with a non-ASCII character', () => {
-            // "Élodie" must not become "L" and a leading CJK name must not become "A".
-            expect(UserAvatarUtils.getLetterAvatarURL(42, 'Élodie', '', '')).toBe('');
+        it('folds a Latin accented first letter to its ASCII base letter', () => {
+            // The color comes from the login even when the initial comes from the name.
+            expect(UserAvatarUtils.getLetterAvatarURL(42, 'Élodie', '', 'elodie@example.com')).toBe(`${BASE}/tangerine100/E.png`);
+            expect(UserAvatarUtils.getLetterAvatarURL(42, 'Élodie', 'Lee', 'elodie.lee@example.com')).toBe(`${BASE}/green700/EL.png`);
+            expect(UserAvatarUtils.getLetterAvatarURL(42, 'Øyvind', '', 'oyvind@example.com')).toBe(`${BASE}/tangerine100/O.png`);
+        });
+
+        it('falls back instead of using a later ASCII letter when the name starts with a non-Latin character', () => {
+            // A leading CJK name must not become "A". A hidden login reaches the client as an empty login, so there is no initial to fall back to.
             expect(UserAvatarUtils.getLetterAvatarURL(42, '李Ann', '', '')).toBe('');
             // An ASCII first letter still wins even when later characters are non-ASCII.
             expect(UserAvatarUtils.getLetterAvatarURL(42, 'José', '', 'dave@example.com')).toBe(`${BASE}/blue100/J.png`);
