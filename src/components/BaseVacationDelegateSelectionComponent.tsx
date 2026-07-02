@@ -97,28 +97,28 @@ function BaseVacationDelegateSelectionComponent({
     const sectionsList = (() => {
         const list = [];
 
-        const delegateOption =
-            currentVacationDelegate && delegatePersonalDetails
-                ? {
-                      ...(delegatePersonalDetails ?? {}),
-                      text: Str.removeSMSDomain(delegatePersonalDetails?.displayName ?? currentVacationDelegate),
-                      alternateText: delegatePersonalDetails?.login ?? currentVacationDelegate,
-                      login: delegatePersonalDetails.login ?? currentVacationDelegate,
-                      keyForList: `vacationDelegate-${delegatePersonalDetails.login}`,
-                      isDisabled: false,
-                      isSelected: true,
-                      shouldShowSubscript: undefined,
-                      accountID: delegatePersonalDetails?.accountID ?? CONST.DEFAULT_MISSING_ID,
-                      icons: [
-                          {
-                              source: delegatePersonalDetails?.avatar ?? icons.FallbackAvatar,
-                              name: formatPhoneNumber(delegatePersonalDetails?.login ?? ''),
-                              type: CONST.ICON_TYPE_AVATAR,
-                              id: delegatePersonalDetails?.accountID ?? CONST.DEFAULT_MISSING_ID,
-                          },
-                      ],
-                  }
-                : undefined;
+        const delegateLogin = delegatePersonalDetails?.login ?? currentVacationDelegate;
+        const delegateOption = currentVacationDelegate
+            ? {
+                  ...(delegatePersonalDetails ?? {}),
+                  text: Str.removeSMSDomain(delegatePersonalDetails?.displayName ?? currentVacationDelegate),
+                  alternateText: delegateLogin,
+                  login: delegateLogin,
+                  keyForList: `vacationDelegate-${delegateLogin}`,
+                  isDisabled: false,
+                  isSelected: true,
+                  shouldShowSubscript: undefined,
+                  accountID: delegatePersonalDetails?.accountID ?? CONST.DEFAULT_MISSING_ID,
+                  icons: [
+                      {
+                          source: delegatePersonalDetails?.avatar ?? icons.FallbackAvatar,
+                          name: formatPhoneNumber(delegateLogin),
+                          type: CONST.ICON_TYPE_AVATAR,
+                          id: delegatePersonalDetails?.accountID ?? CONST.DEFAULT_MISSING_ID,
+                      },
+                  ],
+              }
+            : undefined;
 
         // Only pin the current delegate when it matches the search term, mirroring how the hook filters the other sections
         if (delegateOption && filterOption(delegateOption, debouncedSearchTerm)) {

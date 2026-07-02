@@ -7,6 +7,7 @@ import {render} from '@testing-library/react-native';
 import React from 'react';
 import BaseVacationDelegateSelectionComponent from '@components/BaseVacationDelegateSelectionComponent';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 
 jest.mock('@hooks/useLocalize', () =>
@@ -218,24 +219,40 @@ describe('BaseVacationDelegateSelectionComponent', () => {
     });
 
     describe('new account (personal details missing, e.g. after cache clear)', () => {
-        // After the cache-clear refactor, the component no longer pins a synthetic row when personal
-        // details are missing — instead, the delegate appears via the usePersonalDetailSearchSelector
-        // `userToInvite` / re-fetched recents flow once the data layer rehydrates.
-        it('does not pin a current delegate row for an email account when personal details are missing', () => {
+        // The current delegate is excluded from the recents/contacts/userToInvite sections via
+        // `excludeLogins`, so the pinned row is the only place it can appear. It must still render
+        // (falling back to the raw login and DEFAULT_MISSING_ID) even when personal details are gone.
+        it('still pins the current delegate row for an email account when personal details are missing', () => {
             mockGetPersonalDetailByEmail.mockReturnValue(undefined);
 
             renderComponent(EMAIL_DELEGATE);
 
-            expect(lastCurrentSelectionRow()).toBeUndefined();
+            const row = lastCurrentSelectionRow();
+            expect(row).toBeDefined();
+            expect(row?.text).toBe(EMAIL_DELEGATE);
+            expect(row?.login).toBe(EMAIL_DELEGATE);
+            expect(row?.accountID).toBe(CONST.DEFAULT_MISSING_ID);
+            expect(row?.isSelected).toBe(true);
+            expect(JSON.stringify(row)).not.toContain('@expensify.sms');
         });
 
         // Bug #89578 — the exact scenario reported.
-        it('does not pin a current delegate row for a phone account when personal details are missing', () => {
+        it('still pins the current delegate row for a phone account when personal details are missing', () => {
             mockGetPersonalDetailByEmail.mockReturnValue(undefined);
 
             renderComponent(PHONE_DELEGATE_WITH_SMS_DOMAIN);
 
-            expect(lastCurrentSelectionRow()).toBeUndefined();
+            const row = lastCurrentSelectionRow();
+            expect(row).toBeDefined();
+            expect(row?.text).toBe(PHONE_DELEGATE_RAW);
+            expect(row?.alternateText).toBe(PHONE_DELEGATE_RAW);
+            expect(row?.login).toBe(PHONE_DELEGATE_WITH_SMS_DOMAIN);
+            expect(row?.accountID).toBe(CONST.DEFAULT_MISSING_ID);
+            expect(row?.isSelected).toBe(true);
+            // Avatar icon id must also fall back to DEFAULT_MISSING_ID so UserListItem renders the
+            // fallback avatar rather than gating it off behind a missing accountID.
+            const icons = toIconsArray(row?.icons);
+            expect(icons?.at(0)?.id).toBe(CONST.DEFAULT_MISSING_ID);
         });
     });
 

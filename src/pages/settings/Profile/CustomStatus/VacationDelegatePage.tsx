@@ -1,4 +1,4 @@
-import Str from 'expensify-common/dist/str';
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef} from 'react';
 import BaseVacationDelegateSelectionComponent from '@components/BaseVacationDelegateSelectionComponent';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
