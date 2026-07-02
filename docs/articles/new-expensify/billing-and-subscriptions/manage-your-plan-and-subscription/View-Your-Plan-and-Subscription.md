@@ -14,9 +14,11 @@ Workspace owners can confirm which plan they're on— Collect or Control—and t
 
 ---
 
-## Who can view Subscriptions
+## Who can view your plan and subscription
 
-Only the workspace owner can view the **Subscription** page. If you don't see **Subscription** under **Account**, you're not a workspace owner. 
+Only the workspace owner can view the **Subscription** page to see the workspace plan and subscription. If you don't see **Subscription** under **Account**, you're not a workspace owner. 
+
+Workspace Admins can view the workspace plan under **Overview > Plan type**. 
 
 ---
 
