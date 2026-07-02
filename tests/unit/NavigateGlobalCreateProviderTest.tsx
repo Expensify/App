@@ -30,11 +30,11 @@ const baseProps = {
 
 describe('NavigateGlobalCreateProvider', () => {
     it('does not remount children across the isReady transition', async () => {
-        let mountCount = 0;
+        const onMount = jest.fn();
 
         function Child() {
             useEffect(() => {
-                mountCount++;
+                onMount();
             }, []);
             return null;
         }
@@ -52,7 +52,7 @@ describe('NavigateGlobalCreateProvider', () => {
 
         // If the Provider's root element type ever changes across the isReady
         // flip, React would tear down and rebuild the children subtree — the
-        // Camera would remount, and this count would jump to 2.
-        expect(mountCount).toBe(1);
+        // Camera would remount, and onMount would fire a second time.
+        expect(onMount).toHaveBeenCalledTimes(1);
     });
 });
