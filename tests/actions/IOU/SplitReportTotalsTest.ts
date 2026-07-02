@@ -739,6 +739,7 @@ describe('actions/IOU', () => {
             return {
                 allTransactionsList: {},
                 allReportsList: {},
+                allReportActionsList: {},
                 allReportNameValuePairsList: {},
                 transactionData: {
                     reportID: EXPENSE_REPORT_ID,
@@ -758,7 +759,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 iouReportNextStep: undefined,
                 betas: [],
-                policyTags: {},
+                allPolicyTags: {},
                 personalDetails: undefined,
                 transactionReport: {reportID: 'tx-report-1', parentReportID: 'parent-report-1'},
                 expenseReport: {reportID: EXPENSE_REPORT_ID, parentReportID: 'parent-report-1', chatReportID: 'chat-report-1'},
