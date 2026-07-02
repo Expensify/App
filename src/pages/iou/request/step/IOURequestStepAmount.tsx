@@ -15,6 +15,7 @@ import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {getIsP2PForAmount, submitAmount} from '@libs/IOUAmountSubmission';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, shouldEnableNegative} from '@libs/ReportUtils';
 import {getRequestType, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
@@ -157,7 +158,7 @@ function IOURequestStepAmount({
     const handleSubmit = ({amount, paymentMethod}: {amount: string; paymentMethod?: PaymentMethodType}) => {
         const submitData = submitDataRef.current;
         if (!submitData) {
-            Log.hmmm('......')
+            Log.hmmm('[IOURequestStepAmount] Skipping amount submit: submit data not ready');
             return;
         }
         notifySaving();
