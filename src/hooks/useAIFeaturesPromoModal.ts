@@ -5,11 +5,14 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {Session} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useOnyx from './useOnyx';
@@ -40,21 +43,24 @@ function useAIFeaturesPromoModal(session: OnyxEntry<Session>) {
     const hasCompletedOnboarding = hasCompletedGuidedSetupFlowSelector(onboarding);
 
     useEffect(() => {
-        if (isAIPromoModalDismissed) {
-            hasRedirectedToAIFeaturesPromoModal = false;
+        if (!isAIPromoModalDismissed) {
+            return;
         }
+        hasRedirectedToAIFeaturesPromoModal = false;
     }, [isAIPromoModalDismissed]);
 
     useEffect(() => {
-        if (isMigrationModalPending) {
-            observedActiveMigrationModalThisSession = true;
+        if (!isMigrationModalPending) {
+            return;
         }
+        observedActiveMigrationModalThisSession = true;
     }, [isMigrationModalPending]);
 
     useEffect(() => {
-        if (hasCompletedOnboarding === false) {
-            observedActiveOnboardingThisSession = true;
+        if (hasCompletedOnboarding !== false) {
+            return;
         }
+        observedActiveOnboardingThisSession = true;
     }, [hasCompletedOnboarding]);
 
     const isAllOnyxLoaded = !isLoadingOnyxValue(isLoadingAppMetadata, dismissedProductTrainingMetadata, tryNewDotMetadata, onboardingMetadata);
@@ -81,6 +87,11 @@ function useAIFeaturesPromoModal(session: OnyxEntry<Session>) {
                 Navigation.waitForProtectedRoutes().then(() => {
                     isWaitingForProtectedRoutes.current = false;
                     if (hasRedirectedToAIFeaturesPromoModal || observedActiveMigrationModalThisSession || observedActiveOnboardingThisSession || isAIPromoModalDismissed) {
+                        return;
+                    }
+                    const lastRoute = navigationRef.getRootState?.()?.routes.at(-1)?.name;
+                    console.log('lastRoute', lastRoute);
+                    if (lastRoute === NAVIGATORS.SHARE_MODAL_NAVIGATOR || lastRoute === SCREENS.NOT_FOUND) {
                         return;
                     }
                     Log.info('[useAIFeaturesPromoModal] Navigating to AI features promo modal');
