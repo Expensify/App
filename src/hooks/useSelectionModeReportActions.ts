@@ -177,36 +177,27 @@ function useSelectionModeReportActions({
     const effectiveShouldBlockSubmit = shouldBlockSubmit || isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy;
 
     // Shared payment hook
-    const {
-        confirmPayment,
-        shouldBlockAction,
-        invokePaymentSelect,
-        selectionModeKYCSuccess,
-        paymentSubMenuItems,
-        hasPayInSelectionMode,
-        isAnyTransactionOnHold,
-        isInvoiceReport,
-        kycWallRef,
-    } = useSelectionModePayment({
-        reportID: report?.reportID,
-        transactions,
-        formattedAmount: totalAmount,
-        shouldHidePaymentOptions: !shouldShowPayButton,
-        onlyShowPayElsewhere,
-        hasPayAction,
-        allExpensesSelected,
-        onHoldMenuOpen: ({requestType: rt, paymentType: pt, methodID}) => {
-            setRequestType(rt);
-            setPaymentType(pt);
-            setSelectedVBBAToPayFromHoldMenu(methodID);
-            setIsHoldMenuVisible(true);
-        },
-        onPaymentComplete: () => {
-            clearSelectedTransactions(true);
-            turnOffMobileSelectionMode();
-        },
-        confirmApproval,
-    });
+    const {confirmPayment, shouldBlockAction, invokePaymentSelect, selectionModeKYCSuccess, paymentSubMenuItems, hasPayInSelectionMode, isAnyTransactionOnHold, isInvoiceReport, kycWallRef} =
+        useSelectionModePayment({
+            reportID: report?.reportID,
+            transactions,
+            formattedAmount: totalAmount,
+            shouldHidePaymentOptions: !shouldShowPayButton,
+            onlyShowPayElsewhere,
+            hasPayAction,
+            allExpensesSelected,
+            onHoldMenuOpen: ({requestType: rt, paymentType: pt, methodID}) => {
+                setRequestType(rt);
+                setPaymentType(pt);
+                setSelectedVBBAToPayFromHoldMenu(methodID);
+                setIsHoldMenuVisible(true);
+            },
+            onPaymentComplete: () => {
+                clearSelectedTransactions(true);
+                turnOffMobileSelectionMode();
+            },
+            confirmApproval,
+        });
 
     // Defer payment select until the popover dismiss animation completes. Blocking modals are shown
     // synchronously inside the callback (popover already closed) to avoid double-defer on Android.
