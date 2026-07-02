@@ -6,7 +6,8 @@ import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine
 import type {MfaEvent} from '@components/MultifactorAuthentication/machine/types';
 import createInitEvent from './flowFixtures';
 
-// This list adds the explicit teardown path and is not the coverage source.
+// DRIVING_EVENTS holds the explicit teardown journey that `getWalkedPaths` drives on top of the
+// generated coverage paths. Coverage comes from the graph traversal, not from this list.
 // `INIT` carries the scenario payload, while `CLOSE_MODAL` and `MODAL_CLOSED` are bare.
 const DRIVING_EVENTS: MfaEvent[] = [createInitEvent(), {type: 'CLOSE_MODAL'}, {type: 'MODAL_CLOSED'}];
 
@@ -38,8 +39,9 @@ function isUiDrivablePath(path: {steps: ReadonlyArray<{event: {type: string}}>})
  * silently drop out of coverage. This function restores the merge.
  */
 function getTraversalEvents(snapshot: MfaSnapshot): MfaEvent[] {
-    // `_nodes` is part of the snapshot's public type; XState does not export a helper that lists a
-    // snapshot's own event descriptors.
+    // `_nodes` is part of the snapshot's public type. XState exports an equivalent helper only as
+    // `__unsafe_getAllOwnEventDescriptors`, whose `any[]` return type would weaken this fully typed
+    // read, so the local read stays.
     // eslint-disable-next-line no-underscore-dangle
     const declaredEventTypes = [...new Set(snapshot._nodes.flatMap((node) => node.ownEvents))];
     return declaredEventTypes.flatMap((type) => {
