@@ -33,9 +33,19 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {ExpenseTypeValue, ExpenseTypeValues, HasFilterValue, HasFilterValues, IsFilterValue, IsFilterValues, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
+import type {
+    ExpenseTypeValue,
+    ExpenseTypeValues,
+    HasFilterValue,
+    HasFilterValues,
+    IsFilterValue,
+    IsFilterValues,
+    ReceiptTypeValue,
+    SearchAdvancedFiltersKey,
+} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes, SearchResultDataType} from '@src/types/onyx/SearchResults';
+import {getBankAccountSearchLabel, isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
@@ -81,6 +91,7 @@ const operatorToCharMap = {
 
 // Pre-computed validation Sets for buildFilterFormValuesFromQuery (avoids recreating per filter iteration)
 const VALID_EXPENSE_TYPES = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
+const VALID_RECEIPT_TYPES = new Set<string>(Object.values(CONST.SEARCH.RECEIPT_TYPE));
 const VALID_HAS_TYPES = new Set(Object.values(CONST.SEARCH.HAS_VALUES));
 const VALID_IS_TYPES = new Set(Object.values(CONST.SEARCH.IS_VALUES));
 const VALID_WITHDRAWAL_TYPES = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
@@ -959,8 +970,10 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
             if (
                 (filterKey === FILTER_KEYS.CATEGORY ||
                     filterKey === FILTER_KEYS.CARD_ID ||
+                    filterKey === FILTER_KEYS.BANK_ACCOUNT ||
                     filterKey === FILTER_KEYS.TAX_RATE ||
                     filterKey === FILTER_KEYS.EXPENSE_TYPE ||
+                    filterKey === FILTER_KEYS.RECEIPT_TYPE ||
                     filterKey === FILTER_KEYS.TAG ||
                     filterKey === FILTER_KEYS.CURRENCY ||
                     filterKey === FILTER_KEYS.PURCHASE_CURRENCY ||
@@ -1086,6 +1099,8 @@ function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: s
  *
  * Reverse operation of buildQueryStringFromFilterFormValues()
  */
+// Adds bankAccountList and currentUserAccountID for the new bank account and from:me filters. Refactoring this to a params object would touch every call site and is out of scope here.
+// eslint-disable-next-line @typescript-eslint/max-params
 function buildFilterFormValuesFromQuery(
     queryJSON: SearchQueryJSON,
     policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>,
@@ -1097,6 +1112,7 @@ function buildFilterFormValuesFromQuery(
     taxRates: Record<string, string[]>,
     exportedToFilterOptions?: string[],
     currentUserAccountID?: number,
+    bankAccountList?: OnyxTypes.BankAccountList,
 ) {
     const filters = queryJSON.flatFilters;
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
@@ -1128,6 +1144,14 @@ function buildFilterFormValuesFromQuery(
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
             filtersForm[key as typeof filterKey] = filterValues.filter((expenseType) => VALID_EXPENSE_TYPES.has(expenseType as ExpenseTypeValue)) as ExpenseTypeValues;
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE) {
+            const receiptTypeValues = filterValues.filter((receiptType): receiptType is ReceiptTypeValue => VALID_RECEIPT_TYPES.has(receiptType));
+            if (isNegated) {
+                filtersForm[FILTER_KEYS.RECEIPT_TYPE_NOT] = receiptTypeValues;
+            } else {
+                filtersForm[FILTER_KEYS.RECEIPT_TYPE] = receiptTypeValues;
+            }
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
             const validHasFilters = filterList.filter((item) => VALID_HAS_TYPES.has(item.value as HasFilterValue));
@@ -1161,6 +1185,20 @@ function buildFilterFormValuesFromQuery(
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
             filtersForm[key as typeof filterKey] = filterValues.filter((card) => cardList?.[card]);
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT) {
+            // Drop unknown IDs and partially-setup accounts (SETUP/VERIFYING/PENDING). The filter looks backward at
+            // withdrawals that already paid expenses, so a saved search should survive an account changing state
+            // (BUSINESS -> LOCKED, etc), but a partially-setup account has paid no expenses and can never match -
+            // keeping its ID would leave the chip visible while the picker hides it. When bankAccountList is still
+            // loading (undefined), keep the saved IDs as-is so useSearchFilterSync does not record an empty signature
+            // and skip the re-sync once Onyx hydrates.
+            filtersForm[key as typeof filterKey] = bankAccountList
+                ? filterValues.filter((bankAccountID) => {
+                      const bankAccount = bankAccountList[bankAccountID];
+                      return !!bankAccount && !isBankAccountPartiallySetup(bankAccount.accountData?.state);
+                  })
+                : filterValues;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
             filtersForm[key as typeof filterKey] = filterValues.filter((feed) => feed);
@@ -1461,6 +1499,7 @@ type GetFilterDisplayValueParams = {
     translate: LocalizedTranslate;
     reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'];
     feedKeysWithCards?: FeedKeysWithAssignedCards;
+    bankAccountList?: OnyxTypes.BankAccountList;
 };
 
 /**
@@ -1478,6 +1517,7 @@ function getFilterDisplayValue({
     translate,
     reportAttributes,
     feedKeysWithCards,
+    bankAccountList,
 }: GetFilterDisplayValueParams) {
     if (
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
@@ -1498,6 +1538,13 @@ function getFilterDisplayValue({
             return filterValue;
         }
         return getCardDescription(cardList?.[cardID], translate) || filterValue;
+    }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT) {
+        const bankAccount = bankAccountList?.[filterValue];
+        if (!bankAccount) {
+            return filterValue;
+        }
+        return getBankAccountSearchLabel(bankAccount);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         return getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`], reportAttributes) || filterValue;
@@ -1543,6 +1590,7 @@ function getDisplayQueryFiltersForKey(
     translate: LocalizedTranslate,
     reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
     feedKeysWithCards?: FeedKeysWithAssignedCards,
+    bankAccountList?: OnyxTypes.BankAccountList,
 ) {
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
         const taxRateIDs = queryFilter.map((filter) => filter.value.toString());
@@ -1594,6 +1642,26 @@ function getDisplayQueryFiltersForKey(
         }, [] as QueryFilter[]);
     }
 
+    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT) {
+        return queryFilter.map((filter) => ({
+            operator: filter.operator,
+            value: getFilterDisplayValue({
+                filterName: key,
+                filterValue: filter.value.toString(),
+                personalDetails,
+                reports,
+                cardList,
+                cardFeeds,
+                policies,
+                currentUserAccountID,
+                translate,
+                reportAttributes,
+                feedKeysWithCards,
+                bankAccountList,
+            }),
+        }));
+    }
+
     return queryFilter.map((filter) => ({
         operator: filter.operator,
         value: getFilterDisplayValue({
@@ -1608,6 +1676,7 @@ function getDisplayQueryFiltersForKey(
             translate,
             reportAttributes,
             feedKeysWithCards,
+            bankAccountList,
         }),
     }));
 }
@@ -1687,6 +1756,7 @@ type BuildUserReadableQueryStringParams = {
     translate: LocalizedTranslate;
     feedKeysWithCards?: FeedKeysWithAssignedCards;
     reportAttributes: OnyxTypes.ReportAttributesDerivedValue['reports'] | undefined;
+    bankAccountList?: OnyxTypes.BankAccountList;
 };
 
 function buildUserReadableQueryString({
@@ -1702,6 +1772,7 @@ function buildUserReadableQueryString({
     translate,
     feedKeysWithCards,
     reportAttributes,
+    bankAccountList,
 }: BuildUserReadableQueryStringParams) {
     const {type, status, groupBy, view, columns, policyID, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
 
@@ -1747,6 +1818,7 @@ function buildUserReadableQueryString({
                 translate,
                 reportAttributes,
                 feedKeysWithCards,
+                bankAccountList,
             );
 
             if (!displayQueryFilters.length) {
@@ -1801,6 +1873,7 @@ function buildUserReadableQueryString({
             translate,
             reportAttributes,
             feedKeysWithCards,
+            bankAccountList,
         );
 
         if (!displayQueryFilters.length) {

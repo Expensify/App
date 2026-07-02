@@ -6,10 +6,11 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -42,6 +43,7 @@ const PRESSED_EXPENSE_CASCADE_DELAY = 180;
 
 function MoneyRequestReportPreview({
     iouReportID,
+    iouReport,
     policyID,
     chatReportID,
     chatReport,
@@ -64,7 +66,15 @@ function MoneyRequestReportPreview({
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}`);
     const invoiceReceiverPersonalDetail = chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? personalDetailsList?.[chatReport.invoiceReceiver.accountID] : null;
-    const [iouReport, transactions] = useReportWithTransactionsAndViolations(iouReportID);
+    const reportTransactionsCollection = useReportTransactionsCollection(iouReportID);
+    const {isOffline} = useNetwork();
+    const transactions = useMemo(
+        () =>
+            Object.values(reportTransactionsCollection ?? {}).filter(
+                (transaction): transaction is Transaction => !!transaction && (isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+            ),
+        [reportTransactionsCollection, isOffline],
+    );
     // Tracks how many actions the IOU report has loaded so a deferred expense press can be retried once
     // the actions arrive (they may be missing right after a cache clear).
     const [iouReportActionCount] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportID)}`, {

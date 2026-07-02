@@ -28,6 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {actionR14932 as mockAction} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import {transactionR14932 as mockTransaction} from '../../__mocks__/reportData/transactions';
@@ -111,6 +112,17 @@ const wideResponsiveLayout: ResponsiveLayoutResult = {
     isInLandscapeMode: false,
 };
 
+// The preview reads `iouReport` from a prop (provided stable by the parent) and its transactions from the
+// scoped `useReportTransactionsCollection` hook, so the test drives those two sources directly.
+let mockIOUReportProp: OnyxEntry<Report> = mockIOUReport;
+
+const mockUseReportTransactionsCollection = jest.fn(() => toCollectionDataSet(ONYXKEYS.COLLECTION.TRANSACTION, defaultPreviewTransactions, (transaction) => transaction.transactionID));
+
+jest.mock('@hooks/useReportTransactionsCollection', () => ({
+    __esModule: true,
+    default: () => mockUseReportTransactionsCollection(),
+}));
+
 type OnHoldMenuOpen = (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => void;
 
 // Capture the onHoldMenuOpen callback the preview passes to the pay button so a held-expense payment can be triggered
@@ -184,6 +196,7 @@ const renderPage = ({isWhisper = false, isHovered = false}: Partial<MoneyRequest
                                     policyID={mockChatReport.policyID}
                                     action={mockAction}
                                     iouReportID={mockIOUReport.reportID}
+                                    iouReport={mockIOUReportProp}
                                     chatReportID={mockChatReport.reportID}
                                     chatReport={mockChatReport}
                                     onPaymentOptionsShow={() => {}}
@@ -241,17 +254,15 @@ const setReportPreviewData = (
     overrides: {
         iouReport?: OnyxEntry<Report>;
         transactions?: Transaction[];
-        violations?: OnyxCollection<TransactionViolation[]>;
     } = {},
 ) => {
-    const {iouReport, transactions, violations} = overrides;
+    const {iouReport, transactions} = overrides;
     const hasIouReportOverride = Object.prototype.hasOwnProperty.call(overrides, 'iouReport');
 
-    mockUseReportWithTransactionsAndViolations.mockImplementation(() => [
-        hasIouReportOverride ? iouReport : mockIOUReport,
-        transactions ?? defaultPreviewTransactions,
-        violations ?? {violations: mockViolations},
-    ]);
+    mockIOUReportProp = hasIouReportOverride ? iouReport : mockIOUReport;
+    mockUseReportTransactionsCollection.mockImplementation(() =>
+        toCollectionDataSet(ONYXKEYS.COLLECTION.TRANSACTION, transactions ?? defaultPreviewTransactions, (transaction) => transaction.transactionID),
+    );
 };
 
 const setHasOnceLoadedReportActions = async (hasOnceLoadedReportActions: boolean) => {

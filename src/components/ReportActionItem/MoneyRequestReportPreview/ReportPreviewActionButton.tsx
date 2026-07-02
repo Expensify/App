@@ -21,6 +21,7 @@ import variables from '@styles/variables';
 import {canIOUBePaid as canIOUBePaidIOUActions} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -32,6 +33,9 @@ type ReportPreviewActionButtonProps = {
     iouReportID: string | undefined;
     chatReportID: string | undefined;
     chatReport: OnyxEntry<Report>;
+
+    /** The stabilized IOU report, provided by the parent so the dispatcher does not re-subscribe to the churning report */
+    iouReport: OnyxEntry<Report>;
     isPaidAnimationRunning: boolean;
     isApprovedAnimationRunning: boolean;
     isSubmittingAnimationRunning: boolean;
@@ -50,6 +54,7 @@ function ReportPreviewActionButton({
     iouReportID,
     chatReportID,
     chatReport,
+    iouReport,
     isPaidAnimationRunning,
     isApprovedAnimationRunning,
     isSubmittingAnimationRunning,
@@ -69,7 +74,6 @@ function ReportPreviewActionButton({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'ReceiptPlus', 'Plus']);
 
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
@@ -84,6 +88,7 @@ function ReportPreviewActionButton({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [iouReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`);
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)}, [iouReport?.ownerAccountID]);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -141,6 +146,7 @@ function ReportPreviewActionButton({
         isDEWSubmitPending,
         violationsData: transactionViolations,
         reportMetadata: iouReportMetadata,
+        ownerLogin,
     });
 
     const viewButton = (

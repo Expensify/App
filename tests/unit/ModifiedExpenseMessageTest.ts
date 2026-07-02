@@ -1194,7 +1194,7 @@ describe('ModifiedExpenseMessage', () => {
                 environmentURL = await getEnvironmentURL();
             });
 
-            const policyRulesPolicy = {id: policyRulesPolicyId, areRulesEnabled: true} as Policy;
+            const policyRulesPolicy = {id: policyRulesPolicyId, areRulesEnabled: true, type: CONST.POLICY.TYPE.CORPORATE} as Policy;
 
             beforeEach(() => {
                 // Default: current user has policy rule access (admin + rules enabled), so link points to workspace rules
