@@ -63,6 +63,7 @@ function ReplaceDeviceVerifyOldPage() {
                         shouldAllowRecoveryCode
                         descriptionKey="twoFactorAuth.verifyOldDeviceDescription"
                         descriptionKeyWithRecovery="twoFactorAuth.verifyOldDeviceDescriptionWithRecovery"
+                        descriptionStyle={[styles.textLabel, styles.mb4]}
                         onSubmit={(code) => {
                             replaceTwoFactorDevice('verify_old', code);
                         }}
