@@ -33,6 +33,9 @@
                             <span>{{ hub.title }}</span>
                         </div>
                         <ul class="nested-treeview">
+                            {% assign emptyItems = "" | split: "," %}
+                            {% assign hubArticles = hub.articles | default: emptyItems %}
+                            {% assign hubSections = hub.sections | default: emptyItems %}
                             {% if hub.articles %} 
                                 {% assign sortedSections = hubSections | sort: 'order' %}
                                 {% assign sortedArticles = hubArticles | sort: 'order' %}
