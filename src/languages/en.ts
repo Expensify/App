@@ -1009,6 +1009,11 @@ const translations = {
                 subtitle: 'Provide an address to receive your Expensify Card.',
                 cta: 'Add address',
             },
+            addVirtualCardPersonalDetails: {
+                title: 'We need your personal details',
+                subtitle: 'Add your details to view and start using your Expensify Card.',
+                cta: 'Add details',
+            },
             addPaymentCard: {
                 title: 'Add a payment card to keep using Expensify',
                 subtitle: 'Account > Subscription',
@@ -2602,6 +2607,10 @@ const translations = {
         cardInactive: 'Inactive',
         assignedCards: 'Cards',
         assignedCardsDescription: 'Transactions from assigned cards sync automatically.',
+        addVirtualCardPersonalDetails: {
+            subtitle: 'Please enter your personal details to start using your card',
+            cta: 'Add details',
+        },
         expensifyCard: 'Expensify Card',
         walletActivationPending: "We're reviewing your information. Please check back in a few minutes!",
         walletActivationFailed: "Unfortunately, your wallet can't be enabled at this time. Please chat with Concierge for further assistance.",
@@ -5799,6 +5808,7 @@ const translations = {
             changeCardMonthlyLimitTypeWarning: (limit: number | string) =>
                 `If you change this card's limit type to Monthly, new transactions will be declined because the ${limit} monthly limit has already been reached.`,
             addShippingDetails: 'Add shipping details',
+            addPersonalDetails: 'Add personal details',
             issuedCard: (assignee: string) => `issued ${assignee} an Expensify Card! The card will arrive in 2-3 business days.`,
             issuedCardNoShippingDetails: (assignee: string) => `issued ${assignee} an Expensify Card! The card will be shipped once shipping details are confirmed.`,
             issuedCardVirtual: (assignee: string, link: string) => `issued ${assignee} a virtual Expensify Card! The ${link} can be used right away.`,
