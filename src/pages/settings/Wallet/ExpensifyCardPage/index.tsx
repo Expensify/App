@@ -254,13 +254,15 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         setIsUnfreezeModalVisible(true);
     }, []);
 
+    const [cardHolderPolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => getPolicyExpenseChat(currentCard?.accountID, policyIDForCurrentCard, reports ?? {})});
+
     const handleAskToUnfreezePress = useCallback(() => {
-        const cardHolderWorkspaceChatReportID = getPolicyExpenseChat(currentCard?.accountID, policyIDForCurrentCard)?.reportID;
+        const cardHolderWorkspaceChatReportID = cardHolderPolicyExpenseChat?.reportID;
         if (!cardHolderWorkspaceChatReportID) {
             return;
         }
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(cardHolderWorkspaceChatReportID));
-    }, [currentCard?.accountID, policyIDForCurrentCard]);
+    }, [cardHolderPolicyExpenseChat?.reportID]);
 
     const handleDismissUnfreezeModal = useCallback(() => {
         setIsUnfreezeModalVisible(false);
