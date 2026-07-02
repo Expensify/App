@@ -13,7 +13,7 @@ order: 2
 
 Subscription billing uses several terms to describe your workspace, subscription, and billing settings. Understanding these definitions makes it easier to interpret billing information, compare subscription options, and understand how your subscription is calculated.
 
-Most billing terminology is intended for workspace  Owners, since only workspace Owners manage workspace subscriptions.
+Most billing terminology is intended for workspace owners, since only workspace owners manage subscriptions.
 
 ---
 
@@ -37,7 +37,7 @@ Subscription types include:
 
 Your plan and subscription type are independent. For example, a Control workspace can use either an Annual or Pay-per-use subscription.
 
-To learn more, see How Billing, Plans and Subscriptions Work.
+To learn more, see [How Billing, Plans and Subscriptions Work](/articles/new-expensify/billing-and-subscriptions/How-Subscriptions-Plans-and-Billing-Work).
 
 ---
 
@@ -67,7 +67,7 @@ For annual subscriptions, **subscription size** (sometimes called **seats**) is 
 
 **Auto-increase annual seats** automatically increases your subscription size if your active member count exceeds your committed seats.
 
-To learn more, see Manage Annual subscription settings.
+To learn more, see Manage Annual Subscription Settings.
 
 ---
 
