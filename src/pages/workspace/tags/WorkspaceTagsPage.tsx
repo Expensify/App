@@ -312,7 +312,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 );
             } else {
                 Navigation.navigate(
-                    isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(0, tagValue)) : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, 0, tagValue),
+                    isQuickSettingsFlow
+                        ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(0, tagValue))
+                        : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(0, tagValue)),
                 );
             }
         },

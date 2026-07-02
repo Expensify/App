@@ -5,6 +5,7 @@ const mockIsSearchTopmostFullScreenRoute = jest.fn<boolean, []>();
 const mockGetReportOrDraftReport = jest.fn();
 const mockDismissModal = jest.fn();
 const mockRevealRouteBeforeDismissingModal = jest.fn();
+const mockGetIsFullscreenPreInsertedUnderRHP = jest.fn<boolean, []>();
 const mockReserveDeferredWriteChannel = jest.fn();
 const mockStartTracking = jest.fn();
 const mockSetFastPath = jest.fn();
@@ -14,6 +15,8 @@ jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () =>
 jest.mock('@libs/Navigation/Navigation', () => ({
     dismissModal: (...args: unknown[]) => mockDismissModal(...args) as unknown,
     revealRouteBeforeDismissingModal: (...args: unknown[]) => mockRevealRouteBeforeDismissingModal(...args) as unknown,
+    getIsFullscreenPreInsertedUnderRHP: () => mockGetIsFullscreenPreInsertedUnderRHP() as unknown,
+    clearFullscreenPreInsertedFlag: jest.fn(),
 }));
 jest.mock('@libs/ReportUtils', () => ({
     getReportOrDraftReport: (id: string) => mockGetReportOrDraftReport(id) as unknown,
@@ -43,6 +46,7 @@ describe('submitWithDismissFirst', () => {
         jest.clearAllMocks();
         mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
         mockGetReportOrDraftReport.mockReturnValue(undefined);
+        mockGetIsFullscreenPreInsertedUnderRHP.mockReturnValue(false);
     });
 
     describe('Search-topmost branch', () => {

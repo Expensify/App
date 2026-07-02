@@ -4,6 +4,7 @@ import {derivedFlagsSliceSelector} from '@components/MoneyRequestConfirmationLis
 import useTransactionSelector from '@components/MoneyRequestConfirmationList/sections/useTransactionSelector';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
+import {shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getCurrency, isManagedCardTransaction, isScanRequest, shouldShowAttendees as shouldShowAttendeesTransactionUtils} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -79,7 +80,7 @@ function useFooterDerivedFlags({
 
     // In Send Money and Split Bill with Scan flow, we don't allow the Merchant or Date to be edited.
     // For distance requests, don't show the merchant as there's already another "Distance" menu item.
-    const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest;
+    const shouldShowDate = shouldShowConfirmationDate(shouldShowSmartScanFields, isDistanceRequest);
 
     // Determines whether the tax fields can be modified.
     // The tax fields can only be modified if the component is not in read-only mode

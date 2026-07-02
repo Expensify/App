@@ -10,6 +10,7 @@ import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import * as useSearchSelectorModule from '@hooks/useSearchSelector';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import {setHasRadio} from '@libs/NetworkState';
@@ -20,7 +21,7 @@ import ConfirmationStep from '@pages/workspace/companyCards/assignCard/Confirmat
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -98,14 +99,14 @@ jest.mock('@userActions/CompanyCards', () => ({
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
 // Renders the AssigneeStep inside a navigation container with necessary providers.
-const renderAssigneeStep = (initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]) => {
+const renderAssigneeStep = (initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer>
-                    <Stack.Navigator initialRouteName={SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE}>
+                    <Stack.Navigator initialRouteName={SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE}>
                         <Stack.Screen
-                            name={SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE}
+                            name={SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE}
                             component={AssigneeStep}
                             initialParams={initialParams}
                         />
@@ -117,14 +118,14 @@ const renderAssigneeStep = (initialParams: SettingsNavigatorParamList[typeof SCR
 };
 
 // Renders the ConfirmationStep inside a navigation container with necessary providers.
-const renderConfirmationStep = (initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION]) => {
+const renderConfirmationStep = (initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION]) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer>
-                    <Stack.Navigator initialRouteName={SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION}>
+                    <Stack.Navigator initialRouteName={SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION}>
                         <Stack.Screen
-                            name={SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION}
+                            name={SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION}
                             component={ConfirmationStep}
                             initialParams={initialParams}
                         />
@@ -769,11 +770,7 @@ describe('AssignCardFeed', () => {
 
             // Verify goBack was called to navigate to assignee step
             expect(mockedGoBack).toHaveBeenCalledWith(
-                ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute({
-                    policyID: policy.id,
-                    feed: COMMERCIAL_FEED,
-                    cardID: CARD_ID,
-                }),
+                createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(COMMERCIAL_FEED, CARD_ID), ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy.id)),
                 {compareParams: false},
             );
 
