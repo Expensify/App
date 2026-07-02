@@ -41,6 +41,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getIsWorkspacesOnlyForTransaction,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
+    isParticipantP2P,
     navigateToStartMoneyRequestStep,
     resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
@@ -313,7 +314,17 @@ function IOURequestStepConfirmation({
             if (!activeTransactionID) {
                 return;
             }
-            if (participantsList.at(0)?.isSelfDM) {
+            const selectedParticipant = participantsList.at(0);
+            // P2P chats don't support negative amounts. When a negative amount was entered before a participant
+            // was selected (e.g. "Submit it to someone" from a self DM), assigning it to a P2P participant would
+            // fail at submit, so keep the expense on the self DM (its default) instead of assigning the P2P
+            // participant, stopping the user at selection rather than at submit. This only applies while the
+            // expense is still on the self DM — a negative expense already bound to a policy expense chat (e.g.
+            // global create auto-assigned the default workspace) must stay on that workspace rather than being
+            // silently converted into a personal track expense.
+            const isTransactionOnPolicyExpenseChat = transaction?.participants?.some((participant) => participant?.isPolicyExpenseChat);
+            const shouldKeepOnSelfDM = !!selectedParticipant?.isSelfDM || ((transaction?.amount ?? 0) < 0 && !isTransactionOnPolicyExpenseChat && isParticipantP2P(selectedParticipant));
+            if (shouldKeepOnSelfDM) {
                 setMoneyRequestParticipantsFromReport(activeTransactionID, selfDMReport, currentUserPersonalDetails.accountID);
                 setTransactionReport(activeTransactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
                 navigation.setParams({iouType: CONST.IOU.TYPE.TRACK});
@@ -331,7 +342,7 @@ function IOURequestStepConfirmation({
                 closeParticipantPicker();
             }
         },
-        [activeTransactionID, closeParticipantPicker, currentUserPersonalDetails.accountID, navigation, selfDMReport, iouType, reportID],
+        [activeTransactionID, closeParticipantPicker, currentUserPersonalDetails.accountID, navigation, selfDMReport, iouType, transaction?.amount, transaction?.participants, reportID],
     );
 
     useEffect(() => {
@@ -472,10 +483,13 @@ function IOURequestStepConfirmation({
         // Only eligible when search pre-insert didn't win, and the flow ends at a report (not Search).
         // When Search is the topmost fullscreen and there's no report context (e.g. QAB from Spend tab),
         // pre-inserting a report is wrong - the user should stay on Search after submission.
-        // Global-create TRACK targets self-DM (a report), so it's also eligible for report
-        // pre-insert, but only when Search is NOT topmost. When on Search/Spend the user
-        // should stay there after submission (navigateAfterExpenseCreate routes to Expenses search).
-        const canUseReportPreInsert = !shouldPreInsertSearch && (isReportTopmostSplitNavigator() || (!isSearchTopmostFullScreenRoute() && (isCreatingTrackExpense || !isFromGlobalCreate)));
+        // Global-create TRACK targets self-DM, PAY and SPLIT target a specific chat report,
+        // so they are also eligible for report pre-insert when Search is NOT topmost.
+        // When on Search/Spend the user should stay there after submission.
+        const isReportBoundGlobalCreate = iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SPLIT;
+        const canUseReportPreInsert =
+            !shouldPreInsertSearch &&
+            (isReportTopmostSplitNavigator() || (!isSearchTopmostFullScreenRoute() && (isCreatingTrackExpense || isReportBoundGlobalCreate || !isFromGlobalCreate)));
 
         // RHP has its own dismiss handler; pre-inserting under it would break the stack.
         const isOutsideRHP = !isReportOpenInRHP(navigationRef.getRootState());
@@ -920,6 +934,7 @@ function IOURequestStepConfirmation({
                             isPerDiemRequest={isPerDiemRequest}
                             isTimeRequest={isTimeRequest}
                             isWorkspacesOnly={getIsWorkspacesOnlyForTransaction(transaction, requestType)}
+                            shouldExcludeP2P={(transaction?.amount ?? 0) < 0}
                             onParticipantsAdded={handleParticipantsAdded}
                             onFinish={closeParticipantPicker}
                             isVisible={isParticipantPickerVisible}
