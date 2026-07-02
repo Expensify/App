@@ -3,6 +3,7 @@ import React, {useContext, useEffect} from 'react';
 import type {Ref} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
+import ContactPermissionModal from '@components/ContactPermissionModal';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -11,7 +12,6 @@ import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMembe
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import useContactImport from '@hooks/useContactImport';
-import useContactPermissionModal from '@hooks/useContactPermissionModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -88,7 +88,7 @@ type ParticipantSearchResultsProps = {
     /** Whether the text input should auto-focus */
     textInputAutoFocus: boolean;
 
-    /** Setter to toggle textInputAutoFocus from the contact permission flow */
+    /** Setter to toggle textInputAutoFocus from the ContactPermissionModal */
     setTextInputAutoFocus: (value: boolean) => void;
 
     /** Callback to propagate selected participants to the parent flow */
@@ -502,45 +502,46 @@ function ParticipantSearchResults({
         headerMessage: header,
     };
 
-    useContactPermissionModal({
-        onGrant: contactState?.importContacts ?? (() => {}),
-        onDeny: contactState?.setContactPermissionState ?? setContactPermissionState,
-        onFocusTextInput: () => {
-            setTextInputAutoFocus(true);
-        },
-    });
-
     return (
-        <SelectionListWithSections
-            confirmButtonOptions={{
-                onConfirm: handleConfirmSelection,
-            }}
-            sections={sections}
-            ListItem={InviteMemberListItem}
-            textInputOptions={textInputOptions}
-            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-            onSelectRow={onSelectRow}
-            shouldSingleExecuteRowSelect
-            customListHeaderContent={importContactsButtonComponent}
-            customHeaderContent={
-                <ImportContactButton
-                    showImportContacts={contactState?.showImportUI ?? showImportContacts}
-                    inputHelperText={inputHelperText}
-                    isInSearch
-                />
-            }
-            footerContent={footerContent}
-            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
-            listEmptyContent={EmptySelectionListContentWithPermission}
-            shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
-            shouldShowTextInput
-            canSelectMultiple={isIOUSplit && isAllowedToSplit}
-            isLoadingNewOptions={!!isSearchingForReports}
-            shouldShowListEmptyContent={shouldShowListEmptyContent}
-            ref={selectionListRef}
-            onEndReached={onListEndReached}
-            onEndReachedThreshold={0.75}
-        />
+        <>
+            <ContactPermissionModal
+                onGrant={contactState?.importContacts ?? (() => {})}
+                onDeny={contactState?.setContactPermissionState ?? setContactPermissionState}
+                onFocusTextInput={() => {
+                    setTextInputAutoFocus(true);
+                }}
+            />
+            <SelectionListWithSections
+                confirmButtonOptions={{
+                    onConfirm: handleConfirmSelection,
+                }}
+                sections={sections}
+                ListItem={InviteMemberListItem}
+                textInputOptions={textInputOptions}
+                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                onSelectRow={onSelectRow}
+                shouldSingleExecuteRowSelect
+                customListHeaderContent={importContactsButtonComponent}
+                customHeaderContent={
+                    <ImportContactButton
+                        showImportContacts={contactState?.showImportUI ?? showImportContacts}
+                        inputHelperText={inputHelperText}
+                        isInSearch
+                    />
+                }
+                footerContent={footerContent}
+                addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                listEmptyContent={EmptySelectionListContentWithPermission}
+                shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
+                shouldShowTextInput
+                canSelectMultiple={isIOUSplit && isAllowedToSplit}
+                isLoadingNewOptions={!!isSearchingForReports}
+                shouldShowListEmptyContent={shouldShowListEmptyContent}
+                ref={selectionListRef}
+                onEndReached={onListEndReached}
+                onEndReachedThreshold={0.75}
+            />
+        </>
     );
 }
 

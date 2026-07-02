@@ -1,6 +1,7 @@
 import sortBy from 'lodash/sortBy';
 import React from 'react';
-import {View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import {InteractionManager, View} from 'react-native';
 import {importEmojiLocale} from '@assets/emojis';
 import type {Emoji} from '@assets/emojis/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -8,7 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getEmojiReactionDetails, mergeReactionsByEmoji} from '@libs/EmojiUtils';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {toggleEmojiReaction} from '@userActions/EmojiReactions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
@@ -83,10 +83,8 @@ function ReportActionItemEmojiReactions({reportAction, reportID, isEditingInline
         if (isAnonymousUser()) {
             hideContextMenu(false);
 
-            TransitionTracker.runAfterTransitions({
-                callback: () => {
-                    signOutAndRedirectToSignIn();
-                },
+            InteractionManager.runAfterInteractions(() => {
+                signOutAndRedirectToSignIn();
             });
             return;
         }

@@ -176,21 +176,6 @@ jest.mock('react-native', () => ({
     },
 }));
 
-// Make TransitionTracker execute callbacks immediately too (it can't wait for a real
-// modal/popover transition in a unit test, and waitForUpcomingTransition would otherwise
-// stall until MAX_TRANSITION_START_WAIT_MS).
-jest.mock('@libs/Navigation/TransitionTracker', () => ({
-    __esModule: true,
-    default: {
-        runAfterTransitions: ({callback}: {callback: () => void | Promise<void>}) => {
-            callback();
-            return {cancel: jest.fn()};
-        },
-        startTransition: jest.fn(),
-        endTransition: jest.fn(),
-    },
-}));
-
 // ---------------------------------------------------------------------------
 // Mutable context state
 // ---------------------------------------------------------------------------

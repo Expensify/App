@@ -1,6 +1,6 @@
 import type {PermissionStatus} from 'react-native-permissions';
 
-type UseContactPermissionModalParams = {
+type ContactPermissionModalProps = {
     /** A callback to call when the permission has been granted */
     onGrant: () => void;
 
@@ -11,4 +11,4 @@ type UseContactPermissionModalParams = {
     onFocusTextInput: () => void;
 };
 
-export default UseContactPermissionModalParams;
+export default ContactPermissionModalProps;

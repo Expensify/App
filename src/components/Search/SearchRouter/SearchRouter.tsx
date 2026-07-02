@@ -2,7 +2,8 @@ import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboard
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {TextInputProps} from 'react-native';
-import {View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -362,11 +363,13 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const onListItemPress = useCallback(
         (item: OptionData | SearchQueryItem) => {
             const setFocusAndScrollToRight = () => {
-                if (!textInputRef.current) {
-                    return;
-                }
-                textInputRef.current.focus();
-                scrollToRight(textInputRef.current);
+                InteractionManager.runAfterInteractions(() => {
+                    if (!textInputRef.current) {
+                        return;
+                    }
+                    textInputRef.current.focus();
+                    scrollToRight(textInputRef.current);
+                });
             };
 
             if (isSearchQueryItem(item)) {
