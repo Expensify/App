@@ -151,7 +151,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanning: 'Skanowanie',
         analyzing: 'Trwa analizowanie...',
         thinking: 'Concierge myśli...',
-        agentThinking: 'Myśli...',
+        agentThinking: 'Myślę…',
         addCardTermsOfService: 'Regulamin Expensify',
         perPerson: 'na osobę',
         phone: 'Telefon',
