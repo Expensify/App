@@ -140,12 +140,14 @@ export default function WorkspaceCategoriesTable({
 
     const isEmpty = categories.length === 0;
     const shouldShowSearchBar = categories.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const tableHeaderComponent = (
-        <>
-            {headerComponent}
-            {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.categories.findCategory')} />}
-        </>
-    );
+    const searchBarComponent = shouldShowSearchBar ? <Table.SearchBar label={translate('workspace.categories.findCategory')} /> : undefined;
+    const tableHeaderComponent =
+        headerComponent || searchBarComponent ? (
+            <>
+                {headerComponent}
+                {searchBarComponent}
+            </>
+        ) : undefined;
 
     return (
         <Table

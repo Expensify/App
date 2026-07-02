@@ -75,12 +75,14 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
         />
     );
     const shouldShowSearchBar = taxes.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const tableHeaderComponent = (
-        <>
-            {headerComponent}
-            {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.taxes.findTaxRate')} />}
-        </>
-    );
+    const searchBarComponent = shouldShowSearchBar ? <Table.SearchBar label={translate('workspace.taxes.findTaxRate')} /> : undefined;
+    const tableHeaderComponent =
+        headerComponent || searchBarComponent ? (
+            <>
+                {headerComponent}
+                {searchBarComponent}
+            </>
+        ) : undefined;
 
     return (
         <Table

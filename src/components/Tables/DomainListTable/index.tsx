@@ -64,12 +64,14 @@ export default function DomainListTable({domains, headerComponent}: DomainListTa
     };
 
     const shouldShowSearchBar = domains.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const tableHeaderComponent = (
-        <>
-            {headerComponent}
-            {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.common.findDomain')} />}
-        </>
-    );
+    const searchBarComponent = shouldShowSearchBar ? <Table.SearchBar label={translate('workspace.common.findDomain')} /> : undefined;
+    const tableHeaderComponent =
+        headerComponent || searchBarComponent ? (
+            <>
+                {headerComponent}
+                {searchBarComponent}
+            </>
+        ) : undefined;
 
     const renderTableItem = ({item, index}: ListRenderItemInfo<DomainRowData>) => {
         return (

@@ -196,12 +196,14 @@ export default function WorkspaceTagsTable({
 
     const isEmpty = tags.length === 0;
     const shouldShowSearchBar = tags.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const tableHeaderComponent = (
-        <>
-            {headerComponent}
-            {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.tags.findTag')} />}
-        </>
-    );
+    const searchBarComponent = shouldShowSearchBar ? <Table.SearchBar label={translate('workspace.tags.findTag')} /> : undefined;
+    const tableHeaderComponent =
+        headerComponent || searchBarComponent ? (
+            <>
+                {headerComponent}
+                {searchBarComponent}
+            </>
+        ) : undefined;
 
     return (
         <Table

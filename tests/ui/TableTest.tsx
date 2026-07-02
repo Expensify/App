@@ -470,6 +470,33 @@ describe('Table', () => {
             expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 2);
         });
 
+        it('should not add a page-header row when no page header is provided', () => {
+            const props = createDefaultProps();
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    ref={tableRef}
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    shouldUseStickyColumnHeader
+                >
+                    <Table.Body />
+                </Table>,
+            );
+
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
+
+            act(() => {
+                tableRef.current?.scrollToIndex({index: 0, animated: false});
+            });
+
+            expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({index: 1, animated: false});
+        });
+
         it('should offset scrollToIndex calls when synthetic header rows are present', () => {
             const props = createDefaultProps();
             const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();

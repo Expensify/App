@@ -108,12 +108,14 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
     };
 
     const shouldShowSearchBar = workspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const tableHeaderComponent = (
-        <>
-            {headerComponent}
-            {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.common.findWorkspace')} />}
-        </>
-    );
+    const searchBarComponent = shouldShowSearchBar ? <Table.SearchBar label={translate('workspace.common.findWorkspace')} /> : undefined;
+    const tableHeaderComponent =
+        headerComponent || searchBarComponent ? (
+            <>
+                {headerComponent}
+                {searchBarComponent}
+            </>
+        ) : undefined;
 
     const renderTableItem = ({item, index}: ListRenderItemInfo<WorkspaceRowData>) => {
         return (
