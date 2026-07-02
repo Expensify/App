@@ -6009,6 +6009,7 @@ function getParentNavigationSubtitle(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     conciergeReportID: string | undefined,
+    translate: LocalizedTranslate,
     isParentReportArchived = false,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): ParentNavigationSummaryParams {
@@ -6023,8 +6024,8 @@ function getParentNavigationSubtitle(
 
         if (isExpenseReport(report)) {
             return {
-                reportName: translateLocal('workspace.common.policyExpenseChatName', reportOwnerDisplayName ?? ''),
-                workspaceName: getPolicyName({report, policy}),
+                reportName: translate('workspace.common.policyExpenseChatName', reportOwnerDisplayName ?? ''),
+                workspaceName: getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')}),
             };
         }
         if (isIOUReport(report)) {
@@ -6034,7 +6035,7 @@ function getParentNavigationSubtitle(
     }
 
     if (isInvoiceReport(report) || isInvoiceRoom(parentReport)) {
-        const senderWorkspaceName = getPolicyName({report: parentReport, policy});
+        const senderWorkspaceName = getPolicyName({report: parentReport, policy, unavailableTranslation: translate('workspace.common.unavailable')});
         const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(parentReport);
         const invoiceReceiverPolicy = invoiceReceiverPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`] : undefined;
         const isCurrentUserReceiver = isCurrentUserInvoiceReceiver(parentReport);
@@ -6046,7 +6047,7 @@ function getParentNavigationSubtitle(
         }
 
         if (isArchivedNonExpenseReport(parentReport, isParentReportArchived)) {
-            reportName += ` (${translateLocal('common.archived')})`;
+            reportName += ` (${translate('common.archived')})`;
         }
 
         return {
