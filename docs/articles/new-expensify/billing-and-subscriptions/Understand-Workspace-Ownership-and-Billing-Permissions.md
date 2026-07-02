@@ -1,5 +1,5 @@
 ---
-title: Understand Workspace Ownership
+title: Understand Workspace Ownership and Billing Permissions
 description: Learn how workspace ownership works in New Expensify, including who pays for a workspace, who can manage subscriptions, and how being a workspace owner differs from being a Workspace Admin.
 keywords: [billing owner, workspace Admin, subscription owner, billing permissions, workspace billing, workspace owner]
 internalScope: Audience is workspace owners and Workspace Admins. Explains workspace ownership, permissions, and responsibilities of the Workspace Owner. Does not include management procedures.
@@ -9,7 +9,7 @@ platform: new
 order: 3
 ---
 
-# Understand Workspace Ownership
+# Understand Workspace Ownership and Billing Permissions
 
 Every paid workspace has a workspace owner, sometimes called the billing owner. The owner is responsible for paying the workspace's Expensify subscription and is the only person who can manage billing-related settings like plans and subscriptions. 
 
