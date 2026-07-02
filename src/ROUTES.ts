@@ -144,7 +144,7 @@ const DYNAMIC_ROUTES = {
     },
     AI_FEATURES_PROMO: {
         path: 'ai-features-promo',
-        entryScreens: [SCREENS.HOME, SCREENS.INBOX, SCREENS.REPORT, SCREENS.SEARCH.ROOT, SCREENS.WORKSPACES_LIST, SCREENS.WORKSPACE.PROFILE, SCREENS.SETTINGS.ROOT],
+        entryScreens: ['*'],
     },
     EXPENSE_LIMIT_TYPE_SELECTOR: {
         path: 'expense-limit-type',
