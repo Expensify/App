@@ -1,11 +1,13 @@
 import type {FlashListProps, ListRenderItemInfo} from '@shopify/flash-list';
-import React, {memo, useEffect} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
+import React, {memo, useEffect, useState} from 'react';
+import {View} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 import FlashList from '@components/FlashList';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {FlatListRefType} from '@pages/inbox/ReportScreenContext';
+import variables from '@styles/variables';
 import type * as OnyxTypes from '@src/types/onyx';
-import MoneyRequestReportHorizontalScrollWrapper from './MoneyRequestReportHorizontalScrollWrapper';
+import ExternalScrollFlashListTable, {createScrollOffsetStore} from './ExternalScrollFlashListTable';
 import type {MoneyRequestReportTransactionListController, TransactionListItemData} from './MoneyRequestReportTransactionList';
 import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
 import ReportActionsListLoadingSkeleton from './ReportActionsListLoadingSkeleton';
@@ -101,8 +103,17 @@ function MoneyRequestReportUnifiedList({
     skeletonReasonAttributes,
     onLastItemIndexChange,
 }: MoneyRequestReportUnifiedListProps) {
+    // When the table is wider than the viewport it can't share the horizontally-scrolled container with the chat (chat
+    // would drift sideways / jump on web). Instead the FlashList virtualizes ONLY the report actions, and the table is
+    // rendered as the list header via ExternalScrollFlashListTable — a nested FlashList in its own single native
+    // horizontal scroller that windows its rows against THIS list's vertical scroll offset. Chat never lives inside a
+    // horizontal scroller, so it never moves sideways. Everywhere else the transactions stay virtualized inline with
+    // the report actions.
+    const isHorizontalTable = controller.shouldScrollHorizontally && !controller.isEmptyTransactions;
+    const shouldInlineTransactions = !isHorizontalTable && !controller.isEmptyTransactions;
+
     const reportActionItems: UnifiedListItem[] = visibleReportActions.map((action) => ({type: 'report-action', action}));
-    const data: UnifiedListItem[] = controller.isEmptyTransactions ? reportActionItems : [...controller.transactionListItems, TRANSACTIONS_FOOTER_ITEM, ...reportActionItems];
+    const data: UnifiedListItem[] = shouldInlineTransactions ? [...controller.transactionListItems, TRANSACTIONS_FOOTER_ITEM, ...reportActionItems] : reportActionItems;
 
     // Report the last index so callers can jump to the bottom via scrollToIndex.
     const lastDataIndex = data.length - 1;
@@ -112,7 +123,29 @@ function MoneyRequestReportUnifiedList({
     }, [lastDataIndex, onLastItemIndexChange]);
 
     const lastTransactionItemIndex = controller.transactionListItems.length - 1;
-    const reportActionIndexOffset = controller.isEmptyTransactions ? 0 : controller.transactionListItems.length + 1;
+    const reportActionIndexOffset = shouldInlineTransactions ? controller.transactionListItems.length + 1 : 0;
+
+    // Viewport height + table offset fed to the nested table so it can window its rows against this list's scroll.
+    // tableOffsetTop is the height of everything above the table region (the report-fields header).
+    const [viewportHeight, setViewportHeight] = useState(0);
+    const [tableOffsetTop, setTableOffsetTop] = useState(0);
+
+    // A subscribe/notify store carries the scroll offset to the nested table FlashList with zero parent re-renders.
+    // Lazy useState initializer (not useRef.current) so it is created exactly once without reading a ref during render.
+    const [scrollOffsetStore] = useState(createScrollOffsetStore);
+
+    const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        if (isHorizontalTable) {
+            // Emitter, not state: the nested FlashList updates its own render stack without re-rendering the parent.
+            scrollOffsetStore.setOffset(event.nativeEvent.contentOffset.y);
+        }
+        onScroll(event);
+    };
+
+    const handleLayout = (event: LayoutChangeEvent) => {
+        setViewportHeight(event.nativeEvent.layout.height);
+        onLayout();
+    };
 
     // The hook compares unreadMarkerReportActionIndex (0-based within visibleReportActions) against
     // raw FlashList indices. When transactions are present, report actions start at reportActionIndexOffset,
@@ -145,46 +178,71 @@ function MoneyRequestReportUnifiedList({
     const linkedActionLocalIndex = linkedReportActionID ? visibleReportActions.findIndex((action) => action.reportActionID === linkedReportActionID) : -1;
     const initialScrollIndex = linkedActionLocalIndex >= 0 ? linkedActionLocalIndex + reportActionIndexOffset : undefined;
 
+    // Only measure the header height when the horizontal table needs it as its offset; otherwise this state is unused.
+    const reportFieldsHeader = (
+        <View onLayout={isHorizontalTable ? (event: LayoutChangeEvent) => setTableOffsetTop(event.nativeEvent.layout.height) : undefined}>
+            <MoneyRequestViewReportFields
+                report={report}
+                policy={policy}
+            />
+        </View>
+    );
+
     return (
-        <MoneyRequestReportHorizontalScrollWrapper
-            shouldScroll={controller.shouldScrollHorizontally}
-            contentWidth={controller.tableMinWidth}
-            restorationKey={controller.horizontalScrollRestorationKey}
-        >
-            <MoneyRequestReportFlashList
-                ref={listRef}
-                accessibilityLabel={accessibilityLabel}
-                testID="money-request-report-actions-list"
-                data={data}
-                renderItem={dispatchRenderItem}
-                keyExtractor={unifiedListKeyExtractor}
-                getItemType={unifiedListItemType}
-                initialScrollIndex={initialScrollIndex}
-                maintainVisibleContentPosition={{
-                    autoscrollToBottomThreshold: 0,
-                }}
-                onViewableItemsChanged={onViewableItemsChangedAdjusted}
-                onLayout={onLayout}
-                onEndReached={onEndReached}
-                onStartReached={onStartReached}
-                ListHeaderComponent={
+        <MoneyRequestReportFlashList
+            ref={listRef}
+            accessibilityLabel={accessibilityLabel}
+            testID="money-request-report-actions-list"
+            data={data}
+            renderItem={dispatchRenderItem}
+            keyExtractor={unifiedListKeyExtractor}
+            getItemType={unifiedListItemType}
+            initialScrollIndex={initialScrollIndex}
+            maintainVisibleContentPosition={{
+                // In the windowed-table case `data` is report actions only, so during hydration the list briefly sits
+                // within the 0-threshold of the bottom and would auto-stick there (opening at the bottom of chat).
+                // The table lives in the header, so we want to open at the top; the app handles "jump to latest"
+                // explicitly (floating counter + current-user sends), so bottom auto-stick isn't needed here.
+                autoscrollToBottomThreshold: isHorizontalTable ? undefined : 0,
+            }}
+            onViewableItemsChanged={onViewableItemsChangedAdjusted}
+            onLayout={handleLayout}
+            onEndReached={onEndReached}
+            onStartReached={onStartReached}
+            ListHeaderComponent={
+                isHorizontalTable ? (
                     <>
-                        <MoneyRequestViewReportFields
-                            report={report}
-                            policy={policy}
+                        {reportFieldsHeader}
+                        <ExternalScrollFlashListTable<TransactionListItemData>
+                            items={controller.transactionListItems}
+                            keyExtractor={unifiedListKeyExtractor}
+                            getItemType={unifiedListItemType}
+                            renderItem={(item, _index, meta) => controller.renderTransactionListItem(item, meta)}
+                            renderHeader={() => controller.beforeListContent}
+                            estimatedRowHeight={variables.tableRowHeight}
+                            contentWidth={controller.tableMinWidth}
+                            store={scrollOffsetStore}
+                            viewportHeight={viewportHeight}
+                            offsetTop={tableOffsetTop}
                         />
+                        {/* Rendered outside the horizontal scroller so the totals/add-expense summary stays pinned to the viewport. */}
+                        {controller.afterListContent}
+                    </>
+                ) : (
+                    <>
+                        {reportFieldsHeader}
                         {controller.beforeListContent}
                     </>
-                }
-                keyboardShouldPersistTaps="handled"
-                onScroll={onScroll}
-                onScrollBeginDrag={onScrollBeginDrag}
-                onContentSizeChange={onContentSizeChange}
-                contentContainerStyle={contentContainerStyle}
-                ListEmptyComponent={!isOffline && isLoadingInitialActions ? <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} /> : undefined}
-                drawDistance={1000}
-            />
-        </MoneyRequestReportHorizontalScrollWrapper>
+                )
+            }
+            keyboardShouldPersistTaps="handled"
+            onScroll={handleScroll}
+            onScrollBeginDrag={onScrollBeginDrag}
+            onContentSizeChange={onContentSizeChange}
+            contentContainerStyle={contentContainerStyle}
+            ListEmptyComponent={!isOffline && isLoadingInitialActions ? <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} /> : undefined}
+            drawDistance={1000}
+        />
     );
 }
 
