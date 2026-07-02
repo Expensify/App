@@ -49,7 +49,7 @@ On mobile:
 ## How to forward receipts as a Copilot
 
 1. Forward the receipt email to [receipts@expensify.com](mailto:receipts@expensify.com).
-2. Include the account owner's email address in the subject line.
+2. Replace the email subject with the account owner's email address.
 
 The receipt is automatically SmartScanned to the account owner's Expensify account.
 
