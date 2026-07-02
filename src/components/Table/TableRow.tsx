@@ -56,14 +56,18 @@ export default function TableRow({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
-    const shouldEnableMobileSelectionLongPress = shouldUseNarrowLayout && !isInNarrowPaneModal;
+    // The selection UX keys off the real screen size (isSmallScreenWidth) rather than shouldUseNarrowLayout so that
+    // long-press selection and checkboxes still work when the table is rendered inside a narrow pane modal (RHP),
+    // where shouldUseNarrowLayout is always true regardless of screen size. Visual layout keeps using shouldUseNarrowTableLayout.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const shouldEnableMobileSelectionLongPress = isSmallScreenWidth;
     const {processedData, columns, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, isMobileSelectionEnabled} = useTableContext();
 
     const item = processedData.at(rowIndex);
     const rowCount = processedData.length;
     const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr'));
-    const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !shouldUseNarrowLayout);
+    const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !isSmallScreenWidth);
 
     const isDisabled = !!disabled;
     const isFirstRow = rowIndex === 0;
@@ -145,7 +149,7 @@ export default function TableRow({
             return;
         }
 
-        if (!shouldUseNarrowLayout || !isMobileSelectionEnabled || !selectionEnabled) {
+        if (!isSmallScreenWidth || !isMobileSelectionEnabled || !selectionEnabled) {
             onPress?.();
             return;
         }

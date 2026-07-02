@@ -53,9 +53,12 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // isSelectionCheckboxVisible keys off isSmallScreenWidth (real mobile) rather than shouldUseNarrowLayout so the
+    // header checkbox renders when the table is inside a narrow pane modal (RHP). The visual padding below still uses shouldUseNarrowLayout.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {columns, isEmptyResult, title, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, processedData, isMobileSelectionEnabled} = useTableContext<DataType, ColumnKey>();
-    const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !shouldUseNarrowLayout);
+    const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !isSmallScreenWidth);
 
     if (shouldUseNarrowTableLayout && !title) {
         return null;
