@@ -13,6 +13,11 @@ import type {Policy} from '@src/types/onyx';
 import useOnboardingWorkspaceCreationState from './useOnboardingWorkspaceCreationState';
 import useOnyx from './useOnyx';
 
+type AutoCreateSubmitWorkspaceOptions = {
+    /** Whether to run the CompleteGuidedSetup request. Defaults to `true` for the onboarding flow. */
+    shouldCompleteOnboarding?: boolean;
+};
+
 /**
  * Hook that provides a function to auto-create a Submit workspace for EMPLOYER
  * users during onboarding and complete the onboarding flow.
@@ -48,7 +53,10 @@ function useAutoCreateSubmitWorkspace() {
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const autoCreateSubmitWorkspace = useCallback(
-        async (firstName: string, lastName: string) => {
+        async (firstName: string, lastName: string, options?: AutoCreateSubmitWorkspaceOptions) => {
+            // Callers that already finished onboarding (e.g. the Submit plan welcome modal) don't need to
+            // run guided setup again, so they can skip the CompleteGuidedSetup request entirely.
+            const shouldCompleteOnboarding = options?.shouldCompleteOnboarding ?? true;
             const shouldCreateWorkspace = !isRestrictedPolicyCreation && !onboardingPolicyID && !hasEditableGroupPolicy;
             const displayName = createDisplayName(currentUserEmail, {firstName, lastName}, formatPhoneNumber);
 
@@ -74,20 +82,22 @@ function useAutoCreateSubmitWorkspace() {
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
-            try {
-                await completeOnboarding({
-                    engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
-                    onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.EMPLOYER],
-                    firstName,
-                    lastName,
-                    adminsChatReportID: newAdminsChatReportID,
-                    onboardingPolicyID: newPolicyID,
-                    introSelected,
-                    isSelfTourViewed,
-                    conciergeChat,
-                });
-            } catch (error) {
-                Log.warn('[useAutoCreateSubmitWorkspace] Error completing onboarding', {error});
+            if (shouldCompleteOnboarding) {
+                try {
+                    await completeOnboarding({
+                        engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                        onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.EMPLOYER],
+                        firstName,
+                        lastName,
+                        adminsChatReportID: newAdminsChatReportID,
+                        onboardingPolicyID: newPolicyID,
+                        introSelected,
+                        isSelfTourViewed,
+                        conciergeChat,
+                    });
+                } catch (error) {
+                    Log.warn('[useAutoCreateSubmitWorkspace] Error completing onboarding', {error});
+                }
             }
 
             setOnboardingAdminsChatReportID();

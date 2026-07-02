@@ -31,11 +31,6 @@ type DismissedProductTraining = {
      */
     [CONST.MIGRATED_USER_WELCOME_MODAL]: DismissedProductTrainingElement;
 
-    /**
-     * When user dismisses (or acts on) the Submit plan in-product Welcome Modal, we store the timestamp here.
-     */
-    [CONST.SUBMIT_PLAN_WELCOME_MODAL]: DismissedProductTrainingElement;
-
     // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
     // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
     /**

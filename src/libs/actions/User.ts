@@ -1362,6 +1362,13 @@ function dismissASAPSubmitExplanation(shouldDismiss: boolean) {
     Onyx.merge(ONYXKEYS.NVP_DISMISSED_ASAP_SUBMIT_EXPLANATION, shouldDismiss);
 }
 
+/**
+ * Persist that the user has seen the Submit plan migration in-product modal so it is never shown again.
+ */
+function setSubmitMigrationModalShown() {
+    setNameValuePair(ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN, true, false);
+}
+
 function requestRefund() {
     API.write(WRITE_COMMANDS.REQUEST_REFUND, null);
 }
@@ -1987,6 +1994,7 @@ export {
     clearDraftCustomStatus,
     requestRefund,
     setNameValuePair,
+    setSubmitMigrationModalShown,
     clearUnvalidatedNewContactMethodAction,
     clearPendingContactActionErrors,
     requestValidateCodeAction,

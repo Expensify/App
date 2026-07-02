@@ -8,14 +8,13 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import {getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
-import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Beta, BetaConfiguration, DismissedProductTraining, IntroSelected, Policy, Session} from '@src/types/onyx';
+import type {Beta, BetaConfiguration, IntroSelected, Policy, Session} from '@src/types/onyx';
 import type {GuardContext, GuardResult, NavigationGuard} from './types';
 
 let session: OnyxEntry<Session>;
@@ -25,8 +24,8 @@ let betaConfiguration: OnyxEntry<BetaConfiguration>;
 let introSelected: OnyxEntry<IntroSelected>;
 let policies: OnyxCollection<Policy>;
 let hasCompletedGuidedSetupFlow: boolean | undefined;
-let dismissedProductTraining: OnyxEntry<DismissedProductTraining>;
-let isDismissedProductTrainingLoaded = false;
+let hasShownSubmitMigrationModal: OnyxEntry<boolean>;
+let isSubmitMigrationModalShownLoaded = false;
 
 let hasRedirectedToSubmitPlanModal = false;
 
@@ -41,7 +40,7 @@ function resetSessionFlag() {
 /**
  * Returns true when the current user matches the "existing Get paid back intent" audience:
  * the SUBMIT_2026 beta is enabled, they picked the EMPLOYER onboarding intent, completed onboarding,
- * haven't dismissed the modal, and don't already belong to any workspace where they can submit reports.
+ * haven't seen the modal yet, and don't already belong to any workspace where they can submit reports.
  *
  * The last check uses `getGroupPoliciesWhereReportCanBeCreated` (paid Team/Corporate AND free Submit
  * workspaces) rather than only paid policies. This intentionally excludes users who just created a
@@ -56,18 +55,18 @@ function shouldShowSubmitPlanWelcomeModal(): boolean {
         introSelected?.choice === CONST.ONBOARDING_CHOICES.EMPLOYER &&
         !!hasCompletedGuidedSetupFlow &&
         getGroupPoliciesWhereReportCanBeCreated(policies, isSubmit2026BetaEnabled, session?.email).length === 0 &&
-        !isProductTrainingElementDismissed(CONST.SUBMIT_PLAN_WELCOME_MODAL, dismissedProductTraining)
+        !hasShownSubmitMigrationModal
     );
 }
 
 /**
  * Proactively navigate to the submit plan welcome modal when all conditions are met,
  * without waiting for a user-initiated navigation action.
- * Waits for NVP_DISMISSED_PRODUCT_TRAINING to load before evaluating, preventing the
+ * Waits for NVP_SUBMIT_MIGRATION_MODAL_SHOWN to load before evaluating, preventing the
  * race condition where the modal would re-appear on app restart.
  */
 function navigateToSubmitPlanWelcomeModalIfReady() {
-    if (!session?.authToken || isLoadingApp || hasRedirectedToSubmitPlanModal || !isDismissedProductTrainingLoaded || !shouldShowSubmitPlanWelcomeModal()) {
+    if (!session?.authToken || isLoadingApp || hasRedirectedToSubmitPlanModal || !isSubmitMigrationModalShownLoaded || !shouldShowSubmitPlanWelcomeModal()) {
         return;
     }
 
@@ -128,11 +127,12 @@ Onyx.connectWithoutView({
 });
 
 Onyx.connectWithoutView({
-    key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
+    key: ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN,
     callback: (value) => {
-        dismissedProductTraining = value;
-        isDismissedProductTrainingLoaded = true;
-        if (isProductTrainingElementDismissed(CONST.SUBMIT_PLAN_WELCOME_MODAL, value)) {
+        hasShownSubmitMigrationModal = value;
+        isSubmitMigrationModalShownLoaded = true;
+        // Once the modal has been recorded as shown, release the block so the user can navigate away freely.
+        if (value) {
             hasRedirectedToSubmitPlanModal = false;
         }
         navigateToSubmitPlanWelcomeModalIfReady();
@@ -146,12 +146,7 @@ Onyx.connectWithoutView({
  */
 function shouldBlockWhileModalActive(state: NavigationState, action: NavigationAction): boolean {
     const isAllowedAction = action.type === CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL || action.type === CONST.NAVIGATION.ACTION_TYPE.GO_BACK;
-    return (
-        hasRedirectedToSubmitPlanModal &&
-        !isProductTrainingElementDismissed(CONST.SUBMIT_PLAN_WELCOME_MODAL, dismissedProductTraining) &&
-        state.routes.at(-1)?.name === NAVIGATORS.SUBMIT_PLAN_MODAL_NAVIGATOR &&
-        !isAllowedAction
-    );
+    return hasRedirectedToSubmitPlanModal && !hasShownSubmitMigrationModal && state.routes.at(-1)?.name === NAVIGATORS.SUBMIT_PLAN_MODAL_NAVIGATOR && !isAllowedAction;
 }
 
 /** Prevents redirect loops by detecting when we're already on or resetting to the modal. */
@@ -169,7 +164,7 @@ function isNavigatingToSubmitPlanModal(state: NavigationState, action: Navigatio
 /**
  * SubmitPlanWelcomeModalGuard handles the in-product Submit plan welcome modal flow.
  * This modal appears for users who previously selected the "Get paid back" (EMPLOYER) intent,
- * are not on any paid workspace, and haven't dismissed it yet (behind the SUBMIT_2026 beta).
+ * are not on any paid workspace, and haven't seen it yet (behind the SUBMIT_2026 beta).
  */
 const SubmitPlanWelcomeModalGuard: NavigationGuard = {
     name: 'SubmitPlanWelcomeModalGuard',
@@ -188,10 +183,10 @@ const SubmitPlanWelcomeModalGuard: NavigationGuard = {
         }
 
         // Guard against the race condition where the beta/intro/policy NVPs arrive before
-        // NVP_DISMISSED_PRODUCT_TRAINING has been fetched. Without this check, a navigation
-        // firing between those Onyx callbacks would see an undefined dismissedProductTraining
-        // and incorrectly redirect users who already dismissed the modal.
-        if (!isDismissedProductTrainingLoaded) {
+        // NVP_SUBMIT_MIGRATION_MODAL_SHOWN has been fetched. Without this check, a navigation
+        // firing between those Onyx callbacks would see an undefined flag and incorrectly redirect
+        // users who already saw the modal.
+        if (!isSubmitMigrationModalShownLoaded) {
             return {type: 'ALLOW'};
         }
 

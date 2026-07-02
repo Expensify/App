@@ -9,7 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 const mockAutoCreateSubmitWorkspace = jest.fn();
 const mockGoBack = jest.fn();
-const mockDismissProductTraining = jest.fn();
+const mockSetSubmitMigrationModalShown = jest.fn();
 
 jest.mock('@hooks/useLocalize', () => () => ({
     translate: (key: string) => key,
@@ -27,9 +27,9 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     },
 }));
 
-jest.mock('@libs/actions/Welcome', () => ({
-    dismissProductTraining: (...args: unknown[]) => {
-        mockDismissProductTraining(...args);
+jest.mock('@userActions/User', () => ({
+    setSubmitMigrationModalShown: (...args: unknown[]) => {
+        mockSetSubmitMigrationModalShown(...args);
     },
 }));
 
@@ -46,7 +46,7 @@ describe('SubmitPlanWelcomeModal', () => {
     beforeEach(() => {
         mockAutoCreateSubmitWorkspace.mockClear();
         mockGoBack.mockClear();
-        mockDismissProductTraining.mockClear();
+        mockSetSubmitMigrationModalShown.mockClear();
     });
 
     function renderModal() {
@@ -62,7 +62,7 @@ describe('SubmitPlanWelcomeModal', () => {
 
         fireEvent.press(screen.getByText('submitPlanWelcomeModal.confirmText'));
 
-        expect(mockAutoCreateSubmitWorkspace).toHaveBeenCalledWith('John', 'Doe');
+        expect(mockAutoCreateSubmitWorkspace).toHaveBeenCalledWith('John', 'Doe', {shouldCompleteOnboarding: false});
     });
 
     it('navigates back (dismissing the modal) when "No thanks" is pressed', () => {

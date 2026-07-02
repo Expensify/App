@@ -109,14 +109,9 @@ describe('SubmitPlanWelcomeModalGuard', () => {
         expect(result.type).toBe('ALLOW');
     });
 
-    it('should allow when the modal has been dismissed', async () => {
+    it('should allow when the modal has already been shown', async () => {
         await setUpEligibleUser();
-        await Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
-            [CONST.SUBMIT_PLAN_WELCOME_MODAL]: {
-                timestamp: new Date().toISOString(),
-                dismissedMethod: 'click',
-            },
-        });
+        await Onyx.merge(ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN, true);
         await waitForBatchedUpdates();
 
         const result = SubmitPlanWelcomeModalGuard.evaluate(mockState, mockAction, defaultContext);

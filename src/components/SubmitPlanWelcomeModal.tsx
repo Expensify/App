@@ -6,10 +6,13 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {dismissProductTraining} from '@libs/actions/Welcome';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import colors from '@styles/theme/colors';
+import variables from '@styles/variables';
+import {setSubmitMigrationModalShown} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import CenteredModalLayout from './CenteredModalLayout';
@@ -26,24 +29,26 @@ const FEATURE_TRANSLATION_KEYS: TranslationPaths[] = [
 function SubmitPlanWelcomeModal() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['ReceiptUpload']);
+    const illustrations = useMemoizedLazyIllustrations(['ReceiptWrangler']);
     const {firstName, lastName} = useCurrentUserPersonalDetails();
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
 
     // Whenever this modal is removed from the navigation stack (confirmed, dismissed, or closed),
-    // record the dismissal so it never triggers again.
+    // persist that the user has seen it so it never triggers again.
     useBeforeRemove(() => {
-        Log.info('[SubmitPlanWelcomeModal] dismissing submit plan welcome modal');
-        dismissProductTraining(CONST.SUBMIT_PLAN_WELCOME_MODAL);
+        Log.info('[SubmitPlanWelcomeModal] marking submit migration modal as shown');
+        setSubmitMigrationModalShown();
     });
 
     const handleClose = () => Navigation.goBack();
 
     const handleConfirm = () => {
-        // autoCreateSubmitWorkspace dismisses the modal and navigates to Categories with #admins in the RHP,
-        // which removes this screen and triggers the useBeforeRemove dismissal above.
-        autoCreateSubmitWorkspace(firstName ?? '', lastName ?? '');
+        // The user has already completed onboarding, so we skip CompleteGuidedSetup and just create the
+        // Submit workspace. autoCreateSubmitWorkspace then dismisses this modal and navigates to Categories
+        // with #admins in the RHP, which triggers the useBeforeRemove persistence above.
+        autoCreateSubmitWorkspace(firstName ?? '', lastName ?? '', {shouldCompleteOnboarding: false});
     };
 
     return (
@@ -52,7 +57,13 @@ function SubmitPlanWelcomeModal() {
             contentStyle={[styles.pt0, styles.pb0]}
         >
             <FeatureTrainingContent
-                image={illustrations.ReceiptUpload}
+                image={illustrations.ReceiptWrangler}
+                imageWidth={variables.submitPlanWelcomeModalIconSize}
+                imageHeight={variables.submitPlanWelcomeModalIconSize}
+                contentFitImage="contain"
+                illustrationAspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}
+                illustrationInnerContainerStyle={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getBackgroundColorStyle(colors.yellow400)]}
+                illustrationOuterContainerStyle={styles.p0}
                 title={translate('submitPlanWelcomeModal.title')}
                 description={translate('submitPlanWelcomeModal.description')}
                 confirmText={translate('submitPlanWelcomeModal.confirmText')}
