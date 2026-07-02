@@ -8,21 +8,22 @@ import Log from './Log';
 // one when the app is stale. Neither value is shown in the UI, so we read them with
 // connectWithoutView. Do not copy this into a component: use useOnyx there so the UI updates.
 
-let lastFullReconnectTime = '';
-Onyx.connectWithoutView({
-    key: ONYXKEYS.LAST_FULL_RECONNECT_TIME,
-    callback: (value) => {
-        lastFullReconnectTime = value ?? '';
-        doFullReconnectIfNecessary();
-    },
-});
-
 let serverReconnectCutoff = '';
+let lastFullReconnectTime = '';
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE,
     callback: (value) => {
         serverReconnectCutoff = value ?? '';
-        doFullReconnectIfNecessary();
+        if (serverReconnectCutoff) {
+            const connection = Onyx.connectWithoutView({
+                key: ONYXKEYS.LAST_FULL_RECONNECT_TIME,
+                callback: (value) => {
+                    Onyx.disconnect(connection);
+                    lastFullReconnectTime = value ?? '';
+                    doFullReconnectIfNecessary();
+                },
+            });
+        }
     },
 });
 

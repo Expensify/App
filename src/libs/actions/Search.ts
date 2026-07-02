@@ -832,6 +832,10 @@ function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPagePara
     write(WRITE_COMMANDS.OPEN_BULK_CHANGE_APPROVER_PAGE, {reportIDList}, {optimisticData, successData});
 }
 
+function searchForTodos() {
+    read(READ_COMMANDS.SEARCH_FOR_TODOS, null);
+}
+
 // Tracks in-flight search requests by hash+offset to prevent duplicate API calls
 // when both page-level (useSearchPageSetup) and Search-internal (handleSearch) effects
 // fire for the same query. Cleared when the request completes.
@@ -1823,5 +1827,6 @@ export {
     getPolicyFromSearchSnapshot,
     getReportFromSearchSnapshot,
     resolveSearchPayPaymentMethod,
+    searchForTodos,
 };
 export type {TransactionPreviewData};

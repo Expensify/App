@@ -35,6 +35,7 @@ import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
 import {setShouldForceOffline} from './Network';
 import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
 import {createDraftInitialWorkspace, createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from './Policy/Policy';
+import {searchForTodos} from './Search';
 
 type PolicyParamsForOpenOrReconnect = {
     policyIDList: string[];
@@ -449,7 +450,7 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
     }
 
     const params: OpenAppParams = {...getPolicyParamsForOpenOrReconnect(), enablePriorityModeFilter: true};
-    return API.writeWithNoDuplicatesConflictAction(
+    const openAppPromise = API.writeWithNoDuplicatesConflictAction(
         WRITE_COMMANDS.OPEN_APP,
         params,
         getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments),
@@ -459,6 +460,10 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
         }
         endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
     });
+
+    loadPostDataForOpenOrReconnect();
+
+    return openAppPromise;
 }
 
 /**
@@ -501,13 +506,28 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
         }
 
         const isFullReconnect = !updateIDFrom;
-        return API.writeWithNoDuplicatesReconnectConflictAction(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded)).finally(() => {
+        const reconnectAppPromise = API.writeWithNoDuplicatesReconnectConflictAction(
+            WRITE_COMMANDS.RECONNECT_APP,
+            params,
+            getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded),
+        ).finally(() => {
             if (!bootsplashSpan) {
                 return;
             }
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
         });
+
+        loadPostDataForOpenOrReconnect();
+
+        return reconnectAppPromise;
     });
+}
+
+/**
+ * Fires asynchronous requests to load more data that is required by the App but not returned in OpenApp/ReconnectApp
+ */
+function loadPostDataForOpenOrReconnect() {
+    searchForTodos();
 }
 
 /**
