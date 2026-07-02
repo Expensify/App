@@ -53,6 +53,12 @@ Once removed, you can no longer access that account unless the account owner gra
 
 The receipt is automatically SmartScanned to the account owner's Expensify account.
 
+## How to exit a Copilot account and return to your own account
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+2. At the top of the page, select the account owner's name to open the account switcher.
+3. Select your name.
+
 ## What happens after you switch to a Copilot account
 
 When acting as a Copilot:
@@ -60,7 +66,6 @@ When acting as a Copilot:
  - You'll see the expenses, reports, chats, and settings that belong to the account you're supporting, based on the permissions you've been granted.
  - Actions you perform are labeled as being completed on behalf of the account owner.
  - Some actions may be unavailable if you've been granted Limited Access.
- - You can return to your own account at any time by switching accounts again.
 
 **Note:** If you're acting as a Copilot, both you and the account owner count as active members when you perform billable activity in the account.
     
@@ -68,7 +73,9 @@ When acting as a Copilot:
 
 ## Can I access multiple accounts as a Copilot?
 
-Yes. If multiple members grant you Copilot access, you can switch between those accounts from your account switcher.
+Yes. If multiple members grant you Copilot access, you can switch between those accounts.
+
+To switch between Copilot accounts, first return to your own account, then switch to the other member's account.
 
 ## How do I know I'm acting as a Copilot?
 
