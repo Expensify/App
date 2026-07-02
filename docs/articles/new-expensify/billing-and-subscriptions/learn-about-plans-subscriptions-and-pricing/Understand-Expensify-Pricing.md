@@ -8,7 +8,7 @@ contentType: topic
 platform: new
 ---
 
-# Understand Expensify pricing
+# Understand Expensify Pricing
 
 Expensify pricing depends on your Workspace plan, subscription type, billing currency, and, for some subscriptions, qualifying Expensify Card usage. This article lists the current subscription rates and pricing rules.
 
