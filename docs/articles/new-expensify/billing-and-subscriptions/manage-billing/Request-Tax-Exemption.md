@@ -3,8 +3,8 @@ title: Request Tax Exemption
 description: Learn how to request tax exemption for your Expensify subscription by submitting your organization's tax exemption documentation.
 keywords: [request tax-exempt status, tax exemption, sales tax exemption, nonprofit billing, VAT, ST-119, 501(c)]
 internalScope: Audience is Workspace Admins and billing contacts. Covers requesting tax-exempt status for an Expensify subscription. Does not cover removing tax-exempt status or tax refund requests.
+retrievalIntent: Request tax exemption for an Expensify subscription.
 contentType: task
-etrievalIntent: Request tax exemption for an Expensify subscription.
 ---
 
 # Request Tax Exemption
@@ -25,22 +25,14 @@ Your documentation should include your VAT number (or RUT if your organization i
 
 ## How to request tax exemption
 
-1. Go to **Account** > **Subscription** > **Subscription settings**.
-2. Click **Tax exempt status**.
-3. A chat with Concierge will open automatically.
-4. Tell Concierge that your organization is tax-exempt.
-5. Attach a PDF of your tax-exempt documentation.
-6. Submit your request.
-
-<!-- SCREENSHOT:
-Suggestion: Subscription settings page showing the Tax exempt status option.
-Location: After step 2.
-Purpose: Help admins locate the correct subscription setting.
--->
+1. Go to **Account** > **Subscription**.
+2. Select **Subscription settings**.
+3. Click **Tax exempt status**.
+4. A chat with Concierge will open automatically. Tell Concierge that your organization is tax-exempt and attach a PDF of your tax-exempt documentation.
 
 ## What happens after you request tax exemption
 
-Our team reviews your documentation and contacts you if additional information is required.
+Our team reviews your documentation and contacts you if additional information is required. Once your request has been processed, Concierge will send you a message to confirm your account has tax exempt status.
 
 After your request is approved, sales tax will no longer be applied to future Expensify subscription invoices.
 
