@@ -39,7 +39,6 @@ const biometricsMock: Pick<UseBiometricsReturn, 'serverKnownCredentialIDs' | 'ar
 
 function resetMfaUiMocks() {
     pendingModalClose.clear();
-    biometricsMock.serverKnownCredentialIDs = [];
 }
 
 function biometricsHookMock() {
@@ -80,4 +79,4 @@ function navigationMock() {
     };
 }
 
-export {pendingModalClose, biometricsMock, resetMfaUiMocks, biometricsHookMock, syncHistoryMock, navigationMock};
+export {pendingModalClose, resetMfaUiMocks, biometricsHookMock, syncHistoryMock, navigationMock};
