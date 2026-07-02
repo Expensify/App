@@ -4,7 +4,7 @@ import truncate from 'lodash/truncate';
 import React, {useContext, useEffect} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import type {ButtonWithDropdownMenuRef} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
@@ -449,13 +449,14 @@ function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction}: {primaryA
     return (
         <View style={wrapperStyle}>
             <Button
-                text={translate('common.more')}
-                iconRight={icons.DownArrow}
-                shouldShowRightIcon
+                size={CONST.BUTTON_SIZE.MEDIUM}
                 innerStyles={innerStyles}
                 style={shouldTakeRemainingWidth ? styles.w100 : undefined}
                 onPress={() => {}}
-            />
+            >
+                <Button.Text>{translate('common.more')}</Button.Text>
+                <Button.Icon src={icons.DownArrow} />
+            </Button>
         </View>
     );
 }
