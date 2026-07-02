@@ -174,7 +174,7 @@ describe('AgentsTableRow', () => {
         );
 
         expect(screen.getByText('common.edit')).toBeOnTheScreen();
-        expect(screen.getByText('agentsPage.copilot')).toBeOnTheScreen();
+        expect(screen.getByText('delegate.copilot')).toBeOnTheScreen();
         expect(screen.getByLabelText('editAgentPage.chatWithAgent')).toBeOnTheScreen();
     });
 
@@ -188,7 +188,7 @@ describe('AgentsTableRow', () => {
         );
 
         expect(screen.queryByText('common.edit')).not.toBeOnTheScreen();
-        expect(screen.queryByText('agentsPage.copilot')).not.toBeOnTheScreen();
+        expect(screen.queryByText('delegate.copilot')).not.toBeOnTheScreen();
         expect(screen.queryByLabelText('editAgentPage.chatWithAgent')).not.toBeOnTheScreen();
     });
 

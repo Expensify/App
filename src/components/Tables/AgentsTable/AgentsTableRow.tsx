@@ -98,16 +98,14 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
                                     isDisabled={areActionsDisabled}
                                     accessibilityLabel={translate('editAgentPage.chatWithAgent')}
                                     sentryLabel={CONST.SENTRY_LABEL.AGENTS.CHAT}
-                                    innerStyles={styles.p0}
                                 />
                                 <Button
                                     small
-                                    text={translate('agentsPage.copilot')}
+                                    text={translate('delegate.copilot')}
                                     onPress={item.onCopilotPress}
                                     isDisabled={areActionsDisabled}
                                     accessibilityLabel={translate('editAgentPage.copilotIntoAccount')}
                                     sentryLabel={CONST.SENTRY_LABEL.AGENTS.COPILOT}
-                                    innerStyles={styles.p0}
                                 />
                                 <Button
                                     small
@@ -115,7 +113,6 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
                                     onPress={item.action}
                                     isDisabled={isPendingDeletion}
                                     sentryLabel={CONST.SENTRY_LABEL.AGENTS.EDIT}
-                                    innerStyles={styles.p0}
                                 />
                             </View>
                         )}

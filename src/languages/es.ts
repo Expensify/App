@@ -2734,7 +2734,6 @@ ${amount} para ${merchant} - ${date}`,
         title: 'Agentes',
         subtitle: `<muted-text>Los agentes gestionan tus flujos de trabajo por ti, para que recuperes horas en tu día. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Más información</a>.</muted-text>`,
         findAgent: 'Buscar agente',
-        copilot: 'Co-piloto',
         newAgent: 'Nuevo agente',
         emptyAgents: {
             title: 'No se han creado agentes.',
