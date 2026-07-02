@@ -827,7 +827,7 @@ const translations: TranslationDeepObject<typeof en> = {
         joinThread: '加入会话',
         leaveThread: '离开会话',
         copyOnyxData: '复制 Onyx 数据',
-        copyAgentZeroRequestID: '复制 AgentZero 请求 ID',
+        viewAgentZeroTrace: '查看 AgentZero 跟踪',
         flagAsOffensive: '标记为攻击性内容',
         menu: '菜单',
     },
