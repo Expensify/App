@@ -24,4 +24,3 @@ function showConfirmModalAfterMoreMenuDismiss(showConfirmModal: ShowConfirmModal
 }
 
 export default showConfirmModalAfterMoreMenuDismiss;
-export type {ShowConfirmModal, ShowConfirmModalOptions, ShowConfirmModalResult};
