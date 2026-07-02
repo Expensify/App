@@ -326,14 +326,16 @@ function scheduleStuckQueueCheck() {
             return;
         }
 
-        const hasWork = getAllPersistedRequests().length > 0 || !!getPersistedOngoingRequest();
-        if (!hasWork) {
+        // Only recover the deadlock this targets: pending requests that never start because no leader
+        // flushes them. If a request is already in flight (ongoing), a live leader is/was processing it,
+        // so promoting could re-issue that same request as a duplicate write — don't.
+        const hasStalledWork = getAllPersistedRequests().length > 0 && !getPersistedOngoingRequest();
+        if (!hasStalledWork) {
             return;
         }
 
         Log.alert('[SequentialQueue] Queue stuck with no leader flushing it; self-promoting to leader to recover.', {
             persistedRequestsLength: getAllPersistedRequests().length,
-            hasOngoingRequest: !!getPersistedOngoingRequest(),
         });
         promoteToLeader();
         flush();

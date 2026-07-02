@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import * as NetworkState from '@libs/NetworkState';
-import {clear as clearPersistedRequests, save as savePersistedRequest} from '@userActions/PersistedRequests';
+import {clear as clearPersistedRequests, save as savePersistedRequest, updateOngoingRequest} from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
@@ -75,6 +75,18 @@ describe('SequentialQueue leader-election recovery', () => {
 
         // Leadership is acquired through the normal path (e.g. ActiveClientManager re-adds us) before the timer fires.
         mockLeaderState.isLeader = true;
+
+        jest.advanceTimersByTime(CONST.NETWORK.STUCK_QUEUE_LEADER_PROMOTION_TIMEOUT_MS);
+
+        expect(mockPromoteToLeader).not.toHaveBeenCalled();
+    });
+
+    it('does not self-promote while a request is already in flight (avoids duplicate writes)', async () => {
+        // A live leader in another tab has a request in flight that outlasts the timeout (e.g. slow upload).
+        // Promoting here would re-issue the same ongoing request as a duplicate, so we must not.
+        updateOngoingRequest(request);
+        await waitForBatchedUpdates();
+        SequentialQueue.flush();
 
         jest.advanceTimersByTime(CONST.NETWORK.STUCK_QUEUE_LEADER_PROMOTION_TIMEOUT_MS);
 

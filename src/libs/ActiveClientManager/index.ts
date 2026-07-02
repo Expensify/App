@@ -36,6 +36,9 @@ Onyx.connectWithoutView({
             return;
         }
 
+        // Whether this client was present in the incoming list, captured before the cap trim below mutates it.
+        const wasClientInList = val.includes(clientID);
+
         activeClients = val;
 
         // Remove from the beginning of the list any clients that are past the limit, to avoid having thousands of them
@@ -46,9 +49,10 @@ Onyx.connectWithoutView({
         }
 
         // A late disk-hydration event can overwrite the list and drop this live client, handing
-        // leadership to a stale/ghost GUID and stalling the SequentialQueue. Re-append ourselves so
-        // we're never silently removed while still alive (unless we're intentionally leaving).
-        if (hasInitialized && !isLeavingTab && !activeClients.includes(clientID)) {
+        // leadership to a stale/ghost GUID and stalling the SequentialQueue. Re-append ourselves when a
+        // stale write dropped us (we were never in the incoming list) — but not when the cap trim above
+        // intentionally evicted us, which would otherwise thrash leadership with 20+ open tabs.
+        if (hasInitialized && !isLeavingTab && !wasClientInList) {
             activeClients.push(clientID);
             changed = true;
         }
