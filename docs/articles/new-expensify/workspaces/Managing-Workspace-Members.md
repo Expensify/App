@@ -1,7 +1,7 @@
 ---
 title: Managing Workspace Members in New Expensify
 description: Learn how to add, remove, filter, and manage user roles in a New Expensify workspace.
-keywords: [New Expensify, workspace members, add user, remove user, user roles, workspace admin, invite users, filter members, role filter]
+keywords: [New Expensify, workspace members, add user, remove user, user roles, workspace admin, card admin, invite users, filter members, role filter]
 ---
 
 
@@ -13,6 +13,7 @@ A **Workspace member** is anyone added to a workspace with one of the following 
 - **Admin** – Can manage members, roles, workflows, and settings.
 - **People Admin** – Can manage workspace membership and configure approval workflows. People Admins can add and remove Members and Auditors only, and cannot add or remove Admins or other scoped admin roles. They have read-only access to the workspace overview and edit access to Members and the Approvals section of Workflows. All other workspace editor pages are hidden.
 - **Auditor** – Can view and comment on reports and has read-only access to all workspace editor pages (such as Categories, Tags, Rules, Workflows, and Accounting). Auditors cannot change any workspace settings or take workflow actions such as approving, paying, or taking control.
+- **Card Admin** – Can manage the Expensify Card and Company cards, including issuing cards, setting limits, and assigning company cards. Has read-only access to Overview and Members, and all other workspace settings pages are hidden.
 
 ---
 
@@ -41,11 +42,15 @@ You can filter the member list by role to quickly find specific groups of member
 2. Click the role filter dropdown at the top of the member list.
 3. Select one of the available roles:
    - **All members** – Shows all workspace members (default).
-   - **Admins** – Shows only members with the Admin role.
    - **Approvers** – Shows only members who are designated approvers.
+   - **Workspace Admins** – Shows only members with the Admin role (not available on Submit workspaces).
+   - **Editors** – Shows only members with the Editor role (Submit workspaces only).
+   - **Card Admins** – Shows only members with the Card Admin role (Control workspaces only).
    - **Auditors** – Shows only members with the Auditor role (Control workspaces only).
 
 The member list updates immediately to show only members matching the selected role. You can also combine the role filter with the search bar to narrow results further.
+
+The roles available in the filter depend on your workspace type, so the options change if you switch your workspace plan. If you’ve filtered by a role that is no longer available after a plan change, the filter automatically resets to **All members**.
 
 If no members match the selected filter, an empty state is displayed with the message: "No members match this filter."
 

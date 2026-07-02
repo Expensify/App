@@ -10,6 +10,7 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {
     ReportActionListItemType,
+    SearchListItem,
     TaskListItemType,
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
@@ -222,8 +223,15 @@ type SearchSelectionActionsValue = {
      */
     setSelectedTransactions: {
         (selectedTransactionIDs: string[], unused?: undefined): void;
-        (selectedTransactions: SelectedTransactions, data?: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[]): void;
+        (selectedTransactions: SelectedTransactions, data?: SearchData): void;
     };
+    /**
+     * Atomically transform the current selection. The updater receives the previous selection map and returns the
+     * next one, so callers (e.g. the screen-level write actions) can read-modify-write without subscribing to — and
+     * thus re-rendering on — selection state. Passing `data` derives `selectedReports` in the same commit; passing
+     * `totalSelectableItemsCount` unchecks "select all matching" when the new selection no longer covers every item.
+     */
+    applySelection: (updater: (previousSelectedTransactions: SelectedTransactions) => SelectedTransactions, options?: {data?: SearchData; totalSelectableItemsCount?: number}) => void;
     setSelectedReports: (reports: SelectedReports[]) => void;
     setCurrentSelectedTransactionReportID: (reportID: string | undefined) => void;
     /** If you want to clear `selectedTransactionIDs`, pass `true` as the first argument */
@@ -233,6 +241,22 @@ type SearchSelectionActionsValue = {
     };
     removeTransaction: (transactionID: string | undefined) => void;
     selectAllMatchingItems: (on: boolean) => void;
+};
+
+/** The displayed (filtered, grouped) search rows. A homogeneous list of one of the four list-item kinds. */
+type SearchData = TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[];
+
+/**
+ * Stable-identity selection write actions consumed by rows and the table header. Provided at screen level by
+ * `SearchWriteActionsProvider` (which owns the screen-derived data the actions operate on) and kept on its own
+ * context — separate from both the selection state context and the bulk-action setters — so pressing a checkbox
+ * never re-renders consumers that only need to dispatch.
+ */
+type SearchRowSelectionActionsValue = {
+    /** Toggle selection of a single transaction row or a group (report / grouped rows). */
+    toggle: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
+    /** Toggle selection of all currently selectable items. */
+    toggleAll: () => void;
 };
 
 /** Composed value of all three Search state contexts. Kept as a union for callers that need the full bag shape (e.g. test fixtures, action `searchContext` payloads). */
@@ -260,18 +284,6 @@ type ReportFieldNegatedKey = `${typeof CONST.SEARCH.REPORT_FIELD.NOT_PREFIX}${st
 type ReportFieldDateKey = `${typeof CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX}${ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>}-${string}`;
 type ReportFieldKey = ReportFieldTextKey | ReportFieldDateKey | ReportFieldNegatedKey;
 
-type SearchBooleanFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE;
-
-type SearchTextFilterKeys =
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT
-    | ReportFieldTextKey;
-
 type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED
@@ -286,11 +298,6 @@ type SearchDateKey = `${SearchDateFilterKeys}${ValueOf<typeof CONST.SEARCH.DATE_
 
 type SearchAmountFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT;
 type SearchAmountValues = Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, string | undefined>;
-
-type SearchCurrencyFilterKeys =
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY;
 
 type SearchFilterKey =
     | SyntaxFilterKey
@@ -426,7 +433,6 @@ export type {
     SelectedTransactions,
     SearchColumnType,
     SearchSortBy,
-    SearchBooleanFilterKeys,
     SearchDateFilterKeys,
     SearchDateKey,
     SearchAmountFilterKeys,
@@ -447,6 +453,8 @@ export type {
     SearchResultsActionsValue,
     SearchSelectionContextValue,
     SearchSelectionActionsValue,
+    SearchData,
+    SearchRowSelectionActionsValue,
     ASTNode,
     QueryFilter,
     QueryFilters,
@@ -467,10 +475,8 @@ export type {
     SearchDatePreset,
     SearchWithdrawalType,
     SearchWithdrawalStatus,
-    SearchCurrencyFilterKeys,
     UserFriendlyValue,
     SelectedReports,
-    SearchTextFilterKeys,
     BankAccountMenuItem,
     SearchCustomColumnIds,
     GroupedItem,

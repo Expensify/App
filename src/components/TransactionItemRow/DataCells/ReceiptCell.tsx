@@ -15,7 +15,20 @@ import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
 import type {Transaction} from '@src/types/onyx';
 
-function ReceiptCell({transactionItem, isSelected, style, shouldUseNarrowLayout}: {transactionItem: Transaction; isSelected: boolean; style?: ViewStyle; shouldUseNarrowLayout?: boolean}) {
+function ReceiptCell({
+    transactionItem,
+    isSelected,
+    style,
+    shouldUseNarrowLayout,
+    shouldShowPreview = true,
+}: {
+    transactionItem: Transaction;
+    isSelected: boolean;
+    style?: ViewStyle;
+    shouldUseNarrowLayout?: boolean;
+    /** Whether the hovered receipt preview may be shown. Set to false to dismiss it (e.g. when the screen is no longer focused). */
+    shouldShowPreview?: boolean;
+}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -81,7 +94,7 @@ function ReceiptCell({transactionItem, isSelected, style, shouldUseNarrowLayout}
             {shouldMountPreview && (
                 <ReceiptPreview
                     source={previewSource}
-                    hovered={hovered}
+                    hovered={hovered && shouldShowPreview}
                     isEReceipt={!!isEReceipt}
                     transactionItem={transactionItem}
                 />

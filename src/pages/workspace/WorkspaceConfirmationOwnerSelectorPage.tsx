@@ -1,132 +1,96 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useSearchSelector from '@hooks/useSearchSelector';
+import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftValues} from '@libs/actions/FormActions';
 import {searchInServer} from '@libs/actions/Report';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
-import {getHeaderMessage} from '@libs/OptionsListUtils';
-import type {OptionWithKey} from '@libs/OptionsListUtils/types';
+import {getHeaderMessage, getUserToInviteOption} from '@libs/PersonalDetailOptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
 import type {Participant} from '@src/types/onyx/IOU';
-import type IconAsset from '@src/types/utils/IconAsset';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-/**
- * Helper function to create a formatted user list item
- */
-function createUserListItem(
-    personalDetails: ReturnType<typeof getPersonalDetailByEmail>,
-    login: string,
-    keyPrefix: string,
-    isSelected: boolean,
-    fallBackAvatarIcon: IconAsset,
-): OptionWithKey {
-    const accountID = personalDetails?.accountID ?? generateAccountID(login);
-    return {
-        ...(personalDetails ?? {}),
-        text: personalDetails?.displayName ?? login,
-        alternateText: personalDetails?.login ?? login,
-        login: personalDetails?.login ?? login,
-        keyForList: `${keyPrefix}-${personalDetails?.login ?? login}`,
-        accountID,
-        isSelected,
-        shouldShowSubscript: undefined,
-        icons: [
-            {
-                source: personalDetails?.avatar ?? fallBackAvatarIcon,
-                name: formatPhoneNumber(personalDetails?.login ?? login),
-                type: CONST.ICON_TYPE_AVATAR,
-                id: accountID,
-            },
-        ],
-    };
-}
+type WorkspaceConfirmationOwnerSelectorPageContentProps = {
+    /** The currently selected workspace owner login (from the draft, falling back to the current user) */
+    currentOwner: string;
+};
 
-function WorkspaceConfirmationOwnerSelectorPage() {
-    const {translate} = useLocalize();
+function WorkspaceConfirmationOwnerSelectorPageContent({currentOwner}: WorkspaceConfirmationOwnerSelectorPageContentProps) {
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
-    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
-    const [draftValues] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM_DRAFT);
-    const currentOwner = draftValues?.owner ?? currentUserLogin ?? '';
-    const ownerPersonalDetails = getPersonalDetailByEmail(currentOwner);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.OWNER_SELECTOR.path);
 
-    const excludeLogins = useMemo(
-        () => ({
-            ...CONST.EXPENSIFY_EMAILS_OBJECT,
-        }),
-        [],
-    );
+    const ownerPersonalDetails = getPersonalDetailByEmail(currentOwner);
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized, onListEndReached} = useSearchSelector({
+    // When the current owner isn't in the personal details list (e.g. an external email), build an optimistic option to seed the selection
+    const ownerExtraOption =
+        !currentOwner || ownerPersonalDetails ? undefined : (getUserToInviteOption({searchValue: currentOwner, countryCode, formatPhoneNumber, loginList: {}}) ?? undefined);
+
+    const ownerAccountID = ownerPersonalDetails?.accountID ?? ownerExtraOption?.accountID;
+    const initialSelected = new Set(ownerAccountID ? [String(ownerAccountID)] : []);
+    const initialExtraOptions = ownerExtraOption ? [{...ownerExtraOption, isSelected: true}] : [];
+
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized} = usePersonalDetailSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-        excludeLogins,
+        excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         includeRecentReports: true,
-        getValidOptionsConfig: {
-            excludeLogins,
-        },
+        includeUserToInvite: true,
+        initialSelected,
+        initialExtraOptions,
     });
 
-    const sections = useMemo(() => {
+    const sections = (() => {
         const sectionsList = [];
-        const currentUserPersonalDetails = getPersonalDetailByEmail(currentUserLogin ?? '');
 
-        if (currentOwner) {
-            const ownerItem = createUserListItem(ownerPersonalDetails, currentOwner, 'currentOwner', true, icons.FallbackAvatar);
+        // Current owner (always pinned at the top) — sourced from the hook's selected option
+        if (availableOptions.selectedOptions.length > 0) {
             sectionsList.push({
-                data: [ownerItem],
+                data: availableOptions.selectedOptions,
                 sectionIndex: 0,
             });
         }
 
-        if (currentUserLogin && currentUserLogin !== currentOwner) {
-            const currentUserItem = createUserListItem(currentUserPersonalDetails, currentUserLogin, 'currentUser', false, icons.FallbackAvatar);
+        // "Switch back to me" quick-pick — only when the current user isn't already the owner
+        if (availableOptions.currentUserOption) {
             sectionsList.push({
-                data: [currentUserItem],
+                data: [availableOptions.currentUserOption],
                 sectionIndex: 1,
             });
         }
 
-        const filteredRecentReports = availableOptions.recentReports?.filter((report) => report.login !== currentOwner) ?? [];
-        if (filteredRecentReports.length > 0) {
+        if (availableOptions.recentOptions.length > 0) {
             sectionsList.push({
                 title: translate('common.recents'),
-                data: filteredRecentReports,
+                data: availableOptions.recentOptions,
                 sectionIndex: 2,
             });
         }
 
-        const filteredPersonalDetails = availableOptions.personalDetails?.filter((contact) => contact.login !== currentOwner) ?? [];
-        if (filteredPersonalDetails.length > 0) {
+        if (availableOptions.personalDetails.length > 0) {
             sectionsList.push({
                 title: translate('common.contacts'),
-                data: filteredPersonalDetails,
+                data: availableOptions.personalDetails,
                 sectionIndex: 3,
             });
         }
 
-        if (availableOptions.userToInvite && availableOptions.userToInvite.login !== currentOwner) {
+        if (availableOptions.userToInvite) {
             sectionsList.push({
                 data: [availableOptions.userToInvite],
                 sectionIndex: 4,
@@ -134,47 +98,37 @@ function WorkspaceConfirmationOwnerSelectorPage() {
         }
 
         return sectionsList;
-    }, [
-        currentOwner,
-        currentUserLogin,
-        ownerPersonalDetails,
-        translate,
-        availableOptions.recentReports,
-        availableOptions.personalDetails,
-        availableOptions.userToInvite,
-        icons.FallbackAvatar,
-    ]);
+    })();
 
-    const onSelectRow = useCallback(
-        (option: Participant) => {
-            // Clear search to prevent "No results found" after selection
-            setSearchTerm('');
+    const onSelectRow = (option: Participant) => {
+        // Clear search to prevent "No results found" after selection
+        setSearchTerm('');
 
-            setDraftValues(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM, {
-                [INPUT_IDS.OWNER]: option?.login,
-            });
+        setDraftValues(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM, {
+            [INPUT_IDS.OWNER]: option?.login,
+        });
 
-            // Navigate back to the confirmation form
-            Navigation.goBack(backPath);
-        },
-        [setSearchTerm, backPath],
-    );
+        // Navigate back to the confirmation form
+        Navigation.goBack(backPath);
+    };
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
+    const searchValue = debouncedSearchTerm.trim().toLowerCase();
+    const headerMessage = (() => {
+        if (sections.length > 0) {
+            return '';
+        }
+        return getHeaderMessage(translate, searchValue, countryCode);
+    })();
+
     const textInputOptions = {
         onChangeText: setSearchTerm,
         value: searchTerm,
         label: translate('selectionList.nameEmailOrPhoneNumber'),
-        headerMessage: getHeaderMessage(
-            (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
-            !!availableOptions.userToInvite,
-            debouncedSearchTerm.trim(),
-            countryCode,
-            false,
-        ),
+        headerMessage,
     };
 
     return (
@@ -195,12 +149,23 @@ function WorkspaceConfirmationOwnerSelectorPage() {
                     textInputOptions={textInputOptions}
                     shouldShowLoadingPlaceholder={!areOptionsInitialized}
                     isLoadingNewOptions={!!isSearchingForReports}
-                    onEndReached={onListEndReached}
                     shouldSingleExecuteRowSelect
                 />
             </View>
         </ScreenWrapper>
     );
+}
+
+function WorkspaceConfirmationOwnerSelectorPage() {
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM_DRAFT);
+
+    // Wait for the draft to load so the initial owner selection is seeded correctly on mount
+    if (isLoadingOnyxValue(draftValuesMetadata)) {
+        return <FullscreenLoadingIndicator reasonAttributes={{context: 'WorkspaceConfirmationOwnerSelectorPage', isLoadingDraftValues: true}} />;
+    }
+
+    return <WorkspaceConfirmationOwnerSelectorPageContent currentOwner={draftValues?.owner ?? currentUserLogin ?? ''} />;
 }
 
 export default WorkspaceConfirmationOwnerSelectorPage;

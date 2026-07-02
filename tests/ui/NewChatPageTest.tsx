@@ -7,7 +7,6 @@ import Onyx from 'react-native-onyx';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import OptionsListContextProvider from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import NewChatPage from '@pages/NewChatPage';
 import CONST from '@src/CONST';
@@ -46,9 +45,7 @@ const wrapper = ({children}: {children: React.ReactNode}) => (
     <OnyxListItemProvider>
         <HTMLEngineProvider>
             <LocaleContextProvider>
-                <OptionsListContextProvider>
-                    <ScreenWrapper testID="test">{children}</ScreenWrapper>
-                </OptionsListContextProvider>
+                <ScreenWrapper testID="test">{children}</ScreenWrapper>
             </LocaleContextProvider>
         </HTMLEngineProvider>
     </OnyxListItemProvider>
@@ -138,8 +135,14 @@ describe('NewChatPage', () => {
         const input = screen.getByTestId('selection-list-text-input');
         fireEvent.changeText(input, invitedEmail);
 
-        // Wait for the invite option to appear, then select it via its "Add to group" button.
-        const addButton = await waitFor(() => screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0));
+        // Wait for the invite row to appear — this confirms the debounce has fired and regular
+        // contacts are filtered out, so the only "Add to group" button is the invite row's.
+        await waitFor(() => {
+            expect(screen.getAllByText(invitedEmail).length).toBeGreaterThan(0);
+        });
+
+        // Select the invite option via its "Add to group" button.
+        const addButton = screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0);
         if (addButton) {
             fireEvent.press(addButton);
         }

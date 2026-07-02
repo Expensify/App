@@ -52,10 +52,10 @@ jest.mock('@src/selectors/Onboarding', () => ({
     hasSeenTourSelector: () => true,
 }));
 
-const mockClearCopyPolicySettings = clearCopyPolicySettings as jest.MockedFunction<typeof clearCopyPolicySettings>;
-const mockRequestNotification = requestCopyPolicySettingsNotification as jest.MockedFunction<typeof requestCopyPolicySettingsNotification>;
-const mockSetCopyPolicySettingsData = setCopyPolicySettingsData as jest.MockedFunction<typeof setCopyPolicySettingsData>;
-const mockNavigateToConcierge = navigateToConciergeChat as jest.MockedFunction<typeof navigateToConciergeChat>;
+const mockClearCopyPolicySettings = jest.mocked(clearCopyPolicySettings);
+const mockRequestNotification = jest.mocked(requestCopyPolicySettingsNotification);
+const mockSetCopyPolicySettingsData = jest.mocked(setCopyPolicySettingsData);
+const mockNavigateToConcierge = jest.mocked(navigateToConciergeChat);
 
 function renderModal() {
     return render(<CopyPolicySettingsProgressModal />);
@@ -66,15 +66,14 @@ describe('CopyPolicySettingsProgressModal', () => {
         Onyx.init({keys: ONYXKEYS});
     });
 
-    beforeEach(async () => {
+    beforeEach(() => {
         lastModalProps = undefined;
-        await Onyx.clear();
-        await waitForBatchedUpdates();
         jest.clearAllMocks();
+        return Onyx.clear().then(waitForBatchedUpdates);
     });
 
-    afterEach(async () => {
-        await Onyx.clear();
+    afterEach(() => {
+        return Onyx.clear();
     });
 
     describe('visibility', () => {

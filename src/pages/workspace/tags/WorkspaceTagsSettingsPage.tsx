@@ -27,7 +27,7 @@ import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 
 type WorkspaceTagsSettingsPageProps =
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_SETTINGS>
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_TAGS_SETTINGS>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_SETTINGS>;
 
 /**
@@ -52,7 +52,7 @@ function toggleBillableExpenses(policy: OnyxEntry<Policy>) {
 
 function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
     const policyID = route.params.policyID;
-    const backTo = route.params.backTo;
+    const backTo = 'backTo' in route.params ? route.params.backTo : undefined;
     const styles = useThemeStyles();
     const policyData = usePolicyData(policyID);
     const {tags: policyTags} = policyData;
@@ -85,7 +85,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                             Navigation.navigate(
                                 isQuickSettingsFlow
                                     ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAGS_EDIT.getRoute(policyTagLists.at(0)?.orderWeight ?? 0))
-                                    : ROUTES.WORKSPACE_EDIT_TAGS.getRoute(policyID, policyTagLists.at(0)?.orderWeight ?? 0),
+                                    : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EDIT_TAGS.getRoute(policyTagLists.at(0)?.orderWeight ?? 0)),
                             );
                         }}
                         shouldShowRightIcon
