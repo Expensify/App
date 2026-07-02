@@ -1,4 +1,5 @@
 import type {Ref} from 'react';
+import type {StyleProp, TextStyle} from 'react-native';
 import type {TranslationPaths} from '@src/languages/types';
 
 type BaseTwoFactorAuthFormRef = {
@@ -16,6 +17,9 @@ type TwoFactorAuthFormProps = {
 
     /** Translation key for the description rendered when the user has switched to entering a recovery code. Defaults to the disable-2FA prose. */
     descriptionKeyWithRecovery?: TranslationPaths;
+
+    /** Style applied to the description text. Callers that render the description outside of a form-only page (e.g. the replace-device flow) pass the same textLabel style the page used to render inline. */
+    descriptionStyle?: StyleProp<TextStyle>;
 
     /** Callback to call when the form is submitted with a valid code */
     onSubmit: (code: string) => void;
