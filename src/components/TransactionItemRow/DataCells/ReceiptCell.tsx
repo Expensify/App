@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import type {ViewStyle} from 'react-native';
 import ReceiptImage from '@components/ReceiptImage';
 import ReceiptPreview from '@components/TransactionItemRow/ReceiptPreview';
+import type {AnchorPosition} from '@components/TransactionItemRow/types';
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -43,7 +44,7 @@ function ReceiptCell({
     const cellRef = useRef<View>(null);
     // The preview is a document.body portal, so it needs the hovered cell's window position to
     // anchor itself beside the row instead of sitting fixed in the upper-left corner.
-    const [previewAnchor, setPreviewAnchor] = useState<{top: number; left: number; width: number; height: number}>();
+    const [previewAnchor, setPreviewAnchor] = useState<AnchorPosition>();
 
     const handleMouseEnter = () => {
         if (!shouldMountPreview) {

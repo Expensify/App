@@ -1,3 +1,4 @@
+import type {AnchorPosition} from '@components/TransactionItemRow/types';
 import variables from '@styles/variables';
 
 /** Width of the preview, shared with `styles.receiptPreview.width` via `variables.receiptPreviewWidth`. */
@@ -11,8 +12,6 @@ const RECEIPT_PREVIEW_EDGE_MARGIN = 24;
 
 /** Minimum slice of the preview kept on-screen so a row near the bottom doesn't push it fully out of view. */
 const RECEIPT_PREVIEW_MIN_VISIBLE_HEIGHT = 160;
-
-type AnchorPosition = {top: number; left: number; width: number; height: number};
 
 /**
  * Anchors the preview's bottom-left corner to the right of the hovered thumbnail, so the preview grows upward
@@ -49,4 +48,3 @@ function getAnchoredPreviewPosition(anchorPosition: AnchorPosition | undefined, 
 
 export default getAnchoredPreviewPosition;
 export {RECEIPT_PREVIEW_WIDTH, RECEIPT_PREVIEW_GAP, RECEIPT_PREVIEW_EDGE_MARGIN, RECEIPT_PREVIEW_MIN_VISIBLE_HEIGHT};
-export type {AnchorPosition};
