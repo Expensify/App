@@ -2,7 +2,7 @@
 title: Understand Billing Terms and Definitions
 description: Learn what common subscription billing terms mean in Expensify, including plans, subscriptions, members, seats, payment methods, and billing settings.
 keywords: [billing terms, billing glossary, subscription, plan, active member, unique member, seats, payment card, Expensify Card]
-internalScope: Audience is workspace Owners. Explains the terminology used throughout subscription billing. Does not explain billing workflows or troubleshooting.
+internalScope: Audience is workspace owners. Explains the terminology used throughout subscription billing. Does not explain billing workflows or troubleshooting.
 retrievalIntent: Define common Expensify billing terminology, including subscriptions, plans, subscription types, members, seats, payment methods, and billing settings.
 contentType: topic
 platform: new
@@ -47,11 +47,11 @@ A **member** is anyone who belongs to a workspace.
 
 Collect subscriptions bill based on **unique members**, which includes every member in the workspace, regardless of whether they used Expensify during the billing period.
 
-Control subscriptions bill based on **active members**, which are members who performed billable activity during the billing period, such as creating, editing, submitting, approving, reimbursing, or exporting expense data.
+Control subscriptions bill based on **active members**, which are members who performed billable activity during the billing period. Billable activity includes creating, editing, submitting, approving, or exporting expense data, or chatting with Concierge. 
 
-You may also see the term **workspace Admin**, which refers to a member who manages workspace settings. 
+You may also see the term **Workspace Admin**, which refers to a member who manages workspace settings. 
 
-The **workspace Owner** is responsible for managing a workspace's subscription and payment method. 
+The **workspace owner** is responsible for managing a workspace's subscription and payment method. 
 
 <!-- LINK: Workspace member roles article when created -->
 
