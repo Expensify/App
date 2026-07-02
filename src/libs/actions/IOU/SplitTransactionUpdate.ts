@@ -214,6 +214,7 @@ function updateSplitTransactions({
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
     const allChildTransactions = getChildTransactions(allTransactionsList, originalTransactionID, false);
+    const originalChildTransactions = allChildTransactions.filter((childTransaction) => childTransaction?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID);
     const processedChildTransactionIDs: string[] = [];
 
     const splitExpensesTotal = transactionData?.splitExpensesTotal ?? 0;
@@ -1257,7 +1258,8 @@ function updateSplitTransactions({
         onyxData.failureData?.push(...(updateMoneyRequestParamsOnyxData.failureData ?? []), ...failureDataComments);
     }
 
-    // All transactions that were deleted in the split list will be marked as deleted in onyx
+    // All transactions that were deleted in the split list will be marked as deleted in onyx.
+    // Unfiltered — the loop below already branches on isSelfDMTransaction per item.
     const undeletedTransactions = allChildTransactions.filter(
         (currentTransaction) => !processedChildTransactionIDs.includes(currentTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID),
     );
@@ -1380,7 +1382,7 @@ function updateSplitTransactions({
         }
     }
     if (isReverseSplitOperation) {
-        const deletedSplitSnapshotKeys = allChildTransactions.reduce<Array<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`>>((acc, childTransaction) => {
+        const deletedSplitSnapshotKeys = originalChildTransactions.reduce<Array<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`>>((acc, childTransaction) => {
             if (!childTransaction?.transactionID) {
                 return acc;
             }
@@ -1692,7 +1694,12 @@ function updateSplitTransactions({
             },
         });
         pushUpdatedReportPreviewActionToOnyxData();
-        const isLastTransactionInReport = Object.values(allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID).length === 1;
+        // Skip only when the reverse split's restored transaction stays in expenseReportID — that
+        // report isn't becoming empty. If the surviving split lives in a different report (e.g. it
+        // was moved elsewhere), expenseReportID can still genuinely lose its last transaction.
+        const reverseSplitKeepsOriginalInThisReport = isReverseSplitOperation && splitExpenses.at(0)?.reportID === expenseReportID;
+        const isLastTransactionInReport =
+            !reverseSplitKeepsOriginalInThisReport && Object.values(allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID).length === 1;
         if (isLastTransactionInReport && expenseReportID) {
             onyxData.optimisticData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1866,6 +1873,8 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     const originalTransactionID = params.transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const allChildTransactions = getChildTransactions(params.allTransactionsList, originalTransactionID, false);
     const hasEditableSplitExpensesLeft = splitExpenses.some((expense) => (expense.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.SUBMITTED);
+    // Unfiltered, so a pure selfDM 2-split still collapses via REVERT_SPLIT_TRANSACTION. The mixed
+    // workspace/selfDM case is guarded below via reverseSplitKeepsOriginalInExpenseReport instead.
     const isReverseSplitOperation = splitExpenses.length === 1 && allChildTransactions.length > 0 && hasEditableSplitExpensesLeft;
     const expenseReportID = params.expenseReport?.reportID;
 
@@ -1884,7 +1893,9 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         !!expenseReportID && areAllExpenseReportTransactionsSplitChildren && !anyRemainingSplitStaysInExpenseReport && !reverseSplitKeepsOriginalInExpenseReport;
     const isLastTransactionInReport =
         willExpenseReportBecomeEmpty ||
-        (isReverseSplitOperation && Object.values(params.allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID).length === 1);
+        (isReverseSplitOperation &&
+            !reverseSplitKeepsOriginalInExpenseReport &&
+            Object.values(params.allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID).length === 1);
     const fallbackReportID = params.expenseReport?.chatReportID ?? params.expenseReport?.parentReportID;
 
     if (isLastTransactionInReport && fallbackReportID) {
