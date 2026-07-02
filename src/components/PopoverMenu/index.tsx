@@ -35,6 +35,7 @@ import type {AnchorPosition} from '@src/styles';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
+import useCloseOnEscape from './v2/content/useCloseOnEscape';
 
 type PopoverMenuItem = MenuItemProps & {
     /** Text label */
@@ -565,6 +566,14 @@ function BasePopoverMenu({
     // can cause the parent view to scroll when the space bar is pressed.
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SPACE, keyboardShortcutSpaceCallback, {isActive: isWeb && isVisible, shouldPreventDefault: false});
 
+    const handleClose = useCallback(() => {
+        setCurrentMenuItems(menuItems);
+        setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
+        onClose();
+    }, [menuItems, onClose]);
+
+    useCloseOnEscape(isVisible, handleClose);
+
     const handleModalHide = () => {
         onModalHide?.();
         setHasKeyBeenPressed(false);
@@ -674,11 +683,7 @@ function BasePopoverMenu({
             anchorPosition={anchorPosition}
             anchorRef={anchorRef}
             anchorAlignment={anchorAlignment}
-            onClose={() => {
-                setCurrentMenuItems(menuItems);
-                setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
-                onClose();
-            }}
+            onClose={handleClose}
             isVisible={isVisible}
             onModalHide={handleModalHide}
             onModalShow={onModalShow}

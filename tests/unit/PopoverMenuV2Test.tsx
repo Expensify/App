@@ -112,6 +112,28 @@ function pressShortcut(shortcutKey: string): void {
     act(() => entry.callback());
 }
 
+// useCloseOnEscape installs via claimEscapeKeyDown — capture the handler so tests can fire it.
+let mockActiveEscapeHandler: (() => void) | null = null;
+jest.mock('@libs/claimEscapeKeyDown', () => ({
+    __esModule: true,
+    default: (handler: () => void) => {
+        mockActiveEscapeHandler = handler;
+        return () => {
+            if (mockActiveEscapeHandler !== handler) {
+                return;
+            }
+            mockActiveEscapeHandler = null;
+        };
+    },
+}));
+
+function pressEscape(): void {
+    if (!mockActiveEscapeHandler) {
+        return;
+    }
+    act(() => mockActiveEscapeHandler?.());
+}
+
 const mockNavigationState: {blurListeners: Set<() => void>} = {
     blurListeners: new Set(),
 };
@@ -393,6 +415,67 @@ describe('PopoverMenu V2', () => {
                 </Harness>,
             );
             expect(onOpenChange).not.toHaveBeenCalledWith(false);
+        });
+
+        it('closes when Escape is pressed while open', () => {
+            const onOpenChange = jest.fn();
+            render(
+                <Harness
+                    initialOpen
+                    onOpenChange={onOpenChange}
+                >
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Item
+                            text="A"
+                            onSelect={() => {}}
+                        />
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+            onOpenChange.mockClear();
+            pressEscape();
+            expect(onOpenChange).toHaveBeenCalledWith(false);
+        });
+
+        it('closes the whole popover on Escape even when a sub is the active level', () => {
+            const onOpenChange = jest.fn();
+            render(
+                <Harness
+                    initialOpen
+                    onOpenChange={onOpenChange}
+                >
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Sub id="sub">
+                            <PopoverMenu.Sub.Trigger text="More" />
+                            <PopoverMenu.Sub.Content>
+                                <PopoverMenu.Sub.BackButton text="Back" />
+                                <PopoverMenu.Item
+                                    text="Inner"
+                                    onSelect={() => {}}
+                                />
+                            </PopoverMenu.Sub.Content>
+                        </PopoverMenu.Sub>
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+            press('More');
+            onOpenChange.mockClear();
+            pressEscape();
+            expect(onOpenChange).toHaveBeenCalledWith(false);
+        });
+
+        it('Escape listener is not installed while the popover is closed', () => {
+            render(
+                <Harness>
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Item
+                            text="A"
+                            onSelect={() => {}}
+                        />
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+            expect(mockActiveEscapeHandler).toBeNull();
         });
     });
 
