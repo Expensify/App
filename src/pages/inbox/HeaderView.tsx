@@ -222,7 +222,6 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         <AccountManagerBookCallButton
             calendarLink={accountManagerDetails?.accountManagerCalendarLink ?? ''}
             accountManagerAccountID={shouldShowAccountManagerBookCallInConcierge ? accountManagerDetails?.accountManagerAccountID : undefined}
-            style={shouldUseNarrowLayout ? styles.w100 : undefined}
         />
     );
 
