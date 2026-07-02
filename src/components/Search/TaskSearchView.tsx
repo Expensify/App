@@ -10,7 +10,7 @@ import useSearchListViewState from './hooks/useSearchListViewState';
 import AnimatedExitRow from './primitives/AnimatedExitRow';
 import SelectionTopBar from './primitives/SelectionTopBar';
 import BaseSearchList from './SearchList/BaseSearchList';
-import ChatListItem from './SearchList/ListItem/ChatListItem';
+import TaskListItem from './SearchList/ListItem/TaskListItem';
 import type {SearchListItem} from './SearchList/ListItem/types';
 import SearchListViewLayout from './SearchListViewLayout';
 import type {SearchColumnType, SearchQueryJSON} from './types';
@@ -20,8 +20,8 @@ type SearchListHandle = {
     scrollToIndex: (index: number, animated?: boolean) => void;
 };
 
-type ChatSearchViewProps = {
-    /** The chat search query. */
+type TaskSearchViewProps = {
+    /** The task search query. */
     queryJSON: SearchQueryJSON;
 
     /** The sorted rows to render (from the router's useSearchSnapshot). */
@@ -81,15 +81,14 @@ const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ??
 const isRowDeleted = (item: SearchListItem) => item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
 /**
- * The chat Search list.
+ * The task Search list.
  *
  * Rendered by `<Search>` as a child of the selection providers. The shared list state and interactions come
  * from `useSearchListViewState`, and the surrounding chrome from `SearchListViewLayout`; this view only owns
- * the chat specifics: the `ChatListItem` renderer and single-pass selection counts. Chat rows have no
- * column data, no checkbox, and no exit animation (only grouped expenses animate), and long press is
- * suppressed, so this is the leanest of the Search views.
+ * the task specifics: the `TaskListItem` renderer and single-pass selection counts. Task rows have no column
+ * data, no checkbox, and no exit animation (only grouped expenses animate), and long press is suppressed.
  */
-function ChatSearchView({
+function TaskSearchView({
     queryJSON,
     data,
     columns,
@@ -108,18 +107,16 @@ function ChatSearchView({
     contentContainerStyle,
     containerStyle,
     ref,
-}: ChatSearchViewProps) {
+}: TaskSearchViewProps) {
     const {type} = queryJSON;
 
-    const {isKeyboardShown, safeAreaPaddingBottomStyle, isLargeScreenWidth, toggleAll, selectedTransactions, listRef, onLongPressRow, modal, handleSelectRow, scrollToListIndex} =
-        useSearchListViewState({
-            data,
-            isMobileSelectionModeEnabled,
-            onSelectRow,
-            shouldPreventLongPressRow: true,
-        });
+    const {isOffline, isKeyboardShown, safeAreaPaddingBottomStyle, isLargeScreenWidth, toggleAll, selectedTransactions, listRef, onLongPressRow, modal, handleSelectRow, scrollToListIndex} =
+        useSearchListViewState({data, isMobileSelectionModeEnabled, onSelectRow, shouldPreventLongPressRow: true});
 
-    // Chat is a flat list: no group children, no empty groups, so selection counts are a single pass.
+    // Task is a flat list, so visibility and selection counts are a single pass over the rows.
+    const isItemVisible = (item: SearchListItem) => !isRowDeleted(item) || isOffline;
+    const lastVisibleIndex = data.findLastIndex(isItemVisible);
+
     const selectedItemsLength = data.reduce((acc, item) => acc + (item.keyForList && selectedTransactions[item.keyForList]?.isSelected ? 1 : 0), 0);
     const totalItems = data.filter((item) => !isRowDeleted(item)).length;
 
@@ -127,12 +124,12 @@ function ChatSearchView({
     useImperativeHandle(ref, () => ({scrollToIndex: scrollToListIndex}), [scrollToListIndex]);
 
     const renderItem = (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => (
-        // Chat rows never animate their exit (only grouped expenses do), so the wrapper just preserves the overflow clip.
+        // Task rows never animate their exit (only grouped expenses do), so the wrapper just preserves the overflow clip.
         <AnimatedExitRow
             shouldApplyAnimation={false}
             hasItemsBeingRemoved={false}
         >
-            <ChatListItem
+            <TaskListItem
                 showTooltip
                 isFocused={isItemFocused}
                 onSelectRow={handleSelectRow}
@@ -142,6 +139,7 @@ function ChatSearchView({
                 isDisabled={isRowDeleted(item)}
                 onFocus={onFocus}
                 keyForList={item.keyForList}
+                isLastItem={index === lastVisibleIndex && !ListFooterComponent}
             />
         </AnimatedExitRow>
     );
@@ -197,4 +195,4 @@ function ChatSearchView({
     );
 }
 
-export default ChatSearchView;
+export default TaskSearchView;

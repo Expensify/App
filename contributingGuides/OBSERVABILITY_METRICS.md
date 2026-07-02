@@ -130,6 +130,19 @@ This document lists all implemented telemetry metrics in the Expensify App.
 **Span ID**: Based on reportID
 **Attributes**: `iou_type`, `iou_request_type`, `report_id`, `route_from`
 
+### Open Share Extension Submit Flow
+
+**Constant**: `CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW`
+**Sentry Name**: `ShareExtensionOpenSubmitFlow`
+**Threshold**: TBD (P90) — baseline observed at 3–4s, target to be defined
+**What's Measured**: Time from selecting a recipient (workspace chat or DM) in the iOS Share Extension to the submit-details (confirm) screen rendering
+**Start**: Recipient selected in the Share Extension participants selector — an existing report or a new DM created from the selected account (`src/components/Share/ShareTabParticipantsSelector.tsx`, `onParticipantsAdded`)
+**End**:
+- User sees: Confirm-details screen
+- Technical: Confirm-details container layout complete (onLayout event)
+**Attributes**: `report_id`, `route_from`
+**Notes**: Scoped to the submit flow only (route `SHARE_SUBMIT_DETAILS`); the shared selector's track/share flow (`SHARE_DETAILS`) is not instrumented. Abandoned attempts (user backs out before the screen renders) are canceled on unmount and tagged `canceled`.
+
 ### Send Message
 
 **Constant**: `CONST.TELEMETRY.SPAN_SEND_MESSAGE`
