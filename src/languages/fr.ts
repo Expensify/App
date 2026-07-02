@@ -150,6 +150,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanning: 'Analyse en cours',
         analyzing: 'Analyse en cours...',
         thinking: 'Concierge réfléchit...',
+        agentThinking: 'Réflexion en cours…',
         addCardTermsOfService: 'Conditions d’utilisation d’Expensify',
         perPerson: 'par personne',
         phone: 'Téléphone',
@@ -515,6 +516,8 @@ const translations: TranslationDeepObject<typeof en> = {
         restrictions: 'Restrictions',
         tagGLCode: 'Taguer le code GL',
         off: 'Désactivé',
+        unableToDisplayChart: 'Impossible d’afficher le graphique',
+        webGLNotSupported: 'Votre navigateur ne prend pas en charge WebGL. Veuillez l’activer ou changer de navigateur.',
         apiKey: 'Clé API',
     },
     socials: {
@@ -846,7 +849,7 @@ const translations: TranslationDeepObject<typeof en> = {
         joinThread: 'Rejoindre la discussion',
         leaveThread: 'Quitter la discussion',
         copyOnyxData: 'Copier les données Onyx',
-        copyAgentZeroRequestID: "Copier l'ID de requête AgentZero",
+        viewAgentZeroTrace: 'Voir la trace AgentZero',
         flagAsOffensive: 'Signaler comme offensant',
         menu: 'Menu',
     },
@@ -2810,8 +2813,6 @@ ${amount} pour ${merchant} - ${date}`,
         activatePhysicalCard: 'Activer la carte physique',
         error: {
             thatDidNotMatch: 'Cela ne correspond pas aux 4 derniers chiffres de votre carte. Veuillez réessayer.',
-            throttled:
-                'Vous avez saisi de manière incorrecte les 4 derniers chiffres de votre Carte Expensify trop de fois. Si vous êtes sûr que les chiffres sont corrects, veuillez contacter Concierge pour résoudre le problème. Sinon, réessayez plus tard.',
         },
     },
     getPhysicalCard: {
@@ -7852,6 +7853,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     `<muted-text-label>Connecté. ${setupLink ? `<a href="${setupLink}">Terminer la configuration</a>` : 'Terminer la configuration'} pour importer les employés.</muted-text-label>`,
                 groups: {title: 'Groupes', description: 'Choisissez les groupes d’employés que vous souhaitez synchroniser avec cet espace de travail'},
             },
+            notSync: 'Non synchronisé',
+            authenticationError: (providerName: string) => `Connexion à ${providerName} impossible en raison d'une connexion expirée.`,
+            reconnect: 'Reconnect',
+            reconnectLink: 'Reconnectez-vous.',
         },
         emptyDomain: {
             title: 'Renforcez votre sécurité avec des domaines',
@@ -9896,6 +9901,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             theresAProblemWithYourWalletTerms: 'Il y a un problème avec les conditions de votre portefeuille',
             aBankAccountIsLocked: 'Un compte bancaire est verrouillé',
             completeHrSetup: 'Terminer la configuration RH',
+            theresAProblemWithAnHRConnection: 'Un problème est survenu avec une connexion RH',
         },
     },
     emptySearchView: {

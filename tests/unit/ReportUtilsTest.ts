@@ -95,10 +95,12 @@ import {
     getIndicatedMissingPaymentMethod,
     getIOUReportActionDisplayMessage,
     getLinkedIOUTransaction,
+    getMoneyRequestSpendBreakdown,
     getMostRecentlyVisitedReport,
     getMovedActionMessage,
     getMovedTransactionMessage,
     getNextApproverAccountID,
+    getNonHeldAndFullAmount,
     getOriginalReportID,
     getOutstandingChildRequest,
     getParentNavigationSubtitle,
@@ -107,6 +109,7 @@ import {
     getPolicyIDsWithEmptyReportsForAccount,
     getPolicyName,
     getReasonAndReportActionThatRequiresAttention,
+    getReimbursableTotal,
     getReportActionWithSmartscanError,
     getReportFieldsByPolicyID,
     getReportIDFromLink,
@@ -119,6 +122,7 @@ import {
     getTransactionDetails,
     getTransactionReportName,
     getTransactionSortValue,
+    getUnheldReimbursableTotal,
     getUnreportedTransactionMessage,
     getViolatingReportIDForRBRInLHN,
     getWorkspaceIcon,
@@ -17896,6 +17900,18 @@ describe('ReportUtils', () => {
             expect(result).toBe('');
         });
 
+        it('should return posted date for POSTED column', () => {
+            const transaction = createMockTransaction({posted: '20240115'});
+            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.POSTED, mockReport, mockPolicy);
+            expect(result).toBe('20240115');
+        });
+
+        it('should return empty string for POSTED column when posted date is undefined', () => {
+            const transaction = createMockTransaction();
+            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.POSTED, mockReport, mockPolicy);
+            expect(result).toBe('');
+        });
+
         it('should return merchant for MERCHANT column', () => {
             const transaction = createMockTransaction({merchant: 'Test Merchant'});
             const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, mockReport, mockPolicy);
@@ -18009,6 +18025,29 @@ describe('ReportUtils', () => {
             expect(result).toBe('Standard Tax (10%)');
         });
 
+        const mockAttendees = [
+            {email: 'a@test.com', displayName: 'A', avatarUrl: ''},
+            {email: 'b@test.com', displayName: 'B', avatarUrl: ''},
+        ];
+
+        it('should return attendee count for ATTENDEES column', () => {
+            const transaction = createMockTransaction({comment: {attendees: mockAttendees}});
+            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.ATTENDEES, mockReport, mockPolicy);
+            expect(result).toBe(2);
+        });
+
+        it('should return amount divided by attendee count for TOTAL_PER_ATTENDEE column', () => {
+            const transaction = createMockTransaction({amount: 6000, comment: {attendees: mockAttendees}});
+            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, mockReport, mockPolicy);
+            expect(result).toBe(-3000);
+        });
+
+        it('should return 0 for TOTAL_PER_ATTENDEE column when there are no attendees', () => {
+            const transaction = createMockTransaction({amount: 6000});
+            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, mockReport, mockPolicy);
+            expect(result).toBe(0);
+        });
+
         it('should return empty string for unknown column', () => {
             const transaction = createMockTransaction();
             const result = getTransactionSortValue(transaction, 'UNKNOWN_COLUMN' as typeof CONST.SEARCH.TABLE_COLUMNS.DATE, mockReport, mockPolicy);
@@ -18019,6 +18058,7 @@ describe('ReportUtils', () => {
     describe('isSortableColumnName', () => {
         it('should return true for sortable columns', () => {
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.DATE)).toBe(true);
+            expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.POSTED)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE)).toBe(true);
@@ -18029,6 +18069,8 @@ describe('ReportUtils', () => {
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.CARD)).toBe(true);
+            expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.ATTENDEES)).toBe(true);
+            expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE)).toBe(true);
         });
 
         it('should return false for non-sortable columns', () => {
@@ -19005,6 +19047,166 @@ describe('ReportUtils', () => {
 
             expect(transactionThread).toBeUndefined();
             expect(createdActionForThread).toBeNull();
+        });
+    });
+
+    describe('getReimbursableTotal', () => {
+        it('returns 0 when the report is undefined', () => {
+            expect(getReimbursableTotal(undefined)).toBe(0);
+        });
+
+        it('returns the freshly computed reimbursableTotal when set', () => {
+            const report = {total: -1000, nonReimbursableTotal: -200, reimbursableTotal: -750};
+            expect(getReimbursableTotal(report)).toBe(-750);
+        });
+
+        it('falls back to total minus nonReimbursableTotal when reimbursableTotal is missing', () => {
+            const report = {total: -1000, nonReimbursableTotal: -200};
+            expect(getReimbursableTotal(report)).toBe(-800);
+        });
+
+        it('treats missing total and nonReimbursableTotal as 0 when reimbursableTotal is missing', () => {
+            expect(getReimbursableTotal({})).toBe(0);
+        });
+
+        it('prefers reimbursableTotal of 0 over the legacy derivation', () => {
+            const report = {total: -1000, nonReimbursableTotal: -1000, reimbursableTotal: 0};
+            expect(getReimbursableTotal(report)).toBe(0);
+        });
+    });
+
+    describe('getUnheldReimbursableTotal', () => {
+        it('returns 0 when the report is undefined', () => {
+            expect(getUnheldReimbursableTotal(undefined)).toBe(0);
+        });
+
+        it('returns the freshly computed unheldReimbursableTotal when set', () => {
+            const report = {unheldTotal: -1000, unheldNonReimbursableTotal: -200, unheldReimbursableTotal: -750};
+            expect(getUnheldReimbursableTotal(report)).toBe(-750);
+        });
+
+        it('falls back to unheldTotal minus unheldNonReimbursableTotal when unheldReimbursableTotal is missing', () => {
+            const report = {unheldTotal: -1000, unheldNonReimbursableTotal: -200};
+            expect(getUnheldReimbursableTotal(report)).toBe(-800);
+        });
+
+        it('treats missing unheldTotal and unheldNonReimbursableTotal as 0 when unheldReimbursableTotal is missing', () => {
+            expect(getUnheldReimbursableTotal({})).toBe(0);
+        });
+    });
+
+    describe('getMoneyRequestSpendBreakdown', () => {
+        it('returns zeroes when the report is empty', () => {
+            const fields = getMoneyRequestSpendBreakdown(undefined);
+            expect(fields.totalDisplaySpend).toBe(0);
+            expect(fields.reimbursableSpend).toBe(0);
+            expect(fields.nonReimbursableSpend).toBe(0);
+        });
+
+        it('uses the freshly tracked reimbursableTotal for an expense report', () => {
+            const expenseReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: -10000,
+                nonReimbursableTotal: -3000,
+                reimbursableTotal: -7000,
+            };
+            const fields = getMoneyRequestSpendBreakdown(expenseReport);
+            expect(fields.reimbursableSpend).toBe(7000);
+            expect(fields.nonReimbursableSpend).toBe(3000);
+            expect(fields.totalDisplaySpend).toBe(10000);
+        });
+
+        it('falls back to total minus nonReimbursableTotal when reimbursableTotal is missing', () => {
+            const expenseReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: -10000,
+                nonReimbursableTotal: -3000,
+            };
+            const fields = getMoneyRequestSpendBreakdown(expenseReport);
+            expect(fields.reimbursableSpend).toBe(7000);
+            expect(fields.nonReimbursableSpend).toBe(3000);
+            expect(fields.totalDisplaySpend).toBe(10000);
+        });
+
+        it('returns 0 reimbursableSpend (not -0) for an all-non-reimbursable expense report', () => {
+            const expenseReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: -4000,
+                nonReimbursableTotal: -4000,
+                reimbursableTotal: 0,
+            };
+            const fields = getMoneyRequestSpendBreakdown(expenseReport);
+            expect(fields.reimbursableSpend).toBe(0);
+            expect(Object.is(fields.reimbursableSpend, -0)).toBe(false);
+            expect(fields.nonReimbursableSpend).toBe(4000);
+            expect(fields.totalDisplaySpend).toBe(4000);
+        });
+
+        it('uses Math.abs for an IOU report so values are positive', () => {
+            const iouReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                total: 5000,
+                nonReimbursableTotal: 0,
+                reimbursableTotal: 5000,
+            };
+            const fields = getMoneyRequestSpendBreakdown(iouReport);
+            expect(fields.reimbursableSpend).toBe(5000);
+            expect(fields.nonReimbursableSpend).toBe(0);
+            expect(fields.totalDisplaySpend).toBe(5000);
+        });
+    });
+
+    describe('getNonHeldAndFullAmount', () => {
+        it('uses the freshly tracked unheldReimbursableTotal when shouldExcludeNonReimbursables is true', () => {
+            const expenseReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: -10000,
+                unheldTotal: -8000,
+                nonReimbursableTotal: -3000,
+                unheldNonReimbursableTotal: -2000,
+                reimbursableTotal: -7000,
+                unheldReimbursableTotal: -6000,
+            };
+            const result = getNonHeldAndFullAmount(expenseReport, true, []);
+            expect(result.fullAmount).toContain('70.00');
+            expect(result.nonHeldAmount).toContain('60.00');
+        });
+
+        it('uses the full reimbursable plus non-reimbursable when shouldExcludeNonReimbursables is false', () => {
+            const expenseReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: -10000,
+                unheldTotal: -8000,
+                nonReimbursableTotal: -3000,
+                unheldNonReimbursableTotal: -2000,
+                reimbursableTotal: -7000,
+                unheldReimbursableTotal: -6000,
+            };
+            const result = getNonHeldAndFullAmount(expenseReport, false, []);
+            expect(result.fullAmount).toContain('100.00');
+            expect(result.nonHeldAmount).toContain('80.00');
+        });
+
+        it('falls back to legacy unheldTotal minus unheldNonReimbursableTotal when unheldReimbursableTotal is missing', () => {
+            const expenseReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: -10000,
+                unheldTotal: -8000,
+                nonReimbursableTotal: -3000,
+                unheldNonReimbursableTotal: -2000,
+            };
+            const result = getNonHeldAndFullAmount(expenseReport, true, []);
+            expect(result.nonHeldAmount).toContain('60.00');
         });
     });
 

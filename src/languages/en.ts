@@ -62,6 +62,10 @@ const translations = {
         // @context Used as a noun meaning a numerical total or quantity, not the verb “to count.”
         count: 'Count',
         cancel: 'Cancel',
+        // @context Title shown in place of a chart when the device or browser can't render it.
+        unableToDisplayChart: 'Unable to display chart',
+        // @context Shown below "Unable to display chart". "WebGL" is a graphics technology name; keep it untranslated.
+        webGLNotSupported: "Your browser doesn't support WebGL. Please enable it or switch browsers.",
         // @context Refers to closing or hiding a notification or message, not rejecting or ignoring something.
         dismiss: 'Dismiss',
         // @context Used on a button to continue an action or workflow, not the formal or procedural sense of “to proceed.”
@@ -154,6 +158,8 @@ const translations = {
         scanning: 'Scanning',
         analyzing: 'Analyzing...',
         thinking: 'Concierge is thinking...',
+        // @context Generic status text shown in custom-agent DMs while the agent prepares a response.
+        agentThinking: 'Thinking...',
         addCardTermsOfService: 'Expensify Terms of Service',
         perPerson: 'per person',
         phone: 'Phone',
@@ -879,7 +885,7 @@ const translations = {
         joinThread: 'Join thread',
         leaveThread: 'Leave thread',
         copyOnyxData: 'Copy Onyx data',
-        copyAgentZeroRequestID: 'Copy AgentZero request ID',
+        viewAgentZeroTrace: 'View AgentZero trace',
         flagAsOffensive: 'Flag as offensive',
         menu: 'Menu',
     },
@@ -2870,8 +2876,6 @@ const translations = {
         activatePhysicalCard: 'Activate physical card',
         error: {
             thatDidNotMatch: "That didn't match the last 4 digits on your card. Please try again.",
-            throttled:
-                "You've incorrectly entered the last 4 digits of your Expensify Card too many times. If you're sure the numbers are correct, please reach out to Concierge to resolve. Otherwise, try again later.",
         },
     },
     getPhysicalCard: {
@@ -6852,7 +6856,11 @@ const translations = {
             alreadyConnectedTitle: 'Cannot connect to multiple HR platforms',
             alreadyConnectedPrompt: 'You must disconnect your current HR platform before connecting another.',
             lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
+            notSync: 'Not synced',
             syncError: (providerName: string) => `Can't connect to ${providerName}`,
+            authenticationError: (providerName: string) => `Can't connect to ${providerName} due to an expired connection.`,
+            reconnect: 'Reconnect',
+            reconnectLink: 'Reconnect.',
             connectionDescription: (providerName: string) => `Connect ${providerName} to keep employee approvals in sync with your workspace.`,
             approvalMode: 'Approval mode',
             providerApprovalMode: (providerName: string) => `${providerName} approval mode`,
@@ -9939,6 +9947,7 @@ const translations = {
             theresAProblemWithYourWalletTerms: "There's a problem with your wallet terms",
             aBankAccountIsLocked: 'A bank account is locked',
             completeHrSetup: 'Complete HR setup',
+            theresAProblemWithAnHRConnection: "There's a problem with an HR connection",
         },
     },
     emptySearchView: {

@@ -196,6 +196,7 @@ import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils
 import {isExpenseSplit, isPerDiemRequest} from '@libs/TransactionUtils';
 import {setDownload} from '@userActions/Download';
 import {toggleEmojiReaction} from '@userActions/EmojiReactions';
+import {openOldDotLink} from '@userActions/Link';
 import {
     explain,
     markCommentAsUnread,
@@ -206,6 +207,7 @@ import {
     togglePinnedState,
     toggleSubscribeToChildReport,
 } from '@userActions/Report';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -363,6 +365,7 @@ type ContextMenuActionWithIcon = WithSentryLabel & {
         | 'Trashcan'
         | 'Exit'
         | 'Concierge'
+        | 'Eye'
     >;
     successTextTranslateKey?: TranslationPaths;
     successIcon?: Extract<
@@ -1448,10 +1451,8 @@ const ContextMenuActions: ContextMenuAction[] = [
     },
     {
         isAnonymousAction: true,
-        textTranslateKey: 'reportActionContextMenu.copyAgentZeroRequestID',
-        icon: 'Copy',
-        successTextTranslateKey: 'reportActionContextMenu.copied',
-        successIcon: 'Checkmark',
+        textTranslateKey: 'reportActionContextMenu.viewAgentZeroTrace',
+        icon: 'Eye',
         shouldShow: ({type, reportAction, isProduction}) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
             !isProduction &&
@@ -1459,12 +1460,13 @@ const ContextMenuActions: ContextMenuAction[] = [
         onPress: (closePopover, {reportAction}) => {
             const agentZeroRequestID = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) ? getOriginalMessage(reportAction)?.agentZeroRequestID : undefined;
             if (agentZeroRequestID) {
-                Clipboard.setString(agentZeroRequestID);
+                // On dev there are no Victoria logs to query, so point the tracer at the local syslog instead.
+                openOldDotLink(CONST.OLDDOT_URLS.AGENT_ZERO_TRACER(agentZeroRequestID, CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV));
             }
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
         getDescription: () => {},
-        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_AGENT_ZERO_REQUEST_ID,
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.VIEW_AGENT_ZERO_TRACE,
     },
     {
         isAnonymousAction: true,

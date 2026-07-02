@@ -150,6 +150,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanning: 'Scannen',
         analyzing: 'Analysiere…',
         thinking: 'Concierge denkt nach...',
+        agentThinking: 'Es wird nachgedacht...',
         addCardTermsOfService: 'Expensify-Nutzungsbedingungen',
         perPerson: 'pro Person',
         phone: 'Telefon',
@@ -515,6 +516,8 @@ const translations: TranslationDeepObject<typeof en> = {
         restrictions: 'Beschränkungen',
         tagGLCode: 'GL-Code taggen',
         off: 'Aus',
+        unableToDisplayChart: 'Diagram kann nicht angezeigt werden',
+        webGLNotSupported: 'Ihr Browser unterstützt WebGL nicht. Bitte aktivieren Sie es oder wechseln Sie den Browser.',
         apiKey: 'API-Schlüssel',
     },
     socials: {
@@ -844,7 +847,7 @@ const translations: TranslationDeepObject<typeof en> = {
         joinThread: 'Thread beitreten',
         leaveThread: 'Thread verlassen',
         copyOnyxData: 'Onyx-Daten kopieren',
-        copyAgentZeroRequestID: 'AgentZero-Anfrage-ID kopieren',
+        viewAgentZeroTrace: 'AgentZero-Trace anzeigen',
         flagAsOffensive: 'Als anstößig melden',
         menu: 'Menü',
     },
@@ -2803,8 +2806,6 @@ ${amount} für ${merchant} – ${date}`,
         activatePhysicalCard: 'Physische Karte aktivieren',
         error: {
             thatDidNotMatch: 'Das stimmt nicht mit den letzten 4 Ziffern Ihrer Karte überein. Bitte versuchen Sie es erneut.',
-            throttled:
-                'Sie haben die letzten 4 Ziffern Ihrer Expensify Karte zu oft falsch eingegeben. Wenn Sie sicher sind, dass die Zahlen korrekt sind, wenden Sie sich bitte an Concierge, um das Problem zu lösen. Andernfalls versuchen Sie es später noch einmal.',
         },
     },
     getPhysicalCard: {
@@ -7819,6 +7820,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     `<muted-text-label>Verbunden. ${setupLink ? `<a href="${setupLink}">Einrichtung abschließen</a>` : 'Einrichtung abschließen'} zum Importieren von Mitarbeitenden.</muted-text-label>`,
                 groups: {title: 'Gruppen', description: 'Wählen Sie die Mitarbeitergruppen aus, die Sie mit diesem Workspace synchronisieren möchten'},
             },
+            notSync: 'Nicht synchronisiert',
+            authenticationError: (providerName: string) => `Verbindung mit ${providerName} aufgrund einer abgelaufenen Verknüpfung nicht möglich.`,
+            reconnect: 'Erneut verbinden',
+            reconnectLink: 'Erneut verbinden.',
         },
         emptyDomain: {
             title: 'Stärken Sie Ihre Sicherheit mit Domains',
@@ -9864,6 +9869,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             theresAProblemWithYourWalletTerms: 'Es gibt ein Problem mit deinen Wallet-Bedingungen',
             aBankAccountIsLocked: 'Ein Bankkonto ist gesperrt',
             completeHrSetup: 'HR-Einrichtung abschließen',
+            theresAProblemWithAnHRConnection: 'Es gibt ein Problem mit einer HR-Verbindung',
         },
     },
     emptySearchView: {
