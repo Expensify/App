@@ -22,7 +22,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -78,7 +77,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
         return [...baseRoles, ...advancedRoles];
     }, [translate, shouldUseAdvancedFields]);
 
-    const savedColumnMappings = workspaceCardFeeds?.settings?.companyCards?.[layoutType as CardFeedWithNumber]?.uploadLayoutSettings?.columnMappings;
+    const savedColumnMappings = Object.entries(workspaceCardFeeds?.settings?.companyCards ?? {}).find(([feedKey]) => feedKey === layoutType)?.[1]?.uploadLayoutSettings?.columnMappings;
     const hasAppliedSavedMappings = useRef(false);
     const lastProcessedDataRef = useRef(spreadsheet?.data);
 
