@@ -14,6 +14,7 @@ import * as InvoiceData from '../data/Invoice';
 import type {InvoiceTestData} from '../data/Invoice';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
@@ -150,14 +151,15 @@ describe('getReportPreviewAction', () => {
             policy.harvesting.enabled = false;
         }
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const transaction = {
+        const transaction: Transaction = {
+            ...createRandomTransaction(0),
             reportID: `${REPORT_ID}`,
             amount: 100,
             merchant: 'Test Merchant',
             created: '2025-01-01',
             status: CONST.TRANSACTION.STATUS.PENDING,
             bank: CONST.EXPENSIFY_CARD.BANK,
-        } as unknown as Transaction;
+        };
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
         await waitForBatchedUpdatesWithAct();
