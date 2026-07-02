@@ -6,7 +6,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import * as NumberUtils from '@libs/NumberUtils';
-import {hasDependentTags} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getPolicyForDistanceRateID, hasDependentTags} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {
@@ -24,7 +24,17 @@ import {
     isSelfDM,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
-import {calculateTaxAmount, getAmount, getClearedPendingFields, getCurrency, getTaxValue, getUpdatedTransaction, isOnHold, isSplitChildTransaction} from '@libs/TransactionUtils';
+import {
+    calculateTaxAmount,
+    getAmount,
+    getClearedPendingFields,
+    getCurrency,
+    getTaxValue,
+    getUpdatedTransaction,
+    isDistanceRequest,
+    isOnHold,
+    isSplitChildTransaction,
+} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -353,6 +363,9 @@ function updateMultipleMoneyRequests({
                     : optimisticViolations;
             const transactionPolicyTagList = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${transactionPolicy?.id}`] ?? {};
             const transactionPolicyCategories = policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${transactionPolicy?.id}`] ?? {};
+            const customUnitRateID = isDistanceRequest(updatedTransaction) ? updatedTransaction.comment?.customUnit?.customUnitRateID : undefined;
+            const distanceOriginalPolicy =
+                customUnitRateID && !getDistanceRateCustomUnitRate(transactionPolicy, customUnitRateID) ? getPolicyForDistanceRateID(customUnitRateID, allPolicies) : undefined;
             optimisticViolationsData = ViolationsUtils.getViolationsOnyxData({
                 updatedTransaction,
                 transactionViolations: optimisticViolations,
@@ -364,6 +377,7 @@ function updateMultipleMoneyRequests({
                 isSelfDM: isSelfDM(iouReport),
                 iouReport,
                 isFromExpenseReport,
+                distanceOriginalPolicy,
             });
             optimisticData.push(optimisticViolationsData);
             failureData.push({

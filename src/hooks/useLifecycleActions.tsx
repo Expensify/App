@@ -22,6 +22,7 @@ import {
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
+import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import {cancelPayment, markReportPaymentReceived} from '@userActions/IOU/PayMoneyRequest';
 import {approveMoneyRequest, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
@@ -292,7 +293,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     return;
                 }
 
-                const result = await showConfirmModal({
+                const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                     title: translate('iou.confirmPaymentReceivedModalTitle'),
                     prompt: translate('iou.receivedPaymentConfirmation'),
                     confirmText: translate('iou.confirmReceivedPayment'),
@@ -338,7 +339,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         </Text>
                     );
 
-                    const result = await showConfirmModal({
+                    const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                         title: translate('iou.unapproveReport'),
                         prompt: unapproveWarningText,
                         confirmText: translate('iou.unapproveReport'),
@@ -360,7 +361,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             icon: expensifyIcons.Clear,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.CANCEL_PAYMENT,
             onSelected: async () => {
-                const result = await showConfirmModal({
+                const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                     title: translate('iou.cancelPayment'),
                     prompt: translate('iou.cancelPaymentConfirmation'),
                     confirmText: translate('iou.cancelPayment'),
@@ -393,7 +394,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         </Text>
                     );
 
-                    const result = await showConfirmModal({
+                    const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                         title: translate('iou.reopenReport'),
                         prompt: reopenExportedReportWarningText,
                         confirmText: translate('iou.reopenReport'),
@@ -427,7 +428,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         </Text>
                     );
 
-                    const result = await showConfirmModal({
+                    const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                         title: translate('iou.reopenReport'),
                         prompt: reopenExportedReportWarningText,
                         confirmText: translate('iou.reopenReport'),
