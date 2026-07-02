@@ -20,7 +20,7 @@ Expensify offers two workspace plans:
 - **Collect**: Designed for small teams that need expense management and reimbursements.
 - **Control**: Designed for growing organizations that need advanced approvals, accounting integrations, and spend management.
 
-To learn which plan is right for your organization, see Compare the Collect and Control Plans.
+To learn which plan is right for your organization, see [Compare the Collect and Control Plans](/articles/new-expensify/billing-and-subscriptions/learn-about-plans-and-subscriptions/Compare-Collect-and-Control-Plans).
 
 ## What is a subscription?
 
