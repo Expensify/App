@@ -2102,7 +2102,6 @@ const CONST = {
         SPAN_OD_ND_TRANSITION_LOGGED_OUT: 'ManualOdNdTransitionLoggedOut',
         SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
         SPAN_SEARCH_ROUTER_MODAL_CLOSE_WAIT: 'SearchRouter.ModalCloseWait',
-        SPAN_SEARCH_ROUTER_OPTIONS_INIT: 'SearchRouter.OptionsInit',
         SPAN_SEARCH_ROUTER_LIST_RENDER: 'SearchRouter.ListRender',
         SPAN_SEARCH_PAGE_VISIBLE: 'ManualOpenSearchRouterPageVisible',
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
