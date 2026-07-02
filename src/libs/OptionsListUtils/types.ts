@@ -216,6 +216,8 @@ type GetOptionsConfig = {
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     sortedActions?: Record<string, ReportAction[]>;
     isTrackIntentUser?: boolean;
+    /** TODO: Should be required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
+    isOffline?: boolean;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
