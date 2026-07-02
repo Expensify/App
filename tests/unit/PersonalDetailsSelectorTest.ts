@@ -4,6 +4,7 @@ import {
     personalDetailsDisplayNameSelector,
     personalDetailsListSelector,
     personalDetailsLoginSelector,
+    personalDetailsLoginsSelector,
     personalDetailsSelector,
 } from '@selectors/PersonalDetails';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -95,6 +96,39 @@ describe('PersonalDetailsSelector', () => {
         it('should return undefined if the personalDetailsList is undefined', () => {
             const result = personalDetailsLoginSelector(accountID)(undefined);
             expect(result).toBeUndefined();
+        });
+    });
+
+    describe('personalDetailsLoginsSelector', () => {
+        const secondAccountID = 456;
+        const secondPersonalDetails = {
+            accountID: secondAccountID,
+            displayName: 'Second User',
+            login: 'second@user.com',
+        };
+        const multiPersonalDetailsList: PersonalDetailsList = {
+            [accountID]: personalDetails,
+            [secondAccountID]: secondPersonalDetails,
+        };
+
+        it('should return the logins for the given accountIDs', () => {
+            const result = personalDetailsLoginsSelector([accountID, secondAccountID])(multiPersonalDetailsList);
+            expect(result).toEqual([personalDetails.login, secondPersonalDetails.login]);
+        });
+
+        it('should filter out accountIDs that do not exist in the list', () => {
+            const result = personalDetailsLoginsSelector([accountID, 999])(multiPersonalDetailsList);
+            expect(result).toEqual([personalDetails.login]);
+        });
+
+        it('should return an empty array if accountIDs is empty', () => {
+            const result = personalDetailsLoginsSelector([])(multiPersonalDetailsList);
+            expect(result).toEqual([]);
+        });
+
+        it('should return an empty array if none of the accountIDs exist in the list', () => {
+            const result = personalDetailsLoginsSelector([888, 999])(multiPersonalDetailsList);
+            expect(result).toEqual([]);
         });
     });
 

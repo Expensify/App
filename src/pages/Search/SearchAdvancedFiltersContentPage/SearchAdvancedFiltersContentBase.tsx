@@ -57,7 +57,7 @@ function SearchAdvancedFiltersContentBase() {
         if (shouldApplyFilterChangeDirectly) {
             Navigation.goBack();
         } else {
-            Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+            Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
         }
     };
 
@@ -145,16 +145,24 @@ function SearchAdvancedFiltersContentBase() {
                                 }}
                                 buttonText={buttonText}
                                 onChange={(newValues) => {
+                                    const updatedValues = {...newValues};
+                                    const selectedReceiptTypes = newValues.receiptType;
+                                    // A positive receipt-type selection drops those values from the negated filter so the query can't emit both receiptType and -receiptType for the same value
+                                    if (selectedReceiptTypes !== undefined) {
+                                        const remainingNegatedReceiptTypes = currentDraftFilters?.receiptTypeNot?.filter((receiptType) => !selectedReceiptTypes.includes(receiptType));
+                                        updatedValues.receiptTypeNot = remainingNegatedReceiptTypes?.length ? remainingNegatedReceiptTypes : undefined;
+                                    }
+
                                     if (shouldApplyFilterChangeDirectly) {
                                         Navigation.dismissModal({
                                             afterTransition: () => {
-                                                updateFilterQueryParams(newValues);
+                                                updateFilterQueryParams(updatedValues);
                                             },
                                         });
                                         return;
                                     }
 
-                                    setDraftFilters(newValues);
+                                    setDraftFilters(updatedValues);
                                     goBack();
                                 }}
                             />

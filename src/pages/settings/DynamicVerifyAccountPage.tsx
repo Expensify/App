@@ -18,9 +18,7 @@ function DynamicVerifyAccountPage() {
     if (forwardPath === ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.route) {
         forwardPath = ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.getRoute(route.params?.backTo);
     } else if (backPath === ROUTES.SETTINGS_WALLET) {
-        forwardPath = ROUTES.SETTINGS_ENABLE_PAYMENTS;
-    } else if (!forwardPath) {
-        forwardPath = backPath;
+        forwardPath = ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute();
     }
 
     return (
