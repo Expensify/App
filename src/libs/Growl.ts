@@ -7,7 +7,7 @@ type GrowlAction = {
 };
 
 /** The set of growl variants the notification UI knows how to render. */
-type GrowlType = typeof CONST.GROWL.SUCCESS | typeof CONST.GROWL.ERROR | typeof CONST.GROWL.WARNING | typeof CONST.GROWL.LOADING;
+type GrowlType = typeof CONST.GROWL.SUCCESS | typeof CONST.GROWL.ERROR | typeof CONST.GROWL.WARNING;
 
 type GrowlRef = {
     show?: (bodyText: string, type: GrowlType, duration: number, action?: GrowlAction) => void;
@@ -54,18 +54,10 @@ function success(bodyText: string, duration?: number, action?: GrowlAction) {
     show(bodyText, CONST.GROWL.SUCCESS, duration, action);
 }
 
-/**
- * Show indefinite loading growl (no auto-dismiss). Call success/error/show again to replace it.
- */
-function loading(bodyText: string) {
-    show(bodyText, CONST.GROWL.LOADING, CONST.GROWL.DURATION_INDEFINITE);
-}
-
 export default {
     show,
     error,
     success,
-    loading,
 };
 
 export type {GrowlRef, GrowlAction, GrowlType};

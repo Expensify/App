@@ -3704,13 +3704,10 @@ const CONST = {
         SUCCESS: 'success',
         ERROR: 'error',
         WARNING: 'warning',
-        LOADING: 'loading',
         DURATION: 2000,
         DURATION_LONG: 3500,
         // Longer duration for growls with an actionable button (e.g. "View"), giving the user enough time to tap it.
         DURATION_WITH_ACTION: 6000,
-        // Sentinel duration meaning "never auto-dismiss" (e.g. loading growls that stay until replaced).
-        DURATION_INDEFINITE: 0,
         // Pixel distance used to park the growl fully offscreen before it slides in. It only needs to
         // exceed the growl's height + margins; the exact value isn't tied to a measured dimension.
         OFFSCREEN_OFFSET: 255,

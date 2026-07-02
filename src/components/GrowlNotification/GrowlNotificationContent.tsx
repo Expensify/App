@@ -1,10 +1,9 @@
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {Directions, Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {useSharedValue, withSpring} from 'react-native-reanimated';
 import type {SvgProps} from 'react-native-svg';
 import {scheduleOnRN} from 'react-native-worklets';
-import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Pressables from '@components/Pressable';
@@ -31,10 +30,9 @@ type GrowlNotificationContentProps = {
     onDismissed: () => void;
 };
 
-// Every non-loading growl variant must have an icon mapping. Loading is rendered separately
-// (ActivityIndicator), so it's excluded here — keeping this map exhaustive over the rest.
+// Every growl variant must have an icon mapping; keeping this map exhaustive over GrowlType.
 type GrowlIconTypes = Record<
-    Exclude<GrowlType, typeof CONST.GROWL.LOADING>,
+    GrowlType,
     {
         icon: React.FC<SvgProps> | IconAsset;
         iconColor: string;
@@ -108,30 +106,18 @@ function GrowlNotificationContent({bodyText, type, duration, action, onDismissed
         progress.set(0);
         fling(1);
 
-        if (duration <= 0) {
-            // Non-positive duration ⇒ indefinite (loading) growl - slide in but don't auto-dismiss.
-            // (A negative value would be clamped to 0 by setTimeout and dismiss instantly, so guard it here too.)
-            return;
-        }
-
         const autoDismissTimeoutId = setTimeout(triggerDismiss, duration);
         return () => clearTimeout(autoDismissTimeoutId);
     }, [bodyText, type, action, duration, fling, progress, triggerDismiss]);
 
     // GestureDetector by default runs callbacks on UI thread using Reanimated. In this
     // case we want to trigger an RN's Animated animation, which needs to be done on JS thread.
-    // Wrapped in useMemo so the React Compiler doesn't flag the gesture builder's internal
-    // mutable state as ref access during render.
-    const flingGesture = useMemo(
-        () =>
-            Gesture.Fling()
-                .direction(useBottomPosition ? Directions.DOWN : Directions.UP)
-                .runOnJS(true)
-                .onStart(() => {
-                    triggerDismiss();
-                }),
-        [useBottomPosition, triggerDismiss],
-    );
+    const flingGesture = Gesture.Fling()
+        .direction(useBottomPosition ? Directions.DOWN : Directions.UP)
+        .runOnJS(true)
+        .onStart(() => {
+            triggerDismiss();
+        });
 
     return (
         <View style={styles.growlNotificationWrapper}>
@@ -143,18 +129,14 @@ function GrowlNotificationContent({bodyText, type, duration, action, onDismissed
                 <PressableWithoutFeedback
                     accessibilityLabel={bodyText}
                     sentryLabel="GrowlNotification-Dismiss"
-                    onPress={() => triggerDismiss()}
+                    onPress={triggerDismiss}
                 >
                     <GestureDetector gesture={flingGesture}>
                         <View style={[styles.growlNotificationBox, action ? styles.growlNotificationBoxWithAction : styles.growlNotificationBoxWithoutAction]}>
-                            {type === CONST.GROWL.LOADING ? (
-                                <ActivityIndicator reasonAttributes={{context: 'GrowlNotification.Loading'}} />
-                            ) : (
-                                <Icon
-                                    src={types[type].icon}
-                                    fill={types[type].iconColor}
-                                />
-                            )}
+                            <Icon
+                                src={types[type].icon}
+                                fill={types[type].iconColor}
+                            />
                             <Text style={styles.growlNotificationText}>{bodyText}</Text>
                             {!!action && (
                                 <Button
