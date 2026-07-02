@@ -491,6 +491,7 @@ const CONST = {
         INTACCT: 'Intacct',
         SAGE_INTACCT: 'Sage Intacct',
         CERTINIA: 'FinancialForce',
+        RILLET: 'Rillet',
         BILLCOM: 'Bill.com',
         ZENEFITS: 'Zenefits',
     },
@@ -972,6 +973,7 @@ const CONST = {
         CERTINIA: 'financialForceNewDot',
         MERGE_HR: 'mergeHRConnections',
         VENDOR_MATCHING: 'vendorMatching',
+        RILLET: 'rillet',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
     },
@@ -3330,6 +3332,28 @@ const CONST = {
         VENDOR_BILL: 'VENDOR_BILL',
     },
 
+    RILLET_CONFIG: {
+        SUBSIDIARY_ID: 'subsidiaryID',
+        ENABLE_NEW_CATEGORIES: 'enableNewCategories',
+        SYNC_TAX_RATES: 'syncTaxRates',
+        EXPORTER: 'exporter',
+        EXPORT_DATE: 'exportDate',
+        REIMBURSABLE: 'reimbursable',
+        COMPANY_CARD: 'companyCard',
+        DEFAULT_VENDORID: 'defaultVendorID',
+        CREDIT_CARD_ACCOUNTCODE: 'creditCardAccountCode',
+        EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
+        CARD_PROGRAM_ACCOUNTS: 'cardProgramAccounts',
+        ACCOUNTING_METHOD: 'accountingMethod',
+        AUTO_SYNC: 'autoSync',
+        SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
+        BILL_PAYMENT_ACCOUNT_CODE: 'billPaymentAccountCode',
+        SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'syncExpensifyCardSettlements',
+        SETTLEMENTS_BANK_ACCOUNT_ID: 'settlementsBankAccountID',
+        SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'syncTravelInvoicingSettlements',
+        TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID: 'travelInvoicingSettlementsBankAccountID',
+    },
+
     UPDATE_PERSONAL_BANK_ACCOUNT: {
         PAGE_NAME: {
             LEGAL_NAME: 'legal-name',
@@ -4040,6 +4064,7 @@ const CONST = {
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
                 CERTINIA: 'financialforce',
+                RILLET: 'rillet',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
@@ -4057,6 +4082,7 @@ const CONST = {
                 SAGE_INTACCT: 'sage-intacct',
                 QBD: 'quickbooks-desktop',
                 CERTINIA: 'certinia',
+                RILLET: 'rillet',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge-hr',
@@ -4068,6 +4094,7 @@ const CONST = {
                 xero: 'Xero',
                 intacct: 'Sage Intacct',
                 financialforce: 'Certinia',
+                rillet: 'Rillet',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
@@ -4078,7 +4105,7 @@ const CONST = {
                 other: 'Other',
             },
             get ACCOUNTING_CONNECTION_NAMES() {
-                return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA] as const;
+                return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA, this.NAME.RILLET] as const;
             },
             get HR_CONNECTION_NAMES() {
                 return [this.NAME.GUSTO, this.NAME.ZENEFITS, this.NAME.MERGE_HR] as const;
@@ -4178,6 +4205,9 @@ const CONST = {
                 FINANCIAL_FORCE_SYNC_USERS: 'financialForceSyncUsers',
                 FINANCIAL_FORCE_SYNC_DIMENSIONS: 'financialForceSyncDimensions',
                 FINANCIAL_FORCE_SYNC_MARK_REIMBURSED: 'financialForceMarkAsReimbursed',
+                RILLET_SYNC_TITLE: 'rilletSyncTitle',
+                RILLET_SYNC_CONNECTION: 'rilletSyncConnection',
+                RILLET_SYNC_IMPORT_DATA: 'rilletSyncImportData',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
@@ -7249,6 +7279,14 @@ const CONST = {
                 title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.CERTINIA}.title` as const,
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.CERTINIA}.description` as const,
                 icon: 'CertiniaSquare',
+            },
+            [this.POLICY.CONNECTIONS.NAME.RILLET]: {
+                id: this.POLICY.CONNECTIONS.NAME.RILLET,
+                alias: 'rillet',
+                name: this.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.rillet,
+                title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.RILLET}.title` as const,
+                description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.RILLET}.description` as const,
+                icon: 'RilletSquare',
             },
             approvals: {
                 id: 'approvals' as const,
