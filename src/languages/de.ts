@@ -9,12 +9,11 @@
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
-import {CONST as COMMON_CONST} from 'expensify-common';
+import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 import type {ValueOf} from 'type-fest';
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import StringUtils from '@libs/StringUtils';
-import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
@@ -719,17 +718,17 @@ const translations: TranslationDeepObject<typeof en> = {
         revealCardDetail: {couldNotReveal: 'Wir konnten Ihre Kartendaten nicht anzeigen. Bitte versuchen Sie es noch einmal.'},
     },
     validateCodeModal: {
-        successfulSignInTitle: dedent(`
+        successfulSignInTitle: Str.dedent(`
             Abrakadabra,
             du bist angemeldet!
         `),
         successfulSignInDescription: 'Wechsle zurück zu deinem ursprünglichen Tab, um fortzufahren.',
         title: 'Hier ist dein magischer Code',
-        description: dedent(`
+        description: Str.dedent(`
             Bitte gib den Code von dem Gerät ein,
             auf dem er ursprünglich angefordert wurde
         `),
-        doNotShare: dedent(`
+        doNotShare: Str.dedent(`
             Gib deinen Code an niemanden weiter.
             Expensify wird niemals danach fragen!
         `),
@@ -738,10 +737,10 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeTitle: 'Magic Code abgelaufen',
         expiredCodeDescription: 'Gehe zurück zum ursprünglichen Gerät und fordere einen neuen Code an',
         successfulNewCodeRequest: 'Code angefordert. Bitte überprüfe dein Gerät.',
-        tfaRequiredTitle: dedent(`
+        tfaRequiredTitle: Str.dedent(`
             Zwei-Faktor-Authentifizierung erforderlich
         `),
-        tfaRequiredDescription: dedent(`
+        tfaRequiredDescription: Str.dedent(`
             Bitte gib den Zwei-Faktor-Authentifizierungscode ein,
             wo du versuchst, dich anzumelden.
         `),
@@ -2330,7 +2329,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noAuthenticatorApp: 'Sie benötigen keine Authentifizierungs-App mehr, um sich bei Expensify anzumelden.',
         stepCodes: 'Wiederherstellungscodes',
         keepCodesSafe: 'Bewahren Sie diese Codes sicher auf!',
-        codesLoseAccess: dedent(`
+        codesLoseAccess: Str.dedent(`
             Wenn Sie den Zugriff auf Ihre Authentifizierungs-App verlieren und diese Codes nicht haben, wird Ihr Konto gesperrt.<br><br>
             <strong>Hinweis</strong>: Durch das Aktivieren der 2FA werden Sie aus allen anderen Sitzungen abgemeldet.
         `),
@@ -3157,7 +3156,7 @@ ${amount} für ${merchant} – ${date}`,
             addExpenseApprovalsTask: {
                 title: 'Ausgabengenehmigungen hinzufügen',
                 description: ({workspaceMoreFeaturesLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Füge Spesenfreigaben hinzu*, um die Ausgaben deines Teams zu prüfen und unter Kontrolle zu halten.
 
                         So geht’s:
@@ -3179,7 +3178,7 @@ ${amount} für ${merchant} – ${date}`,
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `[Workspace] erstellen (${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Erstelle einen Arbeitsbereich*, um Ausgaben zu verfolgen, Belege zu scannen, zu chatten und mehr.
 
                         1. Klicke auf *Arbeitsbereiche* > *Neuer Arbeitsbereich*.
@@ -3189,7 +3188,7 @@ ${amount} für ${merchant} – ${date}`,
             setupCategoriesTask: {
                 title: ({workspaceCategoriesLink}) => `Richte [Kategorien](${workspaceCategoriesLink}) ein`,
                 description: ({workspaceCategoriesLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Richten Sie Kategorien ein*, damit Ihr Team Ausgaben für eine einfache Berichterstattung verschlüsseln kann.
 
                         1. Klicken Sie auf *Workspaces*.
@@ -3203,8 +3202,9 @@ ${amount} für ${merchant} – ${date}`,
             },
             combinedTrackSubmitExpenseTask: {
                 title: 'Ausgabe erstellen',
-                description: dedent(`
+                description: Str.dedent(`
                     *Erstelle eine Ausgabe*, indem du einen Betrag eingibst oder einen Beleg einscannst.
+
 
                     1. Klicke auf die Schaltfläche *+*.
                     2. Wähle *Ausgabe erstellen*.
@@ -3217,8 +3217,9 @@ ${amount} für ${merchant} – ${date}`,
             },
             adminSubmitExpenseTask: {
                 title: 'Ausgabe erstellen',
-                description: dedent(`
+                description: Str.dedent(`
                     *Erstelle eine Ausgabe*, indem du einen Betrag eingibst oder einen Beleg scannst.
+
 
                     1. Klicke auf die Schaltfläche *+*.
                     2. Wähle *Ausgabe erstellen*.
@@ -3231,7 +3232,7 @@ ${amount} für ${merchant} – ${date}`,
             },
             trackExpenseTask: {
                 title: 'Ausgabe erfassen',
-                description: dedent(`
+                description: Str.dedent(`
                     *Verfolge eine Ausgabe* in jeder Währung, egal ob du eine Quittung hast oder nicht.
 
                     1. Klicke auf die Schaltfläche *+*.
@@ -3247,7 +3248,7 @@ ${amount} für ${merchant} – ${date}`,
                 title: ({integrationName, workspaceAccountingLink}) =>
                     `Verbinden${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : 'zu'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'dein' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         Verbinde ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'dein' : 'bis'} ${integrationName} für automatische Spesenkodierung und Synchronisierung, die den Monatsabschluss zum Kinderspiel macht.
 
                         1. Klicke auf *Workspaces*.
@@ -3262,7 +3263,7 @@ ${amount} für ${merchant} – ${date}`,
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `[Geschäftskarten verbinden](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         Verbinde die Karten, die du bereits hast, für den automatischen Transaktionsimport, das Belegabgleichen und die Abstimmung.
 
                         1. Klicke auf *Workspaces*.
@@ -3275,7 +3276,7 @@ ${amount} für ${merchant} – ${date}`,
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `[your team](${workspaceMembersLink}) einladen`,
                 description: ({workspaceMembersLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Lade dein Team* zu Expensify ein, damit alle noch heute mit der Spesenerfassung starten können.
 
                         1. Klicke auf *Workspaces*.
@@ -3291,7 +3292,7 @@ ${amount} für ${merchant} – ${date}`,
             setupCategoriesAndTags: {
                 title: ({workspaceCategoriesLink, workspaceTagsLink}) => `Richte [Kategorien](${workspaceCategoriesLink}) und [Tags](${workspaceTagsLink}) ein`,
                 description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Richten Sie Kategorien und Tags ein*, damit Ihr Team Ausgaben für eine einfache Berichterstattung codieren kann.
 
                         Importieren Sie sie automatisch, indem Sie [Ihre Buchhaltungssoftware verbinden](${workspaceAccountingLink}), oder richten Sie sie manuell in Ihren [Workspace-Einstellungen](${workspaceCategoriesLink}) ein.`),
@@ -3299,7 +3300,7 @@ ${amount} für ${merchant} – ${date}`,
             setupTagsTask: {
                 title: ({workspaceTagsLink}) => `Richte [Tags](${workspaceTagsLink}) ein`,
                 description: ({workspaceMoreFeaturesLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         Verwende Tags, um zusätzliche Ausgabendetails wie Projekte, Kunden, Standorte und Abteilungen hinzuzufügen. Wenn du mehrere Tag-Ebenen benötigst, kannst du auf den Control-Tarif upgraden.
 
                         1. Klicke auf *Workspaces*.
@@ -3315,7 +3316,7 @@ ${amount} für ${merchant} – ${date}`,
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `Laden Sie Ihre(n) [Buchhalter(in)](${workspaceMembersLink}) ein`,
                 description: ({workspaceMembersLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Laden Sie Ihre*n Steuerberater*in ein*, um in Ihrem Arbeitsbereich zusammenzuarbeiten und Ihre Geschäftsausgaben zu verwalten.
 
                         1. Klicken Sie auf *Workspaces*.
@@ -3328,7 +3329,7 @@ ${amount} für ${merchant} – ${date}`,
             },
             startChatTask: {
                 title: 'Chat starten',
-                description: dedent(`
+                description: Str.dedent(`
                     *Starte einen Chat* mit jeder Person über ihre E‑Mail-Adresse oder Telefonnummer.
 
                     1. Klicke auf die Schaltfläche *+*.
@@ -3342,7 +3343,7 @@ ${amount} für ${merchant} – ${date}`,
             },
             splitExpenseTask: {
                 title: 'Spesen aufteilen',
-                description: dedent(`
+                description: Str.dedent(`
                     *Spalte Ausgaben* mit einer oder mehreren Personen.
 
                     1. Klicke auf die Schaltfläche *+*.
@@ -3357,7 +3358,7 @@ ${amount} für ${merchant} – ${date}`,
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `Überprüfe deine [Workspace-Einstellungen](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         So kannst du deine Workspace-Einstellungen überprüfen und aktualisieren:
                         1. Klicke auf „Workspaces“.
                         2. Wähle deinen Workspace aus.
@@ -3366,7 +3367,7 @@ ${amount} für ${merchant} – ${date}`,
             },
             createReportTask: {
                 title: 'Erstelle deinen ersten Bericht',
-                description: dedent(`
+                description: Str.dedent(`
                     So erstellst du einen Bericht:
 
                     1. Klicke auf die Schaltfläche *+*.
@@ -3387,11 +3388,11 @@ ${amount} für ${merchant} – ${date}`,
             onboardingPersonalSpendMessage: 'So verfolgen Sie Ihre Ausgaben mit nur wenigen Klicks.',
             onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
                 isOnboardingFlow
-                    ? dedent(`
+                    ? Str.dedent(`
                         # Ihre kostenlose Testversion hat begonnen! Lassen Sie uns mit der Einrichtung starten.
                         👋 Hallo, ich bin Ihre Expensify Account Executive. Ich habe bereits einen Arbeitsbereich erstellt, um die Belege und Ausgaben Ihres Teams zu verwalten. Um das Beste aus Ihrer 30-tägigen kostenlosen Testversion herauszuholen, folgen Sie einfach den verbleibenden Einrichtungsschritten unten!
                     `)
-                    : dedent(`
+                    : Str.dedent(`
                         # Ihre kostenlose Testversion hat begonnen! Lassen Sie uns mit der Einrichtung starten.
                         👋 Hallo, ich bin Ihre Expensify-Ansprechperson. Jetzt, da Sie einen Workspace erstellt haben, nutzen Sie Ihre 30-tägige kostenlose Testversion optimal, indem Sie die folgenden Schritte ausführen!
                     `),
@@ -4139,7 +4140,7 @@ ${amount} für ${merchant} – ${date}`,
         codiceFiscale: 'Steuernummer',
         codiceFiscaleDescription: 'Codice Fiscale für Unterzeichnende, Bevollmächtigte und wirtschaftlich Berechtigte.',
         PDSandFSG: 'PDS- und FSG-Offenlegungsunterlagen',
-        PDSandFSGDescription: dedent(`
+        PDSandFSGDescription: Str.dedent(`
             Unsere Partnerschaft mit Corpay nutzt eine API-Verbindung, um deren umfangreiches Netzwerk internationaler Bankpartner zu verwenden und so Globale Erstattungen in Expensify zu ermöglichen. Gemäß den australischen Vorschriften stellen wir Ihnen den Financial Services Guide (FSG) und die Product Disclosure Statement (PDS) von Corpay zur Verfügung.
 
             Bitte lesen Sie die FSG- und PDS-Dokumente sorgfältig, da sie vollständige Details und wichtige Informationen zu den Produkten und Dienstleistungen enthalten, die Corpay anbietet. Bewahren Sie diese Dokumente für zukünftige Referenzzwecke auf.
@@ -4196,7 +4197,7 @@ ${amount} für ${merchant} – ${date}`,
         subheader: 'Verifizierung',
         verificationFailed: 'Die Verifizierung ist fehlgeschlagen, daher benötigen wir zusätzliche Dokumente, um dich und dein Unternehmen zu überprüfen',
         taxIDVerification: 'Steuer-ID-Verifizierung',
-        taxIDVerificationDescription: dedent(`
+        taxIDVerificationDescription: Str.dedent(`
             Bitte lade eine der folgenden Dateien hoch:
             • IRS TIN/EIN-Zuweisungsschreiben
             • IRS TIN/EIN-Antragsbestätigung (enthält normalerweise „Congratulations! The EIN has been successfully assigned“)
@@ -4206,7 +4207,7 @@ ${amount} für ${merchant} – ${date}`,
         nameChangeDocumentDescription:
             'Wenn sich der Name deines Unternehmens seit der Beantragung der TIN/EIN geändert hat, benötigen wir dieses Dokument zur Verifizierung der angegebenen Steuer-ID',
         companyAddressVerification: 'Verifizierung der Unternehmensadresse',
-        companyAddressVerificationDescription: dedent(`
+        companyAddressVerificationDescription: Str.dedent(`
             Bitte lade eine der folgenden Dateien hoch:
             • Aktuelle Strom-, Wasser- oder Gasrechnung mit Firmenname und Adresse
             • Kontoauszug mit Firmenname und Adresse
@@ -4215,7 +4216,7 @@ ${amount} für ${merchant} – ${date}`,
             • TIN-Zuweisungsdokument mit Firmenname und Adresse
         `),
         userAddressVerification: 'Adressverifizierung',
-        userAddressVerificationDescription: dedent(`
+        userAddressVerificationDescription: Str.dedent(`
             Bitte lade eine der folgenden Dateien hoch:
             • Wählerregistrierungskarte
             • Führerschein
@@ -5151,12 +5152,12 @@ ${amount} für ${merchant} – ${date}`,
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL]: {
                         label: 'Lieferantenrechnungen',
-                        reimbursableDescription: dedent(`
+                        reimbursableDescription: Str.dedent(`
                             Auslagen aus eigener Tasche werden als Rechnungen exportiert, die an den unten angegebenen NetSuite-Lieferanten zahlbar sind.
 
                             Wenn du für jede Karte einen bestimmten Lieferanten festlegen möchtest, gehe zu *Einstellungen > Domains > Firmenkarten*.
                         `),
-                        nonReimbursableDescription: dedent(`
+                        nonReimbursableDescription: Str.dedent(`
                             Ausgaben mit Firmenkarten werden als Rechnungen exportiert, die an den unten angegebenen NetSuite-Lieferanten zahlbar sind.
 
                             Wenn du für jede Karte einen eigenen Lieferanten festlegen möchtest, gehe zu *Einstellungen > Domains > Firmenkarten*.
@@ -5164,12 +5165,12 @@ ${amount} für ${merchant} – ${date}`,
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY]: {
                         label: 'Buchungssätze',
-                        reimbursableDescription: dedent(`
+                        reimbursableDescription: Str.dedent(`
                             Auslagen werden als Buchungssätze auf das unten angegebene NetSuite-Konto exportiert.
 
                             Wenn Sie für jede Karte einen bestimmten Lieferanten festlegen möchten, gehen Sie zu *Einstellungen > Domains > Firmenkarten*.
                         `),
-                        nonReimbursableDescription: dedent(`
+                        nonReimbursableDescription: Str.dedent(`
                             Firmenkartenausgaben werden als Buchungssätze in das unten angegebene NetSuite-Konto exportiert.
 
                             Wenn du für jede Karte einen bestimmten Lieferanten festlegen möchtest, gehe zu *Einstellungen > Domains > Firmenkarten*.
@@ -7551,7 +7552,13 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Um Ihre Agent-Regeln durchzusetzen, haben wir einen Agenten für Sie erstellt und ihn als Administrator zu Ihrem Arbeitsbereich hinzugefügt.<br><br>Bearbeiten Sie die Details Ihres Agenten unter <a href="${agentsRoute}">Konto &gt; Agenten</a>.</muted-text>`,
             },
-            tabs: {general: 'Allgemein', cardRestrictions: 'Karteneinschränkungen', expenseDefaults: 'Standardausgaben'},
+            tabs: {
+                general: 'Allgemein',
+                cardRestrictions: 'Karteneinschränkungen',
+                expenseDefaults: 'Standardausgaben',
+                requireFields: 'Felder erforderlich',
+                flagForReview: 'Zur Überprüfung markieren',
+            },
             bulkActions: {
                 deleteMultiple: () => ({
                     one: 'Regel löschen',
@@ -7608,6 +7615,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 restrictCardSpendDescription: 'Ausgaben am Verkaufsort blockieren oder begrenzen',
                 applyExpenseDefaults: 'Standardspesen übernehmen',
                 applyExpenseDefaultsDescription: 'Felder aktualisieren, ohne dass die einreichende Person etwas tun muss',
+                flagForReview: 'Zur Überprüfung markieren',
+                flagForReviewDescription: 'Genehmigende benachrichtigen, wenn Ausgaben Kategorienlimits überschreiten',
+                requireFields: 'Felder erforderlich',
+                requireFieldsDescription: 'Stellen Sie sicher, dass die wichtigsten Felder ausgefüllt sind, bevor Ausgaben eingereicht werden',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Typ',
@@ -7617,6 +7628,59 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 rename: 'Umbenennen',
                 update: 'Aktualisieren',
                 merchantIs: (merchant: string) => `Händler ist „${merchant}“`,
+                merchantTypeIs: (merchantType: string) => `Händlertyp ist „${merchantType}"`,
+            },
+            merchantTypeRule: {merchantType: 'Händlerart', saveRule: 'Regel speichern', confirmErrorCategory: 'Bitte wählen Sie eine Kategorie aus.'},
+            requireFieldsTable: {
+                tableColumnType: 'Typ',
+                tableColumnCondition: 'Bedingung',
+                tableColumnRule: 'Regel',
+                findRule: 'Regel finden',
+                typeLabel: 'Felder erforderlich',
+                conditionCategoryIs: (category: string) => `Kategorie ist „${category}"`,
+                requireDescription: 'Beschreibung erforderlich',
+                requireAttendees: 'Teilnehmende verpflichten',
+                requireItemizedReceipt: 'Positionierte Quittung erforderlich',
+                requireItemizedReceiptOver: (amount: string) => `Artikelisierte Quittung über ${amount} erforderlich`,
+                alwaysRequireReceipt: 'Beleg immer erforderlich',
+                requireReceiptOver: (amount: string) => `Beleg ab einem Betrag von ${amount} erforderlich`,
+            },
+            requireFieldsEmptyState: {
+                title: 'Fehlende Details frühzeitig erfassen',
+                subtitle: 'Stellen Sie sicher, dass die wichtigsten Felder ausgefüllt sind, bevor Ausgaben eingereicht werden.',
+                cta: 'Erforderlich-Regel erstellen',
+            },
+            requireFieldsRule: {
+                title: 'Felder erforderlich',
+                subtitle: 'Belege, Kategorien usw. beim Einreichen erforderlich machen.',
+                thenWarnMember: 'Dann Mitglied warnen, wenn Felder fehlen:',
+                itemizedReceipt: 'Aufgeschlüsselte Quittung',
+                saveRule: 'Regel speichern',
+                confirmErrorCategory: 'Bitte wählen Sie eine Kategorie aus.',
+                confirmErrorField: 'Bitte wählen Sie mindestens ein erforderliches Feld aus.',
+            },
+            flagForReviewTable: {
+                tableColumnType: 'Typ',
+                tableColumnCondition: 'Bedingung',
+                tableColumnRule: 'Regel',
+                findRule: 'Regel finden',
+                typeLabel: 'Markierung',
+                conditionCategoryAndAmount: (category: string, amount: string) => `Kategorie ist „${category}" und Betrag über ${amount}`,
+                conditionCategoryAndDailyAmount: (category: string, amount: string) => `Kategorie ist „${category}" und tägliche Kategoriesumme über ${amount}`,
+                flagForReview: 'Zur Überprüfung markieren',
+            },
+            flagForReviewEmptyState: {
+                title: 'Spesen hervorheben, die genauer geprüft werden müssen',
+                subtitle: 'Benachrichtigen Sie Genehmigende, wenn bestimmte Ausgaben eine zusätzliche Prüfung wert sind.',
+                cta: 'Flag-Regel erstellen',
+            },
+            flagForReviewRule: {
+                title: 'Zur Überprüfung markieren',
+                subtitle: 'Benachrichtigen Sie Genehmigende, wenn die folgenden Bedingungen erfüllt sind.',
+                saveRule: 'Regel speichern',
+                confirmErrorCategory: 'Bitte wählen Sie eine Kategorie aus.',
+                confirmErrorAmount: 'Bitte geben Sie einen Betrag ein.',
+                thenFlagForReview: 'Dann zur Überprüfung kennzeichnen, wenn:',
             },
         },
         planTypePage: {
@@ -9676,7 +9740,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             `Bitte gib den magischen Code ein, der an ${contactMethod} gesendet wurde, um eine:n Copilot:in hinzuzufügen. Er sollte innerhalb ein bis zwei Minuten ankommen.`,
         enterMagicCodeUpdate: (contactMethod: string) => `Bitte gib den magischen Code ein, der an ${contactMethod} gesendet wurde, um deinen Copilot zu aktualisieren.`,
         notAllowed: 'Nicht so schnell ...',
-        noAccessMessage: dedent(`
+        noAccessMessage: Str.dedent(`
             Als Copilot hast du keinen Zugriff auf diese Seite. Entschuldigung!
         `),
         notAllowedMessage: (accountOwnerEmail: string) =>

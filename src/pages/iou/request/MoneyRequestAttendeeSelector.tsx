@@ -1,3 +1,4 @@
+import {SafeString} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useEffect} from 'react';
 import type {GestureResponderEvent} from 'react-native';
@@ -41,7 +42,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
-import SafeString from '@src/utils/SafeString';
 
 type MoneyRequestAttendeesSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
