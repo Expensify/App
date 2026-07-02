@@ -5512,6 +5512,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.cardRulesEmptyStateIllustrationHeight,
         },
 
+        sortingMachineRulesEmptyStateIllustration: {
+            width: variables.sortingMachineRulesEmptyStateIllustrationWidth,
+            height: variables.sortingMachineRulesEmptyStateIllustrationHeight,
+        },
+
         emptyStateSamlIllustration: {
             width: 183,
             height: 160,

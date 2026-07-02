@@ -510,6 +510,7 @@ const translations: TranslationDeepObject<typeof en> = {
         restrictions: '限制',
         tagGLCode: '标记总账代码',
         off: '关',
+        apiKey: 'API 密钥',
     },
     socials: {
         podcast: '在播客上关注我们',
@@ -5326,6 +5327,15 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 }
             },
         },
+        rillet: {
+            rilletSetup: 'Rillet 设置',
+            enterCredentials: '输入你的 Rillet API 密钥',
+            howToFindAPIKey: '<strong>查找您的 API 密钥。</strong><ol><li>登录 Rillet</li><li>前往“账号”->“设置”</li><li>复制下面的 API 密钥</li></ol>',
+            subsidiary: '子公司',
+            subsidiarySelectDescription: '请选择要从中导入数据的 Rillet 子公司。',
+            noSubsidiariesFound: '未找到子公司',
+            noSubsidiariesFoundDescription: '请在 Rillet 中添加一个子公司，然后再次同步连接',
+        },
         type: {
             free: '免费',
             control: '控制',
@@ -6264,6 +6274,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            rillet: 'Rillet',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6281,6 +6292,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         return 'NetSuite';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
+                    case CONST.POLICY.CONNECTIONS.NAME.RILLET:
+                        return 'Rillet';
                     default: {
                         return '';
                     }
@@ -6504,6 +6517,12 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                             return '正在导入维度';
                         case 'financialForceMarkAsReimbursed':
                             return '正在将报告标记为已报销';
+                        case 'rilletSyncTitle':
+                            return '正在同步 Rillet 数据';
+                        case 'rilletSyncConnection':
+                            return '正在初始化与 Rillet 的连接';
+                        case 'rilletSyncImportData':
+                            return '正在加载数据';
                         default: {
                             return `缺少以下阶段的翻译：${stage}`;
                         }
@@ -6761,6 +6780,12 @@ ${reportName}`,
                 description: `通过 Expensify 与 Certinia 的集成，享受自动同步，减少手动录入。将费用编码维度与税务同步与您的 Certinia 配置对齐，以获得更清晰的财务可见性。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>我们的 Certinia 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                title: 'Rillet',
+                description: `通过 Expensify 与 Rillet 的集成，享受自动同步，减少手动录入。将费用编码维度与税务同步与您的 Rillet 配置对齐，以获得更清晰的财务可见性。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>我们的 Rillet 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: '高级审批',
@@ -7307,7 +7332,7 @@ ${reportName}`,
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>为了执行你的代理规则，我们为你创建了一个代理，并将其添加为你工作区的管理员。<br><br>你可以在 <a href="${agentsRoute}">“账户”&gt;“代理”</a> 中编辑代理的详细信息。</muted-text>`,
             },
-            tabs: {general: '常规', cardRestrictions: '卡片限制', expenseDefaults: '报销默认设置'},
+            tabs: {general: '常规', cardRestrictions: '卡片限制', expenseDefaults: '报销默认设置', requireFields: '必填字段', flagForReview: '标记以供审核'},
             bulkActions: {
                 deleteMultiple: () => ({
                     one: '删除规则',
@@ -7364,6 +7389,10 @@ ${reportName}`,
                 restrictCardSpendDescription: '在销售点阻止或限制支出',
                 applyExpenseDefaults: '应用报销默认设置',
                 applyExpenseDefaultsDescription: '在提交人无须执行任何操作的情况下更新字段',
+                flagForReview: '标记以供审核',
+                flagForReviewDescription: '当费用超出类别限额时通知审批人',
+                requireFields: '必填字段',
+                requireFieldsDescription: '请确保在提交报销前填写所有关键字段',
             },
             expenseDefaultsTable: {
                 tableColumnType: '类型',
@@ -7373,6 +7402,51 @@ ${reportName}`,
                 rename: '重命名',
                 update: '更新',
                 merchantIs: (merchant: string) => `商户为“${merchant}”`,
+                merchantTypeIs: (merchantType: string) => `商户类型为"${merchantType}"`,
+            },
+            merchantTypeRule: {merchantType: '商户类型', saveRule: '保存规则', confirmErrorCategory: '请选择一个类别。'},
+            requireFieldsTable: {
+                tableColumnType: '类型',
+                tableColumnCondition: '条件',
+                tableColumnRule: '规则',
+                findRule: '查找规则',
+                typeLabel: '必填字段',
+                conditionCategoryIs: (category: string) => `类别为"${category}"`,
+                requireDescription: '必填描述',
+                requireAttendees: '要求参与者',
+                requireItemizedReceipt: '要求提供分项收据',
+                requireItemizedReceiptOver: (amount: string) => `需要超过 ${amount} 的分项收据`,
+                alwaysRequireReceipt: '始终要求收据',
+                requireReceiptOver: (amount: string) => `要求票据超过 ${amount}`,
+            },
+            requireFieldsEmptyState: {title: '提前补全缺失信息', subtitle: '在提交报销前，请确保关键字段已填写完整。', cta: '创建必填规则'},
+            requireFieldsRule: {
+                title: '必填字段',
+                subtitle: '在提交时要求提供收据、分类等信息。',
+                thenWarnMember: '如果有字段缺失，则提醒成员：',
+                itemizedReceipt: '明细收据',
+                saveRule: '保存规则',
+                confirmErrorCategory: '请选择一个类别。',
+                confirmErrorField: '请至少选择一个必填字段。',
+            },
+            flagForReviewTable: {
+                tableColumnType: '类型',
+                tableColumnCondition: '条件',
+                tableColumnRule: '规则',
+                findRule: '查找规则',
+                typeLabel: '标记',
+                conditionCategoryAndAmount: (category: string, amount: string) => `类别为"${category}"，且金额大于 ${amount}`,
+                conditionCategoryAndDailyAmount: (category: string, amount: string) => `类别为"${category}"，且每日类别总额高于 ${amount}`,
+                flagForReview: '标记以供审核',
+            },
+            flagForReviewEmptyState: {title: '找出需要进一步查看的报销费用', subtitle: '当特定报销值得额外审核时提醒审批人。', cta: '创建标记规则'},
+            flagForReviewRule: {
+                title: '标记以供审核',
+                subtitle: '在满足以下条件时通知审批人。',
+                saveRule: '保存规则',
+                confirmErrorCategory: '请选择一个类别。',
+                confirmErrorAmount: '请输入金额。',
+                thenFlagForReview: '然后在以下情况下标记为待审核：',
             },
         },
         planTypePage: {

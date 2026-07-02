@@ -632,7 +632,6 @@
 "../../src/libs/Navigation/AppNavigator/Navigators/TestToolsModalNavigator.tsx"	"no-restricted-syntax"	1
 "../../src/libs/Navigation/AppNavigator/Navigators/WorkspaceSplitNavigator.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers.ts"	"@typescript-eslint/no-unsafe-type-assertion"	14
-"../../src/libs/Navigation/AppNavigator/createRootStackNavigator/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/AppNavigator/createRootStackNavigator/useCustomRootStackNavigatorState/restoreTabNavigatorRoutes.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/AppNavigator/createSplitNavigator/SplitRouter.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1487,7 +1486,6 @@
 "../../tests/actions/BankAccountsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/actions/DomainTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	20
 "../../tests/actions/EnforceActionExportRestrictions.ts"	"no-restricted-imports"	1
-"../../tests/actions/IOU/BuildOnyxDataForMoneyRequestTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	17
 "../../tests/actions/IOU/CreateDraftTransactionTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/IOU/GetMoneyRequestInformationTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/actions/IOU/MoneyRequestBuilderTest.ts"	"no-restricted-imports"	1

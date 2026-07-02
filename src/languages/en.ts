@@ -536,6 +536,7 @@ const translations = {
         goToConcierge: 'Go to Concierge',
         allSet: 'All Set!',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `enter digit ${digitIndex} of ${totalDigits}`,
+        apiKey: 'API key',
     },
     socials: {
         podcast: 'Follow us on Podcast',
@@ -5555,6 +5556,15 @@ const translations = {
                 }
             },
         },
+        rillet: {
+            rilletSetup: 'Rillet setup',
+            enterCredentials: 'Enter your Rillet API key',
+            howToFindAPIKey: '<strong>Finding your API key.</strong><ol><li>Log in to Rillet</li><li>Navigate to Account -> Settings</li><li>Copy the API key below</li></ol>',
+            subsidiary: 'Subsidiary',
+            subsidiarySelectDescription: "Choose the subsidiary in Rillet that you'd like to import data from.",
+            noSubsidiariesFound: 'No subsidiaries found',
+            noSubsidiariesFoundDescription: 'Please add a subsidiary in Rillet and sync the connection again',
+        },
         type: {
             free: 'Free',
             control: 'Control',
@@ -6532,6 +6542,7 @@ const translations = {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            rillet: 'Rillet',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6549,6 +6560,8 @@ const translations = {
                         return 'NetSuite';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
+                    case CONST.POLICY.CONNECTIONS.NAME.RILLET:
+                        return 'Rillet';
                     default: {
                         return '';
                     }
@@ -6777,6 +6790,12 @@ const translations = {
                             return 'Importing dimensions';
                         case 'financialForceMarkAsReimbursed':
                             return 'Marking reports as reimbursed';
+                        case 'rilletSyncTitle':
+                            return 'Syncing Rillet data';
+                        case 'rilletSyncConnection':
+                            return 'Initializing connection to Rillet';
+                        case 'rilletSyncImportData':
+                            return 'Loading data';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
@@ -7121,6 +7140,12 @@ const translations = {
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Our Certinia integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                title: 'Rillet',
+                description: `Enjoy automated syncing and reduce manual entries with the Expensify + Rillet integration. Align expense coding dimensions and tax sync with your Rillet setup for clearer financial visibility.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Our Rillet integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Advanced Approvals',
                 description: `If you want to add more layers of approval to the mix – or just make sure the largest expenses get another set of eyes – we’ve got you covered. Advanced approvals help you put the right checks in place at every level so you keep your team’s spend under control.`,
@@ -7366,6 +7391,8 @@ const translations = {
                 general: 'General',
                 cardRestrictions: 'Card restrictions',
                 expenseDefaults: 'Expense defaults',
+                requireFields: 'Require fields',
+                flagForReview: 'Flag for review',
             },
             bulkActions: {
                 deleteMultiple: () => ({
@@ -7541,6 +7568,10 @@ const translations = {
                 subtitle: 'What do you want to do?',
                 restrictCardSpend: 'Restrict card spend',
                 restrictCardSpendDescription: 'Block or limit spend at the point of sale',
+                flagForReview: 'Flag for review',
+                flagForReviewDescription: 'Notify approvers when expenses exceed category limits',
+                requireFields: 'Require fields',
+                requireFieldsDescription: 'Make sure key fields are filled in before expenses are submitted',
                 applyExpenseDefaults: 'Apply expense defaults',
                 applyExpenseDefaultsDescription: 'Update fields without submitter doing anything',
             },
@@ -7552,6 +7583,63 @@ const translations = {
                 rename: 'Rename',
                 update: 'Update',
                 merchantIs: (merchant: string) => `Merchant is "${merchant}"`,
+                merchantTypeIs: (merchantType: string) => `Merchant type is "${merchantType}"`,
+            },
+            merchantTypeRule: {
+                merchantType: 'Merchant type',
+                saveRule: 'Save rule',
+                confirmErrorCategory: 'Please select a category.',
+            },
+            requireFieldsTable: {
+                tableColumnType: 'Type',
+                tableColumnCondition: 'Condition',
+                tableColumnRule: 'Rule',
+                findRule: 'Find rule',
+                typeLabel: 'Require fields',
+                conditionCategoryIs: (category: string) => `Category is "${category}"`,
+                requireDescription: 'Require description',
+                requireAttendees: 'Require attendees',
+                requireItemizedReceipt: 'Require itemized receipt',
+                requireItemizedReceiptOver: (amount: string) => `Require itemized receipt over ${amount}`,
+                alwaysRequireReceipt: 'Always require receipt',
+                requireReceiptOver: (amount: string) => `Require receipt over ${amount}`,
+            },
+            requireFieldsEmptyState: {
+                title: 'Catch missing details upfront',
+                subtitle: 'Make sure key fields are filled in before expenses are submitted.',
+                cta: 'Create require rule',
+            },
+            requireFieldsRule: {
+                title: 'Require fields',
+                subtitle: 'Require receipts, categories, etc, when submitting.',
+                thenWarnMember: 'Then warn member if fields are missing:',
+                itemizedReceipt: 'Itemized receipt',
+                saveRule: 'Save rule',
+                confirmErrorCategory: 'Please select a category.',
+                confirmErrorField: 'Please select at least one field to require.',
+            },
+            flagForReviewTable: {
+                tableColumnType: 'Type',
+                tableColumnCondition: 'Condition',
+                tableColumnRule: 'Rule',
+                findRule: 'Find rule',
+                typeLabel: 'Flag',
+                conditionCategoryAndAmount: (category: string, amount: string) => `Category is "${category}" and amount above ${amount}`,
+                conditionCategoryAndDailyAmount: (category: string, amount: string) => `Category is "${category}" and daily category total above ${amount}`,
+                flagForReview: 'Flag for review',
+            },
+            flagForReviewEmptyState: {
+                title: 'Surface expenses that need a closer look',
+                subtitle: 'Alert approvers when specific expenses are worth an extra review.',
+                cta: 'Create flag rule',
+            },
+            flagForReviewRule: {
+                title: 'Flag for review',
+                subtitle: 'Notify approvers when the following conditions are met.',
+                saveRule: 'Save rule',
+                confirmErrorCategory: 'Please select a category.',
+                confirmErrorAmount: 'Please enter an amount.',
+                thenFlagForReview: 'Then flag for review when:',
             },
             categoryRules: {
                 title: 'Category rules',

@@ -462,6 +462,7 @@ const translations: TranslationDeepObject<typeof en> = {
         goToConcierge: 'Ir a Concierge',
         allSet: '¡Todo listo!',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
+        apiKey: 'Clave API',
         editor: 'Editor',
         restrictions: 'Restricciones',
         tagGLCode: 'Etiquetar código GL',
@@ -5338,6 +5339,16 @@ ${amount} para ${merchant} - ${date}`,
                 }
             },
         },
+        rillet: {
+            rilletSetup: 'Configuración de Rillet',
+            enterCredentials: 'Introduce tu clave de API de Rillet',
+            howToFindAPIKey:
+                '<strong>Encontrar tu clave de API.</strong><ol><li>Inicia sesión en Rillet</li><li>Ve a Cuenta -> Configuración</li><li>Copia la clave de API de abajo</li></ol>',
+            subsidiary: 'Filial',
+            subsidiarySelectDescription: 'Elige la filial en Rillet desde la que te gustaría importar datos.',
+            noSubsidiariesFound: 'No se encontraron filiales',
+            noSubsidiariesFoundDescription: 'Por favor, añade una filial en Rillet y sincroniza de nuevo la conexión',
+        },
         type: {
             free: 'Gratis',
             control: 'Controlar',
@@ -6244,6 +6255,7 @@ ${amount} para ${merchant} - ${date}`,
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            rillet: 'Rillet',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6261,6 +6273,8 @@ ${amount} para ${merchant} - ${date}`,
                         return 'NetSuite';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
+                    case CONST.POLICY.CONNECTIONS.NAME.RILLET:
+                        return 'Rillet';
                     default: {
                         return '';
                     }
@@ -6487,6 +6501,12 @@ ${amount} para ${merchant} - ${date}`,
                             return 'Importando dimensiones';
                         case 'financialForceMarkAsReimbursed':
                             return 'Marcando informes como reembolsados';
+                        case 'rilletSyncTitle':
+                            return 'Sincronizando datos de Rillet';
+                        case 'rilletSyncConnection':
+                            return 'Iniciando conexión con Rillet';
+                        case 'rilletSyncImportData':
+                            return 'Cargando datos';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
@@ -6909,6 +6929,12 @@ ${amount} para ${merchant} - ${date}`,
                 description: `Disfruta de la sincronización automatizada y reduce las entradas manuales con la integración Expensify + Certinia. Alinea dimensiones de codificación de gastos y la sincronización de impuestos con tu configuración de Certinia para una visibilidad financiera más clara.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Nuestra integración con Certinia solo está disponible en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                title: 'Rillet',
+                description: `Disfruta de la sincronización automatizada y reduce las entradas manuales con la integración Expensify + Rillet. Alinea dimensiones de codificación de gastos y la sincronización de impuestos con tu configuración de Rillet para una visibilidad financiera más clara.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Nuestra integración con Rillet solo está disponible en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Aprobaciones anticipadas',
@@ -7445,7 +7471,13 @@ ${amount} para ${merchant} - ${date}`,
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Para aplicar tus reglas de agente, hemos creado un agente para ti y lo hemos añadido como administrador de tu espacio de trabajo.<br><br>Edita los datos de tu agente en <a href="${agentsRoute}">Cuenta &gt; Agentes</a>.</muted-text>`,
             },
-            tabs: {general: 'General', cardRestrictions: 'Restricciones de la tarjeta', expenseDefaults: 'Valores predeterminados de gastos'},
+            tabs: {
+                general: 'General',
+                cardRestrictions: 'Restricciones de la tarjeta',
+                expenseDefaults: 'Valores predeterminados de gastos',
+                requireFields: 'Campos obligatorios',
+                flagForReview: 'Marcar para revisión',
+            },
             bulkActions: {
                 deleteMultiple: () => ({
                     one: 'Eliminar regla',
@@ -7502,6 +7534,10 @@ ${amount} para ${merchant} - ${date}`,
                 restrictCardSpendDescription: 'Bloquea o limita el gasto en el punto de venta',
                 applyExpenseDefaults: 'Aplicar valores predeterminados de gastos',
                 applyExpenseDefaultsDescription: 'Actualizar campos sin que quien los envía haga nada',
+                flagForReview: 'Marcar para revisión',
+                flagForReviewDescription: 'Notificar a los aprobadores cuando los gastos superen los límites de categoría',
+                requireFields: 'Campos obligatorios',
+                requireFieldsDescription: 'Asegúrate de que los campos clave estén rellenos antes de enviar los gastos',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Tipo',
@@ -7511,6 +7547,59 @@ ${amount} para ${merchant} - ${date}`,
                 rename: 'Cambiar nombre',
                 update: 'Actualizar',
                 merchantIs: (merchant: string) => `El comercio es «${merchant}»`,
+                merchantTypeIs: (merchantType: string) => `El tipo de comercio es "${merchantType}"`,
+            },
+            merchantTypeRule: {merchantType: 'Tipo de comercio', saveRule: 'Guardar regla', confirmErrorCategory: 'Por favor, selecciona una categoría.'},
+            requireFieldsTable: {
+                tableColumnType: 'Tipo',
+                tableColumnCondition: 'Condición',
+                tableColumnRule: 'Regla',
+                findRule: 'Buscar regla',
+                typeLabel: 'Campos obligatorios',
+                conditionCategoryIs: (category: string) => `La categoría es «${category}»`,
+                requireDescription: 'Requerir descripción',
+                requireAttendees: 'Requerir asistentes',
+                requireItemizedReceipt: 'Requerir recibo desglosado',
+                requireItemizedReceiptOver: (amount: string) => `Requerir recibo desglosado por encima de ${amount}`,
+                alwaysRequireReceipt: 'Solicitar siempre recibo',
+                requireReceiptOver: (amount: string) => `Solicitar recibo para importes superiores a ${amount}`,
+            },
+            requireFieldsEmptyState: {
+                title: 'Detecta los datos que faltan desde el principio',
+                subtitle: 'Asegúrate de que los campos clave estén completos antes de enviar los gastos.',
+                cta: 'Crear regla de requisito',
+            },
+            requireFieldsRule: {
+                title: 'Campos obligatorios',
+                subtitle: 'Solicita recibos, categorías, etc., al enviar.',
+                thenWarnMember: 'Luego, avisa al miembro si faltan campos:',
+                itemizedReceipt: 'Recibo desglosado',
+                saveRule: 'Guardar regla',
+                confirmErrorCategory: 'Por favor, selecciona una categoría.',
+                confirmErrorField: 'Por favor, selecciona al menos un campo como obligatorio.',
+            },
+            flagForReviewTable: {
+                tableColumnType: 'Tipo',
+                tableColumnCondition: 'Condición',
+                tableColumnRule: 'Regla',
+                findRule: 'Buscar regla',
+                typeLabel: 'Marcar',
+                conditionCategoryAndAmount: (category: string, amount: string) => `La categoría es «${category}» y el importe es superior a ${amount}`,
+                conditionCategoryAndDailyAmount: (category: string, amount: string) => `La categoría es "${category}" y el total diario de la categoría supera ${amount}`,
+                flagForReview: 'Marcar para revisión',
+            },
+            flagForReviewEmptyState: {
+                title: 'Destaca los gastos que necesitan una revisión más detallada',
+                subtitle: 'Avisa a los aprobadores cuando ciertos gastos merezcan una revisión adicional.',
+                cta: 'Crear regla de marca',
+            },
+            flagForReviewRule: {
+                title: 'Marcar para revisión',
+                subtitle: 'Notificar a los aprobadores cuando se cumplan las siguientes condiciones.',
+                saveRule: 'Guardar regla',
+                confirmErrorCategory: 'Por favor, selecciona una categoría.',
+                confirmErrorAmount: 'Por favor, introduce una cantidad.',
+                thenFlagForReview: 'Luego marcar para revisión cuando:',
             },
         },
         emptyDomain: {

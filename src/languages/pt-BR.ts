@@ -513,6 +513,7 @@ const translations: TranslationDeepObject<typeof en> = {
         restrictions: 'Restrições',
         tagGLCode: 'Marcar código GL',
         off: 'Desligado',
+        apiKey: 'Chave de API',
     },
     socials: {
         podcast: 'Siga-nos no Podcast',
@@ -5462,6 +5463,16 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 }
             },
         },
+        rillet: {
+            rilletSetup: 'Configuração do Rillet',
+            enterCredentials: 'Insira sua chave de API Rillet',
+            howToFindAPIKey:
+                '<strong>Encontrando sua chave de API.</strong><ol><li>Faça login no Rillet</li><li>Vá para Conta -> Configurações</li><li>Copie a chave de API abaixo</li></ol>',
+            subsidiary: 'Subsidiária',
+            subsidiarySelectDescription: 'Escolha a subsidiária no Rillet da qual você gostaria de importar dados.',
+            noSubsidiariesFound: 'Nenhuma subsidiária encontrada',
+            noSubsidiariesFoundDescription: 'Adicione uma subsidiária no Rillet e sincronize a conexão novamente',
+        },
         type: {
             free: 'Grátis',
             control: 'Controle',
@@ -6434,6 +6445,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            rillet: 'Rillet',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6451,6 +6463,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                         return 'NetSuite';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
+                    case CONST.POLICY.CONNECTIONS.NAME.RILLET:
+                        return 'Rillet';
                     default: {
                         return '';
                     }
@@ -6676,6 +6690,12 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                             return 'Importando dimensoes';
                         case 'financialForceMarkAsReimbursed':
                             return 'Marcando relatorios como reembolsados';
+                        case 'rilletSyncTitle':
+                            return 'Sincronizando dados do Rillet';
+                        case 'rilletSyncConnection':
+                            return 'Inicializando conexão com Rillet';
+                        case 'rilletSyncImportData':
+                            return 'Carregando dados';
                         default: {
                             return `Tradução ausente para o estágio: ${stage}`;
                         }
@@ -6941,6 +6961,12 @@ ${reportName}`,
                 description: `Aproveite a sincronização automática e reduza lançamentos manuais com a integração Expensify + Certinia. Alinhe dimensões de categorização de despesas e a sincronização de impostos à sua configuração Certinia para maior visibilidade financeira.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Nossa integração com a Certinia está disponível apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                title: 'Rillet',
+                description: `Aproveite a sincronização automática e reduza lançamentos manuais com a integração Expensify + Rillet. Alinhe dimensões de categorização de despesas e a sincronização de impostos à sua configuração Rillet para maior visibilidade financeira.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Nossa integração com a Rillet está disponível apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Aprovações Avançadas',
@@ -7506,7 +7532,13 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Para aplicar suas regras de agente, criamos um agente para você e o adicionamos como administrador do seu espaço de trabalho.<br><br>Edite os detalhes do seu agente em <a href="${agentsRoute}">Conta &gt; Agentes</a>.</muted-text>`,
             },
-            tabs: {general: 'Geral', cardRestrictions: 'Restrições do cartão', expenseDefaults: 'Padrões de despesa'},
+            tabs: {
+                general: 'Geral',
+                cardRestrictions: 'Restrições do cartão',
+                expenseDefaults: 'Padrões de despesa',
+                requireFields: 'Tornar campos obrigatórios',
+                flagForReview: 'Marcar para revisão',
+            },
             bulkActions: {
                 deleteMultiple: () => ({
                     one: 'Excluir regra',
@@ -7563,6 +7595,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 restrictCardSpendDescription: 'Bloqueie ou limite gastos no ponto de venda',
                 applyExpenseDefaults: 'Aplicar padrões de despesa',
                 applyExpenseDefaultsDescription: 'Atualizar campos sem o responsável pelo envio fazer nada',
+                flagForReview: 'Marcar para revisão',
+                flagForReviewDescription: 'Notificar aprovadores quando as despesas excederem os limites da categoria',
+                requireFields: 'Tornar campos obrigatórios',
+                requireFieldsDescription: 'Certifique-se de que os campos principais estejam preenchidos antes de enviar as despesas',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Tipo',
@@ -7572,6 +7608,59 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 rename: 'Renomear',
                 update: 'Atualizar',
                 merchantIs: (merchant: string) => `O comerciante é "${merchant}"`,
+                merchantTypeIs: (merchantType: string) => `O tipo de estabelecimento é "${merchantType}"`,
+            },
+            merchantTypeRule: {merchantType: 'Tipo de comerciante', saveRule: 'Salvar regra', confirmErrorCategory: 'Selecione uma categoria.'},
+            requireFieldsTable: {
+                tableColumnType: 'Tipo',
+                tableColumnCondition: 'Condição',
+                tableColumnRule: 'Regra',
+                findRule: 'Encontrar regra',
+                typeLabel: 'Tornar campos obrigatórios',
+                conditionCategoryIs: (category: string) => `A categoria é "${category}"`,
+                requireDescription: 'Descrição obrigatória',
+                requireAttendees: 'Exigir participantes',
+                requireItemizedReceipt: 'Exigir recibo detalhado',
+                requireItemizedReceiptOver: (amount: string) => `Exigir recibo detalhado acima de ${amount}`,
+                alwaysRequireReceipt: 'Sempre exigir recibo',
+                requireReceiptOver: (amount: string) => `Exigir recibo acima de ${amount}`,
+            },
+            requireFieldsEmptyState: {
+                title: 'Identifique detalhes faltando desde o início',
+                subtitle: 'Certifique-se de que os campos principais estejam preenchidos antes de enviar as despesas.',
+                cta: 'Criar regra obrigatória',
+            },
+            requireFieldsRule: {
+                title: 'Tornar campos obrigatórios',
+                subtitle: 'Exigir recibos, categorias etc. ao enviar.',
+                thenWarnMember: 'Depois, avisar o membro se campos estiverem faltando:',
+                itemizedReceipt: 'Recibo detalhado',
+                saveRule: 'Salvar regra',
+                confirmErrorCategory: 'Selecione uma categoria.',
+                confirmErrorField: 'Selecione pelo menos um campo para tornar obrigatório.',
+            },
+            flagForReviewTable: {
+                tableColumnType: 'Tipo',
+                tableColumnCondition: 'Condição',
+                tableColumnRule: 'Regra',
+                findRule: 'Encontrar regra',
+                typeLabel: 'Marcar',
+                conditionCategoryAndAmount: (category: string, amount: string) => `A categoria é "${category}" e o valor é acima de ${amount}`,
+                conditionCategoryAndDailyAmount: (category: string, amount: string) => `A categoria é "${category}" e o total diário da categoria está acima de ${amount}`,
+                flagForReview: 'Marcar para revisão',
+            },
+            flagForReviewEmptyState: {
+                title: 'Identifique despesas que precisam de uma análise mais detalhada',
+                subtitle: 'Alerte aprovadores quando determinadas despesas merecerem uma revisão extra.',
+                cta: 'Criar regra de sinalização',
+            },
+            flagForReviewRule: {
+                title: 'Marcar para revisão',
+                subtitle: 'Notificar aprovadores quando as seguintes condições forem atendidas.',
+                saveRule: 'Salvar regra',
+                confirmErrorCategory: 'Selecione uma categoria.',
+                confirmErrorAmount: 'Insira um valor.',
+                thenFlagForReview: 'Então sinalizar para revisão quando:',
             },
         },
         planTypePage: {

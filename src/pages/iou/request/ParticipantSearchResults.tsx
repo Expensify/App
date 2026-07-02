@@ -79,6 +79,9 @@ type ParticipantSearchResultsProps = {
     /** Whether this is a transaction from a credit card import */
     isTransactionFromCreditCardImport: boolean;
 
+    /** Whether to exclude P2P recipients (and the invite-by-email option) from the list. Used for negative amounts, which P2P chats don't support. */
+    shouldExcludeP2P?: boolean;
+
     /** Forwarded ref for the SelectionList — used by the parent's useImperativeHandle */
     selectionListRef: Ref<SelectionListWithSectionsHandle | null>;
 
@@ -116,6 +119,7 @@ function ParticipantSearchResults({
     isTimeRequest,
     isNative,
     isTransactionFromCreditCardImport,
+    shouldExcludeP2P = false,
     selectionListRef,
     textInputAutoFocus,
     setTextInputAutoFocus,
@@ -177,7 +181,7 @@ function ParticipantSearchResults({
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK,
         excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
-        includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport,
+        includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport && !shouldExcludeP2P,
         includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
         action,
         shouldSeparateSelfDMChat: iouType !== CONST.IOU.TYPE.INVOICE,
@@ -228,7 +232,7 @@ function ParticipantSearchResults({
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, contactState} = useSearchSelector({
         selectionMode: isIOUSplit ? CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI : CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-        includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport,
+        includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport && !shouldExcludeP2P,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         includeRecentReports: true,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
