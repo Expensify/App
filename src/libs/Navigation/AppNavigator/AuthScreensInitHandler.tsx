@@ -1,5 +1,6 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useEffect, useRef} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -31,15 +32,20 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {ReportActions, ReportAttributesDerivedValue} from '@src/types/onyx';
 
-function initializePusher(currentUserAccountID?: number, currentUserEmail?: string, getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined) {
+function initializePusher(
+    currentUserAccountID: number | undefined,
+    currentUserEmail: string | undefined,
+    getReportActions: () => OnyxCollection<ReportActions>,
+    getReportAttributes: () => ReportAttributesDerivedValue['reports'] | undefined,
+) {
     return Pusher.init({
         appKey: CONFIG.PUSHER.APP_KEY,
         cluster: CONFIG.PUSHER.CLUSTER,
         authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
     }).then(() => {
-        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail ?? '', getReportAttributes);
+        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail ?? '', getReportActions, getReportAttributes);
     });
 }
 
@@ -75,7 +81,15 @@ function AuthScreensInitHandler() {
     const reportAttributesRef = useRef(reportAttributes);
     reportAttributesRef.current = reportAttributes;
 
+    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    // We use a ref so the Pusher callback (registered once on mount) always reads the latest value without re-subscribing.
+    const reportActionsRef = useRef(reportActions);
+
     useReconcileHighContrastIntent();
+
+    useEffect(() => {
+        reportActionsRef.current = reportActions;
+    }, [reportActions]);
 
     useEffect(() => {
         registerPusherReinitializeHandler(({accountID, email}: PusherReinitializeHandlerParams = {}) => {
@@ -86,7 +100,12 @@ function AuthScreensInitHandler() {
                 return Promise.resolve();
             }
 
-            return initializePusher(currentAccountID, currentEmail, () => reportAttributesRef.current);
+            return initializePusher(
+                currentAccountID,
+                currentEmail,
+                () => reportActionsRef.current,
+                () => reportAttributesRef.current,
+            );
         });
 
         return () => {
@@ -99,7 +118,12 @@ function AuthScreensInitHandler() {
             return;
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
-        initializePusher(session?.accountID, session?.email, () => reportAttributesRef.current);
+        initializePusher(
+            session?.accountID,
+            session?.email,
+            () => reportActionsRef.current,
+            () => reportAttributesRef.current,
+        );
     }, [session?.accountID, session?.email]);
 
     useEffect(() => {
@@ -122,7 +146,12 @@ function AuthScreensInitHandler() {
         });
         PusherConnectionManager.init();
 
-        initializePusher(session?.accountID, session?.email, () => reportAttributesRef.current).finally(() => {
+        initializePusher(
+            session?.accountID,
+            session?.email,
+            () => reportActionsRef.current,
+            () => reportAttributesRef.current,
+        ).finally(() => {
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT);
         });
 
