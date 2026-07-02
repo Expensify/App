@@ -8,7 +8,7 @@ import Onyx from 'react-native-onyx';
 import {setModalVisibility} from '@libs/actions/Modal';
 import {setActiveClients} from '@userActions/ActiveClients';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Init, IsClientTheLeader, IsReady} from './types';
+import type {Init, IsClientTheLeader, IsReady, PromoteToLeader} from './types';
 
 const clientID = Str.guid();
 const maxClients = 20;
@@ -18,6 +18,10 @@ const savedSelfPromise = new Promise<void>((resolve) => {
     resolveSavedSelfPromise = resolve;
 });
 let beforeunloadListenerAdded = false;
+// Whether init() has run. Guards the connect callback from re-adding us before we've registered.
+let hasInitialized = false;
+// Set while this tab is unloading, so the connect callback doesn't fight our own cleanup by re-adding us.
+let isLeavingTab = false;
 
 /**
  * Determines when the client is ready. We need to wait both till we saved our ID in onyx AND the init method was called
@@ -35,14 +39,22 @@ Onyx.connectWithoutView({
         activeClients = val;
 
         // Remove from the beginning of the list any clients that are past the limit, to avoid having thousands of them
-        let removed = false;
+        let changed = false;
         while (activeClients.length >= maxClients) {
             activeClients.shift();
-            removed = true;
+            changed = true;
+        }
+
+        // A late disk-hydration event can overwrite the list and drop this live client, handing
+        // leadership to a stale/ghost GUID and stalling the SequentialQueue. Re-append ourselves so
+        // we're never silently removed while still alive (unless we're intentionally leaving).
+        if (hasInitialized && !isLeavingTab && !activeClients.includes(clientID)) {
+            activeClients.push(clientID);
+            changed = true;
         }
 
         // Save the clients back to onyx, if they changed
-        if (removed) {
+        if (changed) {
             setActiveClients(activeClients);
         }
     },
@@ -70,7 +82,18 @@ const isClientTheLeader: IsClientTheLeader = () => {
     return lastActiveClient === clientID;
 };
 
+/**
+ * Force this client to become the leader by moving its GUID to the end of the list. Last-resort
+ * safety net for when the queue is stuck because a stale/ghost GUID is holding leadership.
+ */
+const promoteToLeader: PromoteToLeader = () => {
+    activeClients = activeClients.filter((id) => id !== clientID);
+    activeClients.push(clientID);
+    setActiveClients(activeClients);
+};
+
 const cleanUpClientId = () => {
+    isLeavingTab = true;
     isPromotingNewLeader = isClientTheLeader();
     activeClients = activeClients.filter((id) => id !== clientID);
     setActiveClients(activeClients);
@@ -89,6 +112,8 @@ const removeBeforeUnloadListener = () => {
  * We want to ensure we have no duplicates and that the activeClient gets added at the end of the array (see isClientTheLeader)
  */
 const init: Init = () => {
+    hasInitialized = true;
+    isLeavingTab = false;
     removeBeforeUnloadListener();
     activeClients = activeClients.filter((id) => id !== clientID);
     activeClients.push(clientID);
@@ -101,4 +126,4 @@ const init: Init = () => {
     });
 };
 
-export {init, isClientTheLeader, isReady};
+export {init, isClientTheLeader, isReady, promoteToLeader};
