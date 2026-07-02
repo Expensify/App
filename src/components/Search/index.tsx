@@ -1045,9 +1045,9 @@ function Search({
     const isFlatExpenseView = type === CONST.SEARCH.DATA_TYPES.EXPENSE && !validGroupBy;
     const isExpenseGroupedView = type === CONST.SEARCH.DATA_TYPES.EXPENSE && !!validGroupBy;
 
-    // Flat-expense, grouped-expense and chat each render through a dedicated view composed over BaseSearchList; the
-    // remaining types keep the legacy SearchList shell. The snapshot, lifecycle and selection providers stay
-    // here so the data layer runs once.
+    // Flat-expense, grouped-expense and chat each render through a dedicated view composed over BaseSearchList;
+    // the remaining types keep the legacy SearchList shell. The snapshot, lifecycle and selection providers
+    // stay here so the data layer runs once.
     let searchListContent: React.JSX.Element;
     if (isFlatExpenseView) {
         searchListContent = (

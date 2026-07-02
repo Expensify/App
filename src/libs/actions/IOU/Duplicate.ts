@@ -22,6 +22,7 @@ import {
     buildTransactionThread,
     canAddTransaction,
     generateReportID,
+    getReimbursableTotal,
     getReportOrDraftReport,
     getTransactionDetails,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
@@ -78,6 +79,7 @@ function getIOUActionForTransactions(transactionIDList: Array<string | undefined
 
 type DiscardedSource = {
     amount: number;
+    reimbursableAmount: number;
     actions: Array<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>;
 };
 
@@ -243,8 +245,11 @@ function mergeDuplicates({
         if (!transaction?.reportID) {
             continue;
         }
-        const entry = sources.get(transaction.reportID) ?? {amount: 0, actions: []};
+        const entry = sources.get(transaction.reportID) ?? {amount: 0, reimbursableAmount: 0, actions: []};
         entry.amount += transaction.amount;
+        if (transaction.reimbursable) {
+            entry.reimbursableAmount += transaction.amount;
+        }
         entry.actions.push(...getIOUActionForTransactions([id], transaction.reportID));
         sources.set(transaction.reportID, entry);
     }
@@ -256,10 +261,19 @@ function mergeDuplicates({
     const cleanUpTransactionThreadReportsOptimisticData = [];
     const cleanUpTransactionThreadReportsSuccessData = [];
     const cleanUpTransactionThreadReportsFailureData = [];
-    for (const [sourceReportID, {amount, actions}] of sources) {
+    for (const [sourceReportID, {amount, reimbursableAmount, actions}] of sources) {
         const sourceReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`];
-        expenseReportOptimisticData.push({onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`, value: {total: (sourceReport?.total ?? 0) - amount}});
-        expenseReportFailureData.push({onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`, value: {total: sourceReport?.total}});
+        const sourceReimbursableTotal = getReimbursableTotal(sourceReport);
+        expenseReportOptimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`,
+            value: {total: (sourceReport?.total ?? 0) - amount, reimbursableTotal: sourceReimbursableTotal - reimbursableAmount},
+        });
+        expenseReportFailureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`,
+            value: {total: sourceReport?.total, reimbursableTotal: sourceReimbursableTotal},
+        });
         expenseReportActionsOptimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceReportID}`,
