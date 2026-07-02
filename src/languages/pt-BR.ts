@@ -4751,7 +4751,7 @@ ${amount} para ${merchant} - ${date}`,
             bankAccountDescription: 'Escolha de onde enviar os cheques.',
             creditCardAccount: 'Conta de cartão de crédito',
             travelInvoicingDescription: 'As despesas de viagem serão exportadas como cobranças de cartão de crédito para a conta do QuickBooks Online especificada abaixo.',
-            companyCardsLocationEnabledDescription:
+            companyCardsLocationTagDescription:
                 'O QuickBooks Online não oferece suporte a locais em exportações de contas de fornecedor quando os locais são importados como tags. Como você tem locais importados como tags no seu workspace, essa opção de exportação não está disponível.',
             outOfPocketTaxEnabledDescription:
                 'QuickBooks Online não oferece suporte a impostos em exportações de lançamentos contábeis. Como você tem impostos ativados no seu espaço de trabalho, essa opção de exportação não está disponível.',

@@ -4782,7 +4782,7 @@ ${amount} für ${merchant} – ${date}`,
             bankAccountDescription: 'Wähle aus, von wo Schecks versendet werden sollen.',
             creditCardAccount: 'Kreditkartenkonto',
             travelInvoicingDescription: 'Reisekosten werden als Kreditkartenbelastungen in das unten angegebene QuickBooks Online-Konto exportiert.',
-            companyCardsLocationEnabledDescription:
+            companyCardsLocationTagDescription:
                 'QuickBooks Online unterstützt keine Standorte beim Export von Kreditorenrechnungen, wenn Standorte als Tags importiert werden. Da in Ihrem Workspace Standorte als Tags importiert sind, ist diese Exportoption nicht verfügbar.',
             outOfPocketTaxEnabledDescription:
                 'QuickBooks Online unterstützt keine Steuern beim Export von Journalbuchungen. Da in Ihrem Workspace Steuern aktiviert sind, ist diese Exportoption nicht verfügbar.',

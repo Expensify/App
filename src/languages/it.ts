@@ -4767,7 +4767,7 @@ ${amount} per ${merchant} - ${date}`,
             bankAccountDescription: 'Scegli da dove inviare gli assegni.',
             creditCardAccount: 'Conto della carta di credito',
             travelInvoicingDescription: 'Le spese di viaggio verranno esportate come addebiti su carta di credito nel conto QuickBooks Online specificato di seguito.',
-            companyCardsLocationEnabledDescription:
+            companyCardsLocationTagDescription:
                 'QuickBooks Online non supporta le sedi nelle esportazioni di fatture fornitore quando le sedi sono importate come tag. Poiché nel tuo spazio di lavoro hai sedi importate come tag, questa opzione di esportazione non è disponibile.',
             outOfPocketTaxEnabledDescription:
                 'QuickBooks Online non supporta le imposte nelle esportazioni delle registrazioni contabili. Poiché hai le imposte abilitate nel tuo spazio di lavoro, questa opzione di esportazione non è disponibile.',

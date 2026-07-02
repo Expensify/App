@@ -10,7 +10,7 @@ import {updateManyPolicyConnectionConfigs} from '@libs/actions/connections';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
-import {canUseVendorBillForCompanyCardExport} from '@pages/workspace/accounting/qbo/utils';
+import {areLocationsImportedAsTags} from '@pages/workspace/accounting/qbo/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
@@ -30,7 +30,7 @@ function DynamicQuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: With
     const policyID = policy?.id;
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {creditCards, bankAccounts, accountPayable, vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
-    const canUseVendorBill = canUseVendorBillForCompanyCardExport(qboConfig);
+    const canUseVendorBill = !areLocationsImportedAsTags(qboConfig);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_CARD_SELECT.path);
 
     const data: MenuItem[] = useMemo(() => {
@@ -105,7 +105,7 @@ function DynamicQuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: With
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             onBackButtonPress={goBack}
             listFooterContent={
-                !canUseVendorBill ? <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pv3]}>{translate('workspace.qbo.companyCardsLocationEnabledDescription')}</Text> : undefined
+                !canUseVendorBill ? <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pv3]}>{translate('workspace.qbo.companyCardsLocationTagDescription')}</Text> : undefined
             }
             errors={getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION)}
             errorRowStyles={[styles.ph5, styles.pv3]}

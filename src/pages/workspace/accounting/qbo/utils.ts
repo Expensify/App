@@ -13,8 +13,8 @@ function shouldSwitchLocationsToReportFields(config?: QBOConnectionConfig): bool
     return config?.syncLocations === CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG && !canImportLocationsAsTags(config);
 }
 
-function canUseVendorBillForCompanyCardExport(config?: QBOConnectionConfig): boolean {
-    return config?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG;
+function areLocationsImportedAsTags(config?: QBOConnectionConfig): boolean {
+    return config?.syncLocations === CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG;
 }
 
-export {canImportLocationsAsTags, shouldSwitchLocationsToReportFields, canUseVendorBillForCompanyCardExport};
+export {canImportLocationsAsTags, shouldSwitchLocationsToReportFields, areLocationsImportedAsTags};
