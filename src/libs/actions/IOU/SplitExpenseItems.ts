@@ -96,7 +96,7 @@ function resolveSplitMileageRate({
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     policy: OnyxEntry<OnyxTypes.Policy>;
     isSelfDMSplit?: boolean;
-    personalPolicyOutputCurrency?: string;
+    personalPolicyOutputCurrency: string | undefined;
 }): ReturnType<typeof DistanceRequestUtils.getRate> {
     const customUnitRateID = transaction?.comment?.customUnit?.customUnitRateID;
     const isP2PRate = customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
@@ -372,10 +372,10 @@ function addSplitExpenseField(
  */
 function evenlyDistributeSplitExpenseAmounts(
     draftTransaction: OnyxEntry<OnyxTypes.Transaction>,
-    transaction?: OnyxEntry<OnyxTypes.Transaction>,
-    policy?: OnyxEntry<OnyxTypes.Policy>,
-    isSelfDMSplit?: boolean,
-    personalPolicyOutputCurrency?: string,
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    isSelfDMSplit: boolean,
+    personalPolicyOutputCurrency: string | undefined,
 ) {
     if (!draftTransaction) {
         return;
@@ -450,9 +450,9 @@ function resetSplitExpensesByDateRange(
     transactionReport: OnyxEntry<OnyxTypes.Report>,
     startDate: string,
     endDate: string,
-    policy?: OnyxEntry<OnyxTypes.Policy>,
-    isSelfDMSplit?: boolean,
-    personalPolicyOutputCurrency?: string,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    isSelfDMSplit: boolean,
+    personalPolicyOutputCurrency: string | undefined,
 ) {
     if (!transaction || !draftTransaction || !startDate || !endDate) {
         return;
@@ -548,9 +548,9 @@ function updateSplitExpenseField(
     originalTransactionDraft: OnyxEntry<OnyxTypes.Transaction>,
     splitExpenseTransactionID: string,
     originalTransaction: OnyxEntry<OnyxTypes.Transaction>,
-    policy?: OnyxEntry<OnyxTypes.Policy>,
-    isSelfDMSplit?: boolean,
-    personalPolicyOutputCurrency?: string,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    isSelfDMSplit: boolean,
+    personalPolicyOutputCurrency: string | undefined,
 ) {
     if (!splitExpenseDraftTransaction || !splitExpenseTransactionID || !originalTransactionDraft) {
         return;
@@ -641,9 +641,9 @@ function updateSplitExpenseAmountField(
     draftTransaction: OnyxEntry<OnyxTypes.Transaction>,
     currentItemTransactionID: string,
     amount: number,
-    policy?: OnyxEntry<OnyxTypes.Policy>,
-    isSelfDMSplit?: boolean,
-    personalPolicyOutputCurrency?: string,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    isSelfDMSplit: boolean,
+    personalPolicyOutputCurrency: string | undefined,
 ) {
     if (!draftTransaction?.transactionID || !currentItemTransactionID || Number.isNaN(amount)) {
         return;

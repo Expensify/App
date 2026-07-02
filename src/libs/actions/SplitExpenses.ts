@@ -53,7 +53,7 @@ function initSplitExpense(
     selfDMReportID: string | undefined,
     // When set, the caller's workspace is billing-restricted: redirect to RESTRICTED_ACTION instead of opening the split flow
     restrictedActionPolicyID: string | undefined,
-    personalPolicyOutputCurrency?: string,
+    personalPolicyOutputCurrency: string | undefined,
     {navigateToEditSplitExpense = false, isProduction = false}: {navigateToEditSplitExpense?: boolean; isProduction?: boolean} = {},
 ): void {
     if (!transaction) {

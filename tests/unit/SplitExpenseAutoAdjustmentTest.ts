@@ -443,7 +443,7 @@ describe('Split Expense Auto-Adjustment', () => {
             await waitForBatchedUpdates();
 
             // Action: Edit split1 to $3.00
-            updateSplitExpenseAmountField(mockTransaction, 'split1', 300);
+            updateSplitExpenseAmountField(mockTransaction, 'split1', 300, undefined, false, undefined);
             await waitForBatchedUpdates();
 
             // Verify
@@ -485,7 +485,7 @@ describe('Split Expense Auto-Adjustment', () => {
             await waitForBatchedUpdates();
 
             // Action: Edit split1 to $5.00
-            updateSplitExpenseAmountField(mockTransaction, 'split1', 500);
+            updateSplitExpenseAmountField(mockTransaction, 'split1', 500, undefined, false, undefined);
             await waitForBatchedUpdates();
 
             // Verify: split2 should remain unchanged
@@ -519,7 +519,7 @@ describe('Split Expense Auto-Adjustment', () => {
             await waitForBatchedUpdates();
 
             // Action: Try to update with NaN amount (simulates user entering just "-")
-            updateSplitExpenseAmountField(mockTransaction, 'split1', NaN);
+            updateSplitExpenseAmountField(mockTransaction, 'split1', NaN, undefined, false, undefined);
             await waitForBatchedUpdates();
 
             // Verify: Splits should remain unchanged
@@ -554,7 +554,7 @@ describe('Split Expense Auto-Adjustment', () => {
             await waitForBatchedUpdates();
 
             // Action: Make splits even
-            evenlyDistributeSplitExpenseAmounts(mockTransaction);
+            evenlyDistributeSplitExpenseAmounts(mockTransaction, undefined, undefined, false, undefined);
             await waitForBatchedUpdates();
 
             // Verify

@@ -72,7 +72,7 @@ describe('resolveSplitMileageRate', () => {
             });
             const transaction = buildDistanceTransaction(DELETED_RATE_ID);
 
-            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: false});
+            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: false, personalPolicyOutputCurrency: undefined});
 
             // base getRate returns the disabled rate (mileageRates includes disabled when a selected rate ID is provided)
             expect(result.rate).toBe(DELETED_RATE_VALUE);
@@ -85,7 +85,7 @@ describe('resolveSplitMileageRate', () => {
             });
             const transaction = buildDistanceTransaction(DELETED_RATE_ID);
 
-            const result = resolveSplitMileageRate({transaction, policy});
+            const result = resolveSplitMileageRate({transaction, policy, personalPolicyOutputCurrency: undefined});
 
             expect(result.rate).toBe(DELETED_RATE_VALUE);
         });
@@ -99,7 +99,7 @@ describe('resolveSplitMileageRate', () => {
             });
             const transaction = buildDistanceTransaction(DELETED_RATE_ID);
 
-            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: true});
+            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: true, personalPolicyOutputCurrency: undefined});
 
             expect(result.rate).toBe(ACTIVE_RATE_VALUE);
             expect(result.customUnitRateID).toBe(ACTIVE_RATE_ID);
@@ -118,7 +118,7 @@ describe('resolveSplitMileageRate', () => {
             });
             const transaction = buildDistanceTransaction(PENDING_DELETE_RATE_ID);
 
-            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: true});
+            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: true, personalPolicyOutputCurrency: undefined});
 
             expect(result.rate).toBe(ACTIVE_RATE_VALUE);
             expect(result.customUnitRateID).toBe(ACTIVE_RATE_ID);
@@ -130,7 +130,7 @@ describe('resolveSplitMileageRate', () => {
             });
             const transaction = buildDistanceTransaction('rate-that-was-removed');
 
-            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: true});
+            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: true, personalPolicyOutputCurrency: undefined});
 
             expect(result.rate).toBe(ACTIVE_RATE_VALUE);
             expect(result.customUnitRateID).toBe(ACTIVE_RATE_ID);
@@ -142,7 +142,7 @@ describe('resolveSplitMileageRate', () => {
             });
             const transaction = buildDistanceTransaction(ACTIVE_RATE_ID);
 
-            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: true});
+            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: true, personalPolicyOutputCurrency: undefined});
 
             expect(result.rate).toBe(ACTIVE_RATE_VALUE);
             expect(result.customUnitRateID).toBe(ACTIVE_RATE_ID);
@@ -154,7 +154,7 @@ describe('resolveSplitMileageRate', () => {
             });
             const transaction = buildDistanceTransaction(CONST.CUSTOM_UNITS.FAKE_P2P_ID);
 
-            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: true});
+            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: true, personalPolicyOutputCurrency: undefined});
 
             // The P2P branch is taken: result.rate comes from getRateForP2P, not the workspace's deleted-rate
             // fallback. We assert the rate is defined and not the workspace's fallback.
@@ -165,7 +165,7 @@ describe('resolveSplitMileageRate', () => {
         it('derives a rate from the transaction (amount / quantity) when no policy is provided', () => {
             const transaction = buildDistanceTransaction(DELETED_RATE_ID);
 
-            const result = resolveSplitMileageRate({transaction, policy: undefined, isSelfDMSplit: true});
+            const result = resolveSplitMileageRate({transaction, policy: undefined, isSelfDMSplit: true, personalPolicyOutputCurrency: undefined});
 
             // No policy → both the deleted-rate substitution and the policy default substitution are
             // unreachable. As a last resort the helper reconstructs the rate from the transaction's own
@@ -195,7 +195,7 @@ describe('resolveSplitMileageRate', () => {
             });
             const transaction = buildDistanceTransaction(DELETED_RATE_ID);
 
-            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: true});
+            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: true, personalPolicyOutputCurrency: undefined});
 
             expect(result.rate).toBe(ACTIVE_RATE_VALUE);
             expect(result.customUnitRateID).toBe(ACTIVE_RATE_ID);
@@ -210,7 +210,7 @@ describe('resolveSplitMileageRate', () => {
             });
             const transaction = buildDistanceTransaction(DELETED_RATE_ID);
 
-            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: true});
+            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: true, personalPolicyOutputCurrency: undefined});
 
             // baseMileageRate.rate ends up populated (75) via the includeDisabled lookup; the new
             // ordering only invokes the derived fallback when neither the active base rate nor a policy
@@ -222,7 +222,7 @@ describe('resolveSplitMileageRate', () => {
             const policy = buildPolicyWithRates({});
             const transaction = buildDistanceTransaction(DELETED_RATE_ID, {amount: -900, quantity: 9});
 
-            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: true});
+            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: true, personalPolicyOutputCurrency: undefined});
 
             expect(result.rate).toBe(100);
             expect(result.customUnitRateID).toBe(DELETED_RATE_ID);
