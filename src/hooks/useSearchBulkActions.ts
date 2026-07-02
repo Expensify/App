@@ -1,6 +1,8 @@
 /* eslint-disable react-hooks/refs -- Refs in this hook are used inside callbacks that capture stable references; the lint rule flags false positives for these patterns */
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports -- InteractionManager is only exposed on the react-native root module; there is no internal re-export to import from
+import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -911,19 +913,24 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return;
         }
 
-        TransitionTracker.runAfterTransitions({
-            callback: async () => {
-                const result = await showConfirmModal({
-                    title: deleteModalTitle,
-                    prompt: deleteModalPrompt,
-                    confirmText: translate('common.delete'),
-                    cancelText: translate('common.cancel'),
-                    danger: true,
-                });
-                if (result.action !== ModalActions.CONFIRM) {
-                    return;
-                }
-                const validTransactions = Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, Transaction] => entry[1] !== undefined));
+        // InteractionManager is deprecated but still required here to defer showing the confirm modal until pending interactions settle, matching the production behavior this PR restores (see https://github.com/Expensify/App/issues/95114).
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(async () => {
+            const result = await showConfirmModal({
+                title: deleteModalTitle,
+                prompt: deleteModalPrompt,
+                confirmText: translate('common.delete'),
+                cancelText: translate('common.cancel'),
+                danger: true,
+            });
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            const validTransactions = Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, Transaction] => entry[1] !== undefined));
+            // Defer the actual deletion until after the confirm modal's dismiss interaction completes.
+            // Dispatching it synchronously as the modal closes caused the delete to be dropped (see https://github.com/Expensify/App/issues/95114).
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
                 if (isExpenseReportType) {
                     for (const reportID of selectedReportIDs) {
                         const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
@@ -992,7 +999,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     }
                 }
                 clearSelectedTransactions();
-            },
+            });
         });
     }, [
         hash,
