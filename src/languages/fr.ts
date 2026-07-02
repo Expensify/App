@@ -6397,10 +6397,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 one: 'Nommer auditeur',
                 other: 'Créer des auditeurs',
             }),
-            makePeopleAdmin: () => ({
-                one: 'Nommer administrateur des personnes',
-                other: 'Nommer des administrateurs des personnes',
-            }),
             selectAll: 'Tout sélectionner',
             error: {
                 genericAdd: 'Un problème est survenu lors de l’ajout de ce membre de l’espace de travail',
@@ -6433,7 +6429,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             syncWithHR: (providerName: string) => `Synchroniser avec ${providerName}`,
             makeCardAdmin: () => ({one: 'Nommer administrateur de carte', other: 'Nommer des administrateurs de carte'}),
             cardAdmins: 'Administrateurs de cartes',
-            peopleAdmins: 'Administrateurs des personnes',
             members: 'Membres',
         },
         card: {

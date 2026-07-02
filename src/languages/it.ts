@@ -6360,10 +6360,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 one: 'Rendi revisore',
                 other: 'Crea revisori',
             }),
-            makePeopleAdmin: () => ({
-                one: 'Rendi amministratore persone',
-                other: 'Rendi amministratori persone',
-            }),
             selectAll: 'Seleziona tutto',
             error: {
                 genericAdd: "Si è verificato un problema nell'aggiungere questo membro dello spazio di lavoro",
@@ -6396,7 +6392,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             syncWithHR: (providerName: string) => `Sincronizza con ${providerName}`,
             makeCardAdmin: () => ({one: 'Rendi amministratore carta', other: 'Rendi amministratori carta'}),
             cardAdmins: 'Amministratori carta',
-            peopleAdmins: 'Amministratori persone',
             members: 'Membri',
         },
         card: {

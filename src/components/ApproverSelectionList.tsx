@@ -42,7 +42,6 @@ type ApproverSelectionListPageProps = {
     shouldEnableHeaderMaxHeight?: boolean;
     onSearchChange?: (searchTerm: string) => void;
     shouldUpdateFocusedIndex?: boolean;
-    shouldRequirePolicyAdmin?: boolean;
 };
 
 type SelectionListApprover = ListItem & {
@@ -70,7 +69,6 @@ function ApproverSelectionList({
     shouldEnableHeaderMaxHeight,
     onSearchChange,
     shouldUpdateFocusedIndex = true,
-    shouldRequirePolicyAdmin = true,
 }: ApproverSelectionListPageProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -91,8 +89,7 @@ function ApproverSelectionList({
 
     const selectedMembers = useMemo(() => allApprovers.filter((approver) => approver.isSelected), [allApprovers]);
 
-    const shouldShowNotFoundView =
-        (isEmptyObject(policy) && !isLoadingReportData) || (shouldRequirePolicyAdmin && !isPolicyAdmin(policy)) || isPendingDeletePolicy(policy) || shouldShowNotFoundViewProp;
+    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy) || shouldShowNotFoundViewProp;
 
     const data = useMemo(() => {
         const filteredApprovers =

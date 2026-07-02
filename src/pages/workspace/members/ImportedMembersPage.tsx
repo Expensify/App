@@ -4,7 +4,6 @@ import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCloseImportPage from '@hooks/useCloseImportPage';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -14,7 +13,7 @@ import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberAssignElevatedRole, canMemberAssignRole, canMemberManageMemberWithRole, isControlPolicy as isControlPolicyUtil, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {isControlPolicy as isControlPolicyUtil, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,8 +32,6 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
-    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const canAssignElevatedRoles = canMemberAssignElevatedRole(policy, currentUserLogin);
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const {containsHeader = true} = spreadsheet ?? {};
@@ -43,18 +40,14 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const columnRoles: ColumnRole[] = [
         {text: translate('common.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
         {text: translate('common.email'), value: CONST.CSV_IMPORT_COLUMNS.EMAIL, isRequired: true},
-    ];
-    if (canAssignElevatedRoles) {
-        columnRoles.push({text: translate('common.role'), value: CONST.CSV_IMPORT_COLUMNS.ROLE});
-    }
-    columnRoles.push(
+        {text: translate('common.role'), value: CONST.CSV_IMPORT_COLUMNS.ROLE},
         {text: translate('common.submitTo'), value: CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO},
         {text: translate('common.forwardTo'), value: CONST.CSV_IMPORT_COLUMNS.APPROVE_TO},
         {text: translate('workspace.common.customField1'), value: CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_1},
         {text: translate('workspace.common.customField2'), value: CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_2},
         {text: translate('common.approvalLimit'), value: CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD},
         {text: translate('common.overLimitForwardTo'), value: CONST.CSV_IMPORT_COLUMNS.APPROVE_TO_ALTERNATE},
-    );
+    ];
 
     const requiredColumns = columnRoles.filter((role) => role.isRequired).map((role) => role);
 
@@ -148,16 +141,11 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const members = membersEmails?.slice(containsHeader ? 1 : 0).map((email, index) => {
             const isPolicyMember = isPolicyMemberWithoutPendingDelete(email, policy);
             let role = isPolicyMember ? (policy?.employeeList?.[email]?.role ?? '') : '';
-            const importedRole = membersRoles?.[containsHeader ? index + 1 : index];
-            const canManageCurrentRole = !isPolicyMember || canMemberManageMemberWithRole(policy, currentUserLogin, role);
-            if (canAssignElevatedRoles && membersRolesColumn !== -1 && importedRole && canManageCurrentRole && canMemberAssignRole(policy, currentUserLogin, importedRole)) {
-                role = importedRole;
+            if (membersRolesColumn !== -1 && membersRoles?.[containsHeader ? index + 1 : index]) {
+                role = membersRoles?.[containsHeader ? index + 1 : index];
             }
-            if (canAssignElevatedRoles && membersRolesColumn !== -1 && !role) {
+            if (membersRolesColumn !== -1 && !role) {
                 isRoleMissing = true;
-            }
-            if (!canAssignElevatedRoles && !role) {
-                role = CONST.POLICY.ROLE.USER;
             }
             let submitsTo = '';
             if (membersSubmitsToColumn !== -1 && membersSubmitsTo?.[containsHeader ? index + 1 : index]) {

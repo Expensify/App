@@ -6430,10 +6430,6 @@ const translations = {
                 one: 'Make card admin',
                 other: 'Make card admins',
             }),
-            makePeopleAdmin: () => ({
-                one: 'Make people admin',
-                other: 'Make people admins',
-            }),
             selectAll: 'Select all',
             error: {
                 genericAdd: 'There was a problem adding this workspace member',
@@ -6448,7 +6444,6 @@ const translations = {
             allMembers: 'All members',
             admins: 'Workspace Admins',
             cardAdmins: 'Card Admins',
-            peopleAdmins: 'People Admins',
             approvers: 'Approvers',
             auditors: 'Auditors',
             editors: 'Editors',

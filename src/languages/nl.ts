@@ -6342,10 +6342,6 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 one: 'Auditeur maken',
                 other: 'Auditors aanmaken',
             }),
-            makePeopleAdmin: () => ({
-                one: 'People-beheerder maken',
-                other: 'People-beheerders maken',
-            }),
             selectAll: 'Alles selecteren',
             error: {
                 genericAdd: 'Er is een probleem opgetreden bij het toevoegen van dit werkruimtelid',
@@ -6378,7 +6374,6 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             syncWithHR: (providerName: string) => `Synchroniseren met ${providerName}`,
             makeCardAdmin: () => ({one: 'Kaartbeheerder maken', other: 'Kaartbeheerders maken'}),
             cardAdmins: 'Kaartbeheerders',
-            peopleAdmins: 'People-beheerders',
             members: 'Leden',
         },
         card: {

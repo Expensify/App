@@ -6204,10 +6204,6 @@ ${amount} para ${merchant} - ${date}`,
                 one: 'Convertir en auditor',
                 other: 'Convertir en auditores',
             }),
-            makePeopleAdmin: () => ({
-                one: 'Hacer administrador de personas',
-                other: 'Hacer administradores de personas',
-            }),
             selectAll: 'Seleccionar todo',
             error: {
                 genericAdd: 'Ha ocurrido un problema al añadir el miembro al espacio de trabajo',
@@ -6243,7 +6239,6 @@ ${amount} para ${merchant} - ${date}`,
             syncWithHR: (providerName: string) => `Sincronizar con ${providerName}`,
             makeCardAdmin: () => ({one: 'Hacer administrador de tarjetas', other: 'Hacer administradores de tarjetas'}),
             cardAdmins: 'Administradores de tarjetas',
-            peopleAdmins: 'Administradores de personas',
             members: 'Miembros',
         },
         accounting: {

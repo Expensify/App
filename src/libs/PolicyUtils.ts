@@ -205,40 +205,6 @@ function canMemberWrite(policy: OnyxInputOrEntry<Policy>, login: string, feature
     return hasPolicyFeaturePermission(policy, login, feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE);
 }
 
-function canMemberAssignRole(policy: OnyxInputOrEntry<Policy>, login: string, role: string | undefined): boolean {
-    if (!role) {
-        return false;
-    }
-
-    const isCorporatePolicy = policy?.type === CONST.POLICY.TYPE.CORPORATE;
-    if (isControlPolicyOnlyRole(role) && !isCorporatePolicy) {
-        return false;
-    }
-
-    if (canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES)) {
-        return true;
-    }
-
-    // Reaching here: USER always, plus AUDITOR only on corporate policies (control-only roles are
-    // already filtered out on non-corporate policies above). Assigning USER/AUDITOR needs the
-    // MEMBERS permission, and only on corporate policies.
-    const isNonElevatedRole = role === CONST.POLICY.ROLE.USER || role === CONST.POLICY.ROLE.AUDITOR;
-    return isCorporatePolicy && canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.MEMBERS) && isNonElevatedRole;
-}
-
-// Whether the member can assign any elevated role: admins (via assignElevatedRoles) on any policy, or People Admins (up to auditor) on Control.
-function canMemberAssignElevatedRole(policy: OnyxInputOrEntry<Policy>, login: string): boolean {
-    return canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES) || canMemberAssignRole(policy, login, CONST.POLICY.ROLE.AUDITOR);
-}
-
-function canMemberManageMemberWithRole(policy: OnyxInputOrEntry<Policy>, login: string, role: string | undefined): boolean {
-    if (canMemberAssignRole(policy, login, role)) {
-        return true;
-    }
-
-    return isSubmitPolicy(policy) && canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.MEMBERS) && role === CONST.POLICY.ROLE.EDITOR;
-}
-
 /**
  * Checks if we have any errors stored within the policy?.employeeList. Determines whether we should show a red brick road error or not.
  */
@@ -2852,9 +2818,6 @@ export {
     canEditWorkspaceSettings,
     canMemberRead,
     canMemberWrite,
-    canMemberAssignRole,
-    canMemberAssignElevatedRole,
-    canMemberManageMemberWithRole,
     isGroupPolicy,
     isGroupPolicyByType,
     isPendingDeletePolicy,

@@ -6373,10 +6373,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 one: 'Zum Prüfer machen',
                 other: 'Prüfende hinzufügen',
             }),
-            makePeopleAdmin: () => ({
-                one: 'Zum Personaladministrator machen',
-                other: 'Personaladministratoren festlegen',
-            }),
             selectAll: 'Alle auswählen',
             error: {
                 genericAdd: 'Beim Hinzufügen dieses Workspace-Mitglieds ist ein Problem aufgetreten',
@@ -6409,7 +6405,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             syncWithHR: (providerName: string) => `Mit ${providerName} synchronisieren`,
             makeCardAdmin: () => ({one: 'Zum Karten-Admin machen', other: 'Karten-Admins festlegen'}),
             cardAdmins: 'Karten-Admins',
-            peopleAdmins: 'Personaladministratoren',
             members: 'Mitglieder',
         },
         card: {
