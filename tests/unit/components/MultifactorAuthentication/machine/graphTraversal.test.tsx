@@ -9,7 +9,7 @@ import waitForBatchedUpdatesWithAct from 'tests/utils/waitForBatchedUpdatesWithA
 import {matchesState} from 'xstate';
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
 import type {MfaEvent} from '@components/MultifactorAuthentication/machine/types';
-import {handleInitialScreenLayout, mfaNavigationRef, resetMfaNavigation} from '@components/MultifactorAuthentication/mfaNavigation';
+import {handleInitialScreenLayout, mfaNavigationRef} from '@components/MultifactorAuthentication/mfaNavigation';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
@@ -127,9 +127,11 @@ function describeDrivenEvents(steps: ReadonlyArray<{event: {type: string}}>): st
 }
 
 describe('the real MFA modal matches the machine at every step of every generated path', () => {
+    // The navigation buffer is deliberately not reset here. The machine owns that cleanup on `closed`
+    // entry, which also runs when each test's fresh actor starts, so a reset here would hide a machine
+    // that stopped performing it.
     beforeEach(() => {
         resetMfaUiMocks();
-        resetMfaNavigation();
     });
 
     afterEach(() => {
