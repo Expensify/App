@@ -30,7 +30,7 @@ Workspace Admins can view the workspace plan under **Overview > Plan type**.
 
 ---
 
-## Related Articles
+## Related articles
 
  - [How Subscriptions Plans and Billing Work](/articles/new-expensify/billing-and-subscriptions/Overview-of-How-Subscriptions-Plans-and-Billing-Work)
  - [Change Your Plan](/articles/new-expensify/billing-and-subscriptions/manage-your-plan-and-subscription/Change-Your-Workspace-Plan)
