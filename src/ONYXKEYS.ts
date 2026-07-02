@@ -408,6 +408,9 @@ const ONYXKEYS = {
     /** Is report data loading? */
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
 
+    /** Display preference to show the audit trail (gray-text system messages) in expense reports (default on) */
+    SHOW_AUDIT_TRAIL: 'showAuditTrail',
+
     /** Set when we are loading bank accounts for share page */
     IS_LOADING_SHARE_BANK_ACCOUNTS: 'isLoadingShareBankAccounts',
 
@@ -1551,6 +1554,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE]: boolean;
     [ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW]: boolean;
     [ONYXKEYS.IS_LOADING_REPORT_DATA]: boolean;
+    [ONYXKEYS.SHOW_AUDIT_TRAIL]: boolean;
     [ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED]: boolean;
     [ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA]: boolean;
     [ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA]: boolean;

@@ -26,7 +26,9 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
     getFirstVisibleReportActionID,
     getReportActionMessage,
+    isAuditTrailAction,
     isConsecutiveActionMadeByPreviousActor,
+    isCreatedAction,
     isDeletedParentAction,
     isNewerReportAction,
     isReversedTransaction,
@@ -136,6 +138,9 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     const isReportArchived = !!isArchivedReport(reportNameValuePairs);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
+    const [showAuditTrail = true] = useOnyx(ONYXKEYS.SHOW_AUDIT_TRAIL);
+    // The toggle is a global preference but should only affect expense reports, not regular chats this list is shared with.
+    const shouldHideSystemMessages = !showAuditTrail && (isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report));
 
     const reportAttributesSelector = useCallback(
         (value: OnyxEntry<OnyxTypes.ReportAttributesDerivedValue>) => {
@@ -190,36 +195,42 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     });
 
     const renderedVisibleReportActions = useMemo(() => {
+        // When hiding the audit trail, drop gray system messages but keep chat comments, interactive prompts, and the
+        // CREATED action, which renders the expense details panel (amount/merchant/date/category) on single-expense reports.
+        const baseReportActions = shouldHideSystemMessages
+            ? sortedVisibleReportActions.filter((action) => !isAuditTrailAction(action) || isCreatedAction(action))
+            : sortedVisibleReportActions;
+
         if (!draftReportAction) {
-            return sortedVisibleReportActions;
+            return baseReportActions;
         }
 
         if (showHiddenHistory && sessionStartTime && draftReportAction.created < sessionStartTime) {
-            return sortedVisibleReportActions;
+            return baseReportActions;
         }
 
         // Insert the synthetic draft into the already-descending render list without treating it as a persisted report action.
-        for (const [index, action] of sortedVisibleReportActions.entries()) {
+        for (const [index, action] of baseReportActions.entries()) {
             if (action.reportActionID === draftReportAction.reportActionID) {
                 if (!isDraftPendingCompletion) {
-                    return sortedVisibleReportActions;
+                    return baseReportActions;
                 }
 
-                const visibleReportActionsWithDraft = [...sortedVisibleReportActions];
+                const visibleReportActionsWithDraft = [...baseReportActions];
                 visibleReportActionsWithDraft[index] = draftReportAction;
                 return visibleReportActionsWithDraft;
             }
             if (isNewerReportAction(draftReportAction, action)) {
-                const visibleReportActionsWithDraft = [...sortedVisibleReportActions];
+                const visibleReportActionsWithDraft = [...baseReportActions];
                 visibleReportActionsWithDraft.splice(index, 0, draftReportAction);
                 return visibleReportActionsWithDraft;
             }
         }
 
-        const visibleReportActionsWithDraft = [...sortedVisibleReportActions];
+        const visibleReportActionsWithDraft = [...baseReportActions];
         visibleReportActionsWithDraft.push(draftReportAction);
         return visibleReportActionsWithDraft;
-    }, [sessionStartTime, draftReportAction, isDraftPendingCompletion, showHiddenHistory, sortedVisibleReportActions]);
+    }, [sessionStartTime, draftReportAction, isDraftPendingCompletion, showHiddenHistory, sortedVisibleReportActions, shouldHideSystemMessages]);
 
     const draftMessageHTML = draftReportAction ? getReportActionMessage(draftReportAction)?.html : undefined;
     const draftReportActionID = draftReportAction?.reportActionID;

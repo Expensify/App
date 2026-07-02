@@ -2948,6 +2948,8 @@ ${date} の ${merchant} への ${amount}`,
         waitForPDF: 'PDF を作成しています。しばらくお待ちください。',
         errorPDF: 'PDF の生成中にエラーが発生しました',
         successPDF: 'PDFが作成されました！自動的にダウンロードされない場合は、下のボタンを使用してください。',
+        commentsAndHistory: 'コメントと履歴',
+        commentsOnly: 'コメントのみ',
         goToRoom: 'ルームに移動',
     },
     reportDescriptionPage: {

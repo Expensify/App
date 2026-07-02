@@ -1,8 +1,6 @@
-import {useIsFocused} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -46,20 +44,10 @@ function MoneyRequestReportTotalSpend({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
-    const isFocused = useIsFocused();
     const shouldShowComments = hasComments || isLoadingReportActions;
 
-    const commentContainerStyle = [styles.ph5, styles.justifyContentBetween, styles.mb2];
-
     return (
-        <View style={[styles.dFlex, styles.flexRow, styles.justifyContentEnd, shouldShowComments && commentContainerStyle]}>
-            <Animated.Text
-                style={[styles.textLabelSupporting]}
-                entering={hasComments ? undefined : FadeIn}
-                exiting={isFocused ? FadeOut : undefined}
-            >
-                {shouldShowComments ? translate('common.comments') : ''}
-            </Animated.Text>
+        <View style={[styles.dFlex, styles.flexRow, styles.justifyContentEnd, shouldShowComments && [styles.ph5, styles.mb2]]}>
             {!isEmptyTransactions && (
                 <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3, textContainerStyle, shouldUseNarrowLayout && [styles.justifyContentBetween, styles.w100]]}>
                     <Text style={[styles.mr3, styles.textLabelSupporting]}>{translate('common.total')}</Text>

@@ -2847,6 +2847,8 @@ ${amount} para ${merchant} - ${date}`,
         waitForPDF: 'Por favor, espera mientras creamos el PDF.',
         errorPDF: 'Ocurrió un error al crear el PDF',
         successPDF: '¡Tu PDF ha sido generado! Si no se descargó automáticamente, usa el botón de abajo.',
+        commentsAndHistory: 'Comentarios e historial',
+        commentsOnly: 'Solo comentarios',
     },
     reportDescriptionPage: {
         roomDescription: 'Descripción de la sala de chat',

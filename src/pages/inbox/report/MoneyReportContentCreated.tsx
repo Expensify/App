@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import CommentsAuditTrailMenu from '@components/CommentsAuditTrailMenu';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import MoneyReportView from '@components/ReportActionItem/MoneyReportView';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
@@ -76,6 +77,7 @@ function MoneyReportContentCreated({report, policy, transaction, transactionThre
                                     shouldShowAnimatedBackground={false}
                                 />
                                 {threadDivider}
+                                <CommentsAuditTrailMenu />
                             </View>
                         </ShowContextMenuActionsContext.Provider>
                     </ShowContextMenuStateContext.Provider>

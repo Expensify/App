@@ -2960,6 +2960,8 @@ ${amount} para ${merchant} - ${date}`,
         waitForPDF: 'Aguarde enquanto geramos o PDF.',
         errorPDF: 'Ocorreu um erro ao tentar gerar seu PDF',
         successPDF: 'Seu PDF foi gerado! Se ele não foi baixado automaticamente, use o botão abaixo.',
+        commentsAndHistory: 'Comentários e histórico',
+        commentsOnly: 'Somente comentários',
         goToRoom: 'Ir para a sala',
     },
     reportDescriptionPage: {
