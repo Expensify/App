@@ -418,7 +418,7 @@ function getAccountingIntegrationData(
                     CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNTS,
                 ],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.RILLET)),
-                onAdvancedPagePress: () => null,
+                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_ADVANCED.getRoute(policyID)),
                 subscribedAdvancedSettings: [
                     CONST.RILLET_CONFIG.ACCOUNTING_METHOD,
                     CONST.RILLET_CONFIG.AUTO_SYNC,
