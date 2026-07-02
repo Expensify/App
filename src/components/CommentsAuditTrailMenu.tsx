@@ -29,7 +29,7 @@ function CommentsAuditTrailMenu() {
         }
 
         const position = getClickedTargetLocation(anchorRef.current);
-        const BOTTOM_MARGIN_OFFSET = 3;
+        const BOTTOM_MARGIN_OFFSET = 8;
         setAnchorPosition({horizontal: position.left, vertical: position.top + position.height + BOTTOM_MARGIN_OFFSET});
     }, [isVisible, windowWidth]);
 
@@ -73,6 +73,7 @@ function CommentsAuditTrailMenu() {
                 onItemSelected={() => setIsVisible(false)}
                 anchorRef={anchorRef}
                 anchorPosition={anchorPosition}
+                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                 menuItems={menuItems}
                 shouldShowRadioButton
             />
