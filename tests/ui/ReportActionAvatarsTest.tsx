@@ -87,6 +87,7 @@ jest.mock('@src/components/Icon', () => {
 
 const LOGGED_USER_ID = iouReportR14932.ownerAccountID;
 const SECOND_USER_ID = iouReportR14932.managerID;
+const THIRD_USER_ID = Number(Object.keys(personalDetails).find((accountID) => Number(accountID) !== LOGGED_USER_ID && Number(accountID) !== SECOND_USER_ID));
 
 const policy = {
     ...policy420A,
@@ -448,6 +449,78 @@ describe('ReportActionAvatars', () => {
         it('renders workspace avatar if policyID is passed as a prop', async () => {
             const retrievedData = await retrieveDataFromAvatarView({policyID: policy.id});
             isSingleAvatarRendered({...retrievedData, userAvatar: getDefaultWorkspaceAvatar(policy.name).name});
+        });
+    });
+
+    describe('renders overflow (+N) overlays and card-feed subscripts', () => {
+        it('collapses 3+ account IDs into a diagonal "+N" overlay, showing only the primary avatar', async () => {
+            const retrievedData = await retrieveDataFromAvatarView({accountIDs: [LOGGED_USER_ID, SECOND_USER_ID, THIRD_USER_ID]});
+
+            // Beyond the first avatar, the rest collapse into the "+N" overlay rather than rendering a second avatar
+            expect(retrievedData.fragments).toContain('ReportActionAvatars-MultipleAvatars-LimitReached');
+            expect(retrievedData.fragments).not.toContain('ReportActionAvatars-MultipleAvatars-SecondaryAvatar');
+            expect(retrievedData.images.some((image) => image.uri === USER_AVATAR && image.parent === 'ReportActionAvatars-MultipleAvatars-MainAvatar')).toBe(true);
+        });
+
+        it('renders a horizontal "+N" overlay when stacked avatars exceed the row limit', async () => {
+            const retrievedData = await retrieveDataFromAvatarView({
+                accountIDs: [LOGGED_USER_ID, SECOND_USER_ID, THIRD_USER_ID],
+                horizontalStacking: {maxAvatarsInRow: 2},
+            });
+
+            // Only the first two avatars render inline; the third collapses into the overlay
+            expect(retrievedData.fragments).toContain('ReportActionAvatars-MultipleAvatars-StackedHorizontally-LimitReached');
+            const stackedAvatars = retrievedData.images.filter((image) => image.parent === 'ReportActionAvatars-MultipleAvatars-StackedHorizontally-Avatar');
+            expect(stackedAvatars).toHaveLength(2);
+            expect(stackedAvatars.map((image) => image.uri)).toEqual(expect.arrayContaining([USER_AVATAR, SECOND_USER_AVATAR]));
+        });
+
+        it('renders the card-feed icon in place of the workspace subscript when subscriptCardFeed is provided', async () => {
+            const retrievedData = await retrieveDataFromAvatarView({
+                reportID: iouReport.reportID,
+                subscriptCardFeed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+            });
+
+            // The subscript layout is used, the primary (user) avatar still renders, but the workspace subscript is swapped for the card-feed icon.
+            // The card-feed icon is a (mocked) Icon, so it surfaces in `icons` with its testID on `parent` rather than as a fragment.
+            expect(retrievedData.fragments).toContain('ReportActionAvatars-Subscript');
+            expect(retrievedData.images.some((image) => image.uri === USER_AVATAR && image.parent === 'ReportActionAvatars-Subscript-MainAvatar')).toBe(true);
+            expect(retrievedData.images.some((image) => image.parent === 'ReportActionAvatars-Subscript-SecondaryAvatar')).toBe(false);
+            expect(retrievedData.icons.some((icon) => icon.parent === 'ReportActionAvatars-Subscript-CardIcon')).toBe(true);
+        });
+    });
+
+    describe('covers size, sorting, and row-layout variants', () => {
+        it.each([CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME, CONST.REPORT_ACTION_AVATARS.SORT_BY.ID, CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE])(
+            'applies "%s" sorting to horizontally stacked avatars',
+            async (sort) => {
+                const retrievedData = await retrieveDataFromAvatarView({accountIDs: [LOGGED_USER_ID, SECOND_USER_ID], horizontalStacking: {sort}});
+                isMultipleAvatarRendered({...retrievedData, secondUserAvatar: SECOND_USER_AVATAR, stacked: true});
+            },
+        );
+
+        it.each([CONST.AVATAR_SIZE.SMALL, CONST.AVATAR_SIZE.SMALL_NORMAL, CONST.AVATAR_SIZE.X_LARGE])('renders a subscript avatar at size "%s"', async (size) => {
+            const retrievedData = await retrieveDataFromAvatarView({reportID: iouReport.reportID, size});
+            isSubscriptAvatarRendered(retrievedData);
+        });
+
+        it.each([CONST.AVATAR_SIZE.LARGE, CONST.AVATAR_SIZE.X_LARGE])('renders diagonal avatars at size "%s"', async (size) => {
+            const retrievedData = await retrieveDataFromAvatarView({accountIDs: [LOGGED_USER_ID, SECOND_USER_ID], size});
+            isMultipleAvatarRendered({...retrievedData, secondUserAvatar: SECOND_USER_AVATAR});
+        });
+
+        it('renders diagonal avatars with mid-subscript sizing', async () => {
+            const retrievedData = await retrieveDataFromAvatarView({accountIDs: [LOGGED_USER_ID, SECOND_USER_ID], useMidSubscriptSizeForMultipleAvatars: true});
+            isMultipleAvatarRendered({...retrievedData, secondUserAvatar: SECOND_USER_AVATAR});
+        });
+
+        it('splits horizontally stacked avatars into two rows when displayInRows is enabled', async () => {
+            const retrievedData = await retrieveDataFromAvatarView({
+                accountIDs: [LOGGED_USER_ID, SECOND_USER_ID, THIRD_USER_ID],
+                horizontalStacking: {shouldDisplayAvatarsInRows: true, maxAvatarsInRow: 2},
+            });
+            const rows = retrievedData.fragments.filter((fragment) => fragment === 'ReportActionAvatars-MultipleAvatars-StackedHorizontally-Row');
+            expect(rows).toHaveLength(2);
         });
     });
 });
