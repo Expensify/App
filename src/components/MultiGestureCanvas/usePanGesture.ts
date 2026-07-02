@@ -29,6 +29,7 @@ type UsePanGestureProps = Pick<
     | 'panTranslateY'
     | 'shouldDisableTransformationGestures'
     | 'stopAnimation'
+    | 'shouldDisableSwipeDownToClose'
     | 'onSwipeDown'
     | 'isSwipingDownToClose'
 >;
@@ -45,6 +46,7 @@ const usePanGesture = ({
     shouldDisableTransformationGestures,
     stopAnimation,
     isSwipingDownToClose,
+    shouldDisableSwipeDownToClose,
     onSwipeDown,
 }: UsePanGestureProps): PanGesture => {
     // The content size after fitting it to the canvas and zooming
@@ -150,7 +152,7 @@ const usePanGesture = ({
         } else {
             const finalTranslateY = offsetY.get() + panVelocityY.get() * 0.2;
 
-            if (onSwipeDown && finalTranslateY > SNAP_POINT && zoomScale.get() <= 1) {
+            if (!shouldDisableSwipeDownToClose && onSwipeDown && finalTranslateY > SNAP_POINT && zoomScale.get() <= 1) {
                 offsetY.set(
                     withSpring(SNAP_POINT_HIDDEN, SPRING_CONFIG, () => {
                         isSwipingDownToClose.set(false);
@@ -173,7 +175,7 @@ const usePanGesture = ({
         // Reset velocity variables after we finished the pan gesture
         panVelocityX.set(0);
         panVelocityY.set(0);
-    }, [getBounds, isSwipingDownToClose, offsetX, offsetY, onSwipeDown, panTranslateX, panTranslateY, panVelocityX, panVelocityY, zoomScale]);
+    }, [getBounds, isSwipingDownToClose, offsetX, offsetY, onSwipeDown, panTranslateX, panTranslateY, panVelocityX, panVelocityY, shouldDisableSwipeDownToClose, zoomScale]);
 
     const panGesture = Gesture.Pan()
         .manualActivation(true)
@@ -189,12 +191,7 @@ const usePanGesture = ({
 
             // TODO: this needs tuning to work properly
             const previousTouchValue = previousTouch.get();
-            if (
-                onSwipeDown &&
-                !shouldDisableTransformationGestures.get() &&
-                zoomScale.get() === 1 &&
-                previousTouchValue !== null
-            ) {
+            if (!shouldDisableSwipeDownToClose && !shouldDisableTransformationGestures.get() && zoomScale.get() === 1 && previousTouchValue !== null) {
                 const velocityX = Math.abs((evt.allTouches.at(0)?.x ?? 0) - previousTouchValue.x);
                 const velocityY = (evt.allTouches.at(0)?.y ?? 0) - previousTouchValue.y;
 

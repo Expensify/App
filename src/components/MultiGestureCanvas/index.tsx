@@ -60,6 +60,12 @@ type MultiGestureCanvasProps = ChildrenProps & {
     /** Handles swipe down event */
     onSwipeDown?: OnSwipeDownCallback;
 
+    /** Whether swipe-down-to-close should be disabled while preserving other pan gestures. */
+    shouldDisableSwipeDownToClose?: boolean;
+
+    /** Whether the wrapper should prevent the browser's default touch-end behavior. */
+    shouldPreventTouchEndDefault?: boolean;
+
     /** We need to ensure that any native gesture handlers in this component tree is working simultaneously with panning and do not get blocked. */
     externalGestureHandler?: GestureType;
 };
@@ -79,6 +85,8 @@ function MultiGestureCanvas({
     onTap,
     onScaleChanged,
     onSwipeDown,
+    shouldDisableSwipeDownToClose = false,
+    shouldPreventTouchEndDefault = true,
     externalGestureHandler,
 }: MultiGestureCanvasProps) {
     const styles = useThemeStyles();
@@ -214,6 +222,7 @@ function MultiGestureCanvas({
         stopAnimation,
         shouldDisableTransformationGestures,
         isSwipingDownToClose,
+        shouldDisableSwipeDownToClose,
         onSwipeDown,
     })
         .simultaneousWithExternalGesture(...panGestureSimultaneousList)
@@ -278,7 +287,13 @@ function MultiGestureCanvas({
             <GestureDetector gesture={Gesture.Simultaneous(pinchGesture, Gesture.Race(singleTapGesture, doubleTapGesture, panGestureWrapper))}>
                 <View
                     collapsable={false}
-                    onTouchEnd={(e) => e.preventDefault()}
+                    onTouchEnd={(e) => {
+                        if (!shouldPreventTouchEndDefault) {
+                            return;
+                        }
+
+                        e.preventDefault();
+                    }}
                     style={StyleUtils.getFullscreenCenteredContentStyles()}
                 >
                     <Animated.View

@@ -36,6 +36,7 @@ type MultiGestureCanvasVariables = {
     pinchTranslateY: SharedValue<number>;
     stopAnimation: () => void;
     reset: (animated: boolean, callback: () => void) => void;
+    shouldDisableSwipeDownToClose: boolean;
     onTap: OnTapCallback | undefined;
     onScaleChanged: OnScaleChangedCallback | undefined;
     onSwipeDown: OnSwipeDownCallback | undefined;

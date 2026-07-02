@@ -5,10 +5,7 @@ import {PDFPreviewer} from 'react-fast-pdf';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
-import {
-    useAttachmentCarouselPagerActions,
-    useAttachmentCarouselPagerState,
-} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import {useAttachmentCarouselPagerActions, useAttachmentCarouselPagerState} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import LoadingIndicator from '@components/LoadingIndicator';
 import MultiGestureCanvas from '@components/MultiGestureCanvas';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -19,7 +16,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as Browser from '@libs/Browser';
+import {isMobile} from '@libs/Browser';
 import variables from '@styles/variables';
 import {retrieveMaxCanvasArea, retrieveMaxCanvasHeight, retrieveMaxCanvasWidth} from '@userActions/CanvasSize';
 import CONST from '@src/CONST';
@@ -88,30 +85,18 @@ function MobilePDFGestureCanvas({children, onScaleChanged}: MobilePDFGestureCanv
                     isPagerScrollEnabled={state?.isScrollEnabled ?? isScrollEnabledFallback}
                     onTap={actions?.onTap}
                     onScaleChanged={scaleChange}
+                    shouldDisableSwipeDownToClose
+                    shouldPreventTouchEndDefault={false}
                     externalGestureHandler={state?.externalGestureHandler}
                 >
-                    <View style={StyleUtils.getWidthAndHeightStyle(canvasSize.width, canvasSize.height)}>
-                        {children(canvasSize)}
-                    </View>
+                    <View style={StyleUtils.getWidthAndHeightStyle(canvasSize.width, canvasSize.height)}>{children(canvasSize)}</View>
                 </MultiGestureCanvas>
             )}
         </View>
     );
 }
 
-function PDFView({
-    onToggleKeyboard,
-    fileName,
-    onPress,
-    isFocused,
-    onScaleChanged,
-    sourceURL,
-    style,
-    isUsedInAttachmentModal,
-    isUsedAsChatAttachment,
-    onLoadError,
-    rotation,
-}: PDFViewProps) {
+function PDFView({onToggleKeyboard, fileName, onPress, isFocused, onScaleChanged, sourceURL, style, isUsedInAttachmentModal, isUsedAsChatAttachment, onLoadError, rotation}: PDFViewProps) {
     const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -123,7 +108,7 @@ function PDFView({
     const [maxCanvasArea] = useOnyx(ONYXKEYS.MAX_CANVAS_AREA);
     const [maxCanvasHeight] = useOnyx(ONYXKEYS.MAX_CANVAS_HEIGHT);
     const [maxCanvasWidth] = useOnyx(ONYXKEYS.MAX_CANVAS_WIDTH);
-    const shouldUsePDFGestureZoom = Browser.isMobile() && !!isUsedInAttachmentModal && !isUsedAsChatAttachment;
+    const shouldUsePDFGestureZoom = isMobile() && !!isUsedInAttachmentModal && !isUsedAsChatAttachment;
 
     /**
      * On small screens notify parent that the keyboard has opened or closed.
@@ -220,16 +205,14 @@ function PDFView({
                 style={outerContainerStyle}
                 tabIndex={0}
             >
-                {shouldUsePDFGestureZoom ? (
-                    <MobilePDFGestureCanvas onScaleChanged={onScaleChanged}>
-                        {() => pdfPreviewer}
-                    </MobilePDFGestureCanvas>
-                ) : (
-                    pdfPreviewer
-                )}
+                {shouldUsePDFGestureZoom ? <MobilePDFGestureCanvas onScaleChanged={onScaleChanged}>{() => pdfPreviewer}</MobilePDFGestureCanvas> : pdfPreviewer}
             </View>
         );
     };
+
+    if (shouldUsePDFGestureZoom) {
+        return renderPDFView();
+    }
 
     return onPress ? (
         <PressableWithoutFeedback
