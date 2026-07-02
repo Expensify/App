@@ -51,7 +51,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
 
-    const columnRoles: ColumnRole[] = useMemo(() => {
+    const columnRoles: ColumnRole[] = (() => {
         const baseRoles: ColumnRole[] = [
             {text: translate('workspace.companyCards.addNewCard.csvColumns.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
             {text: translate('workspace.companyCards.addNewCard.csvColumns.cardNumber'), value: CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER, isRequired: true},
@@ -75,7 +75,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
         ];
 
         return [...baseRoles, ...advancedRoles];
-    }, [translate, shouldUseAdvancedFields]);
+    })();
 
     const savedColumnMappings = Object.entries(workspaceCardFeeds?.settings?.companyCards ?? {}).find(([feedKey]) => feedKey === layoutType)?.[1]?.uploadLayoutSettings?.columnMappings;
     const hasAppliedSavedMappings = useRef(false);
