@@ -2,7 +2,7 @@ import type {RilletAccount} from '@src/types/onyx/Policy';
 
 type UpdateRilletCreditCardAccountParams = {
     policyID: string;
-    creditCardAccountID: RilletAccount['id'];
+    creditCardAccountCode: RilletAccount['code'];
 };
 
 export default UpdateRilletCreditCardAccountParams;

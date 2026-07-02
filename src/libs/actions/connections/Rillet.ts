@@ -415,11 +415,11 @@ function updateRilletDefaultVendor(policyID: string, vendorID: RilletExport['def
     write(WRITE_COMMANDS.UPDATE_RILLET_DEFAULT_VENDOR, parameters, onyxData);
 }
 
-function updateRilletCreditCardAccount(policyID: string, creditCardAccountID: RilletExport['creditCardAccountCode'], oldCreditCardAccountID?: RilletExport['creditCardAccountCode']) {
-    const onyxData = prepareRilletExportOptimisticData(policyID, CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE, creditCardAccountID, oldCreditCardAccountID ?? null);
+function updateRilletCreditCardAccount(policyID: string, creditCardAccountCode: RilletExport['creditCardAccountCode'], oldCreditCardAccountCode?: RilletExport['creditCardAccountCode']) {
+    const onyxData = prepareRilletExportOptimisticData(policyID, CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE, creditCardAccountCode, oldCreditCardAccountCode ?? null);
     const parameters: UpdateRilletCreditCardAccountParams = {
         policyID,
-        creditCardAccountID,
+        creditCardAccountCode,
     };
     write(WRITE_COMMANDS.UPDATE_RILLET_CREDIT_CARD_ACCOUNT, parameters, onyxData);
 }

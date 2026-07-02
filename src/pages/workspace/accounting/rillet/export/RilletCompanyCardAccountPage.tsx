@@ -16,7 +16,7 @@ import ROUTES from '@src/ROUTES';
 import type {RilletAccount} from '@src/types/onyx/Policy';
 
 type AccountListItem = ListItem & {
-    value: RilletAccount['id'];
+    value: RilletAccount['code'];
 };
 
 function RilletCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
@@ -25,15 +25,15 @@ function RilletCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id;
     const rilletConfig = policy?.connections?.rillet?.config;
     const rilletData = policy?.connections?.rillet?.data;
-    const companyCardAccount = rilletData?.accounts?.find((account) => account.code === rilletConfig?.export?.creditCardAccountCode);
+    const creditCardAccountCode = rilletConfig?.export?.creditCardAccountCode;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.getRoute(policyID) : undefined;
 
     const data: AccountListItem[] =
         rilletData?.accounts?.map((accountItem) => ({
-            value: accountItem.id,
+            value: accountItem.code,
             text: accountItem.name,
-            keyForList: accountItem.id,
-            isSelected: companyCardAccount?.id === accountItem.id,
+            keyForList: accountItem.code,
+            isSelected: creditCardAccountCode === accountItem.code,
         })) ?? [];
 
     const headerContent = (
@@ -43,8 +43,8 @@ function RilletCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
     );
 
     const selectDefaultVendor = (item: AccountListItem) => {
-        if (item.value !== companyCardAccount?.id && policyID) {
-            updateRilletCreditCardAccount(policyID, item.value, companyCardAccount?.id);
+        if (item.value !== creditCardAccountCode && policyID) {
+            updateRilletCreditCardAccount(policyID, item.value, creditCardAccountCode);
         }
         Navigation.goBack(backPath);
     };
@@ -60,7 +60,7 @@ function RilletCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
             headerContent={headerContent}
             onSelectRow={selectDefaultVendor}
             shouldSingleExecuteRowSelect
-            initiallyFocusedOptionKey={companyCardAccount?.id}
+            initiallyFocusedOptionKey={creditCardAccountCode}
             onBackButtonPress={() => Navigation.goBack(backPath)}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.RILLET}
             pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE], rilletConfig?.pendingFields)}
