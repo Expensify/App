@@ -3061,7 +3061,8 @@ const translations = {
         waitForPDF: 'Please wait while we generate the PDF.',
         errorPDF: 'There was an error when trying to generate your PDF',
         successPDF: "Your PDF has been generated! If it didn't automatically download, use the button below.",
-        showAuditTrail: 'Show audit trail',
+        commentsAndHistory: 'Comments and history',
+        commentsOnly: 'Comments only',
     },
     reportDescriptionPage: {
         roomDescription: 'Room description',

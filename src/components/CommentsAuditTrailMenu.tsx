@@ -9,9 +9,9 @@ import {setShowAuditTrail} from '@userActions/AuditTrail';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import CaretWrapper from './CaretWrapper';
-import Popover from './Popover';
+import type {PopoverMenuItem} from './PopoverMenu';
+import PopoverMenu from './PopoverMenu';
 import {PressableWithFeedback} from './Pressable';
-import Switch from './Switch';
 import Text from './Text';
 
 function CommentsAuditTrailMenu() {
@@ -20,7 +20,7 @@ function CommentsAuditTrailMenu() {
     const {windowWidth} = useWindowDimensions();
     const [showAuditTrail = true] = useOnyx(ONYXKEYS.SHOW_AUDIT_TRAIL);
     const [isVisible, setIsVisible] = useState(false);
-    const [anchorPosition, setAnchorPosition] = useState({top: 0, left: 0});
+    const [anchorPosition, setAnchorPosition] = useState({horizontal: 0, vertical: 0});
     const anchorRef = useRef(null);
 
     useEffect(() => {
@@ -30,8 +30,23 @@ function CommentsAuditTrailMenu() {
 
         const position = getClickedTargetLocation(anchorRef.current);
         const BOTTOM_MARGIN_OFFSET = 3;
-        setAnchorPosition({top: position.top + position.height + BOTTOM_MARGIN_OFFSET, left: position.left});
+        setAnchorPosition({horizontal: position.left, vertical: position.top + position.height + BOTTOM_MARGIN_OFFSET});
     }, [isVisible, windowWidth]);
+
+    const label = showAuditTrail ? translate('reportDetailsPage.commentsAndHistory') : translate('reportDetailsPage.commentsOnly');
+
+    const menuItems: PopoverMenuItem[] = [
+        {
+            text: translate('reportDetailsPage.commentsAndHistory'),
+            isSelected: showAuditTrail,
+            onSelected: () => setShowAuditTrail(true),
+        },
+        {
+            text: translate('reportDetailsPage.commentsOnly'),
+            isSelected: !showAuditTrail,
+            onSelected: () => setShowAuditTrail(false),
+        },
+    ];
 
     return (
         <View style={[styles.ph5, styles.mb2]}>
@@ -40,7 +55,7 @@ function CommentsAuditTrailMenu() {
                 style={styles.alignSelfStart}
             >
                 <PressableWithFeedback
-                    accessibilityLabel={translate('common.comments')}
+                    accessibilityLabel={label}
                     accessibilityRole={CONST.ROLE.BUTTON}
                     onPress={() => setIsVisible(true)}
                 >
@@ -48,25 +63,19 @@ function CommentsAuditTrailMenu() {
                         caretWidth={12}
                         caretHeight={12}
                     >
-                        <Text style={styles.textLabelSupporting}>{translate('common.comments')}</Text>
+                        <Text style={styles.textLabelSupporting}>{label}</Text>
                     </CaretWrapper>
                 </PressableWithFeedback>
             </View>
-            <Popover
-                onClose={() => setIsVisible(false)}
+            <PopoverMenu
                 isVisible={isVisible}
+                onClose={() => setIsVisible(false)}
+                onItemSelected={() => setIsVisible(false)}
                 anchorRef={anchorRef}
                 anchorPosition={anchorPosition}
-            >
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap4, styles.p4]}>
-                    <Text style={styles.textLabelSupporting}>{translate('reportDetailsPage.showAuditTrail')}</Text>
-                    <Switch
-                        isOn={showAuditTrail}
-                        accessibilityLabel={translate('reportDetailsPage.showAuditTrail')}
-                        onToggle={setShowAuditTrail}
-                    />
-                </View>
-            </Popover>
+                menuItems={menuItems}
+                shouldShowRadioButton
+            />
         </View>
     );
 }
