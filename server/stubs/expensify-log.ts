@@ -3,6 +3,7 @@ const Log = {
     hmmm: () => {},
     info: () => {},
     alert: () => {},
+    error: () => {},
 };
 
 export default Log;

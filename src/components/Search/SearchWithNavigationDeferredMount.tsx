@@ -29,7 +29,7 @@ function handleSkeletonLayout() {
 function SearchWithNavigationDeferredMount(props: ComponentProps<typeof Search>) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const containerStyle = shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!props.hasFilterBars) : styles.mt3;
+    const containerStyle = shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!props.hasFilterBars) : undefined;
 
     return (
         <NavigationDeferredMount

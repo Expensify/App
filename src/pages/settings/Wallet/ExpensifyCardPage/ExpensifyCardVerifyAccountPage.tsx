@@ -3,7 +3,7 @@ import ValidateCodeActionContent from '@components/ValidateCodeActionModal/Valid
 import useLocalize from '@hooks/useLocalize';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import {revealVirtualCardDetails} from '@libs/actions/Card';
-import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
+import {requestValidateCodeAction} from '@libs/actions/User';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -70,7 +70,6 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
             validateError={validateError}
             clearError={() => setValidateError({})}
             onClose={() => {
-                resetValidateActionCodeSent();
                 navigateBack();
             }}
         />

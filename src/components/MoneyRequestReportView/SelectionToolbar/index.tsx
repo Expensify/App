@@ -8,9 +8,11 @@ import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalMod
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
+import {ReportSubmitToPopoverAnchor} from '@components/ReportSubmitToPopoverAnchor';
 import BulkDuplicateHandler from '@components/Search/BulkDuplicateHandler';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useExportDownloadStatusModal from '@hooks/useExportDownloadStatusModal';
 import useFilterSelectedTransactions from '@hooks/useFilterSelectedTransactions';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -74,6 +76,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {showConfirmModal} = useConfirmModal();
+    const {trackExport, exportDownloadStatusModal} = useExportDownloadStatusModal(() => clearSelectedTransactions(undefined, true));
 
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
@@ -81,7 +84,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 
     const transactionsWithoutPendingDelete = transactions.filter((t) => !isTransactionPendingDelete(t));
 
-    const beginExportWithTemplate = (templateName: string, templateType: string, transactionIDList: string[]) => {
+    const beginExportWithTemplate = (templateName: string, templateType: string, transactionIDList: string[], exportName: string) => {
         if (isOffline) {
             setOfflineModalVisible(true);
             return;
@@ -91,26 +94,19 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
             return;
         }
 
-        queueExportSearchWithTemplate({
-            templateName,
-            templateType,
-            jsonQuery: '{}',
-            reportIDList: [report.reportID],
-            transactionIDList,
-            policyID: policy?.id,
-        });
-
-        showConfirmModal({
-            title: translate('export.exportInProgress'),
-            prompt: translate('export.conciergeWillSend'),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            clearSelectedTransactions(undefined, true);
-        });
+        const exportID = queueExportSearchWithTemplate(
+            {
+                templateName,
+                templateType,
+                jsonQuery: '{}',
+                reportIDList: [report.reportID],
+                transactionIDList,
+                policyID: policy?.id,
+                exportName,
+            },
+            true,
+        );
+        trackExport(exportID);
     };
 
     const onDeleteSelected = (handleDeleteTransactions: () => void, handleDeleteTransactionsWithNavigation: (backToRoute?: Route) => void) => {
@@ -153,7 +149,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
         onExportFailed: () => setIsDownloadErrorModalVisible(true),
         onExportOffline: () => setOfflineModalVisible(true),
         policy,
-        beginExportWithTemplate: (templateName, templateType, transactionIDList) => beginExportWithTemplate(templateName, templateType, transactionIDList),
+        beginExportWithTemplate: (templateName, templateType, transactionIDList, exportName) => beginExportWithTemplate(templateName, templateType, transactionIDList, exportName),
         onDeleteSelected,
     });
 
@@ -163,6 +159,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
         hasPayInSelectionMode,
         onSelectionModePaymentSelect,
         selectionModeKYCSuccess,
+        shouldBlockAction,
         primaryAction,
         kycWallRef,
         isHoldMenuVisible,
@@ -235,6 +232,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 
     return (
         <>
+            {exportDownloadStatusModal}
             {isDuplicateOptionVisible && (
                 <BulkDuplicateHandler
                     selectedTransactionsKeys={selectedTransactionIDs}
@@ -250,18 +248,26 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                     <View
                         style={[isInLandscapeMode ? [styles.flexRowReverse, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap6, styles.pb3, styles.ph5] : styles.flexColumn]}
                     >
-                        <SelectionDropdown
-                            hasPayInSelectionMode={hasPayInSelectionMode}
-                            chatReport={chatReport}
-                            report={report}
-                            onSelectionModePaymentSelect={onSelectionModePaymentSelect}
-                            selectionModeKYCSuccess={selectionModeKYCSuccess}
-                            primaryAction={primaryAction}
-                            selectedTransactionsOptions={selectedTransactionsOptions}
-                            selectedTransactionIDs={selectedTransactionIDs}
-                            kycWallRef={kycWallRef}
-                            shouldPopoverUseScrollView={popoverUseScrollView}
-                        />
+                        <ReportSubmitToPopoverAnchor reportID={reportID}>
+                            <SelectionDropdown
+                                hasPayInSelectionMode={hasPayInSelectionMode}
+                                chatReport={chatReport}
+                                report={report}
+                                onSelectionModePaymentSelect={onSelectionModePaymentSelect}
+                                selectionModeKYCSuccess={selectionModeKYCSuccess}
+                                onWorkspacePolicySelect={(selectedPolicy, triggerKYCFlow) => {
+                                    if (shouldBlockAction()) {
+                                        return;
+                                    }
+                                    triggerKYCFlow({policy: selectedPolicy});
+                                }}
+                                primaryAction={primaryAction}
+                                selectedTransactionsOptions={selectedTransactionsOptions}
+                                selectedTransactionIDs={selectedTransactionIDs}
+                                kycWallRef={kycWallRef}
+                                shouldPopoverUseScrollView={popoverUseScrollView}
+                            />
+                        </ReportSubmitToPopoverAnchor>
 
                         <SelectAllCheckbox
                             isSelectAllChecked={isSelectAllChecked}
