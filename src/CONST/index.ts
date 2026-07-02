@@ -6298,10 +6298,6 @@ const CONST = {
         },
     },
 
-    CACHE_API_KEYS: {
-        ATTACHMENTS: 'attachments',
-    },
-
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
         RETRY_LAZY_REFRESHED: 'RETRY_LAZY_REFRESHED',
@@ -8715,6 +8711,7 @@ const CONST = {
 
     CACHE_NAME: {
         AUTH_IMAGES: 'auth-images',
+        ATTACHMENTS: 'attachments',
     },
 
     MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO: 0.9,

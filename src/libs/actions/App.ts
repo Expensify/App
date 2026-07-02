@@ -31,6 +31,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type Locale from '@src/types/onyx/Locale';
 import type {OnyxData} from '@src/types/onyx/Request';
+import {clearCachedAttachments} from './Attachment';
 import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
 import {setShouldForceOffline} from './Network';
 import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
@@ -931,6 +932,7 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
             }),
     );
     clearSoundAssetsCache();
+    clearCachedAttachments();
     return resetPromise;
 }
 

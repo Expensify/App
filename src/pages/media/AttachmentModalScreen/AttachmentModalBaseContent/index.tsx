@@ -268,6 +268,7 @@ function AttachmentModalBaseContent({
                         <AttachmentView
                             containerStyles={[styles.mh5]}
                             source={sourceForAttachmentView}
+                            attachmentID={attachmentID}
                             isAuthTokenRequired={isAuthTokenRequiredState}
                             file={fileToDisplay}
                             onToggleKeyboard={setIsConfirmButtonDisabled}

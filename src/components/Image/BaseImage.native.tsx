@@ -2,6 +2,7 @@ import {Image as ExpoImage} from 'expo-image';
 import type {ImageProps as ExpoImageProps, ImageLoadEventData} from 'expo-image';
 import {useCallback, useContext, useEffect, useRef} from 'react';
 import type {AttachmentSource} from '@components/Attachments/types';
+import useCachedImageSource from '@hooks/useCachedImageSource';
 import getImageRecyclingKey from '@libs/getImageRecyclingKey';
 import {AttachmentStateContext} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/AttachmentStateContextProvider';
 import type {BaseImageProps} from './types';
@@ -9,6 +10,8 @@ import type {BaseImageProps} from './types';
 function BaseImage({onLoad, source, style, ...props}: BaseImageProps) {
     const isLoadedRef = useRef(false);
     const attachmentContext = useContext(AttachmentStateContext);
+    const cachedSource = useCachedImageSource(typeof source === 'object' && !Array.isArray(source) ? source : undefined);
+    const resolvedSource = cachedSource !== undefined ? cachedSource : source;
     const {setAttachmentLoaded, isAttachmentLoaded} = attachmentContext || {};
 
     useEffect(() => {
@@ -46,7 +49,7 @@ function BaseImage({onLoad, source, style, ...props}: BaseImageProps) {
         <ExpoImage
             // Only subscribe to onLoad when a handler is provided to avoid unnecessary event registrations, optimizing performance.
             onLoad={onLoad ? imageLoadedSuccessfully : undefined}
-            source={source}
+            source={resolvedSource}
             recyclingKey={getImageRecyclingKey(source)}
             style={style as ExpoImageProps['style']}
             {...props}

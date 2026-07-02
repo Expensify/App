@@ -1,8 +1,8 @@
-import {clearAuthImagesCache} from '@hooks/useCachedImageSource';
+import {clearCachedAttachments} from '@libs/actions/Attachment';
 import type ClearCache from './types';
 
 const clearStorage: ClearCache = async () => {
-    await clearAuthImagesCache();
+    await clearCachedAttachments();
 
     // Clear the service worker's user-media cache so receipts and attachments
     // from one user's session cannot be served to a subsequent user on the
