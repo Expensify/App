@@ -12,6 +12,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {updateAgentPrompt} from '@libs/actions/Agent';
@@ -30,6 +31,7 @@ import INPUT_IDS from '@src/types/form/EditAgentPromptForm';
 type EditPromptPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT_PROMPT>;
 
 function EditPromptPage({route}: EditPromptPageProps) {
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
@@ -101,7 +103,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
                 keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
                 ref={formWrapperRef}
             >
-                <View style={shouldShrinkPromptInput ? {height: PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} : [styles.flex1]}>
+                <View style={shouldShrinkPromptInput ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE) : [styles.flex1]}>
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.PROMPT}

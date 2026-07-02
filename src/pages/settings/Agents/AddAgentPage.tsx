@@ -13,6 +13,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
@@ -38,6 +39,7 @@ import scrollToMultilineInput from './scrollToMultilineInput';
 type AddAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
 
 function AddAgentPage({route}: AddAgentPageProps) {
+    const StyleUtils = useStyleUtils();
     const policyID = route.params?.policyID;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -160,7 +162,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
                         spellCheck={false}
                         defaultValue={defaultAgentName}
                     />
-                    <View style={shouldShrinkPromptInput ? {height: PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} : [shouldUseScrollableLayout ? styles.h42 : styles.flex1]}>
+                    <View style={shouldShrinkPromptInput ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE) : [shouldUseScrollableLayout ? styles.h42 : styles.flex1]}>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.PROMPT}
