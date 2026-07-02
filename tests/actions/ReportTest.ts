@@ -8796,6 +8796,7 @@ describe('actions/Report', () => {
             currency: CONST.CURRENCY.USD,
         });
 
+        let mockFetch: MockFetch;
         beforeEach(async () => {
             await Onyx.merge(ONYXKEYS.SESSION, {
                 accountID: currentUserAccountID,
@@ -8820,7 +8821,8 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            global.fetch = TestHelper.getGlobalFetchMock() as MockFetch;
+            global.fetch = TestHelper.getGlobalFetchMock();
+            mockFetch = global.fetch as MockFetch;
             // Clear the queue before each test to avoid test pollution
             SequentialQueue.resetQueue();
         });
@@ -8831,7 +8833,6 @@ describe('actions/Report', () => {
         });
 
         it('handles success case: moves transactions, deletes source reports, and updates parent preview actions in Onyx', async () => {
-            const mockFetch = global.fetch as MockFetch;
             mockFetch.pause();
 
             Report.mergeReports({
@@ -8895,7 +8896,6 @@ describe('actions/Report', () => {
         });
 
         it('handles failure case: rolls back transaction moves, restores source reports, and restores parent preview actions in Onyx', async () => {
-            const mockFetch = global.fetch as MockFetch;
             mockFetch.pause();
 
             Report.mergeReports({
@@ -8948,7 +8948,6 @@ describe('actions/Report', () => {
         });
 
         it('correctly handles snapshot updates when hash is provided', async () => {
-            const mockFetch = global.fetch as MockFetch;
             mockFetch.pause();
 
             Report.mergeReports({

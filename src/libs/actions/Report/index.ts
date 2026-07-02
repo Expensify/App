@@ -7951,7 +7951,7 @@ function mergeReports({
     policyCategories,
     policyTagList,
     allTransactionViolation,
-    allReportsTransactions
+    allReportsTransactions,
 }: MergeReportsProps) {
     const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
 
