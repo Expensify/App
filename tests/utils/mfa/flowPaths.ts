@@ -5,7 +5,7 @@ import {adjacencyMapToArray, getAdjacencyMap, getShortestPaths, serializeSnapsho
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
 import type {MfaEvent} from '@components/MultifactorAuthentication/machine/types';
 import CONST from '@src/CONST';
-import createInitEvent from './flowFixtures';
+import createInitEvent, {MFA_TEST_PAYLOAD} from './flowFixtures';
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
@@ -33,6 +33,13 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
         events: [createInitEvent(), {type: 'CLOSE_MODAL'}, {type: 'MODAL_CLOSED'}],
         endState: MFA_STATE.CLOSED,
     },
+    // The payload flow keeps its payload in the context until `closed` wipes it, so its `closing` is a
+    // distinct vertex whose MODAL_CLOSED edge no other journey drives.
+    {
+        description: 'the payload teardown journey ends back in the closed state',
+        events: [createInitEvent(MFA_TEST_PAYLOAD), {type: 'CLOSE_MODAL'}, {type: 'MODAL_CLOSED'}],
+        endState: MFA_STATE.CLOSED,
+    },
     // Shortest paths keep one route per vertex and a completed flow returns to the initial vertex, so no
     // generated path ever starts a second flow. This journey is the only coverage that runs flow N+1 over
     // the module-level state the first flow leaves behind, such as the buffered navigation.
@@ -48,8 +55,12 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
  * state declares, but it cannot invent a payload a guard or an assign needs, so every event whose payload
  * matters gets an explicit case here. Types absent from this list stay covered by synthesis, which
  * `getTraversalEvents` guarantees.
+ *
+ * INIT appears twice, once bare and once with a payload, so the two flows occupy distinct context
+ * vertices. A machine that stops copying the payload into its context merges those vertices, and the
+ * exercised-transitions guard reports the edge that lost its route.
  */
-const MFA_GRAPH_EVENTS: readonly MfaEvent[] = [createInitEvent()];
+const MFA_GRAPH_EVENTS: readonly MfaEvent[] = [createInitEvent(), createInitEvent(MFA_TEST_PAYLOAD)];
 
 const DELAYED_EVENT_PREFIX = 'xstate.after';
 

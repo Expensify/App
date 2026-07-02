@@ -1,5 +1,5 @@
 import {act, fireEvent, screen} from '@testing-library/react-native';
-import {MFA_TEST_SCENARIO_NAME} from 'tests/utils/mfa/flowFixtures';
+import {isTestScenarioInitEvent} from 'tests/utils/mfa/flowFixtures';
 import getWalkedPaths, {getDrivingJourneyPaths, getExercisedTransitionKeys, getMfaShortestPaths, getUiDrivableTransitions} from 'tests/utils/mfa/flowPaths';
 import {getMfaControls, renderMfaUi} from 'tests/utils/mfa/realUi/harness';
 import {pendingModalClose, resetMfaUiMocks} from 'tests/utils/mfa/realUi/mocks';
@@ -67,17 +67,23 @@ const CONFIRM_BUTTON_TEST_ID = 'MultifactorAuthenticationOutcomeConfirmButton';
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
 type MfaEventType = MfaEvent['type'];
-type MfaEventExecutor = () => Promise<void>;
+// The event carries only its `type` here because `xstate/graph` erases the payload from the executor's
+// step type. The INIT executor recovers the payload through `isTestScenarioInitEvent`.
+type MfaEventExecutor = (step: {event: {type: MfaEventType}}) => Promise<void>;
 
 /**
- * `INIT` enters through the public API, while `MODAL_CLOSED` runs the navigator's teardown callback.
- * `satisfies Record<MfaEventType, ...>` requires an explicit executor for every machine event.
+ * `INIT` enters through the public API with the scenario and payload of the step's own event, so paths
+ * built from different INIT fixtures drive different flows. `MODAL_CLOSED` runs the navigator's teardown
+ * callback. `satisfies Record<MfaEventType, ...>` requires an explicit executor for every machine event.
  */
 /* eslint-disable @typescript-eslint/naming-convention -- keys mirror the machine's event type union. */
 const mfaEventExecutors = {
-    INIT: async () => {
+    INIT: async ({event}) => {
+        if (!isTestScenarioInitEvent(event)) {
+            throw new Error(`The INIT executor received an event outside the test-scenario fixtures: ${JSON.stringify(event)}`);
+        }
         await act(async () => {
-            await getMfaControls().executeScenario(MFA_TEST_SCENARIO_NAME);
+            await getMfaControls().executeScenario(event.scenarioName, event.payload);
         });
         await waitForBatchedUpdatesWithAct();
         // The initial screen's `onLayout` does not fire in jsdom, so the test calls the same handler to flush the
