@@ -2796,7 +2796,7 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
                     url = nonReimbursableUrls.at(0)?.substring(0, SALESFORCE_EXPENSES_URL_PREFIX.length + 3) ?? '';
                     break;
                 case CONST.EXPORT_LABELS.RILLET:
-                    // TODO Test in R3 https://github.com/Expensify/App/issues/94848
+                    // s77rt TODO Test in R3 https://github.com/Expensify/App/issues/94848
                     url = '';
                     break;
                 default:
