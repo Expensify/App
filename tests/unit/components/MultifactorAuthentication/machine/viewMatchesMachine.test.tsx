@@ -1,6 +1,6 @@
 import {act, fireEvent, screen} from '@testing-library/react-native';
 import {MFA_TEST_SCENARIO_NAME} from 'tests/utils/mfa/flowFixtures';
-import getWalkedPaths from 'tests/utils/mfa/flowPaths';
+import getWalkedPaths, {getExercisedTransitionKeys, getUiDrivableTransitions} from 'tests/utils/mfa/flowPaths';
 import getSettleableLeafStates from 'tests/utils/mfa/reachableStates';
 import {getMfaControls, renderMfaUi} from 'tests/utils/mfa/realUi/harness';
 import {pendingModalClose, resetMfaUiMocks} from 'tests/utils/mfa/realUi/mocks';
@@ -118,6 +118,17 @@ describe('the UI walk reaches every settleable leaf', () => {
 
     it.each(getSettleableLeafStates(mfaMachine.root))('walks the $description state', ({description}) => {
         expect(walkedLeafValues.some((reached) => matchesState(description, reached))).toBe(true);
+    });
+});
+
+// Shortest paths keep a single incoming route per distinct state-and-context vertex, so a transition can
+// silently drop out of the walk once another route to its target is shorter. This guard fails on the
+// exact transition; the fix is an explicit journey in `DRIVING_EVENTS` that drives it.
+describe('the UI walk exercises every UI-drivable transition', () => {
+    const exercisedTransitionKeys = getExercisedTransitionKeys(walkedPaths);
+
+    it.each(getUiDrivableTransitions())('drives $description', ({key}) => {
+        expect(exercisedTransitionKeys.has(key)).toBe(true);
     });
 });
 
