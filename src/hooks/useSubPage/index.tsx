@@ -13,7 +13,14 @@ import type {SubPageProps, UseSubPageProps} from './types';
  * @param skipPages - array of page names to skip
  * @param buildRoute - function that returns the route for a given page name and optional action
  */
-export default function useSubPage<TProps extends SubPageProps>({pages, onFinished, startFrom = 0, skipPages = [], onPageChange = () => {}, buildRoute}: UseSubPageProps<TProps>) {
+export default function useSubPage<TProps extends SubPageProps, TPageName extends string = string>({
+    pages,
+    onFinished,
+    startFrom = 0,
+    skipPages = [],
+    onPageChange = () => {},
+    buildRoute,
+}: UseSubPageProps<TProps, TPageName>) {
     const navigation = useNavigation();
     const route = useRoute();
     const params = route.params as {subPage?: string; action?: 'edit'} | undefined;
@@ -36,7 +43,7 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
     const lastPageIndex = findLastPageIndex(pages, skipPages);
     const lastPageName = pages.at(lastPageIndex)?.pageName;
 
-    const navigateToPage = (pageName: string, action?: 'edit') => {
+    const navigateToPage = (pageName: TPageName, action?: 'edit') => {
         Navigation.navigate(buildRoute(pageName, action));
     };
 
@@ -46,7 +53,11 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
 
     const prevPage = () => {
         let targetIndex = pageIndex - 1;
-        while (targetIndex >= 0 && skipPages.includes(pages.at(targetIndex)?.pageName ?? '')) {
+        while (targetIndex >= 0) {
+            const targetIndexPageName = pages.at(targetIndex)?.pageName;
+            if (!targetIndexPageName || !skipPages.includes(targetIndexPageName)) {
+                break;
+            }
             targetIndex -= 1;
         }
 
@@ -67,7 +78,11 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
         }
 
         let targetIndex = pageIndex + 1;
-        while (targetIndex < pages.length && skipPages.includes(pages.at(targetIndex)?.pageName ?? '')) {
+        while (targetIndex < pages.length) {
+            const targetIndexPageName = pages.at(targetIndex)?.pageName;
+            if (!targetIndexPageName || !skipPages.includes(targetIndexPageName)) {
+                break;
+            }
             targetIndex += 1;
         }
 
@@ -91,7 +106,7 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
         navigateToPage(pageName, shouldEdit ? 'edit' : undefined);
     };
 
-    const resetToPage = (pageName?: string) => {
+    const resetToPage = (pageName?: TPageName) => {
         const targetPage = pageName ?? pages.at(0)?.pageName;
         if (targetPage) {
             navigateToPage(targetPage);

@@ -34,6 +34,7 @@ import {
     shouldShowLastActorDisplayName,
 } from './OptionsListUtils';
 import Parser from './Parser';
+import {getPersonalDetailsByID} from './PersonalDetailsUtils';
 import {getCleanedTagName} from './PolicyUtils';
 import {
     getActionableCard3DSTransactionApprovalMessage,
@@ -136,6 +137,7 @@ import {
     isActionOfType,
     isCardIssuedAction,
     isInviteOrRemovedAction,
+    isLeavePolicyAction,
     isOldDotReportAction,
     isRenamedAction,
     isTagModificationAction,
@@ -281,6 +283,7 @@ type ShouldDisplayReportInLHNParams = {
     reportAttributes?: ReportAttributesDerivedValue['reports'];
     currentUserLogin: string;
     currentUserAccountID: number;
+    conciergeReportID?: string;
 };
 
 function shouldDisplayReportInLHN({
@@ -297,6 +300,7 @@ function shouldDisplayReportInLHN({
     reportAttributes,
     currentUserAccountID,
     currentUserLogin,
+    conciergeReportID,
 }: ShouldDisplayReportInLHNParams) {
     if (!report) {
         return {shouldDisplay: false};
@@ -356,6 +360,7 @@ function shouldDisplayReportInLHN({
         requiresAttention,
         currentUserLogin,
         currentUserAccountID,
+        conciergeReportID,
     });
 
     return {shouldDisplay};
@@ -374,6 +379,7 @@ function getReportsToDisplayInLHN({
     currentUserAccountID,
     reportNameValuePairs,
     reportAttributes,
+    conciergeReportID,
 }: {
     currentReportId: string | undefined;
     reports: OnyxCollection<Report>;
@@ -387,6 +393,7 @@ function getReportsToDisplayInLHN({
     currentUserAccountID: number;
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
+    conciergeReportID?: string;
 }) {
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const allReportsDictValues = reports ?? {};
@@ -414,6 +421,7 @@ function getReportsToDisplayInLHN({
             reportAttributes,
             currentUserLogin,
             currentUserAccountID,
+            conciergeReportID,
         });
 
         if (shouldDisplay) {
@@ -442,6 +450,7 @@ type UpdateReportsToDisplayInLHNProps = {
     isOffline: boolean;
     currentUserLogin: string;
     currentUserAccountID: number;
+    conciergeReportID?: string;
 };
 
 function updateReportsToDisplayInLHN({
@@ -459,6 +468,7 @@ function updateReportsToDisplayInLHN({
     isOffline,
     currentUserLogin,
     currentUserAccountID,
+    conciergeReportID,
 }: UpdateReportsToDisplayInLHNProps) {
     // Use a lazy copy to avoid creating a new object reference when no entries actually change.
     let displayedReportsCopy: ReportsToDisplayInLHN | undefined;
@@ -497,6 +507,7 @@ function updateReportsToDisplayInLHN({
             reportAttributes,
             currentUserLogin,
             currentUserAccountID,
+            conciergeReportID,
         });
 
         if (shouldDisplay) {
@@ -931,7 +942,7 @@ function getOptionData({
 
     const isExpense = isExpenseReport(report);
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || isExpense;
-    const subtitle = getChatRoomSubtitle(report, policy, false, isReportArchived);
+    const subtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translate, false, isReportArchived);
 
     const status = personalDetail?.status ?? '';
 
@@ -976,6 +987,7 @@ function getOptionData({
         lastMessageTextFromReport = getLastMessageTextForReport({
             translate,
             report,
+            personalDetails,
             lastActorDetails,
             movedFromReport,
             movedToReport,
@@ -1167,8 +1179,8 @@ function getOptionData({
             result.alternateText = getPolicyChangeLogDefaultReimbursableMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED) {
             result.alternateText = getPolicyChangeLogDefaultTitleEnforcedMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
-            result.alternateText = getPolicyChangeLogEmployeeLeftMessage(translate, lastAction, true);
+        } else if (isLeavePolicyAction(lastAction)) {
+            result.alternateText = getPolicyChangeLogEmployeeLeftMessage(translate, lastAction, getPersonalDetailsByID(lastAction.actorAccountID, personalDetails), true);
         } else if (isCardIssuedAction(lastAction)) {
             result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card, translate});
         } else if (lastAction && isOldDotReportAction(lastAction)) {

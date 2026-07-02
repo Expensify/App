@@ -1,4 +1,5 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
@@ -25,7 +26,15 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 type CurrentMoney = {amount: string; currency: string; paymentMethod?: PaymentMethodType};
 
+type MoneyRequestAmountFormHandle = {
+    /** Returns the currently typed (unsaved) amount, signed the same way the submit handler would send it */
+    getNumber: () => string;
+};
+
 type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldShowBigNumberPad' | 'onFormatAmount'> & {
+    /** Exposes the currently typed amount to the parent (e.g. for unsaved-changes detection) */
+    amountFormRef?: ForwardedRef<MoneyRequestAmountFormHandle>;
+
     /** Calculated tax amount based on selected tax rate */
     taxAmount?: number;
 
@@ -97,6 +106,7 @@ function MoneyRequestAmountForm({
     hideCurrencySymbol = false,
     allowFlippingAmount = false,
     isP2P = false,
+    amountFormRef,
     ref,
 }: MoneyRequestAmountFormProps) {
     const styles = useThemeStyles();
@@ -108,6 +118,13 @@ function MoneyRequestAmountForm({
     const moneyRequestAmountInputRef = useRef<NumberWithSymbolFormRef | null>(null);
 
     const [isNegative, setIsNegative] = useState(false);
+
+    useImperativeHandle(amountFormRef, () => ({
+        getNumber: () => {
+            const number = moneyRequestAmountInputRef.current?.getNumber() ?? '';
+            return number && isNegative ? `-${number}` : number;
+        },
+    }));
 
     const [formError, setFormError] = useState<string>('');
 
@@ -310,4 +327,4 @@ function MoneyRequestAmountForm({
 }
 
 export default MoneyRequestAmountForm;
-export type {CurrentMoney};
+export type {CurrentMoney, MoneyRequestAmountFormHandle};

@@ -89,6 +89,16 @@ const emojis: PickerEmojis = [
         hexcode: '1F642',
     },
     {
+        name: 'head_shaking_horizontally',
+        code: '🙂‍↔️',
+        hexcode: '1F642-200D-2194-FE0F',
+    },
+    {
+        name: 'head_shaking_vertically',
+        code: '🙂‍↕️',
+        hexcode: '1F642-200D-2195-FE0F',
+    },
+    {
         name: 'upside_down_face',
         code: '🙃',
         hexcode: '1F643',
@@ -324,6 +334,11 @@ const emojis: PickerEmojis = [
         hexcode: '1F634',
     },
     {
+        name: 'face_with_bags_under_eyes',
+        code: '🫩',
+        hexcode: '1FAE9',
+    },
+    {
         name: 'mask',
         code: '😷',
         hexcode: '1F637',
@@ -472,6 +487,11 @@ const emojis: PickerEmojis = [
         name: 'fearful',
         code: '😨',
         hexcode: '1F628',
+    },
+    {
+        name: 'distorted_face',
+        code: '🫪',
+        hexcode: '1FAEA',
     },
     {
         name: 'cold_sweat',
@@ -842,6 +862,11 @@ const emojis: PickerEmojis = [
         name: 'dash',
         code: '💨',
         hexcode: '1F4A8',
+    },
+    {
+        name: 'fight_cloud',
+        code: '🫯',
+        hexcode: '1FAEF',
     },
     {
         name: 'hole',
@@ -2235,6 +2260,11 @@ const emojis: PickerEmojis = [
         hexcode: '1F9CC',
     },
     {
+        name: 'hairy_creature',
+        code: '🫈',
+        hexcode: '1FAC8',
+    },
+    {
         name: 'genie',
         code: '🧞',
         hexcode: '1F9DE',
@@ -2319,6 +2349,24 @@ const emojis: PickerEmojis = [
         types: ['🚶🏿‍♀️', '🚶🏾‍♀️', '🚶🏽‍♀️', '🚶🏼‍♀️', '🚶🏻‍♀️'],
     },
     {
+        name: 'person_walking_facing_right',
+        code: '🚶‍➡️',
+        hexcode: '1F6B6-200D-27A1-FE0F',
+        types: ['🚶🏿‍➡️', '🚶🏾‍➡️', '🚶🏽‍➡️', '🚶🏼‍➡️', '🚶🏻‍➡️'],
+    },
+    {
+        name: 'woman_walking_facing_right',
+        code: '🚶‍♀️‍➡️',
+        hexcode: '1F6B6-200D-2640-FE0F-200D-27A1-FE0F',
+        types: ['🚶🏿‍♀️‍➡️', '🚶🏾‍♀️‍➡️', '🚶🏽‍♀️‍➡️', '🚶🏼‍♀️‍➡️', '🚶🏻‍♀️‍➡️'],
+    },
+    {
+        name: 'man_walking_facing_right',
+        code: '🚶‍♂️‍➡️',
+        hexcode: '1F6B6-200D-2642-FE0F-200D-27A1-FE0F',
+        types: ['🚶🏿‍♂️‍➡️', '🚶🏾‍♂️‍➡️', '🚶🏽‍♂️‍➡️', '🚶🏼‍♂️‍➡️', '🚶🏻‍♂️‍➡️'],
+    },
+    {
         name: 'standing_person',
         code: '🧍',
         hexcode: '1F9CD',
@@ -2355,6 +2403,24 @@ const emojis: PickerEmojis = [
         types: ['🧎🏿‍♀️', '🧎🏾‍♀️', '🧎🏽‍♀️', '🧎🏼‍♀️', '🧎🏻‍♀️'],
     },
     {
+        name: 'person_kneeling_facing_right',
+        code: '🧎‍➡️',
+        hexcode: '1F9CE-200D-27A1-FE0F',
+        types: ['🧎🏿‍➡️', '🧎🏾‍➡️', '🧎🏽‍➡️', '🧎🏼‍➡️', '🧎🏻‍➡️'],
+    },
+    {
+        name: 'woman_kneeling_facing_right',
+        code: '🧎‍♀️‍➡️',
+        hexcode: '1F9CE-200D-2640-FE0F-200D-27A1-FE0F',
+        types: ['🧎🏿‍♀️‍➡️', '🧎🏾‍♀️‍➡️', '🧎🏽‍♀️‍➡️', '🧎🏼‍♀️‍➡️', '🧎🏻‍♀️‍➡️'],
+    },
+    {
+        name: 'man_kneeling_facing_right',
+        code: '🧎‍♂️‍➡️',
+        hexcode: '1F9CE-200D-2642-FE0F-200D-27A1-FE0F',
+        types: ['🧎🏿‍♂️‍➡️', '🧎🏾‍♂️‍➡️', '🧎🏽‍♂️‍➡️', '🧎🏼‍♂️‍➡️', '🧎🏻‍♂️‍➡️'],
+    },
+    {
         name: 'person_with_probing_cane',
         code: '🧑‍🦯',
         hexcode: '1F9D1-200D-1F9AF',
@@ -2371,6 +2437,24 @@ const emojis: PickerEmojis = [
         code: '👩‍🦯',
         hexcode: '1F469-200D-1F9AF',
         types: ['👩🏿‍🦯', '👩🏾‍🦯', '👩🏽‍🦯', '👩🏼‍🦯', '👩🏻‍🦯'],
+    },
+    {
+        name: 'person_with_white_cane_facing_right',
+        code: '🧑‍🦯‍➡️',
+        hexcode: '1F9D1-200D-1F9AF-200D-27A1-FE0F',
+        types: ['🧑🏿‍🦯‍➡️', '🧑🏾‍🦯‍➡️', '🧑🏽‍🦯‍➡️', '🧑🏼‍🦯‍➡️', '🧑🏻‍🦯‍➡️'],
+    },
+    {
+        name: 'man_with_white_cane_facing_right',
+        code: '👨‍🦯‍➡️',
+        hexcode: '1F468-200D-1F9AF-200D-27A1-FE0F',
+        types: ['👨🏿‍🦯‍➡️', '👨🏾‍🦯‍➡️', '👨🏽‍🦯‍➡️', '👨🏼‍🦯‍➡️', '👨🏻‍🦯‍➡️'],
+    },
+    {
+        name: 'woman_with_white_cane_facing_right',
+        code: '👩‍🦯‍➡️',
+        hexcode: '1F469-200D-1F9AF-200D-27A1-FE0F',
+        types: ['👩🏿‍🦯‍➡️', '👩🏾‍🦯‍➡️', '👩🏽‍🦯‍➡️', '👩🏼‍🦯‍➡️', '👩🏻‍🦯‍➡️'],
     },
     {
         name: 'person_in_motorized_wheelchair',
@@ -2391,6 +2475,24 @@ const emojis: PickerEmojis = [
         types: ['👩🏿‍🦼', '👩🏾‍🦼', '👩🏽‍🦼', '👩🏼‍🦼', '👩🏻‍🦼'],
     },
     {
+        name: 'person_in_motorized_wheelchair_facing_right',
+        code: '🧑‍🦼‍➡️',
+        hexcode: '1F9D1-200D-1F9BC-200D-27A1-FE0F',
+        types: ['🧑🏿‍🦼‍➡️', '🧑🏾‍🦼‍➡️', '🧑🏽‍🦼‍➡️', '🧑🏼‍🦼‍➡️', '🧑🏻‍🦼‍➡️'],
+    },
+    {
+        name: 'man_in_motorized_wheelchair_facing_right',
+        code: '👨‍🦼‍➡️',
+        hexcode: '1F468-200D-1F9BC-200D-27A1-FE0F',
+        types: ['👨🏿‍🦼‍➡️', '👨🏾‍🦼‍➡️', '👨🏽‍🦼‍➡️', '👨🏼‍🦼‍➡️', '👨🏻‍🦼‍➡️'],
+    },
+    {
+        name: 'woman_in_motorized_wheelchair_facing_right',
+        code: '👩‍🦼‍➡️',
+        hexcode: '1F469-200D-1F9BC-200D-27A1-FE0F',
+        types: ['👩🏿‍🦼‍➡️', '👩🏾‍🦼‍➡️', '👩🏽‍🦼‍➡️', '👩🏼‍🦼‍➡️', '👩🏻‍🦼‍➡️'],
+    },
+    {
         name: 'person_in_manual_wheelchair',
         code: '🧑‍🦽',
         hexcode: '1F9D1-200D-1F9BD',
@@ -2407,6 +2509,24 @@ const emojis: PickerEmojis = [
         code: '👩‍🦽',
         hexcode: '1F469-200D-1F9BD',
         types: ['👩🏿‍🦽', '👩🏾‍🦽', '👩🏽‍🦽', '👩🏼‍🦽', '👩🏻‍🦽'],
+    },
+    {
+        name: 'person_in_manual_wheelchair_facing_right',
+        code: '🧑‍🦽‍➡️',
+        hexcode: '1F9D1-200D-1F9BD-200D-27A1-FE0F',
+        types: ['🧑🏿‍🦽‍➡️', '🧑🏾‍🦽‍➡️', '🧑🏽‍🦽‍➡️', '🧑🏼‍🦽‍➡️', '🧑🏻‍🦽‍➡️'],
+    },
+    {
+        name: 'man_in_manual_wheelchair_facing_right',
+        code: '👨‍🦽‍➡️',
+        hexcode: '1F468-200D-1F9BD-200D-27A1-FE0F',
+        types: ['👨🏿‍🦽‍➡️', '👨🏾‍🦽‍➡️', '👨🏽‍🦽‍➡️', '👨🏼‍🦽‍➡️', '👨🏻‍🦽‍➡️'],
+    },
+    {
+        name: 'woman_in_manual_wheelchair_facing_right',
+        code: '👩‍🦽‍➡️',
+        hexcode: '1F469-200D-1F9BD-200D-27A1-FE0F',
+        types: ['👩🏿‍🦽‍➡️', '👩🏾‍🦽‍➡️', '👩🏽‍🦽‍➡️', '👩🏼‍🦽‍➡️', '👩🏻‍🦽‍➡️'],
     },
     {
         name: 'runner',
@@ -2427,6 +2547,24 @@ const emojis: PickerEmojis = [
         types: ['🏃🏿‍♀️', '🏃🏾‍♀️', '🏃🏽‍♀️', '🏃🏼‍♀️', '🏃🏻‍♀️'],
     },
     {
+        name: 'person_running_facing_right',
+        code: '🏃‍➡️',
+        hexcode: '1F3C3-200D-27A1-FE0F',
+        types: ['🏃🏿‍➡️', '🏃🏾‍➡️', '🏃🏽‍➡️', '🏃🏼‍➡️', '🏃🏻‍➡️'],
+    },
+    {
+        name: 'woman_running_facing_right',
+        code: '🏃‍♀️‍➡️',
+        hexcode: '1F3C3-200D-2640-FE0F-200D-27A1-FE0F',
+        types: ['🏃🏿‍♀️‍➡️', '🏃🏾‍♀️‍➡️', '🏃🏽‍♀️‍➡️', '🏃🏼‍♀️‍➡️', '🏃🏻‍♀️‍➡️'],
+    },
+    {
+        name: 'man_running_facing_right',
+        code: '🏃‍♂️‍➡️',
+        hexcode: '1F3C3-200D-2642-FE0F-200D-27A1-FE0F',
+        types: ['🏃🏿‍♂️‍➡️', '🏃🏾‍♂️‍➡️', '🏃🏽‍♂️‍➡️', '🏃🏼‍♂️‍➡️', '🏃🏻‍♂️‍➡️'],
+    },
+    {
         name: 'woman_dancing',
         code: '💃',
         hexcode: '1F483',
@@ -2437,6 +2575,12 @@ const emojis: PickerEmojis = [
         code: '🕺',
         hexcode: '1F57A',
         types: ['🕺🏿', '🕺🏾', '🕺🏽', '🕺🏼', '🕺🏻'],
+    },
+    {
+        name: 'ballet_dancer',
+        code: '🧑‍🩰',
+        hexcode: '1F9D1-200D-1FA70',
+        types: ['🧑🏿‍🩰', '🧑🏾‍🩰', '🧑🏽‍🩰', '🧑🏼‍🩰', '🧑🏻‍🩰'],
     },
     {
         name: 'business_suit_levitating',
@@ -2981,6 +3125,26 @@ const emojis: PickerEmojis = [
         hexcode: '1F469-200D-1F467-200D-1F467',
     },
     {
+        name: 'family_adult_child',
+        code: '🧑‍🧒',
+        hexcode: '1F9D1-200D-1F9D2',
+    },
+    {
+        name: 'family_adult_child_child',
+        code: '🧑‍🧒‍🧒',
+        hexcode: '1F9D1-200D-1F9D2-200D-1F9D2',
+    },
+    {
+        name: 'family_adult_adult_child',
+        code: '🧑‍🧑‍🧒',
+        hexcode: '1F9D1-200D-1F9D1-200D-1F9D2',
+    },
+    {
+        name: 'family_adult_adult_child_child',
+        code: '🧑‍🧑‍🧒‍🧒',
+        hexcode: '1F9D1-200D-1F9D1-200D-1F9D2-200D-1F9D2',
+    },
+    {
         name: 'speaking_head',
         code: '🗣️',
         hexcode: '1F5E3',
@@ -3004,6 +3168,11 @@ const emojis: PickerEmojis = [
         name: 'footprints',
         code: '👣',
         hexcode: '1F463',
+    },
+    {
+        name: 'fingerprint',
+        code: '🫆',
+        hexcode: '1FAC6',
     },
     {
         header: true,
@@ -3396,6 +3565,11 @@ const emojis: PickerEmojis = [
         hexcode: '1F426',
     },
     {
+        name: 'phoenix',
+        code: '🐦‍🔥',
+        hexcode: '1F426-200D-1F525',
+    },
+    {
         name: 'penguin',
         code: '🐧',
         hexcode: '1F427',
@@ -3504,6 +3678,11 @@ const emojis: PickerEmojis = [
         name: 'whale2',
         code: '🐋',
         hexcode: '1F40B',
+    },
+    {
+        name: 'orca',
+        code: '🫍',
+        hexcode: '1FACD',
     },
     {
         name: 'dolphin',
@@ -3711,6 +3890,11 @@ const emojis: PickerEmojis = [
         hexcode: '1F333',
     },
     {
+        name: 'leafless_tree',
+        code: '🪾',
+        hexcode: '1FABE',
+    },
+    {
         name: 'palm_tree',
         code: '🌴',
         hexcode: '1F334',
@@ -3794,6 +3978,11 @@ const emojis: PickerEmojis = [
         name: 'lemon',
         code: '🍋',
         hexcode: '1F34B',
+    },
+    {
+        name: 'lime',
+        code: '🍋‍🟩',
+        hexcode: '1F34B-200D-1F7E9',
     },
     {
         name: 'banana',
@@ -3929,6 +4118,16 @@ const emojis: PickerEmojis = [
         name: 'mushroom',
         code: '🍄',
         hexcode: '1F344',
+    },
+    {
+        name: 'brown_mushroom',
+        code: '🍄‍🟫',
+        hexcode: '1F344-200D-1F7EB',
+    },
+    {
+        name: 'root_vegetable',
+        code: '🫜',
+        hexcode: '1FADC',
     },
     {
         name: 'peanuts',
@@ -4494,6 +4693,11 @@ const emojis: PickerEmojis = [
         name: 'volcano',
         code: '🌋',
         hexcode: '1F30B',
+    },
+    {
+        name: 'landslide',
+        code: '🛘',
+        hexcode: '1F6D8',
     },
     {
         name: 'mount_fuji',
@@ -6336,6 +6540,16 @@ const emojis: PickerEmojis = [
         hexcode: '1F3BB',
     },
     {
+        name: 'trombone',
+        code: '🪊',
+        hexcode: '1FA8A',
+    },
+    {
+        name: 'harp',
+        code: '🪉',
+        hexcode: '1FA89',
+    },
+    {
         name: 'flute',
         code: '🪈',
         hexcode: '1FA88',
@@ -6624,6 +6838,11 @@ const emojis: PickerEmojis = [
         name: 'moneybag',
         code: '💰',
         hexcode: '1F4B0',
+    },
+    {
+        name: 'treasure_chest',
+        code: '🪎',
+        hexcode: '1FA8E',
     },
     {
         name: 'coin',
@@ -7024,6 +7243,16 @@ const emojis: PickerEmojis = [
         name: 'chains',
         code: '⛓️',
         hexcode: '26D3',
+    },
+    {
+        name: 'broken_chain',
+        code: '⛓️‍💥',
+        hexcode: '26D3-FE0F-200D-1F4A5',
+    },
+    {
+        name: 'shovel',
+        code: '🪏',
+        hexcode: '1FA8F',
     },
     {
         name: 'hook',
@@ -7871,6 +8100,11 @@ const emojis: PickerEmojis = [
         hexcode: '1F531',
     },
     {
+        name: 'splatter',
+        code: '🫟',
+        hexcode: '1FADF',
+    },
+    {
         name: 'name_badge',
         code: '📛',
         hexcode: '1F4DB',
@@ -8684,6 +8918,11 @@ const emojis: PickerEmojis = [
         name: 'clipperton_island',
         code: '🇨🇵',
         hexcode: '1F1E8-1F1F5',
+    },
+    {
+        name: 'sark',
+        code: '🇨🇶',
+        hexcode: '1F1E8-1F1F6',
     },
     {
         name: 'costa_rica',

@@ -18,7 +18,7 @@ import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import addTrailingForwardSlash from '@libs/UrlUtils';
+import addTrailingForwardSlash, {buildSecureDownloadURL} from '@libs/UrlUtils';
 import type {WalletStatementNavigatorParamList} from '@navigation/types';
 import {getBaseTheme} from '@styles/theme/utils';
 import {generateStatementPDF} from '@userActions/User';
@@ -76,9 +76,7 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
                     return undefined;
                 }
                 const downloadFileName = `Expensify_Statement_${yearMonth}.pdf`;
-                const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(downloadFileName)}&email=${encodeURIComponent(
-                    currentUserLogin,
-                )}`;
+                const pdfURL = buildSecureDownloadURL({baseURL, secureType: CONST.SECURE_DOWNLOAD_TYPE.PDF_REPORT, fileName, downloadName: downloadFileName, email: currentUserLogin});
                 return fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, encryptedAuthToken, true), downloadFileName, '', isMobileSafari());
             })
             .finally(() => {

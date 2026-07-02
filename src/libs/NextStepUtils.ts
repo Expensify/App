@@ -384,6 +384,7 @@ function getReportNextStep(
     transactionViolations: OnyxCollection<TransactionViolations>,
     currentUserEmail: string,
     currentUserAccountID: number,
+    reportNextStep?: ReportNextStep,
 ) {
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
     const shouldShowNoFurtherAction =
@@ -419,6 +420,12 @@ function getReportNextStep(
             isASAPSubmitBetaEnabled: false,
             predictedNextStatus: moneyRequestReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
         });
+    }
+
+    // Prefer the new translatable next step for the empty-report case so the "Waiting for you to add expenses" message
+    // respects the user's locale. The deprecated format is kept as the fallback for every other case.
+    if (reportNextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS) {
+        return reportNextStep;
     }
 
     return currentNextStep;

@@ -9,10 +9,11 @@ const wrapperStyle: React.CSSProperties = {position: 'relative', overflow: 'hidd
 const innerStyle: React.CSSProperties = {width: '100%', height: '100%', transition: 'transform 80ms ease-out', willChange: 'transform'};
 
 function ReceiptHoverZoom({children, isEnabled = true, scale = DEFAULT_SCALE, hoverContainerRef}: ReceiptHoverZoomProps) {
-    const {wrapperRef, innerRef, isActive} = useReceiptHoverZoom({isEnabled, scale, hoverContainerRef});
+    const {wrapperRef, innerRef, isActive, isHovering} = useReceiptHoverZoom({isEnabled, scale, hoverContainerRef});
+    const content = typeof children === 'function' ? children({isHovering}) : children;
 
     if (!isActive) {
-        return children;
+        return content;
     }
 
     return (
@@ -24,7 +25,7 @@ function ReceiptHoverZoom({children, isEnabled = true, scale = DEFAULT_SCALE, ho
                 ref={innerRef}
                 style={innerStyle}
             >
-                {children}
+                {content}
             </div>
         </div>
     );

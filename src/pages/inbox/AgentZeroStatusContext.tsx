@@ -74,6 +74,23 @@ function AgentZeroStatusGate({reportID, includeConcierge, children}: React.Props
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [serverAgentIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: agentZeroProcessingAgentIDsSelector});
 
+    // When the agent's reply (ADDCOMMENT) lands before the server's indicator-clear NVP update,
+    // the thinking bubble would remain visible briefly. Suppress any agent whose reply is already
+    // the newest action in the report so the bubble hides as soon as the reply renders.
+    const [latestReplyActorID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        selector: (actions) => {
+            const list = Object.values(actions ?? {}).filter(Boolean);
+            if (list.length === 0) {
+                return undefined;
+            }
+            const newest = list.reduce((a, b) => ((a.created ?? '') >= (b.created ?? '') ? a : b));
+            if (newest.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) {
+                return undefined;
+            }
+            return newest.actorAccountID;
+        },
+    });
+
     // One reasoning Pusher subscription per report (not per agent). The handler in Report
     // actions routes each event to the right agent's reasoning history by its actorAccountID.
     // Cleanup clears the report's reasoning history and the Pusher subscription.
@@ -108,6 +125,13 @@ function AgentZeroStatusGate({reportID, includeConcierge, children}: React.Props
     }
     if (currentUserAccountID !== undefined) {
         candidateIDs.delete(currentUserAccountID);
+    }
+    // Suppress an agent whose reply is already the newest action. The server's indicator-clear NVP
+    // can arrive up to ~250ms after the reply Pusher event, leaving the bubble visible on top of
+    // the completed response. Dropping the agent here as soon as their ADDCOMMENT lands prevents
+    // that flash without waiting for the NVP clear.
+    if (latestReplyActorID !== undefined) {
+        candidateIDs.delete(latestReplyActorID);
     }
     // Render Concierge's bubble first, then any custom agents ascending by accountID — a stable,
     // intentional order instead of relying on Set insertion order.

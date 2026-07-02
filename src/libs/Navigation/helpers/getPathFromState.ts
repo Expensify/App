@@ -1,12 +1,15 @@
-import {findFocusedRoute, getPathFromState as RNGetPathFromState} from '@react-navigation/native';
-import type {NavigationState, PartialState} from '@react-navigation/routers';
-import {config, normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
+import {getPathFromState as RNGetPathFromState} from '@react-navigation/native';
+import {config, normalizedConfigs, screensWithOnyxTabNavigator} from '@libs/Navigation/linkingConfig/config';
+import type {State} from '@libs/Navigation/types';
 import type {Screen} from '@src/SCREENS';
 import getDynamicRouteQueryParams from './dynamicRoutesUtils/getDynamicRouteQueryParams';
 import isDynamicRouteScreen from './dynamicRoutesUtils/isDynamicRouteScreen';
 import splitPathAndQuery from './dynamicRoutesUtils/splitPathAndQuery';
+import findFocusedRouteWithOnyxTabGuard from './findFocusedRouteWithOnyxTabGuard';
 
-type State = NavigationState | Omit<PartialState<NavigationState>, 'stale'>;
+function isScreen(name: string): name is Screen {
+    return name in normalizedConfigs;
+}
 
 /**
  * Resolves a single path segment: if it's a `:param` placeholder, replaces it
@@ -82,8 +85,9 @@ function popFocusedRoute(state: State): State | undefined {
         return undefined;
     }
 
-    // the focused route has nested state — try to pop from deeper levels first.
-    if (focusedRoute.state) {
+    // the focused route has nested state - try to pop from deeper levels first,
+    // unless it hosts an OnyxTabNavigator (treat it as a leaf).
+    if (focusedRoute.state && focusedRoute.name && !screensWithOnyxTabNavigator.has(focusedRoute.name)) {
         const nestedResult = popFocusedRoute(focusedRoute.state as State);
 
         // A deeper route was successfully popped - rebuild the current level with the updated nested state.
@@ -106,7 +110,7 @@ function popFocusedRoute(state: State): State | undefined {
 }
 
 /**
- * Builds a URL path for a dynamic route screen that has no `path` in state.
+ * Builds a URL path for a dynamic route screen.
  * Recursively peels off dynamic suffixes and resolves the base path underneath.
  *
  * @param state - The navigation state tree to build the path from
@@ -115,7 +119,7 @@ function popFocusedRoute(state: State): State | undefined {
  * @private - Internal helper. Do not export or use outside this file.
  */
 function getPathFromStateWithDynamicRoute(state: State): string {
-    const focusedRoute = findFocusedRoute(state);
+    const focusedRoute = findFocusedRouteWithOnyxTabGuard(state);
     const screenName = focusedRoute?.name ?? '';
     const suffixPattern = normalizedConfigs[screenName as Screen]?.path;
 
@@ -123,7 +127,22 @@ function getPathFromStateWithDynamicRoute(state: State): string {
         return RNGetPathFromState(state, config);
     }
 
-    const actualSuffix = buildSuffixFromPattern(suffixPattern, focusedRoute?.params as Record<string, unknown> | undefined);
+    let actualSuffix = buildSuffixFromPattern(suffixPattern, focusedRoute?.params as Record<string, unknown> | undefined);
+
+    // If this dynamic screen hosts a tab navigator, append the focused tab's path segment.
+    if (screensWithOnyxTabNavigator.has(screenName)) {
+        const tabState = focusedRoute?.state;
+        if (tabState) {
+            const tabIndex = tabState.index ?? tabState.routes.length - 1;
+            const focusedTab = tabState.routes[tabIndex];
+            const tabPath = focusedTab && isScreen(focusedTab.name) ? normalizedConfigs[focusedTab.name]?.path : undefined;
+            if (tabPath) {
+                const [suffixPathOnly, suffixQueryOnly] = splitPathAndQuery(actualSuffix);
+                actualSuffix = `${suffixPathOnly}/${tabPath}${suffixQueryOnly ? `?${suffixQueryOnly}` : ''}`;
+            }
+        }
+    }
+
     const reducedState = popFocusedRoute(state);
 
     if (!reducedState) {
@@ -145,7 +164,7 @@ function getPathFromStateWithDynamicRoute(state: State): string {
 }
 
 function getPathFromState(state: State): string {
-    const focusedRoute = findFocusedRoute(state);
+    const focusedRoute = findFocusedRouteWithOnyxTabGuard(state);
     const screenName = focusedRoute?.name ?? '';
 
     if (isDynamicRouteScreen(screenName as Screen)) {

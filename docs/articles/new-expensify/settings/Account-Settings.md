@@ -93,7 +93,9 @@ To set a status message:
 
 To update your pronouns:
 1. Go to **Account > Profile**.
-2. Click **Pronouns** and choose from the list of options.
+2. Click **Pronouns**.
+3. Choose your pronouns from the list of options.
+4. Click **Save**.
 
 ## How to change your theme
 
