@@ -453,7 +453,7 @@ function buildOptimisticNextStepForDynamicExternalWorkflowApproveError(iconFill?
         iconFill,
         message: [
             {
-                text: "This report can't be approved. Please review the comments to resolve.",
+                text: "This report requires manual approval. Please review the comments for more details.",
                 type: 'alert-text',
             },
         ],
