@@ -655,3 +655,4 @@ function SearchList({
 }
 
 export default SearchList;
+export {isTransactionMatchWithGroupItem};

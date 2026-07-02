@@ -454,4 +454,27 @@ describe('WorkspaceMembers', () => {
             unmount();
         });
     });
+
+    describe('Role display on Submit workspaces', () => {
+        it('should show the workspace owner as Editor instead of Owner', async () => {
+            // Given a Submit workspace, where every member (including the owner) uses the flat Editor role
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {type: CONST.POLICY.TYPE.SUBMIT});
+            });
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            // When the members list renders the owner row
+            const ownerRow = await screen.findByLabelText(new RegExp(`^Owner User, ${ownerEmail}`));
+
+            // Then the owner's role is displayed as Editor, not Owner
+            const editorLabel = TestHelper.translateLocal('workspace.common.roleName', CONST.POLICY.ROLE.EDITOR);
+            const ownerLabel = TestHelper.translateLocal('workspace.common.roleName', CONST.POLICY.ROLE.OWNER);
+            expect(within(ownerRow).getByText(editorLabel)).toBeOnTheScreen();
+            expect(within(ownerRow).queryByText(ownerLabel)).not.toBeOnTheScreen();
+
+            unmount();
+        });
+    });
 });
