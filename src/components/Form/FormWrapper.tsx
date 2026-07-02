@@ -71,6 +71,9 @@ type FormWrapperProps = ChildrenProps &
         shouldPreventDefaultFocusOnPressSubmit?: boolean;
 
         ref?: ForwardedRef<FormWrapperRef>;
+
+        /** Whether to display the submit button and footer in one row in landscape mode */
+        shouldDisplaySubmitButtonAndFooterInOneRowInLandscapeMode?: boolean;
     };
 
 function FormWrapper({
@@ -105,6 +108,7 @@ function FormWrapper({
     forwardedFSClass,
     sentryLabel = CONST.SENTRY_LABEL.FORM.SUBMIT_BUTTON,
     ref,
+    shouldDisplaySubmitButtonAndFooterInOneRowInLandscapeMode = false,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const formRef = useRef<RNScrollView>(null);
@@ -210,6 +214,7 @@ function FormWrapper({
             shouldBlendOpacity={shouldSubmitButtonBlendOpacity}
             shouldPreventDefaultFocusOnPress={shouldPreventDefaultFocusOnPressSubmit}
             sentryLabel={sentryLabel}
+            shouldDisplaySubmitButtonAndFooterInOneRowInLandscapeMode={shouldDisplaySubmitButtonAndFooterInOneRowInLandscapeMode}
         />
     );
 

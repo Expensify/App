@@ -2,6 +2,7 @@ import type {Ref} from 'react';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
@@ -78,6 +79,9 @@ type FormAlertWithSubmitButtonProps = WithSentryLabel & {
 
     /** Prevents the button from triggering blur on mouse down. */
     shouldPreventDefaultFocusOnPress?: boolean;
+
+    /** Whether to display the submit button and footer in one row in landscape mode */
+    shouldDisplaySubmitButtonAndFooterInOneRowInLandscapeMode?: boolean;
 };
 
 function FormAlertWithSubmitButton({
@@ -103,10 +107,17 @@ function FormAlertWithSubmitButton({
     shouldBlendOpacity = false,
     addButtonBottomPadding = true,
     shouldPreventDefaultFocusOnPress = false,
+    shouldDisplaySubmitButtonAndFooterInOneRowInLandscapeMode = false,
     sentryLabel,
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
-    const style = [!shouldRenderFooterAboveSubmit && footerContent && addButtonBottomPadding ? styles.mb3 : {}, buttonStyles];
+    const isInLandscapeMode = useIsInLandscapeMode();
+    const shouldDisplaySubmitButtonAndFooterInOneRow = isInLandscapeMode && shouldDisplaySubmitButtonAndFooterInOneRowInLandscapeMode;
+    const style = [
+        !shouldRenderFooterAboveSubmit && footerContent && addButtonBottomPadding && !shouldDisplaySubmitButtonAndFooterInOneRow ? styles.mb3 : {},
+        shouldDisplaySubmitButtonAndFooterInOneRow ? [styles.flex1] : undefined,
+        buttonStyles,
+    ];
 
     // Disable pressOnEnter for Android Native to avoid issues with the Samsung keyboard,
     // where pressing Enter saves the form instead of adding a new line in multiline input.
@@ -124,7 +135,7 @@ function FormAlertWithSubmitButton({
             errorMessageStyle={errorMessageStyle}
         >
             {(isOffline: boolean | undefined) => (
-                <View>
+                <View style={shouldDisplaySubmitButtonAndFooterInOneRow ? [styles.flexRow, styles.gap3] : undefined}>
                     {shouldRenderFooterAboveSubmit && footerContent}
                     {isOffline && !enabledWhenOffline ? (
                         <Button

@@ -21,7 +21,7 @@ import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE, SUBMIT_BUTTON_HEIGHT} from '@pages/settings/Agents/const';
+import {PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} from '@pages/settings/Agents/const';
 import scrollToMultilineInput from '@pages/settings/Agents/scrollToMultilineInput';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -82,7 +82,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
             includeSafeAreaPaddingBottom
             offlineIndicatorStyle={styles.mtAuto}
         >
-            <CollapsibleHeaderOnKeyboard collapsibleHeaderOffset={SUBMIT_BUTTON_HEIGHT}>
+            <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
                 <HeaderWithBackButton
                     title={translate('editAgentPromptPage.title')}
                     onBackButtonPress={() => Navigation.goBack()}
