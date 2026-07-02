@@ -60,7 +60,7 @@ When acting as a Copilot:
  - You'll see the expenses, reports, and settings that belong to the account you're supporting, based on the permissions you've been granted.
  - Actions you perform are labeled as being completed on behalf of the account owner.
  - Some actions may be unavailable if you've been granted Limited Access.
- - You can return to your own account at any time by switching accounts again.
+ - You can return to your own account at any time by selecting **Return to your account** from the account switcher.
 
 **Note:** If a Copilot performs billable activity in your account, both the Copilot and the account owner count as active members.
 
@@ -70,7 +70,9 @@ When acting as a Copilot:
 
 ## Can I access multiple accounts as a Copilot?
 
-Yes. If multiple members grant you Copilot access, you can switch between those accounts. 
+Yes. If multiple members grant you Copilot access, you can switch between those accounts.
+
+To switch between Copilot accounts, first return to your own account, then select the other member's account.
 
 ## How do I know I'm acting as a Copilot?
 
