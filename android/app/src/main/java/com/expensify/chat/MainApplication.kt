@@ -74,6 +74,12 @@ class MainApplication : MultiDexApplication(), ReactApplication {
             return
         }
 
+        // Initialize Sentry before any native telemetry (e.g. certificate pinning monitor reports).
+        SentryNativeSDKManager.initialize(this)
+
+        // Install certificate pinning for React Native's shared OkHttp client (covers fetch(),
+        // react-native-blob-util, etc.). Must run before any networking starts.
+        CertificatePinning.install()
         // This is the entrypoint for prefetching with `react-native-nitro-fetch`.
         try {
             AutoPrefetcher.prefetchOnStart(this)
