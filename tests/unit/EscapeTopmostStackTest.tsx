@@ -218,14 +218,14 @@ describe('Escape topmost-stack gating', () => {
 });
 
 describe('LayerHost wrapper — outside-click invariant', () => {
-    it('renders the containerRef wrapper with pointerEvents="none" so it does not unconditionally satisfy the contain-predicate', () => {
+    it('renders the containerRef wrapper with pointerEvents="box-none" (host transparent, children interactive) so it does not unconditionally satisfy the contain-predicate', () => {
         const {root} = render(
             <DismissableLayer onDismiss={jest.fn()}>
                 <ModalContent>Inner</ModalContent>
             </DismissableLayer>,
         );
 
-        const matches = root.findAll((node) => Reflect.get(node.props as Record<string, unknown>, 'pointerEvents') === 'none');
+        const matches = root.findAll((node) => Reflect.get(node.props as Record<string, unknown>, 'pointerEvents') === 'box-none');
         expect(matches.length).toBeGreaterThan(0);
     });
 });

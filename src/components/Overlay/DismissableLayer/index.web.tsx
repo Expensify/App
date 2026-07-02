@@ -123,7 +123,7 @@ function LayerHost({containerRef, portalContextValue, children}: {containerRef: 
             <View
                 ref={containerRef}
                 style={styles.flex1}
-                pointerEvents="none"
+                pointerEvents="box-none"
             >
                 {children}
             </View>

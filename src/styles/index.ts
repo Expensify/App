@@ -2820,7 +2820,7 @@ const staticStyles = (theme: ThemeColors) =>
             left: 0,
             display: 'flex',
             flexDirection: 'column',
-            pointerEvents: 'none',
+            pointerEvents: 'box-none',
         },
 
         overlayCenteringTransform: {
