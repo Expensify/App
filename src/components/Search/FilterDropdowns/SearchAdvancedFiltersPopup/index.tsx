@@ -11,7 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {saveSavedViewEdits} from '@libs/actions/Search';
+import {clearSavedViewEditMode, saveSavedViewEdits} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {canSaveEditedView} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
@@ -63,6 +63,7 @@ function SearchAdvancedFiltersPopup({queryJSON, editingSavedView, closeOverlay, 
 
     const onSaveAsNewView = () => {
         preventRevertOnClose?.();
+        clearSavedViewEditMode();
         closeOverlay?.();
         Navigation.navigate(ROUTES.SEARCH_SAVE);
     };
