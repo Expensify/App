@@ -85,7 +85,12 @@ function HelpPage() {
               onPress: () => navigateToAndOpenReportWithAccountIDs([accountManagerDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas, personalDetails),
               shouldShowRightIcon: !accountManagerCalendarLink,
               shouldShowRightComponent: !!accountManagerCalendarLink,
-              rightComponent: accountManagerCalendarLink ? <AccountManagerBookCallButton calendarLink={accountManagerCalendarLink} /> : undefined,
+              rightComponent: accountManagerCalendarLink ? (
+                  <AccountManagerBookCallButton
+                      calendarLink={accountManagerCalendarLink}
+                      isNested
+                  />
+              ) : undefined,
               wrapperStyle: [styles.sectionMenuItemTopDescription],
               sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.ACCOUNT_MANAGER,
           }

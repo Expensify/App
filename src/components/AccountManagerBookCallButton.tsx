@@ -1,9 +1,9 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
@@ -11,8 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import Avatar from './Avatar';
-import Icon from './Icon';
-import {PressableWithFeedback} from './Pressable';
+import Button from './Button';
 import Text from './Text';
 
 type AccountManagerBookCallButtonProps = {
@@ -22,17 +21,22 @@ type AccountManagerBookCallButtonProps = {
     /** When provided, the account manager's avatar is displayed instead of a phone icon */
     accountManagerAccountID?: string;
 
+    /** Whether to show the account manager's avatar instead of the phone icon */
+    shouldShowAvatar?: boolean;
+
+    /** Whether this button is nested inside another pressable element */
+    isNested?: boolean;
+
     /** Additional styles to apply to the button */
     style?: StyleProp<ViewStyle>;
 };
 
-function AccountManagerBookCallButton({calendarLink, accountManagerAccountID, style}: AccountManagerBookCallButtonProps) {
+function AccountManagerBookCallButton({calendarLink, accountManagerAccountID, shouldShowAvatar = false, isNested = false, style}: AccountManagerBookCallButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['Phone']);
     const [accountManagerDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: (personalDetails: PersonalDetailsList | undefined) => (accountManagerAccountID ? personalDetails?.[accountManagerAccountID] : undefined),
+        selector: (personalDetails: PersonalDetailsList | undefined) => (shouldShowAvatar && accountManagerAccountID ? personalDetails?.[accountManagerAccountID] : undefined),
     });
 
     if (!calendarLink) {
@@ -41,15 +45,31 @@ function AccountManagerBookCallButton({calendarLink, accountManagerAccountID, st
 
     const label = translate('videoChatButtonAndMenu.tooltip');
 
+    if (!shouldShowAvatar) {
+        return (
+            <Button
+                text={label}
+                icon={icons.Phone}
+                onPress={callFunctionIfActionIsAllowed(() => openExternalLink(calendarLink))}
+                sentryLabel={CONST.SENTRY_LABEL.ACCOUNT_MANAGER_BOOK_CALL.BUTTON}
+                accessibilityLabel={label}
+                isNested={isNested}
+                medium
+                style={style}
+            />
+        );
+    }
+
     return (
-        <PressableWithFeedback
+        <Button
             accessibilityLabel={label}
-            role={CONST.ROLE.BUTTON}
             onPress={callFunctionIfActionIsAllowed(() => openExternalLink(calendarLink))}
             sentryLabel={CONST.SENTRY_LABEL.ACCOUNT_MANAGER_BOOK_CALL.BUTTON}
-            style={[styles.buttonMedium, styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap2, style]}
+            isNested={isNested}
+            medium
+            style={style}
         >
-            {accountManagerAccountID ? (
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap2]}>
                 <Avatar
                     source={accountManagerDetails?.avatar}
                     avatarID={accountManagerAccountID}
@@ -57,15 +77,9 @@ function AccountManagerBookCallButton({calendarLink, accountManagerAccountID, st
                     type={CONST.ICON_TYPE_AVATAR}
                     size={CONST.AVATAR_SIZE.SMALL}
                 />
-            ) : (
-                <Icon
-                    src={icons.Phone}
-                    small
-                    fill={theme.icon}
-                />
-            )}
-            <Text style={styles.buttonMediumText}>{label}</Text>
-        </PressableWithFeedback>
+                <Text style={[styles.buttonText, styles.buttonMediumText]}>{label}</Text>
+            </View>
+        </Button>
     );
 }
 
