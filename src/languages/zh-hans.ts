@@ -8143,6 +8143,46 @@ ${reportName}`,
         customUnitRateDateRangeFrom: (date: string) => `自 ${date} 起`,
         customUnitRateDateRangeUntilEnd: (date: string) => `直到 ${date}`,
         customUnitRateDateRangeAllDates: () => `适用于所有日期`,
+        policyCopy: {
+            overview: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制概览`,
+            employees: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制成员`,
+            reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制 1 个报表字段`,
+                other: (count: number) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制了 ${count} 个报表字段`,
+            }),
+            accounting: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制会计设置`,
+            receiptPartners: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制收据合作方设置`,
+            hr: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制人力资源设置`,
+            categories: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制 1 个类别`,
+                other: (count: number) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制了 ${count} 个类别`,
+            }),
+            tags: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制 1 个标签`,
+                other: (count: number) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制了 ${count} 个标签`,
+            }),
+            taxes: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制 1 个税率`,
+                other: (count: number) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制了 ${count} 个税率`,
+            }),
+            timeTracking: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制时间跟踪设置`,
+            workflows: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制工作流`,
+            rules: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制规则`,
+            codingRules: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制 1 条商家规则`,
+                other: (count: number) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制 ${count} 条商户规则`,
+            }),
+            distanceRates: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制 1 个里程费率`,
+                other: (count: number) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制了 ${count} 个里程费率`,
+            }),
+            perDiem: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制了 1 个每日补贴标准`,
+                other: (count: number) => `已从<a href="${sourcePolicyURL}">${sourcePolicyName}</a>复制了${count}个每日津贴标准`,
+            }),
+            invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制发票设置`,
+            travel: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制出差设置`,
+        },
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
