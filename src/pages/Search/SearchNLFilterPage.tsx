@@ -6,7 +6,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,7 +18,6 @@ import ROUTES from '@src/ROUTES';
 function SearchNLFilterPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {inputCallbackRef} = useAutoFocusInput();
     const [nlQuery, setNlQuery] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
@@ -70,7 +68,7 @@ function SearchNLFilterPage() {
                     role={CONST.ROLE.PRESENTATION}
                     value={nlQuery}
                     onChangeText={setNlQuery}
-                    ref={inputCallbackRef}
+                    autoFocus
                 />
             </View>
             <FormAlertWithSubmitButton

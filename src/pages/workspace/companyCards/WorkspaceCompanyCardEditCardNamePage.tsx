@@ -51,11 +51,6 @@ function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditC
     });
     const defaultValue = getCompanyCardCustomName(cardID, sharedCardCustomNames, customCardNames);
 
-    const [sharedCardCustomNames, sharedCardCustomNamesMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`, {
-        selector: companyCardCustomNamesSelector,
-    });
-    const defaultValue = getCompanyCardCustomName(cardID, sharedCardCustomNames, customCardNames);
-
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>) => {
         updateCompanyCardName(domainOrWorkspaceAccountID, cardID, values[INPUT_IDS.NAME], getCompanyCardFeed(feed), defaultValue);
         goBackToCardDetails();
