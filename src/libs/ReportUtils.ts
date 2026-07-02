@@ -6054,7 +6054,7 @@ function getParentNavigationSubtitle(
     }
 
     return {
-        reportName: parentReportName,
+        reportName: parentReportName ?? parentReport.reportName ?? '',
         workspaceName: getPolicyName({report: parentReport, policy, returnEmptyIfNotFound: true}),
     };
 }
