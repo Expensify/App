@@ -696,7 +696,7 @@
 "../../src/libs/OptionsListUtils/index.ts"	"@typescript-eslint/no-deprecated/deprecatedCachedOneTransactionThreadReportIDs[reportID]"	2
 "../../src/libs/OptionsListUtils/index.ts"	"@typescript-eslint/no-deprecated/deprecatedLastReportActions[reportID]"	3
 "../../src/libs/OptionsListUtils/index.ts"	"@typescript-eslint/no-deprecated/translateLocal"	18
-"../../src/libs/OptionsListUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
+"../../src/libs/OptionsListUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../src/libs/OptionsListUtils/index.ts"	"rulesdir/no-onyx-connect"	3
 "../../src/libs/OptionsListUtils/searchMatchUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	2
 "../../src/libs/PageHTMLCapture/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
