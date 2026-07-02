@@ -61,12 +61,22 @@ function useAvatarCrop({maskType, buttonLabelKey, onCropped}: UseAvatarCropParam
         if (tokenRef.current || !draft?.token || !draft.openerKey) {
             return;
         }
-        const focusedPath = splitPathAndQuery(Navigation.getActiveRoute()).at(0) ?? '';
-        const openerPath = focusedPath.endsWith(CROP_SUFFIX) ? focusedPath.slice(0, -CROP_SUFFIX.length) : focusedPath;
-        if (openerPath !== draft.openerKey) {
-            return;
-        }
-        tokenRef.current = draft.token;
+        const draftToken = draft.token;
+        const draftOpenerKey = draft.openerKey;
+        // On a cold web refresh this effect can fire before the navigation container is initialized,
+        // when getActiveRoute() still returns ''. Wait for nav to be ready so the opener-route
+        // comparison uses the real focused path; otherwise adoption would silently never happen.
+        Navigation.isNavigationReady().then(() => {
+            if (tokenRef.current) {
+                return;
+            }
+            const focusedPath = splitPathAndQuery(Navigation.getActiveRoute()).at(0) ?? '';
+            const openerPath = focusedPath.endsWith(CROP_SUFFIX) ? focusedPath.slice(0, -CROP_SUFFIX.length) : focusedPath;
+            if (openerPath !== draftOpenerKey) {
+                return;
+            }
+            tokenRef.current = draftToken;
+        });
     }, [draft?.token, draft?.openerKey]);
 
     useEffect(() => {
