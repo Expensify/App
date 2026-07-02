@@ -6,7 +6,6 @@ import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {SWITCH_LOCK_ICON_TEST_ID} from '@components/Switch';
 import {payTravelInvoicingSpend} from '@libs/actions/TravelInvoicing';
 import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import WorkspaceTravelInvoicingSection from '@pages/workspace/travel/WorkspaceTravelInvoicingSection';
@@ -527,7 +526,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
             await waitForBatchedUpdatesWithAct();
 
             // The lock stays on the toggle since the feature can't be turned off until the balance is paid
-            expect(screen.getByTestId(SWITCH_LOCK_ICON_TEST_ID, {includeHiddenElements: true})).toBeTruthy();
+            expect(screen.getByTestId(CONST.SWITCH_LOCK_ICON_TEST_ID, {includeHiddenElements: true})).toBeTruthy();
         });
 
         it('does not show the toggle lock icon when the balance is paid', async () => {
@@ -548,7 +547,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
             renderWorkspaceTravelInvoicingSection();
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.queryByTestId(SWITCH_LOCK_ICON_TEST_ID, {includeHiddenElements: true})).toBeNull();
+            expect(screen.queryByTestId(CONST.SWITCH_LOCK_ICON_TEST_ID, {includeHiddenElements: true})).toBeNull();
         });
     });
 
