@@ -29,12 +29,19 @@ function RilletCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.getRoute(policyID) : undefined;
 
     const data: AccountListItem[] =
-        rilletData?.accounts?.map((accountItem) => ({
-            value: accountItem.code,
-            text: accountItem.name,
-            keyForList: accountItem.code,
-            isSelected: creditCardAccountCode === accountItem.code,
-        })) ?? [];
+        rilletData?.accounts
+            ?.filter(
+                (accountItem) =>
+                    accountItem.type === CONST.RILLET_ACCOUNT_TYPE.LIABILITY &&
+                    accountItem.subtype === CONST.RILLET_ACCOUNT_SUBTYPE.CREDIT_CARD &&
+                    accountItem.status === CONST.RILLET_ACCOUNT_STATUS.ACTIVE,
+            )
+            .map((accountItem) => ({
+                value: accountItem.code,
+                text: accountItem.name,
+                keyForList: accountItem.code,
+                isSelected: creditCardAccountCode === accountItem.code,
+            })) ?? [];
 
     const headerContent = (
         <View>

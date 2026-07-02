@@ -1567,12 +1567,12 @@ type RilletSubsidiary = {
 /**
  * Supported account statuses in Rillet.
  */
-type RilletAccountStatus = 'ACTIVE' | 'INACTIVE';
+type RilletAccountStatus = ValueOf<typeof CONST.RILLET_ACCOUNT_STATUS>;
 
 /**
  * Supported chart of account categories in Rillet.
  */
-type RilletAccountType = 'ASSET' | 'LIABILITY' | 'EQUITY' | 'EXPENSE' | 'INCOME';
+type RilletAccountType = ValueOf<typeof CONST.RILLET_ACCOUNT_TYPE>;
 
 /**
  * A chart of accounts entry in Rillet.
