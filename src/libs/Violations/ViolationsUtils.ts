@@ -592,12 +592,16 @@ const ViolationsUtils = {
         const customUnitRateID = updatedTransaction?.comment?.customUnit?.customUnitRateID;
         const isDistanceRequestForCustomUnit = TransactionUtils.isDistanceRequest(updatedTransaction);
         if (customUnitRateID && customUnitRateID.length > 0 && (!isSelfDM || isDistanceRequestForCustomUnit)) {
-            // A P2P distance rate (FAKE_P2P_ID) isn't tied to any workspace, so it can never be "out of policy".
-            // Clear any stale violation instead of flagging it. This prevents a spurious "Rate not valid for this
-            // workspace" from appearing optimistically when a P2P expense is created while a workspace policy is
-            // still in context (e.g. the new manual expense flow switching the recipient from the default workspace
-            // to a person before the API distance response arrives).
-            if (TransactionUtils.isCustomUnitRateIDForP2P(updatedTransaction)) {
+            // A P2P distance rate (FAKE_P2P_ID) isn't tied to any workspace, so it can never be "out of policy"
+            // when the expense is genuinely P2P (a person chat or self DM). Clear any stale violation instead of
+            // flagging it. This prevents a spurious "Rate not valid for this workspace" from appearing optimistically
+            // when a P2P expense is created while a workspace policy is still in context (e.g. the new manual expense
+            // flow switching the recipient from the default workspace to a person before the API distance response
+            // arrives). We must NOT clear it when the transaction is still bound to a policy expense chat, because a
+            // track expense moved onto a workspace intentionally keeps FAKE_P2P_ID until the user picks a workspace
+            // rate, and the violation is what prompts them to do so — so that case falls through to the rate check below.
+            const isTransactionOnPolicyExpenseChat = updatedTransaction.participants?.some((participant) => participant?.isPolicyExpenseChat);
+            if (TransactionUtils.isCustomUnitRateIDForP2P(updatedTransaction) && !isTransactionOnPolicyExpenseChat) {
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
             } else {
                 const isPerDiem = TransactionUtils.isPerDiemRequest(updatedTransaction);
