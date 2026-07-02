@@ -4891,10 +4891,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 installBundle: '安装 Expensify 捆绑包',
                 installBundlePSAHeader: '用于 PSA/SRP 连接：',
                 installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
-                    `<p>通过点击此链接在 Salesforce 中安装 Expensify 包：<a href="${href}">安装 PSA/SRP Expensify 包（版本 ${version}）</a></p>`,
+                    `通过点击此链接在 Salesforce 中安装 Expensify 包：<a href="${href}">安装 PSA/SRP Expensify 包（版本 ${version}）</a>`,
                 installBundleFFAHeader: '对于 FFA 连接：',
                 installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
-                    `<p>通过点击此链接在 Salesforce 中安装 Expensify 组件包：<a href="${href}">安装 FFA Expensify 组件包（版本 ${version}）</a></p>`,
+                    `通过点击此链接在 Salesforce 中安装 Expensify 组件包：<a href="${href}">安装 FFA Expensify 组件包（版本 ${version}）</a>`,
                 installBundleConfirm: '我已安装此捆绑包',
                 setupContacts: '设置用户和联系人',
                 setupContactsBullet1: '如果 Certinia 中尚未为你创建用户和联系人，请为自己分别创建一个用户和一个联系人，并确保其电子邮箱与你在 Expensify 中的主要邮箱一致。',
