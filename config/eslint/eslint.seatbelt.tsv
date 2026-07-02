@@ -604,7 +604,6 @@
 "../../src/libs/Log.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/LoginUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/MergeTransactionUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
-"../../src/libs/Middleware/FraudMonitoring.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Middleware/HandleUnusedOptimisticID.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/Middleware/HandleUnusedOptimisticID.ts"	"no-restricted-syntax"	1
 "../../src/libs/Middleware/Logging.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
