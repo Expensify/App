@@ -21,13 +21,14 @@ Expensify offers two workspace plans:
 - **Control**: Designed for growing organizations that need advanced approvals, accounting integrations, and spend management.
 
 To learn which plan is right for your organization, see Compare the Collect and Control Plans.
+
 ## What is a subscription?
 
 A subscription determines how your workspace is billed.
 
 Depending on your workspace plan, you may have an Annual subscription or a Pay-per-use subscription. Your subscription affects your billing rate and may determine whether you qualify for reduced pricing.
 
-To learn more, see How subscriptions work.
+To learn more, see How Subscriptions Work.
 
 ## How Expensify Card pricing works
 
@@ -37,7 +38,7 @@ Organizations with an annual subscription qualify for different pricing tiers ba
 
 Using the Expensify Card also allows eligible organizations to earn cash back on qualifying purchases.
 
-To learn more, see Understand Expensify Pricing.
+To learn more, see [Understand Expensify Pricing](/articles/new-expensify/billing-and-subscriptions/learn-about-plans-and-subscriptions/Understand-Expensify-Pricing).
 
 ## How your monthly bill is calculated
 
@@ -56,4 +57,4 @@ Each Workspace has an owner, sometimes called the billing owner, who is responsi
 
 Workspace owners can add and update payment cards, view billing receipts, and manage workspace plan and subscription settings.
 
-To learn more, see Understand Workspace Ownership.
+To learn more, see [Understand Workspace Ownership](/articles/new-expensify/billing-and-subscriptions/Understand-Workspace-Ownership).
