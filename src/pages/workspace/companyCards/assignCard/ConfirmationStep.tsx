@@ -19,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {getCompanyCardFeed, getDomainOrWorkspaceAccountID, getPlaidCountry, getPlaidInstitutionId, isCardAlreadyAssigned, isSelectedFeedExpired, maskCardNumber} from '@libs/CardUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
@@ -34,17 +35,16 @@ import {
 } from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-type ConfirmationStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION>;
+type ConfirmationStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION>;
 
 function ConfirmationStep({route}: ConfirmationStepProps) {
     const policyID = route.params.policyID;
     const feed = route.params.feed;
     const cardID = route.params.cardID;
-    const backTo = route.params?.backTo;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -79,17 +79,10 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
             return;
         }
 
-        if (backTo) {
-            Navigation.dismissModal();
-            Navigation.navigate(backTo, {
-                afterTransition: () => clearAssignCardStepAndData(),
-            });
-        } else {
-            Navigation.dismissModal({
-                afterTransition: () => clearAssignCardStepAndData(),
-            });
-        }
-    }, [assignCard?.isAssignmentFinished, backTo]);
+        Navigation.dismissModal({
+            afterTransition: () => clearAssignCardStepAndData(),
+        });
+    }, [assignCard?.isAssignmentFinished]);
 
     const submit = () => {
         if (!policyID) {
@@ -128,10 +121,11 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
         setAssignCardStepAndData({isEditing: true});
 
         const routeParams = {policyID, feed, cardID};
+        const assigneeRoute = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(feed, cardID), ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
 
         switch (step) {
             case CONST.COMPANY_CARD.STEP.ASSIGNEE:
-                Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(routeParams), {compareParams: false});
+                Navigation.goBack(assigneeRoute, {compareParams: false});
                 break;
             case CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE:
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
@@ -148,7 +142,9 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
 
     const handleBackButtonPress = () => {
         setAssignCardStepAndData({isEditing: true});
-        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute({policyID, feed, cardID}), {compareParams: false});
+        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(feed, cardID), ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
+            compareParams: false,
+        });
     };
 
     const clearAssignCardErrors = () => {
