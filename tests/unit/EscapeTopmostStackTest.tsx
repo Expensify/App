@@ -5,6 +5,7 @@ import {act, render} from '@testing-library/react-native';
 import React from 'react';
 import type {ReactNode} from 'react';
 import DismissableLayer from '@components/Overlay/DismissableLayer/index.web';
+import usePointerDownOutside from '@components/Overlay/hooks/usePointerDownOutside';
 import Text from '@components/Text';
 
 jest.mock('@hooks/useThemeStyles', () => () => ({
@@ -16,10 +17,11 @@ jest.mock('@hooks/useTheme', () => () => ({
 }));
 jest.mock('@components/Overlay/hooks/useBodyScrollLock', () => () => {});
 jest.mock('@components/Overlay/hooks/useAriaHideSiblings', () => () => {});
+let mockIsCovering = false;
 jest.mock('@components/Overlay/hooks/useOverlaySelectors', () => ({
-    useIsModalCovering: () => false,
+    useIsModalCovering: () => mockIsCovering,
 }));
-jest.mock('@components/Overlay/hooks/usePointerDownOutside', () => () => {});
+jest.mock('@components/Overlay/hooks/usePointerDownOutside', () => jest.fn());
 
 function dispatchEscape() {
     const event = new KeyboardEvent('keydown', {key: 'Escape', bubbles: true, cancelable: true});
@@ -225,5 +227,37 @@ describe('LayerHost wrapper — outside-click invariant', () => {
 
         const matches = root.findAll((node) => Reflect.get(node.props as Record<string, unknown>, 'pointerEvents') === 'none');
         expect(matches.length).toBeGreaterThan(0);
+    });
+});
+
+describe('FloatingLayer — outside-pointer gating while covered', () => {
+    afterEach(() => {
+        mockIsCovering = false;
+    });
+
+    it('disables the outside-pointer listener when a modal covers the topmost floating layer', () => {
+        mockIsCovering = true;
+        jest.mocked(usePointerDownOutside).mockClear();
+
+        render(
+            <DismissableLayer.Floating onDismiss={jest.fn()}>
+                <ModalContent>Floating</ModalContent>
+            </DismissableLayer.Floating>,
+        );
+
+        expect(jest.mocked(usePointerDownOutside).mock.calls.at(-1)?.[2]).toEqual({isActive: false});
+    });
+
+    it('enables the outside-pointer listener when the floating layer is topmost and uncovered', () => {
+        mockIsCovering = false;
+        jest.mocked(usePointerDownOutside).mockClear();
+
+        render(
+            <DismissableLayer.Floating onDismiss={jest.fn()}>
+                <ModalContent>Floating</ModalContent>
+            </DismissableLayer.Floating>,
+        );
+
+        expect(jest.mocked(usePointerDownOutside).mock.calls.at(-1)?.[2]).toEqual({isActive: true});
     });
 });

@@ -162,7 +162,7 @@ function ModalLayer(props: DismissableLayerProps) {
 function FloatingLayer(props: DismissableLayerProps) {
     const {isTop} = useLayerStack('floating');
     const isCovered = useIsModalCovering();
-    const {containerRef, portalContextValue} = useDismissableLayerWorker(props, {isEscapeActive: isTop && !isCovered, isPointerOutsideActive: isTop});
+    const {containerRef, portalContextValue} = useDismissableLayerWorker(props, {isEscapeActive: isTop && !isCovered, isPointerOutsideActive: isTop && !isCovered});
     return (
         <LayerHost
             containerRef={containerRef}
