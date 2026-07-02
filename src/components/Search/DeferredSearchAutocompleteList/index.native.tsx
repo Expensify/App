@@ -2,6 +2,7 @@ import React, {useRef, useState, useTransition} from 'react';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {SearchAutocompleteListProps} from '@components/Search/SearchAutocompleteList';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
+import useIsFocusedUntilTransitionEnd from '@hooks/useIsFocusedUntilTransitionEnd';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
@@ -12,6 +13,9 @@ import CONST from '@src/CONST';
  * This enables the SearchRouterPage to open smoothly with a placeholder and load the list in the meantime.
  */
 function DeferredAutocompleteList(props: SearchAutocompleteListProps) {
+    // On native it stays mounted behind when a chat is opened from it.
+    // Unmount the heavy list once this screen loses focus (kept mounted through the closing transition so it doesn't blank mid-navigation).
+    const isFocusedUntilTransitionEnd = useIsFocusedUntilTransitionEnd();
     const [shouldRender, setShouldRender] = useState(false);
     const [, startTransition] = useTransition();
     const hasEndedPageVisibleSpan = useRef(false);
@@ -25,7 +29,7 @@ function DeferredAutocompleteList(props: SearchAutocompleteListProps) {
         startTransition(() => setShouldRender(true));
     };
 
-    if (!shouldRender) {
+    if (!shouldRender || !isFocusedUntilTransitionEnd) {
         return (
             <OptionsListSkeletonView
                 fixedNumItems={4}

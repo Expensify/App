@@ -484,10 +484,10 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         // If it's CREATE and IOUReportID is 0, MoneyRequestAction returns null because the IOU report doesn't exist.
         const patchedSelfDMIouAction = {
             ...iou.action,
+            reportID: selfDMReportID,
             originalMessage: {
                 ...(getOriginalMessage(iou.action) ?? {}),
                 type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
-                IOUReportID: undefined,
             },
         } as OnyxTypes.ReportAction;
         onyxData.optimisticData?.push({
@@ -555,8 +555,8 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                     ...chat.report,
                     lastReadTime: DateUtils.getDBTime(),
                     ...(shouldCreateNewMoneyRequestReport ? {lastVisibleActionCreated: chat.reportPreviewAction.created} : {}),
-                    // do not update iouReportID if auto submit beta is enabled and it is a scan request
-                    ...(isASAPSubmitBetaEnabled && isScanRequest ? {} : {iouReportID: iou.report.reportID}),
+                    // do not update iouReportID if auto submit beta is enabled and it is a scan request, or when adding to an existing report
+                    ...((isASAPSubmitBetaEnabled && isScanRequest) || !shouldCreateNewMoneyRequestReport ? {} : {iouReportID: iou.report.reportID}),
                     ...outstandingChildRequest,
                     ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
                 },

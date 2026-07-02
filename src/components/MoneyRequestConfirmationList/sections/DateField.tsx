@@ -6,10 +6,13 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setMoneyRequestCreated} from '@libs/actions/IOU/MoneyRequest';
+import {setMoneyRequestCreated, updateDistanceRateOnExpenseDateChange} from '@libs/actions/IOU/MoneyRequest';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {isPolicyExpenseChat as isPolicyExpenseChatReportUtil} from '@libs/ReportUtils';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -49,10 +52,17 @@ function DateField({
     const {isEditingSplitBill} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
+    const policyForTrackExpense = usePolicy(isTrackExpense ? policyForMovingExpensesID : undefined);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
+    const policy = usePolicy(report?.policyID);
 
     const dateState = useTransactionSelector(transactionID, dateStateSelector);
+    const transaction = useTransactionSelector(transactionID, (t) => t);
 
     const iouCreated = dateState?.iouCreated ?? '';
     const createdMissing = dateState?.isMissing ?? true;
@@ -67,6 +77,10 @@ function DateField({
             return;
         }
 
+        if (newDate === iouCreated) {
+            return;
+        }
+
         if (newDate) {
             clearFormErrors(['common.error.fieldRequired']);
         }
@@ -77,6 +91,21 @@ function DateField({
         }
 
         setMoneyRequestCreated(transactionID, newDate, shouldUseTransactionDraft(action), transactionHasReceipt);
+
+        if (action !== CONST.IOU.ACTION.EDIT) {
+            updateDistanceRateOnExpenseDateChange({
+                transactionID,
+                transaction,
+                newCreated: newDate,
+                reportID,
+                isPolicyExpenseChat: isPolicyExpenseChatReportUtil(report),
+                isTrackExpense,
+                policy,
+                policyForTrackExpense,
+                lastSelectedDistanceRates,
+                isDraft: shouldUseTransactionDraft(action),
+            });
+        }
     };
 
     if (isNewManualExpenseFlowEnabled && !isReadOnly) {

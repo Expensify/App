@@ -4,7 +4,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import useArchivedReportsIDSet from './useArchivedReportsIDSet';
 import useMappedPolicies from './useMappedPolicies';
 import useOnyx from './useOnyx';
 
@@ -16,7 +15,7 @@ export default function useOutstandingReports(selectedReportID: string | undefin
     const [allPoliciesID] = useMappedPolicies(policyIdMapper);
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
     const shouldUseAllPolicies = !selectedPolicyID || selectedPolicyID === personalPolicyID || isSelfDM(selectedReport);
-    const archivedReportsIDSet = useArchivedReportsIDSet();
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
     // Early return if no reports are available to prevent useless loop
     if (!outstandingReportsByPolicyID || isEmptyObject(outstandingReportsByPolicyID)) {
@@ -30,11 +29,11 @@ export default function useOutstandingReports(selectedReportID: string | undefin
                 continue;
             }
 
-            const reports = getOutstandingReportsForUser(policyID, ownerAccountID, archivedReportsIDSet, outstandingReportsByPolicyID[policyID] ?? {}, isEditing);
+            const reports = getOutstandingReportsForUser(policyID, ownerAccountID, reportNameValuePairs, outstandingReportsByPolicyID[policyID] ?? {}, isEditing);
             result.push(...reports);
         }
         return result;
     }
 
-    return getOutstandingReportsForUser(selectedPolicyID, ownerAccountID, archivedReportsIDSet, outstandingReportsByPolicyID?.[selectedPolicyID ?? CONST.DEFAULT_NUMBER_ID] ?? {}, isEditing);
+    return getOutstandingReportsForUser(selectedPolicyID, ownerAccountID, reportNameValuePairs, outstandingReportsByPolicyID?.[selectedPolicyID ?? CONST.DEFAULT_NUMBER_ID] ?? {}, isEditing);
 }

@@ -4,7 +4,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getBankAccountLastFourDigits} from '@libs/PaymentUtils';
-import {getOriginalMessage} from '@libs/ReportActionsUtils';
+import {getElsewherePaymentReportActionMessage, getOriginalMessage} from '@libs/ReportActionsUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,7 +30,7 @@ function PaymentContent({action, policyID}: PaymentContentProps) {
     const wasAutoPaid = originalMessage.automaticAction ?? false;
 
     if (paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-        return <ReportActionItemBasicMessage message={translate('iou.paidElsewhere')} />;
+        return <ReportActionItemBasicMessage message={getElsewherePaymentReportActionMessage(translate, originalMessage)} />;
     }
 
     if (paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {

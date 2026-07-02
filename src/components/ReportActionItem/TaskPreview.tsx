@@ -21,6 +21,7 @@ import useParentReport from '@hooks/useParentReport';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTaskCheckboxAccessibility from '@hooks/useTaskCheckboxAccessibility';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
@@ -88,9 +89,21 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     // The reportAction might not contain details regarding the taskReport
     // Only the direct parent reportAction will contain details about the taskReport
     // Other linked reportActions will only contain the taskReportID and we will grab the details from there
-    const isTaskCompleted = !isEmptyObject(taskReport)
+    const isTaskCompletedFromOnyx = !isEmptyObject(taskReport)
         ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
+
+    const taskTitlePlainText = Parser.htmlToText(taskTitle);
+    const {
+        isCompleted: isTaskCompleted,
+        shouldSplitTaskAccessibilityTargets,
+        taskAccessibilityLabel,
+        taskCheckboxAccessibilityLabel,
+        taskCheckboxAccessibilityHint,
+        titlePressableAccessibilityHint,
+        updateTaskCheckboxStateForAccessibility,
+    } = useTaskCheckboxAccessibility(isTaskCompletedFromOnyx, taskTitlePlainText);
+
     const parentReportAction = useParentReportAction(taskContextReport);
     const taskAssigneeAccountID = getTaskAssigneeAccountID(taskContextReport, parentReportAction) ?? action?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const parentReport = useParentReport(taskContextReport?.reportID);
@@ -118,9 +131,31 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
         return `<comment center>${taskTitleWithoutImage}</comment>`;
     };
 
+    const taskPreviewContent = (
+        <>
+            {hasAssignee && (
+                <UserDetailsTooltip accountID={taskAssigneeAccountID}>
+                    <View>
+                        <Avatar
+                            containerStyles={[styles.mr2, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
+                            source={avatar}
+                            size={avatarSize}
+                            avatarID={taskAssigneeAccountID}
+                            type={CONST.ICON_TYPE_AVATAR}
+                        />
+                    </View>
+                </UserDetailsTooltip>
+            )}
+            <View style={[styles.alignSelfCenter, styles.flex1, styles.textAlignLeft]}>
+                <RenderHTML html={getTaskHTML()} />
+            </View>
+        </>
+    );
+
     return (
         <View style={[styles.chatItemMessage, !hasAssignee && styles.mv1]}>
             <PressableWithoutFeedback
+                accessible={shouldSplitTaskAccessibilityTargets ? false : undefined}
                 onPress={() => Navigation.navigate(getReportRouteForCurrentContext({reportID: taskReportID}))}
                 onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
@@ -135,7 +170,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                 shouldUseHapticsOnLongPress
                 style={[styles.flexRow, styles.justifyContentBetween, style]}
                 role={CONST.ROLE.BUTTON}
-                accessibilityLabel={translate('task.task')}
+                accessibilityLabel={taskAccessibilityLabel}
                 sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CARD}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart, styles.mr2]}>
@@ -144,33 +179,46 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                             style={[styles.mr2]}
                             isChecked={isTaskCompleted}
                             disabled={!isTaskActionable}
+                            shouldSelectOnPressEnter
                             onPress={callFunctionIfActionIsAllowed(() => {
+                                updateTaskCheckboxStateForAccessibility(isTaskCompleted);
                                 if (isTaskCompleted) {
                                     reopenTask(taskContextReport, parentReport, currentUserPersonalDetails.accountID, delegateEmail, taskReportID);
                                 } else {
                                     completeTask(taskContextReport, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail, taskReportID);
                                 }
                             })}
-                            accessibilityLabel={translate('task.task')}
+                            accessibilityLabel={taskCheckboxAccessibilityLabel}
+                            accessibilityHint={taskCheckboxAccessibilityHint}
                             sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CHECKBOX}
                         />
                     </View>
-                    {hasAssignee && (
-                        <UserDetailsTooltip accountID={taskAssigneeAccountID}>
-                            <View>
-                                <Avatar
-                                    containerStyles={[styles.mr2, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
-                                    source={avatar}
-                                    size={avatarSize}
-                                    avatarID={taskAssigneeAccountID}
-                                    type={CONST.ICON_TYPE_AVATAR}
-                                />
-                            </View>
-                        </UserDetailsTooltip>
+                    {shouldSplitTaskAccessibilityTargets ? (
+                        <PressableWithoutFeedback
+                            accessible
+                            accessibilityRole={CONST.ROLE.BUTTON}
+                            accessibilityLabel={taskAccessibilityLabel}
+                            accessibilityHint={titlePressableAccessibilityHint}
+                            onPress={() => Navigation.navigate(getReportRouteForCurrentContext({reportID: taskReportID}))}
+                            onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
+                            onPressOut={() => ControlSelection.unblock()}
+                            onLongPress={(event) =>
+                                onShowContextMenu(() => {
+                                    if (!shouldDisplayContextMenu) {
+                                        return;
+                                    }
+                                    return showContextMenuForReport(event, contextMenuAnchorRef, chatReportID, action, checkIfContextMenuActive, originalReportID);
+                                })
+                            }
+                            shouldUseHapticsOnLongPress
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}
+                            sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CARD}
+                        >
+                            {taskPreviewContent}
+                        </PressableWithoutFeedback>
+                    ) : (
+                        taskPreviewContent
                     )}
-                    <View style={[styles.alignSelfCenter, styles.flex1]}>
-                        <RenderHTML html={getTaskHTML()} />
-                    </View>
                 </View>
                 {shouldShowGreenDotIndicator && (
                     <View style={iconWrapperStyle}>

@@ -123,7 +123,7 @@ describe('ConciergeDraftContext', () => {
 
     it('resumes pending completion after remount and applies the cached final HTML', async () => {
         // Given a cached draft with pending completion
-        const visibleDraft = applyConciergeDraftEvent(null, createDraftEvent('H'), REPORT_ID);
+        const visibleDraft = applyConciergeDraftEvent(null, createDraftEvent('H'), REPORT_ID, false);
         if (!visibleDraft) {
             throw new Error('Expected visible draft to be created');
         }
@@ -154,6 +154,8 @@ describe('ConciergeDraftContext', () => {
     });
 
     it('does not apply completed final HTML until the paced Pusher target is fully visible', async () => {
+        let now = 1000;
+        jest.spyOn(Date, 'now').mockImplementation(() => now);
         const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
         const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
 
@@ -168,6 +170,7 @@ describe('ConciergeDraftContext', () => {
         expect(getFirstMessageText(result.current.draftReportAction)).toBe('H');
 
         // When completion arrives before the visible body reaches the target
+        now += PUSHER_DRAFT_PACE_INTERVAL_MS;
         act(() => {
             emitPusherEvent(
                 Pusher.TYPE.CONCIERGE_DRAFT_COMPLETED,

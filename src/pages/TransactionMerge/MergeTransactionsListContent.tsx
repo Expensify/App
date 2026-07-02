@@ -17,7 +17,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsForMerging, setupMergeTransactionData, setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {fillMissingReceiptSource} from '@libs/MergeTransactionUtils';
-import {getTransactionReportName, isIOUReport} from '@libs/ReportUtils';
+import {getReportOrDraftReport, getTransactionReportName, isIOUReport} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {getAmount, getCreated, getCurrency, getDescription, getMerchant, isExpenseUnreported} from '@libs/TransactionUtils';
@@ -130,8 +130,8 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         ? getTransactionReportName({
               translate,
               reportAction: undefined,
-              transactions: [targetTransaction],
-              reports: targetTransactionReport ? [targetTransactionReport] : [],
+              linkedTransaction: targetTransaction,
+              report: getReportOrDraftReport(targetTransaction?.reportID, targetTransactionReport ? [targetTransactionReport] : [], undefined, undefined, targetTransactionReport),
           })
         : '';
 

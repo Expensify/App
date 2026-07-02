@@ -13,6 +13,7 @@ const NAV_ITEM_HEIGHT = variables.sectionMenuItemHeightCompact;
 const SECTION_MENU_ITEM_HORIZONTAL_PADDING = 16;
 const SECTION_HEADER_HEIGHT = 32;
 const SECTION_HEADER_RECT_HEIGHT = 4;
+const COLLAPSED_SECTION_HEADER_WIDTH = variables.searchSidebarCollapsedWidth - variables.gutterWidth * 2;
 const ICON_LABEL_GAP = 12;
 const ICON_CONTAINER_SIZE = 20;
 const LOADING_ICON_SIZE = variables.iconSizeSmall;
@@ -47,9 +48,10 @@ const LHN = {
 
 type SuggestedSearchSkeletonProps = {
     sectionCount: number;
+    shouldHideLabels?: boolean;
 };
 
-function SuggestedSearchSkeleton({sectionCount}: SuggestedSearchSkeletonProps) {
+function SuggestedSearchSkeleton({sectionCount, shouldHideLabels = false}: SuggestedSearchSkeletonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -65,32 +67,56 @@ function SuggestedSearchSkeleton({sectionCount}: SuggestedSearchSkeletonProps) {
                     height={icon.h}
                     transform={[{translateX: icon.xVal}, {translateY: icon.yVal}]}
                 />
-                <SkeletonRect
-                    width={label.w}
-                    height={label.h}
-                    transform={[{translateX: label.xVal}, {translateY: label.yVal}]}
-                />
+                {!shouldHideLabels && (
+                    <SkeletonRect
+                        width={label.w}
+                        height={label.h}
+                        transform={[{translateX: label.xVal}, {translateY: label.yVal}]}
+                    />
+                )}
             </>
         );
     };
 
     const shouldRenderNavigationColumn = !shouldUseNarrowLayout;
 
+    const sectionHeader = shouldHideLabels ? (
+        <View
+            style={[
+                styles.flexRow,
+                styles.searchTypeMenuAccordionPadding,
+                styles.gap2,
+                styles.alignItemsCenter,
+                styles.br2,
+                styles.flexGrow0,
+                styles.flexShrink0,
+                styles.flexBasisAuto,
+                {width: COLLAPSED_SECTION_HEADER_WIDTH},
+            ]}
+        >
+            <View style={styles.searchTypeMenuAccordionCollapsedDividerContainer}>
+                <View style={styles.searchTypeMenuAccordionCollapsedDivider} />
+            </View>
+        </View>
+    ) : (
+        <SkeletonViewContentLoader
+            animate
+            height={SECTION_HEADER_HEIGHT}
+            backgroundColor={theme.skeletonLHNIn}
+            foregroundColor={theme.skeletonLHNOut}
+            style={[styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+        >
+            <SkeletonRect
+                width={LHN.header.w}
+                height={LHN.header.h}
+                transform={[{translateX: LHN.header.xVal}, {translateY: LHN.header.yVal}]}
+            />
+        </SkeletonViewContentLoader>
+    );
+
     const navigationColumnGroup = (
         <>
-            <SkeletonViewContentLoader
-                animate
-                height={SECTION_HEADER_HEIGHT}
-                backgroundColor={theme.skeletonLHNIn}
-                foregroundColor={theme.skeletonLHNOut}
-                style={[styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-            >
-                <SkeletonRect
-                    width={LHN.header.w}
-                    height={LHN.header.h}
-                    transform={[{translateX: LHN.header.xVal}, {translateY: LHN.header.yVal}]}
-                />
-            </SkeletonViewContentLoader>
+            {sectionHeader}
 
             <ItemListSkeletonView
                 fixedNumItems={3}

@@ -1,3 +1,4 @@
+import {SafeString} from 'expensify-common';
 import React, {useMemo} from 'react';
 import FullNameStep from '@components/SubStepForms/FullNameStep';
 import useLocalize from '@hooks/useLocalize';
@@ -6,7 +7,6 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SafeString from '@src/utils/SafeString';
 
 type NameProps = SubPageProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
 
@@ -20,6 +20,7 @@ function Name({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBeingMo
     const lastNameInputID = `${PREFIX}_${ownerBeingModifiedID}_${LAST_NAME}` as const;
     const stepFields = useMemo(() => [firstNameInputID, lastNameInputID], [firstNameInputID, lastNameInputID]);
     const formTitle = translate(isUserEnteringHisOwnData ? 'ownershipInfoStep.whatsYourName' : 'ownershipInfoStep.whatsTheOwnersName');
+    const formSubtitle = translate(isUserEnteringHisOwnData ? 'personalInfoStep.legalNameSubtitle' : 'beneficialOwnerInfoStep.legalNameSubtitle');
     const defaultValues = {
         firstName: SafeString(reimbursementAccountDraft?.[firstNameInputID]),
         lastName: SafeString(reimbursementAccountDraft?.[lastNameInputID]),
@@ -38,6 +39,7 @@ function Name({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBeingMo
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             formTitle={formTitle}
+            formSubtitle={formSubtitle}
             onSubmit={handleSubmit}
             stepFields={stepFields}
             firstNameInputID={firstNameInputID}
