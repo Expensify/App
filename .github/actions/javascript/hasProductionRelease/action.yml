@@ -1,0 +1,12 @@
+name: 'Check if production release exists for last deploy checklist version'
+description: 'Finds the most recently closed StagingDeployCash checklist and checks whether a non-prerelease GitHub Release exists for its version tag'
+inputs:
+    GITHUB_TOKEN:
+        description: Auth token for New Expensify Github
+        required: true
+outputs:
+    HAS_PRODUCTION_RELEASE:
+        description: Whether a production (non-prerelease) GitHub Release exists for the version on the most recently closed deploy checklist.
+runs:
+    using: 'node24'
+    main: 'index.js'

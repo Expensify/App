@@ -23,6 +23,7 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/getPreviousVersion/getPreviousVersion.ts"
     "$ACTIONS_DIR/getPullRequestDetails/getPullRequestDetails.ts"
     "$ACTIONS_DIR/getPullRequestIncrementalChanges/getPullRequestIncrementalChanges.ts"
+    "$ACTIONS_DIR/hasProductionRelease/hasProductionRelease.ts"
     "$ACTIONS_DIR/isAuthorizedContributor/isAuthorizedContributor.ts"
     "$ACTIONS_DIR/isDeployChecklistLocked/isDeployChecklistLocked.ts"
     "$ACTIONS_DIR/markPullRequestsAsDeployed/markPullRequestsAsDeployed.ts"
