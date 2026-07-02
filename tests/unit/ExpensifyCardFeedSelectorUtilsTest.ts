@@ -194,7 +194,6 @@ describe('getAdminExpensifyCardFeedEntries', () => {
         expect(entries).toHaveLength(0);
     });
 
-<<<<<<< Updated upstream
     it('dedupes workspace-scoped settings that share the same domainName, preferring the domain-level fundID', () => {
         const domainFundID = 1000;
         const workspaceFundID1 = 2001;
@@ -216,8 +215,6 @@ describe('getAdminExpensifyCardFeedEntries', () => {
         expect(entries.at(0)?.fundID).toBe(domainFundID);
     });
 
-=======
->>>>>>> Stashed changes
     it('keeps distinct feeds when domainName differs', () => {
         const distinctDomainCardSettings: OnyxCollection<ExpensifyCardSettings> = {
             [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}3001`]: configuredFeedSettings({domainName: 'alpha.com', isEnabled: true}),
