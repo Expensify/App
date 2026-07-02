@@ -32,8 +32,8 @@ function VictoryChartPieLabel({
     labelIndicatorOuterOffset,
 }: VictoryChartPieLabelProps) {
     const midAngle = convertDegreeToRadian((slice.startAngle + slice.endAngle) / 2);
-    const x = slice.center.x + (labelRadius ?? slice.radius) * Math.cos(midAngle);
-    const y = slice.center.y + (labelRadius ?? slice.radius) * Math.sin(midAngle);
+    const x = Math.round(slice.center.x + (labelRadius ?? slice.radius) * Math.cos(midAngle));
+    const y = Math.round(slice.center.y + (labelRadius ?? slice.radius) * Math.sin(midAngle));
 
     const labelItem: LabelItem = {
         ...baseLabelItem,
