@@ -4,6 +4,7 @@ import ConnectToCertiniaFlow from '@components/ConnectToCertiniaFlow';
 import ConnectToNetSuiteFlow from '@components/ConnectToNetSuiteFlow';
 import ConnectToQuickbooksDesktopFlow from '@components/ConnectToQuickbooksDesktopFlow';
 import ConnectToQuickbooksOnlineFlow from '@components/ConnectToQuickbooksOnlineFlow';
+import ConnectToRilletFlow from '@components/ConnectToRilletFlow';
 import ConnectToSageIntacctFlow from '@components/ConnectToSageIntacctFlow';
 import ConnectToXeroFlow from '@components/ConnectToXeroFlow';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -45,13 +46,13 @@ function getAccountingIntegrationData(
     connectionName: PolicyConnectionName,
     policyID: string,
     translate: LocaleContextProps['translate'],
-    existingConnections: {sageIntacct: boolean; qbd: boolean; certinia: boolean},
+    existingConnections: {sageIntacct: boolean; qbd: boolean; certinia: boolean; rillet: boolean},
     policy?: Policy,
     key?: number,
     integrationToDisconnect?: ConnectionName,
     shouldDisconnectIntegrationBeforeConnecting?: boolean,
     canUseNetSuiteUSATax?: boolean,
-    expensifyIcons?: Record<'IntacctSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare' | 'CertiniaSquare', IconAsset>,
+    expensifyIcons?: Record<'IntacctSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare', IconAsset>,
 ): AccountingIntegration | undefined {
     const basePath = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
@@ -83,6 +84,15 @@ function getAccountingIntegrationData(
             return ROUTES.POLICY_ACCOUNTING_CERTINIA_EXISTING_CONNECTIONS.getRoute(policyID);
         }
         return ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID);
+    };
+    const getBackToAfterWorkspaceUpgradeRouteForRillet = () => {
+        if (integrationToDisconnect) {
+            return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
+        }
+        if (existingConnections.rillet) {
+            return ROUTES.POLICY_ACCOUNTING_RILLET_EXISTING_CONNECTIONS.getRoute(policyID);
+        }
+        return ROUTES.POLICY_ACCOUNTING_RILLET_SETUP.getRoute(policyID);
     };
 
     switch (connectionName) {
@@ -338,6 +348,18 @@ function getAccountingIntegrationData(
                       CONST.CERTINIA_CONFIG.REIMBURSABLE,
                       CONST.CERTINIA_CONFIG.NON_REIMBURSABLE,
                   ];
+            const certiniaSubscribedImportSettings = certiniaConfig?.hasPSA
+                ? [CONST.CERTINIA_CONFIG.PARENT_TAG_MAPPING, CONST.CERTINIA_CONFIG.SYNC_MILESTONES]
+                : [
+                      CONST.CERTINIA_CONFIG.CODING_DIMENSION1,
+                      CONST.CERTINIA_CONFIG.CODING_DIMENSION2,
+                      CONST.CERTINIA_CONFIG.CODING_DIMENSION3,
+                      CONST.CERTINIA_CONFIG.CODING_DIMENSION4,
+                      CONST.CERTINIA_CONFIG.SYNC_TAX,
+                  ];
+            const certiniaSubscribedAdvancedSettings = certiniaConfig?.hasPSA
+                ? [CONST.CERTINIA_CONFIG.AUTO_SYNC_ENABLED, CONST.CERTINIA_CONFIG.TAX_NON_BILLABLE, CONST.CERTINIA_CONFIG.EXPORT_FOREIGN_CURRENCY]
+                : [CONST.CERTINIA_CONFIG.AUTO_SYNC_ENABLED, CONST.CERTINIA_CONFIG.SYNC_REIMBURSED_REPORTS];
             let certiniaTitle = translate('workspace.certinia.title');
             if (certiniaConnection && certiniaConfig?.hasPSA) {
                 certiniaTitle = translate('workspace.certinia.titlePSA');
@@ -354,17 +376,11 @@ function getAccountingIntegrationData(
                     />
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_IMPORT.getRoute(policyID)),
-                subscribedImportSettings: [
-                    CONST.CERTINIA_CONFIG.CODING_DIMENSION1,
-                    CONST.CERTINIA_CONFIG.CODING_DIMENSION2,
-                    CONST.CERTINIA_CONFIG.CODING_DIMENSION3,
-                    CONST.CERTINIA_CONFIG.CODING_DIMENSION4,
-                    CONST.CERTINIA_CONFIG.SYNC_TAX,
-                ],
+                subscribedImportSettings: certiniaSubscribedImportSettings,
                 onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))),
                 subscribedExportSettings: certiniaSubscribedExportSettings,
                 onAdvancedPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_ADVANCED.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))),
-                subscribedAdvancedSettings: [CONST.CERTINIA_CONFIG.AUTO_SYNC_ENABLED, CONST.CERTINIA_CONFIG.SYNC_REIMBURSED_REPORTS],
+                subscribedAdvancedSettings: certiniaSubscribedAdvancedSettings,
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.CERTINIA)),
                 pendingFields: certiniaConfig?.pendingFields,
                 errorFields: certiniaConfig?.errorFields,
@@ -373,6 +389,53 @@ function getAccountingIntegrationData(
                     backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForCertinia(),
                 },
             } as AccountingIntegration;
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.RILLET: {
+            return {
+                title: translate('workspace.accounting.rillet'),
+                icon: expensifyIcons?.RilletSquare,
+                setupConnectionFlow: (
+                    <ConnectToRilletFlow
+                        policyID={policyID}
+                        key={key}
+                    />
+                ),
+                onImportPagePress: () => null,
+                subscribedImportSettings: [
+                    // s77rt TODO for release 2 make sure to subscribe to mapping fields errors
+                    CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES,
+                    CONST.RILLET_CONFIG.SYNC_TAX_RATES,
+                ],
+                onExportPagePress: () => null,
+                subscribedExportSettings: [
+                    CONST.RILLET_CONFIG.EXPORTER,
+                    CONST.RILLET_CONFIG.EXPORT_DATE,
+                    CONST.RILLET_CONFIG.REIMBURSABLE,
+                    CONST.RILLET_CONFIG.COMPANY_CARD,
+                    CONST.RILLET_CONFIG.DEFAULT_VENDORID,
+                    CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE,
+                    CONST.RILLET_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS,
+                    CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNTS,
+                ],
+                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.RILLET)),
+                onAdvancedPagePress: () => null,
+                subscribedAdvancedSettings: [
+                    CONST.RILLET_CONFIG.ACCOUNTING_METHOD,
+                    CONST.RILLET_CONFIG.AUTO_SYNC,
+                    CONST.RILLET_CONFIG.SYNC_REIMBURSED_REPORTS,
+                    CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE,
+                    CONST.RILLET_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS,
+                    CONST.RILLET_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID,
+                    CONST.RILLET_CONFIG.SYNC_TRAVEL_INVOICING_SETTLEMENTS,
+                    CONST.RILLET_CONFIG.TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID,
+                ],
+                workspaceUpgradeNavigationDetails: {
+                    integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.rillet.alias,
+                    backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForRillet(),
+                },
+                pendingFields: policy?.connections?.rillet?.config?.pendingFields,
+                errorFields: policy?.connections?.rillet?.config?.errorFields,
+            };
         }
         default:
             return undefined;
