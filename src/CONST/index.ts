@@ -2106,6 +2106,7 @@ const CONST = {
         SPAN_SEARCH_ROUTER_LIST_RENDER: 'SearchRouter.ListRender',
         SPAN_SEARCH_PAGE_VISIBLE: 'ManualOpenSearchRouterPageVisible',
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
+        SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW: 'ShareExtensionOpenSubmitFlow',
         SPAN_CAMERA_INIT: 'ManualCameraInit',
         SPAN_ENTRY_TO_SCAN: 'ManualEntryToScan',
         SPAN_ENTRY_TO_SCAN_NAVIGATION: 'ManualEntryToScanNavigation',
