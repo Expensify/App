@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import {write} from '@libs/API';
 import type {
     ConnectPolicyToRilletParams,
