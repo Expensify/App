@@ -34,6 +34,14 @@ function findFirstNode(sourceFile: ts.SourceFile, predicate: (node: ts.Node) => 
     return found;
 }
 
+function assertDefined<T>(value: T | undefined | null, message: string): asserts value is T {
+    if (value !== undefined && value !== null) {
+        return;
+    }
+
+    throw new Error(message);
+}
+
 function getTemplateStaticText(node: ts.TemplateExpression) {
     let staticText = node.head.text;
     for (const span of node.templateSpans) {
@@ -81,8 +89,9 @@ describe('buildDotNotationPath', () => {
         const templateNode = findTemplateInPluralOther(sourceFile);
 
         expect(templateNode).toBeDefined();
+        assertDefined(templateNode, 'Expected template node in plural other');
 
-        const dotPath = TSCompilerUtils.buildDotNotationPath(templateNode as ts.Node);
+        const dotPath = TSCompilerUtils.buildDotNotationPath(templateNode);
 
         expect(dotPath).toBe('policyCopyChangeLog.codingRules');
         expect(dotPath).not.toBe('policyCopyChangeLog.codingRules.other');
@@ -93,8 +102,9 @@ describe('buildDotNotationPath', () => {
         const stringNode = findTemplateInPluralOne(sourceFile);
 
         expect(stringNode).toBeDefined();
+        assertDefined(stringNode, 'Expected template node in plural one');
 
-        const dotPath = TSCompilerUtils.buildDotNotationPath(stringNode as ts.Node);
+        const dotPath = TSCompilerUtils.buildDotNotationPath(stringNode);
 
         expect(dotPath).toBe('policyCopyChangeLog.codingRules');
         expect(dotPath).not.toBe('policyCopyChangeLog.codingRules.one');
@@ -112,8 +122,9 @@ const translations = {
         const saveNode = findFirstNode(sourceFile, (node) => ts.isStringLiteral(node) && node.text === 'Save');
 
         expect(saveNode).toBeDefined();
+        assertDefined(saveNode, 'Expected save node');
 
-        const dotPath = TSCompilerUtils.buildDotNotationPath(saveNode as ts.Node);
+        const dotPath = TSCompilerUtils.buildDotNotationPath(saveNode);
 
         expect(dotPath).toBe('common.save');
     });
@@ -127,9 +138,11 @@ describe('incremental plural key injection', () => {
         const templateNode = findTemplateInPluralOther(sourceFile);
 
         expect(templateNode).toBeDefined();
+        assertDefined(templateNode, 'Expected template node in plural other');
 
-        const dotPath = TSCompilerUtils.buildDotNotationPath(templateNode as ts.Node);
+        const dotPath = TSCompilerUtils.buildDotNotationPath(templateNode);
         expect(dotPath).toBe('policyCopyChangeLog.codingRules');
+        assertDefined(dotPath, 'Expected collapsed codingRules path');
 
         const codingRulesProperty = findFirstNode(
             sourceFile,
@@ -137,9 +150,7 @@ describe('incremental plural key injection', () => {
         );
 
         expect(codingRulesProperty).toBeDefined();
-        if (!codingRulesProperty) {
-            throw new Error('Expected codingRules property');
-        }
+        assertDefined(codingRulesProperty, 'Expected codingRules property');
 
         const translatedInitializer = TSCompilerUtils.parseCodeStringToAST(
             tsPrinter.printNode(ts.EmitHint.Expression, codingRulesProperty.initializer, sourceFile).replace('merchant rules', 'translated merchant rules'),
@@ -152,7 +163,7 @@ describe('incremental plural key injection', () => {
             ),
         ]);
 
-        const injected = TSCompilerUtils.injectDeepObjectValue(targetObject, dotPath as string, translatedInitializer);
+        const injected = TSCompilerUtils.injectDeepObjectValue(targetObject, dotPath, translatedInitializer);
         const injectedText = tsPrinter.printNode(ts.EmitHint.Unspecified, injected, sourceFile);
 
         expect(injectedText).toMatch(/\(\s*\{\s*sourcePolicyName\s*\}/);
@@ -162,8 +173,8 @@ describe('incremental plural key injection', () => {
 
     it('flattens plural keys when leaf paths are injected separately', () => {
         const sourceFile = createSourceFile();
-        const oneValue = TSCompilerUtils.parseCodeStringToAST('`copied 1 translated merchant rule from ${sourcePolicyName}`');
-        const otherValue = TSCompilerUtils.parseCodeStringToAST('(count: number) => `copied ${count} translated merchant rules from ${sourcePolicyName}`');
+        const oneValue = TSCompilerUtils.parseCodeStringToAST(`\`copied 1 translated merchant rule from \${sourcePolicyName}\``);
+        const otherValue = TSCompilerUtils.parseCodeStringToAST(`(count: number) => \`copied \${count} translated merchant rules from \${sourcePolicyName}\``);
 
         let targetObject = ts.factory.createObjectLiteralExpression([ts.factory.createPropertyAssignment('policyCopyChangeLog', ts.factory.createObjectLiteralExpression([]))]);
 
