@@ -8578,6 +8578,55 @@ describe('actions/Report', () => {
 
             writeSpy.mockRestore();
         });
+
+        it('should only forward emails for invitees not already in the room (stale whisper)', async () => {
+            global.fetch = TestHelper.getGlobalFetchMock();
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            const REPORT_ID = '903';
+            const WHISPER_ACTION_ID = '9031';
+            const ALREADY_MEMBER_ID = 200;
+            const NEW_INVITEE_ID = 300;
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(903, undefined),
+                reportID: REPORT_ID,
+                participants: {
+                    [ALREADY_MEMBER_ID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                        role: CONST.REPORT.ROLE.MEMBER,
+                    },
+                },
+            };
+            const whisperAction = createMock<OnyxTypes.ReportAction>({
+                reportActionID: WHISPER_ACTION_ID,
+                reportID: REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                created: '2024-11-19 08:04:13.730',
+                message: [{html: 'Mentioned @already and @new', text: 'Mentioned @already and @new', type: 'COMMENT'}],
+                originalMessage: {
+                    inviteeAccountIDs: [ALREADY_MEMBER_ID, NEW_INVITEE_ID],
+                    inviteeEmails: ['already@example.com', 'new@example.com'],
+                    whisperedTo: [100],
+                },
+            });
+
+            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false);
+            await waitForBatchedUpdates();
+
+            // The already-member's email must be dropped so they don't receive a duplicate room invitation
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER,
+                expect.objectContaining({
+                    resolution: CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE,
+                    reportID: REPORT_ID,
+                    inviteeEmails: ['new@example.com'],
+                }),
+                expect.anything(),
+            );
+
+            writeSpy.mockRestore();
+        });
     });
 
     describe('buildOptimisticAddCommentReportAction delegateAccountID forwarding', () => {

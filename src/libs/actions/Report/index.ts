@@ -5821,8 +5821,16 @@ function resolveActionableMentionWhisper(
     };
 
     if (isInviteResolution && originalMessage?.inviteeEmails?.length) {
-        parameters.reportID = reportID;
-        parameters.inviteeEmails = originalMessage.inviteeEmails;
+        // Only forward emails for invitees not already in the room (matching the optimistic participant update
+        // above), so resolving a stale whisper doesn't re-invite someone added to the room in the meantime.
+        const inviteeEmailsToInvite = originalMessage.inviteeEmails.filter((email, index) => {
+            const inviteeAccountID = originalMessage.inviteeAccountIDs?.at(index);
+            return inviteeAccountID === undefined || !(inviteeAccountID in (report?.participants ?? {}));
+        });
+        if (inviteeEmailsToInvite.length > 0) {
+            parameters.reportID = reportID;
+            parameters.inviteeEmails = inviteeEmailsToInvite;
+        }
     }
 
     API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER, parameters, {optimisticData, failureData});
