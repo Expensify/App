@@ -80,12 +80,14 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const savedColumnMappings = Object.entries(workspaceCardFeeds?.settings?.companyCards ?? {}).find(([feedKey]) => feedKey === layoutType)?.[1]?.uploadLayoutSettings?.columnMappings;
     const hasAppliedSavedMappings = useRef(false);
     const lastProcessedDataRef = useRef(spreadsheet?.data);
+    const lastAdvancedFieldsRef = useRef(shouldUseAdvancedFields);
 
     useEffect(() => {
-        // Reset the flag when new spreadsheet data is loaded
-        if (spreadsheet?.data !== lastProcessedDataRef.current) {
+        // Reset the flag when new spreadsheet data is loaded, or when the set of selectable roles changes.
+        if (spreadsheet?.data !== lastProcessedDataRef.current || shouldUseAdvancedFields !== lastAdvancedFieldsRef.current) {
             hasAppliedSavedMappings.current = false;
             lastProcessedDataRef.current = spreadsheet?.data;
+            lastAdvancedFieldsRef.current = shouldUseAdvancedFields;
         }
 
         if (hasAppliedSavedMappings.current) {
@@ -102,7 +104,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
             savedColumnMappings,
             columnRoles.map((role) => role.value),
         );
-    }, [spreadsheet?.data, savedColumnMappings, columnRoles]);
+    }, [spreadsheet?.data, savedColumnMappings, columnRoles, shouldUseAdvancedFields]);
 
     const requiredColumns = columnRoles.filter((role) => role.isRequired);
 
