@@ -1,10 +1,10 @@
 import {act, fireEvent, screen} from '@testing-library/react-native';
 import {MFA_TEST_SCENARIO_NAME} from 'tests/utils/mfa/flowFixtures';
 import getWalkedPaths, {getExercisedTransitionKeys, getMfaShortestPaths, getUiDrivableTransitions} from 'tests/utils/mfa/flowPaths';
-import getSettleableLeafStates from 'tests/utils/mfa/reachableStates';
 import {getMfaControls, renderMfaUi} from 'tests/utils/mfa/realUi/harness';
 import {pendingModalClose, resetMfaUiMocks} from 'tests/utils/mfa/realUi/mocks';
 import type * as MfaRealUiMocks from 'tests/utils/mfa/realUi/mocks';
+import getSettleableLeafStates from 'tests/utils/mfa/settleableLeafStates';
 import waitForBatchedUpdatesWithAct from 'tests/utils/waitForBatchedUpdatesWithAct';
 import {matchesState} from 'xstate';
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
