@@ -3378,7 +3378,7 @@ const staticStyles = (theme: ThemeColors) =>
             ...spacing.gap3,
         },
 
-        // Compact padding speced around the 40px-tall action button: padding-left 16px,
+        // Compact padding sized around the 40px-tall action button: padding-left 16px,
         // top/right/bottom 8px (8 + 40 + 8 = 56px growl height from the design).
         growlNotificationBoxWithAction: {
             ...spacing.pl4,
