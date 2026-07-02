@@ -1683,12 +1683,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.NEW_TASK]: {
                     screens: {
-                        [SCREENS.NEW_TASK.ROOT]: ROUTES.NEW_TASK.route,
-                        [SCREENS.NEW_TASK.TASK_ASSIGNEE_SELECTOR]: ROUTES.NEW_TASK_ASSIGNEE.route,
+                        [SCREENS.NEW_TASK.DYNAMIC_ROOT]: DYNAMIC_ROUTES.NEW_TASK.path,
+                        [SCREENS.NEW_TASK.DYNAMIC_TASK_ASSIGNEE]: DYNAMIC_ROUTES.NEW_TASK_ASSIGNEE.path,
                         [SCREENS.NEW_TASK.TASK_SHARE_DESTINATION_SELECTOR]: ROUTES.NEW_TASK_SHARE_DESTINATION,
-                        [SCREENS.NEW_TASK.DETAILS]: ROUTES.NEW_TASK_DETAILS.route,
-                        [SCREENS.NEW_TASK.TITLE]: ROUTES.NEW_TASK_TITLE.route,
-                        [SCREENS.NEW_TASK.DESCRIPTION]: ROUTES.NEW_TASK_DESCRIPTION.route,
+                        [SCREENS.NEW_TASK.DYNAMIC_TASK_DETAILS]: DYNAMIC_ROUTES.NEW_TASK_DETAILS.path,
+                        [SCREENS.NEW_TASK.DYNAMIC_TASK_TITLE]: DYNAMIC_ROUTES.NEW_TASK_TITLE.path,
+                        [SCREENS.NEW_TASK.DYNAMIC_TASK_DESCRIPTION]: DYNAMIC_ROUTES.NEW_TASK_DESCRIPTION.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TEACHERS_UNITE]: {

@@ -29,20 +29,20 @@ import {isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
 import type {NewTaskNavigatorParamList, TaskDetailsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 
-function TaskAssigneeSelectorModal() {
+function DynamicTaskAssigneeSelectorModal() {
     const styles = useThemeStyles();
     const route = useRoute<
         | PlatformStackRouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.DYNAMIC_TASK_ASSIGNEE>
-        | PlatformStackRouteProp<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.TASK_ASSIGNEE_SELECTOR>
+        | PlatformStackRouteProp<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DYNAMIC_TASK_ASSIGNEE>
     >();
     const {translate} = useLocalize();
-    const reportID = route.params && 'reportID' in route.params ? route.params.reportID : undefined;
-    const backTo = route.params && 'backTo' in route.params ? route.params.backTo : undefined;
-    const taskEditBackPath = useDynamicBackPath(DYNAMIC_ROUTES.TASK_ASSIGNEE.path);
+    const isNewTaskFlow = route.name === SCREENS.NEW_TASK.DYNAMIC_TASK_ASSIGNEE;
+    const backPath = useDynamicBackPath(isNewTaskFlow ? DYNAMIC_ROUTES.NEW_TASK_ASSIGNEE.path : DYNAMIC_ROUTES.TASK_ASSIGNEE.path);
+    const reportID = !isNewTaskFlow && route.params && 'reportID' in route.params ? route.params.reportID : undefined;
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [task] = useOnyx(ONYXKEYS.TASK);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
@@ -68,7 +68,7 @@ function TaskAssigneeSelectorModal() {
         const reportOnyx = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
         if (reportOnyx && !isTaskReport(reportOnyx)) {
             Navigation.isNavigationReady().then(() => {
-                Navigation.goBack(taskEditBackPath);
+                Navigation.goBack(backPath);
             });
         }
         return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
@@ -170,7 +170,7 @@ function TaskAssigneeSelectorModal() {
                     isOptimisticReport,
                 });
             }
-            Navigation.goBack(taskEditBackPath);
+            Navigation.goBack(backPath);
             // If there's no report, we're creating a new task
         } else if (option.accountID) {
             setAssigneeValue(
@@ -180,16 +180,12 @@ function TaskAssigneeSelectorModal() {
                 undefined, // passing null as report is null in this condition
                 option.accountID === currentUserPersonalDetails.accountID,
             );
-            Navigation.goBack(ROUTES.NEW_TASK.getRoute(backTo));
+            Navigation.goBack(backPath);
         }
     };
 
     const handleBackButtonPress = () => {
-        if (!reportID) {
-            Navigation.goBack(ROUTES.NEW_TASK.getRoute(backTo));
-            return;
-        }
-        Navigation.goBack(taskEditBackPath);
+        Navigation.goBack(backPath);
     };
 
     const isOpen = isOpenTaskReport(report);
@@ -219,7 +215,7 @@ function TaskAssigneeSelectorModal() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="TaskAssigneeSelectorModal"
+            testID="DynamicTaskAssigneeSelectorModal"
         >
             <FullPageNotFoundView shouldShow={isTaskNonEditable}>
                 <HeaderWithBackButton
@@ -246,4 +242,4 @@ function TaskAssigneeSelectorModal() {
     );
 }
 
-export default TaskAssigneeSelectorModal;
+export default DynamicTaskAssigneeSelectorModal;

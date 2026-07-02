@@ -8,13 +8,12 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import {getCommentLength} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -23,20 +22,18 @@ import variables from '@styles/variables';
 import {setDescriptionValue} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewTaskForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-type NewTaskDescriptionPageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DESCRIPTION>;
-
-function NewTaskDescriptionPage({route}: NewTaskDescriptionPageProps) {
+function DynamicNewTaskDescriptionPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [task, taskMetadata] = useOnyx(ONYXKEYS.TASK);
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.NEW_TASK_DESCRIPTION.path);
 
-    const goBack = () => Navigation.goBack(ROUTES.NEW_TASK.getRoute(route.params?.backTo));
+    const goBack = () => Navigation.goBack(backPath);
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>) => {
         setDescriptionValue(values.taskDescription);
         goBack();
@@ -53,7 +50,7 @@ function NewTaskDescriptionPage({route}: NewTaskDescriptionPageProps) {
     };
 
     if (isLoadingOnyxValue(taskMetadata)) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'NewTaskDescriptionPage'};
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'DynamicNewTaskDescriptionPage'};
         return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
@@ -61,7 +58,7 @@ function NewTaskDescriptionPage({route}: NewTaskDescriptionPageProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID="NewTaskDescriptionPage"
+            testID="DynamicNewTaskDescriptionPage"
         >
             <>
                 <HeaderWithBackButton
@@ -103,4 +100,4 @@ function NewTaskDescriptionPage({route}: NewTaskDescriptionPageProps) {
     );
 }
 
-export default NewTaskDescriptionPage;
+export default DynamicNewTaskDescriptionPage;

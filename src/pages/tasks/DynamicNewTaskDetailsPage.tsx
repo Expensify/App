@@ -9,27 +9,24 @@ import TextInput from '@components/TextInput';
 import useAncestors from '@hooks/useAncestors';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import {getCommentLength} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import {createTaskAndNavigate, dismissModalAndClearOutTaskInfo, setDetailsValue, setShareDestinationValue} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import INPUT_IDS from '@src/types/form/NewTaskForm';
 
-type NewTaskDetailsPageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DETAILS>;
-
-function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
+function DynamicNewTaskDetailsPage() {
     const [task] = useOnyx(ONYXKEYS.TASK);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${task?.parentReportID}`, undefined, [task?.parentReportID]);
@@ -49,7 +46,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
     const descriptionDefaultValue = Parser.htmlToMarkdown(Parser.replace(taskDescription));
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const backTo = route.params?.backTo;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.NEW_TASK_DETAILS.path);
     const skipConfirmation = task?.skipConfirmation && task?.assigneeAccountID && task?.parentReportID;
     const buttonText = skipConfirmation ? translate('newTaskPage.assignTask') : translate('common.next');
 
@@ -95,7 +92,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
                 taskCreatorAndAssigneeDetails,
             });
         } else {
-            Navigation.navigate(ROUTES.NEW_TASK.getRoute(backTo));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK.path));
         }
     };
 
@@ -103,12 +100,12 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID="NewTaskDetailsPage"
+            testID="DynamicNewTaskDetailsPage"
         >
             <HeaderWithBackButton
                 title={translate('newTaskPage.assignTask')}
                 shouldShowBackButton
-                onBackButtonPress={() => dismissModalAndClearOutTaskInfo(backTo)}
+                onBackButtonPress={() => dismissModalAndClearOutTaskInfo(backPath)}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
@@ -158,4 +155,4 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
     );
 }
 
-export default NewTaskDetailsPage;
+export default DynamicNewTaskDetailsPage;
