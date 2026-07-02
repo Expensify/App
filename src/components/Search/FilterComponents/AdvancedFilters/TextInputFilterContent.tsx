@@ -31,9 +31,8 @@ function TextInputFilterContent({filterKey, value: initialValue, autoFocus, larg
         <View style={[styles.flex1, styles.justifyContentBetween, style]}>
             <FilterComponents
                 value={value}
-                policyIDs={undefined}
+                policyID={undefined}
                 filterKey={filterKey}
-                policyIDQuery={undefined}
                 autoFocus={autoFocus}
                 onChange={(v) => setValue(typeof v === 'string' ? v : undefined)}
             />

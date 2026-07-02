@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
+import type {SearchQueryJSON} from '@components/Search/types';
 import '@libs/actions/IOU/MoneyRequest';
 import {shouldOptimisticallyUpdateSearch} from '@libs/actions/IOU/SearchUpdate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
@@ -135,7 +135,6 @@ describe('actions/IOU', () => {
             };
             const currentSearchQueryJSON = {
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                status: '' as SearchStatus,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 filters: {
@@ -172,9 +171,9 @@ describe('actions/IOU', () => {
                         ],
                     },
                 ],
-                hash: 1920151829,
-                recentSearchHash: 2100977843,
-                similarSearchHash: 1855682507,
+                hash: 344995086,
+                recentSearchHash: 1106848141,
+                similarSearchHash: 1135147670,
             } as SearchQueryJSON;
             const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
 
@@ -193,7 +192,6 @@ describe('actions/IOU', () => {
             };
             const currentSearchQueryJSON = {
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                status: '' as SearchStatus,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 filters: {
@@ -205,7 +203,7 @@ describe('actions/IOU', () => {
                     },
                     right: {
                         operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-                        left: 'from',
+                        left: 'to',
                         right: '20671314',
                     },
                 },
@@ -220,7 +218,7 @@ describe('actions/IOU', () => {
                         ],
                     },
                     {
-                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
                         filters: [
                             {
                                 operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
@@ -229,11 +227,10 @@ describe('actions/IOU', () => {
                         ],
                     },
                 ],
-
-                hash: 1510971479,
+                hash: 1343227670,
                 inputQuery: 'sortBy:date sortOrder:desc type:expense-report action:approve to:20671314',
-                recentSearchHash: 967911777,
-                similarSearchHash: 1539858783,
+                recentSearchHash: 1216776837,
+                similarSearchHash: 911924256,
             } as SearchQueryJSON;
             const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
 
@@ -252,17 +249,37 @@ describe('actions/IOU', () => {
                 reimbursable: true,
             };
             const currentSearchQueryJSON = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                status: '' as SearchStatus,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                groupBy: CONST.SEARCH.GROUP_BY.FROM,
                 filters: {
-                    operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-                    left: 'reimbursable',
-
-                    right: 'yes',
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                    left: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                        left: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                        right: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+                    },
+                    right: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                        left: 'reimbursable',
+                        right: 'yes',
+                    },
                 },
                 flatFilters: [
+                    {
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                        filters: [
+                            {
+                                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                                value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+                            },
+                            {
+                                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                                value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
+                            },
+                        ],
+                    },
                     {
                         key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
                         filters: [
@@ -273,10 +290,10 @@ describe('actions/IOU', () => {
                         ],
                     },
                 ],
-                hash: 71801560,
+                hash: 280939045,
                 inputQuery: 'sortBy:date sortOrder:desc type:expense groupBy:from status:drafts,outstanding reimbursable:yes',
-                recentSearchHash: 1043581824,
-                similarSearchHash: 1832274510,
+                recentSearchHash: 2045056096,
+                similarSearchHash: 1931622284,
             } as SearchQueryJSON;
 
             const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
@@ -297,13 +314,16 @@ describe('actions/IOU', () => {
             const policyID = '12345';
             const currentSearchQueryJSON = {
                 type: 'expense',
-                status: '',
                 sortBy: 'date',
                 sortOrder: 'desc',
-                policyID: [policyID],
-                filters: null,
+                filters: {operator: 'eq', left: 'policyID', right: policyID},
                 inputQuery: `type:expense sortBy:date sortOrder:desc policyID:${policyID}`,
-                flatFilters: [],
+                flatFilters: [
+                    {
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                        filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: policyID}],
+                    },
+                ],
                 hash: 591785022,
                 recentSearchHash: 714245044,
                 similarSearchHash: 1023624110,
@@ -336,6 +356,140 @@ describe('actions/IOU', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
             expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, nonMatchingIOUReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
+        });
+
+        it('when the current hash includes a non-negated status filter it should only return true if the iou report matches the status', () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+            };
+            const currentSearchQueryJSON: SearchQueryJSON = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                view: CONST.SEARCH.VIEW.TABLE,
+                filters: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                    left: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                    right: CONST.SEARCH.STATUS.EXPENSE.APPROVED,
+                },
+                inputQuery: 'type:expense sortBy:date sortOrder:desc status:approved',
+                flatFilters: [
+                    {
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                        filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.STATUS.EXPENSE.APPROVED}],
+                    },
+                ],
+                hash: 100000001,
+                recentSearchHash: 100000002,
+                similarSearchHash: 100000003,
+            };
+
+            // When the IOU report is approved (matches status:approved), it should return true
+            const approvedIOUReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            };
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, approvedIOUReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
+
+            // When the IOU report is in draft (does not match status:approved), it should return false
+            const draftIOUReport: Report = {
+                ...createRandomReport(3, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, draftIOUReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
+        });
+
+        it('when the current hash includes a negated status filter it should return true for iou reports that do not match the excluded status', () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+            };
+            const currentSearchQueryJSON: SearchQueryJSON = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                view: CONST.SEARCH.VIEW.TABLE,
+                filters: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO,
+                    left: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                    right: CONST.SEARCH.STATUS.EXPENSE.APPROVED,
+                },
+                inputQuery: 'type:expense sortBy:date sortOrder:desc status!=approved',
+                flatFilters: [
+                    {
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                        filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: CONST.SEARCH.STATUS.EXPENSE.APPROVED}],
+                    },
+                ],
+                hash: 100000011,
+                recentSearchHash: 100000012,
+                similarSearchHash: 100000013,
+            };
+
+            // With status!=approved, a draft report (which is NOT approved) should return true...
+            const draftIOUReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, draftIOUReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
+
+            // ...and an outstanding report (also NOT approved) should return true
+            const outstandingIOUReport: Report = {
+                ...createRandomReport(3, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, outstandingIOUReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
+        });
+
+        it('when the current hash includes a negated policyID filter it should only return true if the iou report does not match the policyID filter', () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+            };
+            const policyID = '12345';
+            const currentSearchQueryJSON: SearchQueryJSON = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                view: CONST.SEARCH.VIEW.TABLE,
+                filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, right: policyID},
+                inputQuery: `type:expense sortBy:date sortOrder:desc policyID!=${policyID}`,
+                flatFilters: [
+                    {
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                        filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: policyID}],
+                    },
+                ],
+                hash: 100000021,
+                recentSearchHash: 100000022,
+                similarSearchHash: 100000023,
+            };
+
+            // When the IOU report has a different policyID (not excluded), it should return true
+            const nonMatchingIOUReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'differentPolicyID',
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, nonMatchingIOUReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
+
+            // When the IOU report has the excluded policyID, it should return false
+            const matchingIOUReport: Report = {
+                ...createRandomReport(3, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, matchingIOUReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
         });
     });
 });

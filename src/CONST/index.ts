@@ -6808,7 +6808,6 @@ const CONST = {
         },
         SYNTAX_ROOT_KEYS: {
             TYPE: 'type',
-            STATUS: 'status',
             SORT_BY: 'sortBy',
             SORT_ORDER: 'sortOrder',
             VIEW: 'view',

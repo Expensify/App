@@ -2,6 +2,7 @@ import {filterCardsHiddenFromSearch} from '@selectors/Card';
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {emailSelector} from '@selectors/Session';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {Filter} from '@components/Search/types';
 import {isFilterableBankAccount} from '@libs/BankAccountUtils';
 import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getAllPolicyValues} from '@libs/SearchQueryUtils';
@@ -313,7 +314,7 @@ function shouldDisplayCardFilterSelector(cardList: OnyxEntry<CardList>) {
     return shouldDisplayFilter(Object.keys(filterCardsHiddenFromSearch(cardList)).length, true);
 }
 
-function useAdvancedSearchFilters(type: SearchDataTypes | undefined, policyID: string[] | undefined) {
+function useAdvancedSearchFilters(type: SearchDataTypes | undefined, policyID: Filter | undefined) {
     const [shouldDisplayCardFilter] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: shouldDisplayCardFilterSelector});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: advancedSearchPoliciesSelector});
     const [policyDerived] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policyDerivedSelector});

@@ -125,7 +125,7 @@ function Search({
     onContentReady,
     onDestinationVisible,
 }: SearchProps) {
-    const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
+    const {type, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
 
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
@@ -690,7 +690,7 @@ function Search({
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
     const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled);
-    const ListItem = getListItem(type, status, validGroupBy);
+    const ListItem = getListItem(type, validGroupBy);
 
     useSaveSortedReportIDs(type, sortedData);
 

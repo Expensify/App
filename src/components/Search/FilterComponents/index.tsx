@@ -1,5 +1,5 @@
 import React from 'react';
-import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterCommonProps} from '@components/Search/types';
+import type {Filter, SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterCommonProps} from '@components/Search/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -29,8 +29,7 @@ type FilterKeys = Exclude<SearchFilter['key'], SearchDateFilterKeys | SearchAmou
 type FilterComponentsProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[FilterKeys] | undefined> & {
     filterKey: FilterKeys;
     type?: SearchDataTypes;
-    policyIDs: string[] | undefined;
-    policyIDQuery: string[] | undefined;
+    policyID: Filter | undefined;
 };
 
 type TextInputFilterComponentsProps = {
@@ -103,8 +102,7 @@ function SingleSelectFilterComponents({filterKey, value, selectionListTextInputS
 function MultiSelectFilterComponents({filterKey, value = [], type = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, footer, onChange}: MultiSelectFilterComponentsProps) {
     const {translate} = useLocalize();
     const items = getMultiSelectFilterOptions(filterKey, type, translate);
-    const normalizedValue = Array.isArray(value) ? value : value.split(',');
-    const multiSelectValues = items.filter((item) => normalizedValue.includes(item.value));
+    const multiSelectValues = items.filter((item) => (value as string[]).includes(item.value));
 
     return (
         <MultiSelect
@@ -113,17 +111,13 @@ function MultiSelectFilterComponents({filterKey, value = [], type = CONST.SEARCH
             selectionListStyle={selectionListStyle}
             footer={footer}
             onChange={(selectedItems) => {
-                if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
-                    onChange(selectedItems.length > 0 ? selectedItems.map((item) => item.value) : CONST.SEARCH.STATUS.EXPENSE.ALL);
-                    return;
-                }
                 onChange(selectedItems.map((item) => item.value));
             }}
         />
     );
 }
 
-function FilterComponents({filterKey, value, type, policyIDs, policyIDQuery, selectionListTextInputStyle, selectionListStyle, autoFocus, ready, footer, onChange}: FilterComponentsProps) {
+function FilterComponents({filterKey, value, type, policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, ready, footer, onChange}: FilterComponentsProps) {
     switch (filterKey) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID:
@@ -146,7 +140,7 @@ function FilterComponents({filterKey, value, type, policyIDs, policyIDQuery, sel
             return (
                 <Component
                     value={typeof value === 'object' ? value : undefined}
-                    policyIDs={policyIDs}
+                    policyID={policyID}
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
                     autoFocus={autoFocus}
@@ -225,7 +219,7 @@ function FilterComponents({filterKey, value, type, policyIDs, policyIDQuery, sel
                 <MultiSelectFilterComponents
                     key={filterKey}
                     filterKey={filterKey}
-                    value={value}
+                    value={typeof value === 'object' ? value : undefined}
                     type={type}
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
@@ -254,7 +248,6 @@ function FilterComponents({filterKey, value, type, policyIDs, policyIDQuery, sel
             return (
                 <WorkspaceSelector
                     value={typeof value === 'object' ? value : undefined}
-                    policyIDQuery={policyIDQuery}
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
                     autoFocus={autoFocus}

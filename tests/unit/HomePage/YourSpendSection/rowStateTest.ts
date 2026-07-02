@@ -4,27 +4,26 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 
 // Helpers
 
-const makeSearchResults = (overrides: Partial<SearchResults> = {}): SearchResults =>
-    ({
-        search: {
-            offset: 0,
-            type: 'expense',
-            status: '',
-            hasMoreResults: false,
-            hasResults: true,
-            isLoading: false,
-            count: 5,
-        },
-        data: {},
-        ...overrides,
-    }) as SearchResults;
+const makeSearchResults = (overrides: Partial<SearchResults> = {}): SearchResults => ({
+    search: {
+        offset: 0,
+        hash: 0,
+        type: 'expense',
+        hasMoreResults: false,
+        hasResults: true,
+        isLoading: false,
+        count: 5,
+    },
+    data: {},
+    ...overrides,
+});
 
 const makeSearchResultsWithCount = (count: number): SearchResults =>
     makeSearchResults({
         search: {
             offset: 0,
+            hash: 0,
             type: 'expense',
-            status: '',
             hasMoreResults: false,
             hasResults: count > 0,
             isLoading: false,

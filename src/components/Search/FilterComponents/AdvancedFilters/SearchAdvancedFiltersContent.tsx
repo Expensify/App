@@ -1,5 +1,5 @@
 import React from 'react';
-import {isAmountFilterKey, isDateFilterKey} from '@libs/SearchUIUtils';
+import {getFilterNegatableValue, isAmountFilterKey, isDateFilterKey} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -18,7 +18,6 @@ type CommonFilterContentWrapperProps = Omit<CommonFilterContentProps, 'selection
 type SearchAdvancedFiltersContentProps = {
     filterKey: SearchFilter['key'];
     values: Partial<SearchAdvancedFiltersForm> | undefined;
-    policyIDQuery: string[] | undefined;
     ready?: boolean;
     components: {
         Text: React.ComponentType<TextInputFilterContentWrapperProps>;
@@ -36,7 +35,7 @@ function getFilterFormValue<K extends FilterComponentsProps['filterKey']>(filter
     return update;
 }
 
-function SearchAdvancedFiltersContent({filterKey, values, policyIDQuery, ready, components, onChange}: SearchAdvancedFiltersContentProps) {
+function SearchAdvancedFiltersContent({filterKey, values, ready, components, onChange}: SearchAdvancedFiltersContentProps) {
     const {Text: TextFilter, Amount: AmountFilter, Date: DateFilter, ReportField: ReportFieldFilter, Common: CommonFilter} = components;
 
     if (
@@ -116,8 +115,7 @@ function SearchAdvancedFiltersContent({filterKey, values, policyIDQuery, ready, 
             filterKey={filterKey}
             value={values?.[filterKey]}
             type={values?.type}
-            policyIDs={values?.policyID}
-            policyIDQuery={policyIDQuery}
+            policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, values)}
             ready={ready}
             onChange={(newValue) => onChange(getFilterFormValue(filterKey, newValue))}
         />

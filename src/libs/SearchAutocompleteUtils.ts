@@ -206,7 +206,7 @@ function filterOutRangesWithCorrectValue(
             return withdrawalTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS:
             return withdrawalStatusList.includes(range.value);
-        case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS:
             return statusList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION:
             return actionList.includes(range.value);

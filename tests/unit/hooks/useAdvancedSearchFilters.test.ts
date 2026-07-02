@@ -209,7 +209,7 @@ describe('useAdvancedSearchFilters', () => {
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`, emptyTagList);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, ['1']), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, {value: ['1'], isNegated: false}), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -222,7 +222,7 @@ describe('useAdvancedSearchFilters', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`, buildTagList('Engineering'));
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, ['1']), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, {value: ['1'], isNegated: false}), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();

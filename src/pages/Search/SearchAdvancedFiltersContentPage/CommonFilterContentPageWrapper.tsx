@@ -5,7 +5,7 @@ import CommonFilterContent from '@components/Search/FilterComponents/AdvancedFil
 import type {CommonFilterContentWrapperProps} from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
 import useLocalize from '@hooks/useLocalize';
 
-function CommonFilterContentPageWrapper({filterKey, value: initialValue, type, policyIDs, policyIDQuery, ready, onChange}: CommonFilterContentWrapperProps) {
+function CommonFilterContentPageWrapper({filterKey, value: initialValue, type, policyID, ready, onChange}: CommonFilterContentWrapperProps) {
     const {translate} = useLocalize();
     const [value, setValue] = useState<FilterComponentsProps['value']>(initialValue);
 
@@ -14,8 +14,7 @@ function CommonFilterContentPageWrapper({filterKey, value: initialValue, type, p
             filterKey={filterKey}
             value={value}
             type={type}
-            policyIDs={policyIDs}
-            policyIDQuery={policyIDQuery}
+            policyID={policyID}
             autoFocus
             ready={ready}
             onChange={setValue}

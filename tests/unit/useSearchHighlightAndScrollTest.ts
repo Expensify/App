@@ -4,7 +4,6 @@ import Onyx from 'react-native-onyx';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScroll';
 import {search} from '@libs/actions/Search';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 jest.mock('@libs/actions/Search');
@@ -42,7 +41,7 @@ describe('useSearchHighlightAndScroll', () => {
                 hasMoreResults: false,
                 hasResults: true,
                 offset: 0,
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                hash: 0,
                 type: 'expense',
                 isLoading: false,
             },
@@ -53,7 +52,6 @@ describe('useSearchHighlightAndScroll', () => {
         previousReportActions: {},
         queryJSON: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {operator: 'and', left: 'tag', right: ''},

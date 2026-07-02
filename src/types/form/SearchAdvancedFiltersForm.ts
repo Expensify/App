@@ -1,4 +1,4 @@
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {
     ReportFieldDateKey,
     ReportFieldKey,
@@ -28,12 +28,32 @@ const DATE_FILTER_KEYS: SearchDateFilterKeys[] = [
 
 const AMOUNT_FILTER_KEYS: SearchAmountFilterKeys[] = [CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL, CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT];
 
+const NEGATABLE_FILTER_KEYS = [
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+] as const;
+
+type SearchNegatableFilterKeys = TupleToUnion<typeof NEGATABLE_FILTER_KEYS>;
+
+const NEGATABLE_FILTERS = new Set<SearchNegatableFilterKeys>(NEGATABLE_FILTER_KEYS);
+
 const FILTER_KEYS = {
-    POLICY_ID: 'policyID',
     GROUP_BY: 'groupBy',
     VIEW: 'view',
     TYPE: 'type',
+
     STATUS: 'status',
+    STATUS_NOT: 'statusNot',
+
+    POLICY_ID: 'policyID',
+    POLICY_ID_NOT: 'policyIDNot',
 
     DATE_NOT: 'dateNot',
     DATE_ON: 'dateOn',
@@ -196,12 +216,14 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
     [CONST.SEARCH.DATA_TYPES.EXPENSE]: new Set([
         FILTER_KEYS.TYPE,
         FILTER_KEYS.STATUS,
+        FILTER_KEYS.STATUS_NOT,
         FILTER_KEYS.FROM,
         FILTER_KEYS.FROM_NOT,
         FILTER_KEYS.TO,
         FILTER_KEYS.TO_NOT,
         FILTER_KEYS.KEYWORD,
         FILTER_KEYS.POLICY_ID,
+        FILTER_KEYS.POLICY_ID_NOT,
         FILTER_KEYS.EXPENSE_TYPE,
         FILTER_KEYS.EXPENSE_TYPE_NOT,
         FILTER_KEYS.RECEIPT_TYPE,
@@ -309,12 +331,14 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
     [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: new Set([
         FILTER_KEYS.TYPE,
         FILTER_KEYS.STATUS,
+        FILTER_KEYS.STATUS_NOT,
         FILTER_KEYS.FROM,
         FILTER_KEYS.FROM_NOT,
         FILTER_KEYS.TO,
         FILTER_KEYS.TO_NOT,
         FILTER_KEYS.KEYWORD,
         FILTER_KEYS.POLICY_ID,
+        FILTER_KEYS.POLICY_ID_NOT,
         FILTER_KEYS.DATE_ON,
         FILTER_KEYS.DATE_NOT,
         FILTER_KEYS.DATE_AFTER,
@@ -375,12 +399,14 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
     [CONST.SEARCH.DATA_TYPES.INVOICE]: new Set([
         FILTER_KEYS.TYPE,
         FILTER_KEYS.STATUS,
+        FILTER_KEYS.STATUS_NOT,
         FILTER_KEYS.FROM,
         FILTER_KEYS.FROM_NOT,
         FILTER_KEYS.TO,
         FILTER_KEYS.TO_NOT,
         FILTER_KEYS.KEYWORD,
         FILTER_KEYS.POLICY_ID,
+        FILTER_KEYS.POLICY_ID_NOT,
         FILTER_KEYS.MERCHANT,
         FILTER_KEYS.MERCHANT_NOT,
         FILTER_KEYS.DATE_ON,
@@ -469,12 +495,14 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
     [CONST.SEARCH.DATA_TYPES.TRIP]: new Set([
         FILTER_KEYS.TYPE,
         FILTER_KEYS.STATUS,
+        FILTER_KEYS.STATUS_NOT,
         FILTER_KEYS.FROM,
         FILTER_KEYS.FROM_NOT,
         FILTER_KEYS.TO,
         FILTER_KEYS.TO_NOT,
         FILTER_KEYS.KEYWORD,
         FILTER_KEYS.POLICY_ID,
+        FILTER_KEYS.POLICY_ID_NOT,
         FILTER_KEYS.MERCHANT,
         FILTER_KEYS.MERCHANT_NOT,
         FILTER_KEYS.DATE_ON,
@@ -562,6 +590,7 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.IN_NOT,
         FILTER_KEYS.KEYWORD,
         FILTER_KEYS.POLICY_ID,
+        FILTER_KEYS.POLICY_ID_NOT,
         FILTER_KEYS.DATE_AFTER,
         FILTER_KEYS.DATE_BEFORE,
         FILTER_KEYS.DATE_ON,
@@ -576,6 +605,7 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
     [CONST.SEARCH.DATA_TYPES.TASK]: new Set([
         FILTER_KEYS.TYPE,
         FILTER_KEYS.STATUS,
+        FILTER_KEYS.STATUS_NOT,
         FILTER_KEYS.TITLE,
         FILTER_KEYS.TITLE_NOT,
         FILTER_KEYS.DESCRIPTION,
@@ -614,7 +644,8 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.TYPE]: SearchDataTypes;
         [FILTER_KEYS.COLUMNS]: SearchCustomColumnIds[];
 
-        [FILTER_KEYS.STATUS]: string[] | string;
+        [FILTER_KEYS.STATUS]: string[];
+        [FILTER_KEYS.STATUS_NOT]: string[];
 
         [FILTER_KEYS.DATE_ON]: string;
         [FILTER_KEYS.DATE_NOT]: string;
@@ -672,6 +703,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.CATEGORY_NOT]: string[];
 
         [FILTER_KEYS.POLICY_ID]: string[];
+        [FILTER_KEYS.POLICY_ID_NOT]: string[];
 
         [FILTER_KEYS.CARD_ID]: string[];
         [FILTER_KEYS.CARD_ID_NOT]: string[];
@@ -776,6 +808,17 @@ type SearchAdvancedFiltersForm = Form<
         Record<ReportFieldNegatedKey, string>
 >;
 
-export type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey, HasFilterValue, HasFilterValues, IsFilterValue, IsFilterValues, ExpenseTypeValue, ExpenseTypeValues, ReceiptTypeValue};
+export type {
+    SearchAdvancedFiltersForm,
+    SearchAdvancedFiltersKey,
+    HasFilterValue,
+    HasFilterValues,
+    IsFilterValue,
+    IsFilterValues,
+    ExpenseTypeValue,
+    ExpenseTypeValues,
+    ReceiptTypeValue,
+    SearchNegatableFilterKeys,
+};
 export default FILTER_KEYS;
-export {DATE_FILTER_KEYS, ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS};
+export {DATE_FILTER_KEYS, ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, NEGATABLE_FILTERS};

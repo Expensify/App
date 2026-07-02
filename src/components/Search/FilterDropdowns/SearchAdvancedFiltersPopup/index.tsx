@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {getFilterNegatableValue} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,7 +39,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
                 <FilterList
                     style={[styles.typeFiltersPopupContainer]}
                     type={searchAdvancedFiltersForm?.type}
-                    policyID={searchAdvancedFiltersForm?.policyID}
+                    policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, searchAdvancedFiltersForm)}
                     selectedFilter={selectedFilter}
                     onHoverIn={setSelectedFilter}
                     onFocus={setSelectedFilter}
@@ -50,7 +51,6 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
                     <SearchAdvancedFiltersContent
                         values={searchAdvancedFiltersForm}
                         filterKey={selectedFilter}
-                        policyIDQuery={queryJSON.policyID}
                         components={{
                             Common: CommonFilterContentPopupWrapper,
                             Text: TextInputFilterContentPopupWrapper,

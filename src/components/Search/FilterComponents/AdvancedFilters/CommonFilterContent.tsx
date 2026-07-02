@@ -1,37 +1,24 @@
 import React from 'react';
-import type {SearchFilterCommonProps} from '@components/Search/types';
+import type {Filter, SearchFilterCommonProps, SearchTextFilterKeys} from '@components/Search/types';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {FilterComponentsProps} from '..';
 import FilterComponents from '..';
 
-type CommonFilterContentProps = SearchFilterCommonProps<FilterComponentsProps['value']> & {
+type CommonFilterContentProps = SearchFilterCommonProps<Exclude<FilterComponentsProps['value'], SearchAdvancedFiltersForm[SearchTextFilterKeys]>> & {
     filterKey: FilterComponentsProps['filterKey'];
     type: SearchDataTypes | undefined;
-    policyIDs: string[] | undefined;
-    policyIDQuery: string[] | undefined;
+    policyID: Filter;
 };
 
-function CommonFilterContent({
-    filterKey,
-    value,
-    type,
-    ready,
-    policyIDs,
-    policyIDQuery,
-    autoFocus,
-    selectionListTextInputStyle,
-    selectionListStyle,
-    footer,
-    onChange,
-}: CommonFilterContentProps) {
+function CommonFilterContent({filterKey, value, type, ready, policyID, autoFocus, selectionListTextInputStyle, selectionListStyle, footer, onChange}: CommonFilterContentProps) {
     return (
         <FilterComponents
             value={value}
             type={type}
             ready={ready}
-            policyIDs={policyIDs}
+            policyID={policyID}
             filterKey={filterKey}
-            policyIDQuery={policyIDQuery}
             selectionListTextInputStyle={selectionListTextInputStyle}
             selectionListStyle={selectionListStyle}
             autoFocus={autoFocus}

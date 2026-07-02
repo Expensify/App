@@ -4,6 +4,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
+import type {Filter} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
@@ -27,7 +28,7 @@ type FilterItemCallbacks = {
 
 type FilterListProps = FilterItemCallbacks & {
     type: SearchDataTypes | undefined;
-    policyID: string[] | undefined;
+    policyID: Filter;
     selectedFilter?: SearchFilter['key'];
     style?: StyleProp<ViewStyle>;
     contentContainerStyle?: StyleProp<ViewStyle>;

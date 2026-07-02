@@ -14,7 +14,7 @@ jest.mock('@libs/actions/Search', () => ({
     getExportTemplates: (...args: unknown[]) => mockGetExportTemplates(...args),
 }));
 
-jest.mock('@libs/PolicyUtils', () => ({
+jest.mock('@libs/SearchQueryUtils', () => ({
     getConnectedIntegrationNamesForPolicies: () => mockGetConnectedIntegrationNamesForPolicies(),
 }));
 

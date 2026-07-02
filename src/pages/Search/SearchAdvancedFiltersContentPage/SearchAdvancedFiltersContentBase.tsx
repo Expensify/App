@@ -5,7 +5,6 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchAdvancedFiltersContent from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
-import {useSearchQueryContext} from '@components/Search/SearchContext';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -31,7 +30,6 @@ function SearchAdvancedFiltersContentBase() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const {currentSearchQueryJSON} = useSearchQueryContext();
     const filterKey = route.params.filterKey;
     const {currentDraftFilters} = useContext(SearchAdvancedFiltersContext);
     const {setDraftFilters} = useContext(SearchAdvancedFiltersActionContext);
@@ -61,7 +59,6 @@ function SearchAdvancedFiltersContentBase() {
                             <SearchAdvancedFiltersContent
                                 values={currentDraftFilters}
                                 filterKey={validFilterKey}
-                                policyIDQuery={currentSearchQueryJSON?.policyID}
                                 ready={didScreenTransitionEnd}
                                 components={{
                                     Common: CommonFilterContentPageWrapper,

@@ -1992,7 +1992,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         };
 
         // When splitting the expense
-        const hash = 1;
+        const hash = unapprovedCashHash;
 
         let allTransactions: OnyxCollection<Transaction>;
         let allReports: OnyxCollection<Report>;
