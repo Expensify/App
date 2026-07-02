@@ -47,7 +47,7 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
 }));
 
 jest.mock('@hooks/useLazyAsset', () => ({
-    useMemoizedLazyExpensifyIcons: jest.fn(() => ({ArrowRight: 1, DotIndicator: 1})),
+    useMemoizedLazyExpensifyIcons: jest.fn(() => ({ArrowRight: 1, DotIndicator: 1, ChatBubble: 1})),
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -57,7 +57,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 jest.mock('@components/Table/TableContext', () => ({
     useTableContext: jest.fn(() => ({
         processedData: [{keyForList: '12345'}],
-        columns: [{width: undefined}, {width: 20}],
+        columns: [{width: undefined}, {width: 260}],
         shouldUseNarrowTableLayout: false,
         tableMethods: {},
         selectionEnabled: false,
@@ -77,6 +77,22 @@ jest.mock('@components/OfflineWithFeedback', () => {
         return children;
     }
     return MockOfflineWithFeedback;
+});
+
+jest.mock('@components/Button', () => {
+    const {TouchableOpacity, Text} = jest.requireActual<typeof ReactNative>('react-native');
+    function MockButton({text, onPress, accessibilityLabel}: {text?: string; onPress: () => void; accessibilityLabel?: string}) {
+        return (
+            <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel={accessibilityLabel}
+                onPress={onPress}
+            >
+                <Text>{text}</Text>
+            </TouchableOpacity>
+        );
+    }
+    return MockButton;
 });
 
 jest.mock('@components/Pressable/PressableWithFeedback', () => {
@@ -99,6 +115,9 @@ const mockNavigate = jest.mocked(Navigation.navigate);
 
 const TEST_ACCOUNT_ID = 12345;
 
+const mockOnChatPress = jest.fn();
+const mockOnCopilotPress = jest.fn();
+
 const BASE_ITEM: AgentRowData = {
     keyForList: String(TEST_ACCOUNT_ID),
     accountID: TEST_ACCOUNT_ID,
@@ -106,6 +125,8 @@ const BASE_ITEM: AgentRowData = {
     login: 'agent@example.com',
     hasUpdateErrors: false,
     action: () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(TEST_ACCOUNT_ID)),
+    onChatPress: mockOnChatPress,
+    onCopilotPress: mockOnCopilotPress,
     dismissError: jest.fn(),
 };
 
@@ -143,8 +164,8 @@ describe('AgentsTableRow', () => {
         expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(TEST_ACCOUNT_ID));
     });
 
-    it('does not show action buttons on wide layout', () => {
-        const {toJSON} = render(
+    it('shows action buttons on wide layout', () => {
+        render(
             <AgentsTableRow
                 item={BASE_ITEM}
                 rowIndex={0}
@@ -152,14 +173,13 @@ describe('AgentsTableRow', () => {
             />,
         );
 
-        const output = JSON.stringify(toJSON());
-        expect(output).not.toContain('common.edit');
-        expect(output).not.toContain('editAgentPage.chatWithAgent');
-        expect(output).not.toContain('delegate.copilot');
+        expect(screen.getByText('common.edit')).toBeOnTheScreen();
+        expect(screen.getByText('agentsPage.copilot')).toBeOnTheScreen();
+        expect(screen.getByLabelText('editAgentPage.chatWithAgent')).toBeOnTheScreen();
     });
 
     it('does not show action buttons on narrow layout', () => {
-        const {toJSON} = render(
+        render(
             <AgentsTableRow
                 item={BASE_ITEM}
                 rowIndex={0}
@@ -167,9 +187,50 @@ describe('AgentsTableRow', () => {
             />,
         );
 
-        const output = JSON.stringify(toJSON());
-        expect(output).not.toContain('common.edit');
-        expect(output).not.toContain('editAgentPage.chatWithAgent');
-        expect(output).not.toContain('delegate.copilot');
+        expect(screen.queryByText('common.edit')).not.toBeOnTheScreen();
+        expect(screen.queryByText('agentsPage.copilot')).not.toBeOnTheScreen();
+        expect(screen.queryByLabelText('editAgentPage.chatWithAgent')).not.toBeOnTheScreen();
+    });
+
+    it('pressing Edit button navigates to the edit agent page', () => {
+        render(
+            <AgentsTableRow
+                item={BASE_ITEM}
+                rowIndex={0}
+                shouldUseNarrowTableLayout={false}
+            />,
+        );
+
+        fireEvent.press(screen.getByText('common.edit'));
+
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(TEST_ACCOUNT_ID));
+    });
+
+    it('pressing Chat button calls onChatPress', () => {
+        render(
+            <AgentsTableRow
+                item={BASE_ITEM}
+                rowIndex={0}
+                shouldUseNarrowTableLayout={false}
+            />,
+        );
+
+        fireEvent.press(screen.getByLabelText('editAgentPage.chatWithAgent'));
+
+        expect(mockOnChatPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('pressing Copilot button calls onCopilotPress', () => {
+        render(
+            <AgentsTableRow
+                item={BASE_ITEM}
+                rowIndex={0}
+                shouldUseNarrowTableLayout={false}
+            />,
+        );
+
+        fireEvent.press(screen.getByLabelText('editAgentPage.copilotIntoAccount'));
+
+        expect(mockOnCopilotPress).toHaveBeenCalledTimes(1);
     });
 });

@@ -8702,6 +8702,9 @@ const CONST = {
         },
         AGENTS: {
             TABLE_ROW: 'Agents-TableRow',
+            CHAT: 'Agents-Chat',
+            COPILOT: 'Agents-Copilot',
+            EDIT: 'Agents-Edit',
         },
         DOMAIN: {
             ADMINS: {

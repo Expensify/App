@@ -20,6 +20,8 @@ type AgentRowData = TableData & {
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
     action: () => void;
+    onChatPress: () => void;
+    onCopilotPress: () => void;
     dismissError: () => void;
 };
 
@@ -43,7 +45,7 @@ export default function AgentsTable({agents}: AgentsTableProps) {
             key: 'actions',
             label: '',
             sortable: false,
-            width: variables.tableCaretColumnWidth,
+            width: shouldUseNarrowTableLayout ? variables.tableCaretColumnWidth : variables.agentsTableActionColumnWidth,
         },
     ];
 

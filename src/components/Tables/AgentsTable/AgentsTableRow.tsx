@@ -1,10 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Table from '@components/Table';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,10 +29,13 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
     const theme = useTheme();
     const styles = useThemeStyles();
     const styleUtils = useStyleUtils();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'DotIndicator']);
+    const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'DotIndicator', 'ChatBubble']);
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
     const isPendingDeletion = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const isPendingAddOrDelete = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || isPendingDeletion;
+    const areActionsDisabled = isPendingAddOrDelete || item.accountID <= 0 || !item.login;
     const accessibilityLabel = [item.displayName, item.login].filter(Boolean).join(', ');
 
     const getSecondaryAvatarContainerStyle = (hovered: boolean) => [
@@ -77,12 +82,42 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
                         </View>
                     </View>
 
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap2]}>
                         {item.hasUpdateErrors && (
                             <Icon
                                 src={icons.DotIndicator}
                                 fill={theme.danger}
                             />
+                        )}
+                        {!shouldUseNarrowTableLayout && (
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                                <Button
+                                    small
+                                    icon={icons.ChatBubble}
+                                    onPress={item.onChatPress}
+                                    isDisabled={areActionsDisabled}
+                                    accessibilityLabel={translate('editAgentPage.chatWithAgent')}
+                                    sentryLabel={CONST.SENTRY_LABEL.AGENTS.CHAT}
+                                    innerStyles={styles.p0}
+                                />
+                                <Button
+                                    small
+                                    text={translate('agentsPage.copilot')}
+                                    onPress={item.onCopilotPress}
+                                    isDisabled={areActionsDisabled}
+                                    accessibilityLabel={translate('editAgentPage.copilotIntoAccount')}
+                                    sentryLabel={CONST.SENTRY_LABEL.AGENTS.COPILOT}
+                                    innerStyles={styles.p0}
+                                />
+                                <Button
+                                    small
+                                    text={translate('common.edit')}
+                                    onPress={item.action}
+                                    isDisabled={isPendingDeletion}
+                                    sentryLabel={CONST.SENTRY_LABEL.AGENTS.EDIT}
+                                    innerStyles={styles.p0}
+                                />
+                            </View>
                         )}
                         <Icon
                             src={icons.ArrowRight}

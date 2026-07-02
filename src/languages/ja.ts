@@ -2834,6 +2834,7 @@ ${date} の ${merchant} への ${amount}`,
         title: '担当者',
         subtitle: `<muted-text>エージェントがワークフローを代わりに処理するので、毎日の時間を数時間取り戻せます。<a href="${CONST.CUSTOM_AGENTS_HELP_URL}">詳しく見る</a>。</muted-text>`,
         findAgent: '担当者を探す',
+        copilot: 'Co-pilot',
         newAgent: '新しいエージェント',
         emptyAgents: {
             title: 'エージェントは作成されていません',

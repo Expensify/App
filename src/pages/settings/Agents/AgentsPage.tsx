@@ -9,12 +9,14 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import type {AgentRowData} from '@components/Tables/AgentsTable';
 import AgentsTable from '@components/Tables/AgentsTable';
+import useChatWithAgent from '@hooks/useChatWithAgent';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -30,6 +32,8 @@ function AgentsPage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['TvScreenRobot', 'AiBot']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
+    const chatWithAgent = useChatWithAgent();
+    const switchToDelegator = useSwitchToDelegator();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     useDocumentTitle(translate('agentsPage.title'));
@@ -80,6 +84,8 @@ function AgentsPage() {
                 errors: shouldShowErrors(pendingAction) ? (agentPrompt?.errors ?? undefined) : undefined,
                 disabled: isPendingDeletion,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID)),
+                onChatPress: () => chatWithAgent(accountID),
+                onCopilotPress: () => switchToDelegator(details.login ?? ''),
                 dismissError: () => handleErrorClose(pendingAction, accountID),
             },
         ];
