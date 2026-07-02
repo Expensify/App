@@ -4811,7 +4811,7 @@ describe('updateSplitTransactions', () => {
         const iouAction = getIOUActionForReportID(expenseReport?.reportID, originalTransactionID);
         const {splitTransactionID1, splitTransactionID2} = await splitToThree(expenseReport, originalTransactionID, iouAction);
         const {allTransactions, allReports, allReportActions, allReportNameValuePairs} = await getCollections();
-        const policyTags = await getPolicyTags(expenseReport.reportID);
+        const allPolicyTags = await getAllPolicyTags();
         const reports = getTransactionAndExpenseReports(expenseReport.reportID);
 
         // The preview action lives in the chat report's actions, supplied via the new allReportActionsList param.
@@ -4842,7 +4842,7 @@ describe('updateSplitTransactions', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            policyTags,
+            allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
@@ -4878,7 +4878,7 @@ describe('updateSplitTransactions', () => {
         const iouAction = getIOUActionForReportID(expenseReport?.reportID, originalTransactionID);
         const {splitTransactionID1, splitTransactionID2} = await splitToThree(expenseReport, originalTransactionID, iouAction);
         const {allTransactions, allReports, allReportNameValuePairs} = await getCollections();
-        const policyTags = await getPolicyTags(expenseReport.reportID);
+        const allPolicyTags = await getAllPolicyTags();
         const reports = getTransactionAndExpenseReports(expenseReport.reportID);
 
         // Capture the preview action's count after the split-to-three setup, before our isolated call.
@@ -4915,7 +4915,7 @@ describe('updateSplitTransactions', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            policyTags,
+            allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
