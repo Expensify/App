@@ -9,12 +9,11 @@
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
-import {CONST as COMMON_CONST} from 'expensify-common';
+import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 import type {ValueOf} from 'type-fest';
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import StringUtils from '@libs/StringUtils';
-import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
@@ -514,7 +513,9 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Éditeur',
         restrictions: 'Restrictions',
+        tagGLCode: 'Taguer le code GL',
         off: 'Désactivé',
+        apiKey: 'Clé API',
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -720,16 +721,16 @@ const translations: TranslationDeepObject<typeof en> = {
         revealCardDetail: {couldNotReveal: 'Nous n’avons pas pu afficher les détails de votre carte. Veuillez réessayer.'},
     },
     validateCodeModal: {
-        successfulSignInTitle: dedent(`
+        successfulSignInTitle: Str.dedent(`
             Abracadabra,
             vous êtes connecté !
         `),
         successfulSignInDescription: 'Revenez à votre onglet d’origine pour continuer.',
         title: 'Voici votre code magique',
-        description: dedent(`
+        description: Str.dedent(`
             Veuillez saisir le code depuis l’app où il a été initialement demandé
         `),
-        doNotShare: dedent(`
+        doNotShare: Str.dedent(`
             Ne partagez votre code avec personne.
             Expensify ne vous le demandera jamais !
         `),
@@ -738,11 +739,11 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeTitle: 'Code magique expiré',
         expiredCodeDescription: "Retournez sur l'appareil d’origine et demandez un nouveau code",
         successfulNewCodeRequest: 'Code demandé. Veuillez vérifier votre appareil.',
-        tfaRequiredTitle: dedent(`
+        tfaRequiredTitle: Str.dedent(`
             Authentification à deux facteurs
             requise
         `),
-        tfaRequiredDescription: dedent(`
+        tfaRequiredDescription: Str.dedent(`
             Veuillez saisir le code d’authentification à deux facteurs
             là où vous essayez de vous connecter.
         `),
@@ -1348,6 +1349,9 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Êtes-vous sûr de vouloir supprimer ces rapports ?',
         }),
         settledExpensify: 'Payé',
+        paidStatusMarkedAsPaid: 'Marqué comme payé',
+        paidStatusWithdrawing: 'Retrait',
+        paidStatusConfirmed: 'Confirmé',
         done: 'Terminé',
         settledElsewhere: 'Payé ailleurs',
         individual: 'Individuel',
@@ -1668,6 +1672,10 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpenses: 'Déplacer vers le rapport',
         moveExpensesError:
             'Vous ne pouvez pas déplacer des frais de per diem vers des notes de frais d’autres espaces de travail, car les taux de per diem peuvent varier d’un espace de travail à l’autre.',
+        submitReportTo: {
+            sendExpense: 'Envoyez votre dépense à n’importe qui',
+            sendExpenseSubtitle: 'Invitez n’importe qui sur Expensify en utilisant son adresse e-mail ou son numéro de téléphone.',
+        },
         changeApprover: {
             title: 'Modifier l’approbateur',
             header: (workflowSettingLink: string) =>
@@ -2328,7 +2336,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noAuthenticatorApp: 'Vous n’aurez plus besoin d’une application d’authentification pour vous connecter à Expensify.',
         stepCodes: 'Codes de récupération',
         keepCodesSafe: 'Conservez ces codes en lieu sûr !',
-        codesLoseAccess: dedent(`
+        codesLoseAccess: Str.dedent(`
             Si vous perdez l’accès à votre application d’authentification et que vous n’avez pas ces codes, vous serez bloqué hors de votre compte.<br><br>
             <strong>Remarque</strong> : L’activation de la 2FA vous déconnecte de toutes les autres sessions.
         `),
@@ -3157,7 +3165,7 @@ ${amount} pour ${merchant} - ${date}`,
             addExpenseApprovalsTask: {
                 title: 'Ajouter des approbations de dépenses',
                 description: ({workspaceMoreFeaturesLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Ajoutez des approbations de dépenses* pour examiner les dépenses de votre équipe et les garder sous contrôle.
 
                         Voici comment faire :
@@ -3179,7 +3187,7 @@ ${amount} pour ${merchant} - ${date}`,
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `Créer un [espace de travail](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Créez un espace de travail* pour suivre les dépenses, scanner les reçus, discuter, et plus encore.
 
                         1. Cliquez sur *Espaces de travail* > *Nouvel espace de travail*.
@@ -3189,7 +3197,7 @@ ${amount} pour ${merchant} - ${date}`,
             setupCategoriesTask: {
                 title: ({workspaceCategoriesLink}) => `Configurer les [catégories](${workspaceCategoriesLink})`,
                 description: ({workspaceCategoriesLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Configurez les catégories* pour que votre équipe puisse coder les dépenses et faciliter le reporting.
 
                         1. Cliquez sur *Espaces de travail*.
@@ -3203,8 +3211,9 @@ ${amount} pour ${merchant} - ${date}`,
             },
             combinedTrackSubmitExpenseTask: {
                 title: 'Créer une dépense',
-                description: dedent(`
+                description: Str.dedent(`
                     *Créez une dépense* en saisissant un montant ou en scannant un reçu.
+
 
                     1. Cliquez sur le bouton *+*.
                     2. Choisissez *Créer une dépense*.
@@ -3217,8 +3226,9 @@ ${amount} pour ${merchant} - ${date}`,
             },
             adminSubmitExpenseTask: {
                 title: 'Créer une dépense',
-                description: dedent(`
+                description: Str.dedent(`
                     *Créez une dépense* en saisissant un montant ou en scannant un reçu.
+
 
                     1. Cliquez sur le bouton *+*.
                     2. Choisissez *Créer une dépense*.
@@ -3231,7 +3241,7 @@ ${amount} pour ${merchant} - ${date}`,
             },
             trackExpenseTask: {
                 title: 'Suivre une dépense',
-                description: dedent(`
+                description: Str.dedent(`
                     *Enregistrez une dépense* dans n’importe quelle devise, que vous ayez un reçu ou non.
 
                     1. Cliquez sur le bouton *+*.
@@ -3247,7 +3257,7 @@ ${amount} pour ${merchant} - ${date}`,
                 title: ({integrationName, workspaceAccountingLink}) =>
                     `Connecter${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : 'à'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'votre' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         Connectez ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'votre' : 'à'} ${integrationName} pour profiter d’un codage automatique des dépenses et d’une synchronisation qui simplifient la clôture de fin de mois.
 
                         1. Cliquez sur *Espaces de travail*.
@@ -3262,7 +3272,7 @@ ${amount} pour ${merchant} - ${date}`,
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Connectez [vos cartes d’entreprise](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         Connectez les cartes que vous avez déjà pour importer automatiquement les transactions, faire correspondre les reçus et faciliter le rapprochement.
 
                         1. Cliquez sur *Espaces de travail*.
@@ -3275,7 +3285,7 @@ ${amount} pour ${merchant} - ${date}`,
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Invitez [votre équipe](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Invitez votre équipe* sur Expensify afin qu’elle puisse commencer à suivre ses dépenses dès aujourd’hui.
 
                         1. Cliquez sur *Espaces de travail*.
@@ -3290,7 +3300,7 @@ ${amount} pour ${merchant} - ${date}`,
             setupCategoriesAndTags: {
                 title: ({workspaceCategoriesLink, workspaceTagsLink}) => `Configurer les [catégories](${workspaceCategoriesLink}) et les [tags](${workspaceTagsLink})`,
                 description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Configurez des catégories et des tags* afin que votre équipe puisse comptabiliser les dépenses pour faciliter les rapports.
 
                         Importez-les automatiquement en [connectant votre logiciel de comptabilité](${workspaceAccountingLink}), ou configurez-les manuellement dans les [paramètres de votre espace de travail](${workspaceCategoriesLink}).`),
@@ -3298,7 +3308,7 @@ ${amount} pour ${merchant} - ${date}`,
             setupTagsTask: {
                 title: ({workspaceTagsLink}) => `Configurer les [tags](${workspaceTagsLink})`,
                 description: ({workspaceMoreFeaturesLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         Utilisez les tags pour ajouter des détails supplémentaires sur les dépenses, comme les projets, les clients, les lieux et les services. Si vous avez besoin de plusieurs niveaux de tags, vous pouvez passer au plan Control.
 
                         1. Cliquez sur *Espaces de travail*.
@@ -3315,7 +3325,7 @@ ${amount} pour ${merchant} - ${date}`,
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `Invitez votre [comptable](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Invitez votre comptable* à collaborer sur votre espace de travail et à gérer les dépenses de votre entreprise.
 
                         1. Cliquez sur *Espaces de travail*.
@@ -3328,7 +3338,7 @@ ${amount} pour ${merchant} - ${date}`,
             },
             startChatTask: {
                 title: 'Commencer une discussion',
-                description: dedent(`
+                description: Str.dedent(`
                     *Lancez une discussion* avec n'importe qui en utilisant son e-mail ou son numéro de téléphone.
 
                     1. Cliquez sur le bouton *+*.
@@ -3342,7 +3352,7 @@ ${amount} pour ${merchant} - ${date}`,
             },
             splitExpenseTask: {
                 title: 'Diviser une dépense',
-                description: dedent(`
+                description: Str.dedent(`
                     *Répartissez les dépenses* avec une ou plusieurs personnes.
 
                     1. Cliquez sur le bouton *+*.
@@ -3357,7 +3367,7 @@ ${amount} pour ${merchant} - ${date}`,
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `Examinez les [paramètres de votre espace de travail](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         Voici comment examiner et mettre à jour les paramètres de votre espace de travail :
                         1. Cliquez sur Espaces de travail.
                         2. Sélectionnez votre espace de travail.
@@ -3366,7 +3376,7 @@ ${amount} pour ${merchant} - ${date}`,
             },
             createReportTask: {
                 title: 'Créez votre première note de frais',
-                description: dedent(`
+                description: Str.dedent(`
                     Voici comment créer une note de frais :
 
                     1. Cliquez sur le bouton *+*.
@@ -3387,11 +3397,11 @@ ${amount} pour ${merchant} - ${date}`,
             onboardingPersonalSpendMessage: 'Voici comment suivre vos dépenses en quelques clics.',
             onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
                 isOnboardingFlow
-                    ? dedent(`
+                    ? Str.dedent(`
                         # Votre essai gratuit a commencé ! Configurons tout cela.
                         👋 Bonjour, je suis votre chargé de compte Expensify. J’ai déjà créé un espace de travail pour vous aider à gérer les reçus et les dépenses de votre équipe. Pour tirer le meilleur parti de votre essai gratuit de 30 jours, il vous suffit de suivre les dernières étapes de configuration ci-dessous !
                     `)
-                    : dedent(`
+                    : Str.dedent(`
                         # Votre essai gratuit a commencé ! Configurons tout cela.
                         👋 Bonjour, je suis votre chargé de compte Expensify. Maintenant que vous avez créé un espace de travail, profitez au maximum de vos 30 jours d’essai gratuit en suivant les étapes ci-dessous !
                     `),
@@ -4143,7 +4153,7 @@ ${amount} pour ${merchant} - ${date}`,
         codiceFiscale: 'Code fiscal',
         codiceFiscaleDescription: 'Code fiscal pour les signataires, utilisateurs autorisés et bénéficiaires effectifs.',
         PDSandFSG: 'Documents de divulgation PDS + FSG',
-        PDSandFSGDescription: dedent(`
+        PDSandFSGDescription: Str.dedent(`
             Notre partenariat avec Corpay utilise une connexion API afin de tirer parti de leur vaste réseau de partenaires bancaires internationaux pour alimenter les remboursements internationaux dans Expensify. Conformément à la réglementation australienne, nous vous fournissons le Financial Services Guide (FSG) et le Product Disclosure Statement (PDS) de Corpay.
 
             Veuillez lire attentivement les documents FSG et PDS, car ils contiennent des informations complètes et importantes sur les produits et services proposés par Corpay. Conservez ces documents pour référence ultérieure.
@@ -4200,7 +4210,7 @@ ${amount} pour ${merchant} - ${date}`,
         subheader: 'Vérification',
         verificationFailed: 'La vérification a échoué, nous aurons donc besoin de documents supplémentaires pour te vérifier ainsi que ton entreprise',
         taxIDVerification: 'Vérification de l’identifiant fiscal',
-        taxIDVerificationDescription: dedent(`
+        taxIDVerificationDescription: Str.dedent(`
             Veuillez téléverser l’un des fichiers suivants :
             • Lettre d’attribution TIN/EIN de l’IRS
             • Confirmation de demande TIN/EIN de l’IRS (indique généralement « Congratulations! The EIN has been successfully assigned »)
@@ -4210,7 +4220,7 @@ ${amount} pour ${merchant} - ${date}`,
         nameChangeDocumentDescription:
             'Si le nom de ton entreprise a changé depuis la demande du TIN/EIN, ce document est nécessaire pour vérifier le numéro d’identification fiscale fourni',
         companyAddressVerification: 'Vérification de l’adresse de l’entreprise',
-        companyAddressVerificationDescription: dedent(`
+        companyAddressVerificationDescription: Str.dedent(`
             Veuillez téléverser l’un des fichiers suivants :
             • Facture récente de services publics indiquant le nom et l’adresse de l’entreprise
             • Relevé bancaire indiquant le nom et l’adresse de l’entreprise
@@ -4219,7 +4229,7 @@ ${amount} pour ${merchant} - ${date}`,
             • Document d’attribution TIN indiquant le nom et l’adresse de l’entreprise
         `),
         userAddressVerification: 'Vérification de l’adresse',
-        userAddressVerificationDescription: dedent(`
+        userAddressVerificationDescription: Str.dedent(`
             Veuillez téléverser l’un des fichiers suivants :
             • Carte d’inscription électorale
             • Permis de conduire
@@ -5155,12 +5165,12 @@ ${amount} pour ${merchant} - ${date}`,
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL]: {
                         label: 'Factures fournisseurs',
-                        reimbursableDescription: dedent(`
+                        reimbursableDescription: Str.dedent(`
                             Les dépenses remboursables seront exportées sous forme de factures payables au fournisseur NetSuite spécifié ci-dessous.
 
                             Si vous souhaitez définir un fournisseur spécifique pour chaque carte, allez dans *Paramètres > Domaines > Cartes d'entreprise*.
                         `),
-                        nonReimbursableDescription: dedent(`
+                        nonReimbursableDescription: Str.dedent(`
                             Les dépenses de cartes d’entreprise seront exportées comme factures à payer au fournisseur NetSuite indiqué ci-dessous.
 
                             Si vous souhaitez définir un fournisseur spécifique pour chaque carte, allez dans *Paramètres > Domaines > Cartes d’entreprise*.
@@ -5168,12 +5178,12 @@ ${amount} pour ${merchant} - ${date}`,
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY]: {
                         label: 'Écritures comptables',
-                        reimbursableDescription: dedent(`
+                        reimbursableDescription: Str.dedent(`
                             Les dépenses hors de sa poche seront exportées en tant qu’écritures comptables vers le compte NetSuite spécifié ci-dessous.
 
                             Si vous souhaitez définir un fournisseur spécifique pour chaque carte, accédez à *Paramètres > Domaines > Cartes d’entreprise*.
                         `),
-                        nonReimbursableDescription: dedent(`
+                        nonReimbursableDescription: Str.dedent(`
                             Les dépenses de carte d’entreprise seront exportées en tant qu’écritures comptables vers le compte NetSuite indiqué ci-dessous.
 
                             Si vous souhaitez définir un fournisseur spécifique pour chaque carte, accédez à *Paramètres > Domaines > Cartes d’entreprise*.
@@ -5499,6 +5509,16 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         return 'mappages';
                 }
             },
+        },
+        rillet: {
+            rilletSetup: 'Configuration Rillet',
+            enterCredentials: 'Saisissez votre clé API Rillet',
+            howToFindAPIKey:
+                '<strong>Recherche de votre clé API.</strong><ol><li>Connectez-vous à Rillet</li><li>Accédez à Compte -> Paramètres</li><li>Copiez la clé API ci-dessous</li></ol>',
+            subsidiary: 'Filiale',
+            subsidiarySelectDescription: 'Choisissez la filiale dans Rillet depuis laquelle vous souhaitez importer des données.',
+            noSubsidiariesFound: 'Aucune filiale trouvée',
+            noSubsidiariesFoundDescription: 'Veuillez ajouter une filiale dans Rillet et synchroniser à nouveau la connexion',
         },
         type: {
             free: 'Gratuit',
@@ -6369,9 +6389,17 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 one: 'Nommer administrateur de l’espace de travail',
                 other: 'Nommer des administrateurs de l’espace de travail',
             }),
+            makeGroupAdmin: () => ({
+                one: 'Nommer administrateur',
+                other: 'Nommer des administrateurs',
+            }),
             makeAuditor: () => ({
                 one: 'Nommer auditeur',
                 other: 'Créer des auditeurs',
+            }),
+            makePeopleAdmin: () => ({
+                one: 'Nommer administrateur des personnes',
+                other: 'Nommer des administrateurs des personnes',
             }),
             selectAll: 'Tout sélectionner',
             error: {
@@ -6405,6 +6433,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             syncWithHR: (providerName: string) => `Synchroniser avec ${providerName}`,
             makeCardAdmin: () => ({one: 'Nommer administrateur de carte', other: 'Nommer des administrateurs de carte'}),
             cardAdmins: 'Administrateurs de cartes',
+            peopleAdmins: 'Administrateurs des personnes',
             members: 'Membres',
         },
         card: {
@@ -6479,6 +6508,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            rillet: 'Rillet',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6496,6 +6526,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         return 'NetSuite';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
+                    case CONST.POLICY.CONNECTIONS.NAME.RILLET:
+                        return 'Rillet';
                     default: {
                         return '';
                     }
@@ -6722,6 +6754,12 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                             return 'Importation des dimensions';
                         case 'financialForceMarkAsReimbursed':
                             return 'Marquage des notes de frais comme remboursées';
+                        case 'rilletSyncTitle':
+                            return 'Synchronisation des données Rillet';
+                        case 'rilletSyncConnection':
+                            return 'Initialisation de la connexion à Rillet';
+                        case 'rilletSyncImportData':
+                            return 'Chargement des données';
                         default: {
                             return `Traduction manquante pour l’étape : ${stage}`;
                         }
@@ -6991,6 +7029,12 @@ ${reportName}`,
                 description: `Profitez de la synchronisation automatisée et réduisez les saisies manuelles grâce à l’intégration Expensify + Certinia. Alignez les dimensions de codage des dépenses et la synchronisation fiscale sur votre configuration Certinia pour une meilleure visibilité financière.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Notre intégration Certinia est disponible uniquement avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                title: 'Rillet',
+                description: `Profitez de la synchronisation automatisée et réduisez les saisies manuelles grâce à l’intégration Expensify + Rillet. Alignez les dimensions de codage des dépenses et la synchronisation fiscale sur votre configuration Rillet pour une meilleure visibilité financière.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Notre intégration Rillet est disponible uniquement avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Approbations avancées',
@@ -7561,7 +7605,13 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Pour appliquer vos règles d’agent, nous avons créé un agent pour vous et l’avons ajouté comme administrateur de votre espace de travail.<br><br>Modifiez les détails de votre agent dans <a href="${agentsRoute}">Compte &gt; Agents</a>.</muted-text>`,
             },
-            tabs: {general: 'Général', cardRestrictions: 'Restrictions de carte', expenseDefaults: 'Paramètres par défaut des dépenses'},
+            tabs: {
+                general: 'Général',
+                cardRestrictions: 'Restrictions de carte',
+                expenseDefaults: 'Paramètres par défaut des dépenses',
+                requireFields: 'Champs obligatoires',
+                flagForReview: 'Marquer pour examen',
+            },
             bulkActions: {
                 deleteMultiple: () => ({
                     one: 'Supprimer la règle',
@@ -7618,6 +7668,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 restrictCardSpendDescription: 'Bloquer ou limiter les dépenses au point de vente',
                 applyExpenseDefaults: 'Appliquer les valeurs de dépense par défaut',
                 applyExpenseDefaultsDescription: 'Mettre à jour les champs sans que le déclarant ne fasse quoi que ce soit',
+                flagForReview: 'Marquer pour examen',
+                flagForReviewDescription: 'Avertir les approbateurs lorsque les dépenses dépassent les limites de catégorie',
+                requireFields: 'Champs obligatoires',
+                requireFieldsDescription: 'Assurez-vous que les champs clés sont remplis avant que les dépenses soient soumises',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Type',
@@ -7627,6 +7681,59 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 rename: 'Renommer',
                 update: 'Mettre à jour',
                 merchantIs: (merchant: string) => `Le commerçant est « ${merchant} »`,
+                merchantTypeIs: (merchantType: string) => `Le type de commerçant est « ${merchantType} »`,
+            },
+            merchantTypeRule: {merchantType: 'Type de marchand', saveRule: 'Enregistrer la règle', confirmErrorCategory: 'Veuillez sélectionner une catégorie.'},
+            requireFieldsTable: {
+                tableColumnType: 'Type',
+                tableColumnCondition: 'Condition',
+                tableColumnRule: 'Règle',
+                findRule: 'Rechercher une règle',
+                typeLabel: 'Champs obligatoires',
+                conditionCategoryIs: (category: string) => `La catégorie est « ${category} »`,
+                requireDescription: 'Description obligatoire',
+                requireAttendees: 'Participants obligatoires',
+                requireItemizedReceipt: 'Exiger un reçu détaillé',
+                requireItemizedReceiptOver: (amount: string) => `Exiger un reçu détaillé au-delà de ${amount}`,
+                alwaysRequireReceipt: 'Toujours exiger un reçu',
+                requireReceiptOver: (amount: string) => `Exiger un reçu au‑delà de ${amount}`,
+            },
+            requireFieldsEmptyState: {
+                title: 'Identifiez les informations manquantes dès le départ',
+                subtitle: 'Assurez-vous que les champs clés sont remplis avant que les dépenses ne soient soumises.',
+                cta: 'Créer une règle obligatoire',
+            },
+            requireFieldsRule: {
+                title: 'Champs obligatoires',
+                subtitle: 'Exiger les reçus, catégories, etc. lors de la soumission.',
+                thenWarnMember: 'Puis avertir le membre si des champs manquent :',
+                itemizedReceipt: 'Reçu détaillé',
+                saveRule: 'Enregistrer la règle',
+                confirmErrorCategory: 'Veuillez sélectionner une catégorie.',
+                confirmErrorField: 'Veuillez sélectionner au moins un champ à rendre obligatoire.',
+            },
+            flagForReviewTable: {
+                tableColumnType: 'Type',
+                tableColumnCondition: 'Condition',
+                tableColumnRule: 'Règle',
+                findRule: 'Rechercher une règle',
+                typeLabel: 'Signaler',
+                conditionCategoryAndAmount: (category: string, amount: string) => `La catégorie est « ${category} » et le montant est supérieur à ${amount}`,
+                conditionCategoryAndDailyAmount: (category: string, amount: string) => `La catégorie est « ${category} » et le total quotidien de la catégorie est supérieur à ${amount}`,
+                flagForReview: 'Marquer pour examen',
+            },
+            flagForReviewEmptyState: {
+                title: 'Mettre en avant les dépenses qui nécessitent un examen plus approfondi',
+                subtitle: 'Alertez les approbateurs lorsque certaines dépenses méritent un examen supplémentaire.',
+                cta: 'Créer une règle de signalement',
+            },
+            flagForReviewRule: {
+                title: 'Marquer pour examen',
+                subtitle: 'Avertir les approbateurs lorsque les conditions suivantes sont remplies.',
+                saveRule: 'Enregistrer la règle',
+                confirmErrorCategory: 'Veuillez sélectionner une catégorie.',
+                confirmErrorAmount: 'Veuillez saisir un montant.',
+                thenFlagForReview: 'Puis signaler pour examen lorsque :',
             },
         },
         planTypePage: {
@@ -8330,7 +8437,14 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `règle de dépense provenant de ${cards}`,
                 composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} sur ${cards}`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} de ${cards}`,
+                bodyCurrencyValueOnly: ({value}: {value: string}) => `'${value}'`,
+                bodyCurrency: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `Devise ${adjective} « ${value} »` : `devise « ${value} »`),
+                bodyCurrencyChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `Devise ${adjective} de « ${oldValue} » à « ${newValue} »` : `devise de « ${oldValue} » à « ${newValue} »`,
+                bodyCurrencyRestriction: 'la restriction de devise',
             },
+            allowedCurrencyFilters: ({currencies}: {currencies: string}) => `devises ${currencies}`,
+            blockedCurrencyFilters: ({currencies}: {currencies: string}) => `devises ne figurant pas dans ${currencies}`,
         },
         updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
             `a modifié le taux de taxe par défaut de la catégorie « ${categoryName} » en « ${newTax} » (auparavant « ${oldTax} »)`,
@@ -9322,6 +9436,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         resolvedDuplicates: 'a résolu le doublon',
         companyCardRequired: 'Achats par carte d’entreprise obligatoires',
         noRoute: 'Veuillez sélectionner une adresse valide',
+        customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `Le taux n’est valable que du ${startDate} au ${endDate}`,
+        customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Le taux n’est valable qu’à partir du ${startDate}`,
+        customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Le taux n’est valable que jusqu’au ${endDate}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} est obligatoire`,
@@ -9382,10 +9499,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             'Nous serions ravis d’organiser un appel avec vous pour comprendre pourquoi. Vous pouvez réserver un appel avec l’un de nos chefs de produit senior pour discuter de vos besoins.',
         takeMeToExpensifyClassic: 'M’emmener vers Expensify Classic',
         goBackJustOnce: 'Revenir une seule fois',
-    },
-    listBoundary: {
-        errorMessage: 'Une erreur est survenue lors du chargement de messages supplémentaires',
-        tryAgain: 'Réessayer',
     },
     systemMessage: {
         mergedWithCashTransaction: 'a fait correspondre un reçu à cette transaction',
@@ -9685,7 +9798,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         enterMagicCode: (contactMethod: string) => `Veuillez saisir le code magique envoyé à ${contactMethod} pour ajouter un copilote. Il devrait arriver d'ici une à deux minutes.`,
         enterMagicCodeUpdate: (contactMethod: string) => `Veuillez saisir le code magique envoyé à ${contactMethod} pour mettre à jour votre copilote.`,
         notAllowed: 'Pas si vite…',
-        noAccessMessage: dedent(`
+        noAccessMessage: Str.dedent(`
             En tant que copilote, vous n’avez pas accès à cette page. Désolé !
         `),
         notAllowedMessage: (accountOwnerEmail: string) =>
