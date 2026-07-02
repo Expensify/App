@@ -1,6 +1,7 @@
 /* eslint-disable default-case */
 /* eslint-disable max-classes-per-file */
 import {isMatch, isValid} from 'date-fns';
+import {SafeString} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import CONST from '@src/CONST';
@@ -8,7 +9,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {Beta, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Comment} from '@src/types/onyx/Transaction';
-import SafeString from '@src/utils/SafeString';
 import {getLinkedTransactionID} from './ReportActionsUtils';
 import {getReasonAndReportActionThatRequiresAttention, reasonForReportToBeInOptionList} from './ReportUtils';
 import SidebarUtils from './SidebarUtils';

@@ -16,6 +16,7 @@ import StringUtils from './libs/StringUtils';
 import {getUrlWithParams} from './libs/Url';
 import SCREENS from './SCREENS';
 import type {Screen} from './SCREENS';
+import type {ExpenseRuleFormFieldID} from './types/form/ExpenseRuleForm';
 import type {CompanyCardFeedWithDomainID} from './types/onyx';
 import type {ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
@@ -25,6 +26,10 @@ type WorkspaceCompanyCardsAssignCardParams = {
     feed: CompanyCardFeedWithDomainID;
     cardID: string;
 };
+
+function getRulesRevampRuleEditSegment(categoryName: string): string {
+    return `edit/${encodeURIComponent(categoryName)}`;
+}
 
 // This is a file containing constants for all the routes we want to be able to go to
 
@@ -1410,13 +1415,13 @@ const ROUTES = {
     SETTINGS_RULES: 'settings/rules',
     SETTINGS_RULES_ADD: {
         route: 'settings/rules/new/:field?/:index?',
-        getRoute: (field?: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>, index?: number) => {
+        getRoute: (field?: ExpenseRuleFormFieldID, index?: number) => {
             return `settings/rules/new/${field ? StringUtils.camelToHyphenCase(field) : ''}${index !== undefined ? `/${index === -1 ? ':index' : index}` : ''}` as const;
         },
     },
     SETTINGS_RULES_EDIT: {
         route: 'settings/rules/edit/:hash/:field?/:index?',
-        getRoute: (hash?: string, field?: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>, index?: number) => {
+        getRoute: (hash?: string, field?: ExpenseRuleFormFieldID, index?: number) => {
             return `settings/rules/edit/${hash ?? ':hash'}/${field ? StringUtils.camelToHyphenCase(field) : ''}${index !== undefined ? `/${index === -1 ? ':index' : index}` : ''}` as const;
         },
     },
@@ -3157,6 +3162,62 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/require-fields',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/require-fields` as const,
     },
+    RULES_REQUIRE_FIELDS_RULE_NEW: {
+        route: 'workspaces/:policyID/rules/require-fields-rules/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/require-fields-rules/new` as const,
+    },
+    RULES_REQUIRE_FIELDS_RULE_EDIT: {
+        route: 'workspaces/:policyID/rules/require-fields-rules/edit/:categoryName',
+        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/rules/require-fields-rules/${getRulesRevampRuleEditSegment(categoryName)}` as const,
+    },
+    RULES_REQUIRE_FIELDS_RULE_CATEGORY: {
+        route: 'workspaces/:policyID/rules/require-fields-rules/new/category',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/require-fields-rules/new/category` as const,
+    },
+    RULES_REQUIRE_FIELDS_RULE_CATEGORY_EDIT: {
+        route: 'workspaces/:policyID/rules/require-fields-rules/edit/:categoryName/category',
+        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/rules/require-fields-rules/${getRulesRevampRuleEditSegment(categoryName)}/category` as const,
+    },
+    RULES_FLAG_FOR_REVIEW_RULE_NEW: {
+        route: 'workspaces/:policyID/rules/flag-for-review-rules/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/flag-for-review-rules/new` as const,
+    },
+    RULES_FLAG_FOR_REVIEW_RULE_EDIT: {
+        route: 'workspaces/:policyID/rules/flag-for-review-rules/edit/:categoryName',
+        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/rules/flag-for-review-rules/${getRulesRevampRuleEditSegment(categoryName)}` as const,
+    },
+    RULES_FLAG_FOR_REVIEW_RULE_CATEGORY: {
+        route: 'workspaces/:policyID/rules/flag-for-review-rules/new/category',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/flag-for-review-rules/new/category` as const,
+    },
+    RULES_FLAG_FOR_REVIEW_RULE_CATEGORY_EDIT: {
+        route: 'workspaces/:policyID/rules/flag-for-review-rules/edit/:categoryName/category',
+        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/rules/flag-for-review-rules/${getRulesRevampRuleEditSegment(categoryName)}/category` as const,
+    },
+    RULES_FLAG_FOR_REVIEW_RULE_AMOUNT: {
+        route: 'workspaces/:policyID/rules/flag-for-review-rules/new/amount',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/flag-for-review-rules/new/amount` as const,
+    },
+    RULES_FLAG_FOR_REVIEW_RULE_AMOUNT_EDIT: {
+        route: 'workspaces/:policyID/rules/flag-for-review-rules/edit/:categoryName/amount',
+        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/rules/flag-for-review-rules/${getRulesRevampRuleEditSegment(categoryName)}/amount` as const,
+    },
+    RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE: {
+        route: 'workspaces/:policyID/rules/flag-for-review-rules/new/expense-limit-type',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/flag-for-review-rules/new/expense-limit-type` as const,
+    },
+    RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE_EDIT: {
+        route: 'workspaces/:policyID/rules/flag-for-review-rules/edit/:categoryName/expense-limit-type',
+        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/rules/flag-for-review-rules/${getRulesRevampRuleEditSegment(categoryName)}/expense-limit-type` as const,
+    },
+    RULES_MERCHANT_TYPE_EDIT: {
+        route: 'workspaces/:policyID/rules/merchant-type-rules/:groupID',
+        getRoute: (policyID: string, groupID: string) => `workspaces/${policyID}/rules/merchant-type-rules/${encodeURIComponent(groupID)}` as const,
+    },
+    RULES_MERCHANT_TYPE_CATEGORY: {
+        route: 'workspaces/:policyID/rules/merchant-type-rules/:groupID/category',
+        getRoute: (policyID: string, groupID: string) => `workspaces/${policyID}/rules/merchant-type-rules/${encodeURIComponent(groupID)}/category` as const,
+    },
     RULES_MAX_EXPENSE_AMOUNT: {
         route: 'workspaces/:policyID/rules/max-expense-amount',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/max-expense-amount` as const,
@@ -3984,6 +4045,18 @@ const ROUTES = {
             return `workspaces/${policyID}/accounting/certinia/company` as const;
         },
     },
+    POLICY_ACCOUNTING_RILLET_SETUP: {
+        route: 'workspaces/:policyID/accounting/rillet/setup',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/setup` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_EXISTING_CONNECTIONS: {
+        route: 'workspaces/:policyID/accounting/rillet/existing-connections',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/existing-connections` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_SUBSIDIARY_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/rillet/subsidiary-selector',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/subsidiary-selector` as const,
+    },
     ADD_EXISTING_EXPENSE: {
         route: 'search/r/:reportID/add-existing-expense/:backToReport?',
         getRoute: (reportID: string | undefined, backToReport?: string) => `search/r/${reportID}/add-existing-expense/${backToReport ?? ''}` as const,
@@ -4246,7 +4319,32 @@ const SHARED_ROUTE_PARAMS: Partial<Record<Screen, string[]>> = {
 } as const;
 
 export {PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS, VERIFY_ACCOUNT, DYNAMIC_ROUTES};
+function getRequireFieldsRuleCategoryRoute(policyID: string, categoryName?: string) {
+    if (categoryName) {
+        return ROUTES.RULES_REQUIRE_FIELDS_RULE_CATEGORY_EDIT.getRoute(policyID, categoryName);
+    }
+
+    return ROUTES.RULES_REQUIRE_FIELDS_RULE_CATEGORY.getRoute(policyID);
+}
+
+function getFlagForReviewRuleCategoryRoute(policyID: string, categoryName?: string) {
+    if (categoryName) {
+        return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY_EDIT.getRoute(policyID, categoryName);
+    }
+
+    return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY.getRoute(policyID);
+}
+
+function getFlagForReviewRuleAmountRoute(policyID: string, categoryName?: string) {
+    if (categoryName) {
+        return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT_EDIT.getRoute(policyID, categoryName);
+    }
+
+    return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT.getRoute(policyID);
+}
+
 export default ROUTES;
+export {getFlagForReviewRuleAmountRoute, getFlagForReviewRuleCategoryRoute, getRequireFieldsRuleCategoryRoute};
 
 type ReportAttachmentsRoute = typeof ROUTES.REPORT_ATTACHMENTS.route;
 type ReportAddAttachmentRoute = `r/${string}/attachment/add`;
