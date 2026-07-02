@@ -135,8 +135,8 @@ This document lists all implemented telemetry metrics in the Expensify App.
 **Constant**: `CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW`
 **Sentry Name**: `ShareExtensionOpenSubmitFlow`
 **Threshold**: TBD (P90) — baseline observed at 3–4s, target to be defined
-**What's Measured**: Time from selecting a workspace chat in the iOS Share Extension to the submit-details (confirm) screen rendering
-**Start**: Workspace chat selected in the Share Extension participants selector (`src/components/Share/ShareTabParticipantsSelector.tsx`, `onParticipantsAdded`)
+**What's Measured**: Time from selecting a recipient (workspace chat or DM) in the iOS Share Extension to the submit-details (confirm) screen rendering
+**Start**: Recipient selected in the Share Extension participants selector — an existing report or a new DM created from the selected account (`src/components/Share/ShareTabParticipantsSelector.tsx`, `onParticipantsAdded`)
 **End**:
 - User sees: Confirm-details screen
 - Technical: Confirm-details container layout complete (onLayout event)
