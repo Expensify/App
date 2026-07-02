@@ -1,7 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import ONYXKEYS from '@src/ONYXKEYS';
 import cardFeedErrorsConfig from './configs/cardFeedErrors';
-import flaggedExpensesConfig from './configs/flaggedExpenses';
 import loginToAccountIDMapConfig from './configs/loginToAccountIDMap';
 import nonPersonalAndWorkspaceCardListConfig from './configs/nonPersonalAndWorkspaceCardList';
 import outstandingReportsByPolicyIDConfig from './configs/outstandingReportsByPolicyID';
@@ -25,7 +24,6 @@ const ONYX_DERIVED_VALUES = {
     [ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST]: personalAndWorkspaceCardListConfig,
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: cardFeedErrorsConfig,
     [ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS]: sortedReportActionsConfig,
-    [ONYXKEYS.DERIVED.FLAGGED_EXPENSES]: flaggedExpensesConfig,
     [ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP]: loginToAccountIDMapConfig,
 } as const satisfies {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
