@@ -641,12 +641,11 @@ function updateSplitTransactions({
         const parsedComment = getParsedComment(Parser.htmlToMarkdown(transactionParams.comment ?? ''));
         transactionParams.comment = parsedComment;
 
-        const splitExpenseIOUReportPolicyID = splitExpense.reportID
-            ? (allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpense.reportID}`]?.policyID ??
-              fallbackPolicyParentChatReport?.policyID ??
-              allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${participants.at(0)?.reportID}`]?.policyID)
-            : undefined;
-        const policyTagList = splitExpense.reportID ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${splitExpenseIOUReportPolicyID}`] ?? {}) : undefined;
+        const splitExpenseIOUReportPolicyID =
+            (splitExpense.reportID ? allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpense.reportID}`]?.policyID : undefined) ??
+            parentChatReport?.policyID ??
+            allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${participantParams.participant?.reportID}`]?.policyID;
+        const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${splitExpenseIOUReportPolicyID}`] ?? {};
 
         // For selfDM, use UNREPORTED_REPORT_ID for moneyRequestReportID.
         // For confirmed workspace transactions, use splitTransaction.reportID directly because
