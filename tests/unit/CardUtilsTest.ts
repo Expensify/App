@@ -2305,9 +2305,9 @@ describe('CardUtils', () => {
             const policyMembersAccountIDs = [1, 2, 3];
             const cards = getCardsByCardholderName(mockCards, policyMembersAccountIDs);
             const requestedPaths: string[] = [];
-            const translate: LocalizedTranslate = (path, ...parameters) => {
-                requestedPaths.push(path);
-                return translateLocal(path, ...parameters);
+            const translate: LocalizedTranslate = (translatePath, ...parameters) => {
+                requestedPaths.push(translatePath);
+                return translateLocal(translatePath, ...parameters);
             };
 
             // With no personal details available, each cardholder name falls back to translate('common.hidden').
