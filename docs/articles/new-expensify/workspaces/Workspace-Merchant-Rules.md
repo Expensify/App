@@ -59,7 +59,7 @@ Use these best practices to ensure predictable results:
 
 ---
 
- ## What can you do with Merchant Rules?
+## What can you do with Merchant Rules?
 
 Merchant Rules can help you:
 
