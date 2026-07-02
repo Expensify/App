@@ -20,8 +20,20 @@ type ExpensifyCardFeedEntry = {
     settings: ExpensifyCardSettings;
 };
 
-function hasLoadedExpensifyCardSettings(settings: ExpensifyCardSettings | undefined): boolean {
-    return !!settings && Object.keys(settings).length > 1;
+/** A feed qualifies only when its settings NVP has a US or GB program block with a configured settlement bank account. */
+function hasConfiguredExpensifyCardFeed(settings: ExpensifyCardSettings | undefined): boolean {
+    if (!settings) {
+        return false;
+    }
+
+    for (const programKey of [CONST.COUNTRY.US, CONST.COUNTRY.GB] as const) {
+        const nested = settings[programKey];
+        if (nested && typeof nested === 'object' && !Array.isArray(nested) && nested.paymentBankAccountID != null) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /**
@@ -43,7 +55,7 @@ function isExpensifyCardFeedVisibleToAdmin(
     domains: OnyxCollection<Domain>,
     currentUserAccountID: number,
 ): boolean {
-    if (!hasLoadedExpensifyCardSettings(settings)) {
+    if (!hasConfiguredExpensifyCardFeed(settings)) {
         return false;
     }
 

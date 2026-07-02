@@ -42,6 +42,13 @@ function domainWithAdmin(fundID: number, accountID: number) {
     };
 }
 
+function configuredCardSettings(overrides: Record<string, unknown> = {}) {
+    return {
+        [US_PROGRAM]: {paymentBankAccountID: 23242},
+        ...overrides,
+    };
+}
+
 describe('useExpensifyCardFeedsForFeedSelector', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -84,14 +91,14 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
                     {
-                        [cardSettingsKey(111)]: {
+                        [cardSettingsKey(111)]: configuredCardSettings({
                             preferredPolicy: currentPolicyID,
                             isEnabled: true,
-                        },
-                        [cardSettingsKey(222)]: {
+                        }),
+                        [cardSettingsKey(222)]: configuredCardSettings({
                             preferredPolicy: otherPolicyID,
                             isEnabled: true,
-                        },
+                        }),
                     },
                     {status: 'loaded'},
                 ];
@@ -118,16 +125,16 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
                     {
-                        [cardSettingsKey(10)]: {
+                        [cardSettingsKey(10)]: configuredCardSettings({
                             preferredPolicy: otherPolicyID,
                             isEnabled: true,
                             linkedPolicyIDs: [currentPolicyID],
-                        },
-                        [cardSettingsKey(20)]: {
+                        }),
+                        [cardSettingsKey(20)]: configuredCardSettings({
                             preferredPolicy: currentPolicyID,
                             isEnabled: true,
                             linkedPolicyIDs: [otherPolicyID],
-                        },
+                        }),
                     },
                     {status: 'loaded'},
                 ];
@@ -159,6 +166,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
                             [US_PROGRAM]: {
                                 linkedPolicyIDs: [currentPolicyID, otherPolicyID],
                                 isEnabled: true,
+                                paymentBankAccountID: 23242,
                             },
                             hasOnceLoaded: true,
                         },
@@ -193,6 +201,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
                             [US_PROGRAM]: {
                                 linkedPolicyIDs: [policyIdUpper, otherPolicyID],
                                 isEnabled: true,
+                                paymentBankAccountID: 23242,
                             },
                             hasOnceLoaded: true,
                         },
@@ -221,11 +230,11 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
                     {
-                        [cardSettingsKey(7)]: {
+                        [cardSettingsKey(7)]: configuredCardSettings({
                             preferredPolicy: otherPolicyID,
                             isEnabled: true,
                             linkedPolicyIDs: [currentPolicyID, otherPolicyID],
-                        },
+                        }),
                     },
                     {status: 'loaded'},
                 ];
@@ -275,10 +284,10 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
                     {
-                        [cardSettingsKey(orphanDomainFundID)]: {
+                        [cardSettingsKey(orphanDomainFundID)]: configuredCardSettings({
                             domainName: 'example.com',
                             isEnabled: true,
-                        },
+                        }),
                     },
                     {status: 'loaded'},
                 ];
@@ -309,10 +318,10 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
                     {
-                        [cardSettingsKey(workspaceAccountID)]: {
+                        [cardSettingsKey(workspaceAccountID)]: configuredCardSettings({
                             domainName: 'example.com',
                             isEnabled: true,
-                        },
+                        }),
                     },
                     {status: 'loaded'},
                 ];
@@ -350,10 +359,10 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
                     {
-                        [cardSettingsKey(orphanDomainFundID)]: {
+                        [cardSettingsKey(orphanDomainFundID)]: configuredCardSettings({
                             domainName: 'example.com',
                             isEnabled: true,
-                        },
+                        }),
                     },
                     {status: 'loaded'},
                 ];
