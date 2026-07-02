@@ -32,7 +32,7 @@ const allowedReportTypes = new Set<ValueOf<typeof CONST.REPORT.TYPE>>([CONST.REP
 type FullstoryPropertyValue = string | number | boolean | null | undefined;
 
 type NormalizeFullstoryPropertiesForNativeOptions = {
-    preserveKeys?: ReadonlyArray<string>;
+    preserveKeys?: readonly string[];
 };
 
 const getChatFSClass: GetChatFSClass = (report) => {

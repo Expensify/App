@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention -- Test assertions use FullStory's external snake_case keys. */
 import {normalizeFullstoryPropertiesForNative} from '@src/libs/Fullstory/common';
 
 describe('FullstoryCommon', () => {
