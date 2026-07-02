@@ -5,8 +5,10 @@ import {
     edgeMaxLabelWidth,
     effectiveHeight,
     effectiveWidth,
+    estimateVerticalBarChartGeometry,
     findSliceAtPosition,
     getAdditionalOffset,
+    getCategoryLabelWidth,
     getNiceYAxisTicks,
     isAngleInSlice,
     isCursorInSkewedLabel,
@@ -17,7 +19,9 @@ import {
     processDataIntoSlices,
     rotatedLabelCenterCorrection,
     rotatedLabelYOffset,
+    truncateCategoryLabels,
     truncateLabel,
+    VERTICAL_BAR_BASE_DOMAIN_PADDING,
 } from '@components/Charts/utils';
 import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
 
@@ -222,8 +226,28 @@ describe('isAngleInSlice', () => {
 
 describe('findSliceAtPosition', () => {
     const makeSlices = (): PieSlice[] => [
-        {label: 'A', value: 75, color: '#000', percentage: 75, startAngle: -90, endAngle: 180, originalIndex: 0, ordinalIndex: 0, tooltipPosition: {x: 0, y: 0}},
-        {label: 'B', value: 25, color: '#fff', percentage: 25, startAngle: 180, endAngle: 270, originalIndex: 1, ordinalIndex: 1, tooltipPosition: {x: 0, y: 0}},
+        {
+            label: 'A',
+            value: 75,
+            color: '#000',
+            percentage: 75,
+            startAngle: -90,
+            endAngle: 180,
+            originalIndex: 0,
+            ordinalIndex: 0,
+            tooltipPosition: {x: 0, y: 0},
+        },
+        {
+            label: 'B',
+            value: 25,
+            color: '#fff',
+            percentage: 25,
+            startAngle: 180,
+            endAngle: 270,
+            originalIndex: 1,
+            ordinalIndex: 1,
+            tooltipPosition: {x: 0, y: 0},
+        },
     ];
 
     const center = 100;
@@ -261,7 +285,14 @@ describe('findSliceAtPosition', () => {
 
 describe('processDataIntoSlices', () => {
     it('returns empty array for empty data', () => {
-        expect(processDataIntoSlices([], {centerX: 0, centerY: 0, radius: 0, innerRadius: 0})).toEqual([]);
+        expect(
+            processDataIntoSlices([], {
+                centerX: 0,
+                centerY: 0,
+                radius: 0,
+                innerRadius: 0,
+            }),
+        ).toEqual([]);
     });
 
     it('returns empty array when all values are zero', () => {
@@ -269,7 +300,14 @@ describe('processDataIntoSlices', () => {
             {label: 'A', total: 0},
             {label: 'B', total: 0},
         ];
-        expect(processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0})).toEqual([]);
+        expect(
+            processDataIntoSlices(data, {
+                centerX: 0,
+                centerY: 0,
+                radius: 0,
+                innerRadius: 0,
+            }),
+        ).toEqual([]);
     });
 
     it('creates a single slice covering 360 degrees for one data point', () => {
@@ -295,7 +333,12 @@ describe('processDataIntoSlices', () => {
 
     it('defaults to VictoryTheme.pie.startAngle when no startAngle is provided', () => {
         const data: ChartDataPoint[] = [{label: 'Only', total: 100}];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
+        const slices = processDataIntoSlices(data, {
+            centerX: 0,
+            centerY: 0,
+            radius: 0,
+            innerRadius: 0,
+        });
 
         expect(slices.at(0)?.startAngle).toBe(VictoryTheme.pie.startAngle);
     });
@@ -305,7 +348,12 @@ describe('processDataIntoSlices', () => {
             {label: 'Small', total: 10},
             {label: 'Large', total: 90},
         ];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
+        const slices = processDataIntoSlices(data, {
+            centerX: 0,
+            centerY: 0,
+            radius: 0,
+            innerRadius: 0,
+        });
 
         expect(slices.at(0)?.label).toBe('Large');
         expect(slices.at(1)?.label).toBe('Small');
@@ -316,7 +364,12 @@ describe('processDataIntoSlices', () => {
             {label: 'Positive', total: 75},
             {label: 'Negative', total: -25},
         ];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
+        const slices = processDataIntoSlices(data, {
+            centerX: 0,
+            centerY: 0,
+            radius: 0,
+            innerRadius: 0,
+        });
 
         expect(slices).toHaveLength(2);
         expect(slices.at(0)?.value).toBe(75);
@@ -331,7 +384,12 @@ describe('processDataIntoSlices', () => {
             {label: 'Medium', total: 50},
             {label: 'Large', total: 100},
         ];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
+        const slices = processDataIntoSlices(data, {
+            centerX: 0,
+            centerY: 0,
+            radius: 0,
+            innerRadius: 0,
+        });
 
         expect(slices.at(0)?.originalIndex).toBe(2); // Large was at index 2
         expect(slices.at(1)?.originalIndex).toBe(1); // Medium was at index 1
@@ -344,7 +402,12 @@ describe('processDataIntoSlices', () => {
             {label: 'B', total: 33},
             {label: 'C', total: 34},
         ];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
+        const slices = processDataIntoSlices(data, {
+            centerX: 0,
+            centerY: 0,
+            radius: 0,
+            innerRadius: 0,
+        });
 
         const totalSweep = slices.reduce((sum, s) => sum + (s.endAngle - s.startAngle), 0);
         expect(totalSweep).toBeCloseTo(360, 5);
@@ -356,7 +419,12 @@ describe('processDataIntoSlices', () => {
             {label: 'B', total: 30},
             {label: 'C', total: 20},
         ];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
+        const slices = processDataIntoSlices(data, {
+            centerX: 0,
+            centerY: 0,
+            radius: 0,
+            innerRadius: 0,
+        });
 
         for (let i = 1; i < slices.length; i++) {
             expect(slices.at(i)?.startAngle).toBeCloseTo(slices.at(i - 1)?.endAngle ?? 0, 10);
@@ -370,7 +438,12 @@ describe('processDataIntoSlices', () => {
             {label: 'C', total: 20},
             {label: 'D', total: 10},
         ];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
+        const slices = processDataIntoSlices(data, {
+            centerX: 0,
+            centerY: 0,
+            radius: 0,
+            innerRadius: 0,
+        });
         const colors = slices.map((s) => s.color);
         const uniqueColors = new Set(colors);
 
@@ -471,7 +544,12 @@ describe('isCursorOverChartLabel', () => {
     };
 
     describe('0° (horizontal label)', () => {
-        const params = () => ({...baseParams, angleRad: 0, cursorX: 10, cursorY: 20});
+        const params = () => ({
+            ...baseParams,
+            angleRad: 0,
+            cursorX: 10,
+            cursorY: 20,
+        });
 
         it('returns true when cursor is inside the horizontal label box', () => {
             expect(isCursorOverChartLabel({...params()})).toBe(true);
@@ -539,7 +617,12 @@ describe('isCursorOverChartLabel', () => {
     });
 
     describe('90° (vertical label)', () => {
-        const params = () => ({...baseParams, angleRad: Math.PI / 2, cursorX: 10, cursorY: 20});
+        const params = () => ({
+            ...baseParams,
+            angleRad: Math.PI / 2,
+            cursorX: 10,
+            cursorY: 20,
+        });
 
         it('returns true when cursor is inside the vertical label band', () => {
             expect(isCursorOverChartLabel({...params()})).toBe(true);
@@ -709,5 +792,51 @@ describe('getNiceYAxisTicks', () => {
 
     it('rounds intermediate ticks to eliminate floating-point noise', () => {
         expect(getNiceYAxisTicks(0, -1.11, 5)).toEqual([-1.2, -1, -0.8, -0.6, -0.4, -0.2, 0]);
+    });
+});
+
+describe('truncateCategoryLabels', () => {
+    const ellipsisWidth = 21;
+
+    it('truncates each label to the Y-axis max width', () => {
+        const labels = ['Short', 'A'.repeat(40)];
+        const labelWidths = [35, 280];
+        const truncated = truncateCategoryLabels(labels, labelWidths, ellipsisWidth);
+        expect(truncated.at(0)).toBe('Short');
+        expect(truncated.at(1)).toMatch(/\.\.\.$/);
+        expect(truncated.at(1)?.length).toBeLessThan(labels.at(1)?.length ?? 0);
+    });
+});
+
+describe('getCategoryLabelWidth', () => {
+    it('returns 0 when fontManager is null', () => {
+        expect(getCategoryLabelWidth(['Label'], null, 12)).toBe(0);
+    });
+
+    it('returns 0 for an empty label list', () => {
+        expect(getCategoryLabelWidth([], null, 12)).toBe(0);
+    });
+});
+
+describe('estimateVerticalBarChartGeometry', () => {
+    const data: ChartDataPoint[] = [
+        {label: 'A', total: 100},
+        {label: 'B', total: 200},
+    ];
+    const formatValue = (value: number) => `$${value}`;
+    const innerPadding = 0.3;
+
+    it('returns zero geometry when chartWidth is 0', () => {
+        const geometry = estimateVerticalBarChartGeometry(0, data, null, 12, formatValue, innerPadding);
+        expect(geometry.barAreaWidth).toBe(0);
+        expect(geometry.boundsLeft).toBe(0);
+        expect(geometry.boundsRight).toBe(0);
+        expect(geometry.domainPadding).toEqual(VERTICAL_BAR_BASE_DOMAIN_PADDING);
+    });
+
+    it('returns wider barAreaWidth for wider chartWidth', () => {
+        const narrow = estimateVerticalBarChartGeometry(200, data, null, 12, formatValue, innerPadding);
+        const wide = estimateVerticalBarChartGeometry(400, data, null, 12, formatValue, innerPadding);
+        expect(wide.barAreaWidth).toBeGreaterThan(narrow.barAreaWidth);
     });
 });

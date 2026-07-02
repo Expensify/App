@@ -3,6 +3,8 @@ import lodashMerge from 'lodash/merge';
 import type {TNode} from 'react-native-render-html';
 import {X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import type {ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import adjustHorizontalChartPadding from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/adjustHorizontalChartPadding';
+import adjustVerticalChartPadding from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/adjustVerticalChartPadding';
 import PARSER_REGISTRY from './parserRegistry';
 
 /**
@@ -21,6 +23,8 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
     let categories: ProcessNodeResult['categories'];
     const labelItems: ProcessNodeResult['labelItems'] = [];
     const legendItems: ProcessNodeResult['legendItems'] = [];
+    let barWidth: ProcessNodeResult['barWidth'];
+    let barSeriesCount = tnode.tagName === 'victorybar' ? 1 : 0;
 
     const parser = PARSER_REGISTRY[tnode.tagName ?? ''];
     if (parser) {
@@ -58,10 +62,28 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         if (result.legendItems) {
             legendItems.push(...result.legendItems);
         }
+        if (result.barWidth !== undefined) {
+            barWidth = result.barWidth;
+        }
     }
 
     // If we have `rootProcessedResult` then forward it as is, otherwise we must be the root so pass the data that we just built
-    const rootProcessedNodeResult = rootProcessedResult ?? {data, xKey: X_KEY, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems};
+    const rootProcessedNodeResult = rootProcessedResult ?? {
+        data,
+        xKey: X_KEY,
+        yKeys,
+        xAxis,
+        yAxis,
+        domain,
+        domainPadding,
+        padding,
+        isHorizontal,
+        categories,
+        labelItems,
+        legendItems,
+        barWidth,
+        barSeriesCount,
+    };
 
     for (const child of tnode.children) {
         const childResult = processVictoryChartTree(child, typeface, rootProcessedNodeResult);
@@ -90,9 +112,50 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         }
         labelItems.push(...childResult.labelItems);
         legendItems.push(...childResult.legendItems);
+        if (childResult.barWidth !== undefined) {
+            barWidth = childResult.barWidth;
+        }
+        barSeriesCount += childResult.barSeriesCount ?? 0;
     }
 
-    return {data, xKey: X_KEY, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems};
+    const chartState: ProcessNodeResult = {
+        data,
+        xKey: X_KEY,
+        yKeys,
+        xAxis,
+        yAxis,
+        domain,
+        domainPadding,
+        padding,
+        isHorizontal,
+        categories,
+        labelItems,
+        legendItems,
+        barWidth,
+        barSeriesCount,
+    };
+
+    const resolvedPadding = adjustVerticalChartPadding({
+        ...chartState,
+        padding: adjustHorizontalChartPadding(chartState),
+    });
+
+    return {
+        data,
+        xKey: X_KEY,
+        yKeys,
+        xAxis,
+        yAxis,
+        domain,
+        domainPadding,
+        padding: resolvedPadding,
+        isHorizontal,
+        categories,
+        labelItems,
+        legendItems,
+        barWidth,
+        barSeriesCount,
+    };
 }
 
 export default processVictoryChartTree;

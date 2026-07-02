@@ -1,7 +1,8 @@
-import {Skia, Text as SkText} from '@shopify/react-native-skia';
+import {Group, Skia, Text as SkText, vec} from '@shopify/react-native-skia';
 import type {Color, SkFont} from '@shopify/react-native-skia';
 import React from 'react';
 import {useChartTypefaces} from '@components/Charts/context/ChartFontsContext';
+import {rotatedLabelCenterCorrection} from '@components/Charts/utils';
 import getChartSkiaTypeface from '@components/Charts/utils/getChartSkiaTypeface';
 import type {LabelItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import computeTextAnchorPosition from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeTextAnchorPosition';
@@ -28,7 +29,21 @@ type ProcessedLine = {
  * Renders floating Skia text labels (from `<victorylabel>` nodes) over the chart canvas.
  * Intended for use inside CartesianChart's `renderOutside` callback.
  */
-function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily, fontStyle, lineHeight, textAnchor = 'start', verticalAnchor = 'middle', timezone}: VictoryChartLabelsProps) {
+function VictoryChartLabel({
+    x,
+    y,
+    text,
+    color,
+    fontSize,
+    fontWeight,
+    fontFamily,
+    fontStyle,
+    lineHeight,
+    textAnchor = 'start',
+    verticalAnchor = 'middle',
+    angle = 0,
+    timezone,
+}: VictoryChartLabelsProps) {
     const typefaces = useChartTypefaces();
     const theme = useTheme();
     const displayText = getLocalizedVictoryChartLabelText(text, timezone);
@@ -65,18 +80,58 @@ function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily,
         },
         {lines: [] as ProcessedLine[], y},
     );
-    return processedLines.lines.map(({lineX, lineY, line, lineFont, lineColor, lineWidth}) => {
-        return (
-            <SkText
-                key={`text-${lineX}-${lineY}`}
-                x={computeTextAnchorPosition(lineX, lineWidth, textAnchor)}
-                y={computeTextAnchorPosition(lineY, processedLines.y - y, verticalAnchor)}
-                text={line}
-                font={lineFont}
-                color={lineColor}
-            />
-        );
-    });
+
+    const angleRad = (angle * Math.PI) / 180;
+
+    if (angleRad === 0) {
+        return processedLines.lines.map(({lineX, lineY, line, lineFont, lineColor, lineWidth}) => {
+            const anchoredX = computeTextAnchorPosition(lineX, lineWidth, textAnchor);
+            const anchoredY = computeTextAnchorPosition(lineY, processedLines.y - y, verticalAnchor);
+
+            return (
+                <SkText
+                    key={`text-${lineX}-${lineY}`}
+                    x={anchoredX}
+                    y={anchoredY}
+                    text={line}
+                    font={lineFont}
+                    color={lineColor}
+                />
+            );
+        });
+    }
+
+    const tickX = x;
+    const labelY = y;
+    const correction = rotatedLabelCenterCorrection(
+        getSkiaLineMetrics(processedLines.lines.at(0)?.lineFont ?? null).ascent,
+        getSkiaLineMetrics(processedLines.lines.at(0)?.lineFont ?? null).descent,
+        angleRad,
+    );
+
+    return (
+        <Group
+            key={`rotated-text-${x}-${y}`}
+            origin={vec(tickX, labelY)}
+            transform={[{translateX: correction}, {rotate: -angleRad}]}
+        >
+            {processedLines.lines.map(({lineX, lineY, line, lineFont, lineColor, lineWidth}) => {
+                const {ascent} = getSkiaLineMetrics(lineFont);
+                const textX = computeTextAnchorPosition(tickX, lineWidth, textAnchor);
+
+                return (
+                    <SkText
+                        key={`rotated-line-${lineX}-${lineY}-${line}`}
+                        x={textX}
+                        y={lineY - ascent}
+                        text={line}
+                        font={lineFont}
+                        color={lineColor}
+                    />
+                );
+            })}
+        </Group>
+    );
 }
 
 export default VictoryChartLabel;

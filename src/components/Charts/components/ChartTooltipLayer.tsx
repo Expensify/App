@@ -24,13 +24,16 @@ type ChartTooltipLayerProps = {
 
     /** The initial tooltip position (x, y) in canvas coordinates */
     initialTooltipPosition: SharedValue<{x: number; y: number}>;
+
+    /** Where the tooltip sits relative to the anchor point */
+    placement?: 'above' | 'right';
 };
 
 /**
  * Renders the chart tooltip in an isolated subtree so that hover-driven state changes
  * (active index, visibility) only re-render this lightweight component, not the chart itself.
  */
-function ChartTooltipLayer({matchedIndex, isTooltipActive, data, formatValue, chartWidth, initialTooltipPosition}: ChartTooltipLayerProps) {
+function ChartTooltipLayer({matchedIndex, isTooltipActive, data, formatValue, chartWidth, initialTooltipPosition, placement = 'above'}: ChartTooltipLayerProps) {
     const [activeDataIndex, setActiveDataIndex] = useState(-1);
 
     useAnimatedReaction(
@@ -66,6 +69,7 @@ function ChartTooltipLayer({matchedIndex, isTooltipActive, data, formatValue, ch
                 percentage={tooltipData.percentage}
                 chartWidth={chartWidth}
                 initialTooltipPosition={initialTooltipPosition}
+                placement={placement}
             />
         </Animated.View>
     );

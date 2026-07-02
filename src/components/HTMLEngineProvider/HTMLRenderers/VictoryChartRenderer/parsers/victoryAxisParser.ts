@@ -18,12 +18,39 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
     const isHorizontal = rootProcessedResult?.isHorizontal;
     const isDependentAxis = 'dependentaxis' in tnode.attributes && tnode.attributes.dependentaxis !== 'false';
     const orientation = parseAttributeAsString(tnode.attributes.orientation);
-    const tickCount = parseAttributeAsNumber(tnode.attributes.tickcount) ?? 0;
+    const tickCount = parseAttributeAsNumber(tnode.attributes.tickcount);
     const rawTickValues = parseAttributeAsNumberArray(tnode.attributes.tickvalues);
-    const tickValues = Array.isArray(rawTickValues) ? rawTickValues : undefined;
     const rawTickFormat = parseAttributeAsStringArray(tnode.attributes.tickformat);
     const tickFormat = Array.isArray(rawTickFormat) ? rawTickFormat : undefined;
-    const formatLabel = (label: string | number) => tickFormat?.[tickValues?.indexOf(Number(label)) ?? -1] ?? String(label);
+    const hasExplicitTickValues = Array.isArray(rawTickValues) && rawTickValues.length > 0;
+    const isCategoryAxis = !isDependentAxis;
+    let tickValues: number[] | undefined;
+    if (hasExplicitTickValues) {
+        tickValues = rawTickValues;
+    } else if (isCategoryAxis) {
+        tickValues = tickFormat?.map((_, index) => index);
+    }
+    const resolvedTickCount = tickCount ?? (isHorizontal && isCategoryAxis && tickValues?.length ? tickValues.length : 0);
+
+    const formatLabel = (label: string | number) => {
+        if (!tickFormat) {
+            return String(label);
+        }
+
+        const numericLabel = Number(label);
+        if (tickValues) {
+            const index = tickValues.indexOf(numericLabel);
+            if (index >= 0) {
+                return tickFormat.at(index) ?? String(label);
+            }
+        }
+
+        if (Number.isInteger(numericLabel) && numericLabel >= 0 && numericLabel < tickFormat.length) {
+            return tickFormat.at(numericLabel) ?? String(label);
+        }
+
+        return String(label);
+    };
     const style = parseRawAxisStyle(tnode.attributes.style);
     const lineColor = style?.grid?.stroke;
     // 0 width intentionally avoids drawing grid lines, preserving VictoryChart compatibility
@@ -37,7 +64,7 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
         return isHorizontal
             ? {
                   xAxis: {
-                      tickCount,
+                      tickCount: resolvedTickCount,
                       tickValues,
                       formatXLabel: formatLabel,
                       axisSide: orientation === 'right' ? 'top' : 'bottom',
@@ -51,7 +78,7 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
             : {
                   yAxis: [
                       {
-                          tickCount,
+                          tickCount: resolvedTickCount,
                           tickValues,
                           formatYLabel: formatLabel,
                           axisSide: orientation === 'right' ? 'right' : 'left',
@@ -68,7 +95,7 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
         ? {
               yAxis: [
                   {
-                      tickCount,
+                      tickCount: resolvedTickCount,
                       tickValues,
                       formatYLabel: formatLabel,
                       axisSide: orientation === 'top' ? 'right' : 'left',
@@ -82,7 +109,7 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
           }
         : {
               xAxis: {
-                  tickCount,
+                  tickCount: resolvedTickCount,
                   tickValues,
                   formatXLabel: formatLabel,
                   axisSide: orientation === 'top' ? 'top' : 'bottom',

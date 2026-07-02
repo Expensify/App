@@ -3,6 +3,7 @@ import type {TNode} from 'react-native-render-html';
 import {X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import type {CartesianChartData, PartialProcessNodeResult, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
+import {parseAttributeAsNumber} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseRawChartData from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseRawChartData';
 import resolveCategoryIndex from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveCategoryIndex';
 
@@ -31,7 +32,13 @@ function parseVictorySeriesNode(tnode: TNode, typeface: SkTypeface | null, rootP
             } as CartesianChartData;
         }
     }
-    return {data, yKeys: [yKey]};
+    const barWidth = tnode.tagName === 'victorybar' ? parseAttributeAsNumber(tnode.attributes.barwidth) : undefined;
+
+    return {
+        data,
+        yKeys: [yKey],
+        ...(barWidth !== undefined ? {barWidth} : {}),
+    };
 }
 
 export default parseVictorySeriesNode;

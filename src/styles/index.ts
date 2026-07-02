@@ -3,14 +3,16 @@
 import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
 import type {LineLayerSpecification} from 'react-map-gl/mapbox';
-// eslint-disable-next-line no-restricted-imports
+/* eslint-disable no-restricted-imports -- Animated type is needed for legacy React Native style definitions */
 import type {Animated, DimensionValue, ImageStyle, TextStyle, ViewStyle} from 'react-native';
+/* eslint-enable no-restricted-imports */
 import {Platform, StyleSheet} from 'react-native';
 import type {PickerStyle} from 'react-native-picker-select';
 import type {SharedValue} from 'react-native-reanimated';
 import {interpolate} from 'react-native-reanimated';
 import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
+import {MAX_HORIZONTAL_CHART_HEIGHT} from '@components/Charts/barChartConstants';
 import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
@@ -97,7 +99,10 @@ type CustomPickerStyle = PickerStyle & {icon?: ViewStyle};
 
 type OverlayStylesParams = Animated.AnimatedInterpolation<string | number> | Animated.Value;
 
-type TwoFactorAuthCodesBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
+type TwoFactorAuthCodesBoxParams = {
+    isExtraSmallScreenWidth: boolean;
+    isSmallScreenWidth: boolean;
+};
 type WorkspaceUpgradeIntroBoxParams = {isExtraSmallScreenWidth: boolean};
 
 type OfflineFeedbackStyle = Record<'deleted' | 'pending' | 'default' | 'error' | 'container' | 'textContainer' | 'text' | 'errorDot', ViewStyle | TextStyle>;
@@ -3281,7 +3286,9 @@ const staticStyles = (theme: ThemeColors) =>
             paddingVertical: 12,
         },
 
-        moneyRequestAmountContainer: {minHeight: variables.inputHeight + 2 * (variables.formErrorLineHeight + 8)},
+        moneyRequestAmountContainer: {
+            minHeight: variables.inputHeight + 2 * (variables.formErrorLineHeight + 8),
+        },
 
         requestPreviewBox: {
             marginTop: 12,
@@ -4715,7 +4722,12 @@ const staticStyles = (theme: ThemeColors) =>
 
         emojiStatusLHN: {
             fontSize: 9,
-            ...(getBrowser() && !isMobile() && {transform: 'scale(.5)', fontSize: 22, overflow: 'visible'}),
+            ...(getBrowser() &&
+                !isMobile() && {
+                    transform: 'scale(.5)',
+                    fontSize: 22,
+                    overflow: 'visible',
+                }),
             ...(getBrowser() &&
                 isSafari() &&
                 !isMobile() && {
@@ -4871,7 +4883,12 @@ const staticStyles = (theme: ThemeColors) =>
             borderWidth: variables.componentBorderWidth,
             borderColor: theme.appBG,
         },
-        currentPositionDot: {backgroundColor: colors.blue400, width: 16, height: 16, borderRadius: 16},
+        currentPositionDot: {
+            backgroundColor: colors.blue400,
+            width: 16,
+            height: 16,
+            borderRadius: 16,
+        },
 
         mapViewOverlay: {
             flex: 1,
@@ -6202,6 +6219,10 @@ const staticStyles = (theme: ThemeColors) =>
         chartTooltipWrapper: {
             alignItems: 'center',
         },
+        chartTooltipWrapperRight: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
         chartTooltipBox: {
             backgroundColor: theme.heading,
             borderRadius: variables.componentBorderRadiusSmall,
@@ -6230,6 +6251,9 @@ const staticStyles = (theme: ThemeColors) =>
             height: CHART_CONTENT_MIN_HEIGHT,
             justifyContent: 'center',
             alignItems: 'center',
+        },
+        chartHorizontalScroll: {
+            maxHeight: MAX_HORIZONTAL_CHART_HEIGHT,
         },
         pieChartLegendContainer: {
             display: 'flex',
@@ -6439,9 +6463,17 @@ const dynamicStyles = (theme: ThemeColors) =>
             } satisfies ViewStyle;
         },
 
-        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth, flex: 1}) satisfies ViewStyle,
+        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) =>
+            ({
+                marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth,
+                flex: 1,
+            }) satisfies ViewStyle,
 
-        RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
+        RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) =>
+            ({
+                marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth,
+                flex: 1,
+            }) satisfies ViewStyle,
 
         growlNotificationTranslateY: (translateY: SharedValue<number>) => {
             'worklet';
@@ -6538,7 +6570,9 @@ const dynamicStyles = (theme: ThemeColors) =>
             minHeight,
         }),
 
-        aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
+        aspectRatioLottie: (animation: DotLottieAnimation) => ({
+            aspectRatio: animation.w / animation.h,
+        }),
 
         colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
 
@@ -6605,7 +6639,9 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         getPopoverMaxHeight: (windowHeight: number, isInLandscapeMode: boolean) => {
             const heightRatio = isInLandscapeMode ? CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE : CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO;
-            return {maxHeight: Math.min(CONST.POPOVER_DROPDOWN_MAX_HEIGHT, windowHeight * heightRatio)};
+            return {
+                maxHeight: Math.min(CONST.POPOVER_DROPDOWN_MAX_HEIGHT, windowHeight * heightRatio),
+            };
         },
 
         getMoneyRequestViewImage: (showBorderless: boolean) => ({
@@ -6864,9 +6900,21 @@ const plainStyles = (theme: ThemeColors) =>
                 width: '100%',
             }) satisfies ViewStyle,
 
-        homePageLeftColumn: {flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
+        homePageLeftColumn: {
+            flex: 7,
+            flexBasis: '58.333%',
+            maxWidth: variables.homePageLeftColumnMaxWidth,
+            flexDirection: 'column',
+            gap: 20,
+        } satisfies ViewStyle,
 
-        homePageRightColumn: {flex: 5, flexBasis: '41.667%', maxWidth: variables.homePageRightColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
+        homePageRightColumn: {
+            flex: 5,
+            flexBasis: '41.667%',
+            maxWidth: variables.homePageRightColumnMaxWidth,
+            flexDirection: 'column',
+            gap: 20,
+        } satisfies ViewStyle,
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>

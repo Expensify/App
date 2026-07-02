@@ -17,6 +17,8 @@ type VictoryChartContextValue = {
     categories: ProcessNodeResult['categories'];
     labelItems: ProcessNodeResult['labelItems'];
     legendItems: ProcessNodeResult['legendItems'];
+    barWidth?: ProcessNodeResult['barWidth'];
+    barSeriesCount?: ProcessNodeResult['barSeriesCount'];
     chartContentStyles: ReturnType<typeof parseStyles>['nodeStyles'];
     chartContainerStyles: ReturnType<typeof parseStyles>['parentNodeStyles'];
     type: ChartType;
@@ -33,7 +35,7 @@ type VictoryChartProviderProps = {
 
 /** Supplies parsed chart config to chart sub-components. Callers must parse and validate the tnode first. */
 function VictoryChartProvider({tnode, processedResult, type, children}: VictoryChartProviderProps) {
-    const {data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems} = processedResult;
+    const {data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems, barWidth, barSeriesCount} = processedResult;
     const {nodeStyles: chartContentStyles, parentNodeStyles: chartContainerStyles} = parseStyles(tnode);
 
     const contextValue: VictoryChartContextValue = {
@@ -50,6 +52,8 @@ function VictoryChartProvider({tnode, processedResult, type, children}: VictoryC
         categories,
         labelItems,
         legendItems,
+        barWidth,
+        barSeriesCount,
         chartContentStyles,
         chartContainerStyles,
         type,

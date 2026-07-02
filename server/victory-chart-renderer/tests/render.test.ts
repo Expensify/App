@@ -41,7 +41,7 @@ describe('victory-chart-renderer CLI', () => {
 
     describe('golden PNG renders', () => {
         test('fixture suite includes all expected charts', () => {
-            expect(FIXTURE_NAMES.length).toBe(6);
+            expect(FIXTURE_NAMES.length).toBe(10);
         });
 
         for (const fixtureName of FIXTURE_NAMES) {

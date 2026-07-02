@@ -25,15 +25,18 @@ type ChartYAxisLabelsProps = {
     /** Fill color for the label text. */
     labelColor: string;
 
+    /** Pre-formatted label strings. When provided, `formatValue` is not used. */
+    labels?: string[];
+
     /** Formats a tick value to its display string. */
-    formatValue: (value: number) => string;
+    formatValue?: (value: number) => string;
 
     /** When true, labels are left-aligned starting at the left edge of the chart instead of right-aligned. */
     leftAlign?: boolean;
 };
 
-function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontManager, labelColor, formatValue, leftAlign = false}: ChartYAxisLabelsProps) {
-    const formattedLabels = yTicks.map((tick) => formatValue(tick));
+function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontManager, labelColor, labels, formatValue, leftAlign = false}: ChartYAxisLabelsProps) {
+    const formattedLabels = labels ?? yTicks.map((tick) => formatValue?.(tick) ?? String(tick));
 
     const paragraphs = useChartParagraphs(formattedLabels, fontManager, fontSize, labelColor, MAX_Y_AXIS_LABEL_WIDTH);
     const maxWidth = Math.max(0, ...paragraphs.map((item) => item.width));
@@ -52,7 +55,7 @@ function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontManager, l
 
         return (
             <Paragraph
-                key={`y-label-${tick}`}
+                key={`y-label-${tick}-${formattedLabels.at(i) ?? ''}`}
                 paragraph={paraData.para}
                 x={x}
                 y={tickY - lineHeight / 2}

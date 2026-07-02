@@ -22,6 +22,7 @@ function parseVictoryLabelNode(tnode: TNode): PartialProcessNodeResult {
         lineHeight: parseAttributeAsNumberArray(tnode.attributes.lineheight),
         textAnchor: parseTextAnchor(tnode.attributes.textanchor),
         verticalAnchor: parseTextAnchor(tnode.attributes.verticalanchor),
+        angle: parseAttributeAsNumber(tnode.attributes.angle),
     };
 
     const style = parseRawLabelStyle(tnode.attributes.style);
