@@ -155,6 +155,7 @@ describe('QuickActionUtils', () => {
                     },
                 } as unknown as Policy;
                 mockedPolicyUtils.isControlPolicy.mockReturnValue(true);
+                mockedPolicyUtils.isPerDiemEnabled.mockReturnValue(true);
 
                 expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], false)).toBe(true);
             });
@@ -167,6 +168,8 @@ describe('QuickActionUtils', () => {
                 expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], false)).toBe(false);
             });
             it("should not allow per diem action when policy doesn't have per diem enabled", () => {
+                mockedPolicyUtils.isControlPolicy.mockReturnValue(true);
+                mockedPolicyUtils.isPerDiemEnabled.mockReturnValue(false);
                 const policy = {
                     id: '1',
                     arePerDiemRatesEnabled: false,
