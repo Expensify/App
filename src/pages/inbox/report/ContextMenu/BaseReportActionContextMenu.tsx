@@ -141,6 +141,7 @@ function BaseReportActionContextMenu({
         'Copy',
         'Download',
         'Exit',
+        'Eye',
         'Flag',
         'LinkCopy',
         'Mail',

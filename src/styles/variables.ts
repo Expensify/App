@@ -313,6 +313,8 @@ export default {
     cardPreviewHeight: 148,
     cardRulesEmptyStateIllustrationWidth: 372,
     cardRulesEmptyStateIllustrationHeight: 196,
+    sortingMachineRulesEmptyStateIllustrationWidth: 229,
+    sortingMachineRulesEmptyStateIllustrationHeight: 240,
     cardRulesEmptyStateMaxWidth: 496,
     expensifyCardEmptyIllustrationWidth: 280,
     expensifyCardEmptyIllustrationHeight: 172,
