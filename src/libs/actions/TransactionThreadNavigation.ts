@@ -30,10 +30,15 @@ function areDescriptorMapsEqual(a: Record<string, TransactionThreadNavigationDes
         return false;
     }
     // Compare the identity-bearing fields only; the transaction object is keyed by transactionID, so two
-    // descriptors with the same reportID/threadReportID/transactionID describe the same sibling.
+    // descriptors with the same reportID/childReportID/transactionID describe the same sibling.
     return aKeys.every((key) => {
         const next = b[key];
-        return !!next && a[key].reportID === next.reportID && a[key].threadReportID === next.threadReportID && a[key].transaction?.transactionID === next.transaction?.transactionID;
+        return (
+            !!next &&
+            a[key].reportID === next.reportID &&
+            a[key].reportAction?.childReportID === next.reportAction?.childReportID &&
+            a[key].transaction?.transactionID === next.transaction?.transactionID
+        );
     });
 }
 
