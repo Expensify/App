@@ -33,6 +33,7 @@ import useLocalize from './useLocalize';
 import useMappedPolicies from './useMappedPolicies';
 import useOnyx from './useOnyx';
 import useOptimisticDraftTransactions from './useOptimisticDraftTransactions';
+import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import useTransactionsByID from './useTransactionsByID';
 
@@ -74,6 +75,7 @@ function useParticipantSubmission({
     isFocused,
 }: UseParticipantSubmissionParams) {
     const {translate} = useLocalize();
+    const personalPolicy = usePersonalPolicy();
 
     const [allPolicies] = useMappedPolicies(policyMapper);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
@@ -188,7 +190,7 @@ function useParticipantSubmission({
                 lastSelectedDistanceRates: distanceRates,
                 expenseDate: transaction.created,
             });
-            setCustomUnitRateID(transaction.transactionID, rateID, transaction, movingPolicy);
+            setCustomUnitRateID(transaction.transactionID, rateID, transaction, movingPolicy, false, personalPolicy?.outputCurrency);
             const shouldSetParticipantAutoAssignment = iouType === CONST.IOU.TYPE.CREATE;
             setMoneyRequestParticipantsFromReport(transaction.transactionID, dmReport, userDetails.accountID, shouldSetParticipantAutoAssignment ? isActiveRequest : false);
             setTransactionReport(transaction.transactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
@@ -260,7 +262,7 @@ function useParticipantSubmission({
                         lastSelectedDistanceRates: distanceRates,
                         expenseDate: transaction.created,
                     });
-                    setCustomUnitRateID(transaction.transactionID, rateID, transaction, policy);
+                    setCustomUnitRateID(transaction.transactionID, rateID, transaction, policy, false, personalPolicy?.outputCurrency);
                 }
             } else {
                 // Fallback to using initialTransactionID directly
@@ -270,7 +272,9 @@ function useParticipantSubmission({
                     policy,
                     lastSelectedDistanceRates: distanceRates,
                 });
-                setCustomUnitRateID(initialTransactionID, rateID, undefined, policy);
+                // personalPolicyOutputCurrency is intentionally omitted: setCustomUnitRateID only resolves a (P2P) rate when a transaction is passed,
+                // and no transaction is passed here, so the currency is never read.
+                setCustomUnitRateID(initialTransactionID, rateID, undefined, policy, false, undefined);
             }
         }
 

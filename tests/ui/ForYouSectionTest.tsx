@@ -390,6 +390,83 @@ describe('ForYouSection', () => {
             expect(mockNavigate).not.toHaveBeenCalled();
         });
 
+        it('opens the flagged expense thread when a lone flagged expense sits inside a multi-transaction report', async () => {
+            // Repro of the deploy blocker: an OPEN expense report with two transactions where only one is still
+            // flagged. transactionCount is 2, so pressing the row must open the flagged expense's thread rather
+            // than the whole report (which would show both the flagged and unflagged expenses).
+            await act(async () => {
+                setTodoCounts(BASE_TODOS);
+                await Onyx.set(
+                    `${ONYXKEYS.COLLECTION.REPORT}r1`,
+                    createMockReport({
+                        reportID: 'r1',
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                        ownerAccountID: ACCOUNT_ID,
+                        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                        transactionCount: 2,
+                    }),
+                );
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}t1`, {transactionID: 't1', reportID: 'r1', amount: 100, currency: 'USD', created: '2024-01-01', merchant: 'Test Merchant'});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}t2`, {transactionID: 't2', reportID: 'r1', amount: 200, currency: 'USD', created: '2024-01-01', merchant: 'Test Merchant'});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}t1`, [
+                    {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.MISSING_CATEGORY},
+                ] as TransactionViolations);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            pressFirstBeginButton();
+
+            expect(mockNavigateToTransactionThread).toHaveBeenCalledTimes(1);
+            expect(mockNavigateToTransactionThread).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionID: 't1',
+                    report: expect.objectContaining({reportID: 'r1'}),
+                    siblingTransactionIDs: ['t1'],
+                    backTo: ROUTES.HOME,
+                }),
+            );
+            // The whole-report route must not be used when the report holds more than one transaction.
+            expect(mockNavigate).not.toHaveBeenCalled();
+        });
+
+        it('opens the report directly when the lone flagged expense is the report only transaction', async () => {
+            // A genuine one-transaction report keeps the shortcut: the transaction thread would be a redundant
+            // duplicate of the report, so navigate straight to the expense report.
+            await act(async () => {
+                setTodoCounts(BASE_TODOS);
+                await Onyx.set(
+                    `${ONYXKEYS.COLLECTION.REPORT}r1`,
+                    createMockReport({
+                        reportID: 'r1',
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                        ownerAccountID: ACCOUNT_ID,
+                        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                        transactionCount: 1,
+                    }),
+                );
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}t1`, {transactionID: 't1', reportID: 'r1', amount: 100, currency: 'USD', created: '2024-01-01', merchant: 'Test Merchant'});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}t1`, [
+                    {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.MISSING_CATEGORY},
+                ] as TransactionViolations);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            pressFirstBeginButton();
+
+            // Wide layout (default in beforeEach) → EXPENSE_REPORT_RHP.
+            expect(mockNavigate).toHaveBeenCalledTimes(1);
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: 'r1', backTo: ROUTES.HOME}));
+            expect(mockNavigateToTransactionThread).not.toHaveBeenCalled();
+        });
+
         it('does not render the review row or navigate when a violated transaction is not on a current-user OPEN expense report', async () => {
             await act(async () => {
                 setTodoCounts(BASE_TODOS);

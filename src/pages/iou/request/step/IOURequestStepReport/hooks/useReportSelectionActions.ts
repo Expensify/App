@@ -147,7 +147,8 @@ function useReportSelectionActions({
         // Clear subrates, and update customUnitID if policy changed for per diem transactions
         if (policyChanged && isPerDiemTransaction) {
             setCustomUnitID(transaction.transactionID, newCustomUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
-            setCustomUnitRateID(transaction.transactionID, undefined, transaction, newPolicy);
+            // personalPolicyOutputCurrency is intentionally omitted: no customUnitRateID is passed, so setCustomUnitRateID never resolves a rate and the currency is never read.
+            setCustomUnitRateID(transaction.transactionID, undefined, transaction, newPolicy, false, undefined);
             clearSubrates(transaction.transactionID);
 
             const newChatReportID = reportOrDraftReportFromValue?.chatReportID ?? reportIDFromRoute;
