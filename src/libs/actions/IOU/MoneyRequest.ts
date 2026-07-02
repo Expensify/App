@@ -623,8 +623,8 @@ function setCustomUnitRateID(
     customUnitRateID: string | undefined,
     transaction: OnyxEntry<Transaction>,
     policy: OnyxEntry<Policy>,
-    rateAutoUpdated = false,
-    personalPolicyOutputCurrency?: string,
+    rateAutoUpdated: boolean,
+    personalPolicyOutputCurrency: string | undefined,
 ) {
     const isFakeP2PRate = customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 

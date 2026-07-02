@@ -260,7 +260,9 @@ function useParticipantSubmission({
                     policy,
                     lastSelectedDistanceRates: distanceRates,
                 });
-                setCustomUnitRateID(initialTransactionID, rateID, undefined, policy);
+                // personalPolicyOutputCurrency is intentionally omitted: setCustomUnitRateID only resolves a (P2P) rate when a transaction is passed,
+                // and no transaction is passed here, so the currency is never read.
+                setCustomUnitRateID(initialTransactionID, rateID, undefined, policy, false, undefined);
             }
         }
 

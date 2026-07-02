@@ -453,8 +453,9 @@ function handleMoneyRequestStepDistanceNavigation({
         setTransactionReport(transactionID, {reportID: transactionReportID}, true);
         // Do not pass transaction and policy so it only updates customUnitRateID without changing distance and distance unit
         // as it is set for Manual requests before this function is called and transaction may have
-        // obsolete customUnit values
-        setCustomUnitRateID(transactionID, rateID, undefined, undefined);
+        // obsolete customUnit values. personalPolicyOutputCurrency is intentionally omitted for the same reason:
+        // without a transaction, setCustomUnitRateID never resolves a rate, so the currency is never read.
+        setCustomUnitRateID(transactionID, rateID, undefined, undefined, false, undefined);
 
         // Update distance and distance unit in transaction object as it is usually set before this function is called using
         // defaultExpensePolicy data which is not accurate in this case as defaultExpensePolicy has autoReporting set to false
