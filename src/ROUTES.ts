@@ -909,7 +909,7 @@ const DYNAMIC_ROUTES = {
     },
     NEW_TASK_DETAILS: {
         path: 'task-details',
-        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.NEW_TASK.DYNAMIC_ROOT],
+        entryScreens: ['*'],
     },
     NEW_TASK: {
         path: 'task-confirm',
