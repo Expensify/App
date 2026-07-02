@@ -1,5 +1,3 @@
-import createExternalStore from './createExternalStore';
-
 type EscapeBehavior = 'dismiss' | 'ignore';
 
 type DismissableLayerKind = 'modal' | 'floating';
@@ -19,16 +17,44 @@ function nextLayerMountId(): number {
     return id;
 }
 
+// Module-level observable store read via `useSyncExternalStore` (PERF-14) — same shape as the
+// existing `RevealedCardSecretsStore` / `SearchSidebarCollapseStore` module stores.
 const EMPTY_SNAPSHOT: readonly DismissableLayerEntry[] = Object.freeze([]);
-const store = createExternalStore<readonly DismissableLayerEntry[]>(EMPTY_SNAPSHOT, EMPTY_SNAPSHOT);
+let snapshot: readonly DismissableLayerEntry[] = EMPTY_SNAPSHOT;
+const listeners = new Set<() => void>();
+
+function getSnapshot(): readonly DismissableLayerEntry[] {
+    return snapshot;
+}
+
+function getServerSnapshot(): readonly DismissableLayerEntry[] {
+    return EMPTY_SNAPSHOT;
+}
+
+function subscribe(listener: () => void): () => void {
+    listeners.add(listener);
+    return () => {
+        listeners.delete(listener);
+    };
+}
+
+// Passing the current snapshot back (same reference) is the no-op signal — it bails without notifying.
+function setSnapshot(next: readonly DismissableLayerEntry[]): void {
+    if (Object.is(next, snapshot)) {
+        return;
+    }
+    snapshot = next;
+    for (const listener of listeners) {
+        listener();
+    }
+}
 
 function pushDismissableLayer(entry: DismissableLayerEntry): () => void {
-    store.set([...store.read(), entry]);
+    setSnapshot([...snapshot, entry]);
     return () => {
-        store.mutate((current) => {
-            const next = current.filter((existing) => existing !== entry);
-            return next.length === current.length ? current : next;
-        });
+        const current = snapshot;
+        const next = current.filter((existing) => existing !== entry);
+        setSnapshot(next.length === current.length ? current : next);
     };
 }
 
@@ -60,9 +86,9 @@ function selectTopLayerOfKind(stack: readonly DismissableLayerEntry[], kind: Dis
 }
 
 const dismissableLayerStore = {
-    getSnapshot: store.getSnapshot,
-    getServerSnapshot: store.getServerSnapshot,
-    subscribe: store.subscribe,
+    getSnapshot,
+    getServerSnapshot,
+    subscribe,
 };
 
 export default dismissableLayerStore;
