@@ -59,6 +59,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: 1000},
                 policy,
@@ -132,6 +133,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: 1000},
                 policy,
@@ -193,6 +195,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
                 transactionIDs: [firstTransactionID, secondTransactionID],
                 changes: {amount: 1000},
                 policy,
@@ -263,6 +266,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: -1000},
                 policy,
@@ -338,6 +342,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {billable: true, reimbursable: false},
                 policy,
@@ -403,6 +408,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: 1000},
                 policy,
@@ -467,6 +473,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             // No canEditFieldOfMoneyRequest mock — unreported expenses must bypass that check
             updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {merchant: 'New merchant'},
                 policy,
@@ -521,6 +528,7 @@ describe('actions/IOU/BulkEdit', () => {
             await waitForBatchedUpdates();
 
             updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: 1000},
                 policy,
@@ -593,6 +601,7 @@ describe('actions/IOU/BulkEdit', () => {
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
 
             updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: 2000},
                 policy,
@@ -652,6 +661,7 @@ describe('actions/IOU/BulkEdit', () => {
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
 
             updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {category: ''},
                 policy,
@@ -716,6 +726,7 @@ describe('actions/IOU/BulkEdit', () => {
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
 
             updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {category: 'Food'},
                 policy,
@@ -781,6 +792,7 @@ describe('actions/IOU/BulkEdit', () => {
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
 
             updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {merchant: 'New Merchant'},
                 policy: bulkEditPolicy,
@@ -849,6 +861,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             // Pass categories for BOTH policies — "Engineering" only exists in the transaction's policy
             updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: 2000},
                 policy: bulkEditPolicy,
@@ -921,6 +934,7 @@ describe('actions/IOU/BulkEdit', () => {
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
 
             updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: 2000},
                 policy,
@@ -1001,6 +1015,7 @@ describe('actions/IOU/BulkEdit', () => {
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
 
             updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: 2000},
                 policy,
@@ -1061,6 +1076,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {category: 'Food', billable: true},
                 policy,
@@ -1126,6 +1142,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {category: 'Food', amount: 5000, currency: CONST.CURRENCY.EUR, taxCode: 'id_TAX_RATE_1'},
                 policy,
@@ -1214,6 +1231,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             // When: bulk-editing with the shared policy (different from transaction's policy)
             updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {category},
                 policy: sharedBulkEditPolicy,
@@ -1305,6 +1323,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             // When: bulk-editing reimbursable with the shared policy (different from transaction's policy)
             updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {reimbursable: false},
                 policy: sharedBulkEditPolicy,
@@ -1376,6 +1395,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: -2000},
                 policy,
@@ -1444,6 +1464,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: -2000},
                 policy,
@@ -1508,6 +1529,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: -2000},
                 policy,
@@ -1566,6 +1588,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {merchant: 'Coffee Shop'},
                 policy,
@@ -1668,6 +1691,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {merchant: 'Priority Test'},
                 policy,

@@ -14,7 +14,6 @@ import {isReceiptError} from '@libs/ErrorUtils';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
-import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {
     arePolicyRulesEnabled,
     getDistanceRateCustomUnitRate,
@@ -459,6 +458,7 @@ const ViolationsUtils = {
         isFromExpenseReport,
         shouldRemoveRejectedExpenseViolation,
         distanceOriginalPolicy,
+        ownerLogin: ownerLoginParam,
     }: {
         updatedTransaction: Transaction;
         transactionViolations: TransactionViolation[];
@@ -472,6 +472,7 @@ const ViolationsUtils = {
         isFromExpenseReport?: boolean;
         shouldRemoveRejectedExpenseViolation?: boolean;
         distanceOriginalPolicy?: OnyxEntry<Policy>;
+        ownerLogin: string | undefined;
     }): OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> {
         const isScanning = TransactionUtils.isScanning(updatedTransaction);
         const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
@@ -708,7 +709,7 @@ const ViolationsUtils = {
         // Filter out the owner/creator when checking attendance count - expense is valid if at least one non-owner attendee is present
         let attendeesMinusOwnerCount: number;
         // Prefer the actual report owner's login; fall back to the current user when the report is unavailable (e.g. an offline-created expense)
-        const ownerLogin = getLoginByAccountID(iouReport?.ownerAccountID) ?? getCurrentUserEmail();
+        const ownerLogin = ownerLoginParam ?? getCurrentUserEmail();
         if (ownerLogin) {
             // Filter by login or email to identify owner
             attendeesMinusOwnerCount = attendees.filter((a) => {

@@ -12,6 +12,7 @@ import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import {isValidMerchant, isValidMoneyRequestAmount} from '@libs/MoneyRequestUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getTagLists, isGroupPolicy, isMultiLevelTags} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
@@ -40,6 +41,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
     IntroSelected,
+    PersonalDetailsList,
     Policy,
     PolicyCategories,
     PolicyTagLists,
@@ -186,6 +188,7 @@ type GetIouParamsInput = {
     isSelfTourViewed: boolean | undefined;
     hasCompletedGuidedSetupFlow: boolean | undefined;
     distanceOriginalPolicy?: OnyxEntry<Policy>;
+    personalDetailsList: OnyxEntry<PersonalDetailsList>;
 };
 
 type TransactionInlineEditParams = GetIouParamsInput & {
@@ -214,6 +217,7 @@ function getIouParamsForTransaction({
     parentReportNextStep,
     isSelfTourViewed,
     hasCompletedGuidedSetupFlow,
+    personalDetailsList,
 }: GetIouParamsInput) {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
@@ -268,6 +272,7 @@ function getIouParamsForTransaction({
         transactionID,
         transactionThreadReport: resolvedTransactionThreadReport,
         parentReport: resolvedParentReport,
+        iouReportOwnerLogin: getLoginByAccountID(resolvedParentReport?.ownerAccountID, personalDetailsList),
         policy,
         policyForTrackExpense,
         policyCategories,

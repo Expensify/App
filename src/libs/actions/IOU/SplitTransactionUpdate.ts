@@ -14,6 +14,7 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {rand64} from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {
     getAllReportActions,
@@ -765,6 +766,7 @@ function updateSplitTransactions({
                     transactionID: existingTransactionID,
                     transactionThreadReport,
                     iouReport: transactionIOUReport,
+                    iouReportOwnerLogin: getLoginByAccountID(transactionIOUReport?.ownerAccountID, personalDetails),
                     transactionChanges,
                     policy,
                     policyTagList: policyTags ?? null,

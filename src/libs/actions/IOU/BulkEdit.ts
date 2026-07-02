@@ -6,6 +6,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import * as NumberUtils from '@libs/NumberUtils';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getDistanceRateCustomUnitRate, getPolicyForDistanceRateID, hasDependentTags} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
@@ -92,6 +93,7 @@ type UpdateMultipleMoneyRequestsParams = {
     allPolicies?: OnyxCollection<OnyxTypes.Policy>;
     currentUserAccountID: number;
     delegateAccountID: number | undefined;
+    personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 function updateMultipleMoneyRequests({
@@ -108,6 +110,7 @@ function updateMultipleMoneyRequests({
     allPolicies,
     currentUserAccountID,
     delegateAccountID,
+    personalDetailsList,
 }: UpdateMultipleMoneyRequestsParams) {
     // Track running totals per report so multiple edits in the same report compound correctly.
     const optimisticReportsByID: Record<string, OnyxTypes.Report> = {};
@@ -376,6 +379,7 @@ function updateMultipleMoneyRequests({
                 isInvoiceTransaction: isInvoiceReportReportUtils(iouReport),
                 isSelfDM: isSelfDM(iouReport),
                 iouReport,
+                ownerLogin: getLoginByAccountID(iouReport?.ownerAccountID, personalDetailsList),
                 isFromExpenseReport,
                 distanceOriginalPolicy,
             });

@@ -110,6 +110,7 @@ function detachReceipt(
             policyCategories: transactionPolicyCategories ?? {},
             hasDependentTags: hasDependentTags(transactionPolicy, transactionPolicyTagList ?? {}),
             isInvoiceTransaction: isInvoiceReportReportUtils(expenseReport),
+            ownerLogin: undefined,
         });
         optimisticData.push(violationsOnyxData);
         failureData.push({
@@ -255,6 +256,7 @@ function replaceReceipt({
             policyCategories: transactionPolicyCategories ?? {},
             hasDependentTags: hasDependentTags(transactionPolicy, transactionPolicyTagList ?? {}),
             isInvoiceTransaction: isInvoiceReportReportUtils(expenseReport),
+            ownerLogin: undefined,
         });
         optimisticData.push(violationsOnyxData);
         failureData.push({

@@ -127,6 +127,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
 
     const originalTransactionID = transaction?.comment?.originalTransactionID;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(originalTransactionID)}`);
+    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const {hasSelectedTransactions} = useSearchSelectionContext();
 
@@ -177,6 +178,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed ?? false,
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow ?? false,
             distanceOriginalPolicy,
+            personalDetailsList,
         };
     };
 
