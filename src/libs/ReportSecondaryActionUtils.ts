@@ -84,6 +84,7 @@ import {
 import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
+    hasOnlyPendingCardTransactions,
     hasReceipt as hasReceiptTransactionUtils,
     hasSmartScanFailedWithMissingFields,
     hasSubmissionBlockingViolations,
@@ -228,6 +229,10 @@ function isSubmitAction({
     }
 
     if (hasSmartScanFailedWithMissingFields(reportTransactions ?? [], report)) {
+        return false;
+    }
+
+    if (hasOnlyPendingCardTransactions(reportTransactions ?? [])) {
         return false;
     }
 
