@@ -2335,6 +2335,14 @@ const ROUTES = {
         route: 'workspaces/:policyID/workflows/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/workflows/import` as const,
     },
+    WORKSPACE_WORKFLOWS_IMPORTED: {
+        route: 'workspaces/:policyID/workflows/imported',
+        getRoute: (policyID: string) => `workspaces/${policyID}/workflows/imported` as const,
+    },
+    WORKSPACE_WORKFLOWS_IMPORTED_CONFIRMATION: {
+        route: 'workspaces/:policyID/workflows/imported/confirmation',
+        getRoute: (policyID: string) => `workspaces/${policyID}/workflows/imported/confirmation` as const,
+    },
     WORKSPACE_WORKFLOWS_APPROVALS_NEW: {
         route: 'workspaces/:policyID/workflows/approvals/new',
         getRoute: (policyID: string) => `workspaces/${policyID}/workflows/approvals/new` as const,

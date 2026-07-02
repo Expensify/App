@@ -18,10 +18,10 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-type ImportedMembersPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORTED>;
+type ImportedMembersPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORTED | typeof SCREENS.WORKSPACE.WORKFLOWS_IMPORTED>;
 
 function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const {translate} = useLocalize();
@@ -32,6 +32,10 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
+
+    // The same mapping screen is reused for the Members importer and the Workflows importer. When it is reached from the
+    // Workflows page we keep the user in the Workflows context (title + back + return + confirmation navigation).
+    const isWorkflowsImport = route.name === SCREENS.WORKSPACE.WORKFLOWS_IMPORTED;
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const {containsHeader = true} = spreadsheet ?? {};
@@ -77,7 +81,8 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     };
 
     const navigateBackToMembers = () => {
-        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID), {waitForTransition: true});
+        const returnRoute = isWorkflowsImport ? ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID) : ROUTES.WORKSPACE_MEMBERS.getRoute(policyID);
+        Navigation.goBack(returnRoute, {waitForTransition: true});
     };
 
     const importMembers = async () => {
@@ -227,7 +232,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
         if (isRoleMissing) {
             setImportedSpreadsheetMemberData(allMembers);
-            Navigation.navigate(ROUTES.WORKSPACE_MEMBERS_IMPORTED_CONFIRMATION.getRoute(policyID));
+            Navigation.navigate(isWorkflowsImport ? ROUTES.WORKSPACE_WORKFLOWS_IMPORTED_CONFIRMATION.getRoute(policyID) : ROUTES.WORKSPACE_MEMBERS_IMPORTED_CONFIRMATION.getRoute(policyID));
         } else {
             setIsImporting(true);
             const importFinalModal = await importPolicyMembers(policy, allMembers);
@@ -256,8 +261,8 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
-                title={translate('workspace.people.importMembers')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS_IMPORT.getRoute(policyID))}
+                title={isWorkflowsImport ? translate('spreadsheet.importWorkflows') : translate('workspace.people.importMembers')}
+                onBackButtonPress={() => Navigation.goBack(isWorkflowsImport ? ROUTES.WORKSPACE_WORKFLOWS_IMPORT.getRoute(policyID) : ROUTES.WORKSPACE_MEMBERS_IMPORT.getRoute(policyID))}
             />
             <ImportSpreadsheetColumns
                 spreadsheetColumns={spreadsheetColumns}

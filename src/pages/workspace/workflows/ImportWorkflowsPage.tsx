@@ -13,8 +13,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 type ImportWorkflowsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_IMPORT>;
 
 // Reuses the Members spreadsheet importer (it already maps the `submitsTo` / `approvesTo` columns) so approval
-// workflows can be bulk-imported directly from the Workflows page. Only `backTo` differs from `ImportMembersPage`
-// so the upload screen returns to Workflows instead of Members.
+// workflows can be bulk-imported directly from the Workflows page. `backTo` returns the upload screen to Workflows,
+// and `goTo` sends the mapping step to the Workflows-context imported screen (instead of the Members one).
 function ImportWorkflowsPage({route}: ImportWorkflowsPageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
@@ -28,7 +28,7 @@ function ImportWorkflowsPage({route}: ImportWorkflowsPageProps) {
         >
             <ImportSpreadsheet
                 backTo={ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)}
-                goTo={ROUTES.WORKSPACE_MEMBERS_IMPORTED.getRoute(policyID)}
+                goTo={ROUTES.WORKSPACE_WORKFLOWS_IMPORTED.getRoute(policyID)}
             />
         </AccessOrNotFoundWrapper>
     );

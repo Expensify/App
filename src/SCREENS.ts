@@ -776,6 +776,8 @@ const SCREENS = {
         DYNAMIC_WORKSPACE_OVERVIEW_PLAN: 'Dynamic_Workspace_Overview_Plan_Type',
         WORKFLOWS: 'Workspace_Workflows',
         WORKFLOWS_IMPORT: 'Workspace_Workflows_Import',
+        WORKFLOWS_IMPORTED: 'Workspace_Workflows_Imported',
+        WORKFLOWS_IMPORTED_CONFIRMATION: 'Workspace_Workflows_Imported_Confirmation',
         WORKFLOWS_PAYER: 'Workspace_Workflows_Payer',
         WORKFLOWS_APPROVALS_NEW: 'Workspace_Approvals_New',
         WORKFLOWS_APPROVALS_EDIT: 'Workspace_Approvals_Edit',

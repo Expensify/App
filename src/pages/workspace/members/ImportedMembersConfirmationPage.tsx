@@ -30,9 +30,12 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 
-type ImportedMembersConfirmationPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORTED>;
+type ImportedMembersConfirmationPageProps = PlatformStackScreenProps<
+    SettingsNavigatorParamList,
+    typeof SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION | typeof SCREENS.WORKSPACE.WORKFLOWS_IMPORTED_CONFIRMATION
+>;
 
 function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPageProps) {
     const styles = useThemeStyles();
@@ -86,11 +89,15 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         openExternalLink(CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL);
     };
 
+    // The same confirmation screen is reused for the Members importer and the Workflows importer, so we return the user
+    // to the page the import was started from.
+    const isWorkflowsImport = route.name === SCREENS.WORKSPACE.WORKFLOWS_IMPORTED_CONFIRMATION;
+
     const closeImportPageAndModal = () => {
         setIsClosing(true);
         setIsImporting(false);
         closeImportPage();
-        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
+        Navigation.goBack(isWorkflowsImport ? ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID) : ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
     };
 
     const importMembers = async () => {
