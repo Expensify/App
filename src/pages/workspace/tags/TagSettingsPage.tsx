@@ -1,4 +1,5 @@
-import React, {useEffect} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
@@ -14,6 +15,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,7 +39,7 @@ import {
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {clearPolicyTagErrors, deletePolicyTags, setWorkspaceTagEnabled} from '@userActions/Policy/Tag';
+import {clearPolicyTagErrors, deletePolicyTags, openPolicyTagsPage, setWorkspaceTagEnabled} from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -70,6 +72,17 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
         : (policyTag.tags[tagName] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === tagName));
 
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledTag(policyTag, [currentPolicyTag]);
+    const fetchTags = useCallback(() => {
+        openPolicyTagsPage(policyID);
+    }, [policyID]);
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchTags();
+        }, [fetchTags]),
+    );
+
+    useNetwork({onReconnect: fetchTags});
 
     useEffect(() => {
         if (currentPolicyTag?.name === tagName || !currentPolicyTag) {
