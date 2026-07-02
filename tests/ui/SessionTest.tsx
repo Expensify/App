@@ -50,6 +50,20 @@ function getInitialURL() {
     return deeplinkUrl;
 }
 
+// cspell:disable-next-line
+const TEST_SUPPORT_AUTH_TOKEN = 'supporttoken123';
+
+function getSupportAuthURL() {
+    const params = new URLSearchParams();
+
+    params.set('email', TEST_USER_LOGIN_1);
+    params.set('delegatorEmail', TEST_USER_LOGIN_2);
+    params.set('shortLivedAuthToken', TEST_SUPPORT_AUTH_TOKEN);
+    params.set('authTokenType', CONST.AUTH_TOKEN_TYPES.SUPPORT);
+
+    return `${CONST.DEEPLINK_BASE_URL}/transition?${params.toString()}`;
+}
+
 describe('Deep linking', () => {
     let lastVisitedPath: string | undefined;
     let lastVisitedPathConnectionID: ReturnType<typeof Onyx.connect> | undefined;
@@ -217,6 +231,75 @@ describe('Deep linking', () => {
             expect(hasAuthToken()).toBe(false);
 
             unmount3();
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+        },
+        4 * 60 * 1000,
+    );
+});
+
+describe('Support auth token login', () => {
+    beforeEach(() => {
+        jest.restoreAllMocks();
+        wrapOnyxWithWaitForBatchedUpdates(Onyx);
+
+        jest.spyOn(Session, 'signInWithSupportAuthToken').mockImplementation(() => {});
+
+        // Set the keys the app needs to finish loading rather than going through a full OpenApp round-trip.
+        jest.spyOn(AppActions, 'openApp').mockImplementation(() =>
+            Onyx.multiSet({
+                [ONYXKEYS.IS_LOADING_APP]: false,
+                [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                [ONYXKEYS.HAS_LOADED_APP]: true,
+                [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: true},
+            }),
+        );
+    });
+
+    afterEach(async () => {
+        cleanup();
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdatesWithAct();
+        await waitForNetworkPromises();
+        PusherHelper.teardown();
+        jest.clearAllMocks();
+        Linking.setInitialURL('');
+        setLastShortAuthToken(null);
+    });
+
+    // Renders the full App and processes a supportal transition, so it runs longer than the suite default.
+    it(
+        'does not fire the support sign-in again when LogOutPreviousUserPage re-processes an already-handled token',
+        async () => {
+            expect(hasAuthToken()).toBe(false);
+
+            // Sign in so the app is on AuthScreens, where LogOutPreviousUserPage owns the /transition route.
+            const {unmount: unmount1} = render(<App />);
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID_2, TEST_USER_LOGIN_2, undefined, TEST_AUTH_TOKEN_2);
+
+            await waitForBatchedUpdatesWithAct();
+
+            expect(hasAuthToken()).toBe(true);
+            unmount1();
+
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+
+            // The public transition page (LogInWithShortLivedAuthTokenPage) records the support token when it
+            // fires the sign-in. Simulate that, then re-process the SAME support deep link, which lands on
+            // LogOutPreviousUserPage. It must skip the duplicate sign-in; before the fix it fired
+            // unconditionally and tripped the support-token rate limit.
+            setLastShortAuthToken(TEST_SUPPORT_AUTH_TOKEN);
+            Linking.setInitialURL(getSupportAuthURL());
+            const {unmount: unmount2} = render(<App />);
+
+            await waitForBatchedUpdatesWithAct();
+
+            expect(Session.signInWithSupportAuthToken).not.toHaveBeenCalled();
+
+            unmount2();
             await waitForBatchedUpdatesWithAct();
             await waitForNetworkPromises();
         },
