@@ -1070,7 +1070,8 @@ function changeTransactionsReport({
         // during deletion and its transaction thread is deleted, so reusing it is harmful.
         const oldIOUAction = isDeletedExpense ? undefined : getIOUActionForReportID(isUnreportedExpense ? selfDMReportID : transaction.reportID, transaction.transactionID);
 
-        if (!transaction.reportID || transaction.reportID === reportID) {
+        const normalizedReportID = transaction.reportID || CONST.REPORT.UNREPORTED_REPORT_ID;
+        if (normalizedReportID === reportID) {
             continue;
         }
 
