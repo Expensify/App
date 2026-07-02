@@ -125,6 +125,7 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
                 <Animated.View style={[styles.switchThumb, animatedThumbStyle]}>
                     {(!!disabled || !!showLockIcon) && (
                         <Icon
+                            testID={CONST.SWITCH_LOCK_ICON_TEST_ID}
                             src={expensifyIcons.Lock}
                             fill={isOn ? theme.text : theme.icon}
                             width={styles.toggleSwitchLockIcon.width}

@@ -28,6 +28,7 @@ import useEnvironment from './useEnvironment';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import {findSplitPolicyForCustomUnit, getSplitEffectivePolicy} from './useSplitEffectivePolicy';
@@ -85,6 +86,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const personalPolicy = usePersonalPolicy();
     const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const {isOffline} = useNetwork();
     const {isProduction} = useEnvironment();
@@ -169,10 +171,18 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     policyForCustomUnit: findSplitPolicyForCustomUnit(allPolicies, splitExpenseEditTransaction),
                     fallbackPolicy: policyForMovingExpenses,
                 });
-                initSplitExpense(splitExpenseEditTransaction, splitExpenseEditTransactionReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, {
-                    navigateToEditSplitExpense: true,
-                    isProduction,
-                });
+                initSplitExpense(
+                    splitExpenseEditTransaction,
+                    splitExpenseEditTransactionReport,
+                    splitEffectivePolicy,
+                    selfDMReportID,
+                    restrictedActionPolicyID,
+                    personalPolicy?.outputCurrency,
+                    {
+                        navigateToEditSplitExpense: true,
+                        isProduction,
+                    },
+                );
                 return {
                     action: 'redirected',
                 };
@@ -376,6 +386,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             getSplitExpenseEditTransactionOnDelete,
             isOffline,
             isProduction,
+            personalPolicy?.outputCurrency,
         ],
     );
 

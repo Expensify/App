@@ -82,6 +82,7 @@ function AgentRulesSection({policyID, canWriteRules, showReadOnlyModal}: AgentRu
                         avatar={ruleBot?.avatar}
                         displayName={ruleBotDisplayName}
                         email={ruleBot?.login}
+                        style={styles.flexShrink1}
                     />
                 </View>
             )}
