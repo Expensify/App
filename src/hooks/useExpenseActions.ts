@@ -32,6 +32,7 @@ import {
     isSelfDM,
     navigateOnDeleteExpense,
 } from '@libs/ReportUtils';
+import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     getChildTransactions,
@@ -330,7 +331,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 }
 
                 if (hasCustomUnitOutOfPolicyViolation) {
-                    showConfirmModal({
+                    showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                         title: translate('common.duplicateExpense'),
                         prompt: translate('iou.correctRateError'),
                         confirmText: translate('common.buttonConfirm'),
@@ -340,7 +341,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 }
 
                 if (isDistanceExpenseUnsupportedForDuplicating) {
-                    showConfirmModal({
+                    showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                         title: translate('common.duplicateExpense'),
                         prompt: translate('iou.cannotDuplicateDistanceExpense'),
                         confirmText: translate('common.buttonConfirm'),
@@ -350,7 +351,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 }
 
                 if (isPerDiemRequestOnNonDefaultWorkspace) {
-                    showConfirmModal({
+                    showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                         title: translate('common.duplicateExpense'),
                         prompt: translate('iou.duplicateNonDefaultWorkspacePerDiemError'),
                         confirmText: translate('common.buttonConfirm'),
@@ -487,7 +488,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         return;
                     }
 
-                    const result = await showConfirmModal({
+                    const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                         title: translate('iou.deleteExpense', {count: 1}),
                         prompt: translate('iou.deleteConfirmation', {count: 1}),
                         confirmText: translate('common.delete'),
@@ -548,7 +549,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     return;
                 }
 
-                const result = await showConfirmModal({
+                const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                     title: translate('iou.deleteReport', {count: 1}),
                     prompt: translate('iou.deleteReportConfirmation', {count: 1}),
                     confirmText: translate('common.delete'),
