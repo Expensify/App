@@ -1,8 +1,6 @@
 /* eslint-disable react-hooks/refs -- Refs in this hook are used inside callbacks that capture stable references; the lint rule flags false positives for these patterns */
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports -- InteractionManager is only exposed on the react-native root module; there is no internal re-export to import from
-import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -67,6 +65,7 @@ import {
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, isDefaultExpensesQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import {getColumnsToShow, getSearchColumnTranslationKey, getSelectedGroupFilterEntry, getValidGroupBy, navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
+import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
@@ -912,94 +911,85 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return;
         }
 
-        // InteractionManager is deprecated but still required here to defer showing the confirm modal until pending interactions settle, matching the production behavior this PR restores (see https://github.com/Expensify/App/issues/95114).
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(async () => {
-            const result = await showConfirmModal({
-                title: deleteModalTitle,
-                prompt: deleteModalPrompt,
-                confirmText: translate('common.delete'),
-                cancelText: translate('common.cancel'),
-                danger: true,
-            });
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            const validTransactions = Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, Transaction] => entry[1] !== undefined));
-            // Defer the actual deletion until after the confirm modal's dismiss interaction completes.
-            // Dispatching it synchronously as the modal closes caused the delete to be dropped (see https://github.com/Expensify/App/issues/95114).
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                if (isExpenseReportType) {
-                    for (const reportID of selectedReportIDs) {
-                        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-                        deleteAppReport({
-                            report,
-                            reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`],
-                            parentReportAction: report?.parentReportActionID
-                                ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report?.parentReportActionID]
-                                : undefined,
-                            selfDMReport,
-                            currentUserEmailParam: email ?? '',
-                            currentUserAccountIDParam: accountID,
-                            reportTransactions: validTransactions,
-                            allTransactionViolations,
-                            bankAccountList,
-                            hash,
-                        });
-                    }
-                } else {
-                    const transactionsViolations = allTransactionViolations
-                        ? Object.fromEntries(Object.entries(allTransactionViolations).filter((entry): entry is [string, TransactionViolations] => !!entry[1]))
-                        : {};
-                    // Partition selection into whole-report deletions and individual transactions.
-                    // The selection key equals the reportID for whole-report rows.
-                    const wholeReportIDs: string[] = [];
-                    const transactionIDsToDelete: string[] = [];
-                    for (const key of Object.keys(selectedTransactions)) {
-                        const selectedItem = selectedTransactions[key];
-                        if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
-                            wholeReportIDs.push(selectedItem.reportID);
-                        }
-                    }
-                    for (const key of Object.keys(selectedTransactions)) {
-                        const selectedItem = selectedTransactions[key];
-                        if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
-                            continue;
-                        }
-                        if (!selectedItem.reportID || !wholeReportIDs.includes(selectedItem.reportID)) {
-                            transactionIDsToDelete.push(key);
-                        }
-                    }
-
-                    // Route individual transactions through the split-aware hook so that deleting a
-                    // split child triggers updateSplitTransactions (e.g. reverse-split) instead of a
-                    // bare deleteMoneyRequest.
-                    if (transactionIDsToDelete.length > 0) {
-                        deleteTransactionsFromHook(transactionIDsToDelete, duplicateTransactions, duplicateTransactionViolations, hash);
-                    }
-
-                    // Whole-report deletions keep their existing path.
-                    for (const reportID of wholeReportIDs) {
-                        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-                        deleteAppReport({
-                            report,
-                            reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`],
-                            parentReportAction: report?.parentReportActionID
-                                ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report?.parentReportActionID]
-                                : undefined,
-                            selfDMReport,
-                            currentUserEmailParam: email ?? '',
-                            currentUserAccountIDParam: accountID,
-                            reportTransactions: validTransactions,
-                            allTransactionViolations: transactionsViolations,
-                            bankAccountList,
-                        });
-                    }
-                }
-                clearSelectedTransactions();
-            });
+        const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
+            title: deleteModalTitle,
+            prompt: deleteModalPrompt,
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            danger: true,
         });
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        const validTransactions = Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, Transaction] => entry[1] !== undefined));
+        if (isExpenseReportType) {
+            for (const reportID of selectedReportIDs) {
+                const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                deleteAppReport({
+                    report,
+                    reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`],
+                    parentReportAction: report?.parentReportActionID
+                        ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report?.parentReportActionID]
+                        : undefined,
+                    selfDMReport,
+                    currentUserEmailParam: email ?? '',
+                    currentUserAccountIDParam: accountID,
+                    reportTransactions: validTransactions,
+                    allTransactionViolations,
+                    bankAccountList,
+                    hash,
+                });
+            }
+        } else {
+            const transactionsViolations = allTransactionViolations
+                ? Object.fromEntries(Object.entries(allTransactionViolations).filter((entry): entry is [string, TransactionViolations] => !!entry[1]))
+                : {};
+            // Partition selection into whole-report deletions and individual transactions.
+            // The selection key equals the reportID for whole-report rows.
+            const wholeReportIDs: string[] = [];
+            const transactionIDsToDelete: string[] = [];
+            for (const key of Object.keys(selectedTransactions)) {
+                const selectedItem = selectedTransactions[key];
+                if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
+                    wholeReportIDs.push(selectedItem.reportID);
+                }
+            }
+            for (const key of Object.keys(selectedTransactions)) {
+                const selectedItem = selectedTransactions[key];
+                if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
+                    continue;
+                }
+                if (!selectedItem.reportID || !wholeReportIDs.includes(selectedItem.reportID)) {
+                    transactionIDsToDelete.push(key);
+                }
+            }
+
+            // Route individual transactions through the split-aware hook so that deleting a
+            // split child triggers updateSplitTransactions (e.g. reverse-split) instead of a
+            // bare deleteMoneyRequest.
+            if (transactionIDsToDelete.length > 0) {
+                deleteTransactionsFromHook(transactionIDsToDelete, duplicateTransactions, duplicateTransactionViolations, hash);
+            }
+
+            // Whole-report deletions keep their existing path.
+            for (const reportID of wholeReportIDs) {
+                const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                deleteAppReport({
+                    report,
+                    reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`],
+                    parentReportAction: report?.parentReportActionID
+                        ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report?.parentReportActionID]
+                        : undefined,
+                    selfDMReport,
+                    currentUserEmailParam: email ?? '',
+                    currentUserAccountIDParam: accountID,
+                    reportTransactions: validTransactions,
+                    allTransactionViolations: transactionsViolations,
+                    bankAccountList,
+                });
+            }
+        }
+        clearSelectedTransactions();
     }, [
         hash,
         showConfirmModal,
