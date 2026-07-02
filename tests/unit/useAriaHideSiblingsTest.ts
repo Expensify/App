@@ -172,6 +172,36 @@ describe('useAriaHideSiblings (web)', () => {
             expect(attrs(lateAfterTopUnmount)).toEqual({ariaHidden: 'true', inert: ''});
             expect(attrs(sibling)).toEqual({ariaHidden: 'true', inert: ''});
         });
+
+        it('keeps the observer live after the LOWER of two overlays closes out-of-order, still hiding a late sibling', async () => {
+            const sibling = createBodyChild('shared-sibling');
+            const portalA = createBodyChild('portal-A', {portal: true});
+            const containerA = document.createElement('div');
+            portalA.appendChild(containerA);
+            const portalB = createBodyChild('portal-B', {portal: true});
+            const containerB = document.createElement('div');
+            portalB.appendChild(containerB);
+
+            const layerA = renderHook(() => useAriaHideSiblings(refTo(containerA), true));
+            const layerB = renderHook(() => useAriaHideSiblings(refTo(containerB), true));
+
+            expect(attrs(sibling)).toEqual({ariaHidden: 'true', inert: ''});
+            expect(attrs(portalA)).toEqual({ariaHidden: 'true', inert: ''});
+            expect(attrs(portalB)).toEqual({ariaHidden: null, inert: null});
+
+            layerA.unmount();
+            expect(attrs(sibling)).toEqual({ariaHidden: 'true', inert: ''});
+            expect(attrs(portalA)).toEqual({ariaHidden: 'true', inert: ''});
+
+            const late = createBodyChild('late-sibling');
+            await tickMutations();
+            expect(attrs(late)).toEqual({ariaHidden: 'true', inert: ''});
+
+            layerB.unmount();
+            expect(attrs(sibling)).toEqual({ariaHidden: null, inert: null});
+            expect(attrs(portalA)).toEqual({ariaHidden: null, inert: null});
+            expect(attrs(late)).toEqual({ariaHidden: null, inert: null});
+        });
     });
 
     describe('Restore guard — concurrent legacy mutations', () => {

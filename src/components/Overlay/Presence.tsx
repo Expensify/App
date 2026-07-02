@@ -33,21 +33,19 @@ type PresenceAction = {type: 'present'; value: boolean} | {type: 'animationEnd'}
 
 const PresenceContext = createContext<PresenceContextValue | null>(null);
 
+function stepToExit(internal: PresenceLifecycle): PresenceLifecycle {
+    return internal === 'mounted' ? 'unmountSuspended' : internal;
+}
+
 function presenceReducer(internal: PresenceLifecycle, action: PresenceAction): PresenceLifecycle {
     if (action.type === 'present') {
-        if (action.value) {
-            return 'mounted';
-        }
-        return internal === 'mounted' ? 'unmountSuspended' : internal;
+        return action.value ? 'mounted' : stepToExit(internal);
     }
     return internal === 'unmountSuspended' ? 'unmounted' : internal;
 }
 
 function derivePublishedState(present: boolean, internal: PresenceLifecycle): PresenceLifecycle {
-    if (present) {
-        return 'mounted';
-    }
-    return internal === 'mounted' ? 'unmountSuspended' : internal;
+    return present ? 'mounted' : stepToExit(internal);
 }
 
 function usePresence(consumerName: string): PresenceContextValue {

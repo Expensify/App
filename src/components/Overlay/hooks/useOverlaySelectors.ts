@@ -9,6 +9,9 @@ import type ModalType from '@src/types/utils/ModalType';
 
 const POPOVER_LIKE_KINDS = new Set<ModalType>([CONST.MODAL.MODAL_TYPE.POPOVER, CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED]);
 
+// overlayStore preserves insertion order (upsert keeps an entry's slot), so array order === z-order: the last entry is
+// topmost. selectTopModal finds the topmost non-popover (a popover can sit above a modal); selectIsCoveringModal asks
+// whether the very top entry is a modal.
 function selectTopModal(stack: readonly OverlayEntry[]): ModalOverlayEntry | null {
     for (let i = stack.length - 1; i >= 0; i -= 1) {
         const entry = stack.at(i);

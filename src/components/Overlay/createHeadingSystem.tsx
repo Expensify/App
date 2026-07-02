@@ -42,6 +42,11 @@ type HeadingSystem = {
     useRegisteredDescription: () => string;
 };
 
+function useRegisterOnMount(register: () => () => void): void {
+    const registerEvent = useEffectEvent(register);
+    useLayoutEffect(() => registerEvent(), []);
+}
+
 function createHeadingSystem(name: string): HeadingSystem {
     const StateContext = createContext<HeadingState | null>(null);
 
@@ -50,9 +55,7 @@ function createHeadingSystem(name: string): HeadingSystem {
         if (!state) {
             throw new Error(`<${name}.Title> must be rendered inside <${name}.Content>`);
         }
-        // Layout effect so hasTitle flips before paint (aria-labelledby must agree on first frame).
-        const register = useEffectEvent(() => state.registerTitle());
-        useLayoutEffect(() => register(), []);
+        useRegisterOnMount(state.registerTitle);
         return (
             <Text
                 nativeID={state.titleId}
@@ -70,8 +73,7 @@ function createHeadingSystem(name: string): HeadingSystem {
         if (!state) {
             throw new Error(`<${name}.Description> must be rendered inside <${name}.Content>`);
         }
-        const register = useEffectEvent(() => state.registerDescription());
-        useLayoutEffect(() => register(), []);
+        useRegisterOnMount(state.registerDescription);
         return (
             <Text
                 nativeID={state.descriptionId}
@@ -87,8 +89,7 @@ function createHeadingSystem(name: string): HeadingSystem {
         if (!state) {
             throw new Error(`useRegisteredTitle (<${name}>) must be called inside <${name}.Content>`);
         }
-        const register = useEffectEvent(() => state.registerTitle());
-        useLayoutEffect(() => register(), []);
+        useRegisterOnMount(state.registerTitle);
         return state.titleId;
     }
 
@@ -97,8 +98,7 @@ function createHeadingSystem(name: string): HeadingSystem {
         if (!state) {
             throw new Error(`useRegisteredDescription (<${name}>) must be called inside <${name}.Content>`);
         }
-        const register = useEffectEvent(() => state.registerDescription());
-        useLayoutEffect(() => register(), []);
+        useRegisterOnMount(state.registerDescription);
         return state.descriptionId;
     }
 
