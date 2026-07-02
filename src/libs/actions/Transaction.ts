@@ -1876,17 +1876,27 @@ function getChangeTransactionsReportOnyxData({
         transactionIDToUpdatedCustomUnitRateID,
         updatedReportTotals,
         updatedReportTransactionCounts,
+        transactionsMoved,
     };
 }
 
 function changeTransactionsReport(props: ChangeTransactionsReportProps) {
+    const changeTransactionsReportOnyxData = getChangeTransactionsReportOnyxData(props);
+    if (!changeTransactionsReportOnyxData) {
+        return;
+    }
     const {
         optimisticData,
         successData,
         failureData,
         transactionIDToReportActionAndThreadData,
         transactionIDToUpdatedCustomUnitRateID = {},
-    } = getChangeTransactionsReportOnyxData(props) ?? {};
+        transactionsMoved,
+    } = changeTransactionsReportOnyxData;
+
+    if (!transactionsMoved) {
+        return;
+    }
 
     const reportID = props.newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
