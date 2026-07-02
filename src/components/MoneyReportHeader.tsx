@@ -138,17 +138,14 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 )}
             </HeaderWithBackButton>
             {!shouldShowHeaderButtonsInHeaderRow && (
-                <View style={[styles.w100, styles.flexColumn, styles.gap2]}>
-                    <MoneyReportHeaderActions
-                        reportID={reportIDProp}
-                        primaryAction={primaryAction}
-                        isReportInSearch={isReportInSearch}
-                        backTo={backTo}
-                    />
-                    <MoneyReportHeaderMoreContent reportID={reportIDProp} />
-                </View>
+                <MoneyReportHeaderActions
+                    reportID={reportIDProp}
+                    primaryAction={primaryAction}
+                    isReportInSearch={isReportInSearch}
+                    backTo={backTo}
+                />
             )}
-            {shouldShowHeaderButtonsInHeaderRow && <MoneyReportHeaderMoreContent reportID={reportIDProp} />}
+            <MoneyReportHeaderMoreContent reportID={reportIDProp} />
             <HeaderLoadingBar />
         </View>
     );
