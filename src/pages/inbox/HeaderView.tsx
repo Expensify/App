@@ -69,6 +69,7 @@ import {
     isGroupChat as isGroupChatReportUtils,
     isInvoiceReport,
     isInvoiceRoom,
+    isOneOnOneChat,
     isOneTransactionThread,
     isOpenTaskReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
@@ -205,18 +206,23 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO &&
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL;
 
-    // Show a "Book a call" button linking to the account manager's calendar in the DM with the account manager
+    // Show a "Book a call" button linking to the account manager's calendar in the 1:1 DM with the account manager
+    const accountManagerAccountID = accountManagerDetails?.accountManagerAccountID;
     const shouldShowAccountManagerBookCallInDM =
+        !!accountManagerAccountID &&
         !!accountManagerDetails?.accountManagerCalendarLink &&
-        !!accountManagerDetails?.accountManagerReportID &&
-        report?.reportID === accountManagerDetails.accountManagerReportID &&
+        isOneOnOneChat(report) &&
+        !!report?.participants?.[Number(accountManagerAccountID)] &&
         !!canUserPerformWriteAction(report, isReportArchived) &&
         !isChatThread;
 
     // Show a "Book a call" button linking to the account manager's calendar in Concierge when the user has an assigned account manager
-    const shouldShowAccountManagerBookCallInConcierge = isConciergeChat && !!accountManagerDetails?.accountManagerAccountID && !!accountManagerDetails?.accountManagerCalendarLink;
+    const shouldShowAccountManagerBookCallInConcierge = isConciergeChat && !!accountManagerAccountID && !!accountManagerDetails?.accountManagerCalendarLink;
 
     const shouldShowAccountManagerBookCall = shouldShowAccountManagerBookCallInDM || shouldShowAccountManagerBookCallInConcierge;
+
+    // Render the button full width below the header whenever the available space is narrow, which includes the side panel (e.g. Concierge third-panel)
+    const shouldStackAccountManagerBookCall = shouldUseNarrowLayout || isInSidePanel;
 
     const accountManagerBookCallButton = (
         <AccountManagerBookCallButton
@@ -421,7 +427,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                                    {shouldShowAccountManagerBookCall && !shouldUseNarrowLayout && accountManagerBookCallButton}
+                                    {shouldShowAccountManagerBookCall && !shouldStackAccountManagerBookCall && accountManagerBookCallButton}
                                     {shouldShowOnBoardingHelpDropdownButton && !shouldUseNarrowLayout && onboardingHelpDropdownButton}
                                     {!shouldUseNarrowLayout && !shouldShowDiscount && isChatUsedForOnboarding && (
                                         <FreeTrial
@@ -456,7 +462,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                     )}
                 </View>
                 {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
-                {shouldShowAccountManagerBookCall && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{accountManagerBookCallButton}</View>}
+                {shouldShowAccountManagerBookCall && shouldStackAccountManagerBookCall && <View style={[styles.ph5, styles.pb3]}>{accountManagerBookCallButton}</View>}
                 <View style={shouldShowOnBoardingHelpDropdownButton && [styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.ph5]}>
                     {!shouldShowEarlyDiscountBanner && shouldShowOnBoardingHelpDropdownButton && shouldUseNarrowLayout && (
                         <View style={[styles.flex1, styles.pb3]}>{onboardingHelpDropdownButton}</View>

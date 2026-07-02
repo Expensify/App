@@ -17,7 +17,6 @@ const accountGuideDetailsSelector = (account: OnyxEntry<Account>) => account?.gu
 
 const accountManagerDetailsSelector = (account: OnyxEntry<Account>) => ({
     accountManagerAccountID: account?.accountManagerAccountID,
-    accountManagerReportID: account?.accountManagerReportID,
     accountManagerCalendarLink: account?.accountManagerCalendarLink,
 });
 
