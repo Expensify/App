@@ -1,7 +1,5 @@
 /**
- * Owns the post-capture-only Onyx reads (default policy, self-DM report,
- * billing grace periods) used by navigateGlobalCreate. Render-gated by a
- * one-tick useEffect so the subscriptions don't block ManualEntryToScanReady.
+ * Owns the post-capture-only Onyx reads used by navigateGlobalCreate.
  *
  * The Provider's root element type stays the same across renders, so the
  * camera isn't torn down when subscriptions become ready. useNavigateGlobalCreate()
