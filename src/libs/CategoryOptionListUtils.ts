@@ -58,6 +58,9 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], s
             const leafName = getDecodedCategoryName(optionName.trim());
             const decodedCategoryName = getDecodedCategoryName(option.name);
             const tooltipText = isChild ? decodedCategoryName : getDecodedCategoryName(searchText);
+            // A non-leaf (parent) row whose parent has no backing category in the options it was handed is a structural
+            // header only, so it should not render a selection control (e.g. the synthesized "Parent" row in the Recent section).
+            const shouldHideSelectionButton = !isChild && !parentOption;
             optionCollection.set(searchText, {
                 text: `${indents}${leafName}`,
                 keyForList: searchText,
@@ -66,6 +69,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], s
                 isDisabled: isChild ? !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : isParentOptionDisabled,
                 isSelected: isChild ? !!option.isSelected : !!selectedParentOption,
                 pendingAction: option.pendingAction,
+                ...(shouldHideSelectionButton ? {shouldHideSelectionButton: true} : {}),
             });
         }
     }
