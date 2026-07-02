@@ -617,7 +617,7 @@ const DYNAMIC_ROUTES = {
     WORKSPACE_TAG_LIST_VIEW: {
         path: 'workspace-tag-list/:orderWeight',
         entryScreens: [SCREENS.WORKSPACE.TAGS],
-        getRoute: (orderWeight: number) => `tag-list/${orderWeight}`,
+        getRoute: (orderWeight: number) => `workspace-tag-list/${orderWeight}`,
     },
     WORKSPACE_TAG_SETTINGS: {
         path: 'workspace-tag-settings/:orderWeight/:tagName',
