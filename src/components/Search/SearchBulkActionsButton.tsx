@@ -27,7 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import BulkDuplicateHandler from './BulkDuplicateHandler';
 import BulkDuplicateReportHandler from './BulkDuplicateReportHandler';
-import {useSearchSelectionContext} from './SearchContext';
+import {useSearchResultsContext, useSearchSelectionContext} from './SearchContext';
 import type {BulkPaySelectionData, SearchQueryJSON} from './types';
 
 type SearchBulkActionsButtonProps = {
@@ -41,6 +41,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {selectedTransactions, selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {currentSearchResults} = useSearchResultsContext();
     const kycWallRef = useContext(KYCWallContext);
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
@@ -116,7 +117,16 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         }, 0);
     }, [selectedTransactions, selectedTransactionsKeys, isExpenseReportType, searchData]);
 
-    const selectionButtonText = areAllMatchingItemsSelected ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: selectedItemsCount});
+    // Once the server returns the full-result count for select-all, show "<count> selected" instead of the
+    // generic label. Fall back to the generic label only while that count is still loading.
+    const allMatchingItemsCount = currentSearchResults?.search?.count;
+    let selectionButtonText: string;
+    if (areAllMatchingItemsSelected) {
+        selectionButtonText =
+            allMatchingItemsCount === undefined ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: allMatchingItemsCount});
+    } else {
+        selectionButtonText = translate('workspace.common.selected', {count: selectedItemsCount});
+    }
 
     return (
         <>
