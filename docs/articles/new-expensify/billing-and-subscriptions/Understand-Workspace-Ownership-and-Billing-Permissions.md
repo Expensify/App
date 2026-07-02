@@ -6,7 +6,6 @@ internalScope: Audience is workspace owners and Workspace Admins. Explains works
 retrievalIntent: Explain Workspace ownership, billing responsibilities, owner permissions, admin permissions, and the differences between workspace owners and Workspace Admins.
 contentType: topic
 platform: new
-order: 6
 ---
 
 # Understand Workspace Ownership and Billing Permissions

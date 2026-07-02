@@ -37,9 +37,9 @@
                             {% assign hubArticles = hub.articles | default: emptyItems %}
                             {% assign hubSections = hub.sections | default: emptyItems %}
                             {% if hub.articles %} 
-                                {% assign sortedSectionsAndArticles = hubSections | concat: hubArticles | sort: 'order' %}
+                                {% assign sortedSectionsAndArticles = hubSections | concat: hubArticles | sort: 'title' %}
                             {% else %} 
-                                {% assign sortedSectionsAndArticles = hubSections | sort: 'order' %} 
+                                {% assign sortedSectionsAndArticles = hubSections | sort: 'title' %} 
                             {% endif%}
                             {% for item in sortedSectionsAndArticles %}
                                 {% if item.articles %}
