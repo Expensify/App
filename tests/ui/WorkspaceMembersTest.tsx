@@ -339,6 +339,83 @@ describe('WorkspaceMembers', () => {
             unmount();
             await waitForBatchedUpdatesWithAct();
         });
+
+        it('should only show member and auditor role actions for People Admin', async () => {
+            const peopleAdminPolicy = {
+                ...policy,
+                role: CONST.POLICY.ROLE.PEOPLE_ADMIN,
+                employeeList: {
+                    ...policy.employeeList,
+                    [selfEmail]: {email: selfEmail, role: CONST.POLICY.ROLE.PEOPLE_ADMIN},
+                },
+            };
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, peopleAdminPolicy);
+            });
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByText(USER_OPTION)).toBeOnTheScreen();
+            });
+
+            selectCheckboxByMemberName('Member');
+            fireEvent.press(screen.getByTestId('WorkspaceMembersPage-header-dropdown-menu-button'));
+            await waitForBatchedUpdatesWithAct();
+
+            const removeText = TestHelper.translateLocal('workspace.people.removeMembersTitle', {count: 1});
+            expect(screen.getByTestId(`PopoverMenuItem-${removeText}`)).toBeOnTheScreen();
+
+            const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 1});
+            expect(screen.getByTestId(`PopoverMenuItem-${makeAuditorText}`)).toBeOnTheScreen();
+
+            const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
+            expect(screen.queryByTestId(`PopoverMenuItem-${makeAdminText}`)).not.toBeOnTheScreen();
+
+            const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
+            expect(screen.queryByTestId(`PopoverMenuItem-${makeCardAdminText}`)).not.toBeOnTheScreen();
+
+            const makePeopleAdminText = TestHelper.translateLocal('workspace.people.makePeopleAdmin', {count: 1});
+            expect(screen.queryByTestId(`PopoverMenuItem-${makePeopleAdminText}`)).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should let People Admin make auditors members', async () => {
+            const peopleAdminPolicy = {
+                ...policy,
+                role: CONST.POLICY.ROLE.PEOPLE_ADMIN,
+                employeeList: {
+                    ...policy.employeeList,
+                    [selfEmail]: {email: selfEmail, role: CONST.POLICY.ROLE.PEOPLE_ADMIN},
+                },
+            };
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, peopleAdminPolicy);
+            });
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByText(AUDITOR_OPTION)).toBeOnTheScreen();
+            });
+
+            selectCheckboxByMemberName('Auditor');
+            fireEvent.press(screen.getByTestId('WorkspaceMembersPage-header-dropdown-menu-button'));
+            await waitForBatchedUpdatesWithAct();
+
+            const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
+            expect(screen.getByTestId(`PopoverMenuItem-${makeMemberText}`)).toBeOnTheScreen();
+
+            const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
+            expect(screen.queryByTestId(`PopoverMenuItem-${makeAdminText}`)).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 
     describe('Removing members who are approvers and non-approvers', () => {
@@ -373,6 +450,29 @@ describe('WorkspaceMembers', () => {
             await waitFor(() => {
                 expect(screen.getByLabelText(confirmText)).toBeOnTheScreen();
             });
+
+            unmount();
+        });
+    });
+
+    describe('Role display on Submit workspaces', () => {
+        it('should show the workspace owner as Editor instead of Owner', async () => {
+            // Given a Submit workspace, where every member (including the owner) uses the flat Editor role
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {type: CONST.POLICY.TYPE.SUBMIT});
+            });
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            // When the members list renders the owner row
+            const ownerRow = await screen.findByLabelText(new RegExp(`^Owner User, ${ownerEmail}`));
+
+            // Then the owner's role is displayed as Editor, not Owner
+            const editorLabel = TestHelper.translateLocal('workspace.common.roleName', CONST.POLICY.ROLE.EDITOR);
+            const ownerLabel = TestHelper.translateLocal('workspace.common.roleName', CONST.POLICY.ROLE.OWNER);
+            expect(within(ownerRow).getByText(editorLabel)).toBeOnTheScreen();
+            expect(within(ownerRow).queryByText(ownerLabel)).not.toBeOnTheScreen();
 
             unmount();
         });

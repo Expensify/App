@@ -18,10 +18,11 @@ type WorkspaceExpenseDefaultsTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    headerComponent?: React.ReactElement;
     emptyStateContent?: React.ReactElement;
 };
 
-function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, emptyStateContent}: WorkspaceExpenseDefaultsTableProps) {
+function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, headerComponent, emptyStateContent}: WorkspaceExpenseDefaultsTableProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -42,6 +43,10 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
 
     const compareItems: CompareItemsCallback<ExpenseDefaultTableItem, ExpenseDefaultsTableColumnKey> = (a, b, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
+
+        if (a.isMerchantType !== b.isMerchantType) {
+            return a.isMerchantType ? 1 : -1;
+        }
 
         if (activeSorting.columnKey === 'type') {
             const aVal = a.isRename ? 0 : 1;
@@ -80,7 +85,14 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
 
     const shouldShowSearchBar = rulesData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const isEmpty = rulesData.length === 0;
-    const tableHeaderComponent = shouldShowSearchBar && !isEmpty ? <Table.SearchBar label={translate('workspace.rules.expenseDefaultsTable.findRule')} /> : undefined;
+    const searchBarComponent = shouldShowSearchBar && !isEmpty ? <Table.SearchBar label={translate('workspace.rules.expenseDefaultsTable.findRule')} /> : undefined;
+    const tableHeaderComponent =
+        headerComponent || searchBarComponent ? (
+            <>
+                {headerComponent}
+                {searchBarComponent}
+            </>
+        ) : undefined;
 
     return (
         <Table
@@ -98,9 +110,9 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
             title={translate('workspace.rules.tabs.expenseDefaults')}
             headerComponent={tableHeaderComponent}
             shouldUseStickyColumnHeader
+            ListEmptyComponent={emptyStateContent}
         >
-            {isEmpty && emptyStateContent}
-            {(!isEmpty || !emptyStateContent) && <Table.Body />}
+            {(!isEmpty || !!emptyStateContent || !!headerComponent) && <Table.Body />}
         </Table>
     );
 }

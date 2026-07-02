@@ -211,6 +211,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const originalDataLength = data?.length ?? 0;
     const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasActiveSearchString || hasActiveFilters);
     const shouldRenderStickyHeader = shouldUseStickyColumnHeader && processedData.length > 0 && !isEmptyResult && !(shouldUseNarrowTableLayout && !title);
+    const hasPageHeader = !!headerComponent || !!listProps.ListHeaderComponent;
+    const listDataRowOffset = (hasPageHeader ? 1 : 0) + (shouldRenderStickyHeader ? 1 : 0);
 
     /**
      * Exposes table control methods through the ref.
@@ -229,7 +231,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 
                 if (property === 'scrollToIndex') {
                     return (params: Parameters<FlashListRef<DataType>['scrollToIndex']>[0]) => {
-                        listRef.current?.scrollToIndex({...params, index: params.index + (shouldRenderStickyHeader ? 1 : 0)});
+                        listRef.current?.scrollToIndex({...params, index: params.index + listDataRowOffset});
                     };
                 }
 

@@ -66,6 +66,15 @@ type TableRow<DataType extends TableData> = DataType & {
 };
 
 /**
+ * Props passed to table row render callbacks.
+ */
+type TableRenderRowProps<TItem extends TableData> = {
+    item: TItem;
+    rowIndex: number;
+    shouldUseNarrowTableLayout: boolean;
+};
+
+/**
  * Methods exposed by the Table component for programmatic control.
  * Combines sorting, filtering, and searching capabilities.
  *
@@ -193,6 +202,7 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
 export type {
     TableData,
     TableRow,
+    TableRenderRowProps,
     TableColumn,
     TableMethods,
     TableHandle,

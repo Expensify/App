@@ -19,10 +19,11 @@ type WorkspaceSpendRulesTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    headerComponent?: React.ReactElement;
     emptyStateContent?: React.ReactElement;
 };
 
-function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, emptyStateContent}: WorkspaceSpendRulesTableProps) {
+function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, headerComponent, emptyStateContent}: WorkspaceSpendRulesTableProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -83,7 +84,14 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
     const shouldShowSearchBar = rulesData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     const isEmpty = rulesData.length === 0;
-    const tableHeaderComponent = shouldShowSearchBar ? <Table.SearchBar label={translate('workspace.rules.spendRules.findRule')} /> : undefined;
+    const searchBarComponent = shouldShowSearchBar ? <Table.SearchBar label={translate('workspace.rules.spendRules.findRule')} /> : undefined;
+    const tableHeaderComponent =
+        headerComponent || searchBarComponent ? (
+            <>
+                {headerComponent}
+                {searchBarComponent}
+            </>
+        ) : undefined;
 
     return (
         <Table
@@ -101,9 +109,9 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
             title={translate('workspace.rules.tabs.cardRestrictions')}
             headerComponent={tableHeaderComponent}
             shouldUseStickyColumnHeader
+            ListEmptyComponent={emptyStateContent ? <View style={[styles.flex1, styles.mnh0, styles.w100]}>{emptyStateContent}</View> : undefined}
         >
-            {isEmpty && !!emptyStateContent && <View style={[styles.flex1, styles.mnh0]}>{emptyStateContent}</View>}
-            {!isEmpty && <Table.Body />}
+            {(!isEmpty || !!emptyStateContent) && <Table.Body />}
         </Table>
     );
 }

@@ -410,21 +410,42 @@ describe('Table', () => {
             expect(screen.getByTestId('table-header-component')).toBeTruthy();
             expect(screen.getAllByText('Name').length).toBeGreaterThan(0);
             expect(screen.getByTestId('row-index-1').props.children).toBe(0);
-            expect(mockFlashListProps.at(-1)?.ListHeaderComponent).toBeTruthy();
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
+            expect(mockFlashListProps.at(-1)?.ListHeaderComponent).toBeUndefined();
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 2);
         });
 
-        it('should wait before enabling sticky table header when rows load asynchronously', () => {
-            const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame');
-            const cancelAnimationFrameSpy = jest.spyOn(global, 'cancelAnimationFrame');
-            let animationFrameCallback: FrameRequestCallback | undefined;
+        it('should compose ListHeaderComponent and headerComponent as the first list row', () => {
+            const props = createDefaultProps();
+            const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
+                <View testID={`row-${item.id}`}>
+                    <Text testID={`row-index-${item.id}`}>{index}</Text>
+                    <Text>{item.name}</Text>
+                </View>
+            );
 
-            requestAnimationFrameSpy.mockImplementation((callback) => {
-                animationFrameCallback = callback;
-                return 1;
-            });
-            cancelAnimationFrameSpy.mockImplementation(jest.fn());
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={renderItem}
+                    keyExtractor={props.keyExtractor}
+                    headerComponent={<Text testID="table-header-component">Page header</Text>}
+                    ListHeaderComponent={<Text testID="table-list-header-component">List header</Text>}
+                    shouldUseStickyColumnHeader
+                >
+                    <Table.Body />
+                </Table>,
+            );
 
+            expect(screen.getByTestId('table-list-header-component')).toBeTruthy();
+            expect(screen.getByTestId('table-header-component')).toBeTruthy();
+            expect(screen.getByTestId('row-index-1').props.children).toBe(0);
+            expect(mockFlashListProps.at(-1)?.ListHeaderComponent).toBeUndefined();
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 2);
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
+        });
+
+        it('should set sticky table header index from the first data render', () => {
             const props = createDefaultProps();
             const renderTable = (data: TestItem[]) => (
                 <Table<TestItem, TestColumnKey>
@@ -440,43 +461,16 @@ describe('Table', () => {
             );
 
             const {rerender} = render(renderTable([]));
-
-            act(() => {
-                mockFlashListProps.at(-1)?.onLoad?.({elapsedTimeInMs: 0});
-            });
-
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(1);
 
             rerender(renderTable(props.data));
 
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
-
-            act(() => {
-                animationFrameCallback?.(0);
-            });
-
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
-
-            fireEvent(screen.getByTestId('table-list-header'), 'layout', {nativeEvent: {layout: {height: 40}}});
-
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
-
-            act(() => {
-                mockFlashListProps.at(-1)?.onScroll?.({nativeEvent: {contentOffset: {y: 40}}});
-            });
-
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
-
-            rerender(renderTable([...props.data]));
-
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
-            expect(requestAnimationFrameSpy).toHaveBeenCalledTimes(1);
-
-            requestAnimationFrameSpy.mockRestore();
-            cancelAnimationFrameSpy.mockRestore();
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 2);
         });
 
-        it('should offset scrollToIndex calls when the internal table header row is present', () => {
+        it('should offset scrollToIndex calls when synthetic header rows are present', () => {
             const props = createDefaultProps();
             const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
 
@@ -498,7 +492,7 @@ describe('Table', () => {
                 tableRef.current?.scrollToIndex({index: 0, animated: false});
             });
 
-            expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({index: 1, animated: false});
+            expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({index: 2, animated: false});
         });
     });
 

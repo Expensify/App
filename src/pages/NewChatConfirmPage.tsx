@@ -26,7 +26,7 @@ import {navigateToAndCreateGroupChat, setGroupDraft} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {hasSeenTourSelector} from '@src/selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@src/selectors/Onboarding';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -119,7 +119,7 @@ function NewChatConfirmPage() {
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
 
     const participants = newGroupDraft?.participants ?? [];
@@ -178,18 +178,19 @@ function NewChatConfirmPage() {
                 isOptimisticPersonalDetail: true,
             };
         }
-        navigateToAndCreateGroupChat(
+        navigateToAndCreateGroupChat({
             participantsPersonalDetails,
-            newGroupDraft.reportName ?? '',
-            personalData.login ?? '',
-            optimisticReportID.current,
+            reportName: newGroupDraft.reportName ?? '',
+            currentUserLogin: personalData.login ?? '',
+            optimisticReportID: optimisticReportID.current,
             introSelected,
-            isSelfTourViewed,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
             betas,
-            personalData.accountID,
-            newGroupDraft.avatarUri ?? '',
+            currentUserAccountID: personalData.accountID,
+            avatarUri: newGroupDraft.avatarUri ?? '',
             avatarFile,
-        );
+        });
     };
 
     return (

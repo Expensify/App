@@ -32,15 +32,14 @@ type RecentlyAddedExpense = {
     /** The expense currency */
     currency: string;
 
-    /**
-     * The transaction thread report to open for this expense, resolved from the snapshot's IOU action.
-     * Needed for unreported (tracked) expenses, whose thread lives in the self-DM and is absent from the
-     * main Onyx collection.
-     */
-    threadReportID?: string;
-
     /** The full transaction, used to render the receipt thumbnail */
     transaction: Transaction;
+
+    /** The expense's parent IOU report action, from the snapshot */
+    reportAction?: ReportAction;
+
+    /** The expense's parent report, from the snapshot */
+    report?: Report;
 };
 
 /**
@@ -115,9 +114,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
             return [];
         }
 
-        const reportOwnerByReportID = new Map<string, number | undefined>();
-        const reportTypeByReportID = new Map<string, string | undefined>();
-        const reportChatTypeByReportID = new Map<string, string | undefined>();
+        const reportByReportID = new Map<string, Report>();
         const snapshotTransactions: Transaction[] = [];
         const snapshotReportActions: ReportAction[] = [];
         // Snapshot data is a keyed record where the key prefix determines the value type.
@@ -131,9 +128,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 const report = value as Report;
                 if (report?.reportID) {
-                    reportOwnerByReportID.set(report.reportID, report.ownerAccountID);
-                    reportTypeByReportID.set(report.reportID, report.type);
-                    reportChatTypeByReportID.set(report.reportID, report.chatType);
+                    reportByReportID.set(report.reportID, report);
                 }
                 continue;
             }
@@ -151,7 +146,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
             if (transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 return true;
             }
-            const ownerAccountID = reportOwnerByReportID.get(transaction.reportID);
+            const ownerAccountID = reportByReportID.get(transaction.reportID)?.ownerAccountID;
             return ownerAccountID === undefined || ownerAccountID === accountID;
         });
 
@@ -171,13 +166,13 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
             })
             .slice(0, CONST.HOME.SECTION_VISIBLE_LIMIT)
             .map((transaction) => {
-                const reportType = reportTypeByReportID.get(transaction.reportID);
+                const reportType = reportByReportID.get(transaction.reportID)?.type;
                 const isFromExpenseReport = reportType === CONST.REPORT.TYPE.EXPENSE;
                 // Self-DM and unreported (tracked) expenses support signed amounts like expense reports, so their
                 // sign must be preserved too. Without this, a self-DM credit/refund is collapsed to its absolute
                 // value and loses its negative sign.
                 const isFromTrackedExpense =
-                    transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || reportChatTypeByReportID.get(transaction.reportID) === CONST.REPORT.CHAT_TYPE.SELF_DM;
+                    transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || reportByReportID.get(transaction.reportID)?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
                 return {
                     transactionID: transaction.transactionID,
                     reportID: transaction.reportID,
@@ -187,7 +182,8 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
                     // displayed amount must be negated for them (mirrors the Search transaction list).
                     amount: getAmount(transaction, isFromExpenseReport, isFromTrackedExpense),
                     currency: getCurrency(transaction),
-                    threadReportID: getIOUActionForTransactionID(snapshotReportActions, transaction.transactionID)?.childReportID,
+                    reportAction: getIOUActionForTransactionID(snapshotReportActions, transaction.transactionID),
+                    report: reportByReportID.get(transaction.reportID),
                     transaction,
                 };
             });

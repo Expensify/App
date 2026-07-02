@@ -1,6 +1,6 @@
 import {FlashList} from '@shopify/flash-list';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useEffect, useRef, useState} from 'react';
+import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 import Text from '@components/Text';
@@ -12,7 +12,10 @@ import type {TableData} from '.';
 import {useTableContext} from './TableContext';
 import TableHeader from './TableHeader';
 
+const PAGE_HEADER_KEY = '__table_page_header__';
 const TABLE_HEADER_KEY = '__table_header__';
+const EMPTY_RESULT_KEY = '__table_empty_result__';
+const LIST_EMPTY_KEY = '__table_empty__';
 
 /**
  * Props for the TableBody component.
@@ -53,8 +56,6 @@ type TableBodyProps = ViewProps & {
 function TableBody<DataType extends TableData>({contentContainerStyle, style, ...props}: TableBodyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isListLoaded, setIsListLoaded] = useState(false);
-    const [hasActivatedStickyHeader, setHasActivatedStickyHeader] = useState(false);
     const {
         processedData: filteredAndSortedData,
         activeSearchString,
@@ -73,17 +74,10 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         contentContainerStyle: listContentContainerStyle,
         getItemType,
         keyExtractor,
-        onScroll,
-        onLoad,
         renderItem,
-        scrollEventThrottle,
         stickyHeaderIndices,
         ...restListProps
     } = listProps ?? {};
-    const hasScrollableHeader = !!headerComponent;
-    const scrollOffsetYRef = useRef(0);
-    const [scrollableHeaderMeasurement, setScrollableHeaderMeasurement] = useState({height: 0, isMeasured: false});
-    const [hasScrolledPastScrollableHeader, setHasScrolledPastScrollableHeader] = useState(false);
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
@@ -108,107 +102,51 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
 
     useDebouncedAccessibilityAnnouncement(message, isEmptyResult, activeSearchString);
 
-    // FlashList data must be DataType[], but this synthetic row is intercepted before consumer renderItem/keyExtractor.
+    const renderListComponent = (component: typeof ListHeaderComponent | typeof ListEmptyComponent) => {
+        if (!component) {
+            return null;
+        }
+
+        if (React.isValidElement(component)) {
+            return component;
+        }
+
+        return React.createElement(component);
+    };
+
+    const pageHeaderElement = (
+        <>
+            {renderListComponent(ListHeaderComponent)}
+            {headerComponent}
+        </>
+    );
+    const hasPageHeader = !!ListHeaderComponent || !!headerComponent;
+
+    // FlashList data must be DataType[], but these synthetic rows are intercepted before consumer renderItem/keyExtractor.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    const pageHeaderItem = {keyForList: PAGE_HEADER_KEY} as DataType;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     const tableHeaderItem = {keyForList: TABLE_HEADER_KEY} as DataType;
-    const tableSyntheticHeaderItems = shouldRenderStickyHeader ? [tableHeaderItem] : [];
-    const stickyTableHeaderIndex = 0;
-    const listData = shouldRenderStickyHeader ? [...tableSyntheticHeaderItems, ...filteredAndSortedData] : filteredAndSortedData;
-    const getDataIndex = (index: number) => (shouldRenderStickyHeader ? index - tableSyntheticHeaderItems.length : index);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    const emptyResultItem = {keyForList: EMPTY_RESULT_KEY} as DataType;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    const listEmptyItem = {keyForList: LIST_EMPTY_KEY} as DataType;
+
+    const syntheticRowsBeforeData = (hasPageHeader ? 1 : 0) + (shouldRenderStickyHeader ? 1 : 0);
+    const stickyTableHeaderIndex = hasPageHeader ? 1 : 0;
+    const shouldRenderSyntheticEmptyRow = filteredAndSortedData.length === 0 && hasPageHeader && (isEmptyResult || !!ListEmptyComponent);
+    const listData = [
+        ...(hasPageHeader ? [pageHeaderItem] : []),
+        ...(shouldRenderStickyHeader ? [tableHeaderItem] : []),
+        ...filteredAndSortedData,
+        ...(shouldRenderSyntheticEmptyRow ? [isEmptyResult ? emptyResultItem : listEmptyItem] : []),
+    ];
+    const getDataIndex = (index: number) => index - syntheticRowsBeforeData;
+    const isPageHeaderItem = (index: number) => hasPageHeader && index === 0;
     const isTableHeaderItem = (index: number) => shouldRenderStickyHeader && index === stickyTableHeaderIndex;
-    const canRenderStickyHeader = shouldRenderStickyHeader && isListLoaded && hasActivatedStickyHeader && (!hasScrollableHeader || hasScrolledPastScrollableHeader);
-
-    // ListHeaderComponent is outside FlashList data, so wait until that header has scrolled away before enabling the sticky data row.
-    const updateScrollableHeaderScrollState = (offsetY: number, headerHeight?: number, isMeasured?: boolean) => {
-        const measuredHeaderHeight = headerHeight ?? scrollableHeaderMeasurement.height;
-        const isHeaderMeasured = isMeasured ?? scrollableHeaderMeasurement.isMeasured;
-        const nextHasScrolledPastScrollableHeader = !hasScrollableHeader || (isHeaderMeasured && offsetY >= measuredHeaderHeight);
-        setHasScrolledPastScrollableHeader((previousValue) => (previousValue === nextHasScrolledPastScrollableHeader ? previousValue : nextHasScrolledPastScrollableHeader));
-    };
-
-    const handleScrollableHeaderLayout = (event: {nativeEvent: {layout: {height: number}}}) => {
-        const nextHeight = event.nativeEvent.layout.height;
-        setScrollableHeaderMeasurement((previousMeasurement) => {
-            if (previousMeasurement.isMeasured && previousMeasurement.height === nextHeight) {
-                return previousMeasurement;
-            }
-
-            return {
-                height: nextHeight,
-                isMeasured: true,
-            };
-        });
-        updateScrollableHeaderScrollState(scrollOffsetYRef.current, nextHeight, true);
-    };
-
-    const handleScroll: NonNullable<typeof onScroll> = (event) => {
-        const nextOffsetY = event.nativeEvent.contentOffset.y;
-        scrollOffsetYRef.current = nextOffsetY;
-        updateScrollableHeaderScrollState(nextOffsetY);
-        onScroll?.(event);
-    };
-
-    const listHeaderElement = headerComponent ? (
-        <View
-            testID="table-list-header"
-            onLayout={handleScrollableHeaderLayout}
-        >
-            {headerComponent}
-        </View>
-    ) : (
-        ListHeaderComponent
-    );
-
-    const renderListItem = (info: ListRenderItemInfo<DataType>) => {
-        if (isTableHeaderItem(info.index)) {
-            return (
-                <View style={styles.appBG}>
-                    <TableHeader />
-                </View>
-            );
-        }
-
-        return renderItem?.({...info, index: getDataIndex(info.index)}) ?? null;
-    };
-
-    const keyExtractorForList = (item: DataType, index: number) => {
-        if (isTableHeaderItem(index)) {
-            return TABLE_HEADER_KEY;
-        }
-
-        return keyExtractor?.(item, getDataIndex(index)) ?? item.keyForList;
-    };
-
-    const getItemTypeForList = (item: DataType, index: number, extraData: unknown) => {
-        if (isTableHeaderItem(index)) {
-            return TABLE_HEADER_KEY;
-        }
-
-        return getItemType?.(item, getDataIndex(index), extraData);
-    };
-
-    const handleLoad: NonNullable<typeof onLoad> = (info) => {
-        setIsListLoaded(true);
-        onLoad?.(info);
-    };
-
-    useEffect(() => {
-        if (!shouldRenderStickyHeader || !isListLoaded || hasActivatedStickyHeader) {
-            return undefined;
-        }
-
-        const frame = requestAnimationFrame(() => setHasActivatedStickyHeader(true));
-        return () => cancelAnimationFrame(frame);
-    }, [hasActivatedStickyHeader, isListLoaded, shouldRenderStickyHeader]);
-
-    useEffect(() => {
-        if (shouldRenderStickyHeader || !hasActivatedStickyHeader) {
-            return undefined;
-        }
-
-        const frame = requestAnimationFrame(() => setHasActivatedStickyHeader(false));
-        return () => cancelAnimationFrame(frame);
-    }, [hasActivatedStickyHeader, shouldRenderStickyHeader]);
+    const isSyntheticEmptyResultItem = (index: number) => shouldRenderSyntheticEmptyRow && isEmptyResult && index === syntheticRowsBeforeData;
+    const isSyntheticListEmptyItem = (index: number) => shouldRenderSyntheticEmptyRow && !isEmptyResult && index === syntheticRowsBeforeData;
+    const adjustedStickyHeaderIndices = stickyHeaderIndices?.map((index) => index + (hasPageHeader ? 1 : 0));
 
     const EmptyResultComponent = (
         <View style={[styles.ph5, styles.pt3, styles.pb5]}>
@@ -221,6 +159,66 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         </View>
     );
 
+    const renderListItem = (info: ListRenderItemInfo<DataType>) => {
+        if (isPageHeaderItem(info.index)) {
+            return pageHeaderElement;
+        }
+
+        if (isTableHeaderItem(info.index)) {
+            return <TableHeader />;
+        }
+
+        if (isSyntheticEmptyResultItem(info.index)) {
+            return EmptyResultComponent;
+        }
+
+        if (isSyntheticListEmptyItem(info.index)) {
+            return renderListComponent(ListEmptyComponent);
+        }
+
+        return renderItem?.({...info, index: getDataIndex(info.index)}) ?? null;
+    };
+
+    const keyExtractorForList = (item: DataType, index: number) => {
+        if (isPageHeaderItem(index)) {
+            return PAGE_HEADER_KEY;
+        }
+
+        if (isTableHeaderItem(index)) {
+            return TABLE_HEADER_KEY;
+        }
+
+        if (isSyntheticEmptyResultItem(index)) {
+            return EMPTY_RESULT_KEY;
+        }
+
+        if (isSyntheticListEmptyItem(index)) {
+            return LIST_EMPTY_KEY;
+        }
+
+        return keyExtractor?.(item, getDataIndex(index)) ?? item.keyForList;
+    };
+
+    const getItemTypeForList = (item: DataType, index: number, extraData: unknown) => {
+        if (isPageHeaderItem(index)) {
+            return PAGE_HEADER_KEY;
+        }
+
+        if (isTableHeaderItem(index)) {
+            return TABLE_HEADER_KEY;
+        }
+
+        if (isSyntheticEmptyResultItem(index)) {
+            return EMPTY_RESULT_KEY;
+        }
+
+        if (isSyntheticListEmptyItem(index)) {
+            return LIST_EMPTY_KEY;
+        }
+
+        return getItemType?.(item, getDataIndex(index), extraData);
+    };
+
     return (
         <View
             style={[styles.flex1, styles.mnh0, style]}
@@ -232,12 +230,8 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
                 style={[styles.flex1, styles.mnh0]}
                 showsVerticalScrollIndicator={false}
                 maintainVisibleContentPosition={{disabled: true}}
-                ListHeaderComponent={listHeaderElement}
                 ListEmptyComponent={isEmptyResult ? EmptyResultComponent : ListEmptyComponent}
-                onLoad={handleLoad}
-                onScroll={handleScroll}
-                stickyHeaderIndices={canRenderStickyHeader ? [stickyTableHeaderIndex] : stickyHeaderIndices}
-                scrollEventThrottle={scrollEventThrottle ?? 16}
+                stickyHeaderIndices={shouldRenderStickyHeader ? [stickyTableHeaderIndex] : adjustedStickyHeaderIndices}
                 contentContainerStyle={[
                     filteredAndSortedData.length === 0 && styles.flexGrow1,
                     listContentContainerStyle,
