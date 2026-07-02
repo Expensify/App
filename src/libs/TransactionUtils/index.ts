@@ -1,5 +1,5 @@
 import {format, isValid, parse} from 'date-fns';
-import {Str} from 'expensify-common';
+import {SafeString, Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import lodashDeepClone from 'lodash/cloneDeep';
 import lodashSet from 'lodash/set';
@@ -87,7 +87,6 @@ import type {
     WaypointCollection,
 } from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import SafeString from '@src/utils/SafeString';
 import getDistanceInMeters from './getDistanceInMeters';
 
 type TransactionParams = {
@@ -1147,13 +1146,8 @@ function getReportOwnerAsAttendee(creatorDetails: OnyxEntry<PersonalDetails>): A
     const creatorDisplayName = creatorDetails?.displayName ?? creatorLogin;
     return {
         email: creatorLogin,
-        login: creatorLogin,
         displayName: creatorDisplayName,
-        accountID: creatorDetails?.accountID,
-        text: creatorDisplayName,
-        searchText: creatorDisplayName,
         avatarUrl: (creatorDetails?.avatarThumbnail ?? creatorDetails?.avatar ?? '') as string,
-        selected: true,
     };
 }
 
@@ -1203,7 +1197,7 @@ function getAttendees(transaction: OnyxInputOrEntry<Transaction>, reportOwnerAsA
  * Strips the SMS domain so phone-login attendees render the same as in the rendered pills.
  */
 function getAttendeesListDisplayString(attendees: Attendee[], localeCompare?: LocaleContextProps['localeCompare']): string {
-    const getName = (a: Attendee) => Str.removeSMSDomain(a.displayName ?? a.login ?? '');
+    const getName = (a: Attendee) => Str.removeSMSDomain(a.displayName ?? a.email ?? '');
     const ordered = localeCompare
         ? // Lowercase to match sortAlphabetically (the pill sort) so joined string and pill order never disagree on case.
           [...attendees].sort((a, b) => localeCompare(getName(a).toLowerCase(), getName(b).toLowerCase()))
@@ -1442,6 +1436,58 @@ function isPending(transaction: OnyxEntry<Transaction>): boolean {
  */
 function hasOnlyPendingCardTransactions(transactions: Array<OnyxEntry<Transaction>>): boolean {
     return transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
+}
+
+/**
+ * Returns the root of a card transaction's authorization chain.
+ *
+ * A posted/clearing Expensify Card transaction carries `parentTransactionID` pointing at the root pending auth's
+ * `transactionID`. The root pending auth has an empty `parentTransactionID`, so it is its own chain root.
+ */
+function getCardAuthChainRoot(transaction: OnyxEntry<Transaction>): string | undefined {
+    if (transaction?.parentTransactionID) {
+        return transaction.parentTransactionID;
+    }
+    return transaction?.transactionID;
+}
+
+/**
+ * Returns the set of pending Expensify Card transaction IDs that are already superseded by a posted transaction
+ * from the same authorization chain.
+ *
+ * When a card transaction settles while the client is offline, the backend moves the pending auth to a hidden
+ * report and clears it from clients via a realtime Onyx update. A client that missed that update keeps the stale
+ * pending row in Onyx, so it renders as a duplicate next to the posted row. Grouping by auth chain lets us hide a
+ * pending row whenever its posted counterpart is present, while leaving a genuinely pending row (no posted sibling)
+ * untouched.
+ */
+function getSupersededPendingCardTransactionIDs(transactions: Array<OnyxEntry<Transaction>>): Set<string> {
+    const settledRootTransactionIDs = new Set<string>();
+    for (const transaction of transactions) {
+        if (isExpensifyCardTransaction(transaction) && !isPending(transaction)) {
+            const rootTransactionID = getCardAuthChainRoot(transaction);
+            if (rootTransactionID) {
+                settledRootTransactionIDs.add(rootTransactionID);
+            }
+        }
+    }
+
+    const supersededTransactionIDs = new Set<string>();
+    if (settledRootTransactionIDs.size === 0) {
+        return supersededTransactionIDs;
+    }
+
+    for (const transaction of transactions) {
+        if (!transaction || !isExpensifyCardTransaction(transaction) || !isPending(transaction)) {
+            continue;
+        }
+        const rootTransactionID = getCardAuthChainRoot(transaction);
+        if (rootTransactionID && settledRootTransactionIDs.has(rootTransactionID)) {
+            supersededTransactionIDs.add(transaction.transactionID);
+        }
+    }
+
+    return supersededTransactionIDs;
 }
 
 /**
@@ -2223,7 +2269,11 @@ function getDistanceRateTaxUpdates(
     customUnitRateID: string,
     distanceUnit?: Unit,
 ): {taxAmount: number; taxCode: string; taxValue: string | undefined} {
-    const taxCode = getDefaultTaxCode(policy, transaction, undefined, customUnitRateID) ?? '';
+    const policyCustomUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction, undefined, customUnitRateID) ?? '';
+    // We use || instead of ?? because taxRateExternalID may be an empty string, which should also trigger the fallback to the default tax code.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const taxCode = policyCustomUnitRate?.attributes?.taxRateExternalID || defaultTaxCode;
     const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(transaction, distanceUnit ?? transaction?.comment?.customUnit?.distanceUnit));
     const taxValue = taxCode ? getTaxValue(policy, transaction, taxCode) : undefined;
     const mileageRates = DistanceRequestUtils.getMileageRates(policy);
@@ -2646,6 +2696,22 @@ function compareDuplicateTransactionFields(
                         keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                     }
                 }
+            } else if (fieldName === 'reimbursable') {
+                // Managed card transactions are always non-reimbursable. The resolved reimbursable value is applied to
+                // the transaction that is kept, so we only force it to false — and hide the reimbursable review step —
+                // when that kept transaction is itself a managed card. We gate on the selected (kept) transaction rather
+                // than the reviewing transaction: the Review* pages recompute this from the thread's transaction (which
+                // may be the cash expense) while the kept transaction is the managed card, so gating on the reviewing
+                // transaction would re-add the reimbursable step on back navigation. Gating on any duplicate in the set
+                // would instead wrongly convert a kept cash expense to non-reimbursable.
+                const selectedTransaction = transactions.find((transactionItem) => transactionItem?.transactionID === selectedTransactionID) ?? firstTransaction;
+                if (isManagedCardTransaction(selectedTransaction)) {
+                    keep[fieldName] = false;
+                } else if (areAllFieldsEqualForKey) {
+                    keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
+                } else {
+                    processChanges(fieldName, transactions, keys);
+                }
             } else if (areAllFieldsEqualForKey) {
                 keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
             } else {
@@ -3056,6 +3122,7 @@ export {
     isDuplicate,
     isPending,
     hasOnlyPendingCardTransactions,
+    getSupersededPendingCardTransactionIDs,
     showPendingCardTransactionsBlockModal,
     isOnHold,
     getWaypoints,

@@ -16,12 +16,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
+import {shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {arePolicyRulesEnabled, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     getCategory,
+    getCreated,
     getCurrency,
     getMerchant,
     getRateID,
@@ -476,6 +478,8 @@ function MoneyRequestConfirmationList({
         isTimeRequest,
         routeError,
         isNewManualExpenseFlowEnabled,
+        isReadOnly,
+        shouldShowDate: shouldShowConfirmationDate(shouldShowSmartScanFields, isDistanceRequest),
     });
 
     const confirm = buildConfirmAction({
@@ -541,7 +545,18 @@ function MoneyRequestConfirmationList({
                 isPolicyExpenseChat={isPolicyExpenseChat}
                 expenseMode={{isDistance: isDistanceRequest, isTime: isTimeRequest, isInvoice: isTypeInvoice, isPerDiem: isPerDiemRequest}}
                 distanceFlags={{isManualDistanceRequest, isOdometerDistanceRequest, isGPSDistanceRequest}}
-                distanceData={{distance, hasRoute, unit, rate, distanceRateName: mileageRate.name, distanceRateCurrency: currency, shouldShowRateAutoUpdatedTooltip}}
+                distanceData={{
+                    distance,
+                    hasRoute,
+                    unit,
+                    rate,
+                    distanceRateName: mileageRate.name,
+                    distanceRateCurrency: currency,
+                    mileageRate,
+                    expenseDate: getCreated(transaction),
+                    customUnitRateID,
+                    shouldShowRateAutoUpdatedTooltip,
+                }}
                 amountDisplay={{amount: amountToBeUsed, formattedAmount, formattedAmountPerAttendee}}
                 requiredFlags={{isCategoryRequired, isMerchantRequired, isDescriptionRequired}}
                 visibilityFlags={{
@@ -564,8 +579,8 @@ function MoneyRequestConfirmationList({
                     onPDFPassword,
                 }}
                 compactControls={{showMoreFields, setShowMoreFields}}
-                onSubmitForm={confirm}
                 scrollFocusedInputIntoView={scrollFocusedInputIntoView}
+                onSubmitForm={confirm}
             />
         </View>
     );

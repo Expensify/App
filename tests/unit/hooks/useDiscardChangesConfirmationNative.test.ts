@@ -14,6 +14,8 @@ jest.mock('@react-navigation/native', () => ({
         mockPreventRemoveCallback = callback;
     },
     useIsFocused: () => mockIsFocused,
+    // The hook reads `route.name` to key its tab-switch guard
+    useRoute: () => ({name: 'test-route'}),
     // Focus effects behave like plain effects in these tests — the screen is always focused
     useFocusEffect: (callback: () => undefined | (() => void)) => {
         jest.requireActual<{useEffect: (effect: () => undefined | (() => void), deps: unknown[]) => void}>('react').useEffect(callback, [callback]);

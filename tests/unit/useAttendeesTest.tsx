@@ -59,13 +59,8 @@ describe('useAttendees', () => {
 
         expect(result.current).toEqual([
             {
-                accountID: ownerDetails.accountID,
-                login: ownerDetails.login,
                 displayName: ownerDetails.displayName,
-                selected: true,
                 email: ownerDetails.login,
-                text: ownerDetails.displayName,
-                searchText: ownerDetails.displayName,
                 avatarUrl: ownerDetails.avatar,
             },
         ]);
@@ -73,11 +68,9 @@ describe('useAttendees', () => {
 
     it('should return existing attendees if transaction already has attendees', async () => {
         const attendee: Attendee = {
-            accountID: 1,
-            login: 'attendee@test.com',
+            email: 'attendee@test.com',
             displayName: 'Attendee',
             avatarUrl: '',
-            selected: true,
         };
 
         const mockTransaction: Transaction = {
