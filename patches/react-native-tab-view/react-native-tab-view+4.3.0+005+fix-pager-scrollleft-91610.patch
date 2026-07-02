@@ -1,0 +1,40 @@
+diff --git a/node_modules/react-native-tab-view/lib/module/TabView.js b/node_modules/react-native-tab-view/lib/module/TabView.js
+index 0000004..0000005 100644
+--- a/node_modules/react-native-tab-view/lib/module/TabView.js
++++ b/node_modules/react-native-tab-view/lib/module/TabView.js
+@@ -41,6 +41,27 @@
+     height: 0,
+     ...initialLayout
+   });
++  const pagerRef = React.useRef(null);
++  // #91610: the pager positions its pages with a transform, never with scroll. On web the browser can
++  // still scroll this overflow:hidden container horizontally to reveal a focused input while the sheet
++  // is translated wide, leaving a persistent scrollLeft that shifts the active page left and clips its
++  // first column. Pin scrollLeft at 0.
++  React.useEffect(() => {
++    if (Platform.OS !== 'web') {
++      return;
++    }
++    const node = pagerRef.current;
++    if (!node) {
++      return;
++    }
++    const reset = () => {
++      if (node.scrollLeft !== 0) {
++        node.scrollLeft = 0;
++      }
++    };
++    node.addEventListener('scroll', reset);
++    return () => node.removeEventListener('scroll', reset);
++  }, []);
+   const jumpToIndex = index => {
+     if (index !== navigationState.index) {
+       onIndexChange(index);
+@@ -66,6 +87,7 @@
+     ...sceneOptions?.[route.key]
+   }]));
+   return /*#__PURE__*/_jsx(View, {
++    ref: pagerRef,
+     onLayout: handleLayout,
+     style: [styles.pager, style],
+     children: /*#__PURE__*/_jsx(Pager, {
