@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import {getReportName} from '@libs/ReportNameUtils';
@@ -15,6 +16,7 @@ import type SCREENS from '@src/SCREENS';
 function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.REPORT_AVATAR>) {
     const {reportID, policyID} = route.params;
 
+    const {translate} = useLocalize();
     const defaultAvatars = useDefaultAvatars();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -39,12 +41,12 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
 
         return {
             source: getFullSizeAvatar({avatarSource: getWorkspaceIcon(report, policy).source, defaultAvatars}),
-            headerTitle: getPolicyName({report, policy}),
+            headerTitle: getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')}),
             // In the case of default workspace avatar, originalFileName prop takes policyID as value to get the color of the avatar
             originalFileName: policy?.originalFileName ?? policy?.id ?? report?.policyID,
             isWorkspaceAvatar: true,
         };
-    }, [policy, report, defaultAvatars, reportAttributes]);
+    }, [policy, report, defaultAvatars, reportAttributes, translate]);
 
     const onDownloadAttachment = useDownloadAttachment();
 

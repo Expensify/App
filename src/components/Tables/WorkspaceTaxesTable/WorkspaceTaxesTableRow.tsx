@@ -46,7 +46,6 @@ function WorkspaceTaxesTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
 
     const isDeleting = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const enabledStatusLabel = item.enabled ? translate('common.enabled') : translate('common.disabled');
-
     const accessibilityLabel = [item.name, item.alternateText, enabledStatusLabel].filter(Boolean).join(', ');
 
     return (
@@ -55,7 +54,6 @@ function WorkspaceTaxesTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
             rowIndex={rowIndex}
             disabled={isDeleting}
             accessibilityLabel={accessibilityLabel}
-            skeletonReasonAttributes={{context: 'workspaceTaxesTableRow'}}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.ROW}
             onPress={item.action}
             offlineWithFeedback={{

@@ -51,7 +51,6 @@ export default function DomainMembersTableRow({item, rowIndex, shouldUseNarrowTa
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
-            skeletonReasonAttributes={{context: 'domainMembersTableRow'}}
             sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.ROW}
             offlineWithFeedback={{
                 errors: item.errors,
