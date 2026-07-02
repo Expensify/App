@@ -23,8 +23,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCategoryGLCode} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
+import {getTagGLCode} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {isExpenseReport} from '@libs/ReportUtils';
+import {getReimbursableTotal, isExpenseReport} from '@libs/ReportUtils';
 import {
     getAmount,
     getConvertedAmount,
@@ -60,6 +61,7 @@ function TransactionItemRowWide({
     report,
     policy,
     policyCategories,
+    policyTagLists,
     isSelected,
     shouldShowTooltip,
     dateColumnSize,
@@ -82,6 +84,7 @@ function TransactionItemRowWide({
     radioButtonContainerStyle,
     shouldShowErrors = true,
     isDisabled = false,
+    shouldDisableActionPointerEvents = false,
     violations,
     shouldShowBottomBorder,
     onArrowRightPress,
@@ -179,6 +182,15 @@ function TransactionItemRowWide({
                             onSave={onEditTag}
                             policyID={effectivePolicyID}
                         />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE)]}
+                    >
+                        <TextCell text={getTagGLCode(policyTagLists, transactionItem.tag)} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.DATE:
@@ -307,8 +319,8 @@ function TransactionItemRowWide({
                                 reportID={transactionItem.reportID}
                                 policyID={report?.policyID}
                                 hash={transactionItem?.hash}
-                                amount={report?.total}
-                                shouldDisablePointerEvents={isDisabled}
+                                amount={getReimbursableTotal(report)}
+                                shouldDisablePointerEvents={isDisabled || shouldDisableActionPointerEvents}
                                 isMarkAsDone={isMarkAsDone}
                             />
                         )}
