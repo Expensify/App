@@ -1566,7 +1566,7 @@
 "../../tests/navigation/getFocusedLeafScreenNameTests.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/navigation/getIsScreenBlurredTests.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/navigation/getMatchingFullScreenRouteTests.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../tests/navigation/getPathFromStateTests.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
+"../../tests/navigation/getPathFromStateTests.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/navigation/getStateForDynamicRouteTests.ts"	"@typescript-eslint/no-unsafe-type-assertion"	27
 "../../tests/navigation/getStateFromPathTests.ts"	"@typescript-eslint/no-unsafe-type-assertion"	14
 "../../tests/navigation/isActiveRouteTests.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	9
