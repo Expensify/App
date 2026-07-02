@@ -20,8 +20,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 
 type UseSearchListViewStateParams = {
-    /** The rows the view renders. Drives exit-animation tracking and scroll-to-index. */
+    /** The source rows the view renders. Drives exit-animation tracking. */
     data: SearchListItem[];
+
+    /** The rows actually rendered by the list, if they differ from `data` (e.g. grouped views split each group
+     *  into a header + children-container pair). `scrollToListIndex` indexes over this. Defaults to `data`. */
+    listData?: SearchListItem[];
 
     /** Whether mobile selection mode is on (a row tap toggles selection instead of navigating). */
     isMobileSelectionModeEnabled: boolean;
@@ -42,7 +46,7 @@ type UseSearchListViewStateParams = {
  * Must be used inside SearchWriteActionsProvider so `toggle`/`toggleAll` resolve to the real actions rather
  * than the no-op defaults.
  */
-function useSearchListViewState({data, isMobileSelectionModeEnabled, onSelectRow, shouldPreventLongPressRow = false}: UseSearchListViewStateParams) {
+function useSearchListViewState({data, listData = data, isMobileSelectionModeEnabled, onSelectRow, shouldPreventLongPressRow = false}: UseSearchListViewStateParams) {
     const {toggle, toggleAll} = useSearchRowSelectionActions();
     const {selectedTransactions} = useSearchSelectionContext();
 
@@ -84,7 +88,7 @@ function useSearchListViewState({data, isMobileSelectionModeEnabled, onSelectRow
     };
 
     const scrollToListIndex = (index: number, animated = true) => {
-        const item = data.at(index);
+        const item = listData.at(index);
         if (!listRef.current || !item || index === -1) {
             return;
         }

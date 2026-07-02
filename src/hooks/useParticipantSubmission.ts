@@ -4,6 +4,7 @@ import {setTransactionReport} from '@libs/actions/Transaction';
 import {READ_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import HttpUtils from '@libs/HttpUtils';
+import {isParticipantP2P} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
@@ -210,12 +211,23 @@ function useParticipantSubmission({
         });
     };
 
+    // P2P chats don't support negative amounts. When a negative amount was entered before a participant was
+    // selected (e.g. "Submit it to someone" from a self DM track expense), assigning it to a P2P participant
+    // would fail at submit, so keep the expense on the self DM as a track expense — mirroring the guard in the
+    // confirmation step's handleParticipantsAdded. This doesn't apply to an expense already bound to a policy
+    // expense chat, which must stay on that workspace.
+    const shouldKeepNegativeExpenseOnSelfDM = (firstParticipant: Participant | undefined) => {
+        const currentTransaction = dataRef.current.initialTransaction;
+        const isTransactionOnPolicyExpenseChat = currentTransaction?.participants?.some((participant) => participant?.isPolicyExpenseChat);
+        return (currentTransaction?.amount ?? 0) < 0 && !isTransactionOnPolicyExpenseChat && isParticipantP2P(firstParticipant);
+    };
+
     const addParticipant = (val: Participant[]) => {
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
 
         const firstParticipant = val.at(0);
 
-        if (firstParticipant?.isSelfDM && !isSplitRequest) {
+        if ((firstParticipant?.isSelfDM || shouldKeepNegativeExpenseOnSelfDM(firstParticipant)) && !isSplitRequest) {
             trackExpense();
             return;
         }
@@ -305,6 +317,15 @@ function useParticipantSubmission({
         // (last-rendered value from dataRef) because the Onyx write from addParticipant may not have
         // caused a re-render yet by the time goToNextStep is called.
         const effectiveParticipants = nextParticipants ?? currentParticipants;
+
+        // ParticipantSearchResults.addSingleParticipant fires onFinish (this callback) right after onParticipantsAdded
+        // for any non-self row. When the negative-amount P2P fallback in addParticipant already kept the expense on the
+        // self DM as a track expense (and queued that navigation), skip the submit navigation here so it doesn't
+        // override the track flow and land the user on a submit confirmation for the self-DM draft.
+        if (!isSplitRequest && shouldKeepNegativeExpenseOnSelfDM(effectiveParticipants?.at(0))) {
+            return;
+        }
+
         const isPolicyExpenseChat = effectiveParticipants?.some((participant) => participant.isPolicyExpenseChat);
         if (iouType === CONST.IOU.TYPE.SPLIT && !isPolicyExpenseChat && splitTransaction?.amount && splitTransaction?.currency) {
             const participantAccountIDs = effectiveParticipants?.map((participant) => participant.accountID) as number[];
