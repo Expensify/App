@@ -116,6 +116,15 @@ Small changes often produce more reliable results than completely rewriting a ru
 
 ---
 
+## Related resources
+
+When writing Agent Rules, these references help you match your instructions to what your Agent can actually do:
+
+ - [Agent Capability Reference](/articles/new-expensify/ai-agents/Custom-Agent-Capabilities) — every action your Agent can take, with ready-to-copy instruction phrases.
+ - [Agent Trigger Reference](/articles/new-expensify/ai-agents/Custom-Agent-Triggers) — every event your Agent can react to, with ready-to-copy instruction phrases.
+
+---
+
 # FAQ
 
 ## Should I create one large rule or multiple smaller rules?
