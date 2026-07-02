@@ -7077,16 +7077,17 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // When create group chat is called
-            Report.navigateToAndCreateGroupChat(
-                KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
-                GROUP_CHAT_NAME,
-                TEST_USER_LOGIN,
-                GROUP_CHAT_REPORT_ID,
-                TEST_INTRO_SELECTED,
-                false,
-                undefined,
-                TEST_USER_ACCOUNT_ID,
-            );
+            Report.navigateToAndCreateGroupChat({
+                participantsPersonalDetails: KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
+                reportName: GROUP_CHAT_NAME,
+                currentUserLogin: TEST_USER_LOGIN,
+                optimisticReportID: GROUP_CHAT_REPORT_ID,
+                introSelected: TEST_INTRO_SELECTED,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: undefined,
+                betas: undefined,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+            });
             await waitForBatchedUpdates();
 
             // Then it should create a new group chat report in Onyx
@@ -7132,17 +7133,18 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // When create group chat is called with an avatar URI and isSelfTourViewed=true
-            Report.navigateToAndCreateGroupChat(
-                KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
-                GROUP_CHAT_NAME,
-                TEST_USER_LOGIN,
-                GROUP_CHAT_REPORT_ID,
-                TEST_INTRO_SELECTED,
-                true,
-                undefined,
-                TEST_USER_ACCOUNT_ID,
-                AVATAR_URI,
-            );
+            Report.navigateToAndCreateGroupChat({
+                participantsPersonalDetails: KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
+                reportName: GROUP_CHAT_NAME,
+                currentUserLogin: TEST_USER_LOGIN,
+                optimisticReportID: GROUP_CHAT_REPORT_ID,
+                introSelected: TEST_INTRO_SELECTED,
+                isSelfTourViewed: true,
+                hasCompletedGuidedSetupFlow: undefined,
+                betas: undefined,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                avatarUri: AVATAR_URI,
+            });
             await waitForBatchedUpdates();
 
             // Then it should create a new group chat report with the avatar
@@ -7167,16 +7169,17 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // When create group chat is called with isSelfTourViewed=true but onboarding already completed
-            Report.navigateToAndCreateGroupChat(
-                KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
-                GROUP_CHAT_NAME,
-                TEST_USER_LOGIN,
-                GROUP_CHAT_REPORT_ID,
-                {...TEST_INTRO_SELECTED, isInviteOnboardingComplete: true},
-                true,
-                undefined,
-                TEST_USER_ACCOUNT_ID,
-            );
+            Report.navigateToAndCreateGroupChat({
+                participantsPersonalDetails: KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
+                reportName: GROUP_CHAT_NAME,
+                currentUserLogin: TEST_USER_LOGIN,
+                optimisticReportID: GROUP_CHAT_REPORT_ID,
+                introSelected: {...TEST_INTRO_SELECTED, isInviteOnboardingComplete: true},
+                isSelfTourViewed: true,
+                hasCompletedGuidedSetupFlow: undefined,
+                betas: undefined,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+            });
             await waitForBatchedUpdates();
 
             // Then the group chat should still be created
@@ -7194,18 +7197,18 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // When create group chat is called with an avatarFile
-            Report.navigateToAndCreateGroupChat(
-                KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
-                'Avatar File Group',
-                TEST_USER_LOGIN,
-                GROUP_CHAT_REPORT_ID,
-                {choice: CONST.ONBOARDING_CHOICES.ADMIN},
-                false,
-                undefined,
-                TEST_USER_ACCOUNT_ID,
-                undefined,
+            Report.navigateToAndCreateGroupChat({
+                participantsPersonalDetails: KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
+                reportName: 'Avatar File Group',
+                currentUserLogin: TEST_USER_LOGIN,
+                optimisticReportID: GROUP_CHAT_REPORT_ID,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.ADMIN},
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: undefined,
+                betas: undefined,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 avatarFile,
-            );
+            });
             await waitForBatchedUpdates();
 
             // Then the group chat report should be created
@@ -7226,8 +7229,8 @@ describe('actions/Report', () => {
 
             // When create group chat is called with a participant not in allPersonalDetails (flagged as an optimistic personal detail)
             const unknownParticipantAccountID = getAccountIDsByLogins([UNKNOWN_PARTICIPANT_LOGIN]).at(0) ?? CONST.DEFAULT_NUMBER_ID;
-            Report.navigateToAndCreateGroupChat(
-                {
+            Report.navigateToAndCreateGroupChat({
+                participantsPersonalDetails: {
                     [TEST_USER_ACCOUNT_ID]: {accountID: TEST_USER_ACCOUNT_ID, login: TEST_USER_LOGIN, displayName: 'Test user account'},
                     [unknownParticipantAccountID]: {
                         accountID: unknownParticipantAccountID,
@@ -7236,14 +7239,15 @@ describe('actions/Report', () => {
                         isOptimisticPersonalDetail: true,
                     },
                 },
-                'Optimistic Group',
-                TEST_USER_LOGIN,
-                GROUP_CHAT_REPORT_ID,
-                {choice: CONST.ONBOARDING_CHOICES.ADMIN},
-                false,
-                undefined,
-                TEST_USER_ACCOUNT_ID,
-            );
+                reportName: 'Optimistic Group',
+                currentUserLogin: TEST_USER_LOGIN,
+                optimisticReportID: GROUP_CHAT_REPORT_ID,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.ADMIN},
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: undefined,
+                betas: undefined,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+            });
             await waitForBatchedUpdates();
 
             // Then the group chat report should be created
@@ -7254,6 +7258,104 @@ describe('actions/Report', () => {
             const personalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
             const optimisticEntry = Object.values(personalDetails ?? {}).find((details) => details?.login === UNKNOWN_PARTICIPANT_LOGIN && details?.isOptimisticPersonalDetail === true);
             expect(optimisticEntry).not.toBeUndefined();
+        });
+
+        it('should skip guided setup when hasCompletedGuidedSetupFlow param is true even if Onyx says false', async () => {
+            const GROUP_CHAT_NAME = 'Skip Setup Group';
+            const GROUP_CHAT_REPORT_ID = '12352';
+            const CONCIERGE_REPORT_ID = '99997';
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`, {
+                reportID: CONCIERGE_REPORT_ID,
+                chatType: undefined,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CONST.ACCOUNT_ID.CONCIERGE]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                    [TEST_USER_ACCOUNT_ID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            });
+
+            // Onyx says onboarding is NOT completed
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, TEST_INTRO_SELECTED);
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await waitForBatchedUpdates();
+
+            // When hasCompletedGuidedSetupFlow param is explicitly true, it overrides Onyx
+            Report.navigateToAndCreateGroupChat({
+                participantsPersonalDetails: KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
+                reportName: GROUP_CHAT_NAME,
+                currentUserLogin: TEST_USER_LOGIN,
+                optimisticReportID: GROUP_CHAT_REPORT_ID,
+                introSelected: TEST_INTRO_SELECTED,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: true,
+                betas: undefined,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the group chat should be created
+            const newGroupChatReport: OnyxEntry<OnyxTypes.Report> = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${GROUP_CHAT_REPORT_ID}`);
+            expect(newGroupChatReport).not.toBeNull();
+            expect(newGroupChatReport?.reportName).toBe(GROUP_CHAT_NAME);
+            expect(newGroupChatReport?.chatType).toBe(CONST.REPORT.CHAT_TYPE.GROUP);
+
+            // Then isInviteOnboardingComplete should NOT be set because guided setup was skipped
+            const introSelected = await getOnyxValue(ONYXKEYS.NVP_INTRO_SELECTED);
+            expect(introSelected?.isInviteOnboardingComplete).toBeFalsy();
+        });
+
+        it('should trigger guided setup when hasCompletedGuidedSetupFlow param is false', async () => {
+            const GROUP_CHAT_NAME = 'Trigger Setup Group';
+            const GROUP_CHAT_REPORT_ID = '12353';
+            const CONCIERGE_REPORT_ID = '99998';
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`, {
+                reportID: CONCIERGE_REPORT_ID,
+                chatType: undefined,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CONST.ACCOUNT_ID.CONCIERGE]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                    [TEST_USER_ACCOUNT_ID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            });
+
+            // Onyx says onboarding is NOT completed
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, TEST_INTRO_SELECTED);
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await waitForBatchedUpdates();
+
+            // When hasCompletedGuidedSetupFlow param is explicitly false, guided setup should run
+            Report.navigateToAndCreateGroupChat({
+                participantsPersonalDetails: KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
+                reportName: GROUP_CHAT_NAME,
+                currentUserLogin: TEST_USER_LOGIN,
+                optimisticReportID: GROUP_CHAT_REPORT_ID,
+                introSelected: TEST_INTRO_SELECTED,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
+                betas: undefined,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the group chat should be created
+            const newGroupChatReport: OnyxEntry<OnyxTypes.Report> = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${GROUP_CHAT_REPORT_ID}`);
+            expect(newGroupChatReport).not.toBeNull();
+            expect(newGroupChatReport?.reportName).toBe(GROUP_CHAT_NAME);
+            expect(newGroupChatReport?.chatType).toBe(CONST.REPORT.CHAT_TYPE.GROUP);
+
+            // Then isInviteOnboardingComplete should be set to true because guided setup ran
+            const introSelected = await getOnyxValue(ONYXKEYS.NVP_INTRO_SELECTED);
+            expect(introSelected?.isInviteOnboardingComplete).toBe(true);
         });
     });
 
@@ -7846,6 +7948,43 @@ describe('actions/Report', () => {
             } else {
                 expect(viewTourTask?.completedTaskReportActionID).toBeUndefined();
             }
+        });
+
+        it('should return undefined when hasCompletedGuidedSetupFlow param is true even if Onyx says false', async () => {
+            await setupUserWithConciergeChat();
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await waitForBatchedUpdates();
+
+            const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, undefined, true);
+
+            expect(result).toBeUndefined();
+        });
+
+        it('should return guided setup data when hasCompletedGuidedSetupFlow param is false', async () => {
+            await setupUserWithConciergeChat();
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await waitForBatchedUpdates();
+
+            const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, undefined, false);
+
+            expect(result).toBeDefined();
+            expect(result?.guidedSetupData).toBeDefined();
+            expect(result?.optimisticData).toBeDefined();
+            expect(result?.successData).toBeDefined();
+            expect(result?.failureData).toBeDefined();
+        });
+
+        it('should return undefined when hasCompletedGuidedSetupFlow param is undefined but Onyx says true', async () => {
+            await setupUserWithConciergeChat();
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await waitForBatchedUpdates();
+
+            const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, undefined, undefined);
+
+            expect(result).toBeUndefined();
         });
     });
 
