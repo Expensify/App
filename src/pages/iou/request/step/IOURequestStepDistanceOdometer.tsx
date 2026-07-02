@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -87,6 +87,7 @@ function IOURequestStepDistanceOdometer({
     const startReadingInputRef = useRef<BaseTextInputRef | null>(null);
     const endReadingInputRef = useRef<BaseTextInputRef | null>(null);
     const lastFocusedInputRef = useRef<BaseTextInputRef | null>(null);
+    const shouldRestoreFocusRef = useRef(false);
 
     const [isDiscardModalVisible, setIsDiscardModalVisible] = useState(false);
 
@@ -511,9 +512,20 @@ function IOURequestStepDistanceOdometer({
         setFormError('');
     };
 
-    const restoreLastInputFocus = useCallback(() => {
+    // The inputs are `editable={!isDiscardModalVisible}`, so focusing them while the discard modal is still
+    // flagged visible (i.e. synchronously, before React commits the `isDiscardModalVisible: false` update) is a
+    // no-op on native. Defer to the layout effect below, which fires once that commit has actually landed.
+    const restoreLastInputFocus = () => {
+        shouldRestoreFocusRef.current = true;
+    };
+
+    useLayoutEffect(() => {
+        if (isDiscardModalVisible || !shouldRestoreFocusRef.current) {
+            return;
+        }
+        shouldRestoreFocusRef.current = false;
         lastFocusedInputRef.current?.focus();
-    }, []);
+    }, [isDiscardModalVisible]);
 
     useDiscardChangesConfirmation({
         getHasUnsavedChanges,
