@@ -276,6 +276,7 @@ key "key"
       / to
       / taxRate
       / cardID
+      / bankAccount
       / from
       / attendee
       / payer
