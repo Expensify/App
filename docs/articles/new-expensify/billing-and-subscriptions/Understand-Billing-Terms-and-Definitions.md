@@ -37,7 +37,7 @@ Subscription types include:
 
 Your plan and subscription type are independent. For example, a Control workspace can use either an Annual or Pay-per-use subscription.
 
-To learn more, see [How Billing, Plans and Subscriptions Work](How-Billing-Plans-and-Subscriptions-Work.md).
+To learn more, see How Billing, Plans and Subscriptions Work.
 
 ---
 
@@ -67,7 +67,7 @@ For annual subscriptions, **subscription size** (sometimes called **seats**) is 
 
 **Auto-increase annual seats** automatically increases your subscription size if your active member count exceeds your committed seats.
 
-To learn more, see [Manage Annual subscription settings](Manage-Annual-Subscription-Settings.md).
+To learn more, see Manage Annual subscription settings.
 
 ---
 
@@ -84,5 +84,5 @@ You may also encounter the following billing terms:
  - **Billing currency** — the currency used to charge your subscription.
  - **Tax exempt status** — an approved tax exemption that removes eligible taxes from subscription charges.
 
-To learn more, see [Review Your Expensify Billing Receipt](Review-your-Expensify-billing-receipt.md).
+To learn more, see Review Your Expensify Billing Receipt.
 
