@@ -193,7 +193,7 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
                 rightComponent={rightComponent}
                 fallbackIcon={fallbackIcon}
             />
-            {card.isConnected && !card.isInitialSyncInProgress && !card.needsReconnect && !!card.configRows?.some((row) => !card.completeSetupRoute || !!row.errors) && (
+            {card.isConnected && !card.isInitialSyncInProgress && !!card.configRows?.some((row) => !card.completeSetupRoute || !!row.errors) && (
                 <View style={styles.mt2}>
                     {card.configRows
                         .filter((row) => !card.completeSetupRoute || !!row.errors)

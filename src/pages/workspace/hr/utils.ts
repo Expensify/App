@@ -282,26 +282,27 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
             icon: iconParams[provider.iconParam],
             setupLink: provider.getSetupLink?.(policyID),
             config,
-            configRows: state.isConnected
-                ? [
-                      {
-                          field: 'approvalMode',
-                          description: translate('workspace.hr.approvalMode'),
-                          title: getApprovalModeLabel(policy, connectionName, translate),
-                          route: provider.approvalModeRoute.getRoute(policyID),
-                          pendingAction: config?.pendingFields?.approvalMode,
-                          errors: config?.errorFields?.approvalMode,
-                      },
-                      {
-                          field: 'finalApprover',
-                          description: translate('workspace.hr.finalApprover'),
-                          title: getFinalApproverDisplayName(config?.finalApprover, translate),
-                          route: provider.finalApproverRoute.getRoute(policyID),
-                          pendingAction: config?.pendingFields?.finalApprover,
-                          errors: config?.errorFields?.finalApprover,
-                      },
-                  ]
-                : [],
+            configRows:
+                state.isConnected && !state.needsReconnect
+                    ? [
+                          {
+                              field: 'approvalMode',
+                              description: translate('workspace.hr.approvalMode'),
+                              title: getApprovalModeLabel(policy, connectionName, translate),
+                              route: provider.approvalModeRoute.getRoute(policyID),
+                              pendingAction: config?.pendingFields?.approvalMode,
+                              errors: config?.errorFields?.approvalMode,
+                          },
+                          {
+                              field: 'finalApprover',
+                              description: translate('workspace.hr.finalApprover'),
+                              title: getFinalApproverDisplayName(config?.finalApprover, translate),
+                              route: provider.finalApproverRoute.getRoute(policyID),
+                              pendingAction: config?.pendingFields?.finalApprover,
+                              errors: config?.errorFields?.finalApprover,
+                          },
+                      ]
+                    : [],
             ...state,
         });
     }
@@ -316,34 +317,35 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
             const needsSetup = state.isConnected && !state.needsReconnect && isMergeHRCompleteSetupNeeded(policy);
             const groupsRoute = ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(policyID);
 
-            const configRows: HRConfigRow[] = state.isConnected
-                ? [
-                      {
-                          field: 'groups',
-                          description: translate('workspace.hr.mergeHR.groups.title'),
-                          title: getMergeHRGroupsLabel(policy),
-                          route: groupsRoute,
-                          pendingAction: mergeConfig?.pendingFields?.groups,
-                          errors: mergeConfig?.errorFields?.groups,
-                      },
-                      {
-                          field: 'approvalMode',
-                          description: translate('workspace.hr.approvalMode'),
-                          title: getApprovalModeLabel(policy, mergeConnectionName, translate),
-                          route: ROUTES.WORKSPACE_HR_MERGE_APPROVAL_MODE.getRoute(policyID),
-                          pendingAction: mergeConfig?.pendingFields?.approvalMode,
-                          errors: mergeConfig?.errorFields?.approvalMode,
-                      },
-                      {
-                          field: 'finalApprover',
-                          description: translate('workspace.hr.finalApprover'),
-                          title: getFinalApproverDisplayName(mergeConfig?.finalApprover, translate),
-                          route: ROUTES.WORKSPACE_HR_MERGE_FINAL_APPROVER.getRoute(policyID),
-                          pendingAction: mergeConfig?.pendingFields?.finalApprover,
-                          errors: mergeConfig?.errorFields?.finalApprover,
-                      },
-                  ]
-                : [];
+            const configRows: HRConfigRow[] =
+                state.isConnected && !state.needsReconnect
+                    ? [
+                          {
+                              field: 'groups',
+                              description: translate('workspace.hr.mergeHR.groups.title'),
+                              title: getMergeHRGroupsLabel(policy),
+                              route: groupsRoute,
+                              pendingAction: mergeConfig?.pendingFields?.groups,
+                              errors: mergeConfig?.errorFields?.groups,
+                          },
+                          {
+                              field: 'approvalMode',
+                              description: translate('workspace.hr.approvalMode'),
+                              title: getApprovalModeLabel(policy, mergeConnectionName, translate),
+                              route: ROUTES.WORKSPACE_HR_MERGE_APPROVAL_MODE.getRoute(policyID),
+                              pendingAction: mergeConfig?.pendingFields?.approvalMode,
+                              errors: mergeConfig?.errorFields?.approvalMode,
+                          },
+                          {
+                              field: 'finalApprover',
+                              description: translate('workspace.hr.finalApprover'),
+                              title: getFinalApproverDisplayName(mergeConfig?.finalApprover, translate),
+                              route: ROUTES.WORKSPACE_HR_MERGE_FINAL_APPROVER.getRoute(policyID),
+                              pendingAction: mergeConfig?.pendingFields?.finalApprover,
+                              errors: mergeConfig?.errorFields?.finalApprover,
+                          },
+                      ]
+                    : [];
 
             cards.push({
                 key: `merge_${slug}`,
