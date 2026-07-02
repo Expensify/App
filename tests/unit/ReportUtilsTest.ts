@@ -8024,7 +8024,7 @@ describe('ReportUtils', () => {
                     };
                     Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
                         const result = ['admin@test.com'];
-                        expect(getApprovalChain(policyTest, expenseReport, undefined)).toStrictEqual(result);
+                        expect(getApprovalChain(policyTest, expenseReport, personalDetails[employeeAccountID]?.login)).toStrictEqual(result);
                     });
                 });
             });
@@ -8129,7 +8129,7 @@ describe('ReportUtils', () => {
                             transactions_4: transaction4,
                         }).then(() => {
                             const result = [categoryApprover2Email, categoryApprover1Email, tagApprover2Email, tagApprover1Email, 'admin@test.com'];
-                            expect(getApprovalChain(policyTest, expenseReport, undefined)).toStrictEqual(result);
+                            expect(getApprovalChain(policyTest, expenseReport, personalDetails[employeeAccountID]?.login)).toStrictEqual(result);
                         });
                     });
                 });
