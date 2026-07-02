@@ -5,6 +5,7 @@ import {hasViolations as hasViolationsUtil} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 
@@ -16,6 +17,7 @@ function useCreateNewReport() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const {translate} = useLocalize();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -27,9 +29,9 @@ function useCreateNewReport() {
     return useCallback(
         (policyID: string, shouldDismissEmptyReportsConfirmation = false) => {
             const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-            return createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policy, betas, false, shouldDismissEmptyReportsConfirmation);
+            return createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policy, betas, false, shouldDismissEmptyReportsConfirmation, undefined, translate);
         },
-        [betas, currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policies],
+        [betas, currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policies, translate],
     );
 }
 

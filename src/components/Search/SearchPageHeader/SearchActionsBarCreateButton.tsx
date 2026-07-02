@@ -82,6 +82,8 @@ function SearchActionsBarCreateButton() {
                 allBetas,
                 false,
                 shouldDismissEmptyReportsConfirmation,
+                undefined,
+                translate,
             );
             Navigation.setNavigationActionToMicrotaskQueue(() => {
                 Navigation.navigate(
@@ -91,7 +93,7 @@ function SearchActionsBarCreateButton() {
                 );
             });
         },
-        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas],
+        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas, translate],
     );
 
     const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({

@@ -3446,6 +3446,7 @@ describe('SidebarUtils', () => {
                     policy: null,
                     isForListPreview: true,
                     originalReportAction: lastReportPreviewAction,
+                    translate: translateLocal,
                 });
                 expect(result?.alternateText).toBe(`${getLastActorDisplayName({accountID: managerID}, managerID)}: ${reportPreviewMessage}`);
             });
@@ -3556,6 +3557,7 @@ describe('SidebarUtils', () => {
                     policy: null,
                     isForListPreview: true,
                     originalReportAction: lastReportPreviewAction,
+                    translate: translateLocal,
                 });
                 expect(result?.alternateText).toBe(reportPreviewMessage);
             });

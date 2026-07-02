@@ -4,6 +4,7 @@ import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePermissions from '@hooks/usePermissions';
@@ -62,6 +63,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const {translate} = useLocalize();
     const session = useSession();
     const personalDetails = usePersonalDetails();
     const ownerAccountID = isUnreported
@@ -145,7 +147,17 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
 
         const policyForNewReport = isPerDiemTransaction && perDiemOriginalPolicy ? perDiemOriginalPolicy : policyForMovingExpenses;
-        const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, betas, false, shouldDismissEmptyReportsConfirmation);
+        const optimisticReport = createNewReport(
+            ownerPersonalDetails,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            policyForNewReport,
+            betas,
+            false,
+            shouldDismissEmptyReportsConfirmation,
+            undefined,
+            translate,
+        );
         handleRegularReportSelection({value: optimisticReport.reportID, keyForList: optimisticReport.reportID, policyID: policyForNewReport?.id}, optimisticReport);
     };
 

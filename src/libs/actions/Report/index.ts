@@ -3967,6 +3967,7 @@ function buildNewReportOptimisticData(
     isASAPSubmitBetaEnabled: boolean,
     betas: OnyxEntry<Beta[]>,
     reportName?: string,
+    translate?: LocalizedTranslate,
 ) {
     const {accountID, login, email} = ownerPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
@@ -4005,7 +4006,7 @@ function buildNewReportOptimisticData(
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 
-    const message = getReportPreviewMessage({reportOrID: optimisticReportData});
+    const message = getReportPreviewMessage({reportOrID: optimisticReportData, translate});
     const createReportActionMessage = [
         {
             html: message,
@@ -4207,6 +4208,7 @@ function createNewReport(
     shouldNotifyNewAction = false,
     shouldDismissEmptyReportsConfirmation?: boolean,
     reportName?: string,
+    translate?: LocalizedTranslate,
 ) {
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();
@@ -4222,6 +4224,7 @@ function createNewReport(
         isASAPSubmitBetaEnabled,
         betas,
         reportName,
+        translate,
     );
 
     if (shouldDismissEmptyReportsConfirmation) {

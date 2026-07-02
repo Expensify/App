@@ -152,6 +152,7 @@ describe('ReportUtils', () => {
                 shouldConsiderScanningReceiptOrPendingRoute: shouldConsiderReceiptBeingScanned,
                 isPreviewMessageForParentChatReport,
                 policy,
+                translate: translateLocal,
             }),
         );
     });

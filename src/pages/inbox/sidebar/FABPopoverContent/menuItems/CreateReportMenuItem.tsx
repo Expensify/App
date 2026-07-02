@@ -82,6 +82,8 @@ function CreateReportMenuItem() {
             allBetas,
             false,
             shouldDismissEmptyReportsConfirmation,
+            undefined,
+            translate,
         );
         // Navigate to the Reports page first so getCreateReportRoute() resolves against
         // the Search/Reports fullscreen context before opening the created report modal.

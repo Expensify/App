@@ -166,6 +166,8 @@ function EmptySearchViewContent({
             betas,
             false,
             shouldDismissEmptyReportsConfirmation,
+            undefined,
+            translate,
         );
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.navigate(

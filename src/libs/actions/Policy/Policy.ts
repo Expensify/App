@@ -4582,7 +4582,7 @@ function createWorkspaceFromIOUPayment(
                     message: [
                         {
                             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                            text: ReportUtils.getReportPreviewMessage({reportOrID: expenseReport, policy: newWorkspace}),
+                            text: ReportUtils.getReportPreviewMessage({reportOrID: expenseReport, policy: newWorkspace, translate: localeTranslate}),
                         },
                     ],
                     created: DateUtils.getDBTime(),

@@ -920,6 +920,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         iouReportAction: reportAction,
                         isCopyAction: true,
                         reportAttributes,
+                        translate,
                     });
                     Clipboard.setString(displayMessage);
                 } else if (isTaskActionReportActionsUtils(reportAction)) {

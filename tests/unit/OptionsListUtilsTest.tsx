@@ -4190,6 +4190,7 @@ describe('OptionsListUtils', () => {
                     policy: null,
                     isForListPreview: true,
                     originalReportAction: reportPreviewAction,
+                    translate: translateLocal,
                 });
                 const formattedMessage = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
                 expect(formattedMessage).toBe('$1.00 for A A A');
