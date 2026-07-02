@@ -1,5 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type useConfirmModal from '@hooks/useConfirmModal';
 import CONST from '@src/CONST';
 import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
@@ -61,6 +63,29 @@ function isMergeHRManualSyncLimitReached(policy?: OnyxEntry<Policy>): boolean {
     const windowStart = DateUtils.subtractMillisecondsFromDateTime(DateUtils.getDBTime(), CONST.MERGE_HR.MANUAL_SYNC_WINDOW_MS);
     const syncsWithinWindow = manualSyncTimestamps.filter((timestamp) => timestamp > windowStart).length;
     return syncsWithinWindow >= CONST.MERGE_HR.MANUAL_SYNC_LIMIT;
+}
+
+/**
+ * When a Merge HR manual sync is blocked because the daily limit has been reached,
+ * shows a confirm modal and returns `true`. Returns `false` when the sync is allowed.
+ */
+function showMergeHRManualSyncLimitModalIfReached(
+    policy: OnyxEntry<Policy> | undefined,
+    connectionName: HRConnectionName,
+    translate: LocaleContextProps['translate'],
+    showConfirmModal: ReturnType<typeof useConfirmModal>['showConfirmModal'],
+): boolean {
+    if (connectionName !== CONST.POLICY.CONNECTIONS.NAME.MERGE_HR || !isMergeHRManualSyncLimitReached(policy)) {
+        return false;
+    }
+
+    showConfirmModal({
+        title: translate('workspace.hr.mergeHR.syncLimitReached.title'),
+        prompt: translate('workspace.hr.mergeHR.syncLimitReached.prompt'),
+        confirmText: translate('common.buttonConfirm'),
+        shouldShowCancelButton: false,
+    });
+    return true;
 }
 
 /** Returns display info for the HR provider currently connected to the policy (Gusto, Zenefits, or Merge HR), or null if none are connected. */
@@ -196,6 +221,7 @@ export {
     isMergeHRConnected,
     isMergeHRManualSyncLimitReached,
     isZenefitsConnected,
+    showMergeHRManualSyncLimitModalIfReached,
 };
 
 export type {HRConnectionName};

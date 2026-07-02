@@ -45,7 +45,7 @@ import {
 } from '@libs/actions/Policy/Member';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
-import {getConnectedHRProvider, isMergeHRManualSyncLimitReached} from '@libs/HRUtils';
+import {getConnectedHRProvider, showMergeHRManualSyncLimitModalIfReached} from '@libs/HRUtils';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -648,15 +648,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         return;
                     }
 
-                    if (hrProvider.connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR && isMergeHRManualSyncLimitReached(policy)) {
-                        close(() => {
-                            showConfirmModal({
-                                title: translate('workspace.hr.mergeHR.syncLimitReached.title'),
-                                prompt: translate('workspace.hr.mergeHR.syncLimitReached.prompt'),
-                                confirmText: translate('common.buttonConfirm'),
-                                shouldShowCancelButton: false,
-                            });
-                        });
+                    if (showMergeHRManualSyncLimitModalIfReached(policy, hrProvider.connectionName, translate, showConfirmModal)) {
                         return;
                     }
 

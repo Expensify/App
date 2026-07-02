@@ -17,7 +17,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {clearHRConnectionErrorField} from '@libs/actions/connections/MergeHR';
-import {isMergeHRManualSyncLimitReached} from '@libs/HRUtils';
+import {showMergeHRManualSyncLimitModalIfReached} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import type Policy from '@src/types/onyx/Policy';
@@ -86,13 +86,7 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
                   icon: icons.Sync,
                   text: translate('workspace.hr.syncNow'),
                   onSelected: () => {
-                      if (card.connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR && isMergeHRManualSyncLimitReached(policy)) {
-                          showConfirmModal({
-                              title: translate('workspace.hr.mergeHR.syncLimitReached.title'),
-                              prompt: translate('workspace.hr.mergeHR.syncLimitReached.prompt'),
-                              confirmText: translate('common.buttonConfirm'),
-                              shouldShowCancelButton: false,
-                          });
+                      if (showMergeHRManualSyncLimitModalIfReached(policy, card.connectionName, translate, showConfirmModal)) {
                           return;
                       }
                       syncConnection(policy, card.connectionName);
