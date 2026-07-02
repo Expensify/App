@@ -170,6 +170,7 @@ function SearchAutocompleteList({
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const allCards = personalAndWorkspaceCards ?? CONST.EMPTY_OBJECT;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -346,6 +347,7 @@ function SearchAutocompleteList({
                           translate,
                           feedKeysWithCards,
                           reportAttributes,
+                          bankAccountList,
                       })
                     : query,
                 singleIcon: expensifyIcons.History,
@@ -367,6 +369,7 @@ function SearchAutocompleteList({
         translate,
         feedKeysWithCards,
         reportAttributes,
+        bankAccountList,
         expensifyIcons.History,
     ]);
 

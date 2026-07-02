@@ -97,7 +97,7 @@ describe('Deep linking', () => {
 
         // Set the keys the app needs to finish loading rather than going through
         // getPolicyParamsForOpenOrReconnect + writeWithNoDuplicatesConflictAction(OPEN_APP),
-        // which adds a policy-collection read, an isReadyToOpenApp gate, and a full
+        // which adds a policy-collection read, and a full
         // request-queue round-trip with optimistic→network→finally Onyx data.
         // NVP_ONBOARDING suppresses the onboarding flow that would otherwise render
         // extra screens and inflate the React work queue drained by act().

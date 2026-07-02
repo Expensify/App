@@ -237,14 +237,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                       disabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                       action: () => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID)),
                   };
-              })
-              .sort((a, b) => {
-                  const ruleA = codingRules[a.ruleID];
-                  const ruleB = codingRules[b.ruleID];
-                  if (ruleA?.created && ruleB?.created) {
-                      return ruleA.created < ruleB.created ? 1 : -1;
-                  }
-                  return 0;
               });
 
     useEffect(() => {
