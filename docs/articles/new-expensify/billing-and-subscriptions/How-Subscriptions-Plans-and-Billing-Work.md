@@ -20,15 +20,14 @@ Expensify offers two workspace plans:
 - **Collect**: Designed for small teams that need expense management and reimbursements.
 - **Control**: Designed for growing organizations that need advanced approvals, accounting integrations, and spend management.
 
-To learn which plan is right for your organization, see [Compare the Collect and Control Plans](understand-plans-and-subscriptions/Compare-Collect-and-Control-pLans.md).
-
+To learn which plan is right for your organization, see Compare the Collect and Control Plans.
 ## What is a subscription?
 
 A subscription determines how your workspace is billed.
 
 Depending on your workspace plan, you may have an Annual subscription or a Pay-per-use subscription. Your subscription affects your billing rate and may determine whether you qualify for reduced pricing.
 
-To learn more, see [How subscriptions work](understand-plans-and-subscriptions/How-Subscriptions-Work.md).
+To learn more, see How subscriptions work.
 
 ## How Expensify Card pricing works
 
@@ -38,7 +37,7 @@ Organizations with an annual subscription qualify for different pricing tiers ba
 
 Using the Expensify Card also allows eligible organizations to earn cash back on qualifying purchases.
 
-To learn more, see [Understand Expensify Pricing](understand-plans-and-subscriptions/Understand-Expensify-pricing.md).
+To learn more, see Understand Expensify Pricing.
 
 ## How your monthly bill is calculated
 
@@ -49,7 +48,7 @@ Your monthly Expensify bill is calculated based on:
  - The number of billable members
  - Whether your organization qualifies for reduced pricing through the Expensify Card
 
-To learn more, see [How Your Plan and Subscription Determine Your Bill](understand-plans-and-subscriptions/How-Your-Plan-and-Subscription-Determine-Your-Bill.md).
+To learn more, see How Your Plan and Subscription Determine Your Bill.
 
 ## Who pays the monthly bill 
 
@@ -57,4 +56,4 @@ Each Workspace has an owner, sometimes called the billing owner, who is responsi
 
 Workspace owners can add and update payment cards, view billing receipts, and manage workspace plan and subscription settings.
 
-To learn more, see [Understand WWorkspace Ownership](Understand-Workspace-Ownership.md).
+To learn more, see Understand Workspace Ownership.
