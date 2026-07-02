@@ -151,7 +151,7 @@ type ExternalScrollFlashListTableProps<T> = {
 };
 
 /**
- * A vertically-virtualized, horizontally-scrollable table built on FlashList instead of a hand-rolled windower.
+ * A vertically-virtualized, horizontally-scrollable table built on FlashList instead of a hand-rolled virtualized list.
  *
  * The nested FlashList is fed a non-scrolling `ExternalScrollDriver` as its scroll container, so it grows to full
  * content height (the parent page scrolls through it) while FlashList still recycles rows against the parent's scroll
@@ -206,4 +206,3 @@ function ExternalScrollFlashListTable<T>({
 
 export default ExternalScrollFlashListTable;
 export {createScrollOffsetStore};
-export type {ScrollOffsetStore};

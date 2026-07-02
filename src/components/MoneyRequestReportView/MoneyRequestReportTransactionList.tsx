@@ -113,7 +113,7 @@ type MoneyRequestReportTransactionListController = {
     /** Chrome rendered below the transaction items (pending placeholder, Add Expense, breakdown, total). Null when there are no transactions. */
     afterListContent: React.ReactElement | null;
 
-    /** True when the rendered table is wider than the viewport; the parent should wrap the list in `MoneyRequestReportHorizontalScrollWrapper`. */
+    /** True when the rendered table is wider than the viewport; the parent renders it via `ExternalScrollFlashListTable` with its own horizontal scroller. */
     shouldScrollHorizontally: boolean;
 
     /** Pixel width of the table at full column visibility — passed to the horizontal scroll wrapper as `contentWidth`. */

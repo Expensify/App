@@ -104,7 +104,7 @@ function MoneyRequestReportUnifiedList({
     onLastItemIndexChange,
 }: MoneyRequestReportUnifiedListProps) {
     // When the table is wider than the viewport it can't share the horizontally-scrolled container with the chat (chat
-    // would drift sideways / jump on web). Instead the FlashList virtualizes ONLY the report actions, and the table is
+    // would drift sideways / jump on web). Instead the FlashList keeps ONLY the report actions virtualized, and the table is
     // rendered as the list header via ExternalScrollFlashListTable — a nested FlashList in its own single native
     // horizontal scroller that windows its rows against THIS list's vertical scroll offset. Chat never lives inside a
     // horizontal scroller, so it never moves sideways. Everywhere else the transactions stay virtualized inline with
