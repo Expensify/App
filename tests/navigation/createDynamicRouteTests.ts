@@ -140,13 +140,27 @@ describe('createDynamicRoute', () => {
         expect(result).toBe(expectedPath);
     });
 
-    it('should throw an error when suffix query param collides with base path query param', () => {
+    it('should throw an error when suffix query param conflicts with base path query param value', () => {
         const activeRoute = 'settings/profile/address?country=GB';
         const suffixWithQuery = 'country?country=US';
 
         mockGetActiveRoute.mockReturnValue(activeRoute);
 
-        expect(() => createDynamicRoute(suffixWithQuery)).toThrow('[createDynamicRoute] Query param "country" exists in both base path and dynamic suffix. This is not allowed.');
+        expect(() => createDynamicRoute(suffixWithQuery)).toThrow(
+            '[createDynamicRoute] Query param "country" has conflicting values ("GB" and "US") in the base path and dynamic suffix. This is not allowed.',
+        );
+    });
+
+    it('should collapse a shared query param when base path and suffix carry the same value', () => {
+        const activeRoute = 'settings/profile/address?country=US';
+        const suffixWithQuery = 'country?country=US';
+        const expectedPath = 'settings/profile/address/country?country=US';
+
+        mockGetActiveRoute.mockReturnValue(activeRoute);
+
+        const result = createDynamicRoute(suffixWithQuery);
+
+        expect(result).toBe(expectedPath);
     });
 
     it('should append parametric suffix with single param to path', () => {

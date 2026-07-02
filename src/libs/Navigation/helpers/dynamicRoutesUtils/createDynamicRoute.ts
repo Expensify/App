@@ -5,8 +5,8 @@ import isDynamicRouteSuffix from './isDynamicRouteSuffix';
 import splitPathAndQuery from './splitPathAndQuery';
 
 /**
- * Merges two query strings into one. If both contain the same key,
- * the error is thrown.
+ * Merges two query strings into one. A key shared by both sides is only an error when the
+ * two sides disagree on its value; when they carry the same value the duplicate is collapsed.
  * @param baseQuery - The query string of the base path
  * @param suffixQuery - The query string of the suffix
  * @returns The merged query string or an empty string if both are empty
@@ -14,8 +14,9 @@ import splitPathAndQuery from './splitPathAndQuery';
  * @private - Internal helper. Do not export or use outside this file.
  *
  * @example
- * mergeQueryStrings('foo=bar', 'foo=baz') => '?foo=bar&baz=qux'
- * mergeQueryStrings('foo=bar', 'foo=baz') => throws an error
+ * mergeQueryStrings('foo=bar', 'baz=qux') => '?foo=bar&baz=qux'
+ * mergeQueryStrings('foo=bar', 'foo=bar') => '?foo=bar' (same value, collapsed)
+ * mergeQueryStrings('foo=bar', 'foo=baz') => throws an error (conflicting values)
  */
 const mergeQueryStrings = (baseQuery = '', suffixQuery = ''): string => {
     if (!baseQuery && !suffixQuery) {
@@ -25,8 +26,13 @@ const mergeQueryStrings = (baseQuery = '', suffixQuery = ''): string => {
     const suffixParams = new URLSearchParams(suffixQuery);
     const suffixParamsEntries = suffixParams.entries();
     for (const [key, value] of suffixParamsEntries) {
-        if (params.has(key)) {
-            throw new Error(`[createDynamicRoute] Query param "${key}" exists in both base path and dynamic suffix. This is not allowed.`);
+        // Only throw when the same key resolves to a different value. The same key with the
+        // same value (e.g. the active route already carries ?reportID=R1 and the dynamic
+        // suffix re-emits the same reportID) is harmless and is collapsed into one param.
+        if (params.has(key) && params.get(key) !== value) {
+            throw new Error(
+                `[createDynamicRoute] Query param "${key}" has conflicting values ("${params.get(key)}" and "${value}") in the base path and dynamic suffix. This is not allowed.`,
+            );
         }
         params.set(key, value);
     }
