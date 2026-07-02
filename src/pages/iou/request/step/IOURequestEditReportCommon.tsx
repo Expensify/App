@@ -18,7 +18,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
-import {canSubmitPerDiemExpenseFromWorkspace, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
+import {canSubmitPerDiemExpenseFromWorkspace, isPerDiemEnabled, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
@@ -188,7 +188,7 @@ function IOURequestEditReportCommon({
 
             const destinationPolicy = selectedReportPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReportPolicyID}`] : undefined;
 
-            if (!destinationPolicy?.arePerDiemRatesEnabled || !destinationPolicy?.customUnits || isEmptyObject(destinationPolicy.customUnits)) {
+            if (!isPerDiemEnabled(destinationPolicy) || !destinationPolicy?.customUnits || isEmptyObject(destinationPolicy.customUnits)) {
                 return false;
             }
 

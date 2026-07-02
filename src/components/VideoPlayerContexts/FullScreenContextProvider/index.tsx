@@ -1,6 +1,6 @@
 // This component is compiled by the React Compiler
 /* eslint-disable react/jsx-no-constructed-context-values */
-import React, {createContext, useContext, useRef} from 'react';
+import React, {createContext, useContext, useEffect, useRef, useState} from 'react';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {FullScreenActionsContextType, FullScreenStateContextType, ResponsiveLayoutProperties} from './types';
 
@@ -8,7 +8,11 @@ const FullScreenStateContext = createContext<FullScreenStateContextType | null>(
 const FullScreenActionsContext = createContext<FullScreenActionsContextType | null>(null);
 
 function FullScreenContextProvider({children}: ChildrenProps) {
-    const isFullScreenRef = useRef(false);
+    const [isFullScreen, setIsFullScreen] = useState(false);
+    const isFullScreenRef = useRef(isFullScreen);
+    useEffect(() => {
+        isFullScreenRef.current = isFullScreen;
+    }, [isFullScreen]);
     const lockedWindowDimensionsRef = useRef<ResponsiveLayoutProperties | null>(null);
 
     const lockWindowDimensions = (newResponsiveLayoutProperties: ResponsiveLayoutProperties) => {
@@ -19,8 +23,8 @@ function FullScreenContextProvider({children}: ChildrenProps) {
         lockedWindowDimensionsRef.current = null;
     };
 
-    const stateValue = {isFullScreenRef, lockedWindowDimensionsRef};
-    const actionsValue = {lockWindowDimensions, unlockWindowDimensions};
+    const stateValue = {isFullScreen, isFullScreenRef, lockedWindowDimensionsRef};
+    const actionsValue = {lockWindowDimensions, unlockWindowDimensions, setIsFullScreen};
 
     return (
         <FullScreenStateContext.Provider value={stateValue}>
@@ -37,6 +41,14 @@ function useFullScreenState() {
     return value;
 }
 
+function useFullScreenActions() {
+    const value = useContext(FullScreenActionsContext);
+    if (!value) {
+        throw new Error('useFullScreenActions must be used within a FullScreenContextProvider');
+    }
+    return value;
+}
+
 export default FullScreenContextProvider;
-export {FullScreenStateContext, FullScreenActionsContext, useFullScreenState};
+export {FullScreenStateContext, FullScreenActionsContext, useFullScreenState, useFullScreenActions};
 export type {ResponsiveLayoutProperties};

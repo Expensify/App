@@ -54,7 +54,7 @@ function SelectCountryStep({disableAutoFocus}: {disableAutoFocus?: boolean}) {
         if (!currentCountry || !CONST.PLAID_SUPPORT_COUNTRIES.includes(currentCountry)) {
             setHasError(true);
         } else {
-            if (addNewPersonalCard?.data.selectedCountry !== currentCountry) {
+            if (addNewPersonalCard?.data?.selectedCountry !== currentCountry) {
                 clearAddNewPersonalCardFlow();
             }
             setAddNewPersonalCardStepAndData({

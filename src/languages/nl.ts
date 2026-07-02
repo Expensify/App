@@ -9,12 +9,11 @@
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
-import {CONST as COMMON_CONST} from 'expensify-common';
+import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 import type {ValueOf} from 'type-fest';
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import StringUtils from '@libs/StringUtils';
-import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
@@ -85,6 +84,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachment: 'Bijlage',
         attachments: 'Bijlagen',
         center: 'Centreren',
+        resetMapToNorth: 'Kaart op het noorden zetten',
         from: 'Van',
         to: 'Aan',
         in: 'In',
@@ -314,6 +314,8 @@ const translations: TranslationDeepObject<typeof en> = {
         showLess: 'Toon minder',
         plusMore: ({count}: {count: number}) => `+${count} meer`,
         merchant: 'Handelaar',
+        googleThisMerchant: ({merchant}: {merchant: string}) => `Google ${merchant}`,
+        searchOnGoogle: ({merchant}: {merchant: string}) => `Zoek ${merchant} op Google`,
         change: 'Wijzigen',
         category: 'Categorie',
         vendor: 'Leverancier',
@@ -391,6 +393,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reportID: 'Rapport-ID',
         longReportID: 'Lang rapport-ID',
         withdrawalID: 'Opname-ID',
+        internationalReimbursementIDs: 'Internationale terugbetalings-ID’s',
         withdrawalStatus: 'Opnamestatus',
         bankAccounts: 'Bankrekeningen',
         chooseFile: 'Bestand kiezen',
@@ -509,6 +512,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Editor',
         restrictions: 'Beperkingen',
+        tagGLCode: 'GL-code labelen',
         off: 'Uit',
     },
     socials: {
@@ -713,17 +717,17 @@ const translations: TranslationDeepObject<typeof en> = {
         revealCardDetail: {couldNotReveal: 'We konden je kaartgegevens niet weergeven. Probeer het opnieuw.'},
     },
     validateCodeModal: {
-        successfulSignInTitle: dedent(`
+        successfulSignInTitle: Str.dedent(`
             Abracadabra,
             je bent ingelogd!
         `),
         successfulSignInDescription: 'Ga terug naar je oorspronkelijke tabblad om verder te gaan.',
         title: 'Hier is je magische code',
-        description: dedent(`
+        description: Str.dedent(`
             Voer de code in op het apparaat
             waar deze oorspronkelijk is aangevraagd
         `),
-        doNotShare: dedent(`
+        doNotShare: Str.dedent(`
             Deel je code met niemand.
             Expensify zal er nooit om vragen!
         `),
@@ -732,10 +736,10 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeTitle: 'Magic code verlopen',
         expiredCodeDescription: 'Ga terug naar het oorspronkelijke apparaat en vraag een nieuwe code aan',
         successfulNewCodeRequest: 'Code aangevraagd. Controleer je apparaat.',
-        tfaRequiredTitle: dedent(`
+        tfaRequiredTitle: Str.dedent(`
             Twee-factor-authenticatie vereist
         `),
-        tfaRequiredDescription: dedent(`
+        tfaRequiredDescription: Str.dedent(`
             Voer de tweestapsverificatiecode in
             op de plek waar je probeert in te loggen.
         `),
@@ -838,6 +842,7 @@ const translations: TranslationDeepObject<typeof en> = {
         joinThread: 'Deelnemen aan gesprek',
         leaveThread: 'Conversatie verlaten',
         copyOnyxData: 'Onyx-gegevens kopiëren',
+        copyAgentZeroRequestID: 'AgentZero-verzoek-ID kopiëren',
         flagAsOffensive: 'Markeren als aanstootgevend',
         menu: 'Menu',
     },
@@ -1336,6 +1341,9 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Weet u zeker dat u deze rapporten wilt verwijderen?',
         }),
         settledExpensify: 'Betaald',
+        paidStatusMarkedAsPaid: 'Gemarkeerd als betaald',
+        paidStatusWithdrawing: 'Opnemen',
+        paidStatusConfirmed: 'Bevestigd',
         done: 'Gereed',
         settledElsewhere: 'Elders betaald',
         individual: 'Individueel',
@@ -1653,9 +1661,6 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpenses: 'Verplaatsen naar rapport',
         moveExpensesError: 'Je kunt dagvergoedingdeclaraties niet naar rapporten in andere werkruimten verplaatsen, omdat de dagvergoedingsbedragen per werkruimte kunnen verschillen.',
         submitReportTo: {
-            subtitle: 'Kies een werkruimtelid of voer het e-mailadres in van degene die deze inzending moet ontvangen.',
-            emailLabel: 'E-mailadres',
-            workspaceMembers: 'Werkruimteleden',
             sendExpense: 'Stuur je uitgave naar iedereen',
             sendExpenseSubtitle: 'Nodig iedereen uit voor Expensify met hun e-mailadres of telefoonnummer.',
         },
@@ -2318,7 +2323,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noAuthenticatorApp: 'Je hebt geen authenticator-app meer nodig om in te loggen bij Expensify.',
         stepCodes: 'Herstelcodes',
         keepCodesSafe: 'Bewaar deze codes goed!',
-        codesLoseAccess: dedent(`
+        codesLoseAccess: Str.dedent(`
             Als je de toegang tot je authenticator-app kwijtraakt en deze codes niet hebt, word je uit je account afgesloten.<br><br>
             <strong>Let op</strong>: Het inschakelen van 2FA logt je uit in alle andere sessies.
         `),
@@ -2649,6 +2654,7 @@ ${amount} voor ${merchant} - ${date}`,
         addApprovalsTitle: 'Goedkeuringen',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `de uitgaven van ${members}, en de goedkeurder is ${approvers}`,
         addApprovalButton: 'Goedkeuringsworkflow toevoegen',
+        loadMoreWorkflows: ({count}: {count: number}) => `${count} meer laden`,
         editWorkflowAction: 'Bewerken',
         findWorkflow: 'Workflow zoeken',
         addApprovalTip: 'Deze standaardworkflow is van toepassing op alle leden, tenzij er een specifiekere workflow bestaat.',
@@ -2844,7 +2850,7 @@ ${amount} voor ${merchant} - ${date}`,
     },
     agentsPage: {
         title: 'Agenten',
-        subtitle: `<muted-text>Maak agents aan om je workflow af te handelen. Sla het handmatige werk over en krijg uren per dag terug. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Meer informatie</a>.</muted-text>`,
+        subtitle: `<muted-text>Agents verwerken je workflows voor je, zodat je uren per dag terugkrijgt. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Meer informatie</a>.</muted-text>`,
         newAgent: 'Nieuwe medewerker',
         emptyAgents: {
             title: 'Geen agents aangemaakt',
@@ -3140,7 +3146,7 @@ ${amount} voor ${merchant} - ${date}`,
             addExpenseApprovalsTask: {
                 title: 'Goedkeuringen voor uitgaven toevoegen',
                 description: ({workspaceMoreFeaturesLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Voeg onkostengoedkeuringen toe* om de uitgaven van je team te beoordelen en onder controle te houden.
 
                         Zo doe je dat:
@@ -3162,7 +3168,7 @@ ${amount} voor ${merchant} - ${date}`,
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `Maak een [werkruimte](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Maak een werkruimte* om uitgaven bij te houden, bonnetjes te scannen, chatten en meer.
 
                         1. Klik op *Werkruimtes* > *Nieuwe werkruimte*.
@@ -3172,7 +3178,7 @@ ${amount} voor ${merchant} - ${date}`,
             setupCategoriesTask: {
                 title: ({workspaceCategoriesLink}) => `[categorieën instellen](${workspaceCategoriesLink})`,
                 description: ({workspaceCategoriesLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Stel categorieën in* zodat je team uitgaven kan coderen voor eenvoudige rapportage.
 
                         1. Klik op *Workspaces*.
@@ -3185,9 +3191,10 @@ ${amount} voor ${merchant} - ${date}`,
                     `),
             },
             combinedTrackSubmitExpenseTask: {
-                title: 'Dien een uitgave in',
-                description: dedent(`
-                    *Dien een uitgave in* door een bedrag in te voeren of een bon te scannen.
+                title: 'Maak een uitgave',
+                description: Str.dedent(`
+                    *Maak een uitgave* door een bedrag in te voeren of een bon te scannen.
+
 
                     1. Klik op de knop *+*.
                     2. Kies *Uitgave maken*.
@@ -3199,9 +3206,10 @@ ${amount} voor ${merchant} - ${date}`,
                 `),
             },
             adminSubmitExpenseTask: {
-                title: 'Dien een uitgave in',
-                description: dedent(`
-                    *Dien een uitgave in* door een bedrag in te voeren of een bon te scannen.
+                title: 'Maak een uitgave',
+                description: Str.dedent(`
+                    *Maak een uitgave* door een bedrag in te voeren of een bon te scannen.
+
 
                     1. Klik op de knop *+*.
                     2. Kies *Uitgave maken*.
@@ -3214,7 +3222,7 @@ ${amount} voor ${merchant} - ${date}`,
             },
             trackExpenseTask: {
                 title: 'Een uitgave bijhouden',
-                description: dedent(`
+                description: Str.dedent(`
                     *Volg een uitgave* in elke valuta, of je nu een bon hebt of niet.
 
                     1. Klik op de knop *+*.
@@ -3230,7 +3238,7 @@ ${amount} voor ${merchant} - ${date}`,
                 title: ({integrationName, workspaceAccountingLink}) =>
                     `Verbind${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : 'naar'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'jouw' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         Verbind ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'jouw' : 'naar'} ${integrationName} voor automatische kosten­codering en synchronisatie, zodat de maandafsluiting een fluitje van een cent wordt.
 
                         1. Klik op *Workspaces*.
@@ -3245,7 +3253,7 @@ ${amount} voor ${merchant} - ${date}`,
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Verbind [je zakelijke kaarten](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         Koppel de kaarten die je al hebt voor automatische transactie-import, bonkoppeling en reconciliatie.
 
                         1. Klik op *Workspaces*.
@@ -3258,7 +3266,7 @@ ${amount} voor ${merchant} - ${date}`,
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Nodig [je team uit](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Nodig je team uit* voor Expensify zodat ze vandaag nog kunnen beginnen met het bijhouden van uitgaven.
 
                         1. Klik op *Workspaces*.
@@ -3273,7 +3281,7 @@ ${amount} voor ${merchant} - ${date}`,
             setupCategoriesAndTags: {
                 title: ({workspaceCategoriesLink, workspaceTagsLink}) => `Stel [categorieën](${workspaceCategoriesLink}) en [labels](${workspaceTagsLink}) in`,
                 description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Stel categorieën en labels in* zodat je team uitgaven kan coderen voor eenvoudige rapportage.
 
                         Importeer ze automatisch door [je boekhoudsoftware te verbinden](${workspaceAccountingLink}), of stel ze handmatig in via je [werkruimte-instellingen](${workspaceCategoriesLink}).`),
@@ -3281,7 +3289,7 @@ ${amount} voor ${merchant} - ${date}`,
             setupTagsTask: {
                 title: ({workspaceTagsLink}) => `[Tags](${workspaceTagsLink}) instellen`,
                 description: ({workspaceMoreFeaturesLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         Gebruik labels om extra details aan uitgaven toe te voegen, zoals projecten, klanten, locaties en afdelingen. Als je meerdere niveaus van labels nodig hebt, kun je upgraden naar het Control-abonnement.
 
                         1. Klik op *Workspaces*.
@@ -3298,7 +3306,7 @@ ${amount} voor ${merchant} - ${date}`,
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `Nodig je [boekhouder](${workspaceMembersLink}) uit`,
                 description: ({workspaceMembersLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Nodig je accountant uit* om samen te werken in je workspace en je zakelijke uitgaven te beheren.
 
                         1. Klik op *Workspaces*.
@@ -3311,7 +3319,7 @@ ${amount} voor ${merchant} - ${date}`,
             },
             startChatTask: {
                 title: 'Begin een chat',
-                description: dedent(`
+                description: Str.dedent(`
                     *Start een chat* met iedereen via hun e-mailadres of telefoonnummer.
 
                     1. Klik op de knop *+*.
@@ -3325,7 +3333,7 @@ ${amount} voor ${merchant} - ${date}`,
             },
             splitExpenseTask: {
                 title: 'Een uitgave splitsen',
-                description: dedent(`
+                description: Str.dedent(`
                     *Kosten splitsen* met één of meer personen.
 
                     1. Klik op de knop *+*.
@@ -3340,7 +3348,7 @@ ${amount} voor ${merchant} - ${date}`,
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `Controleer je [werkruimte-instellingen](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         Zo kun je je werkruimte-instellingen bekijken en bijwerken:
                         1. Klik op Werkruimtes.
                         2. Selecteer je werkruimte.
@@ -3349,7 +3357,7 @@ ${amount} voor ${merchant} - ${date}`,
             },
             createReportTask: {
                 title: 'Maak je eerste rapport',
-                description: dedent(`
+                description: Str.dedent(`
                     Zo maak je een rapport:
 
                     1. Klik op de knop *+*.
@@ -3364,20 +3372,17 @@ ${amount} voor ${merchant} - ${date}`,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Maak een [proefrit](${testDriveURL})` : 'Maak een proefrit'),
             embeddedDemoIframeTitle: 'Proefrit',
-            employeeFakeReceipt: {
-                description: 'Mijn testritbonnetje!',
-            },
         },
         messages: {
             onboardingEmployerOrSubmitMessage: 'Terugbetaald worden is net zo eenvoudig als een bericht sturen. Laten we de basis doornemen.',
             onboardingPersonalSpendMessage: 'Zo volg je je uitgaven in een paar klikken.',
             onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
                 isOnboardingFlow
-                    ? dedent(`
+                    ? Str.dedent(`
                         # Je gratis proefperiode is gestart! Laten we je account instellen.
                         👋 Hoi, ik ben je Expensify accountmanager. Ik heb al een workspace aangemaakt om de bonnen en uitgaven van je team te beheren. Volg de resterende configuratiestappen hieronder om het meeste uit je 30 dagen gratis proefperiode te halen!
                     `)
-                    : dedent(`
+                    : Str.dedent(`
                         # Je gratis proefperiode is begonnen! Laten we je account instellen.
                         👋 Hoi, ik ben je Expensify accountmanager. Nu je een workspace hebt aangemaakt, haal alles uit je gratis proefperiode van 30 dagen door de onderstaande stappen te volgen!
                     `),
@@ -3621,6 +3626,7 @@ ${amount} voor ${merchant} - ${date}`,
             companyName: 'Voer een geldige bedrijfsnaam in',
             addressCity: 'Voer een geldige stad in',
             addressStreet: 'Voer een geldig straatadres in',
+            physicalAddressRequired: 'Een fysiek adres is vereist. Postbussen en postdoorstuurdiensten worden niet geaccepteerd.',
             addressState: 'Selecteer een geldige staat',
             incorporationDateFuture: 'Oprichtingsdatum kan niet in de toekomst liggen',
             incorporationState: 'Selecteer een geldige staat',
@@ -3839,12 +3845,14 @@ ${amount} voor ${merchant} - ${date}`,
         legalFirstName: 'Juridische voornaam',
         legalLastName: 'Wettelijke achternaam',
         legalName: 'Wettelijke naam',
+        legalNameSubtitle: 'Voer je volledige wettelijke naam in zoals deze op je identiteitsbewijs staat.',
         enterYourDateOfBirth: 'Wat is je geboortedatum?',
         enterTheLast4: 'Wat zijn de laatste vier cijfers van uw sofinummer?',
         dontWorry: 'Geen zorgen, we voeren geen persoonlijke kredietcontroles uit!',
         last4SSN: 'Laatste 4 cijfers van SSN',
         enterYourAddress: 'Wat is je adres?',
         address: 'Adres',
+        addressSubtitle: 'Een fysiek adres is vereist. Postbussen en postdoorstuurdiensten worden niet geaccepteerd.',
         letsDoubleCheck: 'Laten we nog even controleren of alles er goed uitziet.',
         byAddingThisBankAccount: 'Door deze bankrekening toe te voegen, bevestig je dat je hebt gelezen, begrijpt en akkoord gaat met',
         whatsYourLegalName: 'Wat is je wettelijke naam?',
@@ -3980,6 +3988,7 @@ ${amount} voor ${merchant} - ${date}`,
         regulationRequiresUsToVerifyTheIdentity: 'Volgens de regelgeving moeten we de identiteit verifiëren van elke persoon die meer dan 25% van het bedrijf bezit.',
         companyOwner: 'Eigenaar van een bedrijf',
         enterLegalFirstAndLastName: 'Wat is de wettelijke naam van de eigenaar?',
+        legalNameSubtitle: 'Voer de volledige wettelijke naam van de eigenaar in zoals deze op diens identiteitsbewijs staat.',
         legalFirstName: 'Juridische voornaam',
         legalLastName: 'Wettelijke achternaam',
         enterTheDateOfBirthOfTheOwner: 'Wat is de geboortedatum van de eigenaar?',
@@ -4115,7 +4124,7 @@ ${amount} voor ${merchant} - ${date}`,
         codiceFiscale: 'Codice Fiscale',
         codiceFiscaleDescription: 'Codice Fiscale voor ondertekenaars, bevoegde gebruikers en uiteindelijk belanghebbenden.',
         PDSandFSG: 'PDS- en FSG-informatiedocumenten',
-        PDSandFSGDescription: dedent(`
+        PDSandFSGDescription: Str.dedent(`
             Onze samenwerking met Corpay maakt gebruik van een API-koppeling om te profiteren van hun uitgebreide netwerk van internationale bankpartners, waarmee Wereldwijde Vergoedingen in Expensify mogelijk worden gemaakt. Conform de Australische regelgeving verstrekken wij je hierbij de Financial Services Guide (FSG) en de Product Disclosure Statement (PDS) van Corpay.
 
             Lees de FSG- en PDS-documenten zorgvuldig door, aangezien zij volledige details en belangrijke informatie bevatten over de producten en diensten die Corpay aanbiedt. Bewaar deze documenten voor toekomstig gebruik.
@@ -4172,7 +4181,7 @@ ${amount} voor ${merchant} - ${date}`,
         subheader: 'Verificatie',
         verificationFailed: 'De verificatie is mislukt, daarom hebben we extra documenten nodig om jou en je bedrijf te verifiëren',
         taxIDVerification: 'Belastingnummerverificatie',
-        taxIDVerificationDescription: dedent(`
+        taxIDVerificationDescription: Str.dedent(`
             Upload een van de volgende bestanden:
             • IRS TIN/EIN-toewijzingsbrief
             • IRS TIN/EIN-aanvraagbevestiging (bevat meestal "Congratulations! The EIN has been successfully assigned")
@@ -4181,7 +4190,7 @@ ${amount} voor ${merchant} - ${date}`,
         nameChangeDocument: 'Document naamswijziging',
         nameChangeDocumentDescription: 'Als de naam van je bedrijf is gewijzigd sinds de TIN/EIN-aanvraag, hebben we dit document nodig om het opgegeven belastingnummer te verifiëren',
         companyAddressVerification: 'Verificatie van bedrijfsadres',
-        companyAddressVerificationDescription: dedent(`
+        companyAddressVerificationDescription: Str.dedent(`
             Upload een van de volgende bestanden:
             • Recente energierekening met bedrijfsnaam en adres
             • Bankafschrift met bedrijfsnaam en adres
@@ -4190,7 +4199,7 @@ ${amount} voor ${merchant} - ${date}`,
             • TIN-toewijzingsdocument met bedrijfsnaam en adres
         `),
         userAddressVerification: 'Adresverificatie',
-        userAddressVerificationDescription: dedent(`
+        userAddressVerificationDescription: Str.dedent(`
             Upload een van de volgende bestanden:
             • Kiezersregistratiekaart
             • Rijbewijs
@@ -4405,7 +4414,7 @@ ${amount} voor ${merchant} - ${date}`,
             defaultNote: `Bonnetjes die naar ${CONST.EMAIL.RECEIPTS} worden gestuurd, verschijnen in deze workspace.`,
             deleteConfirmation: 'Weet je zeker dat je deze werkruimte wilt verwijderen?',
             deleteWithCardsConfirmation: 'Weet je zeker dat je deze werkruimte wilt verwijderen? Hiermee worden alle kaartfeeds en toegewezen kaarten verwijderd.',
-            deleteOpenExpensifyCardsError: 'Uw bedrijf heeft nog actieve Expensify Cards.',
+            deleteOpenExpensifyCardsError: 'Je bedrijf heeft nog Expensify Kaarten. <concierge-link>Neem contact op met Concierge</concierge-link> om ze te verwijderen.',
             outstandingBalanceWarning:
                 'Je hebt een openstaand saldo dat moet worden vereffend voordat je je laatste werkruimte kunt verwijderen. Ga naar je abonnementsinstellingen om de betaling af te ronden.',
             settleBalance: 'Ga naar abonnement',
@@ -4459,6 +4468,8 @@ ${amount} voor ${merchant} - ${date}`,
             auditorAlternateText: 'Rapporten bekijken en erop reageren.',
             roleName: (role?: string) => {
                 switch (role) {
+                    case CONST.POLICY.ROLE.OWNER:
+                        return 'Eigenaar';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Werkruimtebeheerder';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -4466,7 +4477,7 @@ ${amount} voor ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return 'Kaartbeheer';
+                        return 'Kaartbeheerder';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
                         return 'Personenbeheer';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
@@ -4501,7 +4512,7 @@ ${amount} voor ${merchant} - ${date}`,
             budgetFrequencyUnit: {monthly: 'maand', yearly: 'jaar'},
             budgetTypeForNotificationMessage: {tag: 'tag', category: 'categorie'},
             deepDiveExpensifyCard: `<muted-text-label>Transacties met de Expensify Kaart worden automatisch geëxporteerd naar een "Expensify Kaart Passivarekening" dat wordt aangemaakt via <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">onze integratie</a>.</muted-text-label>`,
-            travelInvoicing: 'Reisfacturatiekosten exporteren als',
+            travelInvoicing: 'Geconsolideerde reiskostenfacturatie exporteren als',
             travelInvoicingVendor: 'Reisaanbieder',
             travelInvoicingPayableAccount: 'Reiscrediteurenrekening',
             hr: 'HR',
@@ -4969,6 +4980,12 @@ ${amount} voor ${merchant} - ${date}`,
             autoSyncDescription: 'Expensify wordt elke dag automatisch met Certinia gesynchroniseerd.',
             syncReimbursedReportsDescription:
                 'Als deze optie is ingeschakeld, wordt elke keer dat een te betalen factuur in FFA wordt betaald, het bijbehorende Expensify-rapport automatisch als terugbetaald gemarkeerd.',
+            taxNonBillable: 'Belasting als niet-factureerbaar exporteren',
+            taxNonBillableDescription:
+                'Bij het exporteren van factureerbare uitgaven die zijn gecodeerd met belastingtarieven uit Expensify, wordt het belastinggedeelte als niet-factureerbaar gemarkeerd bij export naar Certinia PSA.',
+            foreignCurrencyAmount: 'Bedrag in vreemde valuta exporteren',
+            foreignCurrencyAmountDescription:
+                'Als je vergoedbare uitgaven als declaraties exporteert, exporteren we het oorspronkelijke vreemde-valutabedrag van elke transactie naar Certinia, als dit bestaat.',
             exportDescription: 'Stel in hoe Expensify-gegevens worden geëxporteerd naar Certinia.',
             payableInvoices: 'Te betalen facturen',
             exportStatus: {
@@ -5009,9 +5026,13 @@ ${amount} voor ${merchant} - ${date}`,
             noCompaniesFoundDescription: 'Synchroniseer de verbinding opnieuw nadat bedrijven zijn toegevoegd in Certinia.',
             prerequisites: {
                 title: 'Voordat je verbinding maakt',
-                installBundle: 'Voor FFA-verbindingen',
-                installBundleDescription: ({href, version}: {href: string; version: string}) =>
-                    `Installeer de Expensify-bundel in Salesforce door op deze link te klikken: <a href="${href}">FFA Expensify-bundel installeren (versie ${version})</a>`,
+                installBundle: 'Installeer het Expensify-pakket',
+                installBundlePSAHeader: 'Voor PSA/SRP-koppelingen:',
+                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
+                    `Installeer de Expensify-bundel in Salesforce door op deze link te klikken: <a href="${href}">Installeer PSA/SRP Expensify-bundel (versie ${version})</a>`,
+                installBundleFFAHeader: 'Voor FFA-verbindingen:',
+                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
+                    `Installeer de Expensify-bundel in Salesforce door op deze link te klikken: <a href="${href}">Expensify-bundel voor FFA installeren (versie ${version})</a>`,
                 installBundleConfirm: 'Ik heb de bundel geïnstalleerd',
                 setupContacts: 'Gebruiker en contacten instellen',
                 setupContactsBullet1:
@@ -5035,6 +5056,16 @@ ${amount} voor ${merchant} - ${date}`,
                     [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'Niet toewijzen',
                     [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'Geïmporteerd als labels',
                     [CONST.CERTINIA_MAPPING_VALUE.REPORT_FIELD]: 'Geïmporteerd als rapportvelden',
+                },
+                expenseTypeGlaMappings: 'Kosten-type GLA-koppelingen',
+                expenseTypeGlaMappingsDescription: 'FinancialForce Expense Type GLA-koppelingen worden in Expensify geïmporteerd als categorieën.',
+                tagsMappedTo: 'Tags moeten worden toegewezen aan',
+                milestones: 'Mijlpalen',
+                milestonesDescription: 'Als deze optie is ingeschakeld, worden met PSA-projecten gekoppelde mijlpalen gesynchroniseerd met Expensify.',
+                parentTagMappingTypes: {
+                    [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_PROJECTS_AND_ASSIGNMENTS]: 'Projecten en opdrachten',
+                    [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_PROJECTS]: 'Projecten',
+                    [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_ASSIGNMENTS]: 'Taken',
                 },
             },
         },
@@ -5096,12 +5127,12 @@ ${amount} voor ${merchant} - ${date}`,
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL]: {
                         label: 'Leveranciersfacturen',
-                        reimbursableDescription: dedent(`
+                        reimbursableDescription: Str.dedent(`
                             Uitgaven uit eigen zak worden geëxporteerd als rekeningen die betaalbaar zijn aan de hieronder opgegeven NetSuite-leverancier.
 
                             Als je een specifieke leverancier voor elke kaart wilt instellen, ga dan naar *Instellingen > Domeinen > Bedrijfskaarten*.
                         `),
-                        nonReimbursableDescription: dedent(`
+                        nonReimbursableDescription: Str.dedent(`
                             Uitgaven op bedrijfskaarten worden geëxporteerd als facturen die betaalbaar zijn aan de hieronder opgegeven NetSuite-leverancier.
 
                             Als je voor elke kaart een specifieke leverancier wilt instellen, ga dan naar *Instellingen > Domeinen > Bedrijfskaarten*.
@@ -5109,12 +5140,12 @@ ${amount} voor ${merchant} - ${date}`,
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY]: {
                         label: 'Boekingen',
-                        reimbursableDescription: dedent(`
+                        reimbursableDescription: Str.dedent(`
                             Uitgaven uit eigen zak worden als journaalposten geëxporteerd naar de hieronder opgegeven NetSuite‑rekening.
 
                             Als je voor elke kaart een specifieke leverancier wilt instellen, ga dan naar *Instellingen > Domeinen > Bedrijfskaarten*.
                         `),
-                        nonReimbursableDescription: dedent(`
+                        nonReimbursableDescription: Str.dedent(`
                             Bedrijfspaskosten worden geëxporteerd als journaalposten naar de NetSuite-rekening die hieronder is opgegeven.
 
                             Als je voor elke kaart een specifieke leverancier wilt instellen, ga dan naar *Instellingen > Domeinen > Bedrijfspassen*.
@@ -5780,8 +5811,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             travel: {
                 title: 'Reizen',
                 subtitle: 'Boek, beheer en reconcilieer al je zakelijke reizen.',
-                disableTravelTitle: 'Schakel eerst Reisfacturatie uit',
-                disableTravelPrompt: 'Reisfacturatie is ingeschakeld voor deze workspace. Schakel dit uit voordat je Reis kunt uitschakelen.',
+                disableTravelTitle: 'Schakel eerst Geconsolideerde Reisfacturering uit',
+                disableTravelPrompt: 'Geconsolideerde reisfacturatie is ingeschakeld voor deze werkruimte. Schakel het uit voordat je Reizen kunt uitschakelen.',
                 disableTravelButton: 'Ga naar Reisinstellingen',
                 getStarted: {
                     title: 'Aan de slag met Expensify Travel',
@@ -5808,7 +5839,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                         manageTravelLabel: 'Reizen beheren',
                     },
                     travelInvoicingSection: {
-                        title: 'Reisfacturatie',
+                        title: 'Geconsolideerde reisfacturatie',
                         subtitle: 'Centraliseer alle reiskosten op één maandelijkse factuur in plaats van bij aankoop te betalen.',
                         learnHow: 'Kom meer te weten.',
                         subsections: {
@@ -5824,15 +5855,19 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                             reduceLimitTitle: 'Reisbestedingslimiet verlagen?',
                             reduceLimitWarning: 'Als u het limiet verlaagt, kunnen leden die dit bedrag al hebben overschreden geen nieuwe reisboekingen maken tot volgende maand.',
                             provisioningError:
-                                'We konden voor sommige leden van je workspace geen toegang voor reisfacturatie instellen. Probeer het later opnieuw of neem contact op met Concierge voor hulp.',
+                                'We konden voor sommige leden van je werkruimte geen toegang instellen tot Geconsolideerde Reisfacturering. Probeer het later opnieuw of neem contact op met Concierge voor ondersteuning.',
                         },
                     },
                     disableModal: {
-                        title: 'Reisfacturatie uitschakelen?',
+                        title: 'Samengevoegde reiskostenfacturatie uitschakelen?',
                         body: 'Toekomstige hotel en autoverhuurreserveringen moeten mogelijk opnieuw worden geboekt met een andere betaalmethode om annulering te voorkomen.',
                         confirm: 'Uitschakelen',
                     },
-                    outstandingBalanceModal: {title: 'Kan Reiskostenfacturatie niet uitschakelen', body: 'Je hebt nog een openstaand reissaldo. Betaal eerst je saldo.', confirm: 'Begrepen'},
+                    outstandingBalanceModal: {
+                        title: 'Kan geconsolideerde reisfacturering niet uitschakelen',
+                        body: 'Je hebt nog een openstaand reissaldo. Betaal eerst je saldo.',
+                        confirm: 'Begrepen',
+                    },
                     payBalanceModal: {
                         title: (amount: string) => `Saldo van ${amount} betalen?`,
                         body: 'De betaling wordt in de wachtrij gezet en kort daarna verwerkt. Deze actie kan niet ongedaan worden gemaakt zodra ze is gestart.',
@@ -5841,7 +5876,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     exportToCSV: 'Exporteren naar CSV',
                     selectDateRangeError: 'Selecteer een datumbereik om te exporteren',
                     invalidDateRangeError: 'De begindatum moet vóór de einddatum liggen',
-                    enabled: 'Facturatie voor reizen ingeschakeld!',
+                    enabled: 'Geconsolideerde reiskostenfacturatie ingeschakeld!',
                     enabledDescription: 'Alle reiskosten in deze workspace worden nu gebundeld op één maandelijkse factuur.',
                 },
                 personalDetailsDescription: 'Om een reis te boeken, voer je wettelijke naam in zoals deze op je door de overheid uitgegeven identiteitsbewijs staat.',
@@ -6289,9 +6324,17 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 one: 'Workspace-beheerder maken',
                 other: 'Workspace-beheerders maken',
             }),
+            makeGroupAdmin: () => ({
+                one: 'Admin maken',
+                other: 'Beheerders maken',
+            }),
             makeAuditor: () => ({
                 one: 'Auditeur maken',
                 other: 'Auditors aanmaken',
+            }),
+            makePeopleAdmin: () => ({
+                one: 'People-beheerder maken',
+                other: 'People-beheerders maken',
             }),
             selectAll: 'Alles selecteren',
             error: {
@@ -6325,6 +6368,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             syncWithHR: (providerName: string) => `Synchroniseren met ${providerName}`,
             makeCardAdmin: () => ({one: 'Kaartbeheerder maken', other: 'Kaartbeheerders maken'}),
             cardAdmins: 'Kaartbeheerders',
+            peopleAdmins: 'People-beheerders',
+            members: 'Leden',
         },
         card: {
             getStartedIssuing: 'Begin met het uitgeven van je eerste virtuele of fysieke kaart.',
@@ -6669,11 +6714,11 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 chooseBankAccount: 'Kies de bankrekening waarop de betalingen met je Expensify Kaart worden afgestemd.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Zorg ervoor dat deze rekening overeenkomt met je <a href="${settlementAccountUrl}">Expensify Kaart-afwikkelingsrekening</a> (eindigend op ${lastFourPAN}), zodat Continue Afstemming goed werkt.`,
-                chooseTravelInvoicingBankAccount: 'Kies de bankrekening waarop de betalingen van je reiskostenfacturen worden afgeletterd.',
+                chooseTravelInvoicingBankAccount: 'Kies de bankrekening waarop je betalingen voor geconsolideerde reiskostenfacturatie worden afgestemd.',
                 travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
-                    `Zorg ervoor dat deze rekening overeenkomt met je afwikkelingsrekening voor reiskostenfacturatie (die eindigt op ${lastFourPAN}), zodat Continue Afstemming goed werkt.`,
+                    `Zorg ervoor dat deze rekening overeenkomt met je Consolidated Travel Billing-afwikkelingsrekening (eindigend op ${lastFourPAN}), zodat Continuous Reconciliation goed werkt.`,
             },
-            syncTravelInvoicingSettlements: 'Reisfactureringsafrekeningen synchroniseren',
+            syncTravelInvoicingSettlements: 'Geconsolideerde Travel Billing-afrekeningen synchroniseren',
         },
         export: {
             notReadyHeading: 'Niet klaar om te exporteren',
@@ -6731,10 +6776,11 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 optionFixedDistanceTitle: 'Een vaste afstand per declaratie uitsluiten',
                 optionFixedDistanceHelp: 'Trek dezelfde woon-werkafstand van elke declaratie af. Het meest geschikt voor leden die één declaratie per werkdag indienen.',
                 distanceLabel: 'Afstand',
-                errors: {distanceMustBePositive: 'Afstand moet groter zijn dan 0.'},
+                errors: {distanceMustBePositive: 'Afstand moet een positief geheel getal zijn.'},
             },
             distance: 'Afstand',
             centrallyManage: 'Beheer tarieven centraal, volg in mijlen of kilometers en stel een standaardcategorie in.',
+            emptyRates: {title: 'Nog geen afstandstarieven', subtitle: 'Voeg een tarief toe om kilometers tegen aangepaste tarieven te vergoeden.'},
             rate: 'Beoordeling',
             addRate: 'Tarief toevoegen',
             findRate: 'Tarief zoeken',
@@ -7039,6 +7085,13 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Goedkeuringen zijn beschikbaar in de Collect- en Control-abonnementen, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
             },
+            approvalSubmitReport: {
+                title: 'Rapporten goedkeuren',
+                description:
+                    'Beoordeel, keur goed en bewaak alle uitgaven op één plek. Goedkeuringsworkflows helpen je kosten te beheersen, bedrijfsbeleid te handhaven en je medewerkers sneller terug te betalen.',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>Goedkeuringsworkflows zijn alleen beschikbaar in het Collect-abonnement, vanaf <strong>${formattedPrice}</strong> per actieve deelnemer per maand.</muted-text>`,
+            },
             companyCardSubmit: {
                 title: 'Bedrijfskaarten',
                 description: `Neem je eigen bedrijfskaart mee naar Expensify voor automatische import, automatische categorisatie, ondersteuning voor aangepaste regels en geïntegreerde afstemming.`,
@@ -7254,6 +7307,10 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 saveAnyway: 'Toch opslaan',
                 applyToExistingUnsubmittedExpenses: 'Toepassen op bestaande niet-ingediende uitgaven',
                 findRule: 'Zoek handelsregel',
+                expenseDefaultsTitle: 'Standaardinstellingen voor uitgaven',
+                expenseDefaultsSubtitle: 'Velden bijwerken zonder dat de indiener iets hoeft te doen',
+                ifAnyExpenseMatches: 'Als een uitgave overeenkomt:',
+                thenApplyFollowingDefaults: 'Pas vervolgens de volgende standaardinstellingen toe:',
             },
             categoryRules: {
                 title: 'Categorisatieregels',
@@ -7399,12 +7456,33 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Geblokkeerd' : 'Toegestaan'} ${shownCount > 1 ? 'categorieën' : 'categorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} meer` : ''}`,
+                defaultRuleSummary: 'Categorieën zoals erotische diensten, geldautomaten, gokken en...',
+                findRule: 'Regel zoeken',
+                defaultSection: 'Standaard',
+                customRulesSection: 'Aangepaste regels',
+                tableColumnType: 'Type',
+                tableColumnCard: 'Kaart',
+                tableColumnRule: 'Regel',
+                cardRulesUpsell: {
+                    title: 'Vraag de Expensify Kaart aan en beheer uitgaven',
+                    subtitle:
+                        'Met de Expensify Kaart kun je regels instellen voor maximale uitgaven, bepaalde verkopers of soorten aankopen blokkeren of toestaan. Je krijgt bovendien 2% cashback.',
+                    cta: 'Vraag de kaart aan',
+                },
+                restrictCardSpendTitle: 'Kaartuitgaven beperken',
+                restrictCardSpendSubtitle: 'Blokkeer of beperk uitgaven bij het verkooppunt.',
+                ifAnyCardMatches: 'Als een kaart overeenkomt:',
+                thenDoThisAtPointOfSale: 'Doe dan het volgende bij het verkooppunt:',
+                setRestrictions: 'Beperkingen instellen',
+                merchantRestrictions: 'Handelaarsbeperkingen',
+                blockedMerchant: 'Geblokkeerde handelaar',
+                blockedMerchantTypes: 'Geblokkeerde handelaarstypen',
+                maxAmountAbove: ({amount}: {amount: string}) => `boven ${amount}`,
                 restrictMerchants: 'Handelaars beperken',
                 merchantTypes: 'Handelaarstypen',
                 allowedMerchants: 'Toegestane handelaren',
                 allowedMerchantTypes: 'Toegestane merchanttypen',
                 blockedMerchants: 'Geblokkeerde handelaren',
-                blockedMerchantTypes: 'Geblokkeerde winkeltype',
                 currencies: 'Valuta’s',
                 permittedCurrencies: 'Toegestane valuta',
                 allCurrencies: 'Alle valuta',
@@ -7423,6 +7501,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             agentRules: {
                 title: 'Agentregels',
                 subtitle: 'Stel regels in voor hoe AI-agenten met uitgaven omgaan in deze werkruimte.',
+                enforcedBy: 'Agentregels worden afgedwongen door',
+                ruleBotName: 'RuleBot',
                 addRule: 'Agentregel toevoegen',
                 findRule: 'Agentregel zoeken',
                 addRuleTitle: 'Regel toevoegen',
@@ -7434,6 +7514,136 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 agentCreatedTitle: 'RuleBot is toegevoegd aan je werkruimte!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Om je agentregels af te dwingen, hebben we een agent voor je gemaakt en deze als beheerder aan je werkruimte toegevoegd.<br><br>Bewerk de gegevens van je agent in <a href="${agentsRoute}">Account &gt; Agents</a>.</muted-text>`,
+            },
+            tabs: {
+                general: 'Algemeen',
+                cardRestrictions: 'Kaartbeperkingen',
+                expenseDefaults: 'Standaardinstellingen voor uitgaven',
+                requireFields: 'Maak velden verplicht',
+                flagForReview: 'Markeren voor controle',
+            },
+            bulkActions: {
+                deleteMultiple: () => ({
+                    one: 'Regel verwijderen',
+                    other: 'Regels verwijderen',
+                }),
+                deleteMultipleConfirmation: () => ({
+                    one: 'Weet je zeker dat je deze regel wilt verwijderen?',
+                    other: 'Weet je zeker dat je deze regels wilt verwijderen?',
+                }),
+            },
+            generalTab: {
+                title: 'Basisregels',
+                subtitle: 'Algemene regels om uitgaven te beheersen',
+                expensesOlderThan: 'Markeer onkosten ouder dan',
+                expensesAboveAmount: 'Markeer uitgaven boven bedrag',
+                flagReceiptLineItems: 'Regelitems van bon markeren',
+                receiptRequirements: 'Bonnen verplicht stellen',
+                receiptRequirementsSummary: ({regularAmount, itemizedAmount}: {regularAmount?: string; itemizedAmount?: string}) => {
+                    if (regularAmount && itemizedAmount) {
+                        return `Normaal boven ${regularAmount}, gespecificeerd boven ${itemizedAmount}`;
+                    }
+                    if (regularAmount) {
+                        return `Regulier boven ${regularAmount}, itemisatie niet vereist`;
+                    }
+                    if (itemizedAmount) {
+                        return `Vereis geen gewone, gespecificeerde bonnetjes boven ${itemizedAmount}`;
+                    }
+                    return 'Geen bonnen verplichten';
+                },
+                requireFieldsForAllExpenses: 'Velden vereisen voor alle uitgaven',
+                cashExpenses: 'Contante uitgaven',
+                cashExpensesReimbursableByDefault: 'Standaard declarabel',
+                cashExpensesNonReimbursableByDefault: 'Standaard niet-declarabel',
+                cashExpensesAlwaysReimbursable: 'Altijd te vergoeden',
+                cashExpensesAlwaysNonReimbursable: 'Altijd niet-vergoedbaar',
+                billableExpenses: 'Factureerbare uitgaven',
+                billableExpensesBillable: 'Declarabel contant en creditcard',
+                billableExpensesNonBillable: 'Contant en creditcard niet-declareerbaar',
+            },
+            requireReceipts: {
+                title: 'Bonnen verplicht stellen',
+                description: 'Bonnen verplichten wanneer de uitgaven dit bedrag overschrijden, tenzij dit wordt overschreven door een categorietoevoeging.',
+                requireReceipt: 'Bon vereist',
+                requireItemizedReceipt: 'Gespecificeerde bon vereist',
+                requireAboveAmount: 'Bovenstaand bedrag verplicht stellen',
+                saveRule: 'Regel opslaan',
+                emptyAmountError: 'Voer een geldig bedrag in voordat je opslaat',
+            },
+            requireFields: {title: 'Velden vereisen voor alle uitgaven', category: 'Categorie', tag: 'Label', save: 'Regel opslaan'},
+            newRule: {
+                title: 'Nieuwe regel',
+                subtitle: 'Wat wil je doen?',
+                restrictCardSpend: 'Kaartuitgaven beperken',
+                restrictCardSpendDescription: 'Blokkeer of beperk uitgaven bij het verkooppunt',
+                applyExpenseDefaults: 'Standaardinstellingen voor uitgaven toepassen',
+                applyExpenseDefaultsDescription: 'Velden bijwerken zonder dat de indiener iets hoeft te doen',
+                flagForReview: 'Markeren voor controle',
+                flagForReviewDescription: 'Goedkeurders informeren wanneer onkosten de categorielimieten overschrijden',
+                requireFields: 'Maak velden verplicht',
+                requireFieldsDescription: 'Zorg dat belangrijke velden zijn ingevuld voordat onkosten worden ingediend',
+            },
+            expenseDefaultsTable: {
+                tableColumnType: 'Type',
+                tableColumnCondition: 'Voorwaarde',
+                tableColumnRule: 'Regel',
+                findRule: 'Regel zoeken',
+                rename: 'Naam wijzigen',
+                update: 'Bijwerken',
+                merchantIs: (merchant: string) => `Handelaar is "${merchant}"`,
+                merchantTypeIs: (merchantType: string) => `Type leverancier is "${merchantType}"`,
+            },
+            merchantTypeRule: {merchantType: 'Type handelaar', saveRule: 'Regel opslaan', confirmErrorCategory: 'Selecteer een categorie.'},
+            requireFieldsTable: {
+                tableColumnType: 'Type',
+                tableColumnCondition: 'Voorwaarde',
+                tableColumnRule: 'Regel',
+                findRule: 'Regel zoeken',
+                typeLabel: 'Maak velden verplicht',
+                conditionCategoryIs: (category: string) => `Categorie is "${category}"`,
+                requireDescription: 'Beschrijving verplicht',
+                requireAttendees: 'Aanwezigen verplicht stellen',
+                requireItemizedReceipt: 'Gespecificeerde bon vereist',
+                requireItemizedReceiptOver: (amount: string) => `Gespecificeerde bon vereist boven ${amount}`,
+                alwaysRequireReceipt: 'Altijd bon vereisen',
+                requireReceiptOver: (amount: string) => `Bon vereisen voor bedragen boven ${amount}`,
+            },
+            requireFieldsEmptyState: {
+                title: 'Signaleer ontbrekende gegevens direct',
+                subtitle: 'Zorg dat de belangrijkste velden zijn ingevuld voordat je onkosten indient.',
+                cta: 'Verplichte regel maken',
+            },
+            requireFieldsRule: {
+                title: 'Maak velden verplicht',
+                subtitle: 'Vereis bonnetjes, categorieën, enzovoort bij het indienen.',
+                thenWarnMember: 'Waarschuw dan het lid als velden ontbreken:',
+                itemizedReceipt: 'Gespecificeerde bon',
+                saveRule: 'Regel opslaan',
+                confirmErrorCategory: 'Selecteer een categorie.',
+                confirmErrorField: 'Selecteer minimaal één verplicht veld.',
+            },
+            flagForReviewTable: {
+                tableColumnType: 'Type',
+                tableColumnCondition: 'Voorwaarde',
+                tableColumnRule: 'Regel',
+                findRule: 'Regel zoeken',
+                typeLabel: 'Markeer',
+                conditionCategoryAndAmount: (category: string, amount: string) => `Categorie is "${category}" en bedrag boven ${amount}`,
+                conditionCategoryAndDailyAmount: (category: string, amount: string) => `Categorie is "${category}" en dagelijkse categorietotaal boven ${amount}`,
+                flagForReview: 'Markeren voor controle',
+            },
+            flagForReviewEmptyState: {
+                title: 'Markeer onkosten die extra aandacht nodig hebben',
+                subtitle: 'Waarschuw fiatteurs wanneer bepaalde onkosten een extra controle waard zijn.',
+                cta: 'Vlagregel maken',
+            },
+            flagForReviewRule: {
+                title: 'Markeren voor controle',
+                subtitle: 'Stel goedkeurders op de hoogte wanneer aan de volgende voorwaarden is voldaan.',
+                saveRule: 'Regel opslaan',
+                confirmErrorCategory: 'Selecteer een categorie.',
+                confirmErrorAmount: 'Voer een bedrag in.',
+                thenFlagForReview: 'Vlag dan voor controle wanneer:',
             },
         },
         planTypePage: {
@@ -7792,9 +8002,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 case 'categories':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} categorieën`;
                 case 'tags':
-                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} tags`;
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} labels`;
                 case 'workflows':
-                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} workflows`;
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'}-workflows`;
                 case 'distance rates':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} afstandstarieven`;
                 case 'accounting':
@@ -7802,17 +8012,17 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 case 'Expensify Cards':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} Expensify Kaarten`;
                 case 'travel invoicing':
-                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} reisfacturering`;
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} Geconsolideerde reiskostenfacturatie`;
                 case 'company cards':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} bedrijfskaarten`;
                 case 'invoicing':
-                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} facturatie`;
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} facturering`;
                 case 'per diem':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} dagvergoeding`;
                 case 'receipt partners':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} bonpartners`;
                 case 'rules':
-                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} regels`;
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'}-regels`;
                 case 'tax tracking':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} belastingregistratie`;
                 default:
@@ -8128,7 +8338,14 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `bestedingsregel van ${cards}`,
                 composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} op ${cards}`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} van ${cards}`,
+                bodyCurrency: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} valuta '${value}'` : `valuta '${value}'`),
+                bodyCurrencyValueOnly: ({value}: {value: string}) => `'${value}'`,
+                bodyCurrencyChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} valuta van '${oldValue}' naar '${newValue}'` : `valuta van '${oldValue}' naar '${newValue}'`,
+                bodyCurrencyRestriction: 'de valutabeperking',
             },
+            allowedCurrencyFilters: ({currencies}: {currencies: string}) => `valuta's ${currencies}`,
+            blockedCurrencyFilters: ({currencies}: {currencies: string}) => `valuta’s niet in ${currencies}`,
         },
         updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
             `heeft het standaardbelastingtarief van de categorie "${categoryName}" gewijzigd naar "${newTax}" (voorheen "${oldTax}")`,
@@ -8334,8 +8551,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `Alle ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Alle geïmporteerde CSV-kaarten${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
-                travelInvoicing: 'Reisfacturatie',
+                travelInvoicing: 'Geconsolideerde reisfacturatie',
             },
+            bankAccount: {banks: 'Bankrekeningen', closedBankAccounts: 'Gesloten bankrekeningen'},
             reportField: (name: string, value: string) => `${name} is ${value}`,
             current: 'Huidig',
             past: 'Verleden',
@@ -8368,7 +8586,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Kaart',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Terugbetaling',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Reisfacturatie',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Geconsolideerde reisfacturatie',
             },
             is: 'Is',
             action: {
@@ -8398,6 +8616,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         noMerchant: 'Geen handelaar',
         noTag: 'Geen tag',
         expenseType: 'Onkostentype',
+        receiptType: 'Bontype',
+        receiptTypeValues: {
+            ereceipt: 'eBon',
+            itemized: 'Gespecificeerd',
+            hotel: 'Hotel',
+        },
         withdrawalType: 'Type opname',
         recentSearches: 'Recente zoekopdrachten',
         recentChats: 'Recente chats',
@@ -8795,7 +9019,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         personalCard: 'Persoonlijke kaart',
         companyCard: 'Bedrijfskaart',
         expensifyCard: 'Expensify Kaart',
-        travelInvoicing: 'Reisfacturatie',
+        travelInvoicing: 'Geconsolideerde reisfacturatie',
         travelCard: 'Reiskaart',
     },
     distance: {
@@ -9112,6 +9336,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         resolvedDuplicates: 'dubbeling opgelost',
         companyCardRequired: 'Bedrijfspaskaarten vereist',
         noRoute: 'Selecteer een geldig adres',
+        customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `Tarief is alleen geldig van ${startDate} tot ${endDate}`,
+        customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Tarief is alleen geldig vanaf ${startDate}`,
+        customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Tarief is alleen geldig tot ${endDate}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} is verplicht`,
@@ -9171,10 +9398,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         bookACallTextBottom: 'We spreken graag met je om te begrijpen waarom. Je kunt een gesprek inplannen met een van onze senior productmanagers om je behoeften te bespreken.',
         takeMeToExpensifyClassic: 'Breng me naar Expensify Classic',
         goBackJustOnce: 'Eenmalig teruggaan',
-    },
-    listBoundary: {
-        errorMessage: 'Er is een fout opgetreden bij het laden van meer berichten',
-        tryAgain: 'Probeer het opnieuw',
     },
     systemMessage: {
         mergedWithCashTransaction: 'heeft een bonnetje aan deze transactie gekoppeld',
@@ -9474,7 +9697,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             `Voer de magische code in die naar ${contactMethod} is gestuurd om een copiloot toe te voegen. Deze zou binnen een of twee minuten moeten aankomen.`,
         enterMagicCodeUpdate: (contactMethod: string) => `Voer de magische code in die naar ${contactMethod} is gestuurd om je copiloot bij te werken.`,
         notAllowed: 'Niet zo snel...',
-        noAccessMessage: dedent(`
+        noAccessMessage: Str.dedent(`
             Als copiloot heb je geen toegang tot
             deze pagina. Sorry!
         `),
@@ -9626,18 +9849,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         quickAction: {
             takeATwoMinuteTestDrive: 'Maak een proefrit van 2 minuten',
         },
-        modal: {
-            title: 'Probeer ons uit',
-            description: 'Volg een korte producttour om snel op de hoogte te zijn.',
-            confirmText: 'Proefrit starten',
-            helpText: 'Overslaan',
-            employee: {
-                description:
-                    '<muted-text>Geef je team <strong>3 gratis maanden Expensify!</strong> Vul hieronder het e-mailadres van je baas in en stuur hem of haar een proefdeclaratie.</muted-text>',
-                email: 'Voer het e-mailadres van je/uw baas in',
-                error: 'Dat lid is eigenaar van een werkruimte, voer een nieuw lid in om te testen.',
-            },
-        },
         banner: {
             currentlyTestDrivingExpensify: 'Je bent Expensify momenteel aan het uitproberen',
             readyForTheRealThing: 'Klaar voor het echte werk?',
@@ -9654,7 +9865,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         expenseLevelExport: 'Alle gegevens - uitgaveniveau',
         exportInProgress: 'Export bezig',
         conciergeWillSend: 'Concierge stuurt je het bestand zo meteen.',
-        currentView: 'Huidige weergave exporteren',
+        currentView: 'Huidige weergave',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',
@@ -9672,7 +9883,6 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {

@@ -16,7 +16,6 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 jest.mock('@hooks/useDocumentTitle', () => jest.fn());
-jest.mock('@hooks/useConfirmReadyToOpenApp', () => jest.fn());
 jest.mock('@hooks/useThemeStyles', () =>
     jest.fn(() => ({
         flex1: {},

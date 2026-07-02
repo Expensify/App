@@ -216,6 +216,25 @@ function getAvailableNonPersonalPolicyCategories(policyCategories: OnyxCollectio
     );
 }
 
+function hasAnyCategoryRules(categories: PolicyCategories | undefined): boolean {
+    return Object.values(categories ?? {}).some((category) => {
+        if (category.maxExpenseAmount !== undefined && category.maxExpenseAmount !== null && category.maxExpenseAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE) {
+            return true;
+        }
+        // null means "use policy default" (inactive); 0 = always required, DISABLED_MAX_EXPENSE_VALUE = never required — both are explicit overrides
+        if (category.maxAmountNoReceipt !== undefined && category.maxAmountNoReceipt !== null) {
+            return true;
+        }
+        if (category.maxAmountNoItemizedReceipt !== undefined && category.maxAmountNoItemizedReceipt !== null) {
+            return true;
+        }
+        if (category.areCommentsRequired || category.areAttendeesRequired) {
+            return true;
+        }
+        return !!category.commentHint;
+    });
+}
+
 export {
     formatDefaultTaxRateText,
     formatRequireReceiptsOverText,
@@ -232,4 +251,5 @@ export {
     getDecodedLeafCategoryName,
     processCategoryNameSegments,
     getAvailableNonPersonalPolicyCategories,
+    hasAnyCategoryRules,
 };
