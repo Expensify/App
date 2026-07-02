@@ -30,10 +30,11 @@ type WorkspacePerDiemTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    headerComponent?: React.ReactElement;
     EmptyStateComponent: React.ReactElement;
 };
 
-export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, selectedKeys, onRowSelectionChange, EmptyStateComponent}: WorkspacePerDiemTableProps) {
+export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, selectedKeys, onRowSelectionChange, headerComponent, EmptyStateComponent}: WorkspacePerDiemTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -105,8 +106,15 @@ export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, se
         />
     );
 
-    const isEmpty = perDiemData.length === 0;
     const shouldShowSearchBar = perDiemData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const searchBarComponent = shouldShowSearchBar ? <Table.SearchBar label={translate('workspace.perDiem.findPerDiemRate')} /> : undefined;
+    const tableHeaderComponent =
+        headerComponent || searchBarComponent ? (
+            <>
+                {headerComponent}
+                {searchBarComponent}
+            </>
+        ) : undefined;
 
     return (
         <Table
@@ -122,15 +130,11 @@ export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, se
             initialSortColumn="destination"
             narrowLayoutSortColumn="destination"
             title={translate('common.perDiem')}
+            headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
+            ListEmptyComponent={EmptyStateComponent}
         >
-            {isEmpty && EmptyStateComponent}
-            {!isEmpty && (
-                <>
-                    {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.perDiem.findPerDiemRate')} />}
-                    <Table.Header />
-                    <Table.Body />
-                </>
-            )}
+            <Table.Body />
         </Table>
     );
 }

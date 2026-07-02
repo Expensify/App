@@ -36,6 +36,7 @@ type DomainMembersTableProps = {
     shouldShowGroupColumn: boolean;
     filterConfig?: FilterConfig<DomainMembersTableFilterKey>;
     isItemInFilter?: IsItemInFilterCallback<DomainMemberRowData>;
+    headerComponent?: React.ReactElement;
     EmptyStateComponent: React.ReactElement;
 };
 
@@ -75,6 +76,7 @@ export default function DomainMembersTable({
     shouldShowGroupColumn,
     filterConfig,
     isItemInFilter,
+    headerComponent,
     EmptyStateComponent,
 }: DomainMembersTableProps) {
     const styles = useThemeStyles();
@@ -134,6 +136,20 @@ export default function DomainMembersTable({
         />
     );
 
+    const shouldShowTableControls = !isEmpty;
+    const tableHeaderComponent =
+        headerComponent || (shouldShowTableControls && (shouldShowGroupFilter || shouldShowSearchBar)) ? (
+            <>
+                {headerComponent}
+                {shouldShowTableControls && shouldShowGroupFilter && (
+                    <View style={[styles.mh5, styles.mb3]}>
+                        <Table.FilterButtons />
+                    </View>
+                )}
+                {shouldShowTableControls && shouldShowSearchBar && <Table.SearchBar label={translate('domain.members.findMember')} />}
+            </>
+        ) : undefined;
+
     return (
         <Table
             data={members}
@@ -149,24 +165,17 @@ export default function DomainMembersTable({
             onRowSelectionChange={onRowSelectionChange}
             filters={filterConfig}
             isItemInFilter={isItemInFilter}
+            headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
+            ListEmptyComponent={EmptyStateComponent}
         >
-            {isEmpty && EmptyStateComponent}
             {!isEmpty && (
-                <>
-                    <DomainMembersGroupFilterSync
-                        shouldShowGroupFilter={shouldShowGroupFilter}
-                        groupOptionValuesKey={groupOptionValuesKey}
-                    />
-                    {shouldShowGroupFilter && (
-                        <View style={[styles.mh5, styles.mb3]}>
-                            <Table.FilterButtons />
-                        </View>
-                    )}
-                    {shouldShowSearchBar && <Table.SearchBar label={translate('domain.members.findMember')} />}
-                    <Table.Header />
-                    <Table.Body />
-                </>
+                <DomainMembersGroupFilterSync
+                    shouldShowGroupFilter={shouldShowGroupFilter}
+                    groupOptionValuesKey={groupOptionValuesKey}
+                />
             )}
+            <Table.Body />
         </Table>
     );
 }

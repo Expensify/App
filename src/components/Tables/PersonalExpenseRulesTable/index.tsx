@@ -23,12 +23,13 @@ type PersonalExpenseRuleRowData = TableData & {
 
 type PersonalExpenseRulesTableProps = {
     EmptyStateComponent: React.ReactElement;
+    headerComponent?: React.ReactElement;
     personalExpenseRules: PersonalExpenseRuleRowData[];
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function PersonalExpenseRulesTable({EmptyStateComponent, personalExpenseRules, selectedKeys, onRowSelectionChange}: PersonalExpenseRulesTableProps) {
+export default function PersonalExpenseRulesTable({EmptyStateComponent, headerComponent, personalExpenseRules, selectedKeys, onRowSelectionChange}: PersonalExpenseRulesTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
@@ -79,7 +80,14 @@ export default function PersonalExpenseRulesTable({EmptyStateComponent, personal
         />
     );
 
-    const hasRules = personalExpenseRules.length > 0;
+    const searchBarComponent = personalExpenseRules.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? <Table.SearchBar label={translate('expenseRulesPage.findRule')} /> : undefined;
+    const tableHeaderComponent =
+        headerComponent || searchBarComponent ? (
+            <>
+                {headerComponent}
+                {searchBarComponent}
+            </>
+        ) : undefined;
 
     return (
         <Table
@@ -94,16 +102,11 @@ export default function PersonalExpenseRulesTable({EmptyStateComponent, personal
             renderItem={renderPersonalExpenseRuleItem}
             onRowSelectionChange={onRowSelectionChange}
             keyExtractor={(rule) => rule.keyForList}
+            headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
+            ListEmptyComponent={EmptyStateComponent}
         >
-            {!hasRules && EmptyStateComponent}
-
-            {hasRules && (
-                <>
-                    {personalExpenseRules.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('expenseRulesPage.findRule')} />}
-                    <Table.Header />
-                    <Table.Body />
-                </>
-            )}
+            <Table.Body />
         </Table>
     );
 }
