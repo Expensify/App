@@ -17,6 +17,7 @@ import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgrou
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import {getIsOffline} from '@libs/NetworkState';
 import {findLastAccessedReport, getReportIDFromLink, getReportOrDraftReport, getRouteFromLink, isMoneyRequestReport} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
@@ -178,12 +179,19 @@ type ReportLinkRouteParams = {
 };
 
 type NavigationRouteWithState = {
+    key?: string;
     name?: string;
     params?: unknown;
     state?: {
+        key?: string;
         index?: number;
         routes?: NavigationRouteWithState[];
     };
+};
+
+type FocusedSearchReportActionRoute = {
+    routeKey: string;
+    navigatorKey: string;
 };
 
 function isReportRoute(route: string): route is Route {
@@ -244,6 +252,19 @@ function getReportRouteParamsFromRoute(route: string): ReportLinkRouteParams | u
     }
 }
 
+function getReportLinkRouteParams(href: string, internalNewExpensifyPath: string, hasSameOrigin: boolean, hasExpensifyOrigin: boolean): ReportLinkRouteParams | undefined {
+    const legacyNewDotReportID = getLegacyNewDotReportID(href, hasExpensifyOrigin);
+    const legacyNewDotReportRouteParams: ReportLinkRouteParams | undefined = legacyNewDotReportID
+        ? {
+              reportID: legacyNewDotReportID,
+              route: ROUTES.REPORT_WITH_ID.getRoute(legacyNewDotReportID),
+          }
+        : undefined;
+    const internalNewExpensifyReportRouteParams = internalNewExpensifyPath && hasSameOrigin ? getReportRouteParamsFromRoute(internalNewExpensifyPath) : undefined;
+
+    return legacyNewDotReportRouteParams ?? internalNewExpensifyReportRouteParams;
+}
+
 function getFocusedRoute(route: NavigationRouteWithState | undefined): NavigationRouteWithState | undefined {
     let focusedRoute = route;
     while (focusedRoute?.state?.routes?.length) {
@@ -286,25 +307,42 @@ function isFocusedCentralReport(reportID: string, currentState: ReturnType<typeo
     return getReportRouteParamValues(focusedRoute.params)?.reportID === reportID;
 }
 
+function getFocusedSearchReportActionRoute(
+    reportRouteParams: ReportLinkRouteParams | undefined,
+    currentState: ReturnType<typeof navigationRef.getRootState>,
+): FocusedSearchReportActionRoute | undefined {
+    if (!reportRouteParams?.reportActionID) {
+        return;
+    }
+
+    const focusedRootRoute = currentState?.routes?.at(currentState.index ?? (currentState.routes.length ? currentState.routes.length - 1 : -1)) as NavigationRouteWithState | undefined;
+    if (focusedRootRoute?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+        return;
+    }
+
+    const rhpState = focusedRootRoute.state;
+    const focusedRHPRoute = rhpState?.routes?.at(rhpState.index ?? (rhpState.routes.length ? rhpState.routes.length - 1 : -1));
+    if (focusedRHPRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT || !focusedRHPRoute.key || !rhpState?.key) {
+        return;
+    }
+
+    const focusedRHPReportParams = getReportRouteParamValues(focusedRHPRoute.params);
+    if (focusedRHPReportParams?.reportID !== reportRouteParams.reportID) {
+        return;
+    }
+
+    return {
+        routeKey: focusedRHPRoute.key,
+        navigatorKey: rhpState.key,
+    };
+}
+
 function getReportLinkRoute(
-    href: string,
-    internalNewExpensifyPath: string,
-    hasSameOrigin: boolean,
-    hasExpensifyOrigin: boolean,
+    reportRouteParams: ReportLinkRouteParams | undefined,
     isNarrowLayout: boolean,
     currentState: ReturnType<typeof navigationRef.getRootState>,
     shouldKeepReportRoute = false,
 ): Route | undefined {
-    const legacyNewDotReportID = getLegacyNewDotReportID(href, hasExpensifyOrigin);
-    const legacyNewDotReportRouteParams: ReportLinkRouteParams | undefined = legacyNewDotReportID
-        ? {
-              reportID: legacyNewDotReportID,
-              route: ROUTES.REPORT_WITH_ID.getRoute(legacyNewDotReportID),
-          }
-        : undefined;
-    const internalNewExpensifyReportRouteParams = internalNewExpensifyPath && hasSameOrigin ? getReportRouteParamsFromRoute(internalNewExpensifyPath) : undefined;
-    const reportRouteParams = legacyNewDotReportRouteParams ?? internalNewExpensifyReportRouteParams;
-
     if (!reportRouteParams) {
         return;
     }
@@ -314,24 +352,22 @@ function getReportLinkRoute(
     }
 
     const backTo = Navigation.getActiveRoute();
-    if (reportRouteParams.reportActionID) {
-        return ROUTES.SEARCH_REPORT.getRoute({
-            reportID: reportRouteParams.reportID,
-            reportActionID: reportRouteParams.reportActionID,
-            backTo,
-        });
-    }
-
     const report = getReportOrDraftReport(reportRouteParams.reportID);
-    if (isMoneyRequestReport(report)) {
+    if (!reportRouteParams.reportActionID && isMoneyRequestReport(report)) {
         return ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: reportRouteParams.reportID, backTo});
     }
 
-    return ROUTES.SEARCH_REPORT.getRoute({
+    const searchReportRoute = ROUTES.SEARCH_REPORT.getRoute({
         reportID: reportRouteParams.reportID,
         reportActionID: reportRouteParams.reportActionID,
         backTo,
     });
+
+    if (!report && !reportRouteParams.reportActionID) {
+        return Url.appendParam(searchReportRoute, REPORT_LINK_ROUTE_PARAMS.SHOULD_REPLACE_WITH_EXPENSE_REPORT_RHP, 'true');
+    }
+
+    return searchReportRoute;
 }
 
 function openLink(href: string, environmentURL: string, isAttachment = false) {
@@ -342,11 +378,13 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
 
     const isNarrowLayout = getIsNarrowLayout();
     const currentState = navigationRef.getRootState();
-    const reportLinkRoute = getReportLinkRoute(href, internalNewExpensifyPath, hasSameOrigin, hasExpensifyOrigin, isNarrowLayout, currentState, isAnonymousUser());
+    const reportLinkRouteParams = getReportLinkRouteParams(href, internalNewExpensifyPath, hasSameOrigin, hasExpensifyOrigin);
+    const reportLinkRoute = getReportLinkRoute(reportLinkRouteParams, isNarrowLayout, currentState, isAnonymousUser());
+    const focusedSearchReportActionRoute = getFocusedSearchReportActionRoute(reportLinkRouteParams, currentState);
     const routeToNavigate = reportLinkRoute ?? internalNewExpensifyPath;
     const isRHPOpen = currentState?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
     let shouldCloseRHP = false;
-    if (!isNarrowLayout && isRHPOpen) {
+    if (!isNarrowLayout && isRHPOpen && !focusedSearchReportActionRoute) {
         const targetWillNavigateToRHP = willRouteNavigateToRHP(routeToNavigate as Route);
         if (!targetWillNavigateToRHP) {
             shouldCloseRHP = true;
@@ -361,6 +399,10 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     if (reportLinkRoute) {
         if (internalNewExpensifyPath && hasSameOrigin && isAnonymousUser() && !canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
             signOutAndRedirectToSignIn();
+            return;
+        }
+        if (focusedSearchReportActionRoute && reportLinkRouteParams?.reportActionID) {
+            Navigation.setParams({reportActionID: reportLinkRouteParams.reportActionID}, focusedSearchReportActionRoute.routeKey, focusedSearchReportActionRoute.navigatorKey);
             return;
         }
         if (shouldCloseRHP) {

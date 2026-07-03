@@ -3,6 +3,8 @@ import {canAnonymousUserAccessRoute, isAnonymousUser} from '@libs/actions/Sessio
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
+import * as Url from '@libs/Url';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import {openLink} from '@src/libs/actions/Link';
@@ -30,6 +32,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
         closeRHPFlow: jest.fn(),
         getActiveRoute: jest.fn(),
         navigate: jest.fn(),
+        setParams: jest.fn(),
     },
 }));
 jest.mock('@libs/actions/Session', () => ({
@@ -70,7 +73,9 @@ function buildRootState({
     activeTab = NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
     isRHPOpen = false,
     focusedRootNavigator,
-}: {centralReportID?: string; activeTab?: string; isRHPOpen?: boolean; focusedRootNavigator?: string} = {}) {
+    rhpReportID = 'rhp-report',
+    rhpReportActionID,
+}: {centralReportID?: string; activeTab?: string; isRHPOpen?: boolean; focusedRootNavigator?: string; rhpReportID?: string; rhpReportActionID?: string} = {}) {
     const tabRoutes: NavigationState['routes'] = [
         {
             key: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
@@ -113,7 +118,7 @@ function buildRootState({
                 {
                     key: `${SCREENS.RIGHT_MODAL.SEARCH_REPORT}-rhp-report`,
                     name: SCREENS.RIGHT_MODAL.SEARCH_REPORT,
-                    params: {reportID: 'rhp-report'},
+                    params: {reportID: rhpReportID, ...(rhpReportActionID ? {reportActionID: rhpReportActionID} : {})},
                 },
             ]),
         });
@@ -164,6 +169,21 @@ describe('Link.openLink', () => {
         expect(Navigation.closeRHPFlow).not.toHaveBeenCalled();
     });
 
+    it('marks uncached plain report links so loaded expenses can move to the expense RHP', () => {
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/uncached-report`, environmentURL);
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(
+            Url.appendParam(
+                ROUTES.SEARCH_REPORT.getRoute({
+                    reportID: 'uncached-report',
+                    backTo: activeRoute,
+                }),
+                REPORT_LINK_ROUTE_PARAMS.SHOULD_REPLACE_WITH_EXPENSE_REPORT_RHP,
+                'true',
+            ),
+        );
+    });
+
     it('opens an expense report link in the expense RHP on wide layout', () => {
         mockReports['expense-report'] = {isMoneyRequest: true};
 
@@ -190,10 +210,14 @@ describe('Link.openLink', () => {
         openLink(`${CONFIG.EXPENSIFY.EXPENSIFY_URL}/newdotreport?reportID=legacy-report`, environmentURL);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(
-            ROUTES.SEARCH_REPORT.getRoute({
-                reportID: 'legacy-report',
-                backTo: activeRoute,
-            }),
+            Url.appendParam(
+                ROUTES.SEARCH_REPORT.getRoute({
+                    reportID: 'legacy-report',
+                    backTo: activeRoute,
+                }),
+                REPORT_LINK_ROUTE_PARAMS.SHOULD_REPLACE_WITH_EXPENSE_REPORT_RHP,
+                'true',
+            ),
         );
     });
 
@@ -229,6 +253,27 @@ describe('Link.openLink', () => {
 
         expect(Navigation.closeRHPFlow).toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('regular-report', '123456789'));
+    });
+
+    it('updates the focused RHP report action instead of stacking another RHP for the same report', () => {
+        mockedNavigationRef.getRootState.mockReturnValue(buildRootState({isRHPOpen: true, rhpReportID: 'regular-report', rhpReportActionID: '123456789'}));
+        mockedNavigation.getActiveRoute.mockReturnValue(
+            ROUTES.SEARCH_REPORT.getRoute({
+                reportID: 'regular-report',
+                reportActionID: '123456789',
+                backTo: activeRoute,
+            }),
+        );
+
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/regular-report/987654321`, environmentURL);
+
+        expect(Navigation.setParams).toHaveBeenCalledWith(
+            {reportActionID: '987654321'},
+            `${SCREENS.RIGHT_MODAL.SEARCH_REPORT}-rhp-report`,
+            `${NAVIGATORS.RIGHT_MODAL_NAVIGATOR}-state`,
+        );
+        expect(Navigation.closeRHPFlow).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
     it('opens an RHP when the target report exists in a stale inactive Reports tab', () => {
@@ -273,10 +318,14 @@ describe('Link.openLink', () => {
 
         expect(Navigation.closeRHPFlow).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenCalledWith(
-            ROUTES.SEARCH_REPORT.getRoute({
-                reportID: 'regular-report',
-                backTo: activeRoute,
-            }),
+            Url.appendParam(
+                ROUTES.SEARCH_REPORT.getRoute({
+                    reportID: 'regular-report',
+                    backTo: activeRoute,
+                }),
+                REPORT_LINK_ROUTE_PARAMS.SHOULD_REPLACE_WITH_EXPENSE_REPORT_RHP,
+                'true',
+            ),
         );
     });
 });

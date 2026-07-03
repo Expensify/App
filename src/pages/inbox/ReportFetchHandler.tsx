@@ -13,13 +13,16 @@ import useReportTransactionsCollection from '@hooks/useReportTransactionsCollect
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
 import {getFilteredReportActionsForReportView, getIOUActionForReportID, getOneTransactionThreadReportID, isCreatedAction} from '@libs/ReportActionsUtils';
 import {
     isChatThread,
     isHiddenForCurrentUser,
+    isMoneyRequestReport,
     isOneTransactionThread,
     isPolicyExpenseChat,
     isPublicRoom,
@@ -42,6 +45,7 @@ import {
 } from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 
@@ -72,6 +76,8 @@ function ReportFetchHandler() {
     const route = useRoute<ReportScreenRoute>();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const reportActionIDFromRoute = route?.params?.reportActionID;
+    const shouldReplaceWithExpenseReportRHP =
+        route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && route.params?.[REPORT_LINK_ROUTE_PARAMS.SHOULD_REPLACE_WITH_EXPENSE_REPORT_RHP] === 'true';
 
     const navigation = useNavigation();
     const isFocused = useIsFocused();
@@ -296,6 +302,19 @@ function ReportFetchHandler() {
         }
         updateLoadingInitialReportAction(reportIDFromRoute, true);
     }, [reportIDFromRoute, reportLoadingState.hasOnceLoadedReportActions]);
+
+    useEffect(() => {
+        if (!shouldReplaceWithExpenseReportRHP || !report || !reportIDFromRoute) {
+            return;
+        }
+
+        if (!isMoneyRequestReport(report)) {
+            Navigation.setParams({[REPORT_LINK_ROUTE_PARAMS.SHOULD_REPLACE_WITH_EXPENSE_REPORT_RHP]: undefined});
+            return;
+        }
+
+        Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: reportIDFromRoute, backTo: route.params?.backTo}), {forceReplace: true});
+    }, [report, reportIDFromRoute, route.params?.backTo, shouldReplaceWithExpenseReportRHP]);
 
     useEffect(() => {
         // This function is triggered when a user clicks on a link to navigate to a report.
