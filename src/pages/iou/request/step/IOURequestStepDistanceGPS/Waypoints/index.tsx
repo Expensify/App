@@ -1,16 +1,21 @@
-import React from 'react';
-import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScrollView from '@components/ScrollView';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
+
 import {getEffectiveEndPoint, getFirstGpsPoint, getTotalGpsTripPoints, isTripStopped as isTripStoppedUtil} from '@src/libs/GPSDraftDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Unit} from '@src/types/onyx/Policy';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import DiscardGPSTripButton from './DiscardGPSTripButton';
 import DistanceCounter from './DistanceCounter';
 import EditGPSTripButton from './EditGPSTripButton';

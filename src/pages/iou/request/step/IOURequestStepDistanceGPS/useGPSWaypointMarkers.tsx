@@ -1,6 +1,9 @@
 import type {WayPoint} from '@components/MapView/MapViewTypes';
+
 import type {MapMarkerType} from '@hooks/useMapMarkers/types';
+
 import {getGPSWaypoints, isTripStopped as isTripStoppedUtil} from '@libs/GPSDraftDetailsUtils';
+
 import type {GpsDraftDetails} from '@src/types/onyx';
 import type {TrimmedGPSPoint} from '@src/types/onyx/GpsDraftDetails';
 
