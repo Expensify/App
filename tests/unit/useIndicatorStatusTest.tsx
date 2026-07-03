@@ -1,13 +1,19 @@
-import {act, renderHook} from '@testing-library/react-native';
-import type {OnyxMultiSetInput} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import useIndicatorStatus from '@hooks/useIndicatorStatus';
+
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
+
 import CONST from '@src/CONST';
 import initWithOnyxDerivedValues from '@src/libs/actions/OnyxDerived';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {OnyxMultiSetInput} from 'react-native-onyx';
+
+import {act, renderHook} from '@testing-library/react-native';
+import Onyx from 'react-native-onyx';
+
 import type {IndicatorTestCase} from '../utils/IndicatorTestUtils';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const userID = 'johndoe12@expensify.com';

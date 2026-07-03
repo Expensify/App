@@ -1,11 +1,14 @@
+import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
+import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScroll';
+
+import {search} from '@libs/actions/Search';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
 /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
-import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScroll';
-import {search} from '@libs/actions/Search';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 jest.mock('@libs/actions/Search');
 jest.mock('@react-navigation/native', () => ({

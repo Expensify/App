@@ -1,9 +1,11 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+
+import type {Report, TransactionViolations} from '../../src/types/onyx';
+
 import CONST from '../../src/CONST';
 import useTransactionViolationOfWorkspace from '../../src/hooks/useTransactionViolationOfWorkspace';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import type {Report, TransactionViolations} from '../../src/types/onyx';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 

@@ -1,18 +1,23 @@
-import {NavigationContainer} from '@react-navigation/native';
-import {act, render} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import type * as MoneyRequestActions from '@libs/actions/IOU/MoneyRequest';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
+
 import IOURequestStepScan from '@pages/iou/request/step/IOURequestStepScan';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import {NavigationContainer} from '@react-navigation/native';
+import {act, render} from '@testing-library/react-native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';

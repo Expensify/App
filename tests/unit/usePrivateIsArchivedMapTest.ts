@@ -1,7 +1,10 @@
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const REPORT_ID_1 = 'report_1';

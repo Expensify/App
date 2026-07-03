@@ -1,11 +1,14 @@
+import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+
+import CONST from '@src/CONST';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+
 import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 import React, {createRef} from 'react';
 import {View} from 'react-native';
-import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
-import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import CONST from '@src/CONST';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 const DEFAULT_AVATAR_ID = 'default-avatar';
 const ICON_TEST_ID = 'avatar-button-edit-icon';

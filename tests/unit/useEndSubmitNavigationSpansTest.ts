@@ -1,7 +1,10 @@
-import {renderHook} from '@testing-library/react-native';
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
+
 import {endSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+
 import CONST from '@src/CONST';
+
+import {renderHook} from '@testing-library/react-native';
 
 jest.mock('@libs/telemetry/submitFollowUpAction', () => ({
     getPendingSubmitFollowUpAction: jest.fn(),

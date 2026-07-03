@@ -1,16 +1,21 @@
+import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
+
+import {clearAgentZeroProcessingIndicator, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
+import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
+import AgentZeroReasoningStore from '@libs/AgentZeroReasoningStore';
+import {setForceOffline} from '@libs/NetworkState';
+
+import {AgentZeroStatusProvider, useAgentZeroStatus, useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 import fs from 'fs';
 import path from 'path';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
-import {clearAgentZeroProcessingIndicator, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
-import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
-import AgentZeroReasoningStore from '@libs/AgentZeroReasoningStore';
-import {setForceOffline} from '@libs/NetworkState';
-import {AgentZeroStatusProvider, useAgentZeroStatus, useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const mockTranslate = jest.fn((key: string) => {

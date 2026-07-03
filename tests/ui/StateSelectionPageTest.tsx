@@ -1,11 +1,15 @@
+import SelectionList from '@components/SelectionList';
+
+import searchOptions from '@libs/searchOptions';
+import StringUtils from '@libs/StringUtils';
+
+import StateSelectionPage from '@pages/settings/Profile/PersonalDetails/StateSelectionPage';
+
 import type * as ReactNavigation from '@react-navigation/native';
+
 import {act, render} from '@testing-library/react-native';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
-import SelectionList from '@components/SelectionList';
-import searchOptions from '@libs/searchOptions';
-import StringUtils from '@libs/StringUtils';
-import StateSelectionPage from '@pages/settings/Profile/PersonalDetails/StateSelectionPage';
 
 const mockUseState = React.useState;
 const mockStates = COMMON_CONST.STATES;

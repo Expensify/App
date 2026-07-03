@@ -1,10 +1,13 @@
-import {useCallback, useEffect, useState} from 'react';
 import type {PinchGesture} from 'react-native-gesture-handler';
+
+import {useCallback, useEffect, useState} from 'react';
 import {Gesture} from 'react-native-gesture-handler';
 import {useAnimatedReaction, useSharedValue, withSpring} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
-import {SPRING_CONFIG, ZOOM_RANGE_BOUNCE_FACTORS} from './constants';
+
 import type {MultiGestureCanvasVariables} from './types';
+
+import {SPRING_CONFIG, ZOOM_RANGE_BOUNCE_FACTORS} from './constants';
 
 type UsePinchGestureProps = Pick<
     MultiGestureCanvasVariables,

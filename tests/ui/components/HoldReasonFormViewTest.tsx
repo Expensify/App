@@ -1,7 +1,10 @@
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
+
+import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
+
 import {render, screen} from '@testing-library/react-native';
 import React from 'react';
-import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
+
 import {translateLocal} from '../../utils/TestHelper';
 
 jest.mock('@src/hooks/useResponsiveLayout');

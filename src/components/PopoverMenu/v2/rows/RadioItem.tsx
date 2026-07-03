@@ -1,17 +1,23 @@
-import React from 'react';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {useContentClose} from '@components/PopoverMenu/v2/content/ContentContext';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import React from 'react';
+
 import type {MenuItemForwardProps} from './types';
-import useSelectableRow from './useSelectableRow';
 import type {ItemSelectEvent} from './useSelectableRow';
+
+import useSelectableRow from './useSelectableRow';
 
 type RadioItemOwnProps = {
     text: string;

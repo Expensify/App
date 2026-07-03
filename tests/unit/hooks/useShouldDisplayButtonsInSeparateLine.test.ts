@@ -1,5 +1,6 @@
-import {renderHook} from '@testing-library/react-native';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
+
+import {renderHook} from '@testing-library/react-native';
 
 const mockResponsiveLayout = jest.fn<{shouldUseNarrowLayout: boolean; isInLandscapeMode: boolean}, []>();
 jest.mock('@hooks/useResponsiveLayout', () => () => mockResponsiveLayout());

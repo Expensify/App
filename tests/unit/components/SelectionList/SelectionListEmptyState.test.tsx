@@ -1,8 +1,10 @@
+import SelectionListEmptyState from '@components/SelectionList/components/SelectionListEmptyState';
+
+import type ReactNative from 'react-native';
+
 import {render, screen} from '@testing-library/react-native';
 import React from 'react';
-import type ReactNative from 'react-native';
 import {View} from 'react-native';
-import SelectionListEmptyState from '@components/SelectionList/components/SelectionListEmptyState';
 
 jest.mock('@components/OptionsListSkeletonView', () => {
     const ReactLocal = jest.requireActual<typeof React>('react');

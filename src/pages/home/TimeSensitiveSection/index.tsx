@@ -1,11 +1,5 @@
-import {useFocusEffect} from '@react-navigation/native';
-import {isUserValidatedSelector} from '@selectors/Account';
-import {activeAdminPoliciesSelector} from '@selectors/Policy';
-import {emailSelector} from '@selectors/Session';
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import WidgetContainer from '@components/WidgetContainer';
+
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
@@ -13,14 +7,27 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
 import {getConnectedHRProvider} from '@libs/HRUtils';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
+
 import HomeSectionExpandToggle from '@pages/home/HomeSectionExpandToggle';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useFocusEffect} from '@react-navigation/native';
+import {isUserValidatedSelector} from '@selectors/Account';
+import {activeAdminPoliciesSelector} from '@selectors/Policy';
+import {emailSelector} from '@selectors/Session';
+import React, {useCallback, useState} from 'react';
+import {View} from 'react-native';
+
 import useBrokenDirectCompanyCardFeedsForAdmin from './hooks/useBrokenDirectCompanyCardFeedsForAdmin';
 import useTimeSensitiveAddPaymentCard from './hooks/useTimeSensitiveAddPaymentCard';
 import useTimeSensitiveBilling from './hooks/useTimeSensitiveBilling';

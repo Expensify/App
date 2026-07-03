@@ -1,11 +1,16 @@
-import {render, screen} from '@testing-library/react-native';
-import React from 'react';
-import type {SvgProps} from 'react-native-svg';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import MenuItem from '@components/MenuItem';
+
 import getOperatingSystem from '@libs/getOperatingSystem';
 import getPlatform from '@libs/getPlatform';
+
 import CONST from '@src/CONST';
+
+import type {SvgProps} from 'react-native-svg';
+
+import {render, screen} from '@testing-library/react-native';
+import React from 'react';
+
 import {translateLocal} from '../../utils/TestHelper';
 
 const mockNewWindowIcon: React.FC<SvgProps> = () => null;

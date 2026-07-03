@@ -1,11 +1,15 @@
+import useOutstandingBalanceGuard from '@hooks/useOutstandingBalanceGuard';
+
+import Navigation from '@libs/Navigation/Navigation';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+
 import {act, render} from '@testing-library/react-native';
 import React, {useImperativeHandle} from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
-import useOutstandingBalanceGuard from '@hooks/useOutstandingBalanceGuard';
-import Navigation from '@libs/Navigation/Navigation';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 type GuardHandle = {

@@ -1,8 +1,12 @@
-import {render} from '@testing-library/react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import NetSuiteCustomListPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomListPicker';
+
 import ROUTES from '@src/ROUTES';
+
+import {render} from '@testing-library/react-native';
 
 jest.mock('@components/MenuItemWithTopDescription', () => jest.fn(() => null));
 jest.mock('@hooks/useLocalize', () =>

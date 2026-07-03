@@ -1,9 +1,12 @@
+import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {navigationRef} from '@libs/Navigation/Navigation';
+
+import SCREENS from '@src/SCREENS';
+
 import {findFocusedRoute} from '@react-navigation/native';
 import {renderHook} from '@testing-library/react-native';
 import {useEffect, useMemo} from 'react';
-import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
-import {navigationRef} from '@libs/Navigation/Navigation';
-import SCREENS from '@src/SCREENS';
+
 import createRandomTransaction from '../utils/collections/transaction';
 
 // Mock the TransactionThreadNavigation module

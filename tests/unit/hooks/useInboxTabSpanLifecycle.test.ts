@@ -1,6 +1,8 @@
-import {act, renderHook} from '@testing-library/react-native';
 import useInboxTabSpanLifecycle from '@hooks/useInboxTabSpanLifecycle';
+
 import CONST from '@src/CONST';
+
+import {act, renderHook} from '@testing-library/react-native';
 
 type FocusCallback = () => (() => void) | void;
 type FakeSpan = {id: string};

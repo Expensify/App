@@ -1,10 +1,14 @@
+import FloatingActionButton from '@components/FloatingActionButton';
+
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
+import colors from '@styles/theme/colors';
+
+import CONST from '@src/CONST';
+
 import {NavigationContainer} from '@react-navigation/native';
 import {cleanup, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
-import FloatingActionButton from '@components/FloatingActionButton';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import colors from '@styles/theme/colors';
-import CONST from '@src/CONST';
 
 // FloatingActionButton relies on ProductTrainingContext, so provide a minimal mock.
 jest.mock('@components/ProductTrainingContext', () => ({

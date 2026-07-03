@@ -1,8 +1,9 @@
+import ButtonKeyboardShortcut from '@src/components/ButtonComposed/primitives/ButtonKeyboardShortcut';
+import type {ButtonKeyboardShortcutProps} from '@src/components/ButtonComposed/types';
+
 import {NavigationContainer} from '@react-navigation/native';
 import {render} from '@testing-library/react-native';
 import React from 'react';
-import ButtonKeyboardShortcut from '@src/components/ButtonComposed/primitives/ButtonKeyboardShortcut';
-import type {ButtonKeyboardShortcutProps} from '@src/components/ButtonComposed/types';
 
 // ── Keyboard-shortcut wiring ───────────────────────────────────────────────────
 //
@@ -18,13 +19,12 @@ let capturedShortcutConfig: Record<string, any> | undefined;
 jest.mock('@hooks/useKeyboardShortcut', () =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (shortcut: {shortcutKey: string}, callback: (e?: KeyboardEvent) => void, config: Record<string, any> = {}) => {
-        if (shortcut.shortcutKey !== 'Enter' || !config.isActive) {
-            return;
-        }
-        enterKeyCallback = callback;
-        capturedShortcutConfig = config;
-    },
-);
+    if (shortcut.shortcutKey !== 'Enter' || !config.isActive) {
+        return;
+    }
+    enterKeyCallback = callback;
+    capturedShortcutConfig = config;
+});
 // ──────────────────────────────────────────────────────────────────────────────
 
 /**

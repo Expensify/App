@@ -1,14 +1,18 @@
-import * as NativeNavigation from '@react-navigation/native';
-import {fireEvent, render, screen} from '@testing-library/react-native';
-import React, {useState} from 'react';
-import type ReactNative from 'react-native';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import BaseSelectionListWithSections from '@components/SelectionList/SelectionListWithSections/BaseSelectionListWithSections';
 import type {ListItem, SelectionListWithSectionsProps} from '@components/SelectionList/SelectionListWithSections/types';
+
 import type Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
+
+import type ReactNative from 'react-native';
+
+import * as NativeNavigation from '@react-navigation/native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
+import React, {useState} from 'react';
 
 // Captures scrollToIndex calls so tests can assert on scroll behaviour
 const mockScrollToIndex = jest.fn();

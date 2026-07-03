@@ -1,5 +1,6 @@
-import {renderHook} from '@testing-library/react-native';
 import useMFACancelOnEscape from '@components/MultifactorAuthentication/useMFACancelOnEscape';
+
+import {renderHook} from '@testing-library/react-native';
 
 const mockRequestCancel = jest.fn();
 

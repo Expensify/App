@@ -1,11 +1,13 @@
-/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
-import * as core from '@actions/core';
-import {context} from '@actions/github';
-import type {RequestError} from '@octokit/types';
-import memoize from 'lodash/memoize';
 import * as ActionUtils from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
+
+import type {RequestError} from '@octokit/types';
+
+/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
+import * as core from '@actions/core';
+import {context} from '@actions/github';
+import memoize from 'lodash/memoize';
 
 type PlatformResult = 'success' | 'cancelled' | 'skipped' | 'failure';
 

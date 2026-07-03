@@ -1,12 +1,17 @@
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import type Navigation from '@libs/Navigation/Navigation';
+
 import DebugReportActions from '@pages/Debug/Report/DebugReportActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction} from '@src/types/onyx';
+
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';

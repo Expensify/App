@@ -1,8 +1,11 @@
+import Navigation from '@libs/Navigation/Navigation';
+
+import type XeroSetupPageType from '@pages/workspace/accounting/xero/XeroSetupPage';
+
+import ROUTES from '@src/ROUTES';
+
 import {render} from '@testing-library/react-native';
 import React from 'react';
-import Navigation from '@libs/Navigation/Navigation';
-import type XeroSetupPageType from '@pages/workspace/accounting/xero/XeroSetupPage';
-import ROUTES from '@src/ROUTES';
 
 type RunAfterTransitionsArg = {callback: () => void};
 

@@ -1,7 +1,9 @@
+import Icon from '@components/Icon';
+
+import {DEFAULT_INITIAL, getInitialAvatarSvg, getInitialFromText} from '@libs/Avatars/InitialAvatars';
+
 import {render} from '@testing-library/react-native';
 import React from 'react';
-import Icon from '@components/Icon';
-import {DEFAULT_INITIAL, getInitialAvatarSvg, getInitialFromText} from '@libs/Avatars/InitialAvatars';
 
 describe('getInitialFromText', () => {
     it('returns the first valid letter or number', () => {

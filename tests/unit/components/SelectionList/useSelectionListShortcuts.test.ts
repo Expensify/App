@@ -1,9 +1,12 @@
-import {renderHook} from '@testing-library/react-native';
 import useSelectionListShortcuts from '@components/SelectionList/hooks/useSelectionListShortcuts';
 import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
+
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+
 import CONST from '@src/CONST';
+
+import {renderHook} from '@testing-library/react-native';
 
 jest.mock('@hooks/useKeyboardShortcut');
 jest.mock('@hooks/useActiveElementRole');

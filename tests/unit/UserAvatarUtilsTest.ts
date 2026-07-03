@@ -1,9 +1,12 @@
-// cspell:ignore Élodie José Øyvind
-import {renderHook} from '@testing-library/react-native';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
+
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
+
 import CONST from '@src/CONST';
 import * as UserAvatarUtils from '@src/libs/UserAvatarUtils';
+
+// cspell:ignore Élodie José Øyvind
+import {renderHook} from '@testing-library/react-native';
 
 describe('UserAvatarUtils', () => {
     describe('getAvatar', () => {

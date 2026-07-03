@@ -1,10 +1,15 @@
+import {LoginProvider} from '@pages/signin/SignInLoginContext';
+
+import {beginSignIn} from '@userActions/Session';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import type * as ReactNavigationNative from '@react-navigation/native';
+
 import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import {LoginProvider} from '@pages/signin/SignInLoginContext';
-import {beginSignIn} from '@userActions/Session';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@react-navigation/native', () => {

@@ -1,5 +1,6 @@
-import {renderHook} from '@testing-library/react-native';
 import useReceiptPreviewsSizes from '@pages/iou/request/step/IOURequestStepScan/hooks/useReceiptPreviewsSizes';
+
+import {renderHook} from '@testing-library/react-native';
 
 const MOCK_STYLES = {
     receiptPlaceholder: {width: 44, marginRight: 8, height: 52},

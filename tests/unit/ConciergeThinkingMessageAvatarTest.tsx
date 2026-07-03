@@ -1,9 +1,11 @@
-import {render} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
+
+import {render} from '@testing-library/react-native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import {createAdminRoom, createAnnounceRoom} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 

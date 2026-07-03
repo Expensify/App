@@ -1,28 +1,36 @@
-import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import useIsPolicyConnectedToUberReceiptPartner from '@hooks/useIsPolicyConnectedToUberReceiptPartner';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
+
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+
 import WorkspaceMoreFeaturesPage from '@pages/workspace/WorkspaceMoreFeaturesPage';
+
 import * as ReportActions from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import {PortalProvider} from '@gorhom/portal';
+import {NavigationContainer} from '@react-navigation/native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';

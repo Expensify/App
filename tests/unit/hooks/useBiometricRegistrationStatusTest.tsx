@@ -1,6 +1,8 @@
-import {renderHook, waitFor} from '@testing-library/react-native';
 import useBiometricRegistrationStatus from '@hooks/useBiometricRegistrationStatus';
+
 import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
+
+import {renderHook, waitFor} from '@testing-library/react-native';
 
 const REGISTRATION_STATUS = MULTIFACTOR_AUTHENTICATION_VALUES.REGISTRATION_STATUS;
 

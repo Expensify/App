@@ -1,8 +1,11 @@
-import {renderHook} from '@testing-library/react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
+
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {renderHook} from '@testing-library/react-native';
 
 const onyxData: Record<string, unknown> = {};
 

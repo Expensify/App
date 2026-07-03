@@ -1,7 +1,9 @@
-import {renderHook} from '@testing-library/react-native';
+import useSyncFocus from '@hooks/useSyncFocus/useSyncFocusImplementation';
+
 import type {RefObject} from 'react';
 import type {View} from 'react-native';
-import useSyncFocus from '@hooks/useSyncFocus/useSyncFocusImplementation';
+
+import {renderHook} from '@testing-library/react-native';
 
 describe('useSyncFocus', () => {
     it('useSyncFocus should only focus if shouldSyncFocus is true', () => {

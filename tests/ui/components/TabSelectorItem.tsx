@@ -1,7 +1,8 @@
-import {render} from '@testing-library/react-native';
-import React from 'react';
 import TabSelectorItem from '@components/TabSelector/TabSelectorItem';
 import Tooltip from '@components/Tooltip';
+
+import {render} from '@testing-library/react-native';
+import React from 'react';
 
 // Mock the Tooltip component since it uses portals which aren't supported in RNTL
 jest.mock('@components/Tooltip');

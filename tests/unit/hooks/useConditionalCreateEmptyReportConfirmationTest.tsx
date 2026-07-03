@@ -1,5 +1,6 @@
-import {act, renderHook} from '@testing-library/react-native';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
+
+import {act, renderHook} from '@testing-library/react-native';
 
 const mockOpenCreateReportConfirmation = jest.fn();
 

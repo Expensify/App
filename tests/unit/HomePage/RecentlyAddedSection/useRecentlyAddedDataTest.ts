@@ -1,3 +1,12 @@
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+
+import {useRecentlyAddedData} from '@pages/home/RecentlyAddedSection/useRecentlyAddedData';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report, Transaction} from '@src/types/onyx';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+
 /**
  * Behavior asserted for the Recently added data hook:
  *   - sources expenses from the current user's server-backed Search snapshot (type:expense from:<accountID>),
@@ -10,12 +19,6 @@
  *   - defensively excludes expenses owned by another account when the snapshot carries the parent report
  */
 import {renderHook} from '@testing-library/react-native';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useRecentlyAddedData} from '@pages/home/RecentlyAddedSection/useRecentlyAddedData';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, Transaction} from '@src/types/onyx';
-import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
 const ACCOUNT_ID = 12345;
 const OTHER_ACCOUNT_ID = 67890;

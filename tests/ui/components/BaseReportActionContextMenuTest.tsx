@@ -1,11 +1,14 @@
-import {act, render, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
 import BaseReportActionContextMenu from '@pages/inbox/report/ContextMenu/BaseReportActionContextMenu';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList} from '@src/types/onyx';
+
+import {act, render, waitFor} from '@testing-library/react-native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@components/ActionSheetAwareScrollView', () => ({

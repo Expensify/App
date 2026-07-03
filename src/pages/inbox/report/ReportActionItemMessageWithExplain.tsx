@@ -1,21 +1,27 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React from 'react';
-import type {GestureResponderEvent} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import RenderHTML from '@components/RenderHTML';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {openLink} from '@libs/actions/Link';
 import {explain} from '@libs/actions/Report';
 import {getParticipantsPersonalDetails} from '@libs/PersonalDetailsUtils';
 import {hasReasoning} from '@libs/ReportActionsUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
+
+import type {GestureResponderEvent} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React from 'react';
+
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 
 type ReportActionItemMessageWithExplainProps = {

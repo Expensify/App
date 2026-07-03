@@ -1,21 +1,28 @@
-/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
-import type * as ReactNavigation from '@react-navigation/native';
-import {render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
+
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
+
 import {shouldDisplayReportTableView, shouldWaitForTransactions} from '@libs/MoneyRequestReportUtils';
 import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
+
 import ReportActionsListBody from '@pages/inbox/report/ReportActionsList';
 import UserTypingEventListener from '@pages/inbox/report/UserTypingEventListener';
 import ReportActions from '@pages/inbox/ReportActions';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
+import type * as ReactNavigation from '@react-navigation/native';
+
+import {render, screen} from '@testing-library/react-native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const REPORT_ID = '123';

@@ -1,9 +1,13 @@
-import {render} from '@testing-library/react-native';
-import React from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
+
+import {render} from '@testing-library/react-native';
+import React from 'react';
+
 import TestNavigationContainer from '../utils/TestNavigationContainer';
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());

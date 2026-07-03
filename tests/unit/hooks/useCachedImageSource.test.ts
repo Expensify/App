@@ -1,7 +1,10 @@
-import {renderHook, waitFor} from '@testing-library/react-native';
-import type {ImageSource} from 'expo-image';
 import useCachedImageSource from '@hooks/useCachedImageSource';
+
 import CONST from '@src/CONST';
+
+import type {ImageSource} from 'expo-image';
+
+import {renderHook, waitFor} from '@testing-library/react-native';
 
 const MOCK_URI = 'https://example.com/image.png';
 // eslint-disable-next-line @typescript-eslint/naming-convention

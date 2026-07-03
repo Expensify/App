@@ -1,3 +1,21 @@
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+import {removeMoneyRequestOdometerImage, setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
+import * as TransactionEdit from '@libs/actions/TransactionEdit';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import TabSwitchGuardContext from '@libs/Navigation/TabSwitchGuardContext';
+import type {RegisterTabSwitchGuard, TabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
+
+import IOURequestStepDistanceOdometer from '@pages/iou/request/step/IOURequestStepDistanceOdometer';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
+import type {Report, Transaction} from '@src/types/onyx';
+import type {FileObject} from '@src/types/utils/Attachment';
+
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
@@ -5,20 +23,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
-import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {removeMoneyRequestOdometerImage, setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
-import * as TransactionEdit from '@libs/actions/TransactionEdit';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import TabSwitchGuardContext from '@libs/Navigation/TabSwitchGuardContext';
-import type {RegisterTabSwitchGuard, TabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext';
-import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
-import IOURequestStepDistanceOdometer from '@pages/iou/request/step/IOURequestStepDistanceOdometer';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
-import type {Report, Transaction} from '@src/types/onyx';
-import type {FileObject} from '@src/types/utils/Attachment';
+
 import createRandomTransaction from '../utils/collections/transaction';
 import getOnyxValue from '../utils/getOnyxValue';
 import {signInWithTestUser} from '../utils/TestHelper';

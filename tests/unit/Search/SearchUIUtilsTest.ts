@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import type {OnyxCollection} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import ChatListItem from '@components/Search/SearchList/ListItem/ChatListItem';
 import ExpenseReportListItem from '@components/Search/SearchList/ListItem/ExpenseReportListItem';
@@ -25,12 +22,16 @@ import type {
 } from '@components/Search/SearchList/ListItem/types';
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
 import type {SearchQueryJSON, SelectedTransactionInfo} from '@components/Search/types';
+
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import type * as ReportUserActions from '@userActions/Report';
 import {createTransactionThreadReport} from '@userActions/Report';
 import type * as SearchUtils from '@userActions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from '@userActions/Search';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
@@ -44,6 +45,12 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {CustomCardFeedData} from '@src/types/onyx/CardFeeds';
 import type {Connections} from '@src/types/onyx/Policy';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../../utils/collections/policies';
 import getOnyxValue from '../../utils/getOnyxValue';
 import {formatPhoneNumber, localeCompare, translateLocal} from '../../utils/TestHelper';

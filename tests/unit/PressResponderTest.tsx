@@ -1,14 +1,16 @@
-import {render} from '@testing-library/react-native';
-import React, {useImperativeHandle} from 'react';
-import type {ReactNode, Ref} from 'react';
-import {View} from 'react-native';
-import type {GestureResponderEvent, View as RNViewType} from 'react-native';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressResponder from '@components/Pressable/PressResponder/PressResponder';
 import usePressResponderProps from '@components/Pressable/PressResponder/usePressResponderProps';
 import useResponderRef from '@components/Pressable/PressResponder/useResponderRef';
 import Text from '@components/Text';
+
+import type {ReactNode, Ref} from 'react';
+import type {GestureResponderEvent, View as RNViewType} from 'react-native';
+
+import {render} from '@testing-library/react-native';
+import React, {useImperativeHandle} from 'react';
+import {View} from 'react-native';
 
 type ProbeProps = {
     consumerOnPress?: PressableProps['onPress'];

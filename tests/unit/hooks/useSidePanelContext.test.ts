@@ -1,8 +1,11 @@
-import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
 import useSidePanelContext from '@pages/inbox/report/ReportActionCompose/useSidePanelContext';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {renderHook} from '@testing-library/react-native';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const REPORT_ID = 'report_123';

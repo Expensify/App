@@ -1,12 +1,18 @@
-import type * as ReactNavigation from '@react-navigation/native';
-import {act, render} from '@testing-library/react-native';
-import React from 'react';
-import type {ComponentProps} from 'react';
 import SelectionList from '@components/SelectionList';
+
 import searchOptions from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
+
 import DynamicCountrySelectionPage from '@pages/settings/Profile/PersonalDetails/DynamicCountrySelectionPage';
+
 import CONST from '@src/CONST';
+
+import type * as ReactNavigation from '@react-navigation/native';
+import type {ComponentProps} from 'react';
+
+import {act, render} from '@testing-library/react-native';
+import React from 'react';
+
 import createMock from '../utils/createMock';
 
 type DynamicCountrySelectionPageProps = ComponentProps<typeof DynamicCountrySelectionPage>;

@@ -1,7 +1,3 @@
-import {render} from '@testing-library/react-native';
-import React, {Profiler, useCallback, useEffect, useMemo, useRef} from 'react';
-import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -12,9 +8,17 @@ import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
+
 import {setHasRadio} from '@libs/NetworkState';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {render} from '@testing-library/react-native';
+import React, {Profiler, useCallback, useEffect, useMemo, useRef} from 'react';
+import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import * as TestHelper from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../../utils/wrapOnyxWithWaitForBatchedUpdates';

@@ -1,6 +1,8 @@
-import {renderHook} from '@testing-library/react-native';
 import useNewTransactions from '@hooks/useNewTransactions';
+
 import type {Transaction} from '@src/types/onyx';
+
+import {renderHook} from '@testing-library/react-native';
 
 // We need to mock requestAnimationFrame to mimic long Onyx merge overhead
 jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback: FrameRequestCallback) => {

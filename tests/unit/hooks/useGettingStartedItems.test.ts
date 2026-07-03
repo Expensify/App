@@ -1,12 +1,15 @@
-/* eslint-disable @typescript-eslint/naming-convention -- test fixtures use backend-shaped object keys that don't follow camelCase: email addresses for PolicyEmployeeList entries and human-readable names / 'GL Code' for PolicyCategories */
-import {renderHook, waitFor} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
 import useGettingStartedItems from '@pages/home/GettingStartedSection/hooks/useGettingStartedItems';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyCategories} from '@src/types/onyx';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
+
+/* eslint-disable @typescript-eslint/naming-convention -- test fixtures use backend-shaped object keys that don't follow camelCase: email addresses for PolicyEmployeeList entries and human-readable names / 'GL Code' for PolicyCategories */
+import {renderHook, waitFor} from '@testing-library/react-native';
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../../utils/collections/policies';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 

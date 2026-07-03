@@ -1,5 +1,6 @@
-import {act, renderHook} from '@testing-library/react-native';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+
+import {act, renderHook} from '@testing-library/react-native';
 
 type ShortcutCallback = () => void;
 type ShortcutConfig = {isActive?: boolean};

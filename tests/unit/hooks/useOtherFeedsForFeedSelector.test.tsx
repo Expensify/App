@@ -1,5 +1,3 @@
-import {renderHook} from '@testing-library/react-native';
-import React from 'react';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCardFeedsForActivePolicies from '@hooks/useCardFeedsForActivePolicies';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
@@ -8,8 +6,12 @@ import useLocalize from '@hooks/useLocalize';
 import useOtherFeedsForFeedSelector from '@hooks/useOtherFeedsForFeedSelector';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {renderHook} from '@testing-library/react-native';
+import React from 'react';
 
 const currentPolicyID = 'policy_current';
 const otherPolicyID = 'policy_other';

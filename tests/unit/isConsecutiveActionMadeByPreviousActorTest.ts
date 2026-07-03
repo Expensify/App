@@ -1,5 +1,7 @@
 import {isConsecutiveActionMadeByPreviousActor as isConsecutiveActionMadeByPreviousActorUtil} from '@libs/ReportActionsUtils';
+
 import CONST from '@src/CONST';
+
 import {getFakeReportAction} from '../utils/ReportTestUtils';
 
 const accountID = 1;

@@ -1,5 +1,6 @@
-import {renderHook} from '@testing-library/react-native';
 import useSelectedItemFocusSync from '@components/SelectionList/hooks/useSelectedItemFocusSync';
+
+import {renderHook} from '@testing-library/react-native';
 
 type Item = {keyForList: string; text: string; isSelected: boolean};
 

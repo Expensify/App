@@ -1,5 +1,7 @@
-import {CachesDirectoryPath, readDir, unlink} from 'react-native-fs';
 import Log from '@libs/Log';
+
+import {CachesDirectoryPath, readDir, unlink} from 'react-native-fs';
+
 import type ClearCache from './types';
 
 // `unlink` is used to delete contents of the caches directory

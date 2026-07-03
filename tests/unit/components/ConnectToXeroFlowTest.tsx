@@ -1,10 +1,14 @@
+import ConnectToXeroFlow from '@components/ConnectToXeroFlow/index.native';
+
+import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
+
+import Navigation from '@libs/Navigation/Navigation';
+
+import ROUTES from '@src/ROUTES';
+
 import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
-import ConnectToXeroFlow from '@components/ConnectToXeroFlow/index.native';
-import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
-import Navigation from '@libs/Navigation/Navigation';
-import ROUTES from '@src/ROUTES';
 
 const TWO_FACTOR_AUTH_ROUTE = ROUTES.SETTINGS_2FA_ENABLED;
 const POLICY_ID = '123';

@@ -1,12 +1,16 @@
-import * as NativeNavigation from '@react-navigation/native';
-import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import type ReactNative from 'react-native';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import SearchSingleSelectionPicker from '@components/Search/SearchSingleSelectionPicker';
 import type {SearchSingleSelectionPickerItem} from '@components/Search/SearchSingleSelectionPicker';
+
 import type Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
+
+import type ReactNative from 'react-native';
+
+import * as NativeNavigation from '@react-navigation/native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
+import React from 'react';
 
 jest.mock('@shopify/flash-list', () => {
     const ReactLocal = jest.requireActual<typeof React>('react');

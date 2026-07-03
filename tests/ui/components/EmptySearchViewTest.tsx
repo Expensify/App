@@ -1,12 +1,17 @@
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+
+import EmptySearchView from '@pages/Search/EmptySearchView';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import EmptySearchView from '@pages/Search/EmptySearchView';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 

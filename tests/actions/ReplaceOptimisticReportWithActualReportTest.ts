@@ -1,10 +1,12 @@
-import {beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
-import {DeviceEventEmitter} from 'react-native';
-import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import {replaceOptimisticReportWithActualReport} from '@src/libs/actions/replaceOptimisticReportWithActualReport';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+
+import {beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
+import {DeviceEventEmitter} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import getOnyxValue from '../utils/getOnyxValue';

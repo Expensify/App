@@ -1,14 +1,20 @@
+import Text from '@components/Text';
+
+import useReportRecipientLocalTime from '@hooks/useReportRecipientLocalTime';
+
+import {canUserPerformWriteAction} from '@libs/ReportUtils';
+
+import ReportActionsListPaddingView from '@pages/inbox/report/ReportActionsListPaddingView';
+import useShouldShowComposerForActiveEditDraft from '@pages/inbox/report/useShouldShowComposerForActiveEditDraft';
+
+import CONST from '@src/CONST';
+import type {Report} from '@src/types/onyx';
+
+import type {ViewStyle} from 'react-native';
+
 import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import {StyleSheet} from 'react-native';
-import type {ViewStyle} from 'react-native';
-import Text from '@components/Text';
-import useReportRecipientLocalTime from '@hooks/useReportRecipientLocalTime';
-import {canUserPerformWriteAction} from '@libs/ReportUtils';
-import ReportActionsListPaddingView from '@pages/inbox/report/ReportActionsListPaddingView';
-import useShouldShowComposerForActiveEditDraft from '@pages/inbox/report/useShouldShowComposerForActiveEditDraft';
-import CONST from '@src/CONST';
-import type {Report} from '@src/types/onyx';
 
 const PB4_PADDING_BOTTOM = 16;
 

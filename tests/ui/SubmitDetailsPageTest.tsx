@@ -1,3 +1,9 @@
+import SubmitDetailsPage from '@pages/Share/SubmitDetailsPage';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report, Transaction} from '@src/types/onyx';
+
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
@@ -5,12 +11,10 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import SubmitDetailsPage from '@pages/Share/SubmitDetailsPage';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, Transaction} from '@src/types/onyx';
-import * as TrackExpense from '../../src/libs/actions/IOU/TrackExpense';
+
 import type * as FileUtilsModule from '../../src/libs/fileDownload/FileUtils';
+
+import * as TrackExpense from '../../src/libs/actions/IOU/TrackExpense';
 import cleanupAndNavigateAfterExpenseCreate from '../../src/libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
