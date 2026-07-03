@@ -1,9 +1,12 @@
-import type {PropsWithChildren} from 'react';
-import React, {createContext, useContext, useState} from 'react';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
+
 import type {CardList, ExpensifyCardDetails} from '@src/types/onyx/Card';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {PropsWithChildren} from 'react';
+
+import React, {createContext, useContext, useState} from 'react';
 
 type ExpensifyCardStateContextType = {
     cardsDetails: Record<number, ExpensifyCardDetails | null>;

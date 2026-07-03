@@ -1,10 +1,13 @@
-import React from 'react';
-import Animated, {Keyframe} from 'react-native-reanimated';
 import {getModalInAnimation, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
 import {PressableWithoutFeedback} from '@components/Pressable';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import Animated, {Keyframe} from 'react-native-reanimated';
 
 type SidePanelOverlayProps = {
     /** Whether the Side Panel is displayed over RHP */

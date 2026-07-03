@@ -1,5 +1,3 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -8,6 +6,7 @@ import ScrollView from '@components/ScrollView';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
+
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCreateNewReport from '@hooks/useCreateNewReport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -19,6 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
@@ -29,9 +29,12 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
 import {getPersonalDetailsForAccountID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+
 import UpgradeConfirmation from '@pages/workspace/upgrade/UpgradeConfirmation';
 import UpgradeIntro from '@pages/workspace/upgrade/UpgradeIntro';
+
 import {setCustomUnitRateID, setMoneyRequestParticipants} from '@userActions/IOU/MoneyRequest';
+
 import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,6 +42,9 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 
 type IOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_UPGRADE>;
 

@@ -3,6 +3,7 @@
  * all the custom processors we want to run.
  */
 import seatbelt from 'eslint-seatbelt';
+
 import reactCompilerCompatProcessor from './eslint-processor-react-compiler-compat.mjs';
 import stratifyNoDeprecatedProcessor from './eslint-processor-stratify-no-deprecated.mjs';
 

@@ -1,5 +1,9 @@
-import type {ValueOf} from 'type-fest';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ValueOf} from 'type-fest';
+
+import type {OnyxDerivedValueConfig} from './types';
+
 import cardFeedErrorsConfig from './configs/cardFeedErrors';
 import nonPersonalAndWorkspaceCardListConfig from './configs/nonPersonalAndWorkspaceCardList';
 import outstandingReportsByPolicyIDConfig from './configs/outstandingReportsByPolicyID';
@@ -8,7 +12,6 @@ import reportAttributesConfig from './configs/reportAttributes';
 import reportTransactionsAndViolationsConfig from './configs/reportTransactionsAndViolations';
 import sortedReportActionsConfig from './configs/sortedReportActions';
 import visibleReportActionsConfig from './configs/visibleReportActions';
-import type {OnyxDerivedValueConfig} from './types';
 
 /**
  * Global map of derived configs.
