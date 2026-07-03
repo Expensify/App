@@ -115,8 +115,13 @@ type UseReportActionsScrollResult = {
     /** The initial scroll target key for the list */
     initialScrollKey: string | undefined;
 
-    /** Whether FlashList should autoscroll to the bottom while mounting at top */
-    shouldAutoscrollToBottom: boolean;
+    /** maintainVisibleContentPosition config for the inverted list */
+    maintainVisibleContentPosition:
+        | {
+              autoscrollToBottomThreshold?: number;
+              animateAutoScrollToBottom?: boolean;
+          }
+        | undefined;
 
     /** onLoad handler that disables autoscroll-to-top once the initial render settles */
     onLoad: () => void;
@@ -176,6 +181,16 @@ function useReportActionsScroll({
 
     const shouldFocusToTopOnMount = shouldBeAlignedToTop && !initialScrollKey;
     const [shouldAutoscrollToBottom, setShouldAutoscrollToBottom] = useState(shouldFocusToTopOnMount);
+    // Once the initial pin to the visual top is released, the threshold must drop to 0 instead of removing the config:
+    // FlashList only clears its internal pending-autoscroll flag while `autoscrollToBottomThreshold >= 0`. Removing the
+    // config leaves a flag planted during the pin phase stale forever, and the next content change (e.g. marking a
+    // message as unread) would scroll the list back to the top.
+    const maintainVisibleContentPosition = shouldFocusToTopOnMount
+        ? {
+              autoscrollToBottomThreshold: shouldAutoscrollToBottom ? CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD : 0,
+              animateAutoScrollToBottom: false,
+          }
+        : undefined;
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, isActionBadgeAboveViewport, trackVerticalScrolling, onViewableItemsChanged} =
         useReportUnreadMessageScrollTracking({
@@ -380,7 +395,7 @@ function useReportActionsScroll({
         shouldBeAlignedToTop,
         shouldFocusToTopOnMount,
         initialScrollKey,
-        shouldAutoscrollToBottom,
+        maintainVisibleContentPosition,
         onLoad,
     };
 }
