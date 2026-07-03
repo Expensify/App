@@ -18,15 +18,20 @@ import {
     removePolicyCategoryReceiptsRequired,
     setPolicyCategoryAttendeesRequired,
     setPolicyCategoryDescriptionRequired,
+    setPolicyCategoryItemizedReceiptsRequired,
+    setPolicyCategoryReceiptsRequired,
 } from './actions/Policy/Category';
+import {setDraftRequireFieldsRule} from './actions/User';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {isPendingDeleteOrUpdate} from './PolicyRulesUtils';
 
 type RequireFieldsRuleType = DeepValueOf<typeof CONST.REQUIRE_FIELDS_RULE_TYPES>;
+type FieldRequirementsDirection = DeepValueOf<typeof CONST.FIELD_REQUIREMENTS_DIRECTION>;
 
 type RequireFieldsTableItem = TableData & {
     ruleID: string;
     categoryName: string;
+    direction: FieldRequirementsDirection;
     typeLabel: string;
     conditionText: string;
     ruleDescription: string;
@@ -35,8 +40,34 @@ type RequireFieldsTableItem = TableData & {
     action: () => void;
 };
 
+function getRequireFieldsRuleKey(direction: FieldRequirementsDirection, categoryName: string): string {
+    return `${direction}${CONST.FIELD_REQUIREMENTS_RULE_KEY_SEPARATOR}${categoryName}`;
+}
+
+function parseRequireFieldsRuleKey(ruleKey: string): {
+    direction?: FieldRequirementsDirection;
+    categoryName: string;
+} {
+    const separator = CONST.FIELD_REQUIREMENTS_RULE_KEY_SEPARATOR;
+    const separatorIndex = ruleKey.indexOf(separator);
+
+    if (separatorIndex === -1) {
+        return {categoryName: ruleKey};
+    }
+
+    const directionValue = ruleKey.slice(0, separatorIndex);
+    const categoryName = ruleKey.slice(separatorIndex + separator.length);
+    const direction = directionValue === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE || directionValue === CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE ? directionValue : undefined;
+
+    return {direction, categoryName};
+}
+
 function getRequireFieldsRuleNavigationRoute(policyID: string, categoryName: string): Route {
     return ROUTES.RULES_REQUIRE_FIELDS_RULE_EDIT.getRoute(policyID, categoryName);
+}
+
+function isWaiveReceiptThreshold(value: number | null | undefined): boolean {
+    return value === CONST.DISABLED_MAX_EXPENSE_VALUE;
 }
 
 function hasExplicitReceiptThreshold(value: number | null | undefined): value is number {
@@ -55,48 +86,84 @@ function categoryHasLegacyReceiptRules(category: PolicyCategory | undefined): bo
     return hasCategoryReceiptOverride(category.maxAmountNoReceipt) || hasCategoryReceiptOverride(category.maxAmountNoItemizedReceipt);
 }
 
-function categoryHasAnyRequireFieldsRule(category: PolicyCategory): boolean {
+function categoryHasRequireDirectionFields(category: PolicyCategory): boolean {
     return (
         !!category.areCommentsRequired ||
         !!category.areAttendeesRequired ||
-        hasCategoryReceiptOverride(category.maxAmountNoReceipt) ||
-        hasCategoryReceiptOverride(category.maxAmountNoItemizedReceipt)
+        (hasCategoryReceiptOverride(category.maxAmountNoReceipt) && hasExplicitReceiptThreshold(category.maxAmountNoReceipt)) ||
+        (hasCategoryReceiptOverride(category.maxAmountNoItemizedReceipt) && hasExplicitReceiptThreshold(category.maxAmountNoItemizedReceipt))
     );
 }
 
-function isRequireFieldEnabled(category: PolicyCategory | undefined, field: RequireFieldsRuleToggleFieldKey): boolean {
+function categoryHasWaiveDirectionFields(category: PolicyCategory): boolean {
+    return isWaiveReceiptThreshold(category.maxAmountNoReceipt) || isWaiveReceiptThreshold(category.maxAmountNoItemizedReceipt);
+}
+
+function categoryHasAnyRequireFieldsRule(category: PolicyCategory): boolean {
+    return categoryHasRequireDirectionFields(category) || categoryHasWaiveDirectionFields(category);
+}
+
+function inferFieldRequirementsDirection(category: PolicyCategory | undefined): FieldRequirementsDirection {
+    if (!category) {
+        return CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE;
+    }
+
+    if (categoryHasRequireDirectionFields(category)) {
+        return CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE;
+    }
+
+    if (categoryHasWaiveDirectionFields(category)) {
+        return CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE;
+    }
+
+    return CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE;
+}
+
+function isRequireFieldEnabled(category: PolicyCategory | undefined, field: RequireFieldsRuleToggleFieldKey, direction: FieldRequirementsDirection): boolean {
     if (!category) {
         return false;
     }
 
     switch (field) {
         case INPUT_IDS.REQUIRE_DESCRIPTION:
-            return !!category.areCommentsRequired;
+            return direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE && !!category.areCommentsRequired;
         case INPUT_IDS.REQUIRE_ATTENDEES:
-            return !!category.areAttendeesRequired;
+            return direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE && !!category.areAttendeesRequired;
         case INPUT_IDS.REQUIRE_RECEIPT:
+            if (direction === CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE) {
+                return isWaiveReceiptThreshold(category.maxAmountNoReceipt);
+            }
             return hasExplicitReceiptThreshold(category.maxAmountNoReceipt);
         case INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT:
+            if (direction === CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE) {
+                return isWaiveReceiptThreshold(category.maxAmountNoItemizedReceipt);
+            }
             return hasExplicitReceiptThreshold(category.maxAmountNoItemizedReceipt);
         default:
             return false;
     }
 }
 
-function getRequireFieldsFormFromCategory(category: PolicyCategory | undefined): Partial<RequireFieldsRuleForm> {
+function getRequireFieldsFormFromCategory(
+    category: PolicyCategory | undefined,
+    direction: FieldRequirementsDirection = CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE,
+): Partial<RequireFieldsRuleForm> {
     return {
-        [INPUT_IDS.REQUIRE_DESCRIPTION]: isRequireFieldEnabled(category, INPUT_IDS.REQUIRE_DESCRIPTION),
-        [INPUT_IDS.REQUIRE_ATTENDEES]: isRequireFieldEnabled(category, INPUT_IDS.REQUIRE_ATTENDEES),
-        [INPUT_IDS.REQUIRE_RECEIPT]: isRequireFieldEnabled(category, INPUT_IDS.REQUIRE_RECEIPT),
-        [INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT]: isRequireFieldEnabled(category, INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT),
+        [INPUT_IDS.DIRECTION]: direction,
+        [INPUT_IDS.REQUIRE_DESCRIPTION]: isRequireFieldEnabled(category, INPUT_IDS.REQUIRE_DESCRIPTION, direction),
+        [INPUT_IDS.REQUIRE_ATTENDEES]: isRequireFieldEnabled(category, INPUT_IDS.REQUIRE_ATTENDEES, direction),
+        [INPUT_IDS.REQUIRE_RECEIPT]: isRequireFieldEnabled(category, INPUT_IDS.REQUIRE_RECEIPT, direction),
+        [INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT]: isRequireFieldEnabled(category, INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT, direction),
     };
 }
 
 function getEffectiveRequireFieldsRuleForm(category: PolicyCategory | undefined, form: Partial<RequireFieldsRuleForm>): RequireFieldsRuleForm {
-    const categoryForm = getRequireFieldsFormFromCategory(category);
+    const direction = form[INPUT_IDS.DIRECTION] ?? inferFieldRequirementsDirection(category);
+    const categoryForm = getRequireFieldsFormFromCategory(category, direction);
 
     return {
         [INPUT_IDS.CATEGORY]: form[INPUT_IDS.CATEGORY] ?? '',
+        [INPUT_IDS.DIRECTION]: direction,
         [INPUT_IDS.REQUIRE_DESCRIPTION]: form[INPUT_IDS.REQUIRE_DESCRIPTION] ?? categoryForm[INPUT_IDS.REQUIRE_DESCRIPTION] ?? false,
         [INPUT_IDS.REQUIRE_ATTENDEES]: form[INPUT_IDS.REQUIRE_ATTENDEES] ?? categoryForm[INPUT_IDS.REQUIRE_ATTENDEES] ?? false,
         [INPUT_IDS.REQUIRE_RECEIPT]: form[INPUT_IDS.REQUIRE_RECEIPT] ?? categoryForm[INPUT_IDS.REQUIRE_RECEIPT] ?? false,
@@ -112,19 +179,57 @@ function saveRequireFieldsRule(policyData: PolicyData, form: RequireFieldsRuleFo
 
     const policyCategories = policyData.categories;
     const category = policyCategories?.[categoryName];
-    const initialForm = getRequireFieldsFormFromCategory(category);
+    const direction = form[INPUT_IDS.DIRECTION] ?? CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE;
+    const initialForm = getRequireFieldsFormFromCategory(category, direction);
     const effectiveForm = getEffectiveRequireFieldsRuleForm(category, form);
 
-    if (effectiveForm.requireDescription !== initialForm.requireDescription) {
-        setPolicyCategoryDescriptionRequired(policyData.policy.id, categoryName, !!effectiveForm.requireDescription, policyCategories);
+    if (direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE) {
+        if (effectiveForm.requireDescription !== initialForm.requireDescription) {
+            setPolicyCategoryDescriptionRequired(policyData.policy.id, categoryName, !!effectiveForm.requireDescription, policyCategories);
+        }
+
+        if (effectiveForm.requireAttendees !== initialForm.requireAttendees) {
+            setPolicyCategoryAttendeesRequired(policyData.policy.id, categoryName, !!effectiveForm.requireAttendees, policyCategories);
+        }
+
+        if (effectiveForm.requireReceipt !== initialForm.requireReceipt) {
+            if (effectiveForm.requireReceipt) {
+                setPolicyCategoryReceiptsRequired(policyData, categoryName, 0);
+            } else if (hasCategoryReceiptOverride(category?.maxAmountNoReceipt)) {
+                removePolicyCategoryReceiptsRequired(policyData, categoryName);
+            }
+        }
+
+        if (effectiveForm.requireItemizedReceipt !== initialForm.requireItemizedReceipt) {
+            if (effectiveForm.requireItemizedReceipt) {
+                setPolicyCategoryItemizedReceiptsRequired(policyData, categoryName, 0);
+            } else if (hasCategoryReceiptOverride(category?.maxAmountNoItemizedReceipt)) {
+                removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
+            }
+        }
+
+        return;
     }
 
-    if (effectiveForm.requireAttendees !== initialForm.requireAttendees) {
-        setPolicyCategoryAttendeesRequired(policyData.policy.id, categoryName, !!effectiveForm.requireAttendees, policyCategories);
+    if (effectiveForm.requireReceipt !== initialForm.requireReceipt) {
+        if (effectiveForm.requireReceipt) {
+            setPolicyCategoryReceiptsRequired(policyData, categoryName, CONST.DISABLED_MAX_EXPENSE_VALUE);
+        } else if (isWaiveReceiptThreshold(category?.maxAmountNoReceipt)) {
+            removePolicyCategoryReceiptsRequired(policyData, categoryName);
+        }
+    }
+
+    if (effectiveForm.requireItemizedReceipt !== initialForm.requireItemizedReceipt) {
+        if (effectiveForm.requireItemizedReceipt) {
+            setPolicyCategoryItemizedReceiptsRequired(policyData, categoryName, CONST.DISABLED_MAX_EXPENSE_VALUE);
+        } else if (isWaiveReceiptThreshold(category?.maxAmountNoItemizedReceipt)) {
+            removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
+        }
     }
 }
 
-function deleteRequireFieldsRule(policyData: PolicyData, categoryName: string) {
+function deleteRequireFieldsRule(policyData: PolicyData, ruleKey: string) {
+    const {direction, categoryName} = parseRequireFieldsRuleKey(ruleKey);
     if (!categoryName || !policyData.policy?.id) {
         return;
     }
@@ -137,20 +242,35 @@ function deleteRequireFieldsRule(policyData: PolicyData, categoryName: string) {
         return;
     }
 
-    if (category.areCommentsRequired) {
-        setPolicyCategoryDescriptionRequired(policyID, categoryName, false, policyCategories);
+    const shouldDeleteRequireDirection = !direction || direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE;
+    const shouldDeleteWaiveDirection = !direction || direction === CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE;
+
+    if (shouldDeleteRequireDirection) {
+        if (category.areCommentsRequired) {
+            setPolicyCategoryDescriptionRequired(policyID, categoryName, false, policyCategories);
+        }
+
+        if (category.areAttendeesRequired) {
+            setPolicyCategoryAttendeesRequired(policyID, categoryName, false, policyCategories);
+        }
+
+        if (hasCategoryReceiptOverride(category.maxAmountNoReceipt) && hasExplicitReceiptThreshold(category.maxAmountNoReceipt)) {
+            removePolicyCategoryReceiptsRequired(policyData, categoryName);
+        }
+
+        if (hasCategoryReceiptOverride(category.maxAmountNoItemizedReceipt) && hasExplicitReceiptThreshold(category.maxAmountNoItemizedReceipt)) {
+            removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
+        }
     }
 
-    if (category.areAttendeesRequired) {
-        setPolicyCategoryAttendeesRequired(policyID, categoryName, false, policyCategories);
-    }
+    if (shouldDeleteWaiveDirection) {
+        if (isWaiveReceiptThreshold(category.maxAmountNoReceipt)) {
+            removePolicyCategoryReceiptsRequired(policyData, categoryName);
+        }
 
-    if (hasCategoryReceiptOverride(category.maxAmountNoReceipt)) {
-        removePolicyCategoryReceiptsRequired(policyData, categoryName);
-    }
-
-    if (hasCategoryReceiptOverride(category.maxAmountNoItemizedReceipt)) {
-        removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
+        if (isWaiveReceiptThreshold(category.maxAmountNoItemizedReceipt)) {
+            removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
+        }
     }
 }
 
@@ -160,24 +280,30 @@ function getRequireFieldsRuleDescription(
     amount: number | undefined,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     policyCurrency: string,
+    direction: FieldRequirementsDirection = CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE,
 ): string {
+    if (direction === CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE) {
+        switch (ruleType) {
+            case CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_RECEIPTS_OVER:
+                return translate('workspace.rules.requireFieldsTable.doNotRequireReceipt');
+            case CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ITEMIZED_RECEIPTS_OVER:
+                return translate('workspace.rules.requireFieldsTable.doNotRequireItemizedReceipt');
+            default:
+                return '';
+        }
+    }
+
     switch (ruleType) {
         case CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_DESCRIPTION:
             return translate('workspace.rules.requireFieldsTable.requireDescription');
         case CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ATTENDEES:
             return translate('workspace.rules.requireFieldsTable.requireAttendees');
         case CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_RECEIPTS_OVER:
-            if (amount === CONST.DISABLED_MAX_EXPENSE_VALUE) {
-                return translate('workspace.rules.categoryRules.requireReceiptsOverList.never');
-            }
             if (amount === 0) {
-                return translate('workspace.rules.requireFieldsTable.alwaysRequireReceipt');
+                return translate('workspace.rules.requireFieldsTable.requireReceipt');
             }
             return translate('workspace.rules.requireFieldsTable.requireReceiptOver', convertToDisplayString(amount ?? 0, policyCurrency));
         case CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ITEMIZED_RECEIPTS_OVER:
-            if (amount === CONST.DISABLED_MAX_EXPENSE_VALUE) {
-                return translate('workspace.rules.categoryRules.requireItemizedReceiptsOverList.never');
-            }
             if (amount === 0) {
                 return translate('workspace.rules.requireFieldsTable.requireItemizedReceipt');
             }
@@ -212,14 +338,49 @@ function getRequireFieldsRuleDescriptionsForCategory(
     translate: LocaleContextProps['translate'],
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     policyCurrency: string,
+    direction: FieldRequirementsDirection,
 ): string[] {
     const descriptions: string[] = [];
 
-    if (category.areCommentsRequired) {
-        descriptions.push(getRequireFieldsRuleDescription(translate, CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_DESCRIPTION, undefined, convertToDisplayString, policyCurrency));
+    if (direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE) {
+        if (category.areCommentsRequired) {
+            descriptions.push(getRequireFieldsRuleDescription(translate, CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_DESCRIPTION, undefined, convertToDisplayString, policyCurrency, direction));
+        }
+
+        if (hasCategoryReceiptOverride(category.maxAmountNoReceipt) && hasExplicitReceiptThreshold(category.maxAmountNoReceipt)) {
+            descriptions.push(
+                getRequireFieldsRuleDescription(
+                    translate,
+                    CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_RECEIPTS_OVER,
+                    category.maxAmountNoReceipt ?? undefined,
+                    convertToDisplayString,
+                    policyCurrency,
+                    direction,
+                ),
+            );
+        }
+
+        if (hasCategoryReceiptOverride(category.maxAmountNoItemizedReceipt) && hasExplicitReceiptThreshold(category.maxAmountNoItemizedReceipt)) {
+            descriptions.push(
+                getRequireFieldsRuleDescription(
+                    translate,
+                    CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ITEMIZED_RECEIPTS_OVER,
+                    category.maxAmountNoItemizedReceipt ?? undefined,
+                    convertToDisplayString,
+                    policyCurrency,
+                    direction,
+                ),
+            );
+        }
+
+        if (category.areAttendeesRequired) {
+            descriptions.push(getRequireFieldsRuleDescription(translate, CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ATTENDEES, undefined, convertToDisplayString, policyCurrency, direction));
+        }
+
+        return descriptions;
     }
 
-    if (hasCategoryReceiptOverride(category.maxAmountNoReceipt)) {
+    if (isWaiveReceiptThreshold(category.maxAmountNoReceipt)) {
         descriptions.push(
             getRequireFieldsRuleDescription(
                 translate,
@@ -227,11 +388,12 @@ function getRequireFieldsRuleDescriptionsForCategory(
                 category.maxAmountNoReceipt ?? undefined,
                 convertToDisplayString,
                 policyCurrency,
+                direction,
             ),
         );
     }
 
-    if (hasCategoryReceiptOverride(category.maxAmountNoItemizedReceipt)) {
+    if (isWaiveReceiptThreshold(category.maxAmountNoItemizedReceipt)) {
         descriptions.push(
             getRequireFieldsRuleDescription(
                 translate,
@@ -239,15 +401,67 @@ function getRequireFieldsRuleDescriptionsForCategory(
                 category.maxAmountNoItemizedReceipt ?? undefined,
                 convertToDisplayString,
                 policyCurrency,
+                direction,
             ),
         );
     }
 
-    if (category.areAttendeesRequired) {
-        descriptions.push(getRequireFieldsRuleDescription(translate, CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ATTENDEES, undefined, convertToDisplayString, policyCurrency));
+    return descriptions;
+}
+
+function getRequireFieldsTypeLabel(translate: LocaleContextProps['translate'], direction: FieldRequirementsDirection): string {
+    if (direction === CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE) {
+        return translate('workspace.rules.requireFieldsTable.typeLabelDoNotRequire');
     }
 
-    return descriptions;
+    return translate('workspace.rules.requireFieldsTable.typeLabelRequire');
+}
+
+function createRequireFieldsTableItem({
+    policyID,
+    categoryName,
+    category,
+    direction,
+    translate,
+    convertToDisplayString,
+    policyCurrency,
+    onNavigate,
+}: {
+    policyID: string;
+    categoryName: string;
+    category: PolicyCategory;
+    direction: FieldRequirementsDirection;
+    translate: LocaleContextProps['translate'];
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    policyCurrency: string;
+    onNavigate: (route: Route) => void;
+}): RequireFieldsTableItem {
+    const pendingAction = getRequireFieldsPendingAction(category.pendingFields);
+    const decodedCategoryName = getDecodedCategoryName(categoryName);
+    const conditionText = translate('workspace.rules.requireFieldsTable.conditionCategoryIs', decodedCategoryName);
+    const typeLabel = getRequireFieldsTypeLabel(translate, direction);
+    const ruleDescriptions = getRequireFieldsRuleDescriptionsForCategory(category, translate, convertToDisplayString, policyCurrency, direction);
+    const ruleDescription = formatRequireFieldsRuleDescriptions(ruleDescriptions);
+
+    return {
+        keyForList: getRequireFieldsRuleKey(direction, categoryName),
+        ruleID: categoryName,
+        categoryName,
+        direction,
+        typeLabel,
+        conditionText,
+        ruleDescription,
+        searchTokens: [decodedCategoryName, ruleDescription, typeLabel, ...ruleDescriptions],
+        pendingAction,
+        disabled: pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        action: () => {
+            setDraftRequireFieldsRule({
+                [INPUT_IDS.CATEGORY]: categoryName,
+                ...getRequireFieldsFormFromCategory(category, direction),
+            });
+            onNavigate(getRequireFieldsRuleNavigationRoute(policyID, categoryName));
+        },
+    };
 }
 
 function getRequireFieldsTableData({
@@ -273,7 +487,6 @@ function getRequireFieldsTableData({
 
     const policyID = policy.id;
     const policyCurrency = policy.outputCurrency ?? CONST.CURRENCY.USD;
-    const typeLabel = translate('workspace.rules.requireFieldsTable.typeLabel');
     const rules: RequireFieldsTableItem[] = [];
 
     for (const [categoryName, category] of Object.entries(policyCategories)) {
@@ -292,27 +505,49 @@ function getRequireFieldsTableData({
             continue;
         }
 
-        const decodedCategoryName = getDecodedCategoryName(categoryName);
-        const conditionText = translate('workspace.rules.requireFieldsTable.conditionCategoryIs', decodedCategoryName);
-        const ruleDescriptions = getRequireFieldsRuleDescriptionsForCategory(category, translate, convertToDisplayString, policyCurrency);
-        const ruleDescription = formatRequireFieldsRuleDescriptions(ruleDescriptions);
+        if (categoryHasRequireDirectionFields(category)) {
+            rules.push(
+                createRequireFieldsTableItem({
+                    policyID,
+                    categoryName,
+                    category,
+                    direction: CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE,
+                    translate,
+                    convertToDisplayString,
+                    policyCurrency,
+                    onNavigate,
+                }),
+            );
+        }
 
-        rules.push({
-            keyForList: categoryName,
-            ruleID: categoryName,
-            categoryName,
-            typeLabel,
-            conditionText,
-            ruleDescription,
-            searchTokens: [decodedCategoryName, ruleDescription, typeLabel, ...ruleDescriptions],
-            pendingAction,
-            disabled: pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            action: () => onNavigate(getRequireFieldsRuleNavigationRoute(policyID, categoryName)),
-        });
+        if (categoryHasWaiveDirectionFields(category)) {
+            rules.push(
+                createRequireFieldsTableItem({
+                    policyID,
+                    categoryName,
+                    category,
+                    direction: CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE,
+                    translate,
+                    convertToDisplayString,
+                    policyCurrency,
+                    onNavigate,
+                }),
+            );
+        }
     }
 
     return rules.sort((a, b) => localeCompare(a.conditionText, b.conditionText));
 }
 
-export {categoryHasLegacyReceiptRules, deleteRequireFieldsRule, getEffectiveRequireFieldsRuleForm, getRequireFieldsFormFromCategory, getRequireFieldsTableData, saveRequireFieldsRule};
-export type {RequireFieldsTableItem};
+export {
+    categoryHasLegacyReceiptRules,
+    deleteRequireFieldsRule,
+    getEffectiveRequireFieldsRuleForm,
+    getRequireFieldsFormFromCategory,
+    getRequireFieldsRuleKey,
+    getRequireFieldsTableData,
+    inferFieldRequirementsDirection,
+    parseRequireFieldsRuleKey,
+    saveRequireFieldsRule,
+};
+export type {FieldRequirementsDirection, RequireFieldsTableItem};

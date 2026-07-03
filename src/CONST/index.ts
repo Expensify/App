@@ -4754,6 +4754,11 @@ const CONST = {
         REQUIRE_RECEIPTS_OVER: 'requireReceiptsOver',
         REQUIRE_ITEMIZED_RECEIPTS_OVER: 'requireItemizedReceiptsOver',
     },
+    FIELD_REQUIREMENTS_DIRECTION: {
+        REQUIRE: 'require',
+        DO_NOT_REQUIRE: 'doNotRequire',
+    },
+    FIELD_REQUIREMENTS_RULE_KEY_SEPARATOR: '::',
     SPEND_RULES: {
         BADGE_VARIANTS: {
             SUCCESS: 'success',
