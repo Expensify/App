@@ -27,12 +27,20 @@ type GetYourSpendSnapshotTotalUpdatesParams = {
     currentUserAccountID: number;
 };
 
-let allSnapshots: OnyxCollection<SearchResults> = {};
+// Mirror only each snapshot's `search` aggregates; dropping the large `data` blob keeps this bounded regardless of how many searches are cached.
+type SnapshotSearch = SearchResults['search'];
+let allSnapshotSearches: Record<string, SnapshotSearch | undefined> = {};
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.SNAPSHOT,
     waitForCollectionCallback: true,
     callback: (value) => {
-        allSnapshots = value ?? {};
+        const next: Record<string, SnapshotSearch> = {};
+        for (const [key, snapshot] of Object.entries(value ?? {})) {
+            if (snapshot?.search) {
+                next[key] = snapshot.search;
+            }
+        }
+        allSnapshotSearches = next;
     },
 });
 
@@ -89,7 +97,7 @@ function transactionMatchesRepaidLast30DaysQuery(iouReport: OnyxEntry<Report>, t
     if (!created) {
         return false;
     }
-    return created >= get30DaysAgoDateString();
+    return created > get30DaysAgoDateString();
 }
 
 function buildSnapshotTotalUpdatesForHash(snapshotHash: number | undefined, diff: number, currency: string, countDiff = 0): YourSpendSnapshotOnyxData {
@@ -98,8 +106,7 @@ function buildSnapshotTotalUpdatesForHash(snapshotHash: number | undefined, diff
     }
 
     const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as const;
-    const currentSnapshot = allSnapshots?.[snapshotKey];
-    const search = currentSnapshot?.search;
+    const search = allSnapshotSearches[snapshotKey];
 
     // Skip when the snapshot isn't loaded; a loaded-but-empty snapshot is a valid zero base.
     if (!search) {
@@ -213,7 +220,7 @@ function getSnapshotSearchResults(snapshotHash: number | undefined) {
         return undefined;
     }
     const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as const;
-    return allSnapshots?.[snapshotKey]?.search;
+    return allSnapshotSearches[snapshotKey];
 }
 
 /** Returns a transaction's signed reimbursable amount in the snapshot currency, or null when conversion is unavailable offline. */
@@ -257,7 +264,7 @@ function getReportReimbursableTotal(
         }
         if (onlyWithinLast30Days) {
             const created = reportTransaction.created?.slice(0, 10);
-            if (!created || created < get30DaysAgoDateString()) {
+            if (!created || created <= get30DaysAgoDateString()) {
                 continue;
             }
         }
@@ -282,7 +289,7 @@ function buildSnapshotDataUpdatesForHash(snapshotHash: number | undefined, trans
     }
 
     const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as const;
-    if (!allSnapshots?.[snapshotKey]?.search) {
+    if (!allSnapshotSearches[snapshotKey]) {
         return {optimisticData: [], successData: [], failureData: []};
     }
 
@@ -382,6 +389,7 @@ function getYourSpendSnapshotTransactionRemovalUpdates({transaction, iouReport, 
             const amount = getReimbursableTransactionAmountInCurrency(transaction, iouReport, approvalSnapshotCurrency);
             if (amount !== null) {
                 mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(approvalQueryJSON?.hash, -amount, approvalSnapshotCurrency, -1));
+                mergeYourSpendSnapshotOnyxData(result, buildSnapshotDataUpdatesForHash(approvalQueryJSON?.hash, [transaction], false, true));
             }
         }
     }
@@ -393,6 +401,7 @@ function getYourSpendSnapshotTransactionRemovalUpdates({transaction, iouReport, 
             const amount = getReimbursableTransactionAmountInCurrency(transaction, iouReport, paymentSnapshotCurrency);
             if (amount !== null) {
                 mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(paymentQueryJSON?.hash, -amount, paymentSnapshotCurrency, -1));
+                mergeYourSpendSnapshotOnyxData(result, buildSnapshotDataUpdatesForHash(paymentQueryJSON?.hash, [transaction], false, true));
             }
         }
     }

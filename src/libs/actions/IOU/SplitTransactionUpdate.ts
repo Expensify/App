@@ -1812,8 +1812,6 @@ function updateSplitTransactions({
         }
     }
 
-    // Patch the "Awaiting approval" snapshot total and count for the split (both the reimbursable amount and the
-    // number of reimbursable transactions change). `count` must move in lockstep with membership to keep the row visible.
     const reimbursableSplitsCount = splits.filter((split) => split.reimbursable !== false).length;
     const previousReimbursableCount = isCreationOfSplits
         ? Number(originalTransaction?.reimbursable !== false)

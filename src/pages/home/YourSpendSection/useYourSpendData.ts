@@ -119,8 +119,6 @@ function getOutstandingReportsSignature(reports: OnyxCollection<Report> | undefi
     return ids.sort().join(',');
 }
 
-// Signature of the reports the user owns that are currently REPAID, used to drop the stale cached "Repaid" total
-// once the user no longer owns any repaid report. Mirrors `getOutstandingReportsSignature`.
 function getRepaidReportsSignature(reports: OnyxCollection<Report> | undefined, accountID: number): string {
     if (!reports) {
         return '';

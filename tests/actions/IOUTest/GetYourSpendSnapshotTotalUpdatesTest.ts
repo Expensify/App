@@ -1,13 +1,16 @@
-import Onyx from 'react-native-onyx';
 import {getUpdateMoneyRequestParams} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {getYourSpendSnapshotTotalUpdates, getYourSpendSnapshotTransactionRemovalUpdates, transactionMatchesAwaitingApprovalQuery} from '@libs/actions/IOU/YourSpendSnapshotUpdate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {buildAwaitingApprovalQuery} from '@libs/YourSpendQueryUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../../utils/collections/policies';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -184,16 +187,26 @@ describe('getYourSpendSnapshotTransactionRemovalUpdates', () => {
             currentUserAccountID: ACCOUNT_ID,
         });
 
+        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`;
         expect(optimisticData).toEqual([
             expect.objectContaining({
                 key: snapshotKey,
                 value: {search: {total: -20000, count: 0, currency: CONST.CURRENCY.USD}},
+            }),
+            // The removed transaction is also dropped from the snapshot data so the Search page stays in sync offline.
+            expect.objectContaining({
+                key: snapshotKey,
+                value: {data: {[transactionKey]: null}},
             }),
         ]);
         expect(failureData).toEqual([
             expect.objectContaining({
                 key: snapshotKey,
                 value: {search: {total: -30000, count: 1, currency: CONST.CURRENCY.USD}},
+            }),
+            expect.objectContaining({
+                key: snapshotKey,
+                value: {data: {[transactionKey]: transaction}},
             }),
         ]);
     });
