@@ -22,7 +22,7 @@ type DrivingJourney = {
  * DRIVING_JOURNEYS holds the explicit event sequences that `getWalkedPaths` drives on top of the
  * generated coverage paths. Coverage comes from the graph traversal, not from this list.
  *
- * Every generated oracle in the suite follows the machine under test, so a retargeted transition
+ * Every generated expectation in the suite follows the machine under test, so a retargeted transition
  * regenerates matching expectations as long as every state stays reachable. Each journey therefore
  * pins the state it must end in. These endpoints are the only hand-written expectations, and they
  * fail when such a retarget slips through the generated coverage.
