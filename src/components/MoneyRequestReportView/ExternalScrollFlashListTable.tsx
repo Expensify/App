@@ -1,9 +1,11 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useEffect, useImperativeHandle, useRef} from 'react';
-import {View} from 'react-native';
-import type {NativeScrollEvent, NativeSyntheticEvent, ScrollViewProps} from 'react-native';
 import FlashList from '@components/FlashList';
 import ScrollView from '@components/ScrollView';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {NativeScrollEvent, NativeSyntheticEvent, ScrollViewProps} from 'react-native';
+
+import React, {useEffect, useImperativeHandle, useRef} from 'react';
+import {View} from 'react-native';
 
 /**
  * A tiny subscribe/notify store carrying the parent list's vertical scroll offset. It is fed by the parent's onScroll

@@ -1,14 +1,22 @@
+import FlashList from '@components/FlashList';
+
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
+import type {FlatListRefType} from '@pages/inbox/ReportScreenContext';
+
+import variables from '@styles/variables';
+
+import type * as OnyxTypes from '@src/types/onyx';
+
 import type {FlashListProps, ListRenderItemInfo} from '@shopify/flash-list';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
+
 import React, {memo, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
-import FlashList from '@components/FlashList';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import type {FlatListRefType} from '@pages/inbox/ReportScreenContext';
-import variables from '@styles/variables';
-import type * as OnyxTypes from '@src/types/onyx';
-import ExternalScrollFlashListTable, {createScrollOffsetStore} from './ExternalScrollFlashListTable';
+
 import type {MoneyRequestReportTransactionListController, TransactionListItemData} from './MoneyRequestReportTransactionList';
+
+import ExternalScrollFlashListTable, {createScrollOffsetStore} from './ExternalScrollFlashListTable';
 import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
 import ReportActionsListLoadingSkeleton from './ReportActionsListLoadingSkeleton';
 
