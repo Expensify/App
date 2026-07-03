@@ -1,13 +1,11 @@
 ---
-title: Submit Workspace
+title: Using our free Submit Workspace
 description: Learn how to use a free Submit workspace in New Expensify to code expenses, submit them to an approver, and track which reports have been paid.
 keywords: [New Expensify, Submit workspace, free plan, get paid back, submit expenses, approver, Editor role, mark as paid]
 internalScope: Audience is employees who want to get reimbursed by their employer. Covers creating a Submit workspace, submitting expenses to an approver, and tracking payment. Does not cover Collect or Control workspace configuration.
 ---
 
 A Submit workspace is a free workspace in New Expensify for employees who want to get reimbursed by their employer. You can scan receipts, code your expenses with categories and tags, and submit reports to an approver — even if your company hasn't adopted Expensify yet. There's no cost to submit, and your approver doesn't need an account to receive your report.
-
-A Submit workspace includes a limited set of features focused on submitting expenses. Premium features like approvals, payments, company cards, and accounting integrations require upgrading to a paid plan.
 
 ---
 
