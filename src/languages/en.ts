@@ -1,12 +1,16 @@
-import {CONST as COMMON_CONST, Str} from 'expensify-common';
-import startCase from 'lodash/startCase';
-import type {ValueOf} from 'type-fest';
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import StringUtils from '@libs/StringUtils';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
+import {CONST as COMMON_CONST, Str} from 'expensify-common';
+import startCase from 'lodash/startCase';
+
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
@@ -62,6 +66,10 @@ const translations = {
         // @context Used as a noun meaning a numerical total or quantity, not the verb “to count.”
         count: 'Count',
         cancel: 'Cancel',
+        // @context Title shown in place of a chart when the device or browser can't render it.
+        unableToDisplayChart: 'Unable to display chart',
+        // @context Shown below "Unable to display chart". "WebGL" is a graphics technology name; keep it untranslated.
+        webGLNotSupported: "Your browser doesn't support WebGL. Please enable it or switch browsers.",
         // @context Refers to closing or hiding a notification or message, not rejecting or ignoring something.
         dismiss: 'Dismiss',
         // @context Used on a button to continue an action or workflow, not the formal or procedural sense of “to proceed.”
@@ -154,6 +162,8 @@ const translations = {
         scanning: 'Scanning',
         analyzing: 'Analyzing...',
         thinking: 'Concierge is thinking...',
+        // @context Generic status text shown in custom-agent DMs while the agent prepares a response.
+        agentThinking: 'Thinking...',
         addCardTermsOfService: 'Expensify Terms of Service',
         perPerson: 'per person',
         phone: 'Phone',
@@ -536,6 +546,7 @@ const translations = {
         goToConcierge: 'Go to Concierge',
         allSet: 'All Set!',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `enter digit ${digitIndex} of ${totalDigits}`,
+        apiKey: 'API key',
     },
     socials: {
         podcast: 'Follow us on Podcast',
@@ -878,7 +889,7 @@ const translations = {
         joinThread: 'Join thread',
         leaveThread: 'Leave thread',
         copyOnyxData: 'Copy Onyx data',
-        copyAgentZeroRequestID: 'Copy AgentZero request ID',
+        viewAgentZeroTrace: 'View AgentZero trace',
         flagAsOffensive: 'Flag as offensive',
         menu: 'Menu',
     },
@@ -1001,6 +1012,11 @@ const translations = {
                 title: 'We need your shipping address',
                 subtitle: 'Provide an address to receive your Expensify Card.',
                 cta: 'Add address',
+            },
+            addVirtualCardPersonalDetails: {
+                title: 'We need your personal details',
+                subtitle: 'Add your details to view and start using your Expensify Card.',
+                cta: 'Add details',
             },
             addPaymentCard: {
                 title: 'Add a payment card to keep using Expensify',
@@ -1279,7 +1295,7 @@ const translations = {
         approved: 'Approved',
         cash: 'Cash',
         card: 'Card',
-        original: 'Original',
+        purchase: 'Purchase',
         split: 'Split',
         splitExpense: 'Split expense',
         splitDates: 'Split dates',
@@ -2595,6 +2611,10 @@ const translations = {
         cardInactive: 'Inactive',
         assignedCards: 'Cards',
         assignedCardsDescription: 'Transactions from assigned cards sync automatically.',
+        addVirtualCardPersonalDetails: {
+            subtitle: 'Please enter your personal details to start using your card',
+            cta: 'Add details',
+        },
         expensifyCard: 'Expensify Card',
         walletActivationPending: "We're reviewing your information. Please check back in a few minutes!",
         walletActivationFailed: "Unfortunately, your wallet can't be enabled at this time. Please chat with Concierge for further assistance.",
@@ -2869,8 +2889,6 @@ const translations = {
         activatePhysicalCard: 'Activate physical card',
         error: {
             thatDidNotMatch: "That didn't match the last 4 digits on your card. Please try again.",
-            throttled:
-                "You've incorrectly entered the last 4 digits of your Expensify Card too many times. If you're sure the numbers are correct, please reach out to Concierge to resolve. Otherwise, try again later.",
         },
     },
     getPhysicalCard: {
@@ -5555,6 +5573,15 @@ const translations = {
                 }
             },
         },
+        rillet: {
+            rilletSetup: 'Rillet setup',
+            enterCredentials: 'Enter your Rillet API key',
+            howToFindAPIKey: '<strong>Finding your API key.</strong><ol><li>Log in to Rillet</li><li>Navigate to Account -> Settings</li><li>Copy the API key below</li></ol>',
+            subsidiary: 'Subsidiary',
+            subsidiarySelectDescription: "Choose the subsidiary in Rillet that you'd like to import data from.",
+            noSubsidiariesFound: 'No subsidiaries found',
+            noSubsidiariesFoundDescription: 'Please add a subsidiary in Rillet and sync the connection again',
+        },
         type: {
             free: 'Free',
             control: 'Control',
@@ -5785,6 +5812,7 @@ const translations = {
             changeCardMonthlyLimitTypeWarning: (limit: number | string) =>
                 `If you change this card's limit type to Monthly, new transactions will be declined because the ${limit} monthly limit has already been reached.`,
             addShippingDetails: 'Add shipping details',
+            addPersonalDetails: 'Add personal details',
             issuedCard: (assignee: string) => `issued ${assignee} an Expensify Card! The card will arrive in 2-3 business days.`,
             issuedCardNoShippingDetails: (assignee: string) => `issued ${assignee} an Expensify Card! The card will be shipped once shipping details are confirmed.`,
             issuedCardVirtual: (assignee: string, link: string) => `issued ${assignee} a virtual Expensify Card! The ${link} can be used right away.`,
@@ -6532,6 +6560,7 @@ const translations = {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            rillet: 'Rillet',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6549,6 +6578,8 @@ const translations = {
                         return 'NetSuite';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
+                    case CONST.POLICY.CONNECTIONS.NAME.RILLET:
+                        return 'Rillet';
                     default: {
                         return '';
                     }
@@ -6777,6 +6808,12 @@ const translations = {
                             return 'Importing dimensions';
                         case 'financialForceMarkAsReimbursed':
                             return 'Marking reports as reimbursed';
+                        case 'rilletSyncTitle':
+                            return 'Syncing Rillet data';
+                        case 'rilletSyncConnection':
+                            return 'Initializing connection to Rillet';
+                        case 'rilletSyncImportData':
+                            return 'Loading data';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
@@ -6827,7 +6864,11 @@ const translations = {
             alreadyConnectedTitle: 'Cannot connect to multiple HR platforms',
             alreadyConnectedPrompt: 'You must disconnect your current HR platform before connecting another.',
             lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
+            notSync: 'Not synced',
             syncError: (providerName: string) => `Can't connect to ${providerName}`,
+            authenticationError: (providerName: string) => `Can't connect to ${providerName} due to an expired connection.`,
+            reconnect: 'Reconnect',
+            reconnectLink: 'Reconnect.',
             connectionDescription: (providerName: string) => `Connect ${providerName} to keep employee approvals in sync with your workspace.`,
             approvalMode: 'Approval mode',
             providerApprovalMode: (providerName: string) => `${providerName} approval mode`,
@@ -7121,6 +7162,12 @@ const translations = {
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Our Certinia integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                title: 'Rillet',
+                description: `Enjoy automated syncing and reduce manual entries with the Expensify + Rillet integration. Align expense coding dimensions and tax sync with your Rillet setup for clearer financial visibility.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Our Rillet integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Advanced Approvals',
                 description: `If you want to add more layers of approval to the mix – or just make sure the largest expenses get another set of eyes – we’ve got you covered. Advanced approvals help you put the right checks in place at every level so you keep your team’s spend under control.`,
@@ -7366,6 +7413,8 @@ const translations = {
                 general: 'General',
                 cardRestrictions: 'Card restrictions',
                 expenseDefaults: 'Expense defaults',
+                requireFields: 'Require fields',
+                flagForReview: 'Flag for review',
             },
             bulkActions: {
                 deleteMultiple: () => ({
@@ -7541,6 +7590,10 @@ const translations = {
                 subtitle: 'What do you want to do?',
                 restrictCardSpend: 'Restrict card spend',
                 restrictCardSpendDescription: 'Block or limit spend at the point of sale',
+                flagForReview: 'Flag for review',
+                flagForReviewDescription: 'Notify approvers when expenses exceed category limits',
+                requireFields: 'Require fields',
+                requireFieldsDescription: 'Make sure key fields are filled in before expenses are submitted',
                 applyExpenseDefaults: 'Apply expense defaults',
                 applyExpenseDefaultsDescription: 'Update fields without submitter doing anything',
             },
@@ -7552,6 +7605,63 @@ const translations = {
                 rename: 'Rename',
                 update: 'Update',
                 merchantIs: (merchant: string) => `Merchant is "${merchant}"`,
+                merchantTypeIs: (merchantType: string) => `Merchant type is "${merchantType}"`,
+            },
+            merchantTypeRule: {
+                merchantType: 'Merchant type',
+                saveRule: 'Save rule',
+                confirmErrorCategory: 'Please select a category.',
+            },
+            requireFieldsTable: {
+                tableColumnType: 'Type',
+                tableColumnCondition: 'Condition',
+                tableColumnRule: 'Rule',
+                findRule: 'Find rule',
+                typeLabel: 'Require fields',
+                conditionCategoryIs: (category: string) => `Category is "${category}"`,
+                requireDescription: 'Require description',
+                requireAttendees: 'Require attendees',
+                requireItemizedReceipt: 'Require itemized receipt',
+                requireItemizedReceiptOver: (amount: string) => `Require itemized receipt over ${amount}`,
+                alwaysRequireReceipt: 'Always require receipt',
+                requireReceiptOver: (amount: string) => `Require receipt over ${amount}`,
+            },
+            requireFieldsEmptyState: {
+                title: 'Catch missing details upfront',
+                subtitle: 'Make sure key fields are filled in before expenses are submitted.',
+                cta: 'Create require rule',
+            },
+            requireFieldsRule: {
+                title: 'Require fields',
+                subtitle: 'Require receipts, categories, etc, when submitting.',
+                thenWarnMember: 'Then warn member if fields are missing:',
+                itemizedReceipt: 'Itemized receipt',
+                saveRule: 'Save rule',
+                confirmErrorCategory: 'Please select a category.',
+                confirmErrorField: 'Please select at least one field to require.',
+            },
+            flagForReviewTable: {
+                tableColumnType: 'Type',
+                tableColumnCondition: 'Condition',
+                tableColumnRule: 'Rule',
+                findRule: 'Find rule',
+                typeLabel: 'Flag',
+                conditionCategoryAndAmount: (category: string, amount: string) => `Category is "${category}" and amount above ${amount}`,
+                conditionCategoryAndDailyAmount: (category: string, amount: string) => `Category is "${category}" and daily category total above ${amount}`,
+                flagForReview: 'Flag for review',
+            },
+            flagForReviewEmptyState: {
+                title: 'Surface expenses that need a closer look',
+                subtitle: 'Alert approvers when specific expenses are worth an extra review.',
+                cta: 'Create flag rule',
+            },
+            flagForReviewRule: {
+                title: 'Flag for review',
+                subtitle: 'Notify approvers when the following conditions are met.',
+                saveRule: 'Save rule',
+                confirmErrorCategory: 'Please select a category.',
+                confirmErrorAmount: 'Please enter an amount.',
+                thenFlagForReview: 'Then flag for review when:',
             },
             categoryRules: {
                 title: 'Category rules',
@@ -8403,6 +8513,46 @@ const translations = {
         setMaxExpenseAge: (newValue: string) => `set max expense age to "${newValue}" days`,
         changedMaxExpenseAge: (oldValue: string, newValue: string) => `changed max expense age to "${newValue}" days (previously "${oldValue}")`,
         removedMaxExpenseAge: (oldValue: string) => `removed max expense age (previously "${oldValue}" days)`,
+        policyCopy: {
+            overview: (sourcePolicyName: string, sourcePolicyURL: string) => `copied overview from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            employees: (sourcePolicyName: string, sourcePolicyURL: string) => `copied members from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copied 1 report field from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copied ${count} report fields from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            accounting: (sourcePolicyName: string, sourcePolicyURL: string) => `copied accounting settings from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            receiptPartners: (sourcePolicyName: string, sourcePolicyURL: string) => `copied receipt partner settings from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            hr: (sourcePolicyName: string, sourcePolicyURL: string) => `copied HR settings from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            categories: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copied 1 category from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copied ${count} categories from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            tags: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copied 1 tag from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copied ${count} tags from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            taxes: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copied 1 tax rate from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copied ${count} tax rates from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            timeTracking: (sourcePolicyName: string, sourcePolicyURL: string) => `copied time tracking settings from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            workflows: (sourcePolicyName: string, sourcePolicyURL: string) => `copied workflows from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            rules: (sourcePolicyName: string, sourcePolicyURL: string) => `copied rules from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            codingRules: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copied 1 merchant rule from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copied ${count} merchant rules from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            distanceRates: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copied 1 distance rate from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copied ${count} distance rates from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            perDiem: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copied 1 per diem rate from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copied ${count} per diem rates from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `copied invoice settings from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            travel: (sourcePolicyName: string, sourcePolicyURL: string) => `copied travel settings from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',
@@ -8633,6 +8783,8 @@ const translations = {
             past: 'Past',
             submitted: 'Submitted',
             approved: 'Approved',
+            firstApprover: 'First approver',
+            firstApproved: 'First approved',
             paid: 'Paid',
             exported: 'Exported',
             posted: 'Posted',
@@ -9849,6 +10001,7 @@ const translations = {
             theresAProblemWithYourWalletTerms: "There's a problem with your wallet terms",
             aBankAccountIsLocked: 'A bank account is locked',
             completeHrSetup: 'Complete HR setup',
+            theresAProblemWithAnHRConnection: "There's a problem with an HR connection",
         },
     },
     emptySearchView: {
