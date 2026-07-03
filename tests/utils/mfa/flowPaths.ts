@@ -50,14 +50,25 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
     },
 ];
 
+type MfaEventFixtures = {
+    readonly [Type in MfaEvent['type']]: readonly [Extract<MfaEvent, {type: Type}>, ...Array<Extract<MfaEvent, {type: Type}>>];
+};
+
 /**
- * Concrete event fixtures for the graph traversal. XState synthesizes a bare event for every type a
- * state declares, but it cannot invent a payload a guard or an assign needs, so every event whose
- * payload matters gets an explicit case here. Types absent from this list stay covered, because
- * `getTraversalEvents` still synthesizes a bare event for them. INIT appears bare and with a payload
- * so the flow with a payload is covered separately.
+ * Concrete graph-traversal fixtures for every application event. The exhaustive keyed type makes a
+ * new event fail compilation until its real fixture is added instead of letting XState substitute
+ * `{type}` and potentially bypass payload-dependent behavior. INIT has cases with and without a
+ * payload so both flows are covered separately.
  */
-const MFA_GRAPH_EVENTS: readonly MfaEvent[] = [createInitEvent(), createInitEvent(MFA_TEST_PAYLOAD)];
+const MFA_GRAPH_EVENT_FIXTURES = {
+    INIT: [createInitEvent(), createInitEvent(MFA_TEST_PAYLOAD)],
+    CLOSE_MODAL: [{type: 'CLOSE_MODAL'}],
+    MODAL_CLOSED: [{type: 'MODAL_CLOSED'}],
+} satisfies MfaEventFixtures;
+
+function hasMfaEventFixtures(type: string): type is MfaEvent['type'] {
+    return Object.hasOwn(MFA_GRAPH_EVENT_FIXTURES, type);
+}
 
 const DELAYED_EVENT_PREFIX = 'xstate.after';
 
@@ -73,10 +84,9 @@ function isUiDrivablePath(path: {steps: ReadonlyArray<{event: {type: string}}>})
 }
 
 /**
- * Supplies traversal events: the `MFA_GRAPH_EVENTS` fixtures for their event types and a synthesized
- * bare event for every other type the state declares. Passing the fixture array to the traversal
- * directly would turn synthesis off, so an event type added to the machine without a fixture would
- * silently drop out of coverage.
+ * Supplies explicit fixtures for application events declared by the current state. XState receives
+ * no fixture for its internal event descriptors (for example delayed transitions), so its graph
+ * traversal synthesizes those framework events itself.
  */
 function getTraversalEvents(snapshot: MfaSnapshot): MfaEvent[] {
     // `_nodes` is part of the snapshot's public type. XState exports an equivalent helper only as
@@ -84,16 +94,17 @@ function getTraversalEvents(snapshot: MfaSnapshot): MfaEvent[] {
     // reads `_nodes` directly.
     // eslint-disable-next-line no-underscore-dangle
     const declaredEventTypes = [...new Set(snapshot._nodes.flatMap((node) => node.ownEvents))];
-    return declaredEventTypes.flatMap((type) => {
-        const fixtures = MFA_GRAPH_EVENTS.filter((fixture) => fixture.type === type);
-        if (fixtures.length > 0) {
-            return fixtures;
+    const events: MfaEvent[] = [];
+    for (const type of declaredEventTypes) {
+        if (hasMfaEventFixtures(type)) {
+            events.push(...MFA_GRAPH_EVENT_FIXTURES[type]);
+            continue;
         }
-        // The synthesized bare event never leaves the graph walk, so it intentionally lacks the
-        // payload that the app-level union declares for its type.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        return [{type} as MfaEvent];
-    });
+        if (!type.startsWith('xstate.')) {
+            throw new Error(`Missing MFA graph event fixture for application event "${type}"`);
+        }
+    }
+    return events;
 }
 
 // `createTestModel` rejects the machine's `after` transition, so this uses the constructor directly.

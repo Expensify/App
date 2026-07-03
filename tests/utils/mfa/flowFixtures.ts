@@ -8,8 +8,8 @@ const MFA_TEST_SCENARIO_NAME = CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETR
 type MfaTestScenarioParams = MultifactorAuthenticationScenarioParams<typeof MFA_TEST_SCENARIO_NAME>;
 
 /**
- * A non-empty payload for the test scenario. The traversal pairs it with the bare fixture so the flow
- * with a payload is covered separately from the flow without one.
+ * A non-empty payload for the test scenario. The traversal pairs it with the payload-less fixture so
+ * the flow with a payload is covered separately from the flow without one.
  */
 const MFA_TEST_PAYLOAD: MfaTestScenarioParams = {validateCode: '123456'};
 
@@ -45,7 +45,7 @@ function describeTraversalEvent(event: {type: string}): string {
     if (!isTestScenarioInitEvent(event)) {
         return event.type;
     }
-    return event.payload === undefined ? 'INIT(bare)' : `INIT(${Object.keys(event.payload).join(', ')})`;
+    return event.payload === undefined ? 'INIT(no payload)' : `INIT(${Object.keys(event.payload).join(', ')})`;
 }
 
 export default createInitEvent;

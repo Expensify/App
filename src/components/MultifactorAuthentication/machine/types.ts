@@ -41,8 +41,8 @@ type MfaModalState =
  * through `T`. `executeScenario` dispatches it with `T` fixed to the started scenario, so pairing a name
  * with another scenario's config or params is a compile error at the call site.
  *
- * `T` defaults to the full scenario union so the bare event (and {@link MfaEvent}) stays usable as the
- * actor's event type, where the running scenario is not known statically.
+ * `T` defaults to the full scenario union so the non-specialized event (and {@link MfaEvent}) stays
+ * usable as the actor's event type, where the running scenario is not known statically.
  */
 type MultifactorAuthenticationInitEvent<T extends MultifactorAuthenticationScenario = MultifactorAuthenticationScenario> = {
     type: 'INIT';
