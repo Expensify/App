@@ -175,7 +175,7 @@ describe('saveSavedViewEdits', () => {
             throw new Error('failed to build query JSON');
         }
 
-        saveSavedViewEdits({queryJSON: editedQuery, editingSavedView: {hash: originalQuery.hash, name: 'My view', query: 'type:expense', requestID: 1}});
+        saveSavedViewEdits({queryJSON: editedQuery, editingSavedView: {hash: originalQuery.hash, name: 'My view', query: 'type:expense'}});
 
         const [command, parameters] = mockWrite.mock.calls.at(-1) ?? [];
         expect(command).toBe(WRITE_COMMANDS.SAVE_SEARCH);
@@ -190,7 +190,7 @@ describe('saveSavedViewEdits', () => {
         }
 
         // The view was auto-named, so its name equals its original query string.
-        saveSavedViewEdits({queryJSON: editedQuery, editingSavedView: {hash: originalQuery.hash, name: originalQuery.inputQuery, query: originalQuery.inputQuery, requestID: 1}});
+        saveSavedViewEdits({queryJSON: editedQuery, editingSavedView: {hash: originalQuery.hash, name: originalQuery.inputQuery, query: originalQuery.inputQuery}});
 
         const parameters = mockWrite.mock.calls.at(-1)?.at(1);
         // newName defaults to the EDITED query so SavedSearchList re-derives a readable title (not the stale old query).

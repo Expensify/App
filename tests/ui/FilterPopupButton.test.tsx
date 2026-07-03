@@ -1,5 +1,5 @@
 import type * as ReactNavigationCore from '@react-navigation/core';
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import type {ReactElement} from 'react';
 import React from 'react';
 import {View} from 'react-native';
@@ -9,7 +9,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
-import type {ButtonComponentProps, FilterPopupButtonProps, PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
+import type {ButtonComponentProps, FilterPopupButtonHandle, PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -58,14 +58,14 @@ const renderPopoverContent = ({closeOverlay}: PopoverComponentProps) => (
     </View>
 );
 
-function buildTree(props: Partial<Pick<FilterPopupButtonProps, 'autoExpandToken'>> = {}): ReactElement {
+function buildTree(handleRef?: React.RefObject<FilterPopupButtonHandle | null>): ReactElement {
     return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <FilterPopupButton
                 PopoverComponent={renderPopoverContent}
                 renderButton={renderButton}
                 onOverlayClose={mockOnOverlayClose}
-                {...props}
+                handleRef={handleRef}
             />
         </ComposeProviders>
     );
@@ -119,27 +119,29 @@ describe('FilterPopupButton', () => {
         expect(mockOnOverlayClose).toHaveBeenCalledTimes(1);
     });
 
-    it('auto-opens the popover when a new autoExpandToken is provided (Edit filters from the LHN)', async () => {
-        const {rerender} = render(buildTree({autoExpandToken: undefined}));
+    it('opens the popover through the imperative handle (Edit filters from the LHN)', async () => {
+        const handleRef = React.createRef<FilterPopupButtonHandle | null>();
+        render(buildTree(handleRef));
         expect(screen.queryByTestId('filter-footer')).toBeNull();
 
-        rerender(buildTree({autoExpandToken: 1}));
+        act(() => handleRef.current?.open());
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByTestId('filter-footer')).toBeOnTheScreen();
     });
 
-    it('blocks a manual open while an alert modal is becoming visible, but autoExpandToken bypasses that guard', async () => {
+    it('blocks a manual open while an alert modal is becoming visible, but the imperative open bypasses that guard', async () => {
         await Onyx.set(ONYXKEYS.MODAL, {willAlertModalBecomeVisible: true});
-        const {rerender} = render(buildTree({autoExpandToken: undefined}));
+        const handleRef = React.createRef<FilterPopupButtonHandle | null>();
+        render(buildTree(handleRef));
 
         // A manual press is ignored while the alert modal is transitioning.
         fireEvent.press(screen.getByTestId('trigger'));
         await waitForBatchedUpdatesWithAct();
         expect(screen.queryByTestId('filter-footer')).toBeNull();
 
-        // The Edit-filters auto-open bypasses the guard so the table loads without waiting for the transition.
-        rerender(buildTree({autoExpandToken: 1}));
+        // The Edit-filters imperative open bypasses the guard so the table loads without waiting for the transition.
+        act(() => handleRef.current?.open());
         await waitForBatchedUpdatesWithAct();
         expect(screen.getByTestId('filter-footer')).toBeOnTheScreen();
     });

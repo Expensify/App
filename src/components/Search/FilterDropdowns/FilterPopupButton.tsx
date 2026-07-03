@@ -1,17 +1,19 @@
 import {useIsFocused} from '@react-navigation/core';
 import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
 import type {ReactNode, RefObject} from 'react';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
 import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
+import usePopstateListener from '@hooks/usePopstateListener';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import subscribeToRootNavigation from '@libs/Navigation/helpers/subscribeToRootNavigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
@@ -44,17 +46,28 @@ type FilterPopupButtonProps = {
     /** The component to render as the button */
     renderButton: (props: ButtonComponentProps) => ReactNode;
 
-    /** Each new value of this token auto-opens the popover (used by the saved-view "Edit filters" flow triggered from the LHN) */
-    autoExpandToken?: number;
+    /** Exposes an imperative `open` (same code path as pressing the button), e.g. for the saved-view "Edit filters" flow */
+    handleRef?: RefObject<FilterPopupButtonHandle | null>;
 
-    /** Called whenever the popover closes (click-outside, Cancel or Save) so the caller can leave any associated edit mode */
-    onOverlayClose?: () => void;
+    /** Called whenever the popover closes (click-outside, Cancel, Save or browser back) so the caller can leave any associated edit mode */
+    onOverlayClose?: (reason?: 'browserBack') => void;
+
+    /** Called after a browser back/forward while the popover is open; return true to close it (in-app pushes/pops never trigger this) */
+    shouldCloseOnBrowserNavigation?: () => boolean;
+};
+
+type FilterPopupButtonHandle = {
+    /** Opens the popover, bypassing the transient modal-transition guard (e.g. the LHN 3-dot menu is still closing) */
+    open: () => void;
 };
 
 const ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
+
+// Fallback wait after a popstate in case the navigation state event fired before our listener ran.
+const POPSTATE_SETTLE_TIME_MS = 1000;
 
 function FilterPopupButton({
     viewportOffsetTop,
@@ -63,8 +76,9 @@ function FilterPopupButton({
     popoverAnchorAlignment: popoverAnchorAlignmentProp,
     PopoverComponent,
     renderButton,
-    autoExpandToken,
+    handleRef,
     onOverlayClose,
+    shouldCloseOnBrowserNavigation,
 }: FilterPopupButtonProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHP and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -111,27 +125,56 @@ function FilterPopupButton({
         openOverlay();
     };
 
-    // Auto-open the popover for each new autoExpandToken (e.g. every saved-view "Edit filters" click from the LHN).
-    // Keying off the token's value (not a boolean) makes every click re-open reliably, even for the same view that was
-    // just edited and closed, and is immune to Onyx de-duping or the header button remounting on navigation.
-    const lastAutoExpandTokenRef = useRef<number | undefined>(undefined);
+    // Imperative open — the same code path as pressing the button, bypassing the transient modal-transition guard.
+    useImperativeHandle(handleRef, () => ({open: () => openOverlay(true)}));
+
+    // Close on browser back/forward when the caller confirms the navigation left the popover's context (in-app
+    // pushes/pops never fire popstate here, so e.g. RHP year pickers keep the popover open).
+    const shouldCloseOnBrowserNavigationRef = useRef(shouldCloseOnBrowserNavigation);
+    const onOverlayCloseRef = useRef(onOverlayClose);
+    const isOverlayVisibleRef = useRef(isOverlayVisible);
     useEffect(() => {
-        if (autoExpandToken === undefined) {
-            lastAutoExpandTokenRef.current = undefined;
+        shouldCloseOnBrowserNavigationRef.current = shouldCloseOnBrowserNavigation;
+        onOverlayCloseRef.current = onOverlayClose;
+        isOverlayVisibleRef.current = isOverlayVisible;
+    });
+    // If the component unmounts while the popover is open (e.g. the screen remounts on browser back), end the caller's
+    // edit session too — otherwise its state would outlive the popover.
+    useEffect(
+        () => () => {
+            if (!isOverlayVisibleRef.current) {
+                return;
+            }
+            onOverlayCloseRef.current?.('browserBack');
+        },
+        [],
+    );
+    usePopstateListener(isOverlayVisible && !!shouldCloseOnBrowserNavigation, () => {
+        // Capture the pre-navigation check now (its closure holds the pre-back query), then evaluate it on the next
+        // navigation state event — or on a fallback timer in case that event already fired before this listener ran.
+        const didNavigateAway = shouldCloseOnBrowserNavigationRef.current;
+        if (!didNavigateAway) {
             return;
         }
-        // Skip (and let this effect retry when a dependency changes) while the popover is already open or the screen
-        // isn't focused yet (mid-navigation). We deliberately open even while a modal is transitioning
-        // (willAlertModalBecomeVisible, e.g. the LHN 3-dot menu closing) by bypassing that guard in openOverlay —
-        // otherwise the popover would wait for the transition to settle, which is slow when the new search is loading.
-        if (lastAutoExpandTokenRef.current === autoExpandToken || isOverlayVisible || !isFocused) {
-            return;
-        }
-        lastAutoExpandTokenRef.current = autoExpandToken;
-        openOverlay(true);
-        // openOverlay is intentionally omitted: it is re-created every render and including it would re-run this effect.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [autoExpandToken, isFocused, isOverlayVisible]);
+        let isDone = false;
+        let unsubscribe: (() => void) | undefined;
+        let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
+        const evaluate = () => {
+            if (isDone) {
+                return;
+            }
+            isDone = true;
+            unsubscribe?.();
+            clearTimeout(fallbackTimer);
+            if (!isOverlayVisibleRef.current || !didNavigateAway()) {
+                return;
+            }
+            setIsOverlayVisible(false);
+            onOverlayCloseRef.current?.('browserBack');
+        };
+        unsubscribe = subscribeToRootNavigation(evaluate);
+        fallbackTimer = setTimeout(evaluate, POPSTATE_SETTLE_TIME_MS);
+    });
 
     const actualPopoverWidth = customPopoverWidth ?? popoverWidth ?? CONST.POPOVER_DROPDOWN_WIDTH;
     const containerStyles = isSmallScreenWidth ? styles.w100 : {width: actualPopoverWidth};
@@ -178,5 +221,5 @@ function FilterPopupButton({
     );
 }
 
-export type {PopoverComponentProps, ButtonComponentProps, FilterPopupButtonProps};
+export type {PopoverComponentProps, ButtonComponentProps, FilterPopupButtonProps, FilterPopupButtonHandle};
 export default withViewportOffsetTop(FilterPopupButton);

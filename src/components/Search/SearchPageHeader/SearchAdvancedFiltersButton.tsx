@@ -3,7 +3,7 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
-import type {ButtonComponentProps, PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
+import type {ButtonComponentProps, FilterPopupButtonHandle, PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import SearchAdvancedFiltersPopup from '@components/Search/FilterDropdowns/SearchAdvancedFiltersPopup';
 import type {SearchQueryJSON} from '@components/Search/types';
 import useFilterFormValues from '@hooks/useFilterFormValues';
@@ -14,8 +14,9 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchFilterSync from '@hooks/useSearchFilterSync';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {cancelSavedViewEdits} from '@libs/actions/Search';
+import {cancelSavedViewEdits, clearSavedViewEditMode, consumePendingOpenEditFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {buildSearchQueryJSON, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -36,22 +37,27 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
     const [editingSavedView] = useOnyx(ONYXKEYS.RAM_ONLY_SEARCH_EDITING_SAVED_VIEW);
     const isEditingSavedView = !!editingSavedView;
 
-    // On small screens the filters are a fullscreen route, so "Edit filters" opens it here. Keyed by requestID so each
-    // click opens it once. Wait for queryJSON.hash === editingSavedView.hash so the form has the edited view's filters.
-    const lastAutoNavRequestIDRef = useRef<number | undefined>(undefined);
+    // Compare parse-to-parse: the stored saved-search key can drift from today's parser output, which would keep "Edit filters" from ever opening.
+    const editedViewQueryHash = editingSavedView ? buildSearchQueryJSON(editingSavedView.query)?.hash : undefined;
+    const isEditedViewActive = editedViewQueryHash !== undefined && queryJSON.hash === editedViewQueryHash;
+
     // Click-outside/Escape/Cancel all revert the edits via onOverlayClose; the Save buttons set this ref to opt out.
     const skipRevertOnCloseRef = useRef(false);
+    const filterPopupRef = useRef<FilterPopupButtonHandle | null>(null);
+
+    // Each "Edit filters" click leaves ONE consumable open request; open the filters UI (popover on wide, fullscreen
+    // route on small screens) once the edited view's search is active so the form holds its filters. Consuming the
+    // request makes it one-shot — nothing can replay the open on remounts, browser back or stale Onyx emissions.
     useEffect(() => {
-        const requestID = editingSavedView?.requestID;
-        if (!isSmallScreenWidth || requestID === undefined || lastAutoNavRequestIDRef.current === requestID) {
+        if (!isEditedViewActive || !consumePendingOpenEditFilters()) {
             return;
         }
-        if (queryJSON.hash !== editingSavedView?.hash) {
+        if (isSmallScreenWidth) {
+            Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
             return;
         }
-        lastAutoNavRequestIDRef.current = requestID;
-        Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
-    }, [isSmallScreenWidth, editingSavedView?.requestID, editingSavedView?.hash, queryJSON.hash]);
+        filterPopupRef.current?.open();
+    }, [isEditedViewActive, isSmallScreenWidth]);
 
     if (isSmallScreenWidth) {
         return (
@@ -123,17 +129,25 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
             }}
             renderButton={filterButton}
-            autoExpandToken={editingSavedView && queryJSON.hash === editingSavedView.hash ? editingSavedView.requestID : undefined}
+            handleRef={filterPopupRef}
+            // Close when browser back/forward actually changed the search (an in-app RHP pop keeps the same query).
+            shouldCloseOnBrowserNavigation={() => getCurrentSearchQueryJSON()?.hash !== queryJSON.hash}
             onOverlayClose={
                 isEditingSavedView
-                    ? () => {
+                    ? (reason) => {
                           if (skipRevertOnCloseRef.current) {
                               skipRevertOnCloseRef.current = false;
                               return;
                           }
-                          if (editingSavedView) {
-                              cancelSavedViewEdits(editingSavedView);
+                          if (!editingSavedView) {
+                              return;
                           }
+                          // Browser back means the user is leaving — drop edit mode without navigating back to the view.
+                          if (reason === 'browserBack') {
+                              clearSavedViewEditMode();
+                              return;
+                          }
+                          cancelSavedViewEdits(editingSavedView);
                       }
                     : undefined
             }

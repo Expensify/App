@@ -8,9 +8,6 @@ type EditingSavedSearch = {
 
     /** The saved view's original query string, used to re-execute it when edits are cancelled */
     query: string;
-
-    /** Monotonic id bumped on every "Edit filters" click so the filters popover re-opens for each request, even when it targets the saved view that was just edited and closed */
-    requestID: number;
 };
 
 export default EditingSavedSearch;
