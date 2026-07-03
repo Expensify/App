@@ -393,6 +393,7 @@
     "loader-utils": "2.0.4",
     "follow-redirects": "1.15.6",
     "fast-xml-parser": "4.4.1",
+    "esbuild": "^0.28.1",
     "express": "4.20.0",
     "elliptic": "6.5.7",
     "fast-json-patch": "3.1.1",
