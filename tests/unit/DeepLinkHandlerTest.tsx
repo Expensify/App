@@ -1,11 +1,15 @@
 import {act, render} from '@testing-library/react-native';
-import {Linking} from 'react-native';
-import Onyx from 'react-native-onyx';
+
 import type * as Link from '@libs/actions/Link';
 import * as Report from '@libs/actions/Report';
+
 import CONST from '@src/CONST';
 import DeepLinkHandler from '@src/DeepLinkHandler';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {Linking} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/actions/Link', () => ({
