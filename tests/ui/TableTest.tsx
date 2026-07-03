@@ -1,12 +1,14 @@
-import {NavigationContainer} from '@react-navigation/native';
-import type {ListRenderItemInfo} from '@shopify/flash-list';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import {View} from 'react-native';
+
 import Table from '@components/Table';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Text from '@components/Text';
-import type Navigation from '@libs/Navigation/Navigation';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import {View} from 'react-native';
 
 type MockFlashListProps<T> = {
     data?: T[];
@@ -24,12 +26,42 @@ const mockFlashListScrollToItem = jest.fn();
 let mockFlashListProps: Array<MockFlashListProps<unknown>> = [];
 
 // Mock navigation
-jest.mock('@react-navigation/native', () => {
-    const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
+jest.mock('@react-navigation/native', () => ({
+    NavigationContainer: ({children}: {children: React.ReactNode}) => children,
+    ThemeProvider: ({children}: {children: React.ReactNode}) => children,
+    useIsFocused: jest.fn(() => true),
+    useFocusEffect: jest.fn(),
+    useNavigation: () => ({
+        addListener: jest.fn(() => jest.fn()),
+        dispatch: jest.fn(),
+        getState: jest.fn(() => ({routes: []})),
+        isFocused: jest.fn(() => true),
+        navigate: jest.fn(),
+    }),
+    useNavigationState: jest.fn(() => ({routes: []})),
+    usePreventRemove: jest.fn(),
+    useRoute: jest.fn(() => ({params: {}})),
+    useTheme: jest.fn(() => ({})),
+    createNavigationContainerRef: jest.fn(() => ({
+        addListener: jest.fn(() => jest.fn()),
+        getCurrentRoute: jest.fn(),
+        getState: jest.fn(() => ({routes: []})),
+        isReady: jest.fn(() => true),
+        navigate: jest.fn(),
+        removeListener: jest.fn(),
+    })),
+    DarkTheme: {},
+    DefaultTheme: {},
+    LinkingContext: {},
+}));
+
+jest.mock('@react-navigation/core', () => {
+    const ReactLocal = jest.requireActual<typeof React>('react');
     return {
-        ...actualNav,
-        useIsFocused: jest.fn(),
-        useFocusEffect: jest.fn(),
+        NavigationContext: ReactLocal.createContext({}),
+        findFocusedRoute: jest.fn(),
+        getActionFromState: jest.fn(),
+        useIsFocused: jest.fn(() => true),
     };
 });
 
@@ -38,6 +70,33 @@ jest.mock('@expensify/react-native-hybrid-app', () => ({
     default: {
         isHybridApp: jest.fn(() => false),
     },
+}));
+
+jest.mock('@components/MenuItem', () => {
+    function MockMenuItem(): null {
+        return null;
+    }
+    return MockMenuItem;
+});
+
+jest.mock('@components/Modal', () => {
+    function MockModal(): null {
+        return null;
+    }
+    return MockModal;
+});
+
+jest.mock('@components/ActivityIndicator', () => {
+    function MockActivityIndicator(): null {
+        return null;
+    }
+    return MockActivityIndicator;
+});
+
+jest.mock('@components/withNavigationFallback', () => (Component: React.ComponentType) => Component);
+
+jest.mock('@userActions/Session', () => ({
+    callFunctionIfActionIsAllowed: <TCallback extends ((...args: never[]) => unknown) | undefined>(callback: TCallback) => callback,
 }));
 
 jest.mock('@shopify/flash-list', () => {
@@ -489,9 +548,14 @@ describe('Table', () => {
 
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
             expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
+            const tableHandle = tableRef.current;
+            if (!tableHandle) {
+                throw new Error('Expected table ref to be set');
+            }
+            const scrollToIndex = tableHandle.scrollToIndex as (params: {index: number; animated: boolean}) => void;
 
             act(() => {
-                tableRef.current?.scrollToIndex({index: 0, animated: false});
+                scrollToIndex({index: 0, animated: false});
             });
 
             expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({index: 1, animated: false});
@@ -514,9 +578,14 @@ describe('Table', () => {
                     <Table.Body />
                 </Table>,
             );
+            const tableHandle = tableRef.current;
+            if (!tableHandle) {
+                throw new Error('Expected table ref to be set');
+            }
+            const scrollToIndex = tableHandle.scrollToIndex as (params: {index: number; animated: boolean}) => void;
 
             act(() => {
-                tableRef.current?.scrollToIndex({index: 0, animated: false});
+                scrollToIndex({index: 0, animated: false});
             });
 
             expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({index: 2, animated: false});

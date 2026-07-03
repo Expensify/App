@@ -1,8 +1,12 @@
-import React from 'react';
 import type {TableRenderRowProps} from '@components/Table';
 import WorkspaceCategoryRulesTable from '@components/Tables/WorkspaceCategoryRulesTable';
+
 import useLocalize from '@hooks/useLocalize';
+
 import type {FlagForReviewTableItem} from '@libs/FlagForReviewRulesUtils';
+
+import React from 'react';
+
 import WorkspaceFlagForReviewTableRow from './WorkspaceFlagForReviewTableRow';
 
 type WorkspaceFlagForReviewTableProps = {

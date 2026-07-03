@@ -1,16 +1,23 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 import Table, {composeTableHeaderComponent} from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+
 import DomainMembersTableRow from './DomainMembersTableRow';
 
 type DomainMembersTableColumnKey = 'member' | 'group' | 'actions';

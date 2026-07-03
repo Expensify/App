@@ -1,14 +1,20 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useEffect, useRef} from 'react';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Table, {composeTableHeaderComponent} from '@components/Table';
+
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
-import WorkspaceRoomsTableRow from './WorkspaceRoomsTableRow';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import React, {useEffect, useRef} from 'react';
+
 import type {WorkspaceRoomRowData} from './WorkspaceRoomsTableRow';
+
+import WorkspaceRoomsTableRow from './WorkspaceRoomsTableRow';
 
 type WorkspaceRoomsTableColumnKey = 'name' | 'members' | 'actions';
 

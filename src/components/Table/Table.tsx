@@ -1,21 +1,28 @@
-import type {FlashListRef} from '@shopify/flash-list';
-import React, {useImperativeHandle, useRef} from 'react';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+
 import CONST from '@src/CONST';
+
+import type {FlashListRef} from '@shopify/flash-list';
+
+import React, {useImperativeHandle, useRef} from 'react';
+
+import type {TableContextValue} from './TableContext';
+import type {TableData, TableHandle, TableMethods, TableProps} from './types';
+
 import useFiltering from './middlewares/filtering';
 import useHighlighting from './middlewares/highlight';
 import useSearching from './middlewares/searching';
 import useSelection from './middlewares/selection';
 import useSorting from './middlewares/sorting';
 import TableContext from './TableContext';
-import type {TableContextValue} from './TableContext';
-import type {TableData, TableHandle, TableMethods, TableProps} from './types';
 
 /**
  * A composable table component that provides filtering, search, and sorting functionality.

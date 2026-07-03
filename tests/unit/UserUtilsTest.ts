@@ -1,6 +1,7 @@
 import CONST from '@src/CONST';
 import * as UserUtils from '@src/libs/UserUtils';
 import type {LoginList} from '@src/types/onyx';
+
 import {translateLocal} from '../utils/TestHelper';
 
 describe('UserUtils', () => {

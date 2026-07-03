@@ -1,6 +1,8 @@
+import type CONST from '@src/CONST';
+
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+
 import type {Card, ReportAction} from '.';
 import type {CardList} from './Card';
 import type {CardFeedWithDomainID} from './CardFeeds';
@@ -246,14 +248,6 @@ type SortedReportActionsDerivedValue = {
  */
 type PersonalAndWorkspaceCardListDerivedValue = CardList;
 
-/**
- * The derived value mapping each user's login (lowercased) to their accountID.
- *
- * Replaces the imperative `emailToPersonalDetailsCache` login lookup that was built via `Onyx.connect`
- * in `PersonalDetailsUtils` (see issue #66391). Keys are lowercased since logins/emails are case-insensitive.
- */
-type LoginToAccountIDMapDerivedValue = Record<string, number>;
-
 export type {
     ReportAttributes,
     ReportAttributesDerivedValue,
@@ -265,7 +259,6 @@ export type {
     NonPersonalAndWorkspaceCardListDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
-    LoginToAccountIDMapDerivedValue,
     CardFeedErrorsObject,
     CardFeedErrorState,
     CardFeedErrors,
