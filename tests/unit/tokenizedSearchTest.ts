@@ -13,6 +13,7 @@ describe('tokenizedSearch', () => {
                 isSelected: false,
                 keyForList: 'example@test.com',
                 login: 'example@test.com',
+                value: 'example@test.com',
                 text: 'One Two Three',
             },
             {
@@ -21,6 +22,7 @@ describe('tokenizedSearch', () => {
                 isSelected: false,
                 keyForList: 'example2@test.com',
                 login: 'example2@test.com',
+                value: 'example2@test.com',
                 text: 'Example Test',
             },
         ];
@@ -32,6 +34,7 @@ describe('tokenizedSearch', () => {
                 isSelected: false,
                 keyForList: 'example@test.com',
                 login: 'example@test.com',
+                value: 'example@test.com',
                 text: 'One Two Three',
             },
         ];
@@ -50,6 +53,7 @@ describe('tokenizedSearch', () => {
                 isSelected: false,
                 keyForList: 'example@test.com',
                 login: 'example@test.com',
+                value: 'example@test.com',
                 text: 'One Two Three',
             },
             {
@@ -58,6 +62,7 @@ describe('tokenizedSearch', () => {
                 isSelected: false,
                 keyForList: 'example2@test.com',
                 login: 'example2@test.com',
+                value: 'example2@test.com',
                 text: 'Example Test',
             },
         ];
@@ -69,6 +74,7 @@ describe('tokenizedSearch', () => {
                 isSelected: false,
                 keyForList: 'example@test.com',
                 login: 'example@test.com',
+                value: 'example@test.com',
                 text: 'One Two Three',
             },
         ];
@@ -77,7 +83,7 @@ describe('tokenizedSearch', () => {
         expect(tokenizeSearchResult).toStrictEqual(searchResultList);
     });
 
-    it('WorkspaceCompanyCardAccountSelectCardPage', () => {
+    it('DynamicWorkspaceCompanyCardAccountSelectCardPage', () => {
         const tokenizeSearch = 'One Three';
 
         const items: WorkspaceListItem[] = [
@@ -130,6 +136,7 @@ describe('tokenizedSearch', () => {
                 isSelected: false,
                 keyForList: 'example@test.com',
                 login: 'example@test.com',
+                value: 'example@test.com',
                 text: 'One Two Three',
             },
             {
@@ -138,6 +145,7 @@ describe('tokenizedSearch', () => {
                 isSelected: false,
                 keyForList: 'example2@test.com',
                 login: 'example2@test.com',
+                value: 'example2@test.com',
                 text: 'Example Test',
             },
         ];
@@ -149,6 +157,7 @@ describe('tokenizedSearch', () => {
                 isSelected: false,
                 keyForList: 'example@test.com',
                 login: 'example@test.com',
+                value: 'example@test.com',
                 text: 'One Two Three',
             },
         ];

@@ -37,6 +37,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
     const session = useSession();
 
     const cardholderName = getDisplayNameOrDefault(item.cardholder);
+    const narrowLayoutSubtitle = [item.lastFourPAN, item.name].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `);
     const cardType = item.isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
     const limitTypeLabel = translate(getTranslationKeyForLimitType(item.limitType));
     const formattedLimit = convertToShortDisplayString(item.limit, item.currency);
@@ -105,7 +106,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                                 <TextWithTooltip
                                     shouldShowTooltip
                                     numberOfLines={1}
-                                    text={item.lastFourPAN}
+                                    text={narrowLayoutSubtitle}
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3]}
                                 />
                             ) : (

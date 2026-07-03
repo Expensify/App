@@ -145,6 +145,7 @@ import OracleSquare from '@assets/images/integrationicons/oracle-icon-square.svg
 import QBDSquare from '@assets/images/integrationicons/qbd-icon-square.svg';
 import QBOCircle from '@assets/images/integrationicons/qbo-icon-circle.svg';
 import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
+import RilletSquare from '@assets/images/integrationicons/rillet-icon-square.svg';
 import SageIntacctSquare from '@assets/images/integrationicons/sage-intacct-icon-square.svg';
 import SapSquare from '@assets/images/integrationicons/sap-icon-square.svg';
 import TriNetSquare from '@assets/images/integrationicons/trinet-icon-square.svg';
@@ -465,6 +466,7 @@ const Expensicons = {
     ReportCopy,
     ReplaceReceipt,
     ReceiptMultiple,
+    RilletSquare,
     Rotate,
     RotateLeft,
     Scan,

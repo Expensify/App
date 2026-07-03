@@ -1,5 +1,6 @@
 import {StackActions, useFocusEffect} from '@react-navigation/native';
 import {delegateEmailSelector} from '@selectors/Account';
+import {createFilteredPoliciesInfoSelector} from '@selectors/Policy';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -215,6 +216,9 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createFilteredPoliciesInfoSelector(currentUserPersonalDetails?.email)}, [
+        currentUserPersonalDetails?.email,
+    ]);
     const {showConfirmModal} = useConfirmModal();
     const isPolicyAdmin = useMemo(() => isPolicyAdminUtil(policy), [policy]);
     const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtil(report?.policyID, policy), [report?.policyID, policy]);
@@ -517,6 +521,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                         currentUserAccountID: currentUserPersonalDetails.accountID,
                         currentUserEmail: currentUserPersonalDetails.email ?? '',
                         currentUserLocalCurrency,
+                        filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
+                        firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
                     });
                 },
             });
@@ -542,6 +548,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                             currentUserAccountID: currentUserPersonalDetails.accountID,
                             currentUserEmail: currentUserPersonalDetails.email ?? '',
                             currentUserLocalCurrency,
+                            filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
+                            firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
                         });
                     },
                 });
@@ -566,6 +574,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                             currentUserAccountID: currentUserPersonalDetails.accountID,
                             currentUserEmail: currentUserPersonalDetails.email ?? '',
                             currentUserLocalCurrency,
+                            filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
+                            firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
                         });
                     },
                 });
@@ -709,6 +719,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         amountOwed,
         ownerBillingGracePeriodEnd,
         iouTransaction,
+        filteredPoliciesInfo?.filteredPoliciesCount,
+        filteredPoliciesInfo?.firstPolicyID,
         parentReport,
         delegateEmail,
         conciergeReportID,

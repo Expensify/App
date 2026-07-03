@@ -1,7 +1,7 @@
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {hasDomainErrors} from '@libs/DomainUtils';
-import {isMergeHRCompleteSetupNeeded} from '@libs/HRUtils';
+import {isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/HRUtils';
 import {
     getUberConnectionErrorDirectlyFromPolicy,
     isPolicyAdmin,
@@ -54,6 +54,16 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
         [CONST.INDICATOR_STATUS.HAS_QBO_EXPORT_ERROR, cleanPolicies.find(shouldShowQBOReimbursableExportDestinationAccountError)],
         [CONST.INDICATOR_STATUS.HAS_UBER_CREDENTIALS_ERROR, cleanPolicies.find(getUberConnectionErrorDirectlyFromPolicy)],
         [CONST.INDICATOR_STATUS.HAS_POLICY_ADMIN_CARD_FEED_ERRORS, isAdminOfPolicyWithCardFeedErrors ? policiesWithCardFeedErrors.at(0) : undefined],
+        [
+            CONST.INDICATOR_STATUS.HAS_HR_CONNECTION_ERROR,
+            cleanPolicies.find((cleanPolicy) =>
+                shouldShowHRConnectionError(
+                    cleanPolicy,
+                    isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${cleanPolicy?.id}`], cleanPolicy),
+                    isPolicyAdmin(cleanPolicy),
+                ),
+            ),
+        ],
     ];
     const policyInfoChecks: Array<[IndicatorStatus, Policy | undefined]> = [
         [CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED, cleanPolicies.find((policy) => isPolicyAdmin(policy) && isMergeHRCompleteSetupNeeded(policy))],

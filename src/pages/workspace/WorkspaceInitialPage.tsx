@@ -30,7 +30,7 @@ import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
-import {isAnyHRConnected, isMergeHRCompleteSetupNeeded} from '@libs/HRUtils';
+import {isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/HRUtils';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import WorkspaceCreationReveal from '@libs/Navigation/helpers/WorkspaceCreationReveal';
 import Navigation from '@libs/Navigation/Navigation';
@@ -46,6 +46,8 @@ import {
     hasPolicyRulesError,
     isGroupPolicy,
     isPendingDeletePolicy,
+    isPerDiemEnabled,
+    isPolicyAdmin,
     isTimeTrackingEnabled,
     shouldShowEmployeeListError,
     shouldShowSyncError,
@@ -162,6 +164,15 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     const accountingConnectionNames = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy), accountingConnectionNames);
+    const hasHRError = shouldShowHRConnectionError(policy, isConnectionInProgress(connectionSyncProgress, policy), isPolicyAdmin(policy));
+    const getHRBrickRoadIndicator = () => {
+        if (hasHRError) {
+            return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+        }
+        if (isMergeHRCompleteSetupNeeded(policy)) {
+            return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+        }
+    };
     const hasMembersError = shouldShowEmployeeListError(policy);
     const hasPolicyCategoryError = hasPolicyCategoriesError(policyCategories);
     const hasGeneralSettingsError =
@@ -193,7 +204,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: arePolicyRulesEnabled(policy, policyCategories),
         [CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]: policy?.areInvoicesEnabled,
-        [CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]: policy?.arePerDiemRatesEnabled && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED),
+        [CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]: isPerDiemEnabled(policy) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED),
         [CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]: policy?.receiptPartners?.enabled ?? false,
         [CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED]: policy?.isTravelEnabled,
         [CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED]: isTimeTrackingEnabled(policy),
@@ -289,18 +300,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             });
         }
 
-        if (policyFeatureStates?.[CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED] && canReadMoreFeatures) {
-            workspaceMenuItems.push({
-                translationKey: 'workspace.common.hr',
-                brickRoadIndicator: isMergeHRCompleteSetupNeeded(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined,
-                icon: expensifyIcons.Users,
-                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID)))),
-                screenName: SCREENS.WORKSPACE.HR,
-                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.HR,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
-            });
-        }
-
         if (policyFeatureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED] && canReadMoreFeatures) {
             workspaceMenuItems.push({
                 translationKey: 'workspace.common.receiptPartners',
@@ -310,6 +309,18 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 screenName: SCREENS.WORKSPACE.RECEIPT_PARTNERS,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.RECEIPT_PARTNERS,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
+            });
+        }
+
+        if (policyFeatureStates?.[CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED] && canReadMoreFeatures) {
+            workspaceMenuItems.push({
+                translationKey: 'workspace.common.hr',
+                brickRoadIndicator: getHRBrickRoadIndicator(),
+                icon: expensifyIcons.Users,
+                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID)))),
+                screenName: SCREENS.WORKSPACE.HR,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.HR,
+                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
             });
         }
 

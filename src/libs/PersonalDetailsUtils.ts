@@ -591,6 +591,21 @@ function arePersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePers
 }
 
 /**
+ * Checks whether the personal details required for Expensify Card flows (ship + reveal)
+ * are missing. Stricter than {@link arePersonalDetailsMissing}: also requires individual
+ * address sub-fields (street, city, zip, country) that the backend asserts on those
+ * commands. Without this, a user whose `addresses[0]` exists but has empty fields would
+ * skip the missing-details prompt and hit a backend error on submit.
+ */
+function areAddressAndPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
+    if (arePersonalDetailsMissing(privatePersonalDetails)) {
+        return true;
+    }
+    const currentAddress = getCurrentAddress(privatePersonalDetails);
+    return !currentAddress?.street || !currentAddress?.city || !currentAddress?.state || !currentAddress?.zip || !currentAddress?.country;
+}
+
+/**
  * Checks if the user has a legal first and last name.
  */
 function areTravelPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
@@ -624,6 +639,7 @@ export {
     getLoginByAccountID,
     getPhoneNumber,
     arePersonalDetailsMissing,
+    areAddressAndPersonalDetailsMissing,
     areTravelPersonalDetailsMissing,
     createPersonalDetailsLookupByAccountID,
     temporaryGetDisplayNameOrDefault,
