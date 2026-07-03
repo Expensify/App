@@ -1,14 +1,17 @@
-import React from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {
     clearFinancialForceErrorField,
     updateFinancialForceAutoSync,
@@ -16,8 +19,11 @@ import {
     updateFinancialForceSyncReimbursedReports,
     updateFinancialForceTaxNonBillable,
 } from '@userActions/connections/FinancialForce';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import React from 'react';
 
 function CertiniaAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();

@@ -1,15 +1,21 @@
-import {WithSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
-import React, {useState} from 'react';
-import type {ComponentType} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import variables from '@styles/variables';
+
+import type {ComponentType} from 'react';
+
+import {WithSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
 import isSkiaWebSupported from './isSkiaWebSupported';
 
 type SkiaWebChartProps<TProps> = {

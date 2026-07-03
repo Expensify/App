@@ -1,7 +1,10 @@
-import type {ValueOf} from 'type-fest';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import type CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type {Icon} from './OnyxCommon';
 import type Report from './Report';
 import type {Routes, TransactionCustomUnit, WaypointCollection} from './Transaction';
