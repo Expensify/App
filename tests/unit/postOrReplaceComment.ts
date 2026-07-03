@@ -5,13 +5,17 @@ import GithubUtils from '@github/libs/GithubUtils';
 
 import asMutable from '@src/types/utils/asMutable';
 
-import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
+import type {Api} from '@octokit/plugin-rest-endpoint-methods';
 
 /**
  * @jest-environment node
  */
 import * as core from '@actions/core';
 import {when} from 'jest-when';
+
+// @octokit/plugin-rest-endpoint-methods no longer exports its `RestEndpointMethods` type directly, only `Api`
+// (which wraps it as `{rest: RestEndpointMethods}`), so it's derived here instead.
+type RestEndpointMethods = Api['rest'];
 
 const mockGetInput = jest.fn();
 const createCommentMock = jest.spyOn(GithubUtils, 'createComment');
