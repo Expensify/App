@@ -77,7 +77,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
         const previousRoute = getPreviousOnboardingRoute(SCREENS.ONBOARDING.EMPLOYEES, onboardingFlowContext, route.params?.backTo);
 
         if (previousRoute) {
-            Navigation.navigate(previousRoute);
+            Navigation.goBack(previousRoute);
             return;
         }
 
