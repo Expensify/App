@@ -1,6 +1,3 @@
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -8,13 +5,23 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScrollView from '@components/ScrollView';
 import type {SearchDatePreset} from '@components/Search/types';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getDateModifierTitle, getDateRangeDisplayValueFromFormValue, getEmptyDateValues} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import type {SearchDatePresetFilterBaseHandle, SearchDateValues} from './DatePresetFilterBase';
+
 import DatePresetFilterBase from './DatePresetFilterBase';
 
 type DateFilterBaseHandle = {

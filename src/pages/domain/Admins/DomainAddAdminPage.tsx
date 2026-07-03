@@ -1,17 +1,16 @@
-import {adminAccountIDsSelector, domainEmailSelector} from '@selectors/Domain';
-import {Str} from 'expensify-common';
-import React, {useEffect, useRef, useState} from 'react';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SingleSelectWithAvatarListItem from '@components/SelectionList/ListItem/SingleSelectWithAvatarListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {searchUserInServer} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {appendCountryCode} from '@libs/LoginUtils';
@@ -20,15 +19,23 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
+
 import {addAdminToDomain} from '@userActions/Domain';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {personalDetailsLoginsSelector} from '@src/selectors/PersonalDetails';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import {adminAccountIDsSelector, domainEmailSelector} from '@selectors/Domain';
+import {Str} from 'expensify-common';
+import React, {useEffect, useRef, useState} from 'react';
 
 type Sections = Section<OptionData>;
 

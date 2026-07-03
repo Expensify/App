@@ -1,9 +1,5 @@
-import {NavigationContainer} from '@react-navigation/native';
-import {createStackNavigator} from '@react-navigation/stack';
 import {render, screen} from '@testing-library/react-native';
-import type {ViewProps} from 'react-native';
-import type ReactNative from 'react-native';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -11,10 +7,19 @@ import FullScreenContextProvider from '@components/VideoPlayerContexts/FullScree
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 import {VideoPopoverMenuContextProvider} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {VolumeContextProvider} from '@components/VideoPlayerContexts/VolumeContext';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+
+import type {ViewProps} from 'react-native';
+import type ReactNative from 'react-native';
+
+import {NavigationContainer} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
+import Onyx from 'react-native-onyx';
 
 const CONFIRM_TEXT = 'Start';
 
