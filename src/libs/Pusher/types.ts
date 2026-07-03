@@ -1,10 +1,12 @@
+import type CONST from '@src/CONST';
+import type {AnyOnyxUpdatesFromServer, ReportUserIsTyping} from '@src/types/onyx';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
 import type {PusherChannel} from '@pusher/pusher-websocket-react-native';
 import type PusherClass from 'pusher-js/with-encryption';
 import type {Channel, ChannelAuthorizerGenerator} from 'pusher-js/with-encryption';
 import type {LiteralUnion, ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
-import type {AnyOnyxUpdatesFromServer, ReportUserIsTyping} from '@src/types/onyx';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
 import type TYPE from './EventType';
 
 type SocketEventName = LiteralUnion<'error' | 'connected' | 'disconnected' | 'state_change', string>;

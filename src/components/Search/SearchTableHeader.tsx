@@ -1,14 +1,19 @@
-import React, {useCallback, useMemo} from 'react';
-import type {ValueOf} from 'type-fest';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
-import SortableTableHeader from './SortableTableHeader';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useMemo} from 'react';
+
 import type {SearchColumnType, SearchGroupBy, SearchSortBy, SortOrder} from './types';
+
+import SortableTableHeader from './SortableTableHeader';
 
 type SearchColumnConfig = {
     columnName: SearchColumnType;

@@ -1,18 +1,23 @@
-import React from 'react';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
+
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+
 import {updateDraftRequireFieldsRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getEffectiveRequireFieldsRuleForm} from '@libs/RequireFieldsRulesUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
+
+import React from 'react';
 
 type RequireFieldsRuleCategoryPageBaseProps = {
     policyID: string;

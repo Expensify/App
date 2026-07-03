@@ -1,18 +1,28 @@
-import React, {useImperativeHandle, useState} from 'react';
-import type {ForwardedRef} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
+
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import getPlatform from '@libs/getPlatform';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {isTransactionGroupListItemType, splitGroupsIntoPairs} from '@libs/SearchUIUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {CardList, Transaction} from '@src/types/onyx';
+
+import type {ForwardedRef} from 'react';
+import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+
+import React, {useImperativeHandle, useState} from 'react';
+
+import type {SearchListItem} from './SearchList/ListItem/types';
+import type {SearchColumnType, SearchQueryJSON, SelectedTransactions} from './types';
+
 import useSearchListViewState from './hooks/useSearchListViewState';
 import AnimatedExitRow from './primitives/AnimatedExitRow';
 import SelectionTopBar from './primitives/SelectionTopBar';
@@ -22,9 +32,7 @@ import GroupChildrenContainer from './SearchList/ListItem/GroupChildrenContainer
 import GroupHeader from './SearchList/ListItem/GroupHeader';
 import TransactionGroupListItem from './SearchList/ListItem/TransactionGroupListItem';
 import {isGroupChildrenContainerItem, isGroupHeaderItem} from './SearchList/ListItem/types';
-import type {SearchListItem} from './SearchList/ListItem/types';
 import SearchListViewLayout from './SearchListViewLayout';
-import type {SearchColumnType, SearchQueryJSON, SelectedTransactions} from './types';
 
 /** Imperative handle the router uses for highlight-driven scrolling (mirrors SearchList's handle). */
 type SearchListHandle = {
@@ -417,7 +425,5 @@ function ExpenseGroupedSearchView({
         </SearchListViewLayout>
     );
 }
-
-ExpenseGroupedSearchView.displayName = 'ExpenseGroupedSearchView';
 
 export default ExpenseGroupedSearchView;
