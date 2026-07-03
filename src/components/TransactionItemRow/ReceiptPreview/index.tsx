@@ -3,6 +3,7 @@ import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceiptWithSizeCalculation from '@components/EReceiptWithSizeCalculation';
 import type {ImageOnLoadEvent} from '@components/Image/types';
 import type {AnchorPosition} from '@components/TransactionItemRow/types';
+
 import useDebouncedState from '@hooks/useDebouncedState';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,7 +18,6 @@ import Image from '@src/components/Image';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
-import getAnchoredPreviewPosition from './getAnchoredPreviewPosition';
 
 import type {LayoutChangeEvent} from 'react-native';
 
@@ -25,6 +25,8 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
 import {StyleSheet, View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
+
+import getAnchoredPreviewPosition from './getAnchoredPreviewPosition';
 
 type ReceiptPreviewProps = {
     /** Path to the image to be opened in the preview */

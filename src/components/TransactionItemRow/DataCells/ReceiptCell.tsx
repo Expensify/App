@@ -1,6 +1,7 @@
 import ReceiptImage from '@components/ReceiptImage';
 import ReceiptPreview from '@components/TransactionItemRow/ReceiptPreview';
 import type {AnchorPosition} from '@components/TransactionItemRow/types';
+
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';

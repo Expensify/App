@@ -1,4 +1,5 @@
 import type {AnchorPosition} from '@components/TransactionItemRow/types';
+
 import variables from '@styles/variables';
 
 /** Width of the preview, shared with `styles.receiptPreview.width` via `variables.receiptPreviewWidth`. */

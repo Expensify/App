@@ -1,17 +1,22 @@
-import React, {useRef, useState} from 'react';
-import type {View} from 'react-native';
 import Icon from '@components/Icon';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {View} from 'react-native';
+
+import React, {useRef, useState} from 'react';
 
 const ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,

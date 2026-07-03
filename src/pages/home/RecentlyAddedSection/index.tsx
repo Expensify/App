@@ -19,7 +19,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThreadNavigationUtils';
 import {getReportIDToOpenForExpense} from '@libs/TransactionThreadNavigationUtils';
+
 import WidgetHeaderMenu from '@pages/home/common/WidgetHeaderMenu/WidgetHeaderMenu';
+
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
