@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import type {Policy} from '@src/types/onyx';
+import {hasSynchronizationErrorMessage} from './actions/connections';
 
 type HRConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES>;
 
@@ -166,6 +167,25 @@ function getHRFinalApprover(policy?: OnyxEntry<Policy>): string | null {
     return null;
 }
 
+/** Checks if any HR connection on the policy is in an error state. */
+function shouldShowHRConnectionError(policy: OnyxEntry<Policy>, isSyncInProgress: boolean, isAdmin: boolean): boolean {
+    if (!isAdmin) {
+        return false;
+    }
+    const connectedProvider = getConnectedHRProvider(policy);
+    if (!connectedProvider) {
+        return false;
+    }
+    const lastSync = policy?.connections?.[connectedProvider.connectionName]?.lastSync;
+    if (lastSync?.isAuthenticationError) {
+        return true;
+    }
+    if (connectedProvider.connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) {
+        return policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]?.lastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.FAILED;
+    }
+    return hasSynchronizationErrorMessage(policy, connectedProvider.connectionName, isSyncInProgress);
+}
+
 export {
     getConnectedHRProvider,
     getHRApprovalMode,
@@ -179,6 +199,7 @@ export {
     isMergeHRCompleteSetupNeeded,
     isMergeHRConnected,
     isZenefitsConnected,
+    shouldShowHRConnectionError,
 };
 
 export type {HRConnectionName};

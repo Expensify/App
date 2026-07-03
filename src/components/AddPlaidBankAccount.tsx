@@ -200,7 +200,7 @@ function AddPlaidBankAccount({
     if (isPlaidDisabled) {
         return (
             <View>
-                <Text style={[styles.formError]}>{translate('bankAccount.error.tooManyAttempts')}</Text>
+                <Text style={[styles.formError, styles.mh5]}>{translate('bankAccount.error.tooManyAttempts')}</Text>
             </View>
         );
     }
