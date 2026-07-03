@@ -2,7 +2,7 @@
 title: Difference between Classic Track, Classic Submit, Submit plan, Collect, and Control
 description: Learn the difference between Classic Track and Classic Submit plans in Expensify Classic and newer workspace-based plans like Submit, Collect, and Control.
 keywords: classic submit vs submit plan, classic track vs collect expensify, expensify personal vs shared workspace, submit vs collect vs control expensify, group workspace expensify
-internalScope: Audience is members confused about plan types, support agents, and onboarding users. Covers differences between Classic Track, Classic Submit, Submit plan, Collect, and Control workspaces. Does not cover etailed setup steps or billing configuration for paid plans
+internalScope: Audience is members confused about plan types, support agents, and onboarding users. Covers differences between Classic Track, Classic Submit, Submit plan, Collect, and Control workspaces. Does not cover detailed setup steps or billing configuration for paid plans
 ---
 
 # Difference between Classic Track, Classic Submit, Submit plan, Collect, and Control
@@ -122,7 +122,7 @@ Classic Track and Classic Submit plans follow the same migration and upgrade pat
 
 ## Why can’t I invite people to my workspace?
 
-You’re likely using a **Classic Track** or **Classic Submit** plan, which is a personal workspace that does not support shared collaboration, or you aren't an admin on a Collect or Contorl workspace.
+You’re likely using a **Classic Track** or **Classic Submit** plan, which is a personal workspace that does not support shared collaboration, or you aren't an admin on a Collect or Control workspace.
 
 ---
 
