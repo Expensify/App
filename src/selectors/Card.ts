@@ -1,5 +1,5 @@
 import {getExpensifyCardFeedsForDisplay} from '@libs/CardFeedUtils';
-import {isCard, isCardHiddenFromSearch, isCSVFeedOrExpensifyCard, isExpensifyCard, isPersonalCard} from '@libs/CardUtils';
+import {filterAllInactiveCards, isCard, isCardHiddenFromSearch, isCSVFeedOrExpensifyCard, isExpensifyCard, isPersonalCard} from '@libs/CardUtils';
 import {filterObject} from '@libs/ObjectUtils';
 
 import CONST from '@src/CONST';
@@ -102,6 +102,18 @@ const isExpensifyCardContinuousReconciliationEnabledSelector = (value: boolean |
 /** Picks the shared company card custom names from a domain's card feeds, avoiding a subscription to the entire CardFeeds object. */
 const companyCardCustomNamesSelector = (cardFeeds: OnyxEntry<CardFeeds>) => cardFeeds?.settings?.companyCardCustomNames;
 
+/**
+ * Determines whether a workspace has at least one issued (active) Expensify Card.
+ * Intended to run against a single WorkspaceCardsList entry subscribed by its exact
+ * `cards_${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}` key. It drops the `cardList` of cards still available to
+ * assign and any inactive cards, then checks whether an active Expensify Card remains. Reducing to a boolean in the
+ * selector keeps consumers from re-rendering on unrelated card changes (PERF-11).
+ */
+const hasIssuedExpensifyCardSelector = (cardsList: OnyxEntry<WorkspaceCardsList>): boolean => {
+    const {cardList, ...assignedCards} = cardsList ?? {};
+    return Object.values(filterAllInactiveCards(assignedCards)).some((card) => card.bank === CONST.EXPENSIFY_CARD.BANK);
+};
+
 export {
     filterCardsHiddenFromSearch,
     filterOutPersonalCards,
@@ -112,4 +124,5 @@ export {
     getBankLinkedPersonalCards,
     isExpensifyCardContinuousReconciliationEnabledSelector,
     companyCardCustomNamesSelector,
+    hasIssuedExpensifyCardSelector,
 };

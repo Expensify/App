@@ -6,7 +6,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {enablePolicyCategories} from '@libs/actions/Policy/Category';
-import {filterAllInactiveCards, hasCompanyCardFeeds} from '@libs/CardUtils';
+import {hasCompanyCardFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     arePolicyRulesEnabled,
@@ -27,6 +27,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+
+import {hasIssuedExpensifyCardSelector} from '@selectors/Card';
 
 const MIN_MEMBERS_FOR_ACCOUNTANT_INVITED = 2;
 
@@ -68,10 +70,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     // re-render to this workspace's issued-card state (PERF-11) and prevents a workspaceAccountID that is a substring of another
     // workspace's ID from marking this step complete. Mirrors the exact-key pattern used in WorkspaceMoreFeaturesPage.
     const [hasIssuedExpensifyCard = false] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
-        selector: (cardsList) => {
-            const {cardList, ...assignedCards} = cardsList ?? {};
-            return Object.values(filterAllInactiveCards(assignedCards)).some((card) => card.bank === CONST.EXPENSIFY_CARD.BANK);
-        },
+        selector: hasIssuedExpensifyCardSelector,
     });
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy);
 
