@@ -3,6 +3,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnboardingIntent from '@hooks/useOnboardingIntent';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import {enablePolicyCategories} from '@libs/actions/Policy/Category';
 import {hasCompanyCardFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -16,8 +17,11 @@ import {
     isPendingDeletePolicy,
     isPolicyAdmin,
 } from '@libs/PolicyUtils';
+
 import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/utils/isWithinGettingStartedPeriod';
+
 import {enableCompanyCards, enablePolicyConnections} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';

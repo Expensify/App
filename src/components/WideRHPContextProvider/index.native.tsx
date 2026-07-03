@@ -3,8 +3,10 @@ import React, {createContext, useContext} from 'react';
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
-import {defaultWideRHPActionsContextValue, defaultWideRHPStateContextValue} from './default';
+
 import type {WideRHPActionsContextType, WideRHPStateContextType} from './types';
+
+import {defaultWideRHPActionsContextValue, defaultWideRHPStateContextValue} from './default';
 
 const secondOverlayWideRHPProgress = new Animated.Value(0);
 const secondOverlayRHPOnWideRHPProgress = new Animated.Value(0);

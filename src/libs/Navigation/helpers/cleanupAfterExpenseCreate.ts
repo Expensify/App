@@ -1,9 +1,12 @@
-// eslint-disable-next-line no-restricted-imports -- InteractionManager is the only cross-platform API to defer work past the dismiss animation
-import {InteractionManager} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {removeDraftTransactionsByIDs} from '@libs/actions/TransactionEdit';
 import Navigation from '@libs/Navigation/Navigation';
+
 import type {ReportAction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+// eslint-disable-next-line no-restricted-imports -- InteractionManager is the only cross-platform API to defer work past the dismiss animation
+import {InteractionManager} from 'react-native';
 
 type CleanupAfterExpenseCreateParams = {
     draftTransactionIDs: string[] | undefined;

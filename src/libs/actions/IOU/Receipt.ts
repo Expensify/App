@@ -1,6 +1,3 @@
-import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {DetachReceiptParams, ReplaceReceiptParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -13,7 +10,9 @@ import {buildOptimisticDetachReceipt, isInvoiceReport as isInvoiceReportReportUt
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {logReceiptCaptured, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+
 import {resolveDetachReceiptConflicts} from '@userActions/RequestConflictUtils';
+
 import type {IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,6 +21,12 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+
 import {getAllReports, getAllTransactions} from '.';
 import {getReceiptError} from './MoneyRequestBuilder';
 

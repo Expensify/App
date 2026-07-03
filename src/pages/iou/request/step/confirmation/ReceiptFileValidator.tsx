@@ -1,17 +1,21 @@
-import {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import validateReceiptFile from '@libs/fileDownload/validateReceiptFile';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect} from 'react';
 
 type ReceiptFileValidatorProps = {
     transactions: Transaction[];

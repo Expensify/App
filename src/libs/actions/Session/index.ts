@@ -1,10 +1,3 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
-import {openAuthSessionAsync} from 'expo-web-browser';
-import throttle from 'lodash/throttle';
-import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
-import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {buildOldDotURL, openExternalLink} from '@libs/actions/Link';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
 import * as API from '@libs/API';
@@ -49,7 +42,9 @@ import {getPartnerCredentials, resetDidUserLogInDuringSession} from '@libs/Sessi
 import {clearSoundAssetsCache} from '@libs/Sound';
 import {logReceiptQueueSnapshot} from '@libs/telemetry/ReceiptObservability';
 import Timers from '@libs/Timers';
+
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+
 import {KEYS_TO_PRESERVE, openApp} from '@userActions/App';
 import {clearCachedAttachments} from '@userActions/Attachment';
 import clearOnyxAndSeedFullReconnect from '@userActions/clearOnyxAndSeedFullReconnect';
@@ -59,6 +54,7 @@ import type HybridAppSettings from '@userActions/HybridApp/types';
 import {close} from '@userActions/Modal';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import * as Welcome from '@userActions/Welcome';
+
 import CONFIG from '@src/CONFIG';
 import CONST, {FRAUD_PROTECTION_EVENT} from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -72,6 +68,16 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
+
+import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
+import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import HybridAppModule from '@expensify/react-native-hybrid-app';
+import {openAuthSessionAsync} from 'expo-web-browser';
+import throttle from 'lodash/throttle';
+import Onyx from 'react-native-onyx';
+
 import pkg from '../../../../package.json';
 import clearCache from './clearCache';
 import updateSessionAuthTokens from './updateSessionAuthTokens';
@@ -238,6 +244,11 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false
 function signInWithSupportAuthToken(authToken: string) {
     const {optimisticData, finallyData} = getShortLivedLoginParams(true);
     API.read(READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN, {authToken}, {optimisticData, finallyData});
+
+    // Record the token so the transition pages skip a duplicate sign-in for it. The Public/Auth navigator
+    // swap re-mounts the transition screen mid-login, and without this the re-mounted page fires this call
+    // again and trips the support-token rate limit. Matches signInWithShortLivedAuthToken.
+    NetworkStore.setLastShortAuthToken(authToken);
 }
 
 /**
