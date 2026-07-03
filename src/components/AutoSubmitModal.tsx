@@ -1,19 +1,25 @@
-import React, {useMemo, useRef} from 'react';
-import {View} from 'react-native';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
+
 import {dismissASAPSubmitExplanation} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useMemo, useRef} from 'react';
+import {View} from 'react-native';
+
 import CenteredModalLayout from './CenteredModalLayout';
 import FeatureTrainingContent from './FeatureTrainingContent';
 import Icon from './Icon';

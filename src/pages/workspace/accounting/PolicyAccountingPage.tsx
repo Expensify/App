@@ -1,6 +1,3 @@
-import {useFocusEffect, useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import CollapsibleSection from '@components/CollapsibleSection';
@@ -19,6 +16,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
@@ -34,6 +32,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
@@ -54,19 +53,29 @@ import {
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import Navigation from '@navigation/Navigation';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import {openOldDotLink} from '@userActions/Link';
 import {openPolicyExpensifyCardsPage} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {useFocusEffect, useRoute} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
+import type {MenuItemData, PolicyAccountingPageProps} from './types';
+
 import {AccountingContextProvider, useAccountingActions, useAccountingState} from './AccountingContext';
 import {isCertiniaSRPConnection} from './certinia/utils';
-import type {MenuItemData, PolicyAccountingPageProps} from './types';
 import {getAccountingIntegrationData, getSynchronizationErrorMessage} from './utils';
 
 type RouteParams = {

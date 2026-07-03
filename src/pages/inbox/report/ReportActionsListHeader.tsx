@@ -1,5 +1,6 @@
-import React from 'react';
 import ConciergeThinkingMessage from '@pages/home/report/ConciergeThinkingMessage';
+
+import React from 'react';
 
 type ReportActionsListHeaderProps = {
     /** The ID of the report being displayed */

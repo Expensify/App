@@ -1,10 +1,7 @@
-import isEmpty from 'lodash/isEmpty';
-import keyBy from 'lodash/keyBy';
-import reject from 'lodash/reject';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import {convertAttendeesToArray, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isPersonalCard} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
@@ -30,6 +27,7 @@ import {
 import {isCurrentUserSubmitter} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
@@ -37,6 +35,14 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import isEmpty from 'lodash/isEmpty';
+import keyBy from 'lodash/keyBy';
+import reject from 'lodash/reject';
+import Onyx from 'react-native-onyx';
+
 import type ViolationFixParams from './types';
 
 let allBetas: OnyxEntry<Beta[]>;

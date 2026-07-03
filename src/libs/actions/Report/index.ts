@@ -1,12 +1,5 @@
-/* eslint-disable max-lines */
-import {Str} from 'expensify-common';
-import cloneDeep from 'lodash/cloneDeep';
-import isEmpty from 'lodash/isEmpty';
-import {DeviceEventEmitter, Linking} from 'react-native';
-import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {PartialDeep, ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import AgentZeroReasoningStore from '@libs/AgentZeroReasoningStore';
@@ -174,8 +167,10 @@ import {
 import {buildOptimisticSnapshotData, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {getAmount, getCurrency, getNegatedAmountTransaction, isOnHold, recalculateUnreportedTransactionDetails, shouldClearConvertedAmount} from '@libs/TransactionUtils';
+import {getSearchParamFromPath} from '@libs/Url';
 import {buildSecureDownloadURL} from '@libs/UrlUtils';
 import Visibility from '@libs/Visibility';
+
 import {cacheAttachment, removeCachedAttachment} from '@userActions/Attachment';
 import {clearByKey} from '@userActions/CachedPDFPaths';
 import {setDownload} from '@userActions/Download';
@@ -196,11 +191,13 @@ import {isAnonymousUser} from '@userActions/Session';
 import {onServerDataReady} from '@userActions/Welcome';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingMessage} from '@userActions/Welcome/OnboardingFlow';
+
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
     AnyRequest,
@@ -240,6 +237,17 @@ import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {Dimensions} from '@src/types/utils/Layout';
+
+import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {PartialDeep, ValueOf} from 'type-fest';
+
+/* eslint-disable max-lines */
+import {Str} from 'expensify-common';
+import cloneDeep from 'lodash/cloneDeep';
+import isEmpty from 'lodash/isEmpty';
+import {DeviceEventEmitter, Linking} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import deleteReport from './DeleteReport';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportAction: ReportAction | undefined) => void;
@@ -2194,11 +2202,15 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         return;
     }
 
-    // Sync fresh report data from snapshot to allReports. When navigating from search,
-    // allReports may be stale and missing parentReportID/parentReportActionID, causing
-    // getAllAncestorReportActionIDs() to fail when adding comments optimistically.
+    // Sync fresh report and parent IOU action data from the snapshot into the main Onyx collections.
+    // When navigating from search, allReports may be stale and missing parentReportID/parentReportActionID,
+    // causing getAllAncestorReportActionIDs() to fail when adding comments optimistically; reportActions may
+    // be empty so the transaction thread cannot resolve its parent IOU action to render the expense view.
     if (iouReport?.reportID && reportToUse.reportID === iouReport.reportID) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+        if (iouReportAction?.reportActionID) {
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, {[iouReportAction.reportActionID]: iouReportAction});
+        }
     }
 
     const optimisticTransactionThreadReportID = generateReportID();
@@ -4697,6 +4709,21 @@ function navigateToMostRecentReport(
     }
 }
 
+function getSearchThreadLeaveRoute(report: Report, activeRoute: string): Route | undefined {
+    if (!isSearchTopmostFullScreenRoute() || !isChatThreadReportUtils(report) || !report.parentReportID || !report.parentReportActionID) {
+        return undefined;
+    }
+
+    const parentBackTo = getSearchParamFromPath(activeRoute, 'backTo');
+    const nestedBackTo = parentBackTo ? getSearchParamFromPath(parentBackTo, 'backTo') : undefined;
+
+    return ROUTES.SEARCH_REPORT.getRoute({
+        reportID: report.parentReportID,
+        reportActionID: report.parentReportActionID,
+        backTo: nestedBackTo ?? parentBackTo ?? undefined,
+    });
+}
+
 function getMostRecentReportID(currentReport: OnyxEntry<Report>, conciergeReportID: string | undefined) {
     const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID)?.reportID;
     return lastAccessedReportID ?? conciergeReportID;
@@ -4789,6 +4816,7 @@ function leaveRoom(
 ) {
     const reportID = report.reportID;
     const isChatThread = isChatThreadReportUtils(report);
+    const activeRoute = Navigation.getActiveRoute();
 
     // Pusher's leavingStatus should be sent earlier.
     // Place the broadcast before calling the LeaveRoom API to prevent a race condition
@@ -4882,6 +4910,12 @@ function leaveRoom(
     };
 
     API.write(WRITE_COMMANDS.LEAVE_ROOM, parameters, {optimisticData, successData, failureData});
+
+    const searchThreadLeaveRoute = getSearchThreadLeaveRoute(report, activeRoute);
+    if (searchThreadLeaveRoute) {
+        Navigation.goBack(searchThreadLeaveRoute, {compareParams: false});
+        return;
+    }
 
     // If this is the leave action from a workspace room, simply dismiss the modal, i.e., allow the user to view the room and join again immediately.
     // If this is the leave action from a chat thread (even if the chat thread is in a room), do not allow the user to stay in the thread after leaving.
@@ -7537,6 +7571,8 @@ function buildOptimisticChangePolicyData({
         let newTotal = 0;
         let newNonReimbursableTotal = 0;
         let newUnheldNonReimbursableTotal = 0;
+        let newReimbursableTotal = 0;
+        let newUnheldReimbursableTotal = 0;
 
         for (const transaction of transactions) {
             const transactionCurrency = getCurrency(transaction);
@@ -7547,6 +7583,11 @@ function buildOptimisticChangePolicyData({
                 newTotal -= transactionAmount;
                 if (!transaction.reimbursable) {
                     newNonReimbursableTotal -= transactionAmount;
+                } else {
+                    newReimbursableTotal -= transactionAmount;
+                    if (!isOnHold(transaction)) {
+                        newUnheldReimbursableTotal -= transactionAmount;
+                    }
                 }
                 if (!transaction.reimbursable || isOnHold(transaction)) {
                     newUnheldNonReimbursableTotal -= transactionAmount;
@@ -7562,6 +7603,8 @@ function buildOptimisticChangePolicyData({
                 total: newTotal,
                 nonReimbursableTotal: newNonReimbursableTotal,
                 unheldNonReimbursableTotal: newUnheldNonReimbursableTotal,
+                reimbursableTotal: newReimbursableTotal,
+                unheldReimbursableTotal: newUnheldReimbursableTotal,
                 pendingFields: {
                     ...(report.pendingFields ?? {}),
                     total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -7585,6 +7628,8 @@ function buildOptimisticChangePolicyData({
                 total: report.total,
                 nonReimbursableTotal: report.nonReimbursableTotal,
                 unheldNonReimbursableTotal: report.unheldNonReimbursableTotal,
+                reimbursableTotal: report.reimbursableTotal,
+                unheldReimbursableTotal: report.unheldReimbursableTotal,
                 pendingFields: {
                     ...(report.pendingFields ?? {}),
                     total: null,

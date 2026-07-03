@@ -1,16 +1,22 @@
 import {render, screen} from '@testing-library/react-native';
-import {View as MockedAvatarData} from 'react-native';
-import Onyx from 'react-native-onyx';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ReportActionAvatars from '@components/ReportActionAvatars';
+
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
+
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import {View as MockedAvatarData} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import {actionR14932} from '../../__mocks__/reportData/actions';
 import personalDetails from '../../__mocks__/reportData/personalDetails';
 import {policy420A} from '../../__mocks__/reportData/policies';

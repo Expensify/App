@@ -1,12 +1,3 @@
-import {policyTypeSelector} from '@selectors/Policy';
-import {Str} from 'expensify-common';
-import React, {useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-// Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
-// eslint-disable-next-line no-restricted-imports
-import {useOnyx as originalUseOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
@@ -22,6 +13,7 @@ import Text from '@components/Text';
 import UserPills from '@components/UserPills';
 import ViolationMessages from '@components/ViolationMessages';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
+
 import useActiveRoute from '@hooks/useActiveRoute';
 import useAttendees from '@hooks/useAttendees';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
@@ -51,6 +43,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import useViolations from '@hooks/useViolations';
+
 import {updateMoneyRequestBillable, updateMoneyRequestCategory, updateMoneyRequestReimbursable, updateMoneyRequestTag, updateMoneyRequestTaxRate} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {openExternalLink} from '@libs/actions/Link';
 import initSplitExpense from '@libs/actions/SplitExpenses';
@@ -133,9 +126,13 @@ import {
 } from '@libs/TransactionUtils';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import AnimatedEmptyStateBackground from '@pages/inbox/report/AnimatedEmptyStateBackground';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -143,6 +140,18 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {policyTypeSelector} from '@selectors/Policy';
+import {Str} from 'expensify-common';
+import React, {useState} from 'react';
+import {View} from 'react-native';
+// Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
+// eslint-disable-next-line no-restricted-imports
+import {useOnyx as originalUseOnyx} from 'react-native-onyx';
+
 import MoneyRequestReceiptView from './MoneyRequestReceiptView';
 
 type MoneyRequestViewProps = {
@@ -1138,7 +1147,9 @@ function MoneyRequestView({
                             }
 
                             if (shouldShowSplitIndicator && isSplitAvailable) {
-                                initSplitExpense(transaction, transactionThreadReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, {isProduction});
+                                initSplitExpense(transaction, transactionThreadReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, personalPolicy?.outputCurrency, {
+                                    isProduction,
+                                });
                                 return;
                             }
 
