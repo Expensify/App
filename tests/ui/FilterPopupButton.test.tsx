@@ -1,16 +1,21 @@
-import type * as ReactNavigationCore from '@react-navigation/core';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import type {ReactElement} from 'react';
-import React from 'react';
-import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
 import type {ButtonComponentProps, FilterPopupButtonHandle, PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type * as ReactNavigationCore from '@react-navigation/core';
+import type {ReactElement} from 'react';
+
+import React from 'react';
+import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 

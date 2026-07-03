@@ -1,11 +1,6 @@
-import {useIsFocused} from '@react-navigation/core';
-import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
-import type {ReactNode, RefObject} from 'react';
-import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
+
 import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import usePopstateListener from '@hooks/usePopstateListener';
@@ -13,10 +8,20 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import subscribeToRootNavigation from '@libs/Navigation/helpers/subscribeToRootNavigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+
+import type {ReactNode, RefObject} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import {useIsFocused} from '@react-navigation/core';
+import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 type PopoverComponentProps = {
     isExpanded: boolean;

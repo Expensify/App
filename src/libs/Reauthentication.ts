@@ -1,10 +1,13 @@
-import * as Sentry from '@sentry/react-native';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account} from '@src/types/onyx';
 import type Response from '@src/types/onyx/Response';
+
+import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
+
+import * as Sentry from '@sentry/react-native';
+import Onyx from 'react-native-onyx';
+
 import {isConnectedAsDelegate, restoreDelegateSession} from './actions/Delegate';
 import clearShortLivedAuthState from './actions/Session/clearShortLivedAuthState';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';

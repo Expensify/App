@@ -2,6 +2,7 @@
  * @jest-environment node
  */
 import * as core from '@actions/core';
+
 import run from '../../.github/actions/javascript/isDeployChecklistLocked/isDeployChecklistLocked';
 import CONST from '../../.github/libs/CONST';
 import * as DeployChecklistUtils from '../../.github/libs/DeployChecklistUtils';
