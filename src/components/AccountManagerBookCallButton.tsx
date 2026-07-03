@@ -26,9 +26,6 @@ type AccountManagerBookCallButtonProps = {
     /** When provided, the account manager's avatar is displayed instead of a phone icon */
     accountManagerAccountID?: string;
 
-    /** Whether to show the account manager's avatar instead of the phone icon */
-    shouldShowAvatar?: boolean;
-
     /** Whether this button is nested inside another pressable element */
     isNested?: boolean;
 
@@ -36,12 +33,12 @@ type AccountManagerBookCallButtonProps = {
     style?: StyleProp<ViewStyle>;
 };
 
-function AccountManagerBookCallButton({calendarLink, accountManagerAccountID, shouldShowAvatar = false, isNested = false, style}: AccountManagerBookCallButtonProps) {
+function AccountManagerBookCallButton({calendarLink, accountManagerAccountID, isNested = false, style}: AccountManagerBookCallButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Phone']);
     const [accountManagerDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: (personalDetails: PersonalDetailsList | undefined) => (shouldShowAvatar && accountManagerAccountID ? personalDetails?.[accountManagerAccountID] : undefined),
+        selector: (personalDetails: PersonalDetailsList | undefined) => (accountManagerAccountID ? personalDetails?.[accountManagerAccountID] : undefined),
     });
 
     if (!calendarLink) {
@@ -59,7 +56,7 @@ function AccountManagerBookCallButton({calendarLink, accountManagerAccountID, sh
         style,
     };
 
-    if (!shouldShowAvatar) {
+    if (!accountManagerAccountID) {
         return (
             <Button
                 text={label}

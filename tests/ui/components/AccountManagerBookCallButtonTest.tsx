@@ -24,13 +24,12 @@ const mockOpenExternalLink = jest.mocked(openExternalLink);
 const CALENDAR_LINK = 'https://calendly.com/account-manager/expensify';
 const ACCOUNT_MANAGER_ACCOUNT_ID = '42';
 
-function renderButton(props: {calendarLink: string; accountManagerAccountID?: string; shouldShowAvatar?: boolean}) {
+function renderButton(props: {calendarLink: string; accountManagerAccountID?: string}) {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <AccountManagerBookCallButton
                 calendarLink={props.calendarLink}
                 accountManagerAccountID={props.accountManagerAccountID}
-                shouldShowAvatar={props.shouldShowAvatar}
             />
         </ComposeProviders>,
     );
@@ -67,8 +66,8 @@ describe('AccountManagerBookCallButton', () => {
         expect(screen.queryByText(translateLocal('videoChatButtonAndMenu.tooltip'))).not.toBeOnTheScreen();
     });
 
-    it('renders the account manager avatar variant when requested', async () => {
-        renderButton({calendarLink: CALENDAR_LINK, accountManagerAccountID: ACCOUNT_MANAGER_ACCOUNT_ID, shouldShowAvatar: true});
+    it('renders the account manager avatar variant when an account ID is provided', async () => {
+        renderButton({calendarLink: CALENDAR_LINK, accountManagerAccountID: ACCOUNT_MANAGER_ACCOUNT_ID});
         await waitForBatchedUpdatesWithAct();
 
         const button = screen.getByText(translateLocal('videoChatButtonAndMenu.tooltip'));
