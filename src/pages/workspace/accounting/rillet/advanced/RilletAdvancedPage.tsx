@@ -1,9 +1,11 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
+import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
@@ -38,7 +40,14 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const travelInvoicingSettlementsBankAccount = rilletData?.bankAccounts?.find((bankAccount) => bankAccount.id === rilletConfig?.sync?.travelInvoicingSettlementsBankAccountID);
     const isExpensifyCardsEnabled = true; // s77rt
     const isTravelInvoicingEnabled = true; // s77rt
-    // s77rt use Accordion
+
+    const {isAccordionExpanded: isAutoSyncAccordionExpanded, shouldAnimateAccordionSection: shouldAnimateAutoSyncAccordionSection} = useAccordionAnimation(autoSync);
+    const {isAccordionExpanded: isSyncReimbursedReportsAccordionExpanded, shouldAnimateAccordionSection: shouldAnimateSyncReimbursedReportsAccordionSection} =
+        useAccordionAnimation(syncReimbursedReports);
+    const {isAccordionExpanded: isSyncExpensifyCardSettlementsAccordionExpanded, shouldAnimateAccordionSection: shouldAnimateSyncExpensifyCardSettlementsAccordionSection} =
+        useAccordionAnimation(syncExpensifyCardSettlements);
+    const {isAccordionExpanded: isSyncTravelInvoicingSettlementsAccordionExpanded, shouldAnimateAccordionSection: shouldAnimateSyncTravelInvoicingSettlementsAccordionSection} =
+        useAccordionAnimation(syncTravelInvoicingSettlements);
 
     return (
         <ConnectionLayout
@@ -64,7 +73,10 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.AUTO_SYNC)}
                 onCloseError={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.AUTO_SYNC)}
             />
-            {autoSync && (
+            <Accordion
+                isExpanded={isAutoSyncAccordionExpanded}
+                isToggleTriggered={shouldAnimateAutoSyncAccordionSection}
+            >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.ACCOUNTING_METHOD], rilletConfig?.pendingFields)}>
                     <MenuItemWithTopDescription
                         title={translate(`workspace.rillet.accountingMethods.values.${accountingMethod}`)}
@@ -77,7 +89,7 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         }
                     />
                 </OfflineWithFeedback>
-            )}
+            </Accordion>
             <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
             <ToggleSettingOptionRow
                 title={translate('workspace.rillet.syncReimbursedReports')}
@@ -91,7 +103,10 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.SYNC_REIMBURSED_REPORTS)}
                 onCloseError={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.SYNC_REIMBURSED_REPORTS)}
             />
-            {syncReimbursedReports && (
+            <Accordion
+                isExpanded={isSyncReimbursedReportsAccordionExpanded}
+                isToggleTriggered={shouldAnimateSyncReimbursedReportsAccordionSection}
+            >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE], rilletConfig?.pendingFields)}>
                     <MenuItemWithTopDescription
                         title={billPaymentAccount?.name}
@@ -103,7 +118,7 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         }
                     />
                 </OfflineWithFeedback>
-            )}
+            </Accordion>
             {isExpensifyCardsEnabled && (
                 <>
                     <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
@@ -118,7 +133,10 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS)}
                         onCloseError={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS)}
                     />
-                    {syncExpensifyCardSettlements && (
+                    <Accordion
+                        isExpanded={isSyncExpensifyCardSettlementsAccordionExpanded}
+                        isToggleTriggered={shouldAnimateSyncExpensifyCardSettlementsAccordionSection}
+                    >
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID], rilletConfig?.pendingFields)}>
                             <MenuItemWithTopDescription
                                 title={settlementsBankAccount?.name}
@@ -132,7 +150,7 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                                 }
                             />
                         </OfflineWithFeedback>
-                    )}
+                    </Accordion>
                 </>
             )}
             {isTravelInvoicingEnabled && (
@@ -149,7 +167,10 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.SYNC_TRAVEL_INVOICING_SETTLEMENTS)}
                         onCloseError={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.SYNC_TRAVEL_INVOICING_SETTLEMENTS)}
                     />
-                    {syncTravelInvoicingSettlements && (
+                    <Accordion
+                        isExpanded={isSyncTravelInvoicingSettlementsAccordionExpanded}
+                        isToggleTriggered={shouldAnimateSyncTravelInvoicingSettlementsAccordionSection}
+                    >
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID], rilletConfig?.pendingFields)}>
                             <MenuItemWithTopDescription
                                 title={travelInvoicingSettlementsBankAccount?.name}
@@ -163,7 +184,7 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                                 }
                             />
                         </OfflineWithFeedback>
-                    )}
+                    </Accordion>
                 </>
             )}
         </ConnectionLayout>
