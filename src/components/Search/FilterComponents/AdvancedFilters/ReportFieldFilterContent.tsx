@@ -10,7 +10,7 @@ import type {PolicyReportField} from '@src/types/onyx';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useRef} from 'react';
+import React, {useRef, useState} from 'react';
 
 type ReportFieldFilterContentProps = {
     values: Partial<SearchAdvancedFiltersForm> | undefined;
