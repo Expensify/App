@@ -13,7 +13,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 
-import {createTransactionThreadReport, openReport} from '@libs/actions/Report';
+import {createTransactionThreadReport, openReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
@@ -177,7 +177,12 @@ function MoneyRequestReportPreview({
         (transaction: Transaction) => {
             const transactionIOUAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
             let childReportID = transactionIOUAction?.childReportID ?? transaction.transactionThreadReportID;
-            if (!childReportID && transactionIOUAction?.reportActionID) {
+            if (childReportID) {
+                // The thread already exists, but it may not be cached (offline, or after a cache clear). Seed its
+                // optimistic report shell + parent linkage so navigating to it renders the expense instead of a
+                // blank/not-found screen — the same thing the canonical transaction-thread openers do.
+                setOptimisticTransactionThread(childReportID, iouReport?.reportID ?? transaction.reportID, transactionIOUAction?.reportActionID, iouReport?.policyID ?? policyID);
+            } else if (transactionIOUAction?.reportActionID) {
                 const transactionID = isMoneyRequestAction(transactionIOUAction) ? getOriginalMessage(transactionIOUAction)?.IOUTransactionID : undefined;
                 if (transactionID) {
                     childReportID = createTransactionThreadReport({
@@ -192,7 +197,7 @@ function MoneyRequestReportPreview({
             }
             return childReportID;
         },
-        [betas, currentUserAccountID, currentUserEmail, introSelected, iouReport],
+        [betas, currentUserAccountID, currentUserEmail, introSelected, iouReport, policyID],
     );
 
     const navigateToExpense = useCallback(
@@ -202,17 +207,20 @@ function MoneyRequestReportPreview({
                 op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
             });
 
-            // On narrow layouts the wide RHP is unavailable. Push the report onto the stack first and then the
-            // expense on top of it, pointing the expense's backTo at the report (not the chat). Keeping the report
-            // as a real stack entry makes the OS/hardware back and the iOS swipe-back return to the report — matching
-            // the header back button — while chaining the expense's backTo to the report (instead of the chat) keeps
-            // it a forward push and avoids the backward animation seen previously on iOS.
+            // On narrow layouts the wide RHP is unavailable, so push the report onto the stack first and then the
+            // expense on top of it. Keeping the report as a real stack entry makes the OS/hardware back and the
+            // iOS swipe-back return to the report — matching the header back button.
             if (isSmallScreenWidth) {
                 const backTo = Navigation.getActiveRoute();
                 if (iouReportID) {
                     const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, backTo);
                     Navigation.navigate(reportRoute);
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, reportRoute));
+                    // Defer the expense push to the next microtask so the report push commits first. Firing both
+                    // navigations synchronously races the shared Report navigator state, which iOS animates as a
+                    // backward pop; sequencing them keeps it a forward push (the wide path cascades the same way).
+                    Navigation.setNavigationActionToMicrotaskQueue(() => {
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, reportRoute));
+                    });
                 } else {
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, backTo));
                 }
@@ -269,8 +277,10 @@ function MoneyRequestReportPreview({
             // The thread could not be resolved. If the IOU report's action for this expense isn't loaded yet
             // (e.g. right after a cache clear), fetch the report's actions and open the expense once they arrive
             // (see the effect below) instead of falling back to the parent report and losing the pressed expense.
+            // Skip this while offline: openReport can't fetch, so the deferred press would never fire (dead tap) —
+            // fall through to opening the cached parent report instead, matching the "View" button.
             const isIOUActionLoaded = !!getIOUActionForReportID(transaction.reportID, transaction.transactionID);
-            if (!isIOUActionLoaded && iouReportID) {
+            if (!isIOUActionLoaded && iouReportID && !isOffline) {
                 pendingExpenseTransactionRef.current = transaction;
                 openReport({reportID: iouReportID, introSelected, betas});
                 return;
@@ -278,7 +288,7 @@ function MoneyRequestReportPreview({
 
             openReportFromPreview();
         },
-        [betas, introSelected, iouReportID, navigateToExpense, openReportFromPreview, resolveChildReportID, transactions.length],
+        [betas, introSelected, iouReportID, isOffline, navigateToExpense, openReportFromPreview, resolveChildReportID, transactions.length],
     );
 
     // Completes a deferred expense press once the IOU report's actions have loaded.

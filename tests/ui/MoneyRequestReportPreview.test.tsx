@@ -10,6 +10,7 @@ import type {MoneyRequestReportPreviewProps} from '@components/ReportActionItem/
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 
+import useNetwork from '@hooks/useNetwork';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
 import * as ReportActions from '@libs/actions/Report';
@@ -63,6 +64,9 @@ jest.mock('react', () => {
 });
 
 jest.mock('@react-navigation/native');
+
+jest.mock('@hooks/useNetwork');
+const mockUseNetwork = jest.mocked(useNetwork);
 
 jest.mock('@rnmapbox/maps', () => {
     return {
@@ -291,6 +295,7 @@ describe('MoneyRequestReportPreview', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockUseNetwork.mockReturnValue({isOffline: false});
         mockDeferredValueOverride = undefined;
         mockOnHoldMenuOpenHolder.current = undefined;
         mockHoldMenuPropsHolder.current = undefined;
@@ -438,6 +443,9 @@ describe('MoneyRequestReportPreview', () => {
         beforeEach(() => {
             navigateSpy.mockImplementation(() => {});
             jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue('');
+            // The narrow path defers the expense push to a microtask (to avoid the iOS backward animation); run it
+            // synchronously here so the sequence of navigate calls can be asserted deterministically.
+            jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback) => callback());
         });
 
         afterEach(() => {
@@ -476,14 +484,42 @@ describe('MoneyRequestReportPreview', () => {
             await renderAndPopulateCarousel();
             await pressSecondTransaction();
 
-            // Push the report onto the stack first, then the expense on top with its backTo pointing at the report.
-            // Keeping the report as a real stack entry makes the OS/hardware back and the iOS swipe-back return to
-            // the report (matching the header back button); chaining the expense's backTo to the report (not the
-            // chat) keeps it a forward push and avoids the backward iOS animation the previous single push caused.
+            // Push the report onto the stack first, then the expense on top (the second push is deferred to a
+            // microtask so it composes as a forward push instead of the backward iOS animation the synchronous
+            // double-push produced). Keeping the report as a real stack entry makes the OS/hardware back and the
+            // iOS swipe-back return to the report, matching the header back button.
             const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID, undefined, undefined, '');
             expect(navigateSpy).toHaveBeenCalledTimes(2);
             expect(navigateSpy).toHaveBeenNthCalledWith(1, reportRoute);
             expect(navigateSpy).toHaveBeenNthCalledWith(2, ROUTES.REPORT_WITH_ID.getRoute(`thread_${mockSecondTransactionID}`, undefined, undefined, reportRoute));
+        });
+
+        it('seeds the optimistic transaction thread before opening an existing (possibly uncached) expense', async () => {
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            const seedSpy = jest.spyOn(ReportActions, 'setOptimisticTransactionThread').mockImplementation(() => {});
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+
+            // The thread already exists but may not be cached (offline / after a cache clear), so its optimistic
+            // report shell is seeded before navigating — otherwise the tap can land on a blank expense.
+            expect(seedSpy).toHaveBeenCalledWith(`thread_${mockSecondTransactionID}`, mockIOUReport.reportID, expect.anything(), expect.anything());
+        });
+
+        it('opens the parent report (like View) instead of a dead tap when offline and the thread is unresolved', async () => {
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            mockUseNetwork.mockReturnValue({isOffline: true});
+            const openReportSpy = jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
+            // Offline, and the IOU action isn't loaded, so the thread can't be resolved at press time.
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockReturnValue(undefined);
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+
+            // openReport can't fetch offline, so rather than leaving the tap dead we open the cached parent report.
+            expect(openReportSpy).not.toHaveBeenCalled();
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''}));
         });
 
         it('fetches the report actions and opens the pressed expense once they load, instead of the parent report, after a cache clear', async () => {
