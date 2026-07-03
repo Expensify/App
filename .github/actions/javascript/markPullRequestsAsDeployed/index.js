@@ -12748,10 +12748,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
 const ActionUtils = __importStar(__nccwpck_require__(6981));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
-/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
 const core = __importStar(__nccwpck_require__(2186));
 const github_1 = __nccwpck_require__(5438);
 const memoize_1 = __importDefault(__nccwpck_require__(9885));
@@ -12837,7 +12837,9 @@ async function run() {
     const prList = ActionUtils.getJSONInput('PR_LIST', { required: true }).map((num) => Number.parseInt(num, 10));
     const mobileExpensifyPRListInput = ActionUtils.getJSONInput('MOBILE_EXPENSIFY_PR_LIST', { required: false });
     const mobileExpensifyPRList = Array.isArray(mobileExpensifyPRListInput) ? mobileExpensifyPRListInput.map((num) => Number.parseInt(num, 10)) : [];
-    const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', { required: true });
+    const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {
+        required: true,
+    });
     const version = core.getInput('DEPLOY_VERSION', { required: true });
     const androidResult = getDeployTableMessage(core.getInput('ANDROID', { required: true }));
     const iOSResult = getDeployTableMessage(core.getInput('IOS', { required: true }));
