@@ -1,5 +1,6 @@
 import {useRootActions, useRootVisibility} from '@components/PopoverMenu/v2/root/RootContext';
 import type {ContentClose, ContentFocus, ContentItemActions, ContentNavigation, ContentSubActions} from './ContentContext';
+import useCloseOnEscape from './useCloseOnEscape';
 import useCloseOnModalCover from './useCloseOnModalCover';
 import useCloseOnScreenBlur from './useCloseOnScreenBlur';
 import useFocusableRegistry from './useFocusableRegistry';
@@ -26,6 +27,7 @@ function useContentController(componentName: string): {
 
     useCloseOnModalCover(isVisible, close);
     useCloseOnScreenBlur(close);
+    useCloseOnEscape(isVisible, close);
 
     return {
         navigation: {currentSubID: subNav.currentSubID, isAncestorOfCurrent: subNav.isAncestorOfCurrent},
