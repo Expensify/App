@@ -1,11 +1,14 @@
+import {getBoundedResizeForDimensions} from '@libs/getBoundedImageResize';
+import Log from '@libs/Log';
+
 import {ImageManipulator} from 'expo-image-manipulator';
 import {Platform} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import ImageSize from 'react-native-image-size';
-import {getBoundedResizeForDimensions} from '@libs/getBoundedImageResize';
-import Log from '@libs/Log';
-import getSaveFormat from './getSaveFormat';
+
 import type {CropOrRotateImage} from './types';
+
+import getSaveFormat from './getSaveFormat';
 
 /**
  * Crops and rotates the image on ios/android.

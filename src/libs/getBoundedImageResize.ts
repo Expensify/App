@@ -1,6 +1,7 @@
+import CONST from '@src/CONST';
+
 import {Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
-import CONST from '@src/CONST';
 
 type BoundedResize = {width: number} | {height: number};
 

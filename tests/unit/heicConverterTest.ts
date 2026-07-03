@@ -1,9 +1,11 @@
+import convertHeicImage from '@libs/fileDownload/heicConverter/index.native';
+
+import CONST from '@src/CONST';
+import type {FileObject} from '@src/types/utils/Attachment';
+
 import {ImageManipulator} from 'expo-image-manipulator';
 import {Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
-import convertHeicImage from '@libs/fileDownload/heicConverter/index.native';
-import CONST from '@src/CONST';
-import type {FileObject} from '@src/types/utils/Attachment';
 
 jest.mock('react-native-image-size');
 jest.mock('expo-image-manipulator', () => {

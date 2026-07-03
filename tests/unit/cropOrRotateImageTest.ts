@@ -1,8 +1,10 @@
+import cropOrRotateImage from '@libs/cropOrRotateImage/index.native';
+
+import CONST from '@src/CONST';
+
 import {ImageManipulator} from 'expo-image-manipulator';
 import {Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
-import cropOrRotateImage from '@libs/cropOrRotateImage/index.native';
-import CONST from '@src/CONST';
 
 jest.mock('react-native-image-size');
 jest.mock('react-native-blob-util', () => ({

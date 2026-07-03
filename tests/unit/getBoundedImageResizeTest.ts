@@ -1,7 +1,9 @@
+import getBoundedImageResize, {getBoundedResizeForDimensions} from '@libs/getBoundedImageResize';
+
+import CONST from '@src/CONST';
+
 import {Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
-import getBoundedImageResize, {getBoundedResizeForDimensions} from '@libs/getBoundedImageResize';
-import CONST from '@src/CONST';
 
 jest.mock('react-native-image-size');
 
