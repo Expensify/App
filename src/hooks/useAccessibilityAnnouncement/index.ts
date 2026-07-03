@@ -1,5 +1,7 @@
 import type {ReactNode} from 'react';
+
 import {useEffect, useRef} from 'react';
+
 import type UseAccessibilityAnnouncementOptions from './types';
 
 const VISUALLY_HIDDEN_STYLE: Partial<CSSStyleDeclaration> = {

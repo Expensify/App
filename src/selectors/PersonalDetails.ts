@@ -1,4 +1,3 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import {
     getDisplayNameOrDefault,
     getLoginByAccountID,
@@ -7,9 +6,12 @@ import {
     getPersonalDetailsListByIDs,
     newGetPersonalDetailsByIDs,
 } from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
 import type {PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 const personalDetailsSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getPersonalDetailsByID(accountID, personalDetailsList);
 

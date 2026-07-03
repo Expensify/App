@@ -1,7 +1,11 @@
-import {useEffect} from 'react';
-import type {Dispatch, SetStateAction} from 'react';
 import useLocalize from '@hooks/useLocalize';
+
 import CONST from '@src/CONST';
+
+import type {Dispatch, SetStateAction} from 'react';
+
+import {useEffect} from 'react';
+
 import getFileSize from './getFileSize';
 
 type SetState = Dispatch<SetStateAction<string | undefined>>;

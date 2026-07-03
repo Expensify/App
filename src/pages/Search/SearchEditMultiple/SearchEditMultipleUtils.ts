@@ -1,10 +1,12 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {isIOUReport} from '@libs/ReportUtils';
 import {getTagArrayFromName, isDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportActions, SearchResults, Transaction} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 /**
  * Returns the longest common dependent tag prefix for the provided transactions.
