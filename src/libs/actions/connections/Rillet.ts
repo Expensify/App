@@ -52,7 +52,7 @@ function clearRilletErrorField(policyID: string, fieldName: string) {
     });
 }
 
-function prepareRilletOptimisticData<TSettingName extends keyof RilletConnectionsConfig>(
+function prepareRilletOnyxData<TSettingName extends keyof RilletConnectionsConfig>(
     policyID: string,
     settingName: TSettingName,
     settingValue: Partial<RilletConnectionsConfig[TSettingName]>,
@@ -123,7 +123,7 @@ function prepareRilletOptimisticData<TSettingName extends keyof RilletConnection
     return {optimisticData, successData, failureData};
 }
 
-function prepareRilletCodingOptimisticData<TSettingName extends keyof RilletCoding>(
+function prepareRilletCodingOnyxData<TSettingName extends keyof RilletCoding>(
     policyID: string,
     settingName: TSettingName,
     settingValue: Partial<RilletCoding[TSettingName]>,
@@ -198,7 +198,7 @@ function prepareRilletCodingOptimisticData<TSettingName extends keyof RilletCodi
     return {optimisticData, successData, failureData};
 }
 
-function prepareRilletFieldMappingOptimisticData(
+function prepareRilletFieldMappingOnyxData(
     policyID: string,
     fieldID: keyof NonNullable<RilletCoding['fieldMappings']>,
     mapping: ValueOf<NonNullable<RilletCoding['fieldMappings']>>,
@@ -279,7 +279,7 @@ function prepareRilletFieldMappingOptimisticData(
     return {optimisticData, successData, failureData};
 }
 
-function prepareRilletExportOptimisticData<TSettingName extends keyof RilletExport>(
+function prepareRilletExportOnyxData<TSettingName extends keyof RilletExport>(
     policyID: string,
     settingName: TSettingName,
     settingValue: Partial<RilletExport[TSettingName]>,
@@ -354,7 +354,7 @@ function prepareRilletExportOptimisticData<TSettingName extends keyof RilletExpo
     return {optimisticData, successData, failureData};
 }
 
-function prepareRilletAutoSyncOptimisticData(policyID: string, enabled: RilletAutoSync['enabled'], oldEnabled?: RilletAutoSync['enabled'] | null) {
+function prepareRilletAutoSyncOnyxData(policyID: string, enabled: RilletAutoSync['enabled'], oldEnabled?: RilletAutoSync['enabled'] | null) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -424,7 +424,7 @@ function prepareRilletAutoSyncOptimisticData(policyID: string, enabled: RilletAu
     return {optimisticData, successData, failureData};
 }
 
-function prepareRilletSyncOptimisticData<TSettingName extends keyof RilletSync>(
+function prepareRilletSyncOnyxData<TSettingName extends keyof RilletSync>(
     policyID: string,
     settingName: TSettingName,
     settingValue: Partial<RilletSync[TSettingName]>,
@@ -500,7 +500,7 @@ function prepareRilletSyncOptimisticData<TSettingName extends keyof RilletSync>(
 }
 
 function updateRilletSubsidiary(policyID: string, subsidiaryID: RilletConnectionsConfig['subsidiaryID'], oldSubsidiaryID?: RilletConnectionsConfig['subsidiaryID']) {
-    const onyxData = prepareRilletOptimisticData(policyID, CONST.RILLET_CONFIG.SUBSIDIARY_ID, subsidiaryID, oldSubsidiaryID ?? null);
+    const onyxData = prepareRilletOnyxData(policyID, CONST.RILLET_CONFIG.SUBSIDIARY_ID, subsidiaryID, oldSubsidiaryID ?? null);
     const params: UpdateRilletSubsidiaryParams = {
         policyID,
         subsidiaryID,
@@ -509,7 +509,7 @@ function updateRilletSubsidiary(policyID: string, subsidiaryID: RilletConnection
 }
 
 function updateRilletEnableNewCategories(policyID: string, enabled: RilletConnectionsConfig['enableNewCategories'], oldEnabled?: RilletConnectionsConfig['enableNewCategories']) {
-    const onyxData = prepareRilletOptimisticData(policyID, CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES, enabled, oldEnabled ?? null);
+    const onyxData = prepareRilletOnyxData(policyID, CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES, enabled, oldEnabled ?? null);
     const parameters: UpdateRilletEnableNewCategoriesParams = {
         policyID,
         enabled,
@@ -518,7 +518,7 @@ function updateRilletEnableNewCategories(policyID: string, enabled: RilletConnec
 }
 
 function updateRilletSyncTaxRates(policyID: string, enabled: RilletCoding['syncTaxRates'], oldEnabled?: RilletCoding['syncTaxRates']) {
-    const onyxData = prepareRilletCodingOptimisticData(policyID, CONST.RILLET_CONFIG.SYNC_TAX_RATES, enabled, oldEnabled ?? null);
+    const onyxData = prepareRilletCodingOnyxData(policyID, CONST.RILLET_CONFIG.SYNC_TAX_RATES, enabled, oldEnabled ?? null);
     const parameters: UpdateRilletSyncTaxRatesParams = {
         policyID,
         enabled,
@@ -532,7 +532,7 @@ function updateRilletFieldMapping(
     mapping: ValueOf<NonNullable<RilletCoding['fieldMappings']>>,
     oldMapping?: ValueOf<NonNullable<RilletCoding['fieldMappings']>>,
 ) {
-    const onyxData = prepareRilletFieldMappingOptimisticData(policyID, fieldID, mapping, oldMapping ?? null);
+    const onyxData = prepareRilletFieldMappingOnyxData(policyID, fieldID, mapping, oldMapping ?? null);
     const parameters: UpdateRilletFieldMappingParams = {
         policyID,
         fieldID,
@@ -542,7 +542,7 @@ function updateRilletFieldMapping(
 }
 
 function updateRilletExporter(policyID: string, email: RilletExport['exporter'], oldEmail?: RilletExport['exporter']) {
-    const onyxData = prepareRilletExportOptimisticData(policyID, CONST.RILLET_CONFIG.EXPORTER, email, oldEmail ?? null);
+    const onyxData = prepareRilletExportOnyxData(policyID, CONST.RILLET_CONFIG.EXPORTER, email, oldEmail ?? null);
     const parameters: UpdateRilletExporterParams = {
         policyID,
         email,
@@ -551,7 +551,7 @@ function updateRilletExporter(policyID: string, email: RilletExport['exporter'],
 }
 
 function updateRilletExportDate(policyID: string, value: RilletExport['exportDate'], oldValue?: RilletExport['exportDate']) {
-    const onyxData = prepareRilletExportOptimisticData(policyID, CONST.RILLET_CONFIG.EXPORT_DATE, value, oldValue ?? null);
+    const onyxData = prepareRilletExportOnyxData(policyID, CONST.RILLET_CONFIG.EXPORT_DATE, value, oldValue ?? null);
     const parameters: UpdateRilletExportDateParams = {
         policyID,
         value,
@@ -560,7 +560,7 @@ function updateRilletExportDate(policyID: string, value: RilletExport['exportDat
 }
 
 function updateRilletDefaultVendor(policyID: string, vendorID: RilletExport['defaultVendorID'], oldVendorID?: RilletExport['defaultVendorID']) {
-    const onyxData = prepareRilletExportOptimisticData(policyID, CONST.RILLET_CONFIG.DEFAULT_VENDORID, vendorID, oldVendorID ?? null);
+    const onyxData = prepareRilletExportOnyxData(policyID, CONST.RILLET_CONFIG.DEFAULT_VENDORID, vendorID, oldVendorID ?? null);
     const parameters: UpdateRilletDefaultVendorParams = {
         policyID,
         vendorID,
@@ -569,7 +569,7 @@ function updateRilletDefaultVendor(policyID: string, vendorID: RilletExport['def
 }
 
 function updateRilletCreditCardAccount(policyID: string, creditCardAccountCode: RilletExport['creditCardAccountCode'], oldCreditCardAccountCode?: RilletExport['creditCardAccountCode']) {
-    const onyxData = prepareRilletExportOptimisticData(policyID, CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE, creditCardAccountCode, oldCreditCardAccountCode ?? null);
+    const onyxData = prepareRilletExportOnyxData(policyID, CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE, creditCardAccountCode, oldCreditCardAccountCode ?? null);
     const parameters: UpdateRilletCreditCardAccountParams = {
         policyID,
         creditCardAccountCode,
@@ -578,7 +578,7 @@ function updateRilletCreditCardAccount(policyID: string, creditCardAccountCode: 
 }
 
 function updateRilletAutoSync(policyID: string, enabled: RilletAutoSync['enabled'], oldEnabled?: RilletAutoSync['enabled']) {
-    const onyxData = prepareRilletAutoSyncOptimisticData(policyID, enabled, oldEnabled ?? null);
+    const onyxData = prepareRilletAutoSyncOnyxData(policyID, enabled, oldEnabled ?? null);
     const parameters: UpdateRilletAutoSyncParams = {
         policyID,
         enabled,
@@ -587,7 +587,7 @@ function updateRilletAutoSync(policyID: string, enabled: RilletAutoSync['enabled
 }
 
 function updateRilletAccountingMethod(policyID: string, accountingMethod: RilletExport['accountingMethod'], oldAccountingMethod?: RilletExport['accountingMethod']) {
-    const onyxData = prepareRilletExportOptimisticData(policyID, CONST.RILLET_CONFIG.ACCOUNTING_METHOD, accountingMethod, oldAccountingMethod ?? null);
+    const onyxData = prepareRilletExportOnyxData(policyID, CONST.RILLET_CONFIG.ACCOUNTING_METHOD, accountingMethod, oldAccountingMethod ?? null);
     const parameters: UpdateRilletAccountingMethodParams = {
         policyID,
         accountingMethod,
@@ -596,7 +596,7 @@ function updateRilletAccountingMethod(policyID: string, accountingMethod: Rillet
 }
 
 function updateRilletSyncReimbursedReports(policyID: string, enabled: RilletSync['syncReimbursedReports'], oldEnabled?: RilletSync['syncReimbursedReports']) {
-    const onyxData = prepareRilletSyncOptimisticData(policyID, CONST.RILLET_CONFIG.SYNC_REIMBURSED_REPORTS, enabled, oldEnabled ?? null);
+    const onyxData = prepareRilletSyncOnyxData(policyID, CONST.RILLET_CONFIG.SYNC_REIMBURSED_REPORTS, enabled, oldEnabled ?? null);
     const parameters: UpdateRilletSyncReimbursedReportsParams = {
         policyID,
         enabled,
@@ -605,7 +605,7 @@ function updateRilletSyncReimbursedReports(policyID: string, enabled: RilletSync
 }
 
 function updateRilletBillPaymentAccount(policyID: string, accountCode: RilletSync['billPaymentAccountCode'], oldAccountCode?: RilletSync['billPaymentAccountCode']) {
-    const onyxData = prepareRilletSyncOptimisticData(policyID, CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE, accountCode, oldAccountCode ?? null);
+    const onyxData = prepareRilletSyncOnyxData(policyID, CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE, accountCode, oldAccountCode ?? null);
     const parameters: UpdateRilletBillPaymentAccountParams = {
         policyID,
         accountCode,
@@ -614,7 +614,7 @@ function updateRilletBillPaymentAccount(policyID: string, accountCode: RilletSyn
 }
 
 function updateRilletSyncExpensifyCardSettlements(policyID: string, enabled: RilletSync['syncExpensifyCardSettlements'], oldEnabled?: RilletSync['syncExpensifyCardSettlements']) {
-    const onyxData = prepareRilletSyncOptimisticData(policyID, CONST.RILLET_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS, enabled, oldEnabled ?? null);
+    const onyxData = prepareRilletSyncOnyxData(policyID, CONST.RILLET_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS, enabled, oldEnabled ?? null);
     const parameters: UpdateRilletSyncExpensifyCardSettlementsParams = {
         policyID,
         enabled,
@@ -623,7 +623,7 @@ function updateRilletSyncExpensifyCardSettlements(policyID: string, enabled: Ril
 }
 
 function updateRilletSettlementsAccount(policyID: string, bankAccountID: RilletSync['settlementsBankAccountID'], oldBankAccountID?: RilletSync['settlementsBankAccountID']) {
-    const onyxData = prepareRilletSyncOptimisticData(policyID, CONST.RILLET_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID, bankAccountID, oldBankAccountID ?? null);
+    const onyxData = prepareRilletSyncOnyxData(policyID, CONST.RILLET_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID, bankAccountID, oldBankAccountID ?? null);
     const parameters: UpdateRilletSettlementsAccountParams = {
         policyID,
         bankAccountID,
@@ -632,7 +632,7 @@ function updateRilletSettlementsAccount(policyID: string, bankAccountID: RilletS
 }
 
 function updateRilletSyncTravelInvoicingSettlements(policyID: string, enabled: RilletSync['syncTravelInvoicingSettlements'], oldEnabled?: RilletSync['syncTravelInvoicingSettlements']) {
-    const onyxData = prepareRilletSyncOptimisticData(policyID, CONST.RILLET_CONFIG.SYNC_TRAVEL_INVOICING_SETTLEMENTS, enabled, oldEnabled ?? null);
+    const onyxData = prepareRilletSyncOnyxData(policyID, CONST.RILLET_CONFIG.SYNC_TRAVEL_INVOICING_SETTLEMENTS, enabled, oldEnabled ?? null);
     const parameters: UpdateRilletSyncTravelInvoicingSettlementsParams = {
         policyID,
         enabled,
@@ -645,7 +645,7 @@ function updateRilletTravelInvoicingSettlementsAccount(
     travelInvoicingSettlementsBankAccountID: RilletSync['travelInvoicingSettlementsBankAccountID'],
     oldTravelInvoicingSettlementsBankAccountID?: RilletSync['travelInvoicingSettlementsBankAccountID'],
 ) {
-    const onyxData = prepareRilletSyncOptimisticData(
+    const onyxData = prepareRilletSyncOnyxData(
         policyID,
         CONST.RILLET_CONFIG.TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID,
         travelInvoicingSettlementsBankAccountID,
