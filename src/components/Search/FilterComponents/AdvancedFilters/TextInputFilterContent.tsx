@@ -1,13 +1,18 @@
-import React, {Fragment, useState} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type {MerchantMatchType} from '@src/types/form/SearchAdvancedFiltersForm';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {Fragment, useState} from 'react';
+import {View} from 'react-native';
+
 import FilterComponents from '..';
 
 type TextInputFilterContentProps = {
