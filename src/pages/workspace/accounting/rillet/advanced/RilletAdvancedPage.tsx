@@ -38,12 +38,13 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
         <ConnectionLayout
             displayName="RilletAdvancedPage"
             headerTitle="workspace.accounting.advanced"
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.RILLET}
+            shouldBeBlocked
         >
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.autoSync')}
