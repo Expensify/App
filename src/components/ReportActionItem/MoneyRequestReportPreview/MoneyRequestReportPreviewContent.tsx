@@ -1,10 +1,3 @@
-import {useFocusEffect} from '@react-navigation/native';
-import {reportNameSelector} from '@selectors/ReportAttributes';
-import {FlashList} from '@shopify/flash-list';
-import React, {useCallback, useDeferredValue, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Animated from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
@@ -17,6 +10,7 @@ import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 import StatusBadge from '@components/StatusBadge';
 import Text from '@components/Text';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -26,6 +20,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -51,17 +46,30 @@ import {startSpan} from '@libs/telemetry/activeSpans';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {transactionViolationsByIDsSelector} from '@src/selectors/TransactionViolations';
 import type {ReportAttributesDerivedValue, TransactionViolations} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {useFocusEffect} from '@react-navigation/native';
+import {reportNameSelector} from '@selectors/ReportAttributes';
+import {FlashList} from '@shopify/flash-list';
+import React, {useCallback, useDeferredValue, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
+
+import type {MoneyRequestReportPreviewContentProps} from './types';
+
 import AccessMoneyRequestReportPreviewPlaceHolder from './AccessMoneyRequestReportPreviewPlaceHolder';
 import EmptyMoneyRequestReportPreview from './EmptyMoneyRequestReportPreview';
 import ReportPreviewActionButton from './ReportPreviewActionButton';
-import type {MoneyRequestReportPreviewContentProps} from './types';
 import usePreviewMessageAnimation from './usePreviewMessageAnimation';
 import useReportPreviewCarousel from './useReportPreviewCarousel';
 

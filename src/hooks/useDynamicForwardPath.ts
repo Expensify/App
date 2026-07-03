@@ -4,9 +4,11 @@ import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocus
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import type {State} from '@libs/Navigation/types';
+
 import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
 import useRootNavigationState from './useRootNavigationState';
 
 /**
