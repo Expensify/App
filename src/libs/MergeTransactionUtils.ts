@@ -1,14 +1,20 @@
-import {deepEqual} from 'fast-equals';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion} from 'type-fest';
 import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MergeTransaction, Policy, Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
+import type {MergeTransaction, Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
-import SafeString from '@src/utils/SafeString';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {TupleToUnion} from 'type-fest';
+
+import {SafeString} from 'expensify-common';
+import {deepEqual} from 'fast-equals';
+
+import type {TransactionDetails} from './ReportUtils';
+
 import {getDecodedLeafCategoryName} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
 import Parser from './Parser';
@@ -17,7 +23,6 @@ import {constructReceiptSourceFromFilename} from './ReceiptUtils';
 import {getIOUActionForReportID} from './ReportActionsUtils';
 import {getReportName} from './ReportNameUtils';
 import {findSelfDMReportID, getReportOrDraftReport, getTransactionDetails, isIOUReport} from './ReportUtils';
-import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
     calculateTaxAmount,
@@ -60,11 +65,6 @@ type MergeFieldData = {
 
 /** Type for merge transaction values that can be null to clear existing values in Onyx */
 type MergeTransactionUpdateValues = Partial<Record<keyof MergeTransaction, MergeTransaction[keyof MergeTransaction] | null>>;
-type TargetTransactionThreadReportIDSource = {
-    transaction?: OnyxEntry<Transaction>;
-    reportAction?: OnyxEntry<ReportAction>;
-    [key: string]: unknown;
-};
 
 const MERGE_FIELD_TRANSLATION_KEYS = {
     amount: 'iou.amount',
@@ -357,39 +357,6 @@ function getTransactionThreadReportID(transaction: OnyxEntry<Transaction>) {
     }
     const iouActionOfTargetTransaction = getIOUActionForReportID(getReportIDForExpense(transaction), transaction?.transactionID);
     return iouActionOfTargetTransaction?.childReportID;
-}
-
-function isValidTargetTransactionThreadReportID(reportID: string | undefined) {
-    return !!reportID && reportID !== CONST.FAKE_REPORT_ID;
-}
-
-function getTargetTransactionThreadReportIDForSelection(
-    transaction: OnyxEntry<Transaction>,
-    selectedTransaction?: TargetTransactionThreadReportIDSource,
-    fallbackReportAction?: OnyxEntry<ReportAction>,
-) {
-    const selectedChildReportID = selectedTransaction?.reportAction?.childReportID;
-    if (isValidTargetTransactionThreadReportID(selectedChildReportID)) {
-        return selectedChildReportID;
-    }
-
-    const selectedTransactionThreadReportID = selectedTransaction?.transaction?.transactionThreadReportID;
-    if (isValidTargetTransactionThreadReportID(selectedTransactionThreadReportID)) {
-        return selectedTransactionThreadReportID;
-    }
-
-    const transactionThreadReportID = transaction?.transactionThreadReportID;
-    if (isValidTargetTransactionThreadReportID(transactionThreadReportID)) {
-        return transactionThreadReportID;
-    }
-
-    const fallbackChildReportID = fallbackReportAction?.childReportID;
-    if (isValidTargetTransactionThreadReportID(fallbackChildReportID)) {
-        return fallbackChildReportID;
-    }
-
-    const computedThreadReportID = getTransactionThreadReportID(transaction);
-    return isValidTargetTransactionThreadReportID(computedThreadReportID) ? computedThreadReportID : undefined;
 }
 
 /**
@@ -770,7 +737,6 @@ export {
     areTransactionsEligibleForMerge,
     DERIVED_MERGE_FIELDS,
     getRateFromMerchant,
-    getTargetTransactionThreadReportIDForSelection,
     getTransactionsAndReportsFromSearch,
 };
 

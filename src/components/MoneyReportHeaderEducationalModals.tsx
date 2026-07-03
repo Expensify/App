@@ -1,24 +1,33 @@
-import {shouldFailAllRequestsSelector} from '@selectors/Network';
-import React, {useImperativeHandle, useState} from 'react';
-import type {Ref} from 'react';
-import type {ValueOf} from 'type-fest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+
 import {setNameValuePair} from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {changeMoneyRequestHoldStatus, rejectMoneyRequestReason} from '@libs/ReportUtils';
+
 import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import type {Ref} from 'react';
+import type {ValueOf} from 'type-fest';
+
+import {shouldFailAllRequestsSelector} from '@selectors/Network';
+import React, {useImperativeHandle, useState} from 'react';
+
 import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
 import {useMoneyReportTransactionThread} from './MoneyReportTransactionThreadContext';
 
 type RejectModalAction = ValueOf<
-    typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK
+    | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD
+    | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
+    | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK
+    | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_REPORT
 >;
 
 type MoneyReportHeaderEducationalModalsHandle = {
@@ -42,6 +51,7 @@ function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEd
 
     const {iouTransactionID, requestParentReportAction} = useMoneyReportTransactionThread();
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
+    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(iouTransactionID)}`);
 
     useImperativeHandle(ref, () => ({
         openHoldEducational: () => setIsHoldEducationalModalVisible(true),
@@ -52,7 +62,7 @@ function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEd
         setIsHoldEducationalModalVisible(false);
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !shouldFailAllRequests);
         if (requestParentReportAction) {
-            changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline, currentUserLogin ?? '', currentUserAccountID);
+            changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations);
         }
     };
 
@@ -60,7 +70,7 @@ function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEd
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
             dismissRejectUseExplanation();
             if (requestParentReportAction) {
-                changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline, currentUserLogin ?? '', currentUserAccountID);
+                changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations);
             }
         } else if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK) {
             dismissRejectUseExplanation();
@@ -70,6 +80,11 @@ function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEd
                         reportID,
                     }),
                 );
+            }
+        } else if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_REPORT) {
+            dismissRejectUseExplanation();
+            if (reportID) {
+                Navigation.navigate(ROUTES.REJECT_EXPENSE_REPORT.getRoute(reportID));
             }
         } else {
             dismissRejectUseExplanation();

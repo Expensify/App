@@ -1,20 +1,24 @@
-import React from 'react';
-import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Checkbox from '@components/Checkbox';
 import Text from '@components/Text';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
-import BaseListItem from './BaseListItem';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {ListItem, SpendRuleListItemProps, SpendRuleListItemType} from './types';
+
+import BaseListItem from './BaseListItem';
 
 function SpendRuleListItem<TItem extends ListItem>({item, onSelectRow}: SpendRuleListItemProps<TItem>) {
     const styles = useThemeStyles();
     const {getMinimumWidth} = useStyleUtils();
 
     const cardRule = item as unknown as SpendRuleListItemType;
-    const isBlockingRule = cardRule.action === CONST.SPEND_RULES.ACTION.BLOCK;
 
     const rightHandSideComponent = () => (
         <Checkbox
@@ -52,8 +56,8 @@ function SpendRuleListItem<TItem extends ListItem>({item, onSelectRow}: SpendRul
                         <Badge
                             isCondensed
                             text={part.badgeLabel}
-                            error={!part.isNeutral && isBlockingRule}
-                            success={!part.isNeutral && !isBlockingRule}
+                            error={part.variant === CONST.SPEND_RULES.BADGE_VARIANTS.ERROR}
+                            success={part.variant === CONST.SPEND_RULES.BADGE_VARIANTS.SUCCESS}
                             badgeStyles={[styles.ml0, styles.justifyContentCenter, getMinimumWidth(40)]}
                         />
                         <Text

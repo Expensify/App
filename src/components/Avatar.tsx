@@ -1,20 +1,27 @@
-import React, {useState} from 'react';
-import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getAvatarLocal} from '@libs/Avatars/PresetAvatarCatalog';
+
+import {findLocalAvatarForURL} from '@libs/Avatars/AvatarLookup';
 import {getDefaultWorkspaceAvatar, getDefaultWorkspaceAvatarTestID} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import {getAvatar, getPresetAvatarNameFromURL} from '@libs/UserAvatarUtils';
+import {getAvatar, parseLetterAvatarURL} from '@libs/UserAvatarUtils';
+
 import type {AvatarSizeName} from '@styles/utils';
+
 import CONST from '@src/CONST';
 import type {AvatarType} from '@src/types/onyx/OnyxCommon';
+
+import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 import Image from './Image';
+import UserInitialsAvatar from './UserInitialsAvatar';
 
 type AvatarProps = {
     /** Source for the avatar. Can be a URL or an icon. */
@@ -86,11 +93,15 @@ function Avatar({
     const userAccountID = isWorkspace ? undefined : (avatarID as number);
 
     const source = isWorkspace ? originalSource : getAvatar({avatarSource: originalSource, accountID: userAccountID, defaultAvatars});
-    let optimizedSource = source;
-    const maybeDefaultAvatarName = getPresetAvatarNameFromURL(source);
 
-    if (maybeDefaultAvatarName) {
-        optimizedSource = getAvatarLocal(maybeDefaultAvatarName);
+    // Read the color and initials directly from the generated letter-avatar URL.
+    const letterAvatarParts = parseLetterAvatarURL(source);
+
+    let optimizedSource = source;
+    const localFromCatalog = findLocalAvatarForURL(source);
+
+    if (localFromCatalog) {
+        optimizedSource = localFromCatalog;
     }
     const useFallBackAvatar = imageError || !source || source === defaultAvatars.FallbackAvatar;
     const fallbackAvatar = isWorkspace ? getDefaultWorkspaceAvatar(name) : (fallbackIcon ?? defaultAvatars.FallbackAvatar) || defaultAvatars.FallbackAvatar;
@@ -111,6 +122,24 @@ function Avatar({
     } else {
         iconColors = null;
     }
+
+    if (!isWorkspace && letterAvatarParts) {
+        return (
+            <View
+                style={[containerStyles, styles.pointerEventsNone]}
+                testID={testID}
+            >
+                <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(size, type), iconAdditionalStyles]}>
+                    <UserInitialsAvatar
+                        text={letterAvatarParts.initials}
+                        colors={letterAvatarParts.colors}
+                        size={iconSize}
+                    />
+                </View>
+            </View>
+        );
+    }
+
     return (
         <View
             style={[containerStyles, styles.pointerEventsNone]}

@@ -1,5 +1,3 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -8,6 +6,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
+
 import useAllTransactions from '@hooks/useAllTransactions';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -23,6 +22,7 @@ import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ViolationField} from '@hooks/useViolations';
+
 import {initDraftSplitExpenseDataForEdit, removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU/SplitExpenseItems';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
@@ -34,18 +34,23 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getDistanceRateCustomUnitRate, getGroupPaidPoliciesWithExpenseChatEnabled, getTagLists} from '@libs/PolicyUtils';
+import {arePolicyRulesEnabled, getDistanceRateCustomUnitRate, getTagLists, hasAnyPaidPolicy, isGroupPolicyByType} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {getParsedComment, getReportOrDraftReport, getTransactionDetails, isReportInGroupPolicy, isSelfDM} from '@libs/ReportUtils';
+import {getParsedComment, getReportOrDraftReport, getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getDistanceInMeters, getRateID, getTag, getTagForDisplay, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {policyTypeSelector} from '@selectors/Policy';
+import React, {useCallback, useEffect, useMemo} from 'react';
+import {View} from 'react-native';
 
 type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE>;
 
@@ -80,7 +85,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     // Detect selfDM splits whose source workspace is gone: nothing for the Rate step to render.
-    const hasAnyPaidWorkspace = useMemo(() => getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies ?? {}).length > 0, [allPolicies]);
+    const hasAnyPaidWorkspace = hasAnyPaidPolicy(allPolicies ?? {});
     const {policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
     const shouldNavigateToUpgradePath = !policyForMovingExpenses && !shouldSelectPolicy;
 
@@ -118,7 +123,10 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const draftTransactionReport = getReportOrDraftReport(splitExpenseDraftTransaction?.reportID);
     const isSelfDMSplit = isSelfDM(draftTransactionReport);
     const isExpenseUnreported = isSelfDMSplit;
-    const isPolicyExpenseChat = isReportInGroupPolicy(draftTransactionReport);
+    const [draftTransactionPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${draftTransactionReport?.policyID}`, {
+        selector: policyTypeSelector,
+    });
+    const isPolicyExpenseChat = isGroupPolicyByType(draftTransactionPolicyType);
 
     const originalTransactionCategory = transaction?.category ?? '';
     const originalTransactionTag = transaction?.tag ?? '';
@@ -141,7 +149,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const isCategoryRequired = !!effectivePolicy?.requiresCategory && !isSelfDMSplit;
     const reportAttributes = useReportAttributes();
     const reportName = getReportName(currentReport, reportAttributes) || parentReport?.reportName;
-    const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, effectivePolicy?.areRulesEnabled);
+    const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, arePolicyRulesEnabled(effectivePolicy, policyCategories));
 
     // Mirror MoneyRequestView's `shouldShowTag`, plus always surface the row when the original
     // (parent) transaction carried a tag — same rationale as `shouldShowCategory` above: workspace
@@ -452,7 +460,15 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             style={[styles.w100]}
                             text={translate('common.save')}
                             onPress={() => {
-                                updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, transaction, effectivePolicy, isSelfDMSplit);
+                                updateSplitExpenseField(
+                                    splitExpenseDraftTransaction,
+                                    originalTransactionDraft,
+                                    splitExpenseTransactionID,
+                                    transaction,
+                                    effectivePolicy,
+                                    isSelfDMSplit,
+                                    personalPolicy?.outputCurrency,
+                                );
                                 Navigation.goBack(backTo);
                             }}
                             pressOnEnter

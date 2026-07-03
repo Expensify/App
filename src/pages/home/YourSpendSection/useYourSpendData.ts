@@ -1,21 +1,26 @@
-import {useIsFocused} from '@react-navigation/native';
-import {useEffect, useEffectEvent, useMemo, useState} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+
 import {search} from '@libs/actions/Search';
 import {getDisplayableExpensifyCards, getDisplayableThirdPartyCards, isPersonalCard, lastFourNumbersFromCardName} from '@libs/CardUtils';
 import {arePaymentsEnabled, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches, getSuggestedSearchesVisibility, TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, Policy, Report} from '@src/types/onyx';
 import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type SearchResults from '@src/types/onyx/SearchResults';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {useIsFocused} from '@react-navigation/native';
+import {useEffect, useEffectEvent, useMemo, useState} from 'react';
+
 import {YOUR_SPEND_CARD_KIND, YOUR_SPEND_ROW_STATE} from './const';
 import {buildAwaitingApprovalQuery, buildRecentCardTransactionsQuery, buildRepaidLast30DaysQuery} from './queries';
 
@@ -362,14 +367,20 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const approvalTotals: YourSpendRowTotals = shouldUseCachedApproval && cachedApprovalReady ? cachedApprovalReady : approvalTotalsRaw;
     const paymentTotals: YourSpendRowTotals = shouldUseCachedPayment && cachedPaymentReady ? cachedPaymentReady : paymentTotalsRaw;
 
-    // Re-fires the search effect when applicability flips, the user joins/leaves a workspace
-    // (which changes the policyID filter), or the set of OUTSTANDING reports changes.
-    const applicabilityKey = `${isApprovalApplicable ? 1 : 0}${isPaymentApplicable ? 1 : 0}|${paidGroupPolicyIDs.join(',')}|${outstandingReportsSignature ?? ''}`;
-
     // The `cardFeedsByPolicy` and `defaultExpensifyCard` params are not passed
     // because they have no effect on the `TODO_SEARCH_KEYS` (and we are only interested in `TODO_SEARCH_KEYS`)
-    const {visibility: suggestedSearchesVisibility} = getSuggestedSearchesVisibility(email, {}, policies, undefined);
+    const suggestedSearchesVisibility = getSuggestedSearchesVisibility(email, {}, policies, undefined).visibility;
     const suggestedSearches = getSuggestedSearches(accountID);
+
+    // Re-fires the search effect when applicability flips, the user joins/leaves a workspace
+    // (which changes the policyID filter), or the set of OUTSTANDING reports changes.
+    const applicabilityKey = [
+        isApprovalApplicable ? 1 : 0,
+        isPaymentApplicable ? 1 : 0,
+        paidGroupPolicyIDs.join(','),
+        outstandingReportsSignature ?? '',
+        [...TODO_SEARCH_KEYS].map((k) => (suggestedSearchesVisibility[k] ? 1 : 0)).join(''),
+    ].join('|');
 
     const fireSearches = useEffectEvent(() => {
         if (isOffline) {
@@ -438,7 +449,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
             return;
         }
         fireSearches();
-    }, [isFocused, isOffline, displayableCardIDsKey, applicabilityKey, suggestedSearchesVisibility]);
+    }, [isFocused, isOffline, displayableCardIDsKey, applicabilityKey, accountID]);
 
     return {
         approvalRowState,

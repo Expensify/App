@@ -1,15 +1,18 @@
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {TupleToUnion, ValueOf} from 'type-fest';
 import {write} from '@libs/API';
 import type {ConnectPolicyToMergeParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Policy from '@src/types/onyx/Policy';
+
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {TupleToUnion, ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
 
 function getMergeHRSetupLink(policyID: string, integration: MergeHRProviderSlug) {
     const params: ConnectPolicyToMergeParams = {policyID, integration};
@@ -205,13 +208,71 @@ function updateMergeHRFinalApprover(policyID: string, finalApprover: string | nu
     );
 }
 
+/** Updates which groups to import employees from. */
+function updateMergeHRGroups(policyID: string, groups: string[], currentGroups?: string[] | null) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
+                        config: {
+                            groups,
+                            pendingFields: {groups: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                            errorFields: {groups: null},
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
+                        config: {
+                            pendingFields: {groups: null},
+                            errorFields: {groups: null},
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
+                        config: {
+                            groups: currentGroups ?? null,
+                            pendingFields: {groups: null},
+                            errorFields: {groups: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    write(WRITE_COMMANDS.UPDATE_MERGE_GROUPS, {policyID, groups}, {optimisticData, successData, failureData});
+}
+
 function setMergeHRInitialSyncModalShown(policyID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN}${policyID}`, true);
 }
 
 type HRProviderName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES>;
 
-type HRConnectionErrorFieldName = 'approvalMode' | 'finalApprover';
+type HRConnectionErrorFieldName = 'approvalMode' | 'finalApprover' | 'groups';
 
 function clearHRConnectionErrorField(policyID: string | undefined, provider: HRProviderName | undefined, fieldName: HRConnectionErrorFieldName) {
     if (!policyID || !provider) {
@@ -228,6 +289,7 @@ function clearHRConnectionErrorField(policyID: string | undefined, provider: HRP
     });
 }
 
-export {syncMergeHR, updateMergeHRApprovalMode, updateMergeHRFinalApprover, clearHRConnectionErrorField, setMergeHRInitialSyncModalShown};
+export {syncMergeHR, updateMergeHRApprovalMode, updateMergeHRFinalApprover, updateMergeHRGroups, clearHRConnectionErrorField, setMergeHRInitialSyncModalShown};
+export type {HRConnectionErrorFieldName};
 
 export default getMergeHRSetupLink;

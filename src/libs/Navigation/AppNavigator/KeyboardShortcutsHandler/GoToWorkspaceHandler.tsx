@@ -1,11 +1,15 @@
-import {useEffect, useRef} from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
+
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import {useEffect, useRef} from 'react';
 
 function GoToWorkspaceHandler() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -20,7 +24,7 @@ function GoToWorkspaceHandler() {
         const unsubscribe = KeyboardShortcut.subscribe(
             shortcutConfig.shortcutKey,
             callFunctionIfActionIsAllowed(() => {
-                const reportID = Navigation.getTopmostReportId();
+                const reportID = Navigation.getTopmostSuperWideRHPReportID() ?? Navigation.getTopmostReportId();
                 if (!reportID) {
                     return;
                 }

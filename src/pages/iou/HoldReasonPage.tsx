@@ -1,24 +1,32 @@
-import {getReportOwnerAccountID} from '@selectors/Report';
-import React, {useCallback, useEffect} from 'react';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList, SearchReportActionsParamList} from '@libs/Navigation/types';
+import {isGroupPolicyByType} from '@libs/PolicyUtils';
 import {getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canEditMoneyRequest, isReportInGroupPolicy} from '@libs/ReportUtils';
+import {canEditMoneyRequest} from '@libs/ReportUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+
 import {clearErrorFields, clearErrors, setErrors} from '@userActions/FormActions';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
+
+import {policyTypeSelector} from '@selectors/Policy';
+import {getReportOwnerAccountID} from '@selectors/Report';
+import React, {useCallback, useEffect} from 'react';
+
 import HoldReasonFormView from './HoldReasonFormView';
 
 type HoldReasonPageProps =
@@ -37,11 +45,14 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
     const {isOffline} = useNetwork();
     const ancestors = useAncestors(report);
 
+    const [policyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {
+        selector: policyTypeSelector,
+    });
     const [parentReportOwnerAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {selector: getReportOwnerAccountID});
 
     // We first check if the report is part of a policy - if not, then it's a personal request (1:1 request)
     // For personal requests, we need to allow both users to put the request on hold
-    const isWorkspaceRequest = isReportInGroupPolicy(report);
+    const isWorkspaceRequest = isGroupPolicyByType(policyType);
     const isSubmitter = parentReportOwnerAccountID === currentUserAccountID;
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
 

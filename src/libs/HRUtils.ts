@@ -1,9 +1,12 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion, ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {TupleToUnion, ValueOf} from 'type-fest';
+
+import {hasSynchronizationErrorMessage} from './actions/connections';
 
 type HRConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES>;
 
@@ -33,6 +36,18 @@ function isZenefitsConnected(policy?: OnyxEntry<Policy>) {
 /** Returns true if the policy has a Merge HR integration connected. */
 function isMergeHRConnected(policy?: OnyxEntry<Policy>): boolean {
     return !!policy?.connections?.merge_hris;
+}
+
+/** True when the admin still needs to complete the Merge HR setup (select groups). */
+function isMergeHRCompleteSetupNeeded(policy?: OnyxEntry<Policy>): boolean {
+    const mergeHR = policy?.connections?.merge_hris;
+    if (!mergeHR) {
+        return false;
+    }
+    const syncDone = mergeHR.lastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.DONE;
+    const hasGroups = (mergeHR.data?.groups?.length ?? 0) > 0;
+    const setupComplete = !!mergeHR.config?.groups;
+    return syncDone && hasGroups && !setupComplete;
 }
 
 /** Returns display info for the HR provider currently connected to the policy (Gusto, Zenefits, or Merge HR), or null if none are connected. */
@@ -154,6 +169,25 @@ function getHRFinalApprover(policy?: OnyxEntry<Policy>): string | null {
     return null;
 }
 
+/** Checks if any HR connection on the policy is in an error state. */
+function shouldShowHRConnectionError(policy: OnyxEntry<Policy>, isSyncInProgress: boolean, isAdmin: boolean): boolean {
+    if (!isAdmin) {
+        return false;
+    }
+    const connectedProvider = getConnectedHRProvider(policy);
+    if (!connectedProvider) {
+        return false;
+    }
+    const lastSync = policy?.connections?.[connectedProvider.connectionName]?.lastSync;
+    if (lastSync?.isAuthenticationError) {
+        return true;
+    }
+    if (connectedProvider.connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) {
+        return policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]?.lastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.FAILED;
+    }
+    return hasSynchronizationErrorMessage(policy, connectedProvider.connectionName, isSyncInProgress);
+}
+
 export {
     getConnectedHRProvider,
     getHRApprovalMode,
@@ -164,8 +198,10 @@ export {
     isAnyHRReadOnlyWorkflowMode,
     isGustoConnected,
     isHRAdvancedMode,
+    isMergeHRCompleteSetupNeeded,
     isMergeHRConnected,
     isZenefitsConnected,
+    shouldShowHRConnectionError,
 };
 
 export type {HRConnectionName};

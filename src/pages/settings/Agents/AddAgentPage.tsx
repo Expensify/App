@@ -1,44 +1,46 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useRef, useState} from 'react';
-import {View} from 'react-native';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {BotAvatar} from '@components/Icon/DefaultBotAvatars';
-import {botAvatarIDs, botAvatars} from '@components/Icon/DefaultBotAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
+import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
+import type {AgentAvatarID} from '@libs/Avatars/AgentAvatarCatalog';
 import {isMobile} from '@libs/Browser';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import {createAgent} from '@userActions/Agent';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddAgentForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import {clearPendingAvatar, getPendingAvatar, setInitialPresetID, setNavigationToken, setReturnRoute} from './pendingAgentAvatarStore';
 
-type AddAgentPageProps =
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>
-    | PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_ADD_AGENT>;
+type AddAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
 
 function AddAgentPage({route}: AddAgentPageProps) {
     const policyID = route.params?.policyID;
-    const workflowApproverEmail = route.params?.workflowApproverEmail;
-    const isWorkflowSeedFlow = !!policyID && !!workflowApproverEmail;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
@@ -48,7 +50,8 @@ function AddAgentPage({route}: AddAgentPageProps) {
     const defaultPrompt = translate('addAgentPage.defaultPrompt');
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
     const avatarStyle = [styles.avatarXLarge, styles.alignSelfCenter];
-    const [avatarSource, setAvatarSource] = useState<AvatarSource>(() => botAvatars[Math.floor(Math.random() * botAvatars.length)]);
+    const [selectedPresetID, setSelectedPresetID] = useState<AgentAvatarID | null>(() => AGENT_AVATARS.ordered.at(Math.floor(Math.random() * AGENT_AVATARS.ordered.length))?.id ?? null);
+    const [uploadedURI, setUploadedURI] = useState<string | null>(null);
     const pendingFileRef = useRef<{file: File | CustomRNImageManipulatorResult; uri: string} | null>(null);
 
     useFocusEffect(
@@ -59,24 +62,24 @@ function AddAgentPage({route}: AddAgentPageProps) {
             }
             clearPendingAvatar();
 
-            if (pending.type === 'preset') {
-                const matchingAvatar = botAvatars.find((av) => botAvatarIDs.get(av) === pending.id);
-                if (matchingAvatar) {
-                    setAvatarSource(() => matchingAvatar);
-                }
+            if (pending.type === 'preset' && AGENT_AVATARS.isAvatarID(pending.id)) {
+                setSelectedPresetID(pending.id);
+                setUploadedURI(null);
                 pendingFileRef.current = null;
-            } else {
-                setAvatarSource(pending.uri);
+            } else if (pending.type !== 'preset') {
+                setSelectedPresetID(null);
+                setUploadedURI(pending.uri);
                 pendingFileRef.current = {file: pending.file, uri: pending.uri};
             }
         }, []),
     );
 
+    const avatarSource: AvatarSource = selectedPresetID ? (AGENT_AVATARS.getLocal(selectedPresetID) ?? '') : (uploadedURI ?? '');
+
     const handleAvatarPress = () => {
-        const presetID = botAvatarIDs.get(avatarSource as BotAvatar);
-        setInitialPresetID(presetID);
+        setInitialPresetID(selectedPresetID ?? undefined);
         setNavigationToken();
-        setReturnRoute(isWorkflowSeedFlow ? ROUTES.WORKSPACE_WORKFLOWS_ADD_AGENT.getRoute({policyID, workflowApproverEmail}) : ROUTES.SETTINGS_AGENTS_ADD.getRoute());
+        setReturnRoute(ROUTES.SETTINGS_AGENTS_ADD.getRoute());
         Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD_AVATAR);
     };
 
@@ -96,18 +99,10 @@ function AddAgentPage({route}: AddAgentPageProps) {
         // Pure optimistic flow — no waiting on the server, online or offline. `createAgent`
         // returns the optimistic accountID it wrote into Onyx so we can hand it to the next
         // screen and let it render the agent with opacity until CREATE_AGENT resolves.
-        const {optimisticAccountID} = pendingFile
-            ? createAgent(firstName, prompt, undefined, pendingFile.file, pendingFile.uri, policyID)
-            : createAgent(firstName, prompt, botAvatarIDs.get(avatarSource as BotAvatar), undefined, undefined, policyID);
-
-        if (isWorkflowSeedFlow && policyID && workflowApproverEmail) {
-            // Drop the user on the Edit Approvers screen for the workflow they came from, with
-            // the optimistic agent already seeded as approver[0]. The Edit Approvers page reads
-            // the optimistic personal detail by accountID, renders it with reduced opacity
-            // (via `pendingAction`), and reconciles the email/accountID once CREATE_AGENT lands.
-            Navigation.goBack();
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, workflowApproverEmail, undefined, Number(optimisticAccountID)));
-            return;
+        if (pendingFile) {
+            createAgent(firstName, prompt, undefined, pendingFile.file, pendingFile.uri, policyID);
+        } else {
+            createAgent(firstName, prompt, selectedPresetID ?? undefined, undefined, undefined, policyID);
         }
 
         Navigation.goBack();

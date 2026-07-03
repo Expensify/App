@@ -1,6 +1,7 @@
 import CONST from '@src/CONST';
 import * as UserUtils from '@src/libs/UserUtils';
 import type {LoginList} from '@src/types/onyx';
+
 import {translateLocal} from '../utils/TestHelper';
 
 describe('UserUtils', () => {
@@ -133,6 +134,48 @@ describe('UserUtils', () => {
                 const result = UserUtils.getLoginListBrickRoadIndicator(loginList, email);
                 expect(result).toBe(expected);
             });
+        });
+    });
+
+    describe('expensifyLoginsSelector', () => {
+        test('returns undefined when there are no logins', () => {
+            expect(UserUtils.expensifyLoginsSelector(undefined)).toBeUndefined();
+        });
+
+        test('keeps Expensify contact methods and excludes device and synthetic policy-domain logins', () => {
+            const logins = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '1_user@example.com': {
+                    created: '2024-01-01',
+                    accountID: 1,
+                    partnerID: CONST.PARTNER_ID.EXPENSIFY,
+                    partnerUserID: 'user@example.com',
+                    lastLogin: '2024-01-02',
+                    validatedDate: '2024-01-01',
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '1_card@expensify-policy7c203ee7387a8f06.exfy': {
+                    created: '2024-01-01',
+                    accountID: 1,
+                    partnerID: CONST.PARTNER_ID.EXPENSIFY,
+                    partnerUserID: 'card@expensify-policy7c203ee7387a8f06.exfy',
+                    lastLogin: '2024-01-02',
+                    validatedDate: null,
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '14_device': {
+                    created: '2024-01-01',
+                    accountID: 1,
+                    partnerID: CONST.PARTNER_ID.IPHONE,
+                    partnerUserID: 'device@example.com',
+                    lastLogin: '2024-01-02',
+                    validatedDate: null,
+                },
+            };
+
+            const result = UserUtils.expensifyLoginsSelector(logins);
+
+            expect(Object.keys(result ?? {})).toEqual(['user@example.com']);
         });
     });
 });

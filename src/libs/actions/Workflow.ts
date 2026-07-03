@@ -1,11 +1,9 @@
-import lodashDropRightWhile from 'lodash/dropRightWhile';
-import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getDefaultApprover} from '@libs/PolicyUtils';
-import {calculateApprovers, convertApprovalWorkflowToPolicyEmployees, getOverLimitForwardsToDisplayName} from '@libs/WorkflowUtils';
+import {calculateApprovers, convertApprovalWorkflowToPolicyEmployees, getOverLimitForwardsToDisplayName, mergeWorkflowMembersWithAvailableMembers} from '@libs/WorkflowUtils';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -13,6 +11,12 @@ import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Report} from '@s
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import lodashDropRightWhile from 'lodash/dropRightWhile';
+import Onyx from 'react-native-onyx';
+
 import {completeTask} from './Task';
 
 type CreateApprovalWorkflowParams = {
@@ -352,6 +356,29 @@ function setApprovalWorkflow(approvalWorkflow: NullishDeep<ApprovalWorkflowOnyx>
     Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
 }
 
+type SelectApprovalWorkflowForEditParams = {
+    workflow: ApprovalWorkflow;
+    /** Members not already in this workflow — used to populate the picker. */
+    defaultWorkflowMembers: Member[];
+    /** Approver emails already taken by other workflows. */
+    usedApproverEmails: string[];
+    /** Override for the approvers list (the Edit page uses this to seed an optimistic agent). */
+    approvers?: Approver[];
+};
+
+/** Commits a workflow to onyx in EDIT mode so any sub-page can be entered directly, skipping the Edit RHP. */
+function selectApprovalWorkflowForEdit({workflow, defaultWorkflowMembers, usedApproverEmails, approvers}: SelectApprovalWorkflowForEditParams) {
+    setApprovalWorkflow({
+        ...workflow,
+        approvers: approvers ?? workflow.approvers,
+        availableMembers: mergeWorkflowMembersWithAvailableMembers(workflow.members, defaultWorkflowMembers),
+        usedApproverEmails,
+        action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
+        errors: null,
+        originalApprovers: workflow.approvers,
+    });
+}
+
 function clearApprovalWorkflow() {
     Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, null);
 }
@@ -398,52 +425,6 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): appro
     return isEmptyObject(errors);
 }
 
-/**
- * Build the key used to identify a deferred agent workflow save. We pin it to the policy +
- * the workflow's primary approver email so two different workflows in the same policy don't
- * stomp on each other, and so the WorkflowsPage watcher can look up the right entry when it
- * comes time to fire the real save.
- */
-function buildDeferredAgentWorkflowSaveKey(policyID: string, firstApproverEmail: string) {
-    return `${policyID}:${firstApproverEmail}`;
-}
-
-/**
- * Persist a workflow save the admin issued while a freshly-created agent was still pending.
- * The Edit Approvers modal dismisses immediately on save, the WorkspaceWorkflowsPage shows
- * the workflow with the agent rendered faded, and the watcher fires the actual save once
- * the agent's real email lands.
- */
-function queueDeferredAgentWorkflowSave(
-    policyID: string,
-    firstApproverEmail: string,
-    approvalWorkflow: ApprovalWorkflowOnyx,
-    initialApprovalWorkflow: ApprovalWorkflow,
-    pendingAgentAccountID: number,
-    pendingAgentPrompt: string,
-) {
-    const key = buildDeferredAgentWorkflowSaveKey(policyID, firstApproverEmail);
-    Onyx.merge(ONYXKEYS.DEFERRED_AGENT_WORKFLOW_SAVES, {
-        [key]: {
-            policyID,
-            firstApproverEmail,
-            approvalWorkflow,
-            initialApprovalWorkflow,
-            pendingAgentAccountID,
-            pendingAgentPrompt,
-        },
-    });
-}
-
-/**
- * Remove a deferred save entry. Called by the watcher after it has fired the actual save
- * (or when the user manually navigates back to the editor and saves with the real email).
- */
-function clearDeferredAgentWorkflowSave(policyID: string, firstApproverEmail: string) {
-    const key = buildDeferredAgentWorkflowSaveKey(policyID, firstApproverEmail);
-    Onyx.merge(ONYXKEYS.DEFERRED_AGENT_WORKFLOW_SAVES, {[key]: null});
-}
-
 export {
     createApprovalWorkflow,
     updateApprovalWorkflow,
@@ -451,12 +432,10 @@ export {
     setApprovalWorkflowMembers,
     setApprovalWorkflowApprover,
     setApprovalWorkflow,
+    selectApprovalWorkflowForEdit,
     clearApprovalWorkflowApprover,
     clearApprovalWorkflowApprovers,
     clearApprovalWorkflow,
     validateApprovalWorkflow,
     setApprovalWorkflowIsInitialFlow,
-    buildDeferredAgentWorkflowSaveKey,
-    queueDeferredAgentWorkflowSave,
-    clearDeferredAgentWorkflowSave,
 };

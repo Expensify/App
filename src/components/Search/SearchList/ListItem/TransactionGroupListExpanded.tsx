@@ -1,6 +1,3 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -11,14 +8,17 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
@@ -29,14 +29,22 @@ import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getTransactionViolations, isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
+
 import type {TransactionPreviewData} from '@userActions/Search';
 import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
 import type {TransactionGroupListExpandedProps, TransactionListItemType} from './types';
 
 function TransactionGroupListExpanded<TItem extends ListItem>({
@@ -59,10 +67,10 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     shouldDisplayEmptyView,
     searchTransactions,
     isInSingleTransactionReport,
-    isAttendeesEnabledForMovingPolicy,
     onLongPress,
     nonPersonalAndWorkspaceCards,
     onUndelete,
+    hideSearchTableHeader,
 }: TransactionGroupListExpandedProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -76,6 +84,9 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
     const transactionsSnapshotMetadata = transactionsSnapshot?.search;
 
@@ -115,9 +126,25 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         if (!transactionsSnapshot?.data) {
             currentColumns = [];
         } else {
-            currentColumns = getColumnsToShow({currentAccountID: accountID, data: transactionsSnapshot?.data, visibleColumns, type: transactionsSnapshot?.search.type});
+            currentColumns = getColumnsToShow({
+                currentAccountID: accountID,
+                data: transactionsSnapshot?.data,
+                visibleColumns,
+                type: transactionsSnapshot?.search.type,
+                fallbackPolicyID: policyForMovingExpensesID,
+            });
         }
     }
+
+    const getTransactionPolicyID = (transaction: TransactionListItemType) =>
+        [transaction.policyID, transaction.policy?.id, transaction.report?.policyID].find(Boolean) ??
+        (transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? policyForMovingExpensesID : undefined);
+
+    const getPolicyCategoriesForTransaction = (transaction: TransactionListItemType) =>
+        policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(getTransactionPolicyID(transaction))}`];
+
+    const getPolicyTagListsForTransaction = (transaction: TransactionListItemType) =>
+        policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(getTransactionPolicyID(transaction))}`];
 
     // Currently only the transaction report groups have transactions where the empty view makes sense
     const shouldDisplayShowMoreButton = isExpenseReportType ? transactions.length > transactionsVisibleLimit : !!transactionsSnapshotMetadata?.hasMoreResults && !isOffline;
@@ -251,7 +278,8 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     }
 
     const handleOnPress = (transaction: TransactionListItemType, event?: ModifiedMouseEvent) => {
-        if (isMobileSelectionModeEnabled) {
+        // A deleted transaction has no report to open, so a row press toggles its selection instead of dead-ending in navigation.
+        if (isMobileSelectionModeEnabled || isDeletedTransaction(transaction) || isTransactionPendingDelete(transaction)) {
             onSelectionButtonPress?.(transaction as unknown as TItem);
             return;
         }
@@ -272,7 +300,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
     const content = (
         <View style={[styles.flexColumn, styles.flex1]}>
-            {isLargeScreenWidth && !(isEmpty && shouldDisplayLoadingIndicator) && (
+            {isLargeScreenWidth && !hideSearchTableHeader && !(isEmpty && shouldDisplayLoadingIndicator) && (
                 <>
                     <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl8, styles.borderNone]}>
                         <SearchTableHeader
@@ -322,6 +350,8 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                                 <TransactionItemRow
                                     report={transaction.report}
                                     policy={transaction.policy}
+                                    policyCategories={getPolicyCategoriesForTransaction(transaction)}
+                                    policyTagLists={getPolicyTagListsForTransaction(transaction)}
                                     transactionItem={transaction}
                                     violations={getTransactionViolations(
                                         transaction,
@@ -350,7 +380,6 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                                     onArrowRightPress={isDeletedOrPendingDelete ? undefined : (event) => openReportInRHP(transaction, event)}
                                     shouldShowArrowRightOnNarrowLayout
                                     reportActions={exportedReportActions}
-                                    isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                                     isActionColumnWide={isActionColumnWide}
                                     isHover={hovered}

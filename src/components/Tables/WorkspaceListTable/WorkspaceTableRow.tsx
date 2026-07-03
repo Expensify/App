@@ -1,23 +1,31 @@
-import {useIsFocused} from '@react-navigation/core';
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
-import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+import type {CopySettingsEligibleTargets} from '@src/selectors/Policy';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {WorkspaceRowData} from '.';
+
+import WorkspaceRowBrickRoadIndicator from './WorkspaceRowBrickRoadIndicator';
+import WorkspaceRowThreeDotsMenu from './WorkspaceRowThreeDotsMenu';
 
 type WorkspaceRowProps = {
     /** The workspace data */
@@ -28,23 +36,27 @@ type WorkspaceRowProps = {
 
     /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
+
+    /** Called when the user picks Delete in the row menu, so the page can mount the delete flow */
+    onDeleteWorkspace: (policyID: string) => void;
+
+    /** ID of the workspace with a deletion in progress, if any */
+    pendingDeletePolicyID?: string;
+
+    /** IDs of the policies eligible as copy-settings targets, passed down to the row menu */
+    copySettingsEligibleTargets: CopySettingsEligibleTargets;
 };
 
-export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex}: WorkspaceRowProps) {
-    const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
-
+export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex, onDeleteWorkspace, pendingDeletePolicyID, copySettingsEligibleTargets}: WorkspaceRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const isFocused = useIsFocused();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Building', 'FallbackWorkspaceAvatar', 'DotIndicator', 'Hourglass']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Building', 'FallbackWorkspaceAvatar', 'Hourglass']);
 
-    const isLoadingBill = item.isLoadingBill;
     const formattedOwnerName = item.ownerName ?? '';
     const formattedWorkspaceType = getUserFriendlyWorkspaceType(item.type, translate);
     const narrowWorkspaceLabel = `${translate('common.owner')}: ${formattedOwnerName} • ${formattedWorkspaceType}`;
     const itemDeletedStyles = item.isDeleted ? [styles.offlineFeedbackDeleted] : [{}];
-    const resetLoadingSpinnerIconIndex = item.resetLoadingSpinnerIconIndex;
 
     const accessibilityLabel = [
         `${translate('workspace.common.workspaceName')}: ${item.title}`,
@@ -55,15 +67,6 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
     ]
         .filter(Boolean)
         .join(', ');
-
-    const BrickRoadIndicator = !!item.brickRoadIndicator && (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-            <Icon
-                src={icons.DotIndicator}
-                fill={item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.iconSuccessFill}
-            />
-        </View>
-    );
 
     const JoinRequestPendingBadge = (
         <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
@@ -96,34 +99,15 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
 
     const ThreeDotsMenuWithBrickRoadIndicator = (
         <View style={[styles.flexRow, styles.gap1]}>
-            {item.brickRoadIndicator && BrickRoadIndicator}
-            <ThreeDotsMenu
-                isNested
-                shouldOverlay
-                shouldSelfPosition
-                disabled={item.disabled}
-                isContainerFocused={isFocused}
-                threeDotsMenuRef={threeDotsMenuRef}
-                menuItems={item.threeDotMenuItems ?? []}
-                iconStyles={styles.h7}
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.THREE_DOT_MENU}
-                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+            {item.role === CONST.POLICY.ROLE.ADMIN && <WorkspaceRowBrickRoadIndicator policyID={item.policyID} />}
+            <WorkspaceRowThreeDotsMenu
+                item={item}
+                onDeleteWorkspace={onDeleteWorkspace}
+                pendingDeletePolicyID={pendingDeletePolicyID}
+                copySettingsEligibleTargets={copySettingsEligibleTargets}
             />
         </View>
     );
-
-    useEffect(() => {
-        if (isLoadingBill) {
-            return;
-        }
-
-        resetLoadingSpinnerIconIndex?.();
-
-        if (!threeDotsMenuRef.current?.isPopupMenuVisible) {
-            return;
-        }
-        threeDotsMenuRef?.current?.hidePopoverMenu();
-    }, [isLoadingBill, resetLoadingSpinnerIconIndex]);
 
     return (
         <Table.Row
@@ -131,8 +115,6 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
-            skeletonReasonAttributes={{context: 'WorkspaceRow'}}
-            shouldAnimateInHighlight={item.shouldAnimateInHighlight}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.ROW}
             onPress={item.action}
             offlineWithFeedback={{

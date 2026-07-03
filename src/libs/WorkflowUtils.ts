@@ -1,12 +1,9 @@
-import {Str} from 'expensify-common';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList} from '@src/types/onyx';
-import type AgentPrompt from '@src/types/onyx/AgentPrompt';
 import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
@@ -14,6 +11,12 @@ import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {Str} from 'expensify-common';
+
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getHRAdvancedModeFinalApprover, getHRFinalApprover} from './HRUtils';
 import {getDefaultApprover, isExpensifyTeam, shouldFilterExpensifyTeam} from './PolicyUtils';
@@ -77,6 +80,8 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail}: Get
             approvalLimit: employee.approvalLimit,
             overLimitForwardsTo: employee.overLimitForwardsTo,
             overLimitForwardsToDisplayName: getOverLimitForwardsToDisplayName(employee.overLimitForwardsTo, personalDetailsByEmail),
+            pendingAction: employee.pendingAction,
+            errors: employee.errors,
         });
 
         // If we've already seen this approver, break to prevent infinite loop
@@ -716,93 +721,6 @@ function mergeWorkflowMembersWithAvailableMembers(workflowMembers: Member[], all
     return [...workflowMembers, ...additionalMembers];
 }
 
-type ResolveOptimisticAgentParams = {
-    /** Optimistic accountID assigned to the pending agent before CREATE_AGENT resolved */
-    optimisticAccountID: number;
-
-    /** Agent prompt captured while the optimistic entry was still live; used for cross-tab fallback */
-    pendingAgentPrompt: string | undefined;
-
-    /** Live personal details map */
-    personalDetails: PersonalDetailsList;
-
-    /** The owning policy's employeeList */
-    employeeList: Policy['employeeList'];
-
-    /** SHARED_NVP_AGENT_PROMPT collection */
-    agentPrompts: OnyxCollection<AgentPrompt> | undefined;
-
-    /** `{optimisticID: realID}` map written by CREATE_AGENT's onyxData */
-    optimisticAccountIDMapping: Record<string, number> | undefined;
-
-    /** Emails already on the workflow's approver chain — skipped to avoid resolving to a pre-existing approver */
-    knownApproverEmails: Set<string>;
-};
-
-type ResolvedOptimisticAgent = {
-    personalDetail: PersonalDetails;
-    accountID: number;
-    email: string;
-};
-
-/**
- * Resolves a pending (optimistic) agent approver to its real personal detail after CREATE_AGENT
- * lands. Tries the `OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING` lookup first (the originating tab's
- * primary path), then falls back to matching by agent prompt — needed when a different tab
- * reconciles and never saw the mapping write. When several agents share the same prompt text the
- * loop picks the highest positive accountID, since the server assigns IDs monotonically and the
- * freshest agent is therefore the largest.
- */
-function resolveOptimisticAgent({
-    optimisticAccountID,
-    pendingAgentPrompt,
-    personalDetails,
-    employeeList,
-    agentPrompts,
-    optimisticAccountIDMapping,
-    knownApproverEmails,
-}: ResolveOptimisticAgentParams): ResolvedOptimisticAgent | undefined {
-    const mappedRealAccountID = optimisticAccountIDMapping?.[optimisticAccountID];
-    if (mappedRealAccountID) {
-        const mappedDetail = personalDetails[mappedRealAccountID];
-        if (mappedDetail?.login && employeeList?.[mappedDetail.login] && !knownApproverEmails.has(mappedDetail.login)) {
-            return {
-                personalDetail: mappedDetail,
-                accountID: mappedDetail.accountID ?? mappedRealAccountID,
-                email: mappedDetail.login,
-            };
-        }
-    }
-
-    if (!pendingAgentPrompt || !agentPrompts) {
-        return undefined;
-    }
-
-    const optimisticPromptKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`;
-    let bestCandidateAccountID = -Infinity;
-    let bestCandidate: ResolvedOptimisticAgent | undefined;
-    for (const [promptKey, promptValue] of Object.entries(agentPrompts)) {
-        if (promptKey === optimisticPromptKey || !promptValue || promptValue.prompt !== pendingAgentPrompt) {
-            continue;
-        }
-        const candidateAccountID = Number(promptKey.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length));
-        if (!Number.isFinite(candidateAccountID) || candidateAccountID <= 0 || candidateAccountID <= bestCandidateAccountID) {
-            continue;
-        }
-        const candidateDetail = personalDetails[candidateAccountID];
-        if (!candidateDetail?.login || !employeeList?.[candidateDetail.login] || knownApproverEmails.has(candidateDetail.login)) {
-            continue;
-        }
-        bestCandidate = {
-            personalDetail: candidateDetail,
-            accountID: candidateDetail.accountID ?? candidateAccountID,
-            email: candidateDetail.login,
-        };
-        bestCandidateAccountID = candidateAccountID;
-    }
-    return bestCandidate;
-}
-
 export {
     calculateApprovers,
     convertPolicyEmployeesToApprovalWorkflows,
@@ -813,6 +731,5 @@ export {
     getOverLimitForwardsToDisplayName,
     INITIAL_APPROVAL_WORKFLOW,
     mergeWorkflowMembersWithAvailableMembers,
-    resolveOptimisticAgent,
     updateWorkflowDataOnApproverRemoval,
 };

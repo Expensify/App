@@ -1,16 +1,22 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import useOnyx from '@hooks/useOnyx';
+
 import {rand64} from '@libs/NumberUtils';
 import {generateReportID, isMoneyRequestReport} from '@libs/ReportUtils';
+
 import handleMoneyRequestStepDistanceNavigation from '@pages/iou/request/step/IOURequestStepDistance/handleMoneyRequestStepDistanceNavigation';
+
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, IntroSelected, OdometerDraft, PersonalDetailsList, Policy, RecentWaypoint, Report, Transaction} from '@src/types/onyx';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Unit} from '@src/types/onyx/Policy';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 
 type UseOdometerNavigationParams = {
     /** Type of IOU flow (request, split, track, etc.). */
@@ -45,6 +51,9 @@ type UseOdometerNavigationParams = {
 
     /** Current user's account ID — passed through to the navigation util. */
     currentUserAccountID: number;
+
+    /** Current user's localCurrencyCode — passed through to the navigation util for draft-workspace creation. */
+    currentUserLocalCurrency: string | undefined;
 
     /** Optional report to return to after submission completes. */
     backToReport: string | undefined;
@@ -112,6 +121,7 @@ function useOdometerNavigation({
     personalDetails,
     currentUserLogin,
     currentUserAccountID,
+    currentUserLocalCurrency,
     backToReport,
     shouldSkipConfirmation,
     defaultExpensePolicy,
@@ -154,6 +164,7 @@ function useOdometerNavigation({
             personalDetails,
             currentUserLogin,
             currentUserAccountID,
+            currentUserLocalCurrency,
             backToReport,
             shouldSkipConfirmation,
             defaultExpensePolicy,

@@ -1,5 +1,8 @@
-import {createNavigationContainerRef, StackActions} from '@react-navigation/native';
 import type {MultifactorAuthenticationModalNavigatorParamList} from '@libs/Navigation/types';
+
+import SCREENS from '@src/SCREENS';
+
+import {createNavigationContainerRef, StackActions} from '@react-navigation/native';
 
 /**
  * Internal placeholder used only as a mount-time buffer inside this module.
@@ -13,6 +16,16 @@ const MFA_INITIAL_SCREEN = 'MFA_Initial' as const;
 type MultifactorAuthenticationModalNavigatorInternalParamList = MultifactorAuthenticationModalNavigatorParamList & Record<typeof MFA_INITIAL_SCREEN, undefined>;
 
 const mfaNavigationRef = createNavigationContainerRef<MultifactorAuthenticationModalNavigatorInternalParamList>();
+
+// Screens that live inside this independent overlay navigator. REVOKE and AUTHORIZE_TRANSACTION are intentionally excluded: they
+// render in the main RHP modal stack, not this tree.
+const MFA_OVERLAY_SCREENS = new Set<string>([
+    MFA_INITIAL_SCREEN,
+    SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE,
+    SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT,
+    SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS,
+    SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE,
+]);
 
 let pendingNavigation: {screen: string; params?: Record<string, unknown>} | undefined;
 
@@ -73,5 +86,5 @@ function resetMfaNavigation() {
     hasInitialLaidOut = false;
 }
 
-export {MFA_INITIAL_SCREEN, mfaNavigationRef, navigate, handleInitialScreenLayout, resetMfaNavigation};
+export {MFA_INITIAL_SCREEN, MFA_OVERLAY_SCREENS, mfaNavigationRef, navigate, handleInitialScreenLayout, resetMfaNavigation};
 export type {MultifactorAuthenticationModalNavigatorInternalParamList};

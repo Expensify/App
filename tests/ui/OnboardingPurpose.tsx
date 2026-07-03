@@ -1,26 +1,34 @@
-import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
 import {act, render, screen, userEvent, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
+
 import OnboardingPurpose from '@pages/OnboardingPurpose';
+
 import {createWorkspace} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import {PortalProvider} from '@gorhom/portal';
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -193,9 +201,9 @@ describe('OnboardingPurpose Page', () => {
                 isFromPublicDomain: false,
                 hasAccessibleDomainPolicies: true,
             });
-            await Onyx.merge(ONYXKEYS.LOGIN_LIST, {
-                [testEmail]: {
-                    partnerName: 'expensify.com',
+            await Onyx.merge(ONYXKEYS.LOGINS, {
+                [`1_${testEmail}`]: {
+                    partnerID: 1,
                     partnerUserID: testEmail,
                     validatedDate: 'fake-validatedDate',
                 },
@@ -314,7 +322,7 @@ describe('OnboardingPurpose Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should navigate to personal details page when user selects TRACK_PERSONAL and is from public domain', async () => {
+    it('should navigate to personal track goal page when user selects TRACK_PERSONAL and is from public domain', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -334,7 +342,7 @@ describe('OnboardingPurpose Page', () => {
         await user.press(trackPersonalOption);
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(''));
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PERSONAL_TRACK_GOAL.getRoute(''));
         });
 
         unmount();

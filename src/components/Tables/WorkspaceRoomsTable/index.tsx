@@ -1,15 +1,22 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useEffect, useRef} from 'react';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Table from '@components/Table';
+
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
-import WorkspaceRoomsTableRow from './WorkspaceRoomsTableRow';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import React, {useEffect, useRef} from 'react';
+
 import type {WorkspaceRoomRowData} from './WorkspaceRoomsTableRow';
 
-type WorkspaceRoomsTableColumnKey = 'name' | 'createdBy' | 'members' | 'actions';
+import WorkspaceRoomsTableRow from './WorkspaceRoomsTableRow';
+
+type WorkspaceRoomsTableColumnKey = 'name' | 'members' | 'actions';
 
 type WorkspaceRoomsTableProps = {
     /** Pre-built row data for each room */
@@ -26,6 +33,12 @@ function WorkspaceRoomsTable({rooms, highlightedReportID}: WorkspaceRoomsTablePr
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
     const tableRef = useRef<TableHandle<WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey>>(null);
 
+    const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: true,
+        addOfflineIndicatorBottomSafeAreaPadding: true,
+        style: styles.pb5,
+    });
+
     useEffect(() => {
         if (!highlightedReportID) {
             return;
@@ -35,21 +48,17 @@ function WorkspaceRoomsTable({rooms, highlightedReportID}: WorkspaceRoomsTablePr
             return;
         }
         tableRef.current?.scrollToItem({item: highlightedRoom, animated: false});
+        tableRef.current?.highlightItems([highlightedRoom.keyForList]);
     }, [highlightedReportID, rooms]);
 
     const columns: Array<TableColumn<WorkspaceRoomsTableColumnKey>> = [
         {key: 'name', label: translate('common.name'), sortable: true},
-        {key: 'createdBy', label: translate('common.createdBy'), sortable: true},
         {key: 'members', label: translate('common.members'), width: variables.workspaceRoomsMembersColumnWidth, sortable: true},
         {key: 'actions', label: '', width: variables.workspaceRoomsActionsColumnWidth, styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}, sortable: false},
     ];
 
     const compareItems: CompareItemsCallback<WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey> = (a, b, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
-
-        if (activeSorting.columnKey === 'createdBy') {
-            return orderMultiplier * localeCompare(a.ownerDisplayName, b.ownerDisplayName);
-        }
 
         if (activeSorting.columnKey === 'members') {
             return orderMultiplier * (a.memberCount - b.memberCount);
@@ -65,7 +74,6 @@ function WorkspaceRoomsTable({rooms, highlightedReportID}: WorkspaceRoomsTablePr
             item={item}
             rowIndex={index}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
-            shouldAnimateInHighlight={!!highlightedReportID && item.reportID === highlightedReportID}
         />
     );
 
@@ -83,7 +91,7 @@ function WorkspaceRoomsTable({rooms, highlightedReportID}: WorkspaceRoomsTablePr
         >
             <Table.SearchBar label={translate('workspace.common.findRoom')} />
             <Table.Header />
-            <Table.Body />
+            <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />
         </Table>
     );
 }

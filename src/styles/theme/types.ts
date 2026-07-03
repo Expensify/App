@@ -1,6 +1,9 @@
-import type {ValueOf} from 'type-fest';
 import type {NavBarButtonStyle} from '@libs/NavBarManager/types';
+
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type {ColorScheme, StatusBarStyle} from '..';
 
 type Color = string;
@@ -37,6 +40,7 @@ type ThemeColors = {
     buttonHoveredBG: Color;
     buttonPressedBG: Color;
     buttonSuccessText: Color;
+    buttonDangerText: Color;
     danger: Color;
     dangerHover: Color;
     dangerPressed: Color;
