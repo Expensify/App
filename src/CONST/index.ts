@@ -1,11 +1,7 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import {add as dateAdd} from 'date-fns';
-import {sub as dateSubtract} from 'date-fns/sub';
-import Config from 'react-native-config';
-import * as KeyCommand from 'react-native-key-command';
-import type {ValueOf} from 'type-fest';
 import type {SearchFilterKey} from '@components/Search/types';
+
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+
 import {
     ANIMATED_TRANSITION as ANIMATION_TIMING_ANIMATED_TRANSITION,
     DEFAULT_IN as ANIMATION_TIMING_DEFAULT_IN,
@@ -18,11 +14,22 @@ import {
 } from '@libs/Animation/animationTiming';
 import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
 import addTrailingForwardSlash from '@libs/UrlUtils';
+
 import variables from '@styles/variables';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {PolicyTagLists} from '@src/types/onyx';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
+
+import type {ValueOf} from 'type-fest';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import {add as dateAdd} from 'date-fns';
+import {sub as dateSubtract} from 'date-fns/sub';
+import Config from 'react-native-config';
+import * as KeyCommand from 'react-native-key-command';
+
 import CI from './CI';
 import {LOCALES} from './LOCALES';
 

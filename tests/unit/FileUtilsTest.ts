@@ -1,6 +1,5 @@
-import {Platform} from 'react-native';
-import ImageSize from 'react-native-image-size';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import DateUtils from '@libs/DateUtils';
 import {
     ANDROID_SAFE_FILE_NAME_LENGTH,
@@ -11,7 +10,11 @@ import {
     getImageDimensionsAfterResize,
     splitExtensionFromFileName,
 } from '@libs/fileDownload/FileUtils';
+
 import CONST from '@src/CONST';
+
+import {Platform} from 'react-native';
+import ImageSize from 'react-native-image-size';
 
 jest.useFakeTimers();
 jest.mock('react-native-image-size');

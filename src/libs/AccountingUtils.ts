@@ -1,6 +1,7 @@
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+
+import type {ValueOf} from 'type-fest';
 
 const ROUTE_NAME_MAPPING = {
     [CONST.POLICY.CONNECTIONS.ROUTE.QBO]: CONST.POLICY.CONNECTIONS.NAME.QBO,

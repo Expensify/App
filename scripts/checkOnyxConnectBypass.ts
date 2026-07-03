@@ -1,5 +1,7 @@
 #!/usr/bin/env ts-node
 
+import type {Rule} from 'eslint';
+
 /**
  * Fails the lint run when a new inline `eslint-disable` bypasses the Onyx.connect() ban.
  *
@@ -17,10 +19,10 @@
  */
 import tsParser from '@typescript-eslint/parser';
 import {ESLint} from 'eslint';
-import type {Rule} from 'eslint';
 import {execFileSync} from 'node:child_process';
 import {createRequire} from 'node:module';
 import path from 'node:path';
+
 import {BANNED_RULE_ID, collectSuppressedBans, findNewBypasses} from './onyxConnectBypass';
 
 const projectRoot = path.resolve(__dirname, '..');

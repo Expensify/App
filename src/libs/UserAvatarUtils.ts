@@ -1,11 +1,14 @@
-import {md5, Str} from 'expensify-common';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import {md5, Str} from 'expensify-common';
+
+import type {LetterAvatarColorStyle} from './Avatars/letterAvatarPalette';
+import type {DefaultAvatarIDs} from './Avatars/UserAvatarCatalog.types';
+
 import {findAvatarIDFromURL, findCatalogMatchForURL, findLocalAvatarForURL} from './Avatars/AvatarLookup';
 import {DEFAULT_LETTER_AVATAR_SCHEME, isLetterAvatarSchemeKey, LETTER_AVATAR_COLOR_KEYS, LETTER_AVATAR_SCHEMES} from './Avatars/letterAvatarPalette';
-import type {LetterAvatarColorStyle} from './Avatars/letterAvatarPalette';
 import {DEFAULT_AVATAR_PREFIX, USER_AVATARS} from './Avatars/UserAvatarCatalog';
-import type {DefaultAvatarIDs} from './Avatars/UserAvatarCatalog.types';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
 

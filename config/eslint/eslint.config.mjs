@@ -20,6 +20,7 @@ import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import tseslint from 'typescript-eslint';
+
 import reportNameUtilsPlugin from './plugins/eslint-plugin-report-name-utils.mjs';
 import expensifyProcessor from './processors/eslint-processor-expensify.mjs';
 
