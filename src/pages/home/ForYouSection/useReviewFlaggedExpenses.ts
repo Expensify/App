@@ -7,7 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {isMoneyRequestReport} from '@libs/ReportUtils';
+import {isOneTransactionReport} from '@libs/ReportUtils';
 import {getVisibleTransactionViolations} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -166,8 +166,10 @@ function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
               const firstFlaggedTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstFlaggedExpense.transactionID}`];
 
               // With a single flagged expense the review carousel has nothing to navigate between, and for a
-              // one-transaction report the transaction thread is a redundant duplicate of the report itself
-              if (flaggedExpenses.length === 1 && isMoneyRequestReport(firstFlaggedReport)) {
+              // one-transaction report the transaction thread is a redundant duplicate of the report itself.
+              // Gate on the report's transaction count (not its type) so a lone flagged expense inside a
+              // multi-transaction report still opens that expense's thread rather than the whole report.
+              if (flaggedExpenses.length === 1 && isOneTransactionReport(firstFlaggedReport)) {
                   Navigation.navigate(
                       shouldUseNarrowLayout
                           ? ROUTES.REPORT_WITH_ID.getRoute(firstFlaggedExpense.reportID, undefined, undefined, ROUTES.HOME)

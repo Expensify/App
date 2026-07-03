@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -13,6 +13,7 @@ import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {buildSetPersonalDetailsAndShipExpensifyCardsParams} from '@libs/actions/PersonalDetails';
+import {isUkEuExpensifyCard} from '@libs/CardUtils';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {findPageIndex} from '@libs/SubPageUtils';
@@ -20,7 +21,6 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isExpensifyCardUkEuSupportedSelector} from '@src/selectors/Card';
 import type {PersonalDetailsForm} from '@src/types/form';
 import type {CardList, PrivatePersonalDetails} from '@src/types/onyx';
 import {usePINActions, usePINState} from './PINContext';
@@ -62,11 +62,10 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     const {isOffline} = useNetwork();
     const {executeScenario} = useMultifactorAuthentication();
     const {translate} = useLocalize();
-    const shouldCollectPINSelector = (cardList: OnyxEntry<CardList>) =>
-        !!cardID &&
-        isExpensifyCardUkEuSupportedSelector(cardList, cardID) &&
-        Object.values(cardList ?? {}).some((card) => card?.cardID === Number(cardID) && !card?.nameValuePairs?.isVirtual);
-    const [shouldCollectPIN] = useOnyx(ONYXKEYS.CARD_LIST, {selector: shouldCollectPINSelector});
+    const targetCardSelector = useCallback((cardList: OnyxEntry<CardList>) => (cardID ? cardList?.[cardID] : undefined), [cardID]);
+    const [targetCard] = useOnyx(ONYXKEYS.CARD_LIST, {selector: targetCardSelector});
+    const isVirtualCard = !!targetCard?.nameValuePairs?.isVirtual;
+    const shouldCollectPIN = !!cardID && isUkEuExpensifyCard(targetCard) && !isVirtualCard;
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const {PIN, isConfirmStep} = usePINState();
     const {setIsConfirmStep} = usePINActions();
@@ -84,9 +83,6 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     const values = useMemo(() => normalizeCountryCode(getSubPageValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
 
     const startFrom = useMemo(() => {
-        if (shouldCollectPIN === undefined) {
-            return -1;
-        }
         const initialPage = getInitialSubPage(values, shouldCollectPIN, PIN);
         return findPageIndex<CustomSubPageProps>(formPages, initialPage);
     }, [formPages, values, shouldCollectPIN, PIN]);
@@ -107,6 +103,16 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
                 ...personalDetailsParams,
                 pin: PIN,
                 cardID,
+            });
+        } else if (isVirtualCard && isUkEuExpensifyCard(targetCard)) {
+            if (isOffline || !cardID) {
+                return;
+            }
+            const personalDetailsParams = buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode);
+            executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PERSONAL_DETAILS_AND_REVEAL_CARD_DETAILS, {
+                ...personalDetailsParams,
+                cardID,
+                isFromMissingDetailsFlow: true,
             });
         } else {
             onComplete();
@@ -153,7 +159,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
             testID="MissingPersonalDetailsContent"
         >
             <HeaderWithBackButton
-                title={headerTitle ?? translate('workspace.expensifyCard.addShippingDetails')}
+                title={headerTitle ?? translate(isVirtualCard ? 'workspace.expensifyCard.addPersonalDetails' : 'workspace.expensifyCard.addShippingDetails')}
                 onBackButtonPress={handleBackButtonPress}
             />
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>
