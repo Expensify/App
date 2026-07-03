@@ -1,7 +1,8 @@
-import {Buffer} from 'buffer';
 import {buildSigningData, decodeLibraryError, getKeyAlias, mapAuthTypeNumber, mapSignErrorCodeToReason} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
 import NATIVE_BIOMETRICS_HSM_VALUES from '@libs/MultifactorAuthentication/NativeBiometricsHSM/VALUES';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
+
+import {Buffer} from 'buffer';
 
 const mockSha256 = jest.fn();
 

@@ -1,13 +1,18 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
-import {FocusTrap} from 'focus-trap-react';
-import React, {useMemo} from 'react';
 import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
 import TOP_TAB_SCREENS from '@components/FocusTrap/TOP_TAB_SCREENS';
 import WIDE_LAYOUT_INACTIVE_SCREENS from '@components/FocusTrap/WIDE_LAYOUT_INACTIVE_SCREENS';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import {isCancellingDndKeyboardDrag} from '@libs/cancelDndKeyboardDrag';
 import {isSidebarScreenName} from '@libs/Navigation/helpers/isNavigatorName';
+
 import CONST from '@src/CONST';
+
+import {useIsFocused, useRoute} from '@react-navigation/native';
+import {FocusTrap} from 'focus-trap-react';
+import React, {useMemo} from 'react';
+
 import type FocusTrapProps from './FocusTrapProps';
 
 function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {

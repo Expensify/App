@@ -1,12 +1,16 @@
-import {useEffect, useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
 import useLocalize from '@hooks/useLocalize';
+
 import {getInvoicePayerName} from '@libs/ReportNameUtils';
 import {getDisplayNameForParticipant, getPolicyName} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect, useMemo} from 'react';
+import {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
 
 type UsePreviewMessageAnimationParams = {
     /** Whether all the requests are being smart scanned */

@@ -1,10 +1,3 @@
-import {useRoute} from '@react-navigation/native';
-import {accountGuideDetailsSelector} from '@selectors/Account';
-import {isOptimisticPersonalDetailSelector} from '@selectors/PersonalDetails';
-import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
-import {isPast} from 'date-fns';
-import React, {useMemo} from 'react';
-import {Keyboard, View} from 'react-native';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import ChronosTimerHeaderButton from '@components/ChronosTimerHeaderButton';
@@ -22,6 +15,7 @@ import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
@@ -36,6 +30,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
@@ -80,14 +75,25 @@ import {
 import StringUtils from '@libs/StringUtils';
 import {shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import EarlyDiscountBanner from '@pages/settings/Subscription/CardSection/BillingBanner/EarlyDiscountBanner';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
+
 import {joinRoom} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {useRoute} from '@react-navigation/native';
+import {accountGuideDetailsSelector} from '@selectors/Account';
+import {isOptimisticPersonalDetailSelector} from '@selectors/PersonalDetails';
+import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
+import {isPast} from 'date-fns';
+import React, {useMemo} from 'react';
+import {Keyboard, View} from 'react-native';
 
 type HeaderViewProps = {
     /** Toggles the navigationMenu open and closed */
