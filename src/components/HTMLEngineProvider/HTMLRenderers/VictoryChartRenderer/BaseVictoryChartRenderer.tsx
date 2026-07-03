@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import {ChartFontsProvider} from '@components/Charts/hooks';
 import useChartFonts from '@components/Charts/hooks/useChartFonts';
 import getVictoryChartTreeTypeface from '@components/Charts/utils/getVictoryChartTreeTypeface';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import VictoryChartContainer from './components/VictoryChartContainer';
 import VictoryChartContent from './components/VictoryChartContent';
@@ -15,6 +16,7 @@ import resolveVictoryChartType from './utils/resolveVictoryChartType';
 
 function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {
     const fonts = useChartFonts();
+    const styles = useThemeStyles();
     const [isExpanded, setIsExpanded] = useState(false);
 
     let processedResult;
@@ -39,8 +41,10 @@ function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {
                 processedResult={processedResult}
                 type={type}
             >
-                {/* Wrapper anchors the absolutely-positioned expand button to the chart's corner. */}
-                <View>
+                {/* Wrapper anchors the absolutely-positioned expand button to the chart's corner.
+                    mw100 keeps it from sizing to the chart's design width, so the responsive
+                    container's onLayout measures the real available width (e.g. in the side panel). */}
+                <View style={styles.mw100}>
                     <VictoryChartContainer>
                         <VictoryChartContent />
                     </VictoryChartContainer>
