@@ -1,82 +1,70 @@
 ---
 title: Compare Collect and Control Plans
-description: Compare the features and capabilities of the Collect and Control plans to determine which is right for your organization.
+description: Learn the primary differences between Expensify's Collect and Control plans and which organizations each plan is designed for.
 keywords: [Collect plan, Control plan, compare plans, Expensify plans, Workspace plans]
-internalScope: Audience is anyone evaluating Expensify plans. Covers the differences between the Collect and Control plans. Does not cover change subscriptions or plans.
-retrievalIntent: Feature comparison to choose Collect vs Control.
+internalScope: Audience is anyone evaluating Expensify plans. Covers the high-level differences between Collect and Control. Does not provide a complete feature list or pricing.
+retrievalIntent: Compare Collect and Control plans and determine which plan supports a particular capability.
 ---
 
 # Compare Collect and Control Plans
 
-Expensify offers two Workspace plans: **Collect** and **Control**. Both help you manage expenses and company spending, but they're designed for organizations with different needs.
+Expensify offers two Workspace plans:
 
-For a full list of features and plan comparison, see [Expensify pricing and plans](https://www.expensify.com/pricing).
+- **Collect** for organizations that need straightforward expense management and reimbursements.
+- **Control** for organizations that need advanced spend management, automation, integrations, and administrative controls.
 
-## When you should choose the Collect plan
+For the complete feature comparison and current pricing, visit [Expensify Pricing](https://www.expensify.com/pricing).
 
-Choose Collect if your organization needs:
+## Choose Collect if you need
 
- - Expense tracking and receipt scanning
- - Employee reimbursements
- - A simple approval workflow
- - Basic accounting integrations
- - An easy-to-manage solution for a small team
+Collect is best for organizations that primarily want to:
 
-Collect is suited for smaller organizations with straightforward expense management needs.
+- Track expenses and scan receipts
+- Reimburse employees
+- Approve expenses with a simple approval workflow
+- Connect to common accounting software like QuickBooks or Xero
+- Manage expenses for a small or growing team
 
-## When you should choose the Control plan
+## Choose Control if you need
 
-Choose Control if your organization needs:
+Control is best for organizations that need additional financial controls, including:
 
- - Multi-level approval workflows
- - Company card management
- - Advanced accounting integrations
- - HR and payroll integrations
- - Bank feeds and reconciliation
- - Enterprise security features such as SAML/SSO
- - Greater control over company spending
+- Multi-step approval workflows
+- Company card management
+- ERP integrations like NetSuite and Sage Intacct
+- HR integrations like Workday and Certinia
+- Multiple corporate card connections
+- Custom expense rules and automation
+- Enterprise security features such as SAML/SSO
+- Greater administrative control over company spending
 
-Control is designed for organizations that need more advanced financial controls and automation.
+## Common feature differences between Collect and Control
 
-## What features are included in each plan?
+Some capabilities are only available with the Control plan.
 
-The table below summarizes the most important differences. For the complete, up-to-date feature list, see [Expensify pricing and plans](https://www.expensify.com/pricing).
-
-| Feature                | **Collect Plan**                             | **Control Plan**                                 |
-|------------------------|----------------------------------------------|--------------------------------------------------|
-| **Base cost**         | $5 per unique member/month                   | $9–$36 per active member/month                    |
-| **SmartScans**         | ✅ Unlimited                                 | ✅  Unlimited                                    |
-| **Expensify Card**     | ✅  Smart Limits and 1–2% cash back          | ✅  Smart Limits and 1–2% cash back              |
-| **Expense approvals**  | ✅  Single approver                          | ✅  Multiple approvers                           |
-| **ACH reimbursements** | ✅  Unlimited                                | ✅  Unlimited                                   |
-| **Corporate card management**  | ✅ One direct bank connection             | ✅  Unlimited direct bank connections                |
-| **Accounting sync**    | ✅  QuickBooks, Xero                  | ✅  ERP integrations (NetSuite, Sage Intacct) |
-| **HR & payroll sync**  | ❌ Not available                             | ✅  Gusto, TriNet, Certinia, Workday             |
-| **Custom expense rules** | ❌ Not available                             | ✅  Fully customizable expense rules         |
-| **Security & control** | ❌ Not available                             | ✅  SAML/SSO and admin-enforced controls         |
-
-
-
-## Where to learn about plan pricing
-
-Your workspace plan is one factor that determines your subscription cost. Pricing also depends on your subscription type and, for Control Workspaces, your organization's Expensify Card usage.
-
-To learn how plans, subscription pricing, and the Expensify Card discount work, see [Understand Expensify Pricing](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Understand-Expensify-Pricing).
+| Capability | Collect | Control |
+| --- | :---: | :---: |
+| Multi-level approvals | ❌ | ✅ |
+| ERP integrations | ❌ | ✅ |
+| HR and payroll integrations | ❌ | ✅ |
+| Multiple corporate card connections | ❌ | ✅ |
+| Custom expense rules | ❌ | ✅ |
+| SAML/SSO | ❌ | ✅ |
 
 # FAQ
 
-## Can I change my workspace plan later?
+## Can I change my Workspace plan later?
 
-Yes. If your organization's needs change, you can switch between the Collect and Control plans. However, if you are on an annual subscription, you may need to wait until your current subscription term ends before downgrading your plan.
+Yes. You can change your Workspace plan as your organization's needs change. Some changes, such as downgrading an annual subscription, may not be available until the end of your current subscription term.
 
-To learn more, see [Change Your Workspace Plan](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Change-Your-Workspace-Plan).
+To learn more see Change Your Workspace Plan.
 
-## Does every Workspace need a plan?
+## Does every Workspace have a plan?
 
-Yes. Every Workspace is created with either the Collect or Control plan.
+Yes. Every Workspace uses either the Collect or Control plan.
 
 ## Does the Expensify Card work with both plans?
 
-Yes. The Expensify Card is available with both plans. However, only the Control plan offers subscription pricing that nets a discount on qualifying Expensify Card usage.
+Yes. The Expensify Card works with both plans. Certain subscription pricing benefits are only available with eligible Control Workspaces.
 
-To learn more, see [How the Expensify Card Discount Works](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Understand-Expensify-Pricing#how-the-expensify-card-discount-works).  
+Learn more in [Understand Expensify Pricing](...).
