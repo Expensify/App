@@ -1,4 +1,3 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getMoneyRequestPolicyTags} from '@libs/actions/IOU';
 import {
     getMoneyRequestParticipantOptions,
@@ -22,7 +21,9 @@ import {getPolicyExpenseChat, getReportOrDraftReport, isMoneyRequestReport as is
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, getDistanceRequestType, getIsFromGlobalCreate, getValidWaypoints} from '@libs/TransactionUtils';
+
 import {setTransactionReport} from '@userActions/Transaction';
+
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -48,6 +49,8 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
 type MoneyRequestStepDistanceNavigationParams = {
     iouType: IOUType;
     policy: OnyxEntry<Policy>;
@@ -62,6 +65,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     manualDistance?: number;
     currentUserLogin?: string;
     currentUserAccountID: number;
+    currentUserLocalCurrency: string | undefined;
     backTo?: Route;
     backToReport?: string;
     shouldSkipConfirmation: boolean;
@@ -107,6 +111,7 @@ function buildDistanceAmountAndMerchant({
     transaction,
     policy,
     translate,
+    personalPolicyOutputCurrency,
 }: {
     isManualDistance: boolean;
     distance: number | undefined;
@@ -114,12 +119,13 @@ function buildDistanceAmountAndMerchant({
     transaction: Transaction | undefined;
     policy: OnyxEntry<Policy>;
     translate: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>) => string;
+    personalPolicyOutputCurrency: string | undefined;
 }): {amount: number; merchant: string} {
     if (!isManualDistance || distance === undefined || !unit) {
         return {amount: 0, merchant: translate('iou.fieldPending')};
     }
     const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
-    const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
+    const mileageRate = DistanceRequestUtils.getRate({transaction, policy, personalPolicyOutputCurrency});
     const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, mileageRate?.rate ?? 0);
     const merchant = DistanceRequestUtils.getDistanceMerchant(
         true,
@@ -152,6 +158,7 @@ function handleMoneyRequestStepDistanceNavigation({
     manualDistance,
     currentUserLogin,
     currentUserAccountID,
+    currentUserLocalCurrency,
     backTo,
     backToReport,
     shouldSkipConfirmation,
@@ -246,7 +253,15 @@ function handleMoneyRequestStepDistanceNavigation({
 
             const validWaypoints = !isManualDistance && !isOdometerDistance ? getValidWaypoints(waypoints, true, isGPSDistance) : undefined;
 
-            const {amount, merchant} = buildDistanceAmountAndMerchant({isManualDistance, distance, unit, transaction, policy, translate});
+            const {amount, merchant} = buildDistanceAmountAndMerchant({
+                isManualDistance,
+                distance,
+                unit,
+                transaction,
+                policy,
+                translate,
+                personalPolicyOutputCurrency: personalOutputCurrency,
+            });
             setMoneyRequestMerchant(transactionID, merchant, false);
             const distanceDefaultTaxCode = getDefaultTaxCode(policy, transaction);
             const distanceTaxCode = (transaction?.taxCode ? transaction.taxCode : distanceDefaultTaxCode) ?? '';
@@ -292,6 +307,7 @@ function handleMoneyRequestStepDistanceNavigation({
                                     isTrackDistanceExpense: true,
                                     policy: policyForMovingExpenses,
                                     isPolicyExpenseChat: false,
+                                    expenseDate: transaction?.created,
                                 }),
                                 attendees: transaction?.comment?.attendees,
                                 gpsCoordinates,
@@ -313,6 +329,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             previousOdometerDraft,
                             optimisticTransactionID,
                             optimisticChatReportID,
+                            currentUserLocalCurrency,
                         });
                         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                             report,
@@ -363,6 +380,7 @@ function handleMoneyRequestStepDistanceNavigation({
                                 isPolicyExpenseChat,
                                 policy,
                                 lastSelectedDistanceRates,
+                                expenseDate: transaction?.created,
                             }),
                             splitShares: transaction?.splitShares,
                             attendees: transaction?.comment?.attendees,
@@ -432,13 +450,15 @@ function handleMoneyRequestStepDistanceNavigation({
             policy: isSelfDMReport ? policyForMovingExpenses : defaultExpensePolicy,
             lastSelectedDistanceRates,
             isTrackDistanceExpense: isSelfDMReport,
+            expenseDate: transaction?.created,
         });
 
         setTransactionReport(transactionID, {reportID: transactionReportID}, true);
         // Do not pass transaction and policy so it only updates customUnitRateID without changing distance and distance unit
         // as it is set for Manual requests before this function is called and transaction may have
-        // obsolete customUnit values
-        setCustomUnitRateID(transactionID, rateID, undefined, undefined);
+        // obsolete customUnit values. personalPolicyOutputCurrency is intentionally omitted for the same reason:
+        // without a transaction, setCustomUnitRateID never resolves a rate, so the currency is never read.
+        setCustomUnitRateID(transactionID, rateID, undefined, undefined, false, undefined);
 
         // Update distance and distance unit in transaction object as it is usually set before this function is called using
         // defaultExpensePolicy data which is not accurate in this case as defaultExpensePolicy has autoReporting set to false

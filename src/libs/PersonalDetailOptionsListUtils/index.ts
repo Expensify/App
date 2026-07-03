@@ -1,18 +1,24 @@
-import {Str} from 'expensify-common';
-import deburr from 'lodash/deburr';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
+
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import {optionsOrderBy, personalDetailsComparator, processSearchString} from '@libs/OptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import {generateAccountID} from '@libs/UserUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LoginList, OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import deburr from 'lodash/deburr';
+
 import type {GetContactConfig, GetOptionsConfig, GetUserToInviteConfig, OptionData, Options, PreviewConfig, PrivateIsArchivedMap} from './types';
 
 /**
@@ -65,7 +71,12 @@ function createOption(
     result.keyForList = String(personalDetail.accountID);
     result.alternateText = formatPhoneNumber(personalDetail.login ?? '');
 
-    result.text = getDisplayNameForParticipant({accountID: personalDetail.accountID, formatPhoneNumber}) || formatPhoneNumber(personalDetail.login ?? '');
+    result.text =
+        getDisplayNameForParticipant({
+            accountID: personalDetail.accountID,
+            formatPhoneNumber,
+            personalDetailsData: {[personalDetail.accountID]: personalDetail},
+        }) || formatPhoneNumber(personalDetail.login ?? '');
     result.icons = [
         {
             id: personalDetail.accountID,

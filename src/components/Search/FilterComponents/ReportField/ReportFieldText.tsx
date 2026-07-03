@@ -1,12 +1,15 @@
-import React from 'react';
 import TextInput from '@components/TextInput';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type {PolicyReportField} from '@src/types/onyx';
 
+import React from 'react';
+
 type ReportFieldTextProps = {
     field: PolicyReportField;
-    value: string;
+    value: string | undefined;
     onChange: (newValue: string) => void;
 };
 
@@ -20,7 +23,7 @@ function ReportFieldText({field, value, onChange}: ReportFieldTextProps) {
             onChangeText={onChange}
             accessibilityLabel={field.name}
             role={CONST.ROLE.PRESENTATION}
-            containerStyles={[styles.ph5, styles.mb2]}
+            containerStyles={[styles.ph5, styles.pv2]}
         />
     );
 }

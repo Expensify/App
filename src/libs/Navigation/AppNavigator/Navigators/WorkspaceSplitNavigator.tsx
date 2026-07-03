@@ -1,15 +1,18 @@
-import React from 'react';
-import {View} from 'react-native';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
-import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+
 import type NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type Screens = Partial<Record<keyof WorkspaceSplitNavigatorParamList, () => React.ComponentType>>;
 
@@ -40,20 +43,9 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
 
 const Split = createSplitNavigator<WorkspaceSplitNavigatorParamList>();
 
-function hasNoEnterAnimationFlag(params: unknown): boolean {
-    return !!(params as {noEnterAnimation?: boolean} | undefined)?.noEnterAnimation;
-}
-
 function WorkspaceSplitNavigator({route}: PlatformStackScreenProps<WorkspaceNavigatorParamList, typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR>) {
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
     const styles = useThemeStyles();
-
-    const buildSidebarScreenOptions = ({route: screenRoute}: {route: {params?: unknown}}) => {
-        if (hasNoEnterAnimationFlag(screenRoute.params)) {
-            return {...splitNavigatorScreenOptions.sidebarScreen, animation: Animations.NONE};
-        }
-        return splitNavigatorScreenOptions.sidebarScreen;
-    };
 
     return (
         <FocusTrapForScreens>
@@ -68,7 +60,7 @@ function WorkspaceSplitNavigator({route}: PlatformStackScreenProps<WorkspaceNavi
                     <Split.Screen
                         name={SCREENS.WORKSPACE.INITIAL}
                         getComponent={loadWorkspaceInitialPage}
-                        options={buildSidebarScreenOptions}
+                        options={splitNavigatorScreenOptions.sidebarScreen}
                     />
                     {Object.entries(CENTRAL_PANE_WORKSPACE_SCREENS).map(([screenName, componentGetter]) => (
                         <Split.Screen

@@ -1,14 +1,19 @@
-import {useState} from 'react';
-import type {PermissionStatus} from 'react-native-permissions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailOptions from '@hooks/usePersonalDetailOptions';
+
 import {filterOption, getValidOptions} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {PermissionStatus} from 'react-native-permissions';
+
+import {useState} from 'react';
 
 type SearchSelectorSelectionMode = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<typeof CONST.SEARCH_SELECTOR, 'SELECTION_MODE_SINGLE' | 'SELECTION_MODE_MULTI'>];
 
@@ -182,7 +187,7 @@ function usePersonalDetailSearchSelectorBase({
     const [extraOptions, setExtraOptions] = useState<OptionData[]>(initialExtraOptions);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(initialSearchPhrase);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
 

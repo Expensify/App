@@ -1,24 +1,41 @@
-import {Str} from 'expensify-common';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import {askToJoinPolicy, joinAccessiblePolicy} from '@src/libs/actions/Policy/Member';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Onboarding, PolicyJoinMember, PolicyReportField, Policy as PolicyType, Report, ReportAction, ReportActions, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {
+    Onboarding,
+    PolicyJoinMember,
+    PolicyReportField,
+    Policy as PolicyType,
+    Report,
+    ReportAction,
+    ReportActions,
+    ReportNextStepDeprecated,
+    Transaction,
+    TransactionViolations,
+} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/Report';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
+import type {MockFetch} from '../utils/TestHelper';
+
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
-import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ESH_EMAIL = 'eshgupta1217@gmail.com';
@@ -673,7 +690,7 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             const policyID = Policy.generatePolicyID();
-            const file = {uri: 'file://tmp/avatar.png', name: 'avatar.png', type: 'image/png'} as File;
+            const file = createMock<File>({uri: 'file://tmp/avatar.png', name: 'avatar.png', type: 'image/png'});
             const options = {
                 currentUserAccountID: ESH_ACCOUNT_ID,
                 currentUserEmail: ESH_EMAIL,
@@ -1977,11 +1994,11 @@ describe('actions/Policy', () => {
             mockFetch.pause();
 
             // When setting the workspace avatar
-            const file = {
+            const file = createMock<File>({
                 uri: 'file://path/to/avatar.png',
                 name: 'avatar.png',
                 type: 'image/png',
-            } as File;
+            });
             Policy.updateWorkspaceAvatar(policy.id, '', file);
 
             // Then optimistic data should be set in Onyx
@@ -2010,11 +2027,11 @@ describe('actions/Policy', () => {
 
             // When updating the workspace avatar but fail
             mockFetch.fail();
-            const file = {
+            const file = createMock<File>({
                 uri: 'file://path/to/avatar.png',
                 name: 'avatar.png',
                 type: 'image/png',
-            } as File;
+            });
             Policy.updateWorkspaceAvatar(policy.id, policy.avatarURL, file);
             await waitForBatchedUpdates();
 
@@ -3279,7 +3296,7 @@ describe('actions/Policy', () => {
             const buildNextStepNewSpy = jest
                 .spyOn(require('@libs/NextStepUtils'), 'buildNextStepNew')
 
-                .mockReturnValue({type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Mock next step'}]} as never);
+                .mockReturnValue(createMock<ReportNextStepDeprecated>({type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Mock next step'}]}));
 
             const getAllPolicyReportsSpy = jest.spyOn(ReportUtils, 'getAllPolicyReports');
             const isExpenseReportSpy = jest.spyOn(ReportUtils, 'isExpenseReport');
@@ -3296,8 +3313,8 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            const submittedExpenseReport1 = {reportID: '100', policyID, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED} as unknown as Report;
-            const submittedExpenseReport2 = {reportID: '101', policyID, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED} as unknown as Report;
+            const submittedExpenseReport1 = createMock<Report>({reportID: '100', policyID, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
+            const submittedExpenseReport2 = createMock<Report>({reportID: '101', policyID, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
             getAllPolicyReportsSpy.mockReturnValue([submittedExpenseReport1, submittedExpenseReport2]);
             isExpenseReportSpy.mockReturnValue(true);
             hasViolationsSpy.mockReturnValue(false);
@@ -3305,9 +3322,9 @@ describe('actions/Policy', () => {
             const nextStepKey1 = `${ONYXKEYS.COLLECTION.NEXT_STEP}${submittedExpenseReport1.reportID}` as const;
             const nextStepKey2 = `${ONYXKEYS.COLLECTION.NEXT_STEP}${submittedExpenseReport2.reportID}` as const;
 
-            const currentNextStep1 = {type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Old next step 1'}]} as never;
+            const currentNextStep1 = createMock<ReportNextStepDeprecated>({type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Old next step 1'}]});
 
-            const currentNextStep2 = {type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Old next step 2'}]} as never;
+            const currentNextStep2 = createMock<ReportNextStepDeprecated>({type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Old next step 2'}]});
 
             Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, {
                 reportNextSteps: {
@@ -3351,7 +3368,7 @@ describe('actions/Policy', () => {
             const buildNextStepNewSpy = jest
                 .spyOn(require('@libs/NextStepUtils'), 'buildNextStepNew')
 
-                .mockReturnValue({type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Mock next step'}]} as never);
+                .mockReturnValue(createMock<ReportNextStepDeprecated>({type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Mock next step'}]}));
 
             const getAllPolicyReportsSpy = jest.spyOn(ReportUtils, 'getAllPolicyReports');
             const isExpenseReportSpy = jest.spyOn(ReportUtils, 'isExpenseReport');
@@ -3368,7 +3385,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            const submittedReport = {reportID: '200', policyID, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED} as unknown as Report;
+            const submittedReport = createMock<Report>({reportID: '200', policyID, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
             getAllPolicyReportsSpy.mockReturnValue([submittedReport]);
             isExpenseReportSpy.mockReturnValue(true);
 
@@ -3377,7 +3394,7 @@ describe('actions/Policy', () => {
 
             const nextStepKey = `${ONYXKEYS.COLLECTION.NEXT_STEP}${submittedReport.reportID}` as const;
 
-            const currentNextStep = {type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Old next step'}]} as never;
+            const currentNextStep = createMock<ReportNextStepDeprecated>({type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Old next step'}]});
 
             Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, customAccountID, customEmail, {
                 reportNextSteps: {
@@ -4068,11 +4085,11 @@ describe('actions/Policy', () => {
             const expenseChatReportID = '1';
             const expenseReportID = '2';
             const transactionID = '3';
-            const expenseChatReport = {
+            const expenseChatReport = createMock<Report>({
                 ...createRandomReport(Number(expenseChatReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 policyID,
                 iouReportID: expenseReportID,
-            } as Report;
+            });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`, expenseChatReport);
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
@@ -5931,6 +5948,36 @@ describe('actions/Policy', () => {
             expect(reportValue?.participants?.[customAccountID]).toBeTruthy();
             expect(reportValue?.participants?.[ESH_ACCOUNT_ID]).toBeUndefined();
         });
+
+        it('uses the explicit doesPersonalDetailExistByAccountID map for success-data participants instead of the deprecated personal details list', async () => {
+            const policyID = Policy.generatePolicyID();
+            const newMemberEmail = 'mapmember@test.com';
+            const newMemberAccountID = 314;
+
+            // Given a signed-in user, and a personal details list that does NOT contain the new member
+            // (so the deprecated module-level fallback would treat the member as unknown)
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ESH_ACCOUNT_ID]: {accountID: ESH_ACCOUNT_ID, login: ESH_EMAIL}});
+            await waitForBatchedUpdates();
+
+            const getSuccessValue = (result: ReturnType<typeof Policy.createPolicyExpenseChats>) => {
+                const reportID = result.reportCreationData[newMemberEmail]?.reportID;
+                return result.onyxSuccessData.find((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${reportID}`)?.value;
+            };
+            const participantPath = ['participants', String(newMemberAccountID)];
+
+            // When the explicit map says the member exists, the success-data participant is kept ({}), beating the empty fallback
+            const existsResult = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID}, {accountID: ESH_ACCOUNT_ID}, undefined, undefined, undefined, {
+                [newMemberAccountID]: true,
+            });
+            expect(getSuccessValue(existsResult)).toHaveProperty(participantPath, {});
+
+            // When the explicit map says the member does NOT exist, the success-data participant is removed (null)
+            const missingResult = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID}, {accountID: ESH_ACCOUNT_ID}, undefined, undefined, undefined, {
+                [newMemberAccountID]: false,
+            });
+            expect(getSuccessValue(missingResult)).toHaveProperty(participantPath, null);
+        });
     });
     describe('setPolicyCustomTaxName', () => {
         it('should set custom tax name optimistically and succeed', async () => {
@@ -6867,7 +6914,7 @@ describe('actions/Policy', () => {
         });
 
         it('falls back to USD when no currency is provided and no personal details exist', () => {
-            const result = Policy.buildOptimisticDistanceRateCustomUnits();
+            const result = Policy.buildOptimisticDistanceRateCustomUnits(undefined);
 
             expect(result.outputCurrency).toBe(CONST.CURRENCY.USD);
             const rate = result.customUnits[result.customUnitID].rates[result.customUnitRateID];
@@ -7077,7 +7124,7 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             const policyID = Policy.generatePolicyID();
-            const fakeFile = {uri: 'file://test-avatar.png', name: 'test-avatar.png'} as File;
+            const fakeFile = createMock<File>({uri: 'file://test-avatar.png', name: 'test-avatar.png'});
             Policy.createDraftInitialWorkspace({
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 workspaceName: WORKSPACE_NAME,
@@ -7125,8 +7172,8 @@ describe('actions/Policy', () => {
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
             const isIOUReportUsingReportSpy = jest.spyOn(ReportUtils, 'isIOUReportUsingReport').mockReturnValue(true);
 
-            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[8];
-            Policy.createWorkspaceFromIOUPayment(iouReport, undefined, customAccountID, customEmail, iouReportOwnerEmail, undefined, CONST.CURRENCY.USD, undefined, mockTranslate, {});
+            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[7];
+            Policy.createWorkspaceFromIOUPayment(iouReport, undefined, customAccountID, customEmail, iouReportOwnerEmail, CONST.CURRENCY.USD, undefined, mockTranslate, {});
             await waitForBatchedUpdates();
 
             const writeOptions = apiWriteSpy.mock.calls.at(0)?.at(2) as {
@@ -7156,19 +7203,8 @@ describe('actions/Policy', () => {
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
 
-            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[8];
-            const result = Policy.createWorkspaceFromIOUPayment(
-                nonIOUReport,
-                undefined,
-                ESH_ACCOUNT_ID,
-                ESH_EMAIL,
-                'owner@example.com',
-                undefined,
-                CONST.CURRENCY.USD,
-                undefined,
-                mockTranslate,
-                {},
-            );
+            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[7];
+            const result = Policy.createWorkspaceFromIOUPayment(nonIOUReport, undefined, ESH_ACCOUNT_ID, ESH_EMAIL, 'owner@example.com', CONST.CURRENCY.USD, undefined, mockTranslate, {});
             expect(result).toBeUndefined();
         });
 
@@ -7214,14 +7250,13 @@ describe('actions/Policy', () => {
             const isIOUReportUsingReportSpy = jest.spyOn(ReportUtils, 'isIOUReportUsingReport').mockReturnValue(true);
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
 
-            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[8];
+            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[7];
             const result = Policy.createWorkspaceFromIOUPayment(
                 iouReport,
                 undefined,
                 ESH_ACCOUNT_ID,
                 ESH_EMAIL,
                 iouReportOwnerEmail,
-                undefined,
                 CONST.CURRENCY.USD,
                 undefined,
                 mockTranslate,
@@ -7263,8 +7298,8 @@ describe('actions/Policy', () => {
             const isIOUReportUsingReportSpy = jest.spyOn(ReportUtils, 'isIOUReportUsingReport').mockReturnValue(true);
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
 
-            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[8];
-            Policy.createWorkspaceFromIOUPayment(iouReport, undefined, ESH_ACCOUNT_ID, ESH_EMAIL, iouReportOwnerEmail, undefined, CONST.CURRENCY.USD, undefined, mockTranslate, {});
+            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[7];
+            Policy.createWorkspaceFromIOUPayment(iouReport, undefined, ESH_ACCOUNT_ID, ESH_EMAIL, iouReportOwnerEmail, CONST.CURRENCY.USD, undefined, mockTranslate, {});
             await waitForBatchedUpdates();
 
             const writeOptions = apiWriteSpy.mock.calls.at(0)?.at(2) as {
@@ -7325,8 +7360,8 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[8];
-            Policy.createWorkspaceFromIOUPayment(iouReport, undefined, ESH_ACCOUNT_ID, ESH_EMAIL, iouReportOwnerEmail, undefined, CONST.CURRENCY.USD, undefined, mockTranslate, {});
+            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[7];
+            Policy.createWorkspaceFromIOUPayment(iouReport, undefined, ESH_ACCOUNT_ID, ESH_EMAIL, iouReportOwnerEmail, CONST.CURRENCY.USD, undefined, mockTranslate, {});
             await waitForBatchedUpdates();
 
             // Optimistic merge: read the stored transaction from Onyx

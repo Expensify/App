@@ -1,12 +1,10 @@
-import {Str} from 'expensify-common';
-import React from 'react';
-import {View} from 'react-native';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import FeedSelector from '@components/FeedSelector';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
 import Table from '@components/Table';
+
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCardFeeds from '@hooks/useCardFeeds';
 import {useCurrencyListState} from '@hooks/useCurrencyList';
@@ -17,15 +15,25 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLinkedPolicyName} from '@libs/CardFeedUtils';
 import {getCompanyFeeds, getCustomOrFormattedFeedName, getPlaidCountry, getPlaidInstitutionId, isCustomFeed} from '@libs/CardUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import Navigation from '@navigation/Navigation';
+
 import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
+
+import getShouldShowBrokenConnectionError from './getShouldShowBrokenConnectionError';
 
 const FEED_SELECTOR_SKELETON_WIDTH = 289;
 
@@ -71,10 +79,9 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
 
     const {cardFeedErrors, shouldShowRbrForFeedNameWithDomainID} = useCardFeedErrors();
     const feedErrors = cardFeedErrors[feedName];
-    const hasFeedErrors = feedErrors?.hasFeedErrors;
-    const isFeedConnectionBroken = feedErrors?.isFeedConnectionBroken;
     const hasOtherFeedWithRBR = Object.keys(companyFeeds ?? {}).some((feed) => feed !== feedName && shouldShowRbrForFeedNameWithDomainID[feed]);
     const shouldShowFeedSelectorRBR = hasOtherFeedWithRBR || !!feedErrors?.hasWorkspaceErrors;
+    const shouldShowBrokenConnectionError = getShouldShowBrokenConnectionError(feedName, feedErrors);
 
     const openBankConnection = () => {
         if (!feedName) {
@@ -185,7 +192,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                     </View>
                 </View>
             </View>
-            {!isLoading && canWriteCompanyCards && (isFeedConnectionBroken || hasFeedErrors) && (
+            {!isLoading && canWriteCompanyCards && shouldShowBrokenConnectionError && (
                 <View style={[styles.flexRow, styles.ph5, styles.alignItemsCenter]}>
                     <Icon
                         src={icons.DotIndicator}

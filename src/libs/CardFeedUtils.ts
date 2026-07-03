@@ -1,14 +1,22 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {AdditionalCardProps} from '@components/SelectionList/ListItem/CardListItem';
+
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
+
 import type IllustrationsType from '@styles/theme/illustrations/types';
+
 import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {CardFeedsStatus, CardFeedsStatusByDomainID, CardFeedWithNumber, CombinedCardFeed} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import type {CompanyCardFeedIcons} from './CardUtils';
+import type {OptionData} from './ReportUtils';
+
 import {
     feedHasCards,
     getBankName,
@@ -26,9 +34,7 @@ import {
     isDirectFeed,
     isPersonalCard,
 } from './CardUtils';
-import type {CompanyCardFeedIcons} from './CardUtils';
 import {getDescriptionForPolicyDomainCard} from './PolicyUtils';
-import type {OptionData} from './ReportUtils';
 
 type CardFilterItem = Partial<OptionData> & AdditionalCardProps & {isCardFeed?: boolean; correspondingCards?: string[]; cardFeedKey: string; plaidUrl?: string; keyForList: string};
 type DomainFeedData = {bank: CardFeedWithNumber; domainName: string; correspondingCardIDs: string[]; fundID?: string; feedCountry?: string};
@@ -448,16 +454,6 @@ function getSelectedCardsFromFeeds(cards: CardList | undefined, workspaceCardFee
     return [...new Set(selectedCards)];
 }
 
-const generateSelectedCards = (
-    cardList: CardList | undefined,
-    workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined,
-    feeds: string[] | undefined,
-    cards: string[] | undefined,
-) => {
-    const selectedCards = getSelectedCardsFromFeeds(cardList, workspaceCardFeeds, feeds);
-    return [...new Set([...selectedCards, ...(cards ?? [])])];
-};
-
 /**
  * Returns the wire-level country segment used in the Search feed filter token for a card. We only
  * care about Travel Invoicing feed country segment since it has its own
@@ -559,12 +555,20 @@ function getCardFeedsForDisplay(
 /**
  * Given a collection of card feeds, return formatted card feeds grouped per policy.
  *
+ * Each feed is assigned to one or more policies using a three-tier fallback:
+ *  1. **linkedPolicyIDs** – if the feed has explicit linked policies, it is indexed under each of them.
+ *  2. **preferredPolicy** – if there are no linked policies but a preferred policy exists, use that.
+ *  3. **policyAccountID match** – if neither is set (orphan feed), fall back to any policy whose
+ *     policyAccountID matches the feed's fundID so the feed still surfaces under the correct workspace.
+ *     If no policy matches, the feed is stored under an empty-string key to avoid being silently lost.
+ *
  * Note: "Expensify Card" feeds are not included.
  */
 function getCardFeedsForDisplayPerPolicy(
     allCardFeeds: OnyxCollection<CardFeeds>,
     translate: LocalizedTranslate,
-    feedKeysWithCards?: FeedKeysWithAssignedCards,
+    feedKeysWithCards: FeedKeysWithAssignedCards | undefined,
+    policies: OnyxCollection<Policy>,
 ): Record<string, CardFeedForDisplay[]> {
     const cardFeedsForDisplayPerPolicy = {} as Record<string, CardFeedForDisplay[]>;
 
@@ -581,15 +585,40 @@ function getCardFeedsForDisplayPerPolicy(
             const linkedPolicyIDs = feedData && 'linkedPolicyIDs' in feedData ? feedData.linkedPolicyIDs : undefined;
             const feed = key as CardFeedWithNumber;
             const id = `${fundID}_${feed}`;
-
-            (cardFeedsForDisplayPerPolicy[preferredPolicy] ||= []).push({
+            const feedEntry: CardFeedForDisplay = {
                 id,
                 feed,
                 country,
                 fundID,
                 linkedPolicyIDs,
                 name: getCustomOrFormattedFeedName(translate, feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
-            });
+            };
+
+            const validLinkedPolicyIDs = linkedPolicyIDs?.filter(Boolean);
+            if (validLinkedPolicyIDs?.length) {
+                // Index the feed under each linked policy so it appears for all of them
+                for (const linkedPolicyID of validLinkedPolicyIDs) {
+                    (cardFeedsForDisplayPerPolicy[linkedPolicyID] ||= []).push(feedEntry);
+                }
+            } else if (preferredPolicy) {
+                (cardFeedsForDisplayPerPolicy[preferredPolicy] ||= []).push(feedEntry);
+            } else {
+                // Orphan feed: no linkedPolicyIDs and no preferredPolicy.
+                // Find policies whose policyAccountID matches the fundID so the feed
+                // still appears under the correct workspace.
+                const numericFundID = Number(fundID);
+                const matchingPolicies = Object.values(policies ?? {}).filter((policy) => policy?.policyAccountID === numericFundID);
+                if (matchingPolicies.length) {
+                    for (const policy of matchingPolicies) {
+                        if (policy?.id) {
+                            (cardFeedsForDisplayPerPolicy[policy.id] ||= []).push(feedEntry);
+                        }
+                    }
+                } else {
+                    // Still store under empty key so the feed is not silently lost
+                    (cardFeedsForDisplayPerPolicy[''] ||= []).push(feedEntry);
+                }
+            }
         }
     }
 
@@ -698,18 +727,12 @@ export {
     buildCardsData,
     getCardFeedNamesWithType,
     buildCardFeedsData,
-    generateSelectedCards,
     getSelectedCardsFromFeeds,
-    createCardFeedKey,
-    getCardFeedKey,
-    getWorkspaceCardFeedKey,
     getFeedInfo,
     getLinkedPolicyName,
-    getDomainFeedData,
     getCardFeedsForDisplay,
     getExpensifyCardFeedsForDisplay,
     getCardFeedsForDisplayPerPolicy,
     getCombinedCardFeedsFromAllFeeds,
     getWorkspaceCardFeedsStatus,
-    getFeedCountryForDisplay,
 };

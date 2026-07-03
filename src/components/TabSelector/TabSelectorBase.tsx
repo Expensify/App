@@ -1,14 +1,19 @@
-import React, {useEffect, useMemo, useState} from 'react';
 import ScrollView from '@components/ScrollView';
+
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React, {useEffect, useMemo, useState} from 'react';
+
+import type {TabSelectorBaseProps} from './types';
+
 import getBackgroundColor from './getBackground';
 import getOpacity from './getOpacity';
 import {useTabSelectorActions, useTabSelectorState} from './TabSelectorContext';
 import TabSelectorItem from './TabSelectorItem';
-import type {TabSelectorBaseProps} from './types';
 
 /**
  * Navigation-agnostic tab selector UI that renders a row of TabSelectorItem components.
@@ -26,6 +31,7 @@ function TabSelectorBase({
     position,
     shouldShowLabelWhenInactive = true,
     equalWidth = false,
+    contentContainerStyles,
 }: TabSelectorBaseProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -61,7 +67,11 @@ function TabSelectorBase({
             }}
             ref={containerRef}
             style={styles.scrollableTabSelector}
-            contentContainerStyle={styles.tabSelectorContentContainer}
+            // On iOS a horizontal ScrollView lays out its content along an unbounded main axis, so flex-1 tabs
+            // (equalWidth) divide their intrinsic content width instead of the viewport. Giving the content
+            // container a definite width lets the flex children split it evenly. Scoped to equalWidth so normal
+            // overflowing/scrollable tab rows are not constrained.
+            contentContainerStyle={[styles.tabSelectorContentContainer, equalWidth && styles.w100, contentContainerStyles]}
             horizontal
             showsHorizontalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
@@ -119,6 +129,8 @@ function TabSelectorBase({
                         shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
                         equalWidth={equalWidth}
                         badgeText={tab.badgeText}
+                        isBadgeCondensed={tab.isBadgeCondensed}
+                        badgeStyles={tab.badgeStyles}
                         pendingAction={tab.pendingAction}
                         isDisabled={tab.isDisabled}
                     />

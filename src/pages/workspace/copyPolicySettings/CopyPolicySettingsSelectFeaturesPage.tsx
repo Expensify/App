@@ -1,6 +1,3 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -10,28 +7,43 @@ import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setCopyPolicySettingsData} from '@libs/actions/Policy/CopyPolicySettings';
 import type {Part} from '@libs/actions/Policy/CopyPolicySettings';
 import {openDuplicatePolicyPage} from '@libs/actions/Policy/Policy';
-import {areAllTargetsAccountingCompatible, areAllTargetsCompatibleForAccountingPart, FEATURE_ROWS, isCopyPolicySettingsPartEnabledOnSource} from '@libs/CopyPolicySettingsUtils';
+import {
+    areAllTargetsAccountingCompatible,
+    areAllTargetsCompatibleForAccountingPart,
+    FEATURE_ROWS,
+    getReceiptPartnersCopySettingsDescription,
+    getTimeTrackingCopySettingsDescription,
+    isCopyPolicySettingsPartEnabledOnSource,
+} from '@libs/CopyPolicySettingsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types';
 import {createFilteredMemberCountSelector, createInvoiceConfigurationTextSelector, getDistanceRateCustomUnit, getPerDiemCustomUnit, isCollectPolicy} from '@libs/PolicyUtils';
 import {formatAddressToString} from '@libs/ReportActionsUtils';
 import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {getAllValidConnectedIntegration, getWorkflowRules, getWorkspaceRules} from '@pages/workspace/duplicate/utils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 /**
  * Coding parts whose IDs are tied to the target's existing accounting connection.
@@ -40,6 +52,10 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 const CODING_PARTS_TIED_TO_CONNECTION = ['categories', 'tags', 'reports', 'taxes'] as const satisfies readonly Part[];
 
 const isCodingPart = (part: Part): boolean => (CODING_PARTS_TIED_TO_CONNECTION as readonly Part[]).includes(part);
+
+type FeatureListItem = ListItem & {
+    keyForList: Part;
+};
 
 function CopyPolicySettingsSelectFeaturesPage() {
     const route = useRoute<PlatformStackRouteProp<PolicyCopySettingsNavigatorParamList, typeof SCREENS.POLICY_COPY_SETTINGS.SELECT_FEATURES>>();
@@ -62,6 +78,12 @@ function CopyPolicySettingsSelectFeaturesPage() {
 
     const isCodingCompatible = areAllTargetsAccountingCompatible(sourcePolicy, targetPolicies);
     const isAccountingPartCompatible = areAllTargetsCompatibleForAccountingPart(sourcePolicy, targetPolicies);
+
+    // Provisioning a target for travel creates a Spotnana entity, which requires a company address.
+    // The source address only reaches a target when "overview" is also copied, so without overview a
+    // target that lacks an address can't be provisioned.
+    const sourceHasAddress = !isEmptyObject(sourcePolicy?.address);
+    const hasTargetWithoutAddress = targetPolicies.some((policy) => isEmptyObject(policy?.address));
 
     const [memberCount = 0] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: createFilteredMemberCountSelector(sourcePolicy?.employeeList, sourcePolicy?.owner, currentUserPersonalDetails.login),
@@ -119,6 +141,11 @@ function CopyPolicySettingsSelectFeaturesPage() {
         if (isCodingPart(part)) {
             return !isCodingCompatible;
         }
+        // Travel needs a company address on every target. When the source has no address either,
+        // copying "overview" can't supply one, so travel can never be provisioned - hard-disable it.
+        if (part === 'travel') {
+            return hasTargetWithoutAddress && !sourceHasAddress;
+        }
         return false;
     };
 
@@ -126,7 +153,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const availablePartSet = new Set(availableFeatureRows.map((row) => row.part));
 
     const [selectedFeatures, setSelectedFeatures] = useState<readonly Part[] | null>(null);
-    const resolvedSelectedFeatures = selectedFeatures ?? (copyPolicySettings?.parts as Part[] | undefined) ?? [];
+    const resolvedSelectedFeatures = selectedFeatures ?? copyPolicySettings?.parts ?? [];
     const selectedAvailableFeatures = resolvedSelectedFeatures.filter((part) => availablePartSet.has(part) && !isPartIncompatible(part));
     const isAccountingSelected = selectedAvailableFeatures.includes(CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
 
@@ -134,7 +161,14 @@ function CopyPolicySettingsSelectFeaturesPage() {
         ? Array.from(new Set<Part>([...selectedAvailableFeatures, ...CODING_PARTS_TIED_TO_CONNECTION.filter((part) => availablePartSet.has(part))]))
         : selectedAvailableFeatures;
 
-    const isFeatureDisabled = (part: Part): boolean => isPartIncompatible(part) || (isAccountingSelected && isCodingPart(part));
+    const isOverviewSelected = selectedAvailableFeatures.includes(CONST.POLICY.POLICY_FEATURE.OVERVIEW);
+
+    // Travel needs every target to have a company address. The source address only reaches a target
+    // when "overview" is copied, so when a target lacks one require overview (and a source address to
+    // copy). isPartIncompatible already hard-disables the case where the source has no address.
+    const isTravelAddressMismatch = (part: Part): boolean => part === 'travel' && hasTargetWithoutAddress && !(isOverviewSelected && sourceHasAddress);
+
+    const isFeatureDisabled = (part: Part): boolean => isPartIncompatible(part) || (isAccountingSelected && isCodingPart(part)) || isTravelAddressMismatch(part);
 
     const getSourceDescription = (part: Part): string | undefined => {
         switch (part) {
@@ -166,6 +200,10 @@ function CopyPolicySettingsSelectFeaturesPage() {
                 return distanceRatesCount > 0 ? `${distanceRatesCount} ${translate('iou.rates').toLowerCase()}` : undefined;
             case 'perDiem':
                 return perDiemCount > 0 ? `${perDiemCount} ${translate('workspace.common.perDiem').toLowerCase()}` : undefined;
+            case 'timeTracking':
+                return getTimeTrackingCopySettingsDescription(sourcePolicy, translate);
+            case 'receiptPartners':
+                return getReceiptPartnersCopySettingsDescription(sourcePolicy, translate);
             case 'invoices':
                 return invoiceConfigurationText || undefined;
             default:
@@ -185,6 +223,9 @@ function CopyPolicySettingsSelectFeaturesPage() {
     };
 
     const getAlternateText = (part: Part): string | undefined => {
+        if (isTravelAddressMismatch(part)) {
+            return translate('workspace.copyPolicySettings.selectSettings.travelAddressMismatch');
+        }
         if (isAccountingMismatch(part)) {
             return translate('workspace.copyPolicySettings.selectSettings.accountingMismatch', {
                 part: translate(FEATURE_ROWS.find((row) => row.part === part)?.labelKey ?? 'workspace.common.accounting').toLowerCase(),
@@ -193,7 +234,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         return getSourceDescription(part);
     };
 
-    const listItems: ListItem[] = availableFeatureRows.map((row) => {
+    const listItems: FeatureListItem[] = availableFeatureRows.map((row) => {
         const isDisabled = isFeatureDisabled(row.part);
         const isSelected = effectiveSelectedFeatures.includes(row.part);
         const alternateText = getAlternateText(row.part);
@@ -210,9 +251,9 @@ function CopyPolicySettingsSelectFeaturesPage() {
 
     const selectableFeatures: Part[] = availableFeatureRows.filter((row) => !isFeatureDisabled(row.part)).map((row) => row.part);
 
-    const toggleFeature = (item: ListItem) => {
-        const part = item.keyForList as Part | undefined;
-        if (!part || isFeatureDisabled(part)) {
+    const toggleFeature = (item: FeatureListItem) => {
+        const part = item.keyForList;
+        if (isFeatureDisabled(part)) {
             return;
         }
         setSelectedFeatures((prev) => {
@@ -237,8 +278,9 @@ function CopyPolicySettingsSelectFeaturesPage() {
         if (!sourcePolicyID) {
             return;
         }
-        setCopyPolicySettingsData({parts: effectiveSelectedFeatures.slice()});
-        Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(sourcePolicyID));
+        setCopyPolicySettingsData({parts: effectiveSelectedFeatures.slice()}).then(() => {
+            Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(sourcePolicyID));
+        });
     };
 
     const onConfirm = () => {
@@ -282,7 +324,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.copyPolicySettings.title')}
-                    onBackButtonPress={Navigation.goBack}
+                    onBackButtonPress={() => Navigation.goBack(sourcePolicyID ? ROUTES.POLICY_COPY_SETTINGS.getRoute(sourcePolicyID) : undefined)}
                 />
                 <View style={[styles.ph5, styles.pv3]}>
                     <Text style={[styles.textHeadline]}>{translate('workspace.copyPolicySettings.selectSettings.title')}</Text>

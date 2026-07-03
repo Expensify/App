@@ -1,22 +1,30 @@
 import {renderHook} from '@testing-library/react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+
 import useReportIsArchived from '@hooks/useReportIsArchived';
+
 import DateUtils from '@libs/DateUtils';
 import type {ObjectType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
 import {getAllReportErrors} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
-import {chatReportR14932} from '../../__mocks__/reportData/reports';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import type ReportActionName from '../../src/types/onyx/ReportActionName';
+
+import {chatReportR14932} from '../../__mocks__/reportData/reports';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 
 const MOCK_REPORT: Report = {
     ...createRandomReport(0, undefined),
@@ -893,11 +901,11 @@ describe('DebugUtils', () => {
                         actorAccountID: 12345,
                         created: '2024-08-08 18:20:44.171',
                         childReportID: '2',
+                        reportID: '1',
                         message: {
                             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                             amount: 10,
                             currency: CONST.CURRENCY.USD,
-                            IOUReportID: '1',
                             text: 'Vacation expense',
                             IOUTransactionID: '1',
                         },
@@ -952,11 +960,11 @@ describe('DebugUtils', () => {
                         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                         actorAccountID: 12345,
                         created: '2024-08-08 18:20:44.171',
+                        reportID: '1',
                         message: {
                             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                             amount: 10,
                             currency: CONST.CURRENCY.USD,
-                            IOUReportID: '1',
                             text: 'Vacation expense',
                             IOUTransactionID: '1',
                         },
@@ -1014,7 +1022,7 @@ describe('DebugUtils', () => {
         it('returns correct reason when report has a join request', async () => {
             const MOCK_REPORT_ACTIONS = {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                '0': {
+                '0': createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>>({
                     reportActionID: '0',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
                     created: '2024-08-08 19:70:44.171',
@@ -1022,7 +1030,7 @@ describe('DebugUtils', () => {
                         choice: '' as JoinWorkspaceResolution,
                         policyID: '0',
                     },
-                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>,
+                }),
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`, MOCK_REPORT_ACTIONS);
             const {reason} =
@@ -1095,13 +1103,13 @@ describe('DebugUtils', () => {
         it('returns the report action which is a join request', async () => {
             const MOCK_REPORT_ACTIONS = {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                '0': {
+                '0': createMock<ReportAction<'CREATED'>>({
                     reportActionID: '0',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                     created: '2024-08-08 18:70:44.171',
-                } as ReportAction<'CREATED'>,
+                }),
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                '1': {
+                '1': createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>>({
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
                     created: '2024-08-08 19:70:44.171',
@@ -1109,7 +1117,7 @@ describe('DebugUtils', () => {
                         choice: '' as JoinWorkspaceResolution,
                         policyID: '0',
                     },
-                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>,
+                }),
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`, MOCK_REPORT_ACTIONS);
             const {reportAction} =
@@ -1276,11 +1284,11 @@ describe('DebugUtils', () => {
                     },
                 });
                 const transactionForTest: OnyxCollection<Transaction> = {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: createMock<Transaction>({
                         amount: 100,
                         created: '',
                         modifiedCreated: '',
-                    } as Transaction,
+                    }),
                 };
                 const {reportAction} =
                     DebugUtils.getReasonAndReportActionForRBRInLHNRow(
@@ -1311,31 +1319,31 @@ describe('DebugUtils', () => {
                     };
                     const MOCK_CHAT_REPORT_ACTIONS: ReportActions = {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '0': {
+                        '0': createMock<ReportAction<'CREATED'>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                             reportActionID: '0',
                             created: '2024-08-08 18:20:44.171',
-                        } as ReportAction<'CREATED'>,
+                        }),
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '1': {
+                        '1': createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
                             reportActionID: '3',
                             message: {
                                 linkedReportID: '2',
                             },
                             actorAccountID: 1,
-                        } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>,
+                        }),
                     };
                     const MOCK_IOU_REPORT_ACTIONS = {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '1': {
+                        '1': createMock<ReportAction<'IOU'>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                             reportActionID: '1',
                             message: {
                                 IOUTransactionID: '1',
                             },
                             actorAccountID: 12345,
-                        } as ReportAction<'IOU'>,
+                        }),
                     };
                     await Onyx.multiSet({
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
@@ -1352,11 +1360,11 @@ describe('DebugUtils', () => {
                         },
                     });
                     const mockTransactions: OnyxCollection<Transaction> = {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: createMock<Transaction>({
                             amount: 100,
                             created: '',
                             modifiedCreated: '',
-                        } as Transaction,
+                        }),
                     };
                     const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS, mockTransactions);
                     const {reportAction} =
@@ -1385,31 +1393,31 @@ describe('DebugUtils', () => {
                     };
                     const MOCK_REPORT_ACTIONS: ReportActions = {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '0': {
+                        '0': createMock<ReportAction<'CREATED'>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                             reportActionID: '0',
                             created: '2024-08-08 18:20:44.171',
-                        } as ReportAction<'CREATED'>,
+                        }),
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '1': {
+                        '1': createMock<ReportAction<'IOU'>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                             reportActionID: '1',
                             message: {
                                 IOUTransactionID: '2',
                             },
                             actorAccountID: 1,
-                        } as ReportAction<'IOU'>,
+                        }),
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '2': {
+                        '2': createMock<ReportAction<'IOU'>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                             reportActionID: '2',
                             message: {
                                 IOUTransactionID: '1',
                             },
                             actorAccountID: 1,
-                        } as ReportAction<'IOU'>,
+                        }),
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '3': {
+                        '3': createMock<ReportAction<'IOU'>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                             reportActionID: '3',
                             message: {
@@ -1417,7 +1425,7 @@ describe('DebugUtils', () => {
                                 type: CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
                             },
                             actorAccountID: 1,
-                        } as ReportAction<'IOU'>,
+                        }),
                     };
                     await Onyx.multiSet({
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
@@ -1433,11 +1441,11 @@ describe('DebugUtils', () => {
                         },
                     });
                     const mockTransactions: OnyxCollection<Transaction> = {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: createMock<Transaction>({
                             amount: 100,
                             created: '',
                             modifiedCreated: '',
-                        } as Transaction,
+                        }),
                     };
                     const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, mockTransactions);
                     const {reportAction} =
@@ -1611,12 +1619,12 @@ describe('DebugUtils', () => {
                     ],
                 });
                 const violationTransactions: OnyxCollection<Transaction> = {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: createMock<Transaction>({
                         transactionID: '1',
                         amount: 10,
                         modifiedAmount: 10,
                         reportID: '1',
-                    } as Transaction,
+                    }),
                 };
                 const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, chatReportR14932, {}, violationTransactions, transactionViolations, false, {}, false) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasTransactionThreadViolations');
@@ -1635,7 +1643,7 @@ describe('DebugUtils', () => {
                 const deletedTransactionID = 'tx-debug-deleted';
                 const OFFLINE_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
-                    '1': {
+                    '1': createMock<ReportAction>({
                         reportActionID: '1',
                         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                         actorAccountID: 12345,
@@ -1647,9 +1655,9 @@ describe('DebugUtils', () => {
                             amount: 10,
                             currency: CONST.CURRENCY.USD,
                         },
-                    } as ReportAction,
+                    }),
                     // eslint-disable-next-line @typescript-eslint/naming-convention
-                    '2': {
+                    '2': createMock<ReportAction>({
                         reportActionID: '2',
                         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                         actorAccountID: 12345,
@@ -1662,20 +1670,20 @@ describe('DebugUtils', () => {
                             amount: 20,
                             currency: CONST.CURRENCY.USD,
                         },
-                    } as ReportAction,
+                    }),
                 };
                 const OFFLINE_TRANSACTIONS: OnyxCollection<Transaction> = {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${liveTransactionID}`]: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${liveTransactionID}`]: createMock<Transaction>({
                         transactionID: liveTransactionID,
                         amount: 10,
                         errors: {
                             someErrorKey: {error: CONST.IOU.RECEIPT_ERROR},
                         },
-                    } as unknown as Transaction,
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedTransactionID}`]: {
+                    }),
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedTransactionID}`]: createMock<Transaction>({
                         transactionID: deletedTransactionID,
                         amount: 20,
-                    } as unknown as Transaction,
+                    }),
                 };
 
                 const offline = DebugUtils.getReasonAndReportActionForRBRInLHNRow(

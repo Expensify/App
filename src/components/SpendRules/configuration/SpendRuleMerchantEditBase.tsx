@@ -1,7 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
-import React, {useState} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -11,14 +7,24 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useCanWriteCardSpendRules from '@hooks/useCanWriteCardSpendRules';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/SpendRuleMerchantEditForm';
+
+import type {ValueOf} from 'type-fest';
+
+import {useNavigation} from '@react-navigation/native';
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type SpendRuleMerchantEditBasePageProps = {
     policyID: string;
@@ -37,6 +43,7 @@ function SpendRuleMerchantEditBase({policyID, merchantIndex, merchantMatchTypes,
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
+    const canWriteCardSpendRules = useCanWriteCardSpendRules(policyID);
 
     const isNew = merchantIndex === ROUTES.NEW;
     const index = isNew ? -1 : Number(merchantIndex);
@@ -98,7 +105,8 @@ function SpendRuleMerchantEditBase({policyID, merchantIndex, merchantMatchTypes,
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            shouldBeBlocked={!canWriteCardSpendRules}
         >
             <ScreenWrapper
                 testID="SpendRuleMerchantEditPage"

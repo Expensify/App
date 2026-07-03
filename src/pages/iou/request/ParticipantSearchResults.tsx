@@ -1,16 +1,13 @@
-import lodashPick from 'lodash/pick';
-import React, {useEffect} from 'react';
-import type {Ref} from 'react';
-import type {GestureResponderEvent} from 'react-native';
-import {RESULTS} from 'react-native-permissions';
-import ContactPermissionModal from '@components/ContactPermissionModal';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
+
 import useContactImport from '@hooks/useContactImport';
+import useContactPermissionModal from '@hooks/useContactPermissionModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -23,6 +20,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useUserToInviteReports from '@hooks/useUserToInviteReports';
+
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import goToSettings from '@libs/goToSettings';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
@@ -31,18 +29,29 @@ import {formatSectionsFromSearchTerm, getHeaderMessage, getParticipantsOption, g
 import type {Option} from '@libs/OptionsListUtils';
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionWithKey} from '@libs/OptionsListUtils/types';
-import {getActiveAdminWorkspaces, isPaidGroupPolicy as isPaidGroupPolicyUtil} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, isGroupPolicy as isGroupPolicyUtil} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {isInvoiceRoom} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import {getInvoicePrimaryWorkspace} from '@userActions/Policy/Policy';
 import {searchUserInServer} from '@userActions/Report';
+
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {Ref} from 'react';
+import type {GestureResponderEvent} from 'react-native';
+
+import lodashPick from 'lodash/pick';
+import React, {useContext, useEffect} from 'react';
+import {RESULTS} from 'react-native-permissions';
+
 import ImportContactButton from './ImportContactButton';
 import ParticipantSelectorFooter from './ParticipantSelectorFooter';
 
@@ -77,13 +86,16 @@ type ParticipantSearchResultsProps = {
     /** Whether this is a transaction from a credit card import */
     isTransactionFromCreditCardImport: boolean;
 
+    /** Whether to exclude P2P recipients (and the invite-by-email option) from the list. Used for negative amounts, which P2P chats don't support. */
+    shouldExcludeP2P?: boolean;
+
     /** Forwarded ref for the SelectionList — used by the parent's useImperativeHandle */
     selectionListRef: Ref<SelectionListWithSectionsHandle | null>;
 
     /** Whether the text input should auto-focus */
     textInputAutoFocus: boolean;
 
-    /** Setter to toggle textInputAutoFocus from the ContactPermissionModal */
+    /** Setter to toggle textInputAutoFocus from the contact permission flow */
     setTextInputAutoFocus: (value: boolean) => void;
 
     /** Callback to propagate selected participants to the parent flow */
@@ -100,6 +112,9 @@ type ParticipantSearchResultsProps = {
 
     /** Callback to handle restricted participant selection */
     onRestrictedParticipantSelected?: () => void;
+
+    /** Callback to dismiss the participant picker overlay before the referral banner navigates, so the referral RHP isn't covered */
+    onCloseParticipantPicker?: () => void;
 };
 
 function ParticipantSearchResults({
@@ -111,6 +126,7 @@ function ParticipantSearchResults({
     isTimeRequest,
     isNative,
     isTransactionFromCreditCardImport,
+    shouldExcludeP2P = false,
     selectionListRef,
     textInputAutoFocus,
     setTextInputAutoFocus,
@@ -119,6 +135,7 @@ function ParticipantSearchResults({
     initiallySelectedReportID,
     shouldMoveSelectedToTop = false,
     onRestrictedParticipantSelected,
+    onCloseParticipantPicker,
 }: ParticipantSearchResultsProps) {
     const getParticipantOptionKey = (option: Partial<Participant>) => option.reportID ?? option.accountID?.toString() ?? option.login ?? option.phoneNumber ?? '';
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -138,13 +155,19 @@ function ParticipantSearchResults({
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserLogin = currentUserPersonalDetails.login;
     const reportAttributesDerived = useReportAttributes();
     const privateIsArchivedMap = usePrivateIsArchivedMap();
+
+    // When the surrounding ScreenWrapper runs in edge-to-edge mode (e.g. the new manual expense flow's ParticipantPicker),
+    // it does not apply bottom safe area padding itself, so the fixed footer must consume it. Otherwise the footer
+    // (referral banner / Next button) renders behind the system navigation bar.
+    const screenWrapperStatusContext = useContext(ScreenWrapperStatusContext);
+    const addBottomSafeAreaPadding = !(screenWrapperStatusContext?.isSafeAreaBottomPaddingApplied ?? false);
 
     // Policy and billing data — owned here, used for getValidOptionsConfig and billing gate in onSelectRow
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -157,7 +180,7 @@ function ParticipantSearchResults({
 
     const {isDismissed: isDismissedReferralBanner} = useDismissedReferralBanners({referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE});
 
-    const isPaidGroupPolicy = isPaidGroupPolicyUtil(policy);
+    const isGroupPolicy = isGroupPolicyUtil(policy);
     const activeAdminWorkspaces = getActiveAdminWorkspaces(allPolicies, currentUserLogin);
 
     const getValidOptionsConfig = {
@@ -165,7 +188,7 @@ function ParticipantSearchResults({
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK,
         excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
-        includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport,
+        includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport && !shouldExcludeP2P,
         includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
         action,
         shouldSeparateSelfDMChat: iouType !== CONST.IOU.TYPE.INVOICE,
@@ -174,7 +197,7 @@ function ParticipantSearchResults({
         isPerDiemRequest,
         isTimeRequest,
         showRBR: false,
-        preferPolicyExpenseChat: isPaidGroupPolicy,
+        preferPolicyExpenseChat: isGroupPolicy,
         preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
@@ -216,7 +239,7 @@ function ParticipantSearchResults({
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, contactState} = useSearchSelector({
         selectionMode: isIOUSplit ? CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI : CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-        includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport,
+        includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport && !shouldExcludeP2P,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         includeRecentReports: true,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
@@ -425,6 +448,7 @@ function ParticipantSearchResults({
                 isDismissedReferralBanner={isDismissedReferralBanner}
                 onConfirmSelection={handleConfirmSelection}
                 onNewWorkspace={() => onFinish()}
+                onCloseParticipantPicker={onCloseParticipantPicker}
             />
         );
 
@@ -485,45 +509,45 @@ function ParticipantSearchResults({
         headerMessage: header,
     };
 
+    useContactPermissionModal({
+        onGrant: contactState?.importContacts ?? (() => {}),
+        onDeny: contactState?.setContactPermissionState ?? setContactPermissionState,
+        onFocusTextInput: () => {
+            setTextInputAutoFocus(true);
+        },
+    });
+
     return (
-        <>
-            <ContactPermissionModal
-                onGrant={contactState?.importContacts ?? (() => {})}
-                onDeny={contactState?.setContactPermissionState ?? setContactPermissionState}
-                onFocusTextInput={() => {
-                    setTextInputAutoFocus(true);
-                }}
-            />
-            <SelectionListWithSections
-                confirmButtonOptions={{
-                    onConfirm: handleConfirmSelection,
-                }}
-                sections={sections}
-                ListItem={InviteMemberListItem}
-                textInputOptions={textInputOptions}
-                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                onSelectRow={onSelectRow}
-                shouldSingleExecuteRowSelect
-                customListHeaderContent={importContactsButtonComponent}
-                customHeaderContent={
-                    <ImportContactButton
-                        showImportContacts={contactState?.showImportUI ?? showImportContacts}
-                        inputHelperText={inputHelperText}
-                        isInSearch
-                    />
-                }
-                footerContent={footerContent}
-                listEmptyContent={EmptySelectionListContentWithPermission}
-                shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
-                shouldShowTextInput
-                canSelectMultiple={isIOUSplit && isAllowedToSplit}
-                isLoadingNewOptions={!!isSearchingForReports}
-                shouldShowListEmptyContent={shouldShowListEmptyContent}
-                ref={selectionListRef}
-                onEndReached={onListEndReached}
-                onEndReachedThreshold={0.75}
-            />
-        </>
+        <SelectionListWithSections
+            confirmButtonOptions={{
+                onConfirm: handleConfirmSelection,
+            }}
+            sections={sections}
+            ListItem={InviteMemberListItem}
+            textInputOptions={textInputOptions}
+            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+            onSelectRow={onSelectRow}
+            shouldSingleExecuteRowSelect
+            customListHeaderContent={importContactsButtonComponent}
+            customHeaderContent={
+                <ImportContactButton
+                    showImportContacts={contactState?.showImportUI ?? showImportContacts}
+                    inputHelperText={inputHelperText}
+                    isInSearch
+                />
+            }
+            footerContent={footerContent}
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+            listEmptyContent={EmptySelectionListContentWithPermission}
+            shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
+            shouldShowTextInput
+            canSelectMultiple={isIOUSplit && isAllowedToSplit}
+            isLoadingNewOptions={!!isSearchingForReports}
+            shouldShowListEmptyContent={shouldShowListEmptyContent}
+            ref={selectionListRef}
+            onEndReached={onListEndReached}
+            onEndReachedThreshold={0.75}
+        />
     );
 }
 
