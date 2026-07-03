@@ -397,7 +397,7 @@ const translations: TranslationDeepObject<typeof en> = {
         withdrawalID: 'Auszahlungs-ID',
         internationalReimbursementIDs: 'Internationale Erstattungs-IDs',
         withdrawalStatus: 'Auszahlungsstatus',
-        paidStatus: 'Zahlungsstatus',
+        paidStatus: 'Status: Bezahlt',
         bankAccounts: 'Bankkonten',
         chooseFile: 'Datei auswählen',
         chooseFiles: 'Dateien auswählen',
@@ -8842,11 +8842,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         failedError: ({link}: {link: string}) => `Wir versuchen diese Abrechnung erneut, sobald du <a href="${link}">dein Konto entsperrst</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Auszahlungs-ID: ${withdrawalID}`,
     },
-    paidStatus: {
-        markedAsPaid: 'Als bezahlt markiert',
-        withdrawing: 'Wird abgebucht',
-        confirmed: 'Bestätigt',
-    },
+    paidStatus: {markedAsPaid: 'Als bezahlt markiert', withdrawing: 'Wird abgehoben', confirmed: 'Bestätigt'},
     reportLayout: {
         reportLayout: 'Berichts-Layout',
         groupByLabel: 'Gruppieren nach:',
