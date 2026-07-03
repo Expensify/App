@@ -818,16 +818,17 @@ describe('OptionsListUtils', () => {
                     policyName: POLICY.name,
                 },
             };
-            const optionsWithMemberWorkspaceChat = createOptionList(
+            const optionsWithMemberWorkspaceChat = createFilteredOptionList(
                 PERSONAL_DETAILS,
-                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 memberWorkspaceChat,
-                undefined,
                 createMockReportAttributesDerived(memberWorkspaceChat, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID),
+                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                allPolicies,
+                {isSearching: true},
             );
 
             // When we call getSearchOptions
-            const results = getSearchOptions({
+            const {options: results} = getSearchOptions({
                 options: optionsWithMemberWorkspaceChat,
                 reportAttributesDerived: createMockReportAttributesDerived(memberWorkspaceChat, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID),
                 draftComments: {},
