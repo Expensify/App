@@ -1,6 +1,7 @@
-import React, {useEffect, useRef, useState} from 'react';
 import LocationPermissionModal from '@components/LocationPermissionModal';
+
 import useOnyx from '@hooks/useOnyx';
+
 import DateUtils from '@libs/DateUtils';
 import {cancelDeferredWrite, flushDeferredWrite, reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -14,7 +15,9 @@ import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
+
 import {updateLastLocationPermissionPrompt} from '@userActions/IOU/MoneyRequest';
+
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -22,8 +25,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Receipt} from '@src/types/onyx/Transaction';
-import {getSubmitHandler, SUBMIT_HANDLER} from './getSubmitHandler';
+
+import React, {useEffect, useRef, useState} from 'react';
+
 import type {SubmitHandler, SubmitNavigationSnapshot} from './getSubmitHandler';
+
+import {getSubmitHandler, SUBMIT_HANDLER} from './getSubmitHandler';
 import {dismissOnly, dismissRHPToReport, dismissSuperWideRHP, dismissWideToNewSearchType, executeDismissModalStrategy} from './submitDismissStrategies';
 
 type SubmitExpenseOrchestratorRenderProps = {
@@ -249,13 +256,22 @@ function SubmitExpenseOrchestrator({
 
     const handleReportPreInsert = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.REPORT_PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
+        const wasPreInserted = Navigation.getIsFullscreenPreInsertedUnderRHP();
         Navigation.clearFullscreenPreInsertedFlag();
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
-        dismissAfterEnsuringDestinationReportIsPreInserted(destinationReportID, () => {
+
+        const afterTransition = () => {
             createTransaction(locationPermissionGranted, false);
             setIsConfirming(false);
-        });
+        };
+
+        if (wasPreInserted) {
+            Navigation.dismissModal({afterTransition});
+            return;
+        }
+
+        dismissAfterEnsuringDestinationReportIsPreInserted(destinationReportID, afterTransition);
     };
 
     const handleDismissModalFastPath = (locationPermissionGranted = false) => {
@@ -286,7 +302,11 @@ function SubmitExpenseOrchestrator({
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.SEARCH_DISMISS, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         const isSameType = getCurrentSearchQueryJSON()?.type === searchDataType;
         const isNarrow = getIsNarrowLayout();
-        setPendingSubmitFollowUpAction(isSameType ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
+        // When the query type matches AND Search is already visible, a simple dismiss suffices.
+        // When Search is not visible (e.g. submitting from Home/Settings), we must navigate there.
+        const isSearchVisible = isSearchTopmostFullScreenRoute();
+        const shouldNavigateToSearch = !isSameType || !isSearchVisible;
+        setPendingSubmitFollowUpAction(shouldNavigateToSearch ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
 
         const runAfterDismiss = () => {
@@ -311,7 +331,7 @@ function SubmitExpenseOrchestrator({
             });
         };
 
-        if (!isSameType && !isNarrow) {
+        if (!isSameType && !isNarrow && shouldNavigateToSearch) {
             dismissWideToNewSearchType(searchDataType, runAfterDismiss);
             return;
         }
@@ -319,8 +339,7 @@ function SubmitExpenseOrchestrator({
         Navigation.dismissModal({
             afterTransition: () => {
                 runAfterSearchDismissRecovery(() => {
-                    // Narrow fallback: pre-insert timer didn't fire, navigate after dismiss.
-                    if (isSameType) {
+                    if (!shouldNavigateToSearch) {
                         return;
                     }
 

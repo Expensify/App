@@ -1,33 +1,40 @@
-import React, {useCallback} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getTagListByOrderWeight, hasAccountingConnections} from '@libs/PolicyUtils';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {setPolicyTagGLCode} from '@userActions/Policy/Tag';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
 
-type EditTagGLCodePageProps =
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_GL_CODE>
+import React, {useCallback} from 'react';
+
+type DynamicEditTagGLCodePageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_TAG_GL_CODE>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_GL_CODE>;
 
-function TagGLCodePage({route}: EditTagGLCodePageProps) {
+function DynamicTagGLCodePage({route}: DynamicEditTagGLCodePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -39,12 +46,12 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
     const orderWeight = Number(route.params.orderWeight);
     const {tags} = getTagListByOrderWeight(policyTags, orderWeight);
     const glCode = tags?.[route.params.tagName]?.['GL Code'];
-    const isDynamicFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_GL_CODE;
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.path);
+    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_GL_CODE;
+    const backPath = useDynamicBackPath(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.path : DYNAMIC_ROUTES.WORKSPACE_TAG_GL_CODE.path);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(isDynamicFlow ? backPath : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, orderWeight, tagName));
-    }, [orderWeight, policyID, tagName, isDynamicFlow, backPath]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
@@ -81,7 +88,7 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID="TagGLCodePage"
+                testID="DynamicTagGLCodePage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -113,4 +120,4 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
     );
 }
 
-export default TagGLCodePage;
+export default DynamicTagGLCodePage;

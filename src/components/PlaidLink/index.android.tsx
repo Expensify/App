@@ -1,7 +1,9 @@
 import {useState} from 'react';
 import {NativeModules} from 'react-native';
-import BaseNativePlaidLink from './BaseNativePlaidLink';
+
 import type PlaidLinkProps from './types';
+
+import BaseNativePlaidLink from './BaseNativePlaidLink';
 
 const {AppStateTracker} = NativeModules;
 

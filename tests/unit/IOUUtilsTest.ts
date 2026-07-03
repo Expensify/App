@@ -1,11 +1,13 @@
-import {renderHook} from '@testing-library/react-native';
 import type {RenderAPI} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import {renderHook} from '@testing-library/react-native';
+
 import useReportIsArchived from '@hooks/useReportIsArchived';
+
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {canApproveIOU, canSubmitReport} from '@userActions/IOU/ReportWorkflow';
+
 import CONST from '@src/CONST';
 import * as IOUUtils from '@src/libs/IOUUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
@@ -14,6 +16,11 @@ import {hasAnyTransactionWithoutRTERViolation} from '@src/libs/TransactionUtils'
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportMetadata, Transaction, TransactionViolations} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -967,6 +974,75 @@ describe('getExistingTransactionID', () => {
             const routeReport = makeRouteReport('100');
             const harvestingDisabledPolicy: Policy = {...policyForResolve, harvesting: {enabled: false}};
             expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport: processingPick, routeReport, policy: harvestingDisabledPolicy})).toBeUndefined();
+        });
+    });
+
+    describe('updateIOUOwnerAndTotal', () => {
+        const baseIOUReport = {
+            reportID: '1',
+            currency: 'USD',
+            ownerAccountID: 1,
+            managerID: 2,
+            total: 5000,
+            unheldTotal: 5000,
+            reimbursableTotal: 5000,
+            unheldReimbursableTotal: 5000,
+            chatReportID: '0',
+            stateNum: 1,
+            statusNum: 1,
+        } as Report;
+
+        test('mirrors total update onto reimbursableTotal when actor is the owner adding amount', () => {
+            const updated = IOUUtils.updateIOUOwnerAndTotal(baseIOUReport, 1, 2000, 'USD');
+            expect(updated?.total).toBe(7000);
+            expect(updated?.reimbursableTotal).toBe(7000);
+            expect(updated?.unheldTotal).toBe(7000);
+            expect(updated?.unheldReimbursableTotal).toBe(7000);
+        });
+
+        test('mirrors total update onto reimbursableTotal when actor is the manager (subtracts)', () => {
+            const updated = IOUUtils.updateIOUOwnerAndTotal(baseIOUReport, 2, 2000, 'USD');
+            expect(updated?.total).toBe(3000);
+            expect(updated?.reimbursableTotal).toBe(3000);
+            expect(updated?.unheldTotal).toBe(3000);
+            expect(updated?.unheldReimbursableTotal).toBe(3000);
+        });
+
+        test('mirrors total update onto reimbursableTotal when deleting an expense by the owner', () => {
+            const updated = IOUUtils.updateIOUOwnerAndTotal(baseIOUReport, 1, 1500, 'USD', true);
+            expect(updated?.total).toBe(3500);
+            expect(updated?.reimbursableTotal).toBe(3500);
+        });
+
+        test('flips reimbursableTotal sign when total goes negative and owner/manager swap', () => {
+            const smallReport = {...baseIOUReport, total: 1000, reimbursableTotal: 1000, unheldTotal: 1000, unheldReimbursableTotal: 1000};
+            // Manager subtracts a larger amount than the report total, flipping the sign
+            const updated = IOUUtils.updateIOUOwnerAndTotal(smallReport, 2, 2500, 'USD');
+            expect(updated?.ownerAccountID).toBe(2);
+            expect(updated?.managerID).toBe(1);
+            expect(updated?.total).toBe(1500);
+            expect(updated?.reimbursableTotal).toBe(1500);
+            expect(updated?.unheldTotal).toBe(1500);
+            expect(updated?.unheldReimbursableTotal).toBe(1500);
+        });
+
+        test('seeds reimbursableTotal from total when the freshly tracked field is missing', () => {
+            // Older locally cached IOU reports will not have reimbursableTotal yet, so the helper should
+            // start from total and apply the diff there.
+            const legacyReport = {...baseIOUReport, reimbursableTotal: undefined, unheldReimbursableTotal: undefined} as Report;
+            const updated = IOUUtils.updateIOUOwnerAndTotal(legacyReport, 1, 1000, 'USD');
+            expect(updated?.total).toBe(6000);
+            expect(updated?.reimbursableTotal).toBe(6000);
+            expect(updated?.unheldReimbursableTotal).toBe(6000);
+        });
+
+        test('skips the unheld mirror when the transaction is on hold', () => {
+            const updated = IOUUtils.updateIOUOwnerAndTotal(baseIOUReport, 1, 2000, 'USD', false, false, true);
+            expect(updated?.total).toBe(7000);
+            expect(updated?.reimbursableTotal).toBe(7000);
+            // unheld values should not change because the transaction is on hold
+            expect(updated?.unheldTotal).toBe(5000);
+            expect(updated?.unheldReimbursableTotal).toBe(5000);
         });
     });
 });

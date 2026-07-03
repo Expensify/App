@@ -1,9 +1,13 @@
-import React from 'react';
 import useLocalize from '@hooks/useLocalize';
+
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
+
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {Participant} from '@src/types/onyx/IOU';
+
+import React from 'react';
+
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Modal from './Modal';
 import ScreenWrapper from './ScreenWrapper';
