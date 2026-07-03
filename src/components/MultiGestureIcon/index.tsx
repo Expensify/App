@@ -81,7 +81,7 @@ function MultiGestureIcon({
                 >
                     <View
                         testID={testID}
-                        style={[additionalStyles]}
+                        style={additionalStyles}
                     >
                         <ImageSVG
                             src={src}
@@ -100,4 +100,3 @@ function MultiGestureIcon({
 }
 
 export default MultiGestureIcon;
-export type {MultiGestureIconProps};
