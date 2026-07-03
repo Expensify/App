@@ -1,11 +1,7 @@
-import {delegateEmailSelector} from '@selectors/Account';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
@@ -17,6 +13,7 @@ import usePayChatReportActions from '@hooks/usePayChatReportActions';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
+
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
@@ -27,13 +24,22 @@ import {
     hasViolations as hasViolationsReportUtils,
     isInvoiceReport as isInvoiceReportUtils,
 } from '@libs/ReportUtils';
+
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions} from '@userActions/IOU/ReportWorkflow';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {delegateEmailSelector} from '@selectors/Account';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React from 'react';
 
 type PayActionButtonProps = {
     iouReportID: string | undefined;
@@ -149,7 +155,6 @@ function PayActionButton({
             approveMoneyRequest({
                 expenseReport: iouReport,
                 expenseReportPolicy: policy,
-                policy: activePolicy,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: currentUserEmail,
                 hasViolations,

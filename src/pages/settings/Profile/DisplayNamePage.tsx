@@ -1,5 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -11,17 +9,24 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
+
 import {updateDisplayName as updateDisplayNamePersonalDetails} from '@userActions/PersonalDetails';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type DisplayNamePageProps = WithCurrentUserPersonalDetailsProps;
 
