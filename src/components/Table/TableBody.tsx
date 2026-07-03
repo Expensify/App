@@ -165,7 +165,11 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         }
 
         if (isTableHeaderItem(info.index)) {
-            return <TableHeader />;
+            return (
+                <View style={styles.appBG}>
+                    <TableHeader />
+                </View>
+            );
         }
 
         if (isSyntheticEmptyResultItem(info.index)) {
