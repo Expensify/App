@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
+import {getBillableExpensesPendingAction, getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 
@@ -156,7 +156,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             description: billableModeText,
             icon: icons.Cash,
             action: () => Navigation.navigate(ROUTES.RULES_BILLABLE_DEFAULT.getRoute(policyID)),
-            pendingAction: policy?.pendingFields?.defaultBillable ?? policy?.pendingFields?.disabledFields,
+            pendingAction: getBillableExpensesPendingAction(policy),
         },
     ];
 

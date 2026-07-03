@@ -61,6 +61,7 @@ function RulesBillableDefaultPage({
     const initiallyFocusedOptionKey = policy?.defaultBillable ? CONST.POLICY_BILLABLE_MODES.BILLABLE : CONST.POLICY_BILLABLE_MODES.NON_BILLABLE;
     const isBillableTrackingEnabled = policy?.disabledFields?.defaultBillable !== true;
     const isTrackBillableToggleDisabled = !policy?.areTagsEnabled;
+    const shouldShowBillableModeList = !isRevamp || (isBillableTrackingEnabled && !isTrackBillableToggleDisabled);
 
     const tagsPageLink = useMemo(() => {
         if (policy?.areTagsEnabled) {
@@ -101,7 +102,7 @@ function RulesBillableDefaultPage({
                         onToggle={() => toggleBillableExpenses(policy)}
                     />
                 )}
-                {(!isRevamp || isBillableTrackingEnabled) && (
+                {shouldShowBillableModeList && (
                     <SelectionList
                         data={billableModes}
                         ListItem={SingleSelectListItem}

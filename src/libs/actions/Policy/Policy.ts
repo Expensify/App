@@ -6598,10 +6598,15 @@ function disableWorkspaceBillableExpenses(policyID: string) {
  * Otherwise, disableWorkspaceBillableExpenses is used and it changes only disabledFields
  */
 function getBillableExpensesPendingAction(policy: OnyxEntry<Policy>): PendingAction | undefined {
-    if (policy?.disabledFields?.defaultBillable) {
-        return policy?.pendingFields?.disabledFields ?? policy?.pendingFields?.defaultBillable;
+    if (policy?.pendingFields?.defaultBillable) {
+        return policy.pendingFields.defaultBillable;
     }
-    return policy?.pendingFields?.disabledFields;
+
+    if (policy?.disabledFields?.defaultBillable && policy?.pendingFields?.disabledFields) {
+        return policy.pendingFields.disabledFields;
+    }
+
+    return undefined;
 }
 
 function toggleBillableExpenses(policy: OnyxEntry<Policy>) {
