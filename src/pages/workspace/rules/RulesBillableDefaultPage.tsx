@@ -17,37 +17,14 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import {disableWorkspaceBillableExpenses, setPolicyBillableMode} from '@userActions/Policy/Policy';
+import {getBillableExpensesPendingAction, setPolicyBillableMode, toggleBillableExpenses} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-
-/**
- * The pending state might be set by either setPolicyBillableMode or disableWorkspaceBillableExpenses.
- * setPolicyBillableMode changes disabledFields and defaultBillable and is called when disabledFields.defaultBillable is set.
- * Otherwise, disableWorkspaceBillableExpenses is used and it changes only disabledFields
- */
-function billableExpensesPending(policy: OnyxEntry<Policy>) {
-    if (policy?.disabledFields?.defaultBillable) {
-        return policy?.pendingFields?.disabledFields ?? policy?.pendingFields?.defaultBillable;
-    }
-    return policy?.pendingFields?.disabledFields;
-}
-
-function toggleBillableExpenses(policy: OnyxEntry<Policy>) {
-    if (policy?.disabledFields?.defaultBillable) {
-        setPolicyBillableMode(policy.id, false, policy?.defaultBillable, true);
-    } else if (policy) {
-        disableWorkspaceBillableExpenses(policy.id);
-    }
-}
 
 type RulesBillableDefaultPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT>;
 
@@ -83,6 +60,7 @@ function RulesBillableDefaultPage({
 
     const initiallyFocusedOptionKey = policy?.defaultBillable ? CONST.POLICY_BILLABLE_MODES.BILLABLE : CONST.POLICY_BILLABLE_MODES.NON_BILLABLE;
     const isBillableTrackingEnabled = policy?.disabledFields?.defaultBillable !== true;
+    const isTrackBillableToggleDisabled = !policy?.areTagsEnabled;
 
     const tagsPageLink = useMemo(() => {
         if (policy?.areTagsEnabled) {
@@ -117,7 +95,9 @@ function RulesBillableDefaultPage({
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mh5, styles.mv4]}
                         isActive={isBillableTrackingEnabled}
-                        pendingAction={billableExpensesPending(policy)}
+                        disabled={isTrackBillableToggleDisabled}
+                        showLockIcon={isTrackBillableToggleDisabled}
+                        pendingAction={getBillableExpensesPendingAction(policy)}
                         onToggle={() => toggleBillableExpenses(policy)}
                     />
                 )}

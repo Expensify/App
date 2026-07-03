@@ -12,7 +12,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {disableWorkspaceBillableExpenses, setPolicyBillableMode} from '@libs/actions/Policy/Policy';
+import {getBillableExpensesPendingAction, toggleBillableExpenses} from '@libs/actions/Policy/Policy';
 import {clearPolicyTagListErrors, setPolicyRequiresTag} from '@libs/actions/Policy/Tag';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -37,26 +37,6 @@ import {View} from 'react-native';
 type WorkspaceTagsSettingsPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_TAGS_SETTINGS>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_SETTINGS>;
-
-/**
- * The pending state might be set by either setPolicyBillableMode or disableWorkspaceBillableExpenses.
- * setPolicyBillableMode changes disabledFields and defaultBillable and is called when disabledFields.defaultBillable is set.
- * Otherwise, disableWorkspaceBillableExpenses is used and it changes only disabledFields
- * */
-function billableExpensesPending(policy: OnyxEntry<Policy>) {
-    if (policy?.disabledFields?.defaultBillable) {
-        return policy?.pendingFields?.disabledFields ?? policy?.pendingFields?.defaultBillable;
-    }
-    return policy?.pendingFields?.disabledFields;
-}
-
-function toggleBillableExpenses(policy: OnyxEntry<Policy>) {
-    if (policy?.disabledFields?.defaultBillable) {
-        setPolicyBillableMode(policy.id, false, policy?.defaultBillable, true);
-    } else if (policy) {
-        disableWorkspaceBillableExpenses(policy.id);
-    }
-}
 
 function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
     const policyID = route.params.policyID;
@@ -125,7 +105,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                             />
                         </View>
                     </OfflineWithFeedback>
-                    <OfflineWithFeedback pendingAction={billableExpensesPending(policy)}>
+                    <OfflineWithFeedback pendingAction={getBillableExpensesPendingAction(policy)}>
                         <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
                             <Text
                                 style={[styles.textNormal, styles.flex1, styles.mr2]}
