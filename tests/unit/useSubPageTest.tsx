@@ -1,11 +1,16 @@
-import type {RouteProp} from '@react-navigation/native';
 import {renderHook} from '@testing-library/react-native';
-import type {ComponentType} from 'react';
+
 import Text from '@components/Text';
+
 import useSubPage from '@hooks/useSubPage';
 import type {PageConfig, SubPageProps} from '@hooks/useSubPage/types';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import type {Route} from '@src/ROUTES';
+
+import type {RouteProp} from '@react-navigation/native';
+import type {ComponentType} from 'react';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),

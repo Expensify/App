@@ -1,10 +1,7 @@
-import {useIsFocused} from '@react-navigation/core';
-import type {ListRenderItem} from '@shopify/flash-list';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
@@ -15,6 +12,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+
 import {createTransactionThreadReport, openReport} from '@libs/actions/Report';
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -27,15 +25,26 @@ import {
 } from '@libs/ReportActionsUtils';
 import {isIOUReport} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
+
 import Navigation from '@navigation/Navigation';
+
 import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {hasOnceLoadedReportActionsSelector, pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
 import type {Transaction} from '@src/types/onyx';
-import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
+
+import type {ListRenderItem} from '@shopify/flash-list';
+import type {LayoutChangeEvent} from 'react-native';
+
+import {useIsFocused} from '@react-navigation/core';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+
 import type {MoneyRequestReportPreviewProps} from './types';
+
+import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
 
 // Delay (ms) before the pressed expense opens on top of the report's wide RHP. Letting the report settle
 // into the wide RHP first makes the two panels open as a cascade rather than appearing at once.
