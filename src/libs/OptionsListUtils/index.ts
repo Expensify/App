@@ -559,26 +559,6 @@ function isSearchStringMatch(searchValue: string, searchText?: string | null, pa
     return matching;
 }
 
-function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchValue: string) {
-    let memberDetails = '';
-    if (personalDetail.login) {
-        memberDetails += ` ${personalDetail.login}`;
-    }
-    if (personalDetail.firstName) {
-        memberDetails += ` ${personalDetail.firstName}`;
-    }
-    if (personalDetail.lastName) {
-        memberDetails += ` ${personalDetail.lastName}`;
-    }
-    if (personalDetail.displayName) {
-        memberDetails += ` ${getDisplayNameOrDefault(personalDetail)}`;
-    }
-    if (personalDetail.phoneNumber) {
-        memberDetails += ` ${personalDetail.phoneNumber}`;
-    }
-    return isSearchStringMatch(searchValue.trim(), memberDetails.toLowerCase());
-}
-
 /**
  * Get IOU report ID of report last action if the action is report action preview
  */
@@ -3412,7 +3392,6 @@ export {
     isDisablingOrDeletingLastEnabledTag,
     isMakingLastRequiredTagListOptional,
     isPersonalDetailsReady,
-    isSearchStringMatchUserDetails,
     optionsOrderBy,
     orderOptions,
     orderPersonalDetailsOptions,
