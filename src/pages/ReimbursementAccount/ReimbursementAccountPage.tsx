@@ -269,10 +269,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             // screens that detaches and unmounts this page, which resets its achData-derived local state to defaults.
             // Deferring lets the first navigation commit before we push the validation route, so the redirect stays a
             // clean push and the page remains mounted.
-            setTimeout(() => {
+            const timeoutId = setTimeout(() => {
                 Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID: policyIDParam, page: CONST.BANK_ACCOUNT.PAGE_NAMES.VALIDATION, backTo}));
             }, 0);
-            return;
+            // Clear the timer on unmount/re-run so a stale deferred navigation can't fire against a torn-down page.
+            return () => clearTimeout(timeoutId);
         }
 
         // Sync USDBankAccountStep state with achData.currentStep when backend data changes.
