@@ -341,7 +341,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const headerButtons = getHeaderButtons();
 
     const subtitleContent = (
-        <View style={[styles.renderHTML, styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+        <View style={[styles.flexRow, styles.renderHTML, styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
             <RenderHTML html={translate('workspace.perDiem.subtitle')} />
         </View>
     );

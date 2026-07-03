@@ -421,6 +421,8 @@ const CONST = {
     DEFAULT_GROUP_AVATAR_COUNT: 18,
     DEFAULT_AVATAR_COUNT: 24,
 
+    GENERATED_LETTER_AVATAR_PATH: '/images/avatars/generated/letter/',
+
     DISPLAY_NAME: {
         // This value is consistent with the BE display name max length limit.
         MAX_LENGTH: 100,
@@ -1252,6 +1254,7 @@ const CONST = {
     CLOUDFRONT_DOMAIN_REGEX: /^https:\/\/\w+\.cloudfront\.net/i,
     CONCIERGE_ICON_URL_2021: `${CLOUDFRONT_URL}/images/icons/concierge_2021.png`,
     CONCIERGE_ICON_URL: `${CLOUDFRONT_URL}/images/icons/concierge_2022.png`,
+    NOTIFICATIONS_ICON_URL: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
     COMPANY_CARD_PLAID: `${CLOUDFRONT_URL}/images/plaid/`,
     // The version below must stay in sync with the `@lottiefiles/dotlottie-web` version pinned in package-lock.json.
     DOTLOTTIE_WASM_URL: 'https://cdn.expensify.com/cdn.jsdelivr.net/npm/@lottiefiles/dotlottie-web@0.44.0/dist/dotlottie-player.wasm',
@@ -1364,6 +1367,8 @@ const CONST = {
         PRINTABLE_REPORT: (reportID: string) => `printablereport.php?promptPrint=true&reportID=${reportID}`,
         SIGN_OUT: 'signout',
         SUPPORTAL_RESTORE_STASHED_LOGIN: '_support/index?action=restoreStashedLogin',
+        AGENT_ZERO_TRACER: (agentZeroRequestID: string, shouldLoadFromLocalLogs: boolean) =>
+            `_devportal/tools/tracer/?agentZeroRequestID=${encodeURIComponent(agentZeroRequestID)}${shouldLoadFromLocalLogs ? '&mode=locallogs' : ''}`,
     },
 
     EXPENSIFY_POLICY_DOMAIN,
@@ -1730,6 +1735,23 @@ const CONST = {
                     CORPORATE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
                     CORPORATE_FORCE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_FORCE_UPGRADE',
                     TEAM_DOWNGRADE: 'POLICYCHANGELOG_TEAM_DOWNGRADE',
+                    COPY_OVERVIEW: 'POLICYCHANGELOG_COPY_OVERVIEW',
+                    COPY_EMPLOYEES: 'POLICYCHANGELOG_COPY_EMPLOYEES',
+                    COPY_REPORT_FIELDS: 'POLICYCHANGELOG_COPY_REPORT_FIELDS',
+                    COPY_ACCOUNTING: 'POLICYCHANGELOG_COPY_ACCOUNTING',
+                    COPY_RECEIPT_PARTNERS: 'POLICYCHANGELOG_COPY_RECEIPT_PARTNERS',
+                    COPY_HR: 'POLICYCHANGELOG_COPY_HR',
+                    COPY_CATEGORIES: 'POLICYCHANGELOG_COPY_CATEGORIES',
+                    COPY_TAGS: 'POLICYCHANGELOG_COPY_TAGS',
+                    COPY_TAXES: 'POLICYCHANGELOG_COPY_TAXES',
+                    COPY_TIME_TRACKING: 'POLICYCHANGELOG_COPY_TIME_TRACKING',
+                    COPY_WORKFLOWS: 'POLICYCHANGELOG_COPY_WORKFLOWS',
+                    COPY_RULES: 'POLICYCHANGELOG_COPY_RULES',
+                    COPY_CODING_RULES: 'POLICYCHANGELOG_COPY_CODING_RULES',
+                    COPY_DISTANCE: 'POLICYCHANGELOG_COPY_DISTANCE',
+                    COPY_PER_DIEM: 'POLICYCHANGELOG_COPY_PER_DIEM',
+                    COPY_INVOICES: 'POLICYCHANGELOG_COPY_INVOICES',
+                    COPY_TRAVEL: 'POLICYCHANGELOG_COPY_TRAVEL',
                 },
                 RECEIPT_SCAN_FAILED: 'RECEIPTSCANFAILED',
                 RESOLVED_DUPLICATES: 'RESOLVEDDUPLICATES',
@@ -2104,10 +2126,10 @@ const CONST = {
         SPAN_OD_ND_TRANSITION_LOGGED_OUT: 'ManualOdNdTransitionLoggedOut',
         SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
         SPAN_SEARCH_ROUTER_MODAL_CLOSE_WAIT: 'SearchRouter.ModalCloseWait',
-        SPAN_SEARCH_ROUTER_OPTIONS_INIT: 'SearchRouter.OptionsInit',
         SPAN_SEARCH_ROUTER_LIST_RENDER: 'SearchRouter.ListRender',
         SPAN_SEARCH_PAGE_VISIBLE: 'ManualOpenSearchRouterPageVisible',
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
+        SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW: 'ShareExtensionOpenSubmitFlow',
         SPAN_CAMERA_INIT: 'ManualCameraInit',
         SPAN_ENTRY_TO_SCAN: 'ManualEntryToScan',
         SPAN_ENTRY_TO_SCAN_NAVIGATION: 'ManualEntryToScanNavigation',
@@ -5983,6 +6005,7 @@ const CONST = {
 
     DOT_INDICATOR_TEST_ID: 'DotIndicator',
     ANIMATED_COLLAPSIBLE_CONTENT_TEST_ID: 'animated-collapsible-content',
+    SWITCH_LOCK_ICON_TEST_ID: 'SwitchLockIcon',
 
     HORIZONTAL_SPACER: {
         DEFAULT_BORDER_BOTTOM_WIDTH: 1,
@@ -7570,6 +7593,7 @@ const CONST = {
         HAS_LOCKED_BANK_ACCOUNT: 'hasLockedBankAccount',
         HAS_DEVICE_MANAGEMENT_ERROR: 'hasDeviceManagementError',
         HAS_MERGE_HR_SETUP_NEEDED: 'hasMergeHRSetupNeeded',
+        HAS_HR_CONNECTION_ERROR: 'hasHRConnectionError',
     },
 
     DEBUG: {
@@ -8069,7 +8093,7 @@ const CONST = {
             FLAG_AS_OFFENSIVE: 'ContextMenu-FlagAsOffensive',
             DOWNLOAD: 'ContextMenu-Download',
             COPY_ONYX_DATA: 'ContextMenu-CopyOnyxData',
-            COPY_AGENT_ZERO_REQUEST_ID: 'ContextMenu-CopyAgentZeroRequestID',
+            VIEW_AGENT_ZERO_TRACE: 'ContextMenu-ViewAgentZeroTrace',
             DEBUG: 'ContextMenu-Debug',
             DELETE: 'ContextMenu-Delete',
             MENU: 'ContextMenu-Menu',

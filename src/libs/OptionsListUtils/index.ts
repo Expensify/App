@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/prefer-for-of */
-import * as Sentry from '@sentry/react-native';
 import {Str} from 'expensify-common';
 import deburr from 'lodash/deburr';
 import lodashOrderBy from 'lodash/orderBy';
@@ -106,6 +105,7 @@ import {
     isMovedTransactionAction,
     isOldDotReportAction,
     isPendingRemove,
+    isPolicyCopyReportAction,
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRenamedAction,
@@ -131,6 +131,7 @@ import {
     getMovedActionMessage,
     getMovedTransactionMessage,
     getParticipantsAccountIDsForDisplay,
+    getPolicyChangeLogCopyMessage,
     getPolicyChangeMessage,
     getPolicyName,
     getReimbursementDeQueuedOrCanceledActionMessage,
@@ -1017,6 +1018,9 @@ function getLastMessageTextForReport({
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FEATURE_ENABLED)) {
         lastMessageTextFromReport = getWorkspaceFeatureEnabledMessage(translate, lastReportAction);
     }
+    if (isPolicyCopyReportAction(lastReportAction)) {
+        lastMessageTextFromReport = Parser.htmlToText(getPolicyChangeLogCopyMessage(translate, lastReportAction));
+    }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
     if (reportID && !isReportArchived && report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
@@ -1555,83 +1559,6 @@ function processReport(
             item: report,
             ...createOption({accountIDs, personalDetails, report, privateIsArchived, policy, reportAttributesDerived, policyTags, visibleReportActionsData, isTrackIntentUser}),
         },
-    };
-}
-
-function createOptionList(
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    privateIsArchivedMap: PrivateIsArchivedMap,
-    reports: OnyxCollection<Report>,
-    policiesCollection: OnyxCollection<Policy>,
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    policyTags?: OnyxCollection<PolicyTagLists>,
-    visibleReportActionsData: VisibleReportActionsDerivedValue = {},
-    isTrackIntentUser?: boolean,
-) {
-    const span = Sentry.startInactiveSpan({name: 'createOptionList'});
-
-    const reportMapForAccountIDs: Record<number, Report> = {};
-    const allReportOptions: Array<SearchOption<Report>> = [];
-
-    if (reports) {
-        for (const report of Object.values(reports)) {
-            const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
-            const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-            const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
-            const {reportMapEntry, reportOption} = processReport(
-                report,
-                personalDetails,
-                privateIsArchived,
-                policy,
-                reportAttributesDerived,
-                reportPolicyTags,
-                visibleReportActionsData,
-                isTrackIntentUser,
-            );
-
-            if (reportMapEntry) {
-                const [accountID, reportValue] = reportMapEntry;
-                reportMapForAccountIDs[accountID] = reportValue;
-            }
-
-            if (reportOption) {
-                allReportOptions.push(reportOption);
-            }
-        }
-    }
-
-    const allPersonalDetailsOptions = Object.values(personalDetails ?? {}).map((personalDetail) => {
-        const report = reportMapForAccountIDs[personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID];
-        const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
-        const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
-        return {
-            item: personalDetail,
-            ...createOption({
-                accountIDs: [personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
-                personalDetails,
-                report,
-                policy,
-                privateIsArchived,
-                config: {
-                    showPersonalDetails: true,
-                },
-                reportAttributesDerived,
-                policyTags: reportPolicyTags,
-                visibleReportActionsData,
-            }),
-        };
-    });
-
-    span.setAttributes({
-        personalDetails: allPersonalDetailsOptions.length,
-        reports: allReportOptions.length,
-    });
-    span.end();
-
-    return {
-        reports: allReportOptions,
-        personalDetails: allPersonalDetailsOptions as Array<SearchOption<PersonalDetails>>,
     };
 }
 
@@ -2574,6 +2501,7 @@ function getValidOptions(
                     report.item?.chatType !== CONST.REPORT.CHAT_TYPE.SELF_DM &&
                     report.item?.chatType !== CONST.REPORT.CHAT_TYPE.POLICY_ADMINS &&
                     report.item?.chatType !== CONST.REPORT.CHAT_TYPE.POLICY_ROOM &&
+                    report.item?.chatType !== CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT &&
                     report.item?.chatType !== CONST.REPORT.CHAT_TYPE.GROUP &&
                     !report.private_isArchived
                 ) {
@@ -3423,38 +3351,6 @@ function shouldUseBoldText(report: SearchOptionData): boolean {
     return report.isUnread === true && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE && !isHiddenForCurrentUser(notificationPreference);
 }
 
-function shallowOptionsListCompare(a: OptionList, b: OptionList): boolean {
-    if (!a || !b) {
-        return false;
-    }
-    if (a.reports.length !== b.reports.length || a.personalDetails.length !== b.personalDetails.length) {
-        return false;
-    }
-    for (let i = 0; i < a.reports.length; i++) {
-        const aReport = a.reports.at(i);
-        const bReport = b.reports.at(i);
-        if (
-            aReport?.reportID !== bReport?.reportID ||
-            aReport?.text !== bReport?.text ||
-            aReport?.alternateText !== bReport?.alternateText ||
-            aReport?.subtitle !== bReport?.subtitle ||
-            aReport?.lastMessageText !== bReport?.lastMessageText
-        ) {
-            return false;
-        }
-    }
-    for (let i = 0; i < a.personalDetails.length; i++) {
-        if (
-            a.personalDetails.at(i)?.login !== b.personalDetails.at(i)?.login ||
-            a.personalDetails.at(i)?.text !== b.personalDetails.at(i)?.text ||
-            a.personalDetails.at(i)?.alternateText !== b.personalDetails.at(i)?.alternateText
-        ) {
-            return false;
-        }
-    }
-    return true;
-}
-
 /**
  * Process a search string into normalized search terms
  * @param searchString - The raw search string to process
@@ -3471,7 +3367,6 @@ export {
     canCreateOptimisticPersonalDetailOption,
     combineOrderingOfReportsAndPersonalDetails,
     createOptionFromReport,
-    createOptionList,
     createFilteredOptionList,
     createOption,
     filterAndOrderOptions,
@@ -3510,9 +3405,7 @@ export {
     orderOptions,
     orderPersonalDetailsOptions,
     orderWorkspaceOptions,
-    processReport,
     recentReportComparator,
-    shallowOptionsListCompare,
     shouldOptionShowTooltip,
     shouldShowLastActorDisplayName,
     shouldUseBoldText,
