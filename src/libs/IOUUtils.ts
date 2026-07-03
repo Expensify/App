@@ -354,7 +354,7 @@ function formatCurrentUserToAttendee(currentUser?: CurrentUserPersonalDetails, r
         displayName,
         avatarUrl: SafeString(currentUser.avatar),
         accountID: currentUser.accountID,
-        text: login,
+        text: displayName,
         selected: true,
         reportID,
     };
