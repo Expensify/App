@@ -1,7 +1,10 @@
-import type {ForwardedRef} from 'react';
-import React, {useEffect, useImperativeHandle, useState} from 'react';
 import {setIsReady} from '@libs/Growl';
 import type {GrowlAction, GrowlRef, GrowlType} from '@libs/Growl';
+
+import type {ForwardedRef} from 'react';
+
+import React, {useEffect, useImperativeHandle, useState} from 'react';
+
 import GrowlNotificationContent from './GrowlNotificationContent';
 
 type GrowlContent = {

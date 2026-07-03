@@ -1,20 +1,26 @@
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import {Directions, Gesture, GestureDetector} from 'react-native-gesture-handler';
-import {useSharedValue, withSpring} from 'react-native-reanimated';
-import type {SvgProps} from 'react-native-svg';
-import {scheduleOnRN} from 'react-native-worklets';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Pressables from '@components/Pressable';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {GrowlAction, GrowlType} from '@libs/Growl';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {SvgProps} from 'react-native-svg';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+import {Directions, Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {useSharedValue, withSpring} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
+
 import GrowlNotificationContainer from './GrowlNotificationContainer';
 
 const INACTIVE_OFFSET = CONST.GROWL.OFFSCREEN_OFFSET;
