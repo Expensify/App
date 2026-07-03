@@ -53,8 +53,14 @@ export default createOnyxDerivedValueConfig({
 
         const reportActionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_ACTIONS];
 
+        // The incremental branch only knows how to react to report-action changes; REPORT/NETWORK changes are
+        // handled by the full recompute below. Coalescing can batch REPORT_ACTIONS with REPORT/NETWORK in a
+        // single flush, so only go incremental when report actions are the sole trigger — otherwise a batched
+        // REPORT change (e.g. chatReportID -> transactionThreadReportID) would be silently dropped.
+        const reportActionsIsOnlyTrigger = !!sourceValues && Object.keys(sourceValues).length === 1;
+
         // Incremental update: only recompute reports whose actions changed
-        if (reportActionsUpdates && currentValue) {
+        if (reportActionsUpdates && currentValue && reportActionsIsOnlyTrigger) {
             const sortedActions = {...currentValue.sortedActions};
             const lastActions = {...currentValue.lastActions};
             const transactionThreadIDs = {...currentValue.transactionThreadIDs};
