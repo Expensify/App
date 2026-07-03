@@ -14,12 +14,20 @@ import updateUnread from './updateUnread';
 let allReports: OnyxCollection<Report> = {};
 let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
 let currentUserLogin = '';
+let conciergeReportID: string | undefined;
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value: Session | undefined) => {
         currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         currentUserLogin = value?.email ?? '';
+    },
+});
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.CONCIERGE_REPORT_ID,
+    callback: (value) => {
+        conciergeReportID = value;
     },
 });
 
@@ -93,7 +101,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
             draftComment,
             currentUserLogin,
             currentUserAccountID,
-            conciergeReportID: undefined,
+            conciergeReportID,
         });
     });
 }
