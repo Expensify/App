@@ -93,6 +93,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
             draftComment,
             currentUserLogin,
             currentUserAccountID,
+            conciergeReportID: undefined,
         });
     });
 }

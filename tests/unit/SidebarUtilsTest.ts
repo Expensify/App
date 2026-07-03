@@ -901,6 +901,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                conciergeReportID: undefined,
             });
 
             expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
@@ -1012,6 +1013,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                conciergeReportID: undefined,
             });
 
             expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
@@ -1030,6 +1032,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                conciergeReportID: undefined,
             });
 
             expect(result).toStrictEqual({shouldDisplay: false});
@@ -1051,6 +1054,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                conciergeReportID: undefined,
             });
 
             expect(result).toStrictEqual({shouldDisplay: false});
@@ -1074,6 +1078,7 @@ describe('SidebarUtils', () => {
                 isOffline: true,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                conciergeReportID: undefined,
             });
 
             expect(result).toBeDefined();
@@ -1098,6 +1103,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                conciergeReportID: undefined,
             });
 
             expect(result).toBeDefined();
@@ -4104,6 +4110,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    conciergeReportID: undefined,
                 });
 
                 expect(result).toBe(displayedReports);
@@ -4128,6 +4135,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    conciergeReportID: undefined,
                 });
 
                 expect(result).not.toBe(displayedReports);
@@ -4150,6 +4158,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    conciergeReportID: undefined,
                 });
 
                 expect(result).toEqual({});
@@ -4169,6 +4178,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    conciergeReportID: undefined,
                 });
 
                 expect(result).toEqual({});
@@ -4192,6 +4202,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    conciergeReportID: undefined,
                 });
 
                 expect(result).toEqual({});
@@ -4219,6 +4230,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    conciergeReportID: undefined,
                 });
 
                 // The function should run without errors with isOffline=false
@@ -4247,6 +4259,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    conciergeReportID: undefined,
                 });
 
                 // The function should run without errors with isOffline=true
@@ -4275,6 +4288,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    conciergeReportID: undefined,
                 });
 
                 expect(result[`${ONYXKEYS.COLLECTION.REPORT}1`]).toBeUndefined();
@@ -4313,6 +4327,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    conciergeReportID: undefined,
                 });
 
                 // Should not throw and should return a valid result
@@ -4342,6 +4357,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    conciergeReportID: undefined,
                 });
 
                 // No changes expected since the updated key doesn't exist in reports
@@ -4369,6 +4385,7 @@ describe('SidebarUtils', () => {
                     isOffline: true,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    conciergeReportID: undefined,
                 });
 
                 // No changes expected since the updated key doesn't exist in reports
@@ -4394,6 +4411,7 @@ describe('SidebarUtils', () => {
                     isOffline: true,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    conciergeReportID: undefined,
                 });
 
                 expect(result).not.toBe(displayedReports);
@@ -4430,6 +4448,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    conciergeReportID: undefined,
                 });
 
                 // Should not throw and should return a valid result
