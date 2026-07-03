@@ -1160,14 +1160,17 @@ function getAllCardsForWorkspace(
         .map((key) => key.split('_').at(-1))
         .filter((id): id is string => !!id);
 
-    for (const [key, values] of Object.entries(allCardList ?? {})) {
+    for (const key of Object.keys(allCardList ?? {})) {
         const isWorkspaceAccountCards = workspaceAccountID !== CONST.DEFAULT_NUMBER_ID && key.includes(workspaceAccountID.toString());
         const isCompanyDomainCards = companyCardsDomainFeeds?.some((domainFeed) => domainFeed.domainID && key.includes(domainFeed.domainID.toString()) && key.includes(domainFeed.feedName));
         const isExpensifyDomainCards = expensifyCardsDomainIDs.some((domainID) => key.includes(domainID.toString()) && key.includes(CONST.EXPENSIFY_CARD.BANK));
-        if ((isWorkspaceAccountCards || isCompanyDomainCards || isExpensifyDomainCards) && values) {
-            const {cardList: assignableCards, ...assignedCards} = values ?? {};
-            const filteredCards = filterAllInactiveCards(assignedCards, includeDeactivated);
-            Object.assign(cards, filteredCards);
+        if (isWorkspaceAccountCards || isCompanyDomainCards || isExpensifyDomainCards) {
+            const values = allCardList?.[key];
+            if (values) {
+                const {cardList: assignableCards, ...assignedCards} = values ?? {};
+                const filteredCards = filterAllInactiveCards(assignedCards, includeDeactivated);
+                Object.assign(cards, filteredCards);
+            }
         }
     }
     return cards;
@@ -1266,16 +1269,16 @@ function flattenWorkspaceCardsList(allCardsList: OnyxCollection<WorkspaceCardsLi
         return;
     }
 
-    return Object.entries(allCardsList).reduce((acc, [key, cards]) => {
-        const isWorkspaceAccountCard = key.includes(workspaceAccountID.toString());
-        if (!isWorkspaceAccountCard || key.includes(CONST.EXPENSIFY_CARD.BANK)) {
-            return acc;
+    const result: CardList = {};
+    for (const key of Object.keys(allCardsList)) {
+        if (!key.includes(workspaceAccountID.toString()) || key.includes(CONST.EXPENSIFY_CARD.BANK)) {
+            continue;
         }
-        const {cardList, ...feedCards} = cards ?? {};
+        const {cardList, ...feedCards} = allCardsList[key] ?? {};
         const filteredCards = filterInactiveCards(feedCards);
-        Object.assign(acc, filteredCards);
-        return acc;
-    }, {});
+        Object.assign(result, filteredCards);
+    }
+    return result;
 }
 
 /**
@@ -1617,9 +1620,10 @@ function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: On
         return false;
     }
 
-    return Object.entries(workspaceCardFeeds).some(([key, workspaceCards]) => {
+    for (const key of Object.keys(workspaceCardFeeds)) {
+        const workspaceCards = workspaceCardFeeds[key];
         if (!workspaceCards) {
-            return false;
+            continue;
         }
 
         // Strip the collection prefix and split on the first underscore only,
@@ -1627,14 +1631,14 @@ function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: On
         const feedKey = key.replace(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, '');
         const separatorIndex = feedKey.indexOf('_');
         if (separatorIndex === -1) {
-            return false;
+            continue;
         }
 
         const feedDomainID = Number(feedKey.substring(0, separatorIndex));
         const feedBankName = feedKey.substring(separatorIndex + 1);
 
         if (Number.isNaN(feedDomainID) || !feedBankName) {
-            return false;
+            continue;
         }
 
         // Only flag a card already assigned within the CURRENT workspace/domain (and feed).
@@ -1645,17 +1649,21 @@ function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: On
         // duplicates are rejected server-side by ASSIGN_COMPANY_CARD — the same path Expensify
         // Classic uses, which is why the identical assignment succeeds there.
         if (feedDomainID !== domainOrWorkspaceAccountID) {
-            return false;
+            continue;
         }
         if (feedName && feedBankName !== feedName) {
-            return false;
+            continue;
         }
 
         const {cardList, ...assignedCards} = workspaceCards;
-        return Object.values(assignedCards).some(
+        const isAssigned = Object.values(assignedCards).some(
             (card) => card && card.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isMatchingCard(card, cardNumberToCheck, cardNumberToCheck),
         );
-    });
+        if (isAssigned) {
+            return true;
+        }
+    }
+    return false;
 }
 
 const getPersonalBankCardDetailsImage = (bank: ValueOf<typeof CONST.PERSONAL_CARDS.BANKS>, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardBankIcons): IconAsset => {
