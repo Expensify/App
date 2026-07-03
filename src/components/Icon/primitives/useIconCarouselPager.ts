@@ -1,7 +1,9 @@
-import {useSharedValue} from 'react-native-reanimated';
-import type {SharedValue} from 'react-native-reanimated';
 import {useAttachmentCarouselPagerActions, useAttachmentCarouselPagerState} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {AttachmentCarouselPagerStateContextType} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+
+import type {SharedValue} from 'react-native-reanimated';
+
+import {useSharedValue} from 'react-native-reanimated';
 
 type IconCarouselPagerProps = {
     /** Ref to the attachment carousel pager, when available. */

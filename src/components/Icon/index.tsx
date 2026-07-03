@@ -1,16 +1,23 @@
-import type {ImageContentFit} from 'expo-image';
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
+
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+
 import variables from '@styles/variables';
+
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {Dimensions} from '@src/types/utils/Layout';
+
+import type {ImageContentFit} from 'expo-image';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+
+import type {IconSize} from './primitives/types';
+
 import BaseIcon from './primitives/BaseIcon';
 import InlineIcon from './primitives/InlineIcon';
 import MultiGestureIcon from './primitives/MultiGestureIcon';
 import resolveIconSize from './primitives/resolveIconSize';
-import type {IconSize} from './primitives/types';
 
 type IconProps = {
     /** The asset to render. */

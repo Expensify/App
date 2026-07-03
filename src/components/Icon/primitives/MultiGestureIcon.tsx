@@ -1,8 +1,11 @@
-import React from 'react';
-import {StyleSheet, View} from 'react-native';
 import ImageSVG from '@components/ImageSVG';
 import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCanvas';
+
+import React from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import type {ContentSizedIconProps} from './types';
+
 import useCanvasSize from './useCanvasSize';
 import useIconCarouselPager from './useIconCarouselPager';
 

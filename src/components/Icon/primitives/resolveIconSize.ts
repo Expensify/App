@@ -1,4 +1,5 @@
 import CONST from '@src/CONST';
+
 import type {IconSize} from './types';
 
 /** Resolves the effective icon size from the new `size` prop or legacy boolean props. */

@@ -1,9 +1,10 @@
-import type {ImageContentFit} from 'expo-image';
-import type {StyleProp, ViewStyle} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {Dimensions} from '@src/types/utils/Layout';
+
+import type {ImageContentFit} from 'expo-image';
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
 /** Preset icon size values from `CONST.ICON_SIZE`. */
 type IconSize = ValueOf<typeof CONST.ICON_SIZE>;

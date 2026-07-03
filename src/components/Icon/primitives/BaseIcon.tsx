@@ -1,6 +1,8 @@
+import ImageSVG from '@components/ImageSVG';
+
 import React from 'react';
 import {View} from 'react-native';
-import ImageSVG from '@components/ImageSVG';
+
 import type {BaseIconProps} from './types';
 
 type BaseIconComponentProps = BaseIconProps & {

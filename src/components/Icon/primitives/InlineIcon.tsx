@@ -1,9 +1,12 @@
-import React from 'react';
-import {View} from 'react-native';
 import IconWrapperStyles from '@components/Icon/IconWrapperStyles';
 import ImageSVG from '@components/ImageSVG';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {ContentSizedIconProps} from './types';
 
 /** Renders an icon positioned inline within surrounding text. */

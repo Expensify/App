@@ -1,6 +1,7 @@
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import type {PropsWithChildren} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
 import type {FilterConfig, FilteringMethods, IsItemInFilterCallback} from './middlewares/filtering';
 import type {HighlightingMethods} from './middlewares/highlight';
 import type {IsItemInSearchCallback, SearchingMethods} from './middlewares/searching';
@@ -63,6 +64,15 @@ type TableRow<DataType extends TableData> = DataType & {
 
     /** Whether or not the row should animate in highlighted */
     shouldAnimateInHighlight?: boolean;
+};
+
+/**
+ * Props passed to table row render callbacks.
+ */
+type TableRenderRowProps<TItem extends TableData> = {
+    item: TItem;
+    rowIndex: number;
+    shouldUseNarrowTableLayout: boolean;
 };
 
 /**
@@ -187,6 +197,7 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
 export type {
     TableData,
     TableRow,
+    TableRenderRowProps,
     TableColumn,
     TableMethods,
     TableHandle,

@@ -1,7 +1,9 @@
-import {useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
-import {PixelRatio} from 'react-native';
 import type {Dimensions} from '@src/types/utils/Layout';
+
+import type {LayoutChangeEvent} from 'react-native';
+
+import {useState} from 'react';
+import {PixelRatio} from 'react-native';
 
 /** Tracks the measured layout size of the multi-gesture icon canvas. */
 function useCanvasSize() {
