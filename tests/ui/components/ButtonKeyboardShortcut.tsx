@@ -1,7 +1,10 @@
 import {render} from '@testing-library/react-native';
 
+import {ButtonContext} from '@src/components/ButtonComposed/context';
+import type {ButtonContextValue} from '@src/components/ButtonComposed/context/types';
 import ButtonKeyboardShortcut from '@src/components/ButtonComposed/primitives/ButtonKeyboardShortcut';
 import type {ButtonKeyboardShortcutProps} from '@src/components/ButtonComposed/types';
+import CONST from '@src/CONST';
 
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
@@ -28,20 +31,34 @@ jest.mock('@hooks/useKeyboardShortcut', () =>
 });
 // ──────────────────────────────────────────────────────────────────────────────
 
+// onPress/isDisabled/isLoading are supplied by the parent Button through ButtonContext, so the
+// tests provide them via the context value rather than as props on ButtonKeyboardShortcut.
+const DEFAULT_CONTEXT: ButtonContextValue = {
+    isHovered: false,
+    variant: undefined,
+    size: CONST.BUTTON_SIZE.MEDIUM,
+    onPress: () => {},
+    isDisabled: false,
+    isLoading: false,
+};
+
 /**
- * Renders ButtonKeyboardShortcut inside a NavigationContainer.
+ * Renders ButtonKeyboardShortcut inside a ButtonContext.Provider and a NavigationContainer.
  * NavigationContainer is required because the component calls useIsFocused().
  * isPressOnEnterActive=true is the default here so the shortcut is active
  * even without a focused screen, keeping individual tests simple.
+ * `context` overrides the button-context values the primitive reads (onPress/isDisabled/isLoading).
  */
-const renderShortcut = (props: Partial<ButtonKeyboardShortcutProps> = {}) =>
+const renderShortcut = (props: Partial<ButtonKeyboardShortcutProps> = {}, context: Partial<ButtonContextValue> = {}) =>
     render(
         <NavigationContainer>
-            <ButtonKeyboardShortcut
-                pressOnEnter
-                isPressOnEnterActive
-                {...props}
-            />
+            <ButtonContext.Provider value={{...DEFAULT_CONTEXT, ...context}}>
+                <ButtonKeyboardShortcut
+                    pressOnEnter
+                    isPressOnEnterActive
+                    {...props}
+                />
+            </ButtonContext.Provider>
         </NavigationContainer>,
     );
 
@@ -86,10 +103,10 @@ describe('ButtonKeyboardShortcut', () => {
     // ── onPress invocation ─────────────────────────────────────────────────────
 
     describe('onPress invocation', () => {
-        it('calls onPress when Enter is triggered and the button is enabled', () => {
-            // Given an active shortcut with an onPress handler
+        it('calls the context onPress when Enter is triggered and the button is enabled', () => {
+            // Given an active shortcut whose parent Button provides an onPress handler
             const onPress = jest.fn();
-            renderShortcut({onPress});
+            renderShortcut({}, {onPress});
 
             // When the Enter key fires
             enterKeyCallback?.(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
@@ -98,10 +115,10 @@ describe('ButtonKeyboardShortcut', () => {
             expect(onPress).toHaveBeenCalledTimes(1);
         });
 
-        it('blocks onPress when isDisabled is true', () => {
-            // Given a shortcut where the button is disabled
+        it('blocks onPress when the context isDisabled is true', () => {
+            // Given a shortcut whose parent Button is disabled
             const onPress = jest.fn();
-            renderShortcut({onPress, isDisabled: true});
+            renderShortcut({}, {onPress, isDisabled: true});
 
             // When the Enter key fires
             enterKeyCallback?.(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
@@ -110,10 +127,10 @@ describe('ButtonKeyboardShortcut', () => {
             expect(onPress).not.toHaveBeenCalled();
         });
 
-        it('blocks onPress when isLoading is true', () => {
-            // Given a shortcut where the button is loading
+        it('blocks onPress when the context isLoading is true', () => {
+            // Given a shortcut whose parent Button is loading
             const onPress = jest.fn();
-            renderShortcut({onPress, isLoading: true});
+            renderShortcut({}, {onPress, isLoading: true});
 
             // When the Enter key fires
             enterKeyCallback?.(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));

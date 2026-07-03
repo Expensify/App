@@ -29,12 +29,21 @@ const LABEL = 'test-button';
  * assertions can verify exactly what Button propagates to its children.
  */
 function ContextReadout() {
-    const {variant, size, isHovered} = useButtonContext();
+    const {variant, size, isHovered, isDisabled, isLoading, onPress} = useButtonContext();
     return (
         <View>
             <Text testID="ctx-variant">{variant ?? 'none'}</Text>
             <Text testID="ctx-size">{size}</Text>
             <Text testID="ctx-isHovered">{String(isHovered)}</Text>
+            <Text testID="ctx-isDisabled">{String(isDisabled)}</Text>
+            <Text testID="ctx-isLoading">{String(isLoading)}</Text>
+            {/* Pressing this invokes the context onPress, so a test can assert Button publishes its own onPress. */}
+            <Text
+                testID="ctx-onPress"
+                onPress={() => onPress()}
+            >
+                invoke
+            </Text>
         </View>
     );
 }
@@ -93,7 +102,9 @@ describe('ButtonComposed — Button', () => {
             renderButton();
 
             // Then the pressable element carries the theme's default button background
-            expect(screen.getByLabelText(LABEL)).toHaveStyle({backgroundColor: colors.productDark400});
+            expect(screen.getByLabelText(LABEL)).toHaveStyle({
+                backgroundColor: colors.productDark400,
+            });
         });
 
         it('applies innerStyles to the pressable element', () => {
@@ -111,7 +122,7 @@ describe('ButtonComposed — Button', () => {
     // that every prop the context exposes reaches children correctly.
 
     describe('ButtonContext', () => {
-        it('provides sensible defaults: size=medium, no variant, not loading, not hovered', () => {
+        it('provides sensible defaults: size=medium, no variant, not loading, not disabled, not hovered', () => {
             // Given a Button with no extra props
             renderButton();
 
@@ -119,6 +130,29 @@ describe('ButtonComposed — Button', () => {
             expect(screen.getByTestId('ctx-size')).toHaveTextContent(CONST.BUTTON_SIZE.MEDIUM);
             expect(screen.getByTestId('ctx-variant')).toHaveTextContent('none');
             expect(screen.getByTestId('ctx-isHovered')).toHaveTextContent('false');
+            expect(screen.getByTestId('ctx-isDisabled')).toHaveTextContent('false');
+            expect(screen.getByTestId('ctx-isLoading')).toHaveTextContent('false');
+        });
+
+        it('propagates isDisabled to children via context', () => {
+            renderButton({isDisabled: true});
+            expect(screen.getByTestId('ctx-isDisabled')).toHaveTextContent('true');
+        });
+
+        it('propagates isLoading to children via context', () => {
+            renderButton({isLoading: true});
+            expect(screen.getByTestId('ctx-isLoading')).toHaveTextContent('true');
+        });
+
+        it("exposes the button's own onPress via context", () => {
+            // Given a Button with an onPress handler
+            renderButton({onPress});
+
+            // When a child invokes the context onPress
+            fireEvent.press(screen.getByTestId('ctx-onPress'));
+
+            // Then the handler passed to Button is called
+            expect(onPress).toHaveBeenCalledTimes(1);
         });
 
         it.each(['success', 'danger'] as const)('propagates variant="%s" to children via context', (variant) => {
@@ -281,7 +315,9 @@ describe('ButtonComposed — Button', () => {
             {variant: 'danger' as const, expectedBg: colors.red},
         ])('variant="$variant" applies the correct background color', ({variant, expectedBg}) => {
             renderButton({variant});
-            expect(screen.getByLabelText(LABEL)).toHaveStyle({backgroundColor: expectedBg});
+            expect(screen.getByLabelText(LABEL)).toHaveStyle({
+                backgroundColor: expectedBg,
+            });
         });
 
         // The transparent-background invariant for link-style buttons now lives in the
@@ -291,7 +327,9 @@ describe('ButtonComposed — Button', () => {
         it('no variant uses the default button background', () => {
             // Implicit check that nothing accidentally overrides the base background.
             renderButton();
-            expect(screen.getByLabelText(LABEL)).toHaveStyle({backgroundColor: colors.productDark400});
+            expect(screen.getByLabelText(LABEL)).toHaveStyle({
+                backgroundColor: colors.productDark400,
+            });
         });
     });
 
@@ -303,12 +341,27 @@ describe('ButtonComposed — Button', () => {
     describe('size styles', () => {
         // getButtonSizeStyle returns the base buttonSmall/Medium/Large styles with paddingHorizontal lower by 4px
         it.each([
-            {size: CONST.BUTTON_SIZE.SMALL, minHeight: variables.componentSizeSmall, paddingHorizontal: 8},
-            {size: CONST.BUTTON_SIZE.MEDIUM, minHeight: variables.componentSizeNormal, paddingHorizontal: 12},
-            {size: CONST.BUTTON_SIZE.LARGE, minHeight: variables.componentSizeLarge, paddingHorizontal: 16},
+            {
+                size: CONST.BUTTON_SIZE.SMALL,
+                minHeight: variables.componentSizeSmall,
+                paddingHorizontal: 8,
+            },
+            {
+                size: CONST.BUTTON_SIZE.MEDIUM,
+                minHeight: variables.componentSizeNormal,
+                paddingHorizontal: 12,
+            },
+            {
+                size: CONST.BUTTON_SIZE.LARGE,
+                minHeight: variables.componentSizeLarge,
+                paddingHorizontal: 16,
+            },
         ])('size="$size" applies minHeight=$minHeight and paddingHorizontal=$paddingHorizontal', ({size, minHeight, paddingHorizontal}) => {
             renderButton({size});
-            expect(screen.getByLabelText(LABEL)).toHaveStyle({minHeight, paddingHorizontal});
+            expect(screen.getByLabelText(LABEL)).toHaveStyle({
+                minHeight,
+                paddingHorizontal,
+            });
         });
     });
 
@@ -333,7 +386,12 @@ describe('ButtonComposed — Button', () => {
             {
                 label: 'all',
                 removeBorderRadius: 'all' as const,
-                expectedStyle: {borderTopRightRadius: 0, borderBottomRightRadius: 0, borderTopLeftRadius: 0, borderBottomLeftRadius: 0},
+                expectedStyle: {
+                    borderTopRightRadius: 0,
+                    borderBottomRightRadius: 0,
+                    borderTopLeftRadius: 0,
+                    borderBottomLeftRadius: 0,
+                },
             },
         ])('removeBorderRadius="$label" zeros out the correct corners', ({removeBorderRadius, expectedStyle}) => {
             renderButton({removeBorderRadius});
@@ -355,7 +413,9 @@ describe('ButtonComposed — Button', () => {
             fireEvent(getButton(), 'hoverIn');
 
             // Then the button shows the hover background
-            expect(screen.getByLabelText(LABEL)).toHaveStyle({backgroundColor: colors.productDark500});
+            expect(screen.getByLabelText(LABEL)).toHaveStyle({
+                backgroundColor: colors.productDark500,
+            });
         });
 
         it.each([
@@ -366,7 +426,9 @@ describe('ButtonComposed — Button', () => {
             // success stays green and danger stays red even when highlighted.
             renderButton({variant});
             fireEvent(getButton(), 'hoverIn');
-            expect(screen.getByLabelText(LABEL)).toHaveStyle({backgroundColor: expectedHoverBg});
+            expect(screen.getByLabelText(LABEL)).toHaveStyle({
+                backgroundColor: expectedHoverBg,
+            });
         });
     });
 
@@ -386,7 +448,9 @@ describe('ButtonComposed — Button', () => {
             renderButton({accessibilityState: {selected: true}});
 
             // Then the state is forwarded verbatim to the pressable element
-            expect(getButton().props.accessibilityState).toMatchObject({selected: true});
+            expect(getButton().props.accessibilityState).toMatchObject({
+                selected: true,
+            });
         });
 
         it('forwards testID to the underlying pressable', () => {
@@ -454,7 +518,9 @@ describe('ButtonComposed — Button', () => {
             renderButton({onLayout});
 
             // When a layout event fires
-            fireEvent(getButton(), 'layout', {nativeEvent: {layout: {width: 200, height: 48, x: 0, y: 0}}});
+            fireEvent(getButton(), 'layout', {
+                nativeEvent: {layout: {width: 200, height: 48, x: 0, y: 0}},
+            });
 
             // Then onLayout is called
             expect(onLayout).toHaveBeenCalledTimes(1);
@@ -515,7 +581,9 @@ describe('ButtonComposed — Button', () => {
 
         it('applies contentContainerStyle to the content wrapper', () => {
             // Given a Button with a custom contentContainerStyle
-            const renderResult = renderButton({contentContainerStyle: {paddingTop: 8}});
+            const renderResult = renderButton({
+                contentContainerStyle: {paddingTop: 8},
+            });
 
             // contentContainerStyle is applied to the flexRow View wrapping all children.
             // We find it by scanning host Views for the custom padding.
@@ -529,7 +597,9 @@ describe('ButtonComposed — Button', () => {
             const renderResult = renderButton({blendOpacity: true});
 
             const overlayView = renderResult.UNSAFE_getAllByType(View).find((v) => {
-                const flat = StyleSheet.flatten(v.props.style ?? []) as {position?: string};
+                const flat = StyleSheet.flatten(v.props.style ?? []) as {
+                    position?: string;
+                };
                 return flat?.position === 'absolute';
             });
 
@@ -543,7 +613,13 @@ describe('ButtonComposed — Button', () => {
                 right?: number;
                 bottom?: number;
             };
-            expect(overlayStyle).toMatchObject({position: 'absolute', top: 0, left: 0, right: 0, bottom: 0});
+            expect(overlayStyle).toMatchObject({
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+            });
         });
     });
 });
