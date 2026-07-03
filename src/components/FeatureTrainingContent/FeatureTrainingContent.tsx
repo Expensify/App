@@ -1,20 +1,28 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports -- type-only import from react-native
-import type {LayoutChangeEvent, ScrollView as RNScrollView} from 'react-native';
 import ScrollView from '@components/ScrollView';
+
 import useKeyboardState from '@hooks/useKeyboardState';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+// eslint-disable-next-line no-restricted-imports -- type-only import from react-native
+import type {LayoutChangeEvent, ScrollView as RNScrollView} from 'react-native';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
+import type {FeatureTrainingContentProps} from './types';
+
 import FeatureTrainingContentBody from './FeatureTrainingContentBody';
 import FeatureTrainingContentIllustration from './FeatureTrainingContentIllustration';
-import type {FeatureTrainingContentProps} from './types';
 
 function FeatureTrainingContent({
     illustrationInnerContainerStyle,

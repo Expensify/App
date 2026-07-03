@@ -1,23 +1,30 @@
-import type {SourceLoadEventPayload} from 'expo-video';
-import type LottieView from 'lottie-react-native';
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
-import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import ImageSVG from '@components/ImageSVG';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
 import VideoPlayer from '@components/VideoPlayer';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import Accessibility from '@libs/Accessibility';
 import {isMobile} from '@libs/Browser';
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 import {getIsOffline} from '@libs/NetworkState';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {SourceLoadEventPayload} from 'expo-video';
+import type LottieView from 'lottie-react-native';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+
 import type {FeatureTrainingContentIllustrationProps as BaseFeatureTrainingContentIllustrationProps, BaseFeatureTrainingContentProps} from './types';
 
 // Aspect ratio and height of the video.

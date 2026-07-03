@@ -1,18 +1,24 @@
-import React, {useRef} from 'react';
-import {View} from 'react-native';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React, {useRef} from 'react';
+import {View} from 'react-native';
+
+import type {FeatureTrainingContentDataProps} from './FeatureTrainingContent';
+
 import Badge from './Badge';
 import CenteredModalLayout from './CenteredModalLayout';
 import {FeatureTrainingCarousel} from './FeatureTrainingContent';
-import type {FeatureTrainingContentDataProps} from './FeatureTrainingContent';
 import LottieAnimations from './LottieAnimations';
 import Text from './Text';
 

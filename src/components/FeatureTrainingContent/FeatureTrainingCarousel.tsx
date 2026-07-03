@@ -1,11 +1,8 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {FlatList, Platform, View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports -- Type import needed for ref typing; no wrapper available
-import type {LayoutChangeEvent, FlatList as RNFlatList, ScrollView as RNScrollView, ViewabilityConfig, ViewStyle, ViewToken} from 'react-native';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Tooltip from '@components/Tooltip';
+
 import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -15,13 +12,24 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+// eslint-disable-next-line no-restricted-imports -- Type import needed for ref typing; no wrapper available
+import type {LayoutChangeEvent, FlatList as RNFlatList, ScrollView as RNScrollView, ViewabilityConfig, ViewStyle, ViewToken} from 'react-native';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {FlatList, Platform, View} from 'react-native';
+
+import type {FeatureTrainingCarouselProps, FeatureTrainingContentDataProps} from './types';
+
 import FeatureTrainingContentBody from './FeatureTrainingContentBody';
 import FeatureTrainingContentBodyText from './FeatureTrainingContentBodyText';
 import FeatureTrainingContentIllustration from './FeatureTrainingContentIllustration';
-import type {FeatureTrainingCarouselProps, FeatureTrainingContentDataProps} from './types';
 
 const CONTENT_PADDING = variables.spacing2;
 
@@ -172,35 +180,36 @@ function FeatureTrainingCarousel({
             // eslint-disable-next-line react/forbid-component-props -- fsClass is required for FullStory session masking
             fsClass={CONST.FULLSTORY.CLASS.UNMASK}
         >
-            {carouselViewportWidth > 0 && contentMinHeight === undefined && (
-                // Probe layer is used to measure the tallest page to lock the modal height
-                // when moving between pages with different content lengths.
-                <View
-                    pointerEvents="none"
-                    accessibilityElementsHidden
-                    importantForAccessibility="no-hide-descendants"
-                    style={[styles.pAbsolute, styles.l0, styles.t0, {width: carouselViewportWidth, opacity: 0}]}
-                >
-                    {pages.map((page, index) => (
-                        <View
-                            // The pages array is static for the modal's lifetime, so the index is a stable key.
-                            // eslint-disable-next-line react/no-array-index-key
-                            key={`FeatureTrainingModalCarousel-probe-${index}`}
-                            style={styles.mh5}
-                        >
-                            <FeatureTrainingContentBodyText
-                                title={page.title}
-                                subtitle={page.subtitle}
-                                description={page.description}
-                                titleStyles={titleStyles}
-                                contentInnerContainerStyles={contentInnerContainerStyles}
-                                shouldRenderHTMLDescription={shouldRenderHTMLDescription}
-                                onLayout={handleProbeLayout(index)}
-                            />
-                        </View>
-                    ))}
-                </View>
-            )}
+            {carouselViewportWidth > 0 &&
+                contentMinHeight === undefined && (
+                    // Probe layer is used to measure the tallest page to lock the modal height
+                    // when moving between pages with different content lengths.
+                    <View
+                        pointerEvents="none"
+                        accessibilityElementsHidden
+                        importantForAccessibility="no-hide-descendants"
+                        style={[styles.pAbsolute, styles.l0, styles.t0, {width: carouselViewportWidth, opacity: 0}]}
+                    >
+                        {pages.map((page, index) => (
+                            <View
+                                // The pages array is static for the modal's lifetime, so the index is a stable key.
+                                // eslint-disable-next-line react/no-array-index-key
+                                key={`FeatureTrainingModalCarousel-probe-${index}`}
+                                style={styles.mh5}
+                            >
+                                <FeatureTrainingContentBodyText
+                                    title={page.title}
+                                    subtitle={page.subtitle}
+                                    description={page.description}
+                                    titleStyles={titleStyles}
+                                    contentInnerContainerStyles={contentInnerContainerStyles}
+                                    shouldRenderHTMLDescription={shouldRenderHTMLDescription}
+                                    onLayout={handleProbeLayout(index)}
+                                />
+                            </View>
+                        ))}
+                    </View>
+                )}
             {carouselViewportWidth > 0 && (
                 <>
                     <View>

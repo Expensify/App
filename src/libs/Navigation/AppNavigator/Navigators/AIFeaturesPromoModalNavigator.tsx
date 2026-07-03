@@ -1,9 +1,12 @@
-import React from 'react';
 import AIFeaturesPromoModal from '@components/AIFeaturesPromoModal';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
+
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {AIFeaturesPromoModalNavigatorParamList} from '@libs/Navigation/types';
+
 import SCREENS from '@src/SCREENS';
+
+import React from 'react';
 
 const Stack = createPlatformStackNavigator<AIFeaturesPromoModalNavigatorParamList>();
 

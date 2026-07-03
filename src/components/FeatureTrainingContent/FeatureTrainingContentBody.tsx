@@ -1,13 +1,18 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
-import FeatureTrainingContentBodyText from './FeatureTrainingContentBodyText';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {FeatureTrainingContentBodyProps as BaseFeatureTrainingContentBodyProps, BaseFeatureTrainingContentProps} from './types';
+
+import FeatureTrainingContentBodyText from './FeatureTrainingContentBodyText';
 
 type FeatureTrainingModalContentProps = Pick<
     BaseFeatureTrainingContentProps,

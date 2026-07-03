@@ -1,10 +1,12 @@
+import type ImageSVGProps from '@components/ImageSVG/types';
+import type DotLottieAnimation from '@components/LottieAnimations/types';
+
+import type IconAsset from '@src/types/utils/IconAsset';
+
 import type {ImageContentFit} from 'expo-image';
 import type {ReactNode} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {MergeExclusive} from 'type-fest';
-import type ImageSVGProps from '@components/ImageSVG/types';
-import type DotLottieAnimation from '@components/LottieAnimations/types';
-import type IconAsset from '@src/types/utils/IconAsset';
 
 type BaseFeatureTrainingContentProps = {
     /** The aspect ratio to preserve for the icon, video or animation */

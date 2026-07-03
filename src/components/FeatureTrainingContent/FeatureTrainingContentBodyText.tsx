@@ -1,10 +1,13 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type FeatureTrainingModalTextContentProps = {
     /** Title for the modal */

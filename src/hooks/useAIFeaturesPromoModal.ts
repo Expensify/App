@@ -1,13 +1,10 @@
-import {isActingAsDelegateSelector} from '@selectors/Account';
-import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
-import {useEffect, useRef} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -15,6 +12,13 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Session} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {isActingAsDelegateSelector} from '@selectors/Account';
+import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
+import {useEffect, useRef} from 'react';
+
 import useOnyx from './useOnyx';
 
 let hasRedirectedToAIFeaturesPromoModal = false;
