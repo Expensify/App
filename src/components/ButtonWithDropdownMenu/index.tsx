@@ -1,5 +1,6 @@
 import Button from '@components/Button';
 import Icon from '@components/Icon';
+import InlineIcon from '@components/InlineIcon';
 import PopoverMenu from '@components/PopoverMenu';
 
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -246,17 +247,24 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                         isButtonSizeExtraSmall && styles.dropDownSmallButtonArrowContain,
                                     ]}
                                 >
-                                    <Icon
-                                        medium={isButtonSizeLarge}
-                                        small={!isButtonSizeLarge && !shouldUseShortForm}
-                                        inline={shouldUseShortForm}
-                                        width={shouldUseShortForm ? variables.iconSizeExtraSmall : undefined}
-                                        height={shouldUseShortForm ? variables.iconSizeExtraSmall : undefined}
-                                        src={icons.DownArrow}
-                                        additionalStyles={[...(shouldUseShortForm ? [styles.pRelative, styles.t0] : []), isMenuVisible ? styles.flipUpsideDown : undefined]}
-                                        fill={success ? theme.buttonSuccessText : theme.buttonIcon}
-                                        testID="dropdown-arrow-icon"
-                                    />
+                                    {shouldUseShortForm ? (
+                                        <InlineIcon
+                                            width={variables.iconSizeExtraSmall}
+                                            height={variables.iconSizeExtraSmall}
+                                            src={icons.DownArrow}
+                                            additionalStyles={[styles.pRelative, styles.t0, isMenuVisible ? styles.flipUpsideDown : undefined]}
+                                            fill={success ? theme.buttonSuccessText : theme.buttonIcon}
+                                            testID="dropdown-arrow-icon"
+                                        />
+                                    ) : (
+                                        <Icon
+                                            size={isButtonSizeLarge ? CONST.ICON_SIZE.MEDIUM : CONST.ICON_SIZE.SMALL}
+                                            src={icons.DownArrow}
+                                            additionalStyles={[isMenuVisible ? styles.flipUpsideDown : undefined]}
+                                            fill={success ? theme.buttonSuccessText : theme.buttonIcon}
+                                            testID="dropdown-arrow-icon"
+                                        />
+                                    )}
                                 </View>
                             </View>
                         </Button>

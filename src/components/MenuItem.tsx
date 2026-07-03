@@ -50,6 +50,7 @@ import DisplayNames from './DisplayNames';
 import FormHelpMessage from './FormHelpMessage';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
+import InlineIcon from './InlineIcon';
 import {useMenuItemGroupActions, useMenuItemGroupState} from './MenuItemGroup';
 import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
@@ -1070,11 +1071,10 @@ function MenuItem({
                                                         {!!furtherDetails && (
                                                             <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
                                                                 {!!furtherDetailsIcon && (
-                                                                    <Icon
+                                                                    <InlineIcon
                                                                         src={furtherDetailsIcon}
                                                                         height={variables.iconSizeNormal}
                                                                         width={variables.iconSizeNormal}
-                                                                        inline
                                                                     />
                                                                 )}
                                                                 <Text

@@ -1,6 +1,9 @@
 import CONST from '@src/CONST';
 
-import type {IconSize} from './types';
+import type {ValueOf} from 'type-fest';
+
+/** Preset icon size values from `CONST.ICON_SIZE`. */
+type IconSize = ValueOf<typeof CONST.ICON_SIZE>;
 
 /** Resolves the effective icon size from the new `size` prop or legacy boolean props. */
 function resolveIconSize(size: IconSize | undefined, extraSmall: boolean, small: boolean, medium: boolean, large: boolean): IconSize | undefined {
@@ -28,3 +31,4 @@ function resolveIconSize(size: IconSize | undefined, extraSmall: boolean, small:
 }
 
 export default resolveIconSize;
+export type {IconSize};

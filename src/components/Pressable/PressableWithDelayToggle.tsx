@@ -1,4 +1,5 @@
 import Icon from '@components/Icon';
+import InlineIcon from '@components/InlineIcon';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 
@@ -170,16 +171,24 @@ function PressableWithDelayToggle({
                 >
                     {({hovered, pressed}) => (
                         <>
-                            {shouldShowIcon && (
-                                <Icon
-                                    src={!isActive ? resolvedIconChecked : (icon ?? resolvedIconChecked)}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isActive))}
-                                    additionalStyles={[styles.mr2, iconStyles]}
-                                    width={iconWidth}
-                                    height={iconHeight}
-                                    inline={inline}
-                                />
-                            )}
+                            {shouldShowIcon &&
+                                (inline ? (
+                                    <InlineIcon
+                                        src={!isActive ? resolvedIconChecked : (icon ?? resolvedIconChecked)}
+                                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isActive))}
+                                        additionalStyles={[styles.mr2, iconStyles]}
+                                        width={iconWidth}
+                                        height={iconHeight}
+                                    />
+                                ) : (
+                                    <Icon
+                                        src={!isActive ? resolvedIconChecked : (icon ?? resolvedIconChecked)}
+                                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isActive))}
+                                        additionalStyles={[styles.mr2, iconStyles]}
+                                        width={iconWidth}
+                                        height={iconHeight}
+                                    />
+                                ))}
                             {!inline && displayLabelText}
                         </>
                     )}
