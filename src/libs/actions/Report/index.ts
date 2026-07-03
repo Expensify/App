@@ -8041,22 +8041,18 @@ function mergeReports({
         skippedReportIDs: sourceReportIDs,
     });
 
-    if (!changeTransactionsReportOnyxData) {
-        return;
-    }
-
     const {
-        optimisticData: moveOptimisticData,
-        successData: moveSuccessData,
-        failureData: moveFailureData,
-        transactionIDToReportActionAndThreadData,
+        optimisticData: moveOptimisticData = [],
+        successData: moveSuccessData = [],
+        failureData: moveFailureData = [],
+        transactionIDToReportActionAndThreadData = {},
         updatedReportTotals,
         updatedReportTransactionCounts,
         updatedReportNonReimbursableTotals,
         updatedReportUnheldNonReimbursableTotals,
         updatedReportReimbursableTotals,
         updatedReportUnheldReimbursableTotals,
-    } = changeTransactionsReportOnyxData;
+    } = changeTransactionsReportOnyxData ?? {};
 
     const deleteOptimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
     const deleteSuccessData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];

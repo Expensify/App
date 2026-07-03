@@ -1940,7 +1940,7 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
     if (!changeTransactionsReportOnyxData) {
         return;
     }
-    const {optimisticData, successData, failureData, transactionIDToReportActionAndThreadData, transactionIDToUpdatedCustomUnitRateID = {}} = changeTransactionsReportOnyxData;
+    const {optimisticData, successData, failureData, transactionIDToReportActionAndThreadData, transactionIDToUpdatedCustomUnitRateID} = changeTransactionsReportOnyxData;
 
     const reportID = props.newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
