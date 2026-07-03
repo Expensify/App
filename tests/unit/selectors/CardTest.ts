@@ -899,20 +899,20 @@ describe('hasIssuedExpensifyCardSelector', () => {
     });
 
     it('ignores the cardList of cards still available to assign and only counts assigned cards', () => {
-        const cardsList = {
-            cardList: {'1111': 'Card 1', '2222': 'Card 2'},
-        } as unknown as WorkspaceCardsList;
+        // `cardList` (a Record<string, string>) clashes with the WorkspaceCardsList index signature in a typed literal, so attach it via Object.assign to avoid an unsafe type assertion.
+        const cardsList: WorkspaceCardsList = {};
+        Object.assign(cardsList, {cardList: {'1111': 'Card 1', '2222': 'Card 2'}});
 
         expect(hasIssuedExpensifyCardSelector(cardsList)).toBe(false);
     });
 
     it('returns true when an active Expensify Card is mixed with company and inactive cards', () => {
-        const cardsList = {
-            cardList: {'9999': 'Card to assign'},
+        const cardsList: WorkspaceCardsList = {
             '1': createRandomCompanyCard(1, {bank: 'vcf'}),
             '2': createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.CLOSED}),
             '3': createRandomExpensifyCard(3, {state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
-        } as unknown as WorkspaceCardsList;
+        };
+        Object.assign(cardsList, {cardList: {'9999': 'Card to assign'}});
 
         expect(hasIssuedExpensifyCardSelector(cardsList)).toBe(true);
     });
