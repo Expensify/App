@@ -1,6 +1,7 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
 import {SIDEBAR_TO_SPLIT} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, SplitNavigatorBySidebar, SplitNavigatorParamList, SplitNavigatorSidebarScreen} from '@libs/Navigation/types';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
 
 type ExtractRouteType<T extends SplitNavigatorSidebarScreen> = Extract<keyof SplitNavigatorParamList[(typeof SIDEBAR_TO_SPLIT)[T]], string>;
 

@@ -1,6 +1,3 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import AttendeeField from '@components/MoneyRequestConfirmationList/sections/AttendeeField';
 import CategoryField from '@components/MoneyRequestConfirmationList/sections/CategoryField';
@@ -8,7 +5,14 @@ import DateField from '@components/MoneyRequestConfirmationList/sections/DateFie
 import TagFields from '@components/MoneyRequestConfirmationList/sections/TagFields';
 import TaxFields from '@components/MoneyRequestConfirmationList/sections/TaxFields';
 import type {ErrorState} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
+
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+
 import type {FieldVisibility, TagEntry} from './fieldVisibility';
 
 type TagFieldRowProps = {

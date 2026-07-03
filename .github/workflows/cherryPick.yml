@@ -30,7 +30,7 @@ on:
         required: true
 
 concurrency:
-  group: "cherrypick"
+  group: 'cherrypick'
   cancel-in-progress: false
 
 jobs:
@@ -449,7 +449,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: "Announces a CP failure in the #announce Slack room"
+      - name: 'Announces a CP failure in the #announce Slack room'
         uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         if: ${{ failure() }}
         with:
@@ -465,7 +465,7 @@ jobs:
               }]
             }
 
-      - name: "Announce CP cancellation in #deployer"
+      - name: 'Announce CP cancellation in #deployer'
         uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         if: ${{ cancelled() }}
         with:

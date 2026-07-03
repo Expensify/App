@@ -1,14 +1,19 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxKey} from 'react-native-onyx';
 import {clearBulkEditDraftTransaction, initBulkEditDraftTransaction, updateBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
+
 import CONST from '@src/CONST';
 import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportActions} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import type {OnyxCollection, OnyxKey} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -1647,7 +1652,7 @@ describe('actions/IOU/BulkEdit', () => {
             };
 
             // Report action has childReportID pointing to a different thread
-            const reportActions = {
+            const reportActions = createMock<OnyxCollection<ReportActions>>({
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`]: {
                     [reportActionID]: {
                         reportActionID,
@@ -1660,7 +1665,7 @@ describe('actions/IOU/BulkEdit', () => {
                         created: '2026-01-01 00:00:00',
                     },
                 },
-            } as OnyxCollection<ReportActions>;
+            });
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             // eslint-disable-next-line rulesdir/no-multiple-api-calls

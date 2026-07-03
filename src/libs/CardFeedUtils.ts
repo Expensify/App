@@ -1,14 +1,22 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {AdditionalCardProps} from '@components/SelectionList/ListItem/CardListItem';
+
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
+
 import type IllustrationsType from '@styles/theme/illustrations/types';
+
 import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {CardFeedsStatus, CardFeedsStatusByDomainID, CardFeedWithNumber, CombinedCardFeed} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import type {CompanyCardFeedIcons} from './CardUtils';
+import type {OptionData} from './ReportUtils';
+
 import {
     feedHasCards,
     getBankName,
@@ -26,9 +34,7 @@ import {
     isDirectFeed,
     isPersonalCard,
 } from './CardUtils';
-import type {CompanyCardFeedIcons} from './CardUtils';
 import {getDescriptionForPolicyDomainCard} from './PolicyUtils';
-import type {OptionData} from './ReportUtils';
 
 type CardFilterItem = Partial<OptionData> & AdditionalCardProps & {isCardFeed?: boolean; correspondingCards?: string[]; cardFeedKey: string; plaidUrl?: string; keyForList: string};
 type DomainFeedData = {bank: CardFeedWithNumber; domainName: string; correspondingCardIDs: string[]; fundID?: string; feedCountry?: string};
@@ -448,16 +454,6 @@ function getSelectedCardsFromFeeds(cards: CardList | undefined, workspaceCardFee
     return [...new Set(selectedCards)];
 }
 
-const generateSelectedCards = (
-    cardList: CardList | undefined,
-    workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined,
-    feeds: string[] | undefined,
-    cards: string[] | undefined,
-) => {
-    const selectedCards = getSelectedCardsFromFeeds(cardList, workspaceCardFeeds, feeds);
-    return [...new Set([...selectedCards, ...(cards ?? [])])];
-};
-
 /**
  * Returns the wire-level country segment used in the Search feed filter token for a card. We only
  * care about Travel Invoicing feed country segment since it has its own
@@ -731,11 +727,9 @@ export {
     buildCardsData,
     getCardFeedNamesWithType,
     buildCardFeedsData,
-    generateSelectedCards,
     getSelectedCardsFromFeeds,
     getFeedInfo,
     getLinkedPolicyName,
-    getDomainFeedData,
     getCardFeedsForDisplay,
     getExpensifyCardFeedsForDisplay,
     getCardFeedsForDisplayPerPolicy,
