@@ -1,12 +1,17 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
 import {render, screen} from '@testing-library/react-native';
-import React from 'react';
-import {View} from 'react-native';
+
 import Table from '@components/Table';
 import type {TableColumn, TableData} from '@components/Table';
 import Text from '@components/Text';
+
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+
 import type Navigation from '@libs/Navigation/Navigation';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import React from 'react';
+import {View} from 'react-native';
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => {
@@ -144,10 +149,9 @@ describe('Table selection inside a narrow pane modal (RHP)', () => {
         mockResponsiveLayout.mockReturnValue(RHP_WIDE_SCREEN);
     });
 
-    // Regression test for https://github.com/Expensify/App/pull/95224:
-    // Selection was fully broken for a Table rendered in the RHP because selection visibility keyed off
-    // shouldUseNarrowLayout, which is always true in the RHP. Opting into shouldEnableSelectionInNarrowPaneModal
-    // must key selection off the real screen size, so checkboxes render on a wide-desktop RHP.
+    // Inside the RHP shouldUseNarrowLayout is always true regardless of screen width, so a Table there keys its
+    // selection UX off the real screen size only when it opts into shouldEnableSelectionInNarrowPaneModal. With the
+    // opt-in set, a wide-desktop RHP renders selection checkboxes. See https://github.com/Expensify/App/pull/95224.
     it('renders selection checkboxes on a wide-desktop RHP when shouldEnableSelectionInNarrowPaneModal is set', () => {
         renderSelectableTable(true);
 

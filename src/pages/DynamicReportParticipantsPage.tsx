@@ -1,6 +1,3 @@
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import type {TupleToUnion, ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -11,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import type {TableHandle} from '@components/Table';
 import type {ReportParticipantRowData, ReportParticipantsTableColumnKey} from '@components/Tables/ReportParticipantsTable';
 import ReportParticipantsTable from '@components/Tables/ReportParticipantsTable';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useFilteredSelection from '@hooks/useFilteredSelection';
@@ -24,6 +22,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {openRoomMembersPage, removeFromGroupChat, updateGroupChatMemberRoles} from '@libs/actions/Report';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -46,13 +45,21 @@ import {
     isTaskReport,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {personalDetailsSelector} from '@src/selectors/PersonalDetails';
 import type {PersonalDetails} from '@src/types/onyx';
+
+import type {TupleToUnion, ValueOf} from 'type-fest';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
+
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
 type DynamicReportParticipantsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DYNAMIC_ROOT>;
@@ -166,7 +173,6 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)));
     };
 
-    // Build participants list. Sorting/searching/selection are handled internally by the Table.
     const participants: ReportParticipantRowData[] = activeParticipants.map((participantForDisplay) => {
         const {accountID, details, isDisabled, pendingAction, role} = participantForDisplay;
 
