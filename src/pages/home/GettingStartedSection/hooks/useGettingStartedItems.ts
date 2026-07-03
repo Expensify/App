@@ -6,7 +6,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {enablePolicyCategories} from '@libs/actions/Policy/Category';
-import {hasCompanyCardFeeds, hasIssuedExpensifyCard} from '@libs/CardUtils';
+import {filterAllInactiveCards, hasCompanyCardFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     arePolicyRulesEnabled,
@@ -64,7 +64,15 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${activePolicyID}`);
     const [allCardFeeds] = useCardFeeds(activePolicyID);
     const workspaceAccountID = useWorkspaceAccountID(activePolicyID);
-    const [allWorkspaceCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    // Subscribe to this workspace's Expensify Card list by its exact key rather than the whole cards collection. This scopes the
+    // re-render to this workspace's issued-card state (PERF-11) and prevents a workspaceAccountID that is a substring of another
+    // workspace's ID from marking this step complete. Mirrors the exact-key pattern used in WorkspaceMoreFeaturesPage.
+    const [hasIssuedExpensifyCard = false] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
+        selector: (cardsList) => {
+            const {cardList, ...assignedCards} = cardsList ?? {};
+            return Object.values(filterAllInactiveCards(assignedCards)).some((card) => card.bank === CONST.EXPENSIFY_CARD.BANK);
+        },
+    });
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy);
 
     const emptyResult: UseGettingStartedItemsResult = {shouldShowSection: false, items: []};
@@ -171,7 +179,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             key: 'issueExpensifyCards',
             label: translate('homePage.gettingStartedSection.issueExpensifyCards'),
             subtitle: translate('homePage.gettingStartedSection.issueExpensifyCardsSubtitle'),
-            isComplete: hasIssuedExpensifyCard(workspaceAccountID, allWorkspaceCards),
+            isComplete: hasIssuedExpensifyCard,
             route: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(activePolicyID),
             isFeatureEnabled: policy.areExpensifyCardsEnabled,
             enableFeature: () => enableExpensifyCard(activePolicyID, true, false),

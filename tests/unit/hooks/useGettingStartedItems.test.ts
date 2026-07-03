@@ -724,6 +724,24 @@ describe('useGettingStartedItems', () => {
             expect(expensifyCardItem?.isComplete).toBe(true);
         });
 
+        it('should not be completed by an Expensify Card issued in another workspace whose account ID contains this workspace ID', async () => {
+            // `12345` is a substring of `123456`; the exact-key subscription must not let the other workspace's issued card
+            // (keyed on `cards_123456_Expensify Card`) mark this workspace's onboarding step complete.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${WORKSPACE_ACCOUNT_ID}6_${CONST.EXPENSIFY_CARD.BANK}`, {
+                '9999': {cardID: 9999, bank: CONST.EXPENSIFY_CARD.BANK, state: CONST.EXPENSIFY_CARD.STATE.OPEN},
+            });
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {areCompanyCardsEnabled: false, areExpensifyCardsEnabled: true, policyAccountID: WORKSPACE_ACCOUNT_ID},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const expensifyCardItem = result.current.items.find((item) => item.key === 'issueExpensifyCards');
+            expect(expensifyCardItem?.isComplete).toBe(false);
+        });
+
         it('should show both card rows when both Company cards and Expensify Card are enabled', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
