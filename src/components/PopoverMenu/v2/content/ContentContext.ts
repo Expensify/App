@@ -1,6 +1,7 @@
+import createContextNamespace from '@hooks/createContextNamespace';
+
 import type {RefObject} from 'react';
 import type {View} from 'react-native';
-import createContextNamespace from '@hooks/createContextNamespace';
 
 type FocusableItem = {
     ref: RefObject<View | null>;

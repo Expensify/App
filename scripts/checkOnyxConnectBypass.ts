@@ -1,5 +1,7 @@
 #!/usr/bin/env ts-node
 
+import type {Rule} from 'eslint';
+
 /**
  * Fails the lint run when a new inline `eslint-disable` bypasses the Onyx.connect() ban.
  *
@@ -17,10 +19,10 @@
  */
 import tsParser from '@typescript-eslint/parser';
 import {ESLint} from 'eslint';
-import type {Rule} from 'eslint';
 import {execFileSync} from 'node:child_process';
 import {createRequire} from 'node:module';
 import path from 'node:path';
+
 import {BANNED_RULE_ID, collectSuppressedBans, findNewBypasses} from './onyxConnectBypass';
 
 const projectRoot = path.resolve(__dirname, '..');
@@ -35,7 +37,8 @@ function isRuleModule(value: unknown): value is Rule.RuleModule {
 /** Dynamically import the shipped `no-onyx-connect` rule, which is ESM with relative imports. */
 async function loadNoOnyxConnectRule(): Promise<Rule.RuleModule> {
     const require = createRequire(__filename);
-    const expensifyConfigDirectory = path.dirname(require.resolve('eslint-config-expensify/package.json'));
+    // Resolve the package entry rather than its package.json, since eslint-config-expensify's `exports` map doesn't expose ./package.json.
+    const expensifyConfigDirectory = path.dirname(require.resolve('eslint-config-expensify'));
     const ruleFile = path.join(expensifyConfigDirectory, 'eslint-plugin-expensify', 'no-onyx-connect.js');
     const imported: unknown = await import(ruleFile);
     if (isRuleModule(imported)) {

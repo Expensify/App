@@ -1,9 +1,11 @@
-import React from 'react';
-import {Image} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {Image} from 'react-native';
 
 function ExampleCheckImage() {
     const styles = useThemeStyles();
