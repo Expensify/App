@@ -1532,8 +1532,8 @@ function isCompletedTaskReport(report: OnyxEntry<Report>): boolean {
 /**
  * Checks if the current user is the manager of the supplied report
  */
-function isReportManager(report: OnyxEntry<Report>): boolean {
-    return !!(report && report.managerID === deprecatedCurrentUserAccountID);
+function isReportManager(report: OnyxEntry<Report>, currentUserAccountID = deprecatedCurrentUserAccountID): boolean {
+    return !!(report && report.managerID === currentUserAccountID);
 }
 
 /**
@@ -2977,15 +2977,15 @@ function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArc
  *
  * @returns True if the report is eligible for merging transactions, false otherwise
  */
-function isMoneyRequestReportEligibleForMerge(reportOrReportID: Report | string, isAdmin: boolean): boolean {
+function isMoneyRequestReportEligibleForMerge(reportOrReportID: Report | string, isAdmin: boolean, currentUserAccountID?: number): boolean {
     const report = typeof reportOrReportID === 'string' ? getReportOrDraftReport(reportOrReportID) : reportOrReportID;
 
     if (!isMoneyRequestReport(report) || isIOUReport(report)) {
         return false;
     }
 
-    const isManager = isReportManager(report);
-    const isSubmitter = isReportOwner(report);
+    const isManager = isReportManager(report, currentUserAccountID);
+    const isSubmitter = isReportOwner(report, currentUserAccountID);
 
     if (isAdmin) {
         return isOpenReport(report) || isProcessingReport(report);
@@ -11104,8 +11104,8 @@ function canBeAutoReimbursed(report: OnyxInputOrEntry<Report>, policy: OnyxInput
 }
 
 /** Check if the current user is an owner of the report */
-function isReportOwner(report: OnyxInputOrEntry<Report>): boolean {
-    return report?.ownerAccountID === deprecatedCurrentUserAccountID;
+function isReportOwner(report: OnyxInputOrEntry<Report>, currentUserAccountID = deprecatedCurrentUserAccountID): boolean {
+    return report?.ownerAccountID === currentUserAccountID;
 }
 
 function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAccountID?: number, reportPolicy?: OnyxEntry<Policy>): boolean {
@@ -13371,7 +13371,7 @@ function canMergeReports(selectedReports: Array<OnyxEntry<Report>>, currentUserA
     const firstSelectedReport = selectedReports.at(0);
 
     const validator = (report: OnyxEntry<Report>): boolean => {
-        if (!report) {
+        if (!report || !isExpenseReport(report)) {
             return false;
         }
 
@@ -13402,19 +13402,15 @@ function canMergeReports(selectedReports: Array<OnyxEntry<Report>>, currentUserA
             }
         }
 
-        // Settled, approved, and closed reports can no longer receive expenses.
-        if (isSettled(report) || isReportApproved({report}) || isClosedReport(report)) {
-            return false;
-        }
-
         // The user must be able to write to the report, AND must be either the
         // report owner or an admin / approver on the workspace.
-        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
         const isReportArchived = isArchivedReport(allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
         const hasWriteAccess = canUserPerformWriteAction(report, isReportArchived);
-        const isOwnerOrAdminOrApprover = isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID);
+        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+        const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+        const isReportEligibleForMerge = isMoneyRequestReportEligibleForMerge(report, isAdmin, currentUserAccountID);
 
-        if (!hasWriteAccess || !isOwnerOrAdminOrApprover) {
+        if (!hasWriteAccess || !isReportEligibleForMerge) {
             return false;
         }
 

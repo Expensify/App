@@ -19584,6 +19584,7 @@ describe('ReportUtils', () => {
 
     describe('canMergeReports', () => {
         const OWNER_ID = 10;
+        const owerEmail = 'owner@example.com';
         const MANAGER_ID = 20;
         const POLICY_ID = 'p1';
         const USER_ID = OWNER_ID;
@@ -19620,21 +19621,20 @@ describe('ReportUtils', () => {
             });
         }
 
+        const mockPolicy = createMock<Policy>({
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            id: POLICY_ID,
+            role: CONST.POLICY.ROLE.ADMIN,
+        });
+
         beforeEach(async () => {
-            await Onyx.multiSet({
-                [ONYXKEYS.SESSION]: {email: 'owner@example.com', accountID: USER_ID},
-            });
-            // mockedPolicyUtils.isPolicyAdmin.mockImplementation(() => false);
-            // mockedPolicyUtils.isPolicyOwner.mockImplementation(() => false);
+            await Onyx.set(ONYXKEYS.SESSION, {email: owerEmail, accountID: USER_ID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
             return waitForBatchedUpdates();
         });
 
         afterAll(async () => {
-            // mockedPolicyUtils.isPolicyAdmin.mockRestore();
-            // mockedPolicyUtils.isPolicyOwner.mockRestore();
-            await Onyx.multiSet({
-                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
-            });
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
             return waitForBatchedUpdates();
         });
 
@@ -19751,9 +19751,8 @@ describe('ReportUtils', () => {
 
         // The user must be the report owner, a workspace admin, or the current approver.
         it('returns false when the current user is not owner/admin/approver of a report', async () => {
-            // Seed the session with a different user (not the owner of the fixture reports)
             const STRANGER_ID = 77;
-            await Onyx.merge(ONYXKEYS.SESSION, {email: 'stranger@example.com', accountID: STRANGER_ID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...policy, role: CONST.POLICY.ROLE.USER});
             await waitForBatchedUpdates();
 
             // Reports are owned by OWNER_ID=10; managerID is unset (Open reports).
@@ -19764,24 +19763,31 @@ describe('ReportUtils', () => {
         });
 
         // Happy paths
-        it('returns true for two valid Open reports when user is the report owner', () => {
+        it('returns true for two valid Open reports when user is the report owner', async () => {
+            // When the current user is the policy admin
             const r1 = makeOpenReport();
             const r2 = makeOpenReport();
             expect(canMergeReports([r1, r2], USER_ID)).toBe(true);
-        });
 
-        it('returns true for two valid Processing reports when user is the report owner and approver matches', () => {
-            const r1 = makeProcessingReport();
-            const r2 = makeProcessingReport();
+            // When the current user is the submitter
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...policy, role: CONST.POLICY.ROLE.USER});
+            await waitForBatchedUpdates();
             expect(canMergeReports([r1, r2], USER_ID)).toBe(true);
         });
 
-        it('returns true when the current user is the approver on Processing reports', async () => {
-            // Switch session to the approver account
-            await Onyx.merge(ONYXKEYS.SESSION, {email: 'approver@example.com', accountID: MANAGER_ID});
-            await waitForBatchedUpdates();
+        it('returns true for two valid Processing reports when user is the report owner and approver matches', async () => {
+            // When the current user is the policy admin
+            const r1 = makeProcessingReport();
+            const r2 = makeProcessingReport();
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(true);
 
-            // Reports are owned by someone else; user passes via the isApprover branch
+            // When the current user is the submitter
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...policy, role: CONST.POLICY.ROLE.USER});
+            await waitForBatchedUpdates();
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        it('returns true when the current user is the approver on Processing reports', async () => {
             const r1 = makeProcessingReport({ownerAccountID: 999, managerID: MANAGER_ID});
             const r2 = makeProcessingReport({ownerAccountID: 999, managerID: MANAGER_ID});
             expect(canMergeReports([r1, r2], MANAGER_ID)).toBe(true);
