@@ -1,6 +1,11 @@
 pre-commit:
   commands:
     oxfmt:
+      priority: 1
       glob: '*.{js,mjs,cjs,ts,tsx,mts,cts}'
       run: npx oxfmt --write {staged_files}
       stage_fixed: true
+    gh-actions-build:
+      priority: 2
+      glob: '.github/**/*.ts'
+      run: npm run gh-actions-build && git add .github/actions/javascript/*/index.js
