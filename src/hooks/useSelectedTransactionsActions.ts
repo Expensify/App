@@ -1,5 +1,6 @@
 import {useCallback, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -176,7 +177,11 @@ function useSelectedTransactionsActions({
         return map;
     }, [selectedTransactionIDs, allTransactions]);
 
-    const activePolicyExpenseChat = useMemo(() => getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id), [currentUserAccountID, defaultExpensePolicy?.id]);
+    const activePolicyExpenseChatSelector = useCallback(
+        (reports: OnyxCollection<Report>) => getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id, reports),
+        [currentUserAccountID, defaultExpensePolicy?.id],
+    );
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: activePolicyExpenseChatSelector});
 
     const isDuplicateOptionVisible = useMemo(
         () =>

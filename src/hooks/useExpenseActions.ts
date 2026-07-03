@@ -156,7 +156,10 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
     // Default expense policy / chat
     const defaultExpensePolicy = useDefaultExpensePolicy();
-    const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => getPolicyExpenseChat(accountID, defaultExpensePolicy?.id, reports)}, [
+        accountID,
+        defaultExpensePolicy?.id,
+    ]);
 
     // Duplicate detection
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactions.map((t) => t.transactionID));

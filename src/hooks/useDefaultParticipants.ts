@@ -48,6 +48,10 @@ function useDefaultParticipants({sourceReport, transaction, iouType, isNewManual
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
     const accountID = currentUserPersonalDetails.accountID;
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => getPolicyExpenseChat(accountID, defaultExpensePolicy?.id, reports)}, [
+        accountID,
+        defaultExpensePolicy?.id,
+    ]);
 
     return useMemo(() => {
         if (!isNewManualExpenseFlowEnabled) {
@@ -70,7 +74,7 @@ function useDefaultParticipants({sourceReport, transaction, iouType, isNewManual
         }
 
         const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
-        const defaultTargetReport = shouldAutoReport ? getPolicyExpenseChat(accountID, defaultExpensePolicy?.id) : selfDMReport;
+        const defaultTargetReport = shouldAutoReport ? activePolicyExpenseChat : selfDMReport;
         return getMoneyRequestParticipantsFromReport(defaultTargetReport, accountID).filter((participant) => participant.selected);
     }, [
         isNewManualExpenseFlowEnabled,
@@ -85,6 +89,7 @@ function useDefaultParticipants({sourceReport, transaction, iouType, isNewManual
         ownerBillingGracePeriodEnd,
         personalPolicy?.autoReporting,
         selfDMReport,
+        activePolicyExpenseChat,
     ]);
 }
 
