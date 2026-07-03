@@ -320,6 +320,7 @@ describe('useGettingStartedItems', () => {
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {
                     areConnectionsEnabled: true,
+
                     // Keep an incomplete card row so the section stays visible; it hides once every item is complete.
                     areCompanyCardsEnabled: true,
                     connections: {
@@ -368,6 +369,7 @@ describe('useGettingStartedItems', () => {
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {
                     areConnectionsEnabled: true,
+
                     // Keep an incomplete card row so the section stays visible; it hides once every item is complete.
                     areCompanyCardsEnabled: true,
                     connections: {
@@ -403,6 +405,7 @@ describe('useGettingStartedItems', () => {
             await setupManageTeamScenario({
                 policy: {
                     areConnectionsEnabled: true,
+
                     // Keep an incomplete card row so the section stays visible; it hides once every item is complete.
                     areCompanyCardsEnabled: true,
                     connections: {
@@ -450,6 +453,7 @@ describe('useGettingStartedItems', () => {
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {
                     areConnectionsEnabled: false,
+
                     // Keep an incomplete card row so the section stays visible; it hides once every item is complete.
                     areCompanyCardsEnabled: true,
                     connections: {
@@ -566,6 +570,7 @@ describe('useGettingStartedItems', () => {
                 },
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, customCategories);
+
             // Keep an incomplete card row so the section stays visible; it hides once every item is complete.
             await setupManageTeamScenario({accounting: 'none', policy: {areCategoriesEnabled: true, areCompanyCardsEnabled: true}});
 
@@ -649,7 +654,7 @@ describe('useGettingStartedItems', () => {
     describe('row 3 (Expensify Card variant) - Issue Expensify cards', () => {
         const WORKSPACE_ACCOUNT_ID = 12345;
 
-        it('should show "Issue Expensify cards" (and not "Link company cards") when Expensify Card is enabled and Company cards is not', async () => {
+        it('should show "Issue Expensify cards" and not "Link company cards" when Expensify Card is enabled and Company cards is not', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {areCompanyCardsEnabled: false, areExpensifyCardsEnabled: true, policyAccountID: WORKSPACE_ACCOUNT_ID},
@@ -925,6 +930,7 @@ describe('useGettingStartedItems', () => {
         it('should order both card rows as company cards then Expensify cards when both are enabled', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+
                 // Rules (setupRules) only render for a control policy, so the type must be CORPORATE here.
                 policy: {areConnectionsEnabled: true, areCompanyCardsEnabled: true, areExpensifyCardsEnabled: true, areRulesEnabled: true, type: CONST.POLICY.TYPE.CORPORATE},
             });

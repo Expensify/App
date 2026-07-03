@@ -872,7 +872,7 @@ describe('hasIssuedExpensifyCardSelector', () => {
         expect(hasIssuedExpensifyCardSelector({})).toBe(false);
     });
 
-    it('returns true when the workspace has an active issued Expensify Card', () => {
+    it('returns true when the workspace has an active Expensify Card', () => {
         const cardsList: WorkspaceCardsList = {
             '1': createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
         };
@@ -889,7 +889,7 @@ describe('hasIssuedExpensifyCardSelector', () => {
         expect(hasIssuedExpensifyCardSelector(cardsList)).toBe(false);
     });
 
-    it('returns false when the only Expensify Card is inactive (closed or deactivated)', () => {
+    it('returns false when the only Expensify Cards are inactive (closed or deactivated)', () => {
         const cardsList: WorkspaceCardsList = {
             '1': createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.CLOSED}),
             '2': createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED}),

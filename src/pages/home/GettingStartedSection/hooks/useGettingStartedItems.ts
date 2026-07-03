@@ -66,9 +66,10 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${activePolicyID}`);
     const [allCardFeeds] = useCardFeeds(activePolicyID);
     const workspaceAccountID = useWorkspaceAccountID(activePolicyID);
+
     // Subscribe to this workspace's Expensify Card list by its exact key rather than the whole cards collection. This scopes the
-    // re-render to this workspace's issued-card state (PERF-11) and prevents a workspaceAccountID that is a substring of another
-    // workspace's ID from marking this step complete. Mirrors the exact-key pattern used in WorkspaceMoreFeaturesPage.
+    // re-render to this workspace's issued-card state and prevents a workspaceAccountID that is a substring of another
+    // workspace's ID from marking this step complete. Mirrors the pattern used in WorkspaceMoreFeaturesPage.
     const [hasIssuedExpensifyCard = false] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: hasIssuedExpensifyCardSelector,
     });
@@ -160,8 +161,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         });
     }
 
-    // The two card features are independent: each shows its own getting-started step only when that feature was enabled during
-    // onboarding. Both enabled shows both steps, only one enabled shows that one, and neither enabled shows no card step.
+    // The two card features are independent: each shows its own getting-started step only when that feature was enabled during onboarding
     if (policy.areCompanyCardsEnabled) {
         items.push({
             key: 'linkCompanyCards',
