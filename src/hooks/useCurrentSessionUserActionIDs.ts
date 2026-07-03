@@ -1,6 +1,8 @@
-import {useState} from 'react';
 import {isCurrentUserPendingAddAction} from '@libs/ReportActionsUtils';
+
 import type {ReportAction} from '@src/types/onyx';
+
+import {useState} from 'react';
 
 /**
  * Tracks the IDs of the current user's own messages sent during the active Concierge session.

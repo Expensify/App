@@ -1,7 +1,10 @@
 import {renderHook} from '@testing-library/react-native';
+
 import useCurrentSessionUserActionIDs from '@hooks/useCurrentSessionUserActionIDs';
+
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
+
 import createRandomReportAction from '../../utils/collections/reportActions';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
