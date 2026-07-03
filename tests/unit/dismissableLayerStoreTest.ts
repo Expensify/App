@@ -1,4 +1,4 @@
-import {nextLayerMountId, pushDismissableLayer, selectTopLayer, selectTopLayerOfKind} from '@components/Overlay/libs/dismissableLayerStore';
+import {nextLayerMountId, pushDismissableLayer, selectTopLayer} from '@components/Overlay/libs/dismissableLayerStore';
 import type {DismissableLayerEntry, DismissableLayerKind} from '@components/Overlay/libs/dismissableLayerStore';
 
 function makeEntry(kind: DismissableLayerKind): DismissableLayerEntry {
@@ -23,12 +23,12 @@ describe('dismissableLayerStore — selectTopLayer ordering', () => {
         unregisterFloating();
     });
 
-    it('selectTopLayerOfKind respects mount order within a kind', () => {
+    it('selectTopLayer with a kind filter respects mount order within a kind', () => {
         const olderModal = makeEntry('modal');
         const newerModal = makeEntry('modal');
         const floating = makeEntry('floating');
 
-        const top = selectTopLayerOfKind([olderModal, newerModal, floating], 'modal');
+        const top = selectTopLayer([olderModal, newerModal, floating], 'modal');
         expect(top).toBe(newerModal);
     });
 

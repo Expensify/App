@@ -1,19 +1,24 @@
-import React, {useEffect, useRef, useState, useSyncExternalStore} from 'react';
-import type {ReactNode} from 'react';
-import {View} from 'react-native';
 import useAriaHideSiblings from '@components/Overlay/hooks/useAriaHideSiblings';
 import useBodyScrollLock from '@components/Overlay/hooks/useBodyScrollLock';
 import useEscapeKeydown from '@components/Overlay/hooks/useEscapeKeydown';
 import {useIsModalCovering} from '@components/Overlay/hooks/useOverlaySelectors';
 import usePointerDownOutside from '@components/Overlay/hooks/usePointerDownOutside';
 import asHostElement from '@components/Overlay/libs/asHostElement';
-import dismissableLayerStore, {nextLayerMountId, pushDismissableLayer, selectTopLayer, selectTopLayerOfKind} from '@components/Overlay/libs/dismissableLayerStore';
+import dismissableLayerStore, {nextLayerMountId, pushDismissableLayer, selectTopLayer} from '@components/Overlay/libs/dismissableLayerStore';
 import type {DismissableLayerEntry, DismissableLayerKind} from '@components/Overlay/libs/dismissableLayerStore';
 import type {AnchorNode} from '@components/Overlay/libs/measureAnchor';
 import {PortalContext} from '@components/Overlay/PortalContext';
 import type {PortalContextValue} from '@components/Overlay/PortalContext';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Log from '@libs/Log';
+
+import type {ReactNode} from 'react';
+
+import React, {useEffect, useRef, useState, useSyncExternalStore} from 'react';
+import {View} from 'react-native';
+
 import type {DismissableLayerProps} from './types';
 
 function nodeContains(node: AnchorNode | null, target: Node): boolean {
@@ -34,11 +39,14 @@ function useLayerStack(kind: DismissableLayerKind, trackTopOfKind?: boolean): {i
     // Only ModalLayer consumes isTopOfKind, so floating layers skip the per-kind O(stack) scan entirely.
     const topOfKind = useSyncExternalStore(
         dismissableLayerStore.subscribe,
-        () => (trackTopOfKind ? selectTopLayerOfKind(dismissableLayerStore.getSnapshot(), kind) : null),
-        () => (trackTopOfKind ? selectTopLayerOfKind(dismissableLayerStore.getServerSnapshot(), kind) : null),
+        () => (trackTopOfKind ? selectTopLayer(dismissableLayerStore.getSnapshot(), kind) : null),
+        () => (trackTopOfKind ? selectTopLayer(dismissableLayerStore.getServerSnapshot(), kind) : null),
     );
     useEffect(() => pushDismissableLayer(entry), [entry]);
-    return {isTop: top === entry, isTopOfKind: trackTopOfKind === true && topOfKind === entry};
+    return {
+        isTop: top === entry,
+        isTopOfKind: trackTopOfKind === true && topOfKind === entry,
+    };
 }
 
 function useDismissableLayerWorker(
@@ -63,7 +71,9 @@ function useDismissableLayerWorker(
                 onEscapeKeyDown?.(event);
                 consumerVetoed = event.defaultPrevented;
             } catch (error) {
-                Log.alert('[DismissableLayer] onEscapeKeyDown consumer threw', {error: String(error)});
+                Log.alert('[DismissableLayer] onEscapeKeyDown consumer threw', {
+                    error: String(error),
+                });
             }
             // Topmost layer always consumes Esc — stops ancestors from reacting.
             event.preventDefault();
@@ -102,7 +112,9 @@ function useDismissableLayerWorker(
             try {
                 onPointerDownOutside?.(event);
             } catch (error) {
-                Log.alert('[DismissableLayer] onPointerDownOutside consumer threw', {error: String(error)});
+                Log.alert('[DismissableLayer] onPointerDownOutside consumer threw', {
+                    error: String(error),
+                });
             }
             if (event.defaultPrevented) {
                 return;
@@ -162,7 +174,10 @@ function ModalLayer(props: DismissableLayerProps) {
 function FloatingLayer(props: DismissableLayerProps) {
     const {isTop} = useLayerStack('floating');
     const isCovered = useIsModalCovering();
-    const {containerRef, portalContextValue} = useDismissableLayerWorker(props, {isEscapeActive: isTop && !isCovered, isPointerOutsideActive: isTop && !isCovered});
+    const {containerRef, portalContextValue} = useDismissableLayerWorker(props, {
+        isEscapeActive: isTop && !isCovered,
+        isPointerOutsideActive: isTop && !isCovered,
+    });
     return (
         <LayerHost
             containerRef={containerRef}

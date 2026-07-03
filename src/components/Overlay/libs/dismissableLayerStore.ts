@@ -59,20 +59,10 @@ function isHigher(a: DismissableLayerEntry, b: DismissableLayerEntry): boolean {
     return a.mountId > b.mountId;
 }
 
-function selectTopLayer(stack: readonly DismissableLayerEntry[]): DismissableLayerEntry | null {
+function selectTopLayer(stack: readonly DismissableLayerEntry[], kind?: DismissableLayerKind): DismissableLayerEntry | null {
     let best: DismissableLayerEntry | null = null;
     for (const entry of stack) {
-        if (best === null || isHigher(entry, best)) {
-            best = entry;
-        }
-    }
-    return best;
-}
-
-function selectTopLayerOfKind(stack: readonly DismissableLayerEntry[], kind: DismissableLayerKind): DismissableLayerEntry | null {
-    let best: DismissableLayerEntry | null = null;
-    for (const entry of stack) {
-        if (entry.kind !== kind) {
+        if (kind !== undefined && entry.kind !== kind) {
             continue;
         }
         if (best === null || isHigher(entry, best)) {
@@ -89,5 +79,5 @@ const dismissableLayerStore = {
 };
 
 export default dismissableLayerStore;
-export {pushDismissableLayer, nextLayerMountId, selectTopLayer, selectTopLayerOfKind};
+export {pushDismissableLayer, nextLayerMountId, selectTopLayer};
 export type {DismissableLayerEntry, DismissableLayerKind, EscapeBehavior};
