@@ -69,7 +69,16 @@ function resolveSuggestedFollowup(
     });
 
     if (!selectedFollowup.response) {
-        addComment({report, notifyReportID: notifyReportID ?? reportID, ancestors, text: selectedFollowup.text, timezoneParam, currentUserAccountID, delegateAccountID});
+        addComment({
+            report,
+            notifyReportID: notifyReportID ?? reportID,
+            ancestors,
+            text: selectedFollowup.text,
+            timezoneParam,
+            currentUserAccountID,
+            delegateAccountID,
+            conciergeReportID: undefined,
+        });
         return;
     }
 
@@ -91,6 +100,7 @@ function resolveSuggestedFollowup(
             pregeneratedResponse: selectedFollowup.response,
         },
         delegateAccountID,
+        conciergeReportID: undefined,
     });
 
     // Use the full delay as createdOffset so the Concierge response timestamp is

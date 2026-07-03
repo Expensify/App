@@ -47,6 +47,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
     const delegateAccountID = useDelegateAccountID();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [isDurationUnitModalVisible, setIsDurationUnitModalVisible] = useState(false);
     const [selectedDurationUnit, setSelectedDurationUnit] = useState<string>(CONST.CHRONOS.OOO_DURATION_UNITS.DAY);
     const ancestors = useAncestors(report);
@@ -115,6 +116,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
             shouldPlaySound: false,
             isInSidePanel,
             delegateAccountID,
+            conciergeReportID,
         });
 
         Navigation.goBack();

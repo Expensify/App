@@ -531,6 +531,7 @@ describe('actions/Duplicate', () => {
                     timezoneParam: CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: RORY_ACCOUNT_ID,
                     delegateAccountID: undefined,
+                    conciergeReportID: undefined,
                 });
                 await waitForBatchedUpdates();
             };

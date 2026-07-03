@@ -273,6 +273,7 @@ describe('actions/Report', () => {
                     timezoneParam: CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     delegateAccountID: undefined,
+                    conciergeReportID: undefined,
                 });
                 return waitForBatchedUpdates();
             })
@@ -517,6 +518,7 @@ describe('actions/Report', () => {
                     timezoneParam: CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     delegateAccountID: undefined,
+                    conciergeReportID: undefined,
                 });
 
                 // Then we should expect that there is on persisted request
@@ -648,6 +650,7 @@ describe('actions/Report', () => {
                     timezoneParam: CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: USER_1_ACCOUNT_ID,
                     delegateAccountID: undefined,
+                    conciergeReportID: undefined,
                 });
                 return waitForBatchedUpdates();
             })
@@ -668,6 +671,7 @@ describe('actions/Report', () => {
                     timezoneParam: CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: USER_1_ACCOUNT_ID,
                     delegateAccountID: undefined,
+                    conciergeReportID: undefined,
                 });
                 return waitForBatchedUpdates();
             })
@@ -687,6 +691,7 @@ describe('actions/Report', () => {
                     timezoneParam: CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: USER_1_ACCOUNT_ID,
                     delegateAccountID: undefined,
+                    conciergeReportID: undefined,
                 });
                 return waitForBatchedUpdates();
             })
@@ -987,6 +992,7 @@ describe('actions/Report', () => {
                     timezoneParam: CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     delegateAccountID: undefined,
+                    conciergeReportID: undefined,
                 });
                 return waitForBatchedUpdates();
             })
@@ -1125,6 +1131,7 @@ describe('actions/Report', () => {
                     timezoneParam: CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     delegateAccountID: undefined,
+                    conciergeReportID: undefined,
                 });
                 return waitForBatchedUpdates();
             })
@@ -1373,6 +1380,7 @@ describe('actions/Report', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: TEST_USER_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         // Need the reportActionID to delete the comments
@@ -1458,6 +1466,7 @@ describe('actions/Report', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: TEST_USER_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         const reportActionID = PersistedRequests.getAll().at(0)?.data?.reportActionID as string | undefined;
@@ -1505,6 +1514,7 @@ describe('actions/Report', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: TEST_USER_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -1578,6 +1588,7 @@ describe('actions/Report', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: TEST_USER_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForNetworkPromises();
 
@@ -1633,7 +1644,15 @@ describe('actions/Report', () => {
 
         const file = new File([''], 'test.txt', {type: 'text/plain'});
         const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
-        Report.addAttachmentWithComment({report: REPORT, notifyReportID: REPORT_ID, ancestors: [], attachments: file, currentUserAccountID: 1, delegateAccountID: undefined});
+        Report.addAttachmentWithComment({
+            report: REPORT,
+            notifyReportID: REPORT_ID,
+            ancestors: [],
+            attachments: file,
+            currentUserAccountID: 1,
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+        });
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1716,6 +1735,7 @@ describe('actions/Report', () => {
             currentUserAccountID: 1,
             text: 'Attachment with comment',
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         // Need the reportActionID to delete the comments
@@ -1815,6 +1835,7 @@ describe('actions/Report', () => {
             timezone: CONST.DEFAULT_TIME_ZONE,
             shouldPlaySound,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         const relevant = (await relevantPromise) as OnyxTypes.AnyRequest[];
 
@@ -1863,6 +1884,7 @@ describe('actions/Report', () => {
             timezone: CONST.DEFAULT_TIME_ZONE,
             shouldPlaySound,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         const relevant = (await relevantPromise) as OnyxTypes.AnyRequest[];
 
@@ -1901,7 +1923,15 @@ describe('actions/Report', () => {
         const file = new File(['a'], 'a.txt', {type: 'text/plain'});
 
         const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
-        Report.addAttachmentWithComment({report: REPORT, notifyReportID: REPORT_ID, ancestors: [], attachments: file, currentUserAccountID: 1, delegateAccountID: undefined});
+        Report.addAttachmentWithComment({
+            report: REPORT,
+            notifyReportID: REPORT_ID,
+            ancestors: [],
+            attachments: file,
+            currentUserAccountID: 1,
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+        });
         const relevant = (await relevantPromise) as OnyxTypes.AnyRequest[];
 
         expect(playSoundMock).toHaveBeenCalledTimes(0);
@@ -2078,6 +2108,7 @@ describe('actions/Report', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: TEST_USER_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         // Need the reportActionID to delete the comments
@@ -2186,6 +2217,7 @@ describe('actions/Report', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: TEST_USER_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         // Need the reportActionID to delete the comments — read before the queue processes the request
@@ -2275,6 +2307,7 @@ describe('actions/Report', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: TEST_USER_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         const newComment = PersistedRequests.getAll().at(0);
@@ -2337,6 +2370,7 @@ describe('actions/Report', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: TEST_USER_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -2433,6 +2467,7 @@ describe('actions/Report', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: TEST_USER_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         // Get the reportActionID to edit and delete the comment
@@ -7866,6 +7901,7 @@ describe('actions/Report', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
             await waitForBatchedUpdates();
 
