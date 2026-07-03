@@ -5,6 +5,7 @@
  * dependencies into a single executable node.js script per action.
  */
 import {build} from 'esbuild';
+import {readFile, writeFile} from 'fs/promises';
 import path from 'path';
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
@@ -63,8 +64,8 @@ async function buildAction(actionPath: string): Promise<void> {
         logLevel: 'silent',
     });
 
-    const bundled = await Bun.file(outfile).text();
-    await Bun.write(outfile, NOTE_DONT_EDIT + bundled);
+    const bundled = await readFile(outfile, 'utf8');
+    await writeFile(outfile, NOTE_DONT_EDIT + bundled);
 }
 
 async function main() {
