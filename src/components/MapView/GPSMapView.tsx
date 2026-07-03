@@ -1,26 +1,32 @@
-import {useFocusEffect} from '@react-navigation/native';
-import type {MapState} from '@rnmapbox/maps';
-import Mapbox, {MarkerView} from '@rnmapbox/maps';
-import {getForegroundPermissionsAsync, requestForegroundPermissionsAsync} from 'expo-location';
-import {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
-import {useSharedValue} from 'react-native-reanimated';
 import Button from '@components/Button';
 import ImageSVG from '@components/ImageSVG';
+
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {MapState} from '@rnmapbox/maps';
+
+import {useFocusEffect} from '@react-navigation/native';
+import Mapbox, {MarkerView} from '@rnmapbox/maps';
+import {getForegroundPermissionsAsync, requestForegroundPermissionsAsync} from 'expo-location';
+import {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+import {useSharedValue} from 'react-native-reanimated';
+
+import type {GPSMapViewProps} from './MapViewTypes';
+
 import Compass from './Compass';
 import GPSDirection from './GPSDirection';
 import GPSWaypointLayer from './GPSWaypointLayer';
 import LOCATION_PUCK_LAYER_ID from './locationPuckLayerId';
-import type {GPSMapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
 import useAccessToken from './useAccessToken';

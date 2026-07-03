@@ -1,12 +1,10 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import CollapsibleSection from '@components/CollapsibleSection';
 import ConnectToHRFlow from '@components/ConnectToHRFlow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useHRSyncResultsModal from '@hooks/useHRSyncResultsModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -21,17 +19,27 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+
 import {openPolicyHRPage} from '@libs/actions/PolicyConnections';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import HRProviderCard from './HRProviderCard';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+
 import type {HRCardDescriptor} from './utils';
+
+import HRProviderCard from './HRProviderCard';
 import {getHRCards} from './utils';
 
 type WorkspaceHRPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.HR>;
@@ -87,12 +95,17 @@ function WorkspaceHRPage({
 
     const {canWrite: canWriteMoreFeatures, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
 
-    const handleConnect = (setupLink: string | undefined) => {
-        if (!setupLink) {
+    const handleConnect = (card: HRCardDescriptor) => {
+        if (!card.setupLink) {
             return;
         }
 
-        if (connectedCards.length > 0) {
+        if (!canWriteMoreFeatures) {
+            showReadOnlyModal();
+            return;
+        }
+
+        if (!card.isConnected && connectedCards.length > 0) {
             showConfirmModal({
                 title: translate('workspace.hr.alreadyConnectedTitle'),
                 prompt: translate('workspace.hr.alreadyConnectedPrompt'),
@@ -104,7 +117,7 @@ function WorkspaceHRPage({
         }
 
         // eslint-disable-next-line react-hooks/purity -- random key forces remount on every press, even for the same provider
-        setActiveHRFlow({setupLink, key: Math.random()});
+        setActiveHRFlow({setupLink: card.setupLink, key: Math.random()});
     };
 
     return (
@@ -151,7 +164,7 @@ function WorkspaceHRPage({
                                         key={card.key}
                                         card={card}
                                         policy={policy}
-                                        handleConnect={() => handleConnect(card.setupLink)}
+                                        handleConnect={() => handleConnect(card)}
                                         canWriteMoreFeatures={canWriteMoreFeatures}
                                         showReadOnlyModal={showReadOnlyModal}
                                     />
@@ -162,7 +175,7 @@ function WorkspaceHRPage({
                                             key={card.key}
                                             card={card}
                                             policy={policy}
-                                            handleConnect={() => handleConnect(card.setupLink)}
+                                            handleConnect={() => handleConnect(card)}
                                             canWriteMoreFeatures={canWriteMoreFeatures}
                                             showReadOnlyModal={showReadOnlyModal}
                                         />
@@ -181,7 +194,7 @@ function WorkspaceHRPage({
                                             key={card.key}
                                             card={card}
                                             policy={policy}
-                                            handleConnect={() => handleConnect(card.setupLink)}
+                                            handleConnect={() => handleConnect(card)}
                                             canWriteMoreFeatures={canWriteMoreFeatures}
                                             showReadOnlyModal={showReadOnlyModal}
                                         />

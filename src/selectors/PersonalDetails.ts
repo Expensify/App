@@ -1,8 +1,17 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import {getDisplayNameOrDefault, getLoginByAccountID, getPersonalDetailsByID, getPersonalDetailsListByIDs, newGetPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import {
+    getDisplayNameOrDefault,
+    getLoginByAccountID,
+    getLoginsByAccountIDs,
+    getPersonalDetailsByID,
+    getPersonalDetailsListByIDs,
+    newGetPersonalDetailsByIDs,
+} from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
 import type {PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 const personalDetailsSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getPersonalDetailsByID(accountID, personalDetailsList);
 
@@ -12,6 +21,8 @@ const personalDetailsListSelector = (accountIDs: Array<number | undefined> | und
     getPersonalDetailsListByIDs(accountIDs, personalDetailsList);
 
 const personalDetailsLoginSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginByAccountID(accountID, personalDetailsList);
+
+const personalDetailsLoginsSelector = (accountIDs: number[] | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginsByAccountIDs(accountIDs, personalDetailsList);
 
 const personalDetailsDisplayNameSelector = (accountID: number) => (personalDetails: OnyxEntry<PersonalDetailsList>) => getDisplayNameOrDefault(personalDetails?.[accountID]);
 
@@ -72,6 +83,7 @@ export {
     personalDetailsListSelector,
     personalDetailsDisplayNameSelector,
     personalDetailsLoginSelector,
+    personalDetailsLoginsSelector,
     conciergePersonalDetailSelector,
     doesPersonalDetailExistSelector,
     accountIDToLoginSelector,

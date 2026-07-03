@@ -1,19 +1,26 @@
-import React, {useMemo, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
 import {getButtonRole} from '@components/Button/utils';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import HapticFeedback from '@libs/HapticFeedback';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
-import {ButtonContext} from './context';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import React, {useMemo, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import type {ButtonProps} from './types';
+
+import {ButtonContext} from './context';
 
 function Button({
     children,

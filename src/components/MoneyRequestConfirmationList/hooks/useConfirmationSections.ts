@@ -1,12 +1,16 @@
-import type {ReactElement} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+
 import useLocalize from '@hooks/useLocalize';
+
 import {getIOUConfirmationOptionsFromPayeePersonalDetail} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
+
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+
+import type {ReactElement} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 
 type MoneyRequestConfirmationListItem = (Participant & {keyForList: string}) | OptionData;
 
