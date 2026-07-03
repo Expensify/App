@@ -1,14 +1,17 @@
-import React from 'react';
-import type {ReactNode} from 'react';
-import {FlatList, View} from 'react-native';
-import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import {useTableContext} from '@components/Table/TableContext';
-import useLocalize from '@hooks/useLocalize';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import buildFilterItems from './buildFilterItems';
+
+import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {FilterButtonItem} from './buildFilterItems';
+
+import buildFilterItems from './buildFilterItems';
 
 /**
  * Props for the TableFilterButtons component.
@@ -67,8 +70,6 @@ type TableFilterButtonsProps = ViewProps & {
  * ```
  */
 function TableFilterButtons({contentContainerStyle, ...props}: TableFilterButtonsProps) {
-    const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const {
         filterConfig: filterConfigs,
         activeFilters: filters,
@@ -79,7 +80,7 @@ function TableFilterButtons({contentContainerStyle, ...props}: TableFilterButton
         updateFilter({key, value});
     };
 
-    const filterItems = buildFilterItems(filterConfigs, filters, setFilter, translate('search.filtersHeader'));
+    const filterItems = buildFilterItems(filterConfigs, filters, setFilter);
 
     if (filterItems.length === 0) {
         return null;
@@ -87,15 +88,12 @@ function TableFilterButtons({contentContainerStyle, ...props}: TableFilterButton
 
     return (
         <View {...props}>
-            <FlatList
-                horizontal
-                data={filterItems}
-                keyExtractor={(item) => item.key}
-                renderItem={({item}) => <FilterItemRenderer item={item} />}
-                contentContainerStyle={[styles.flexRow, styles.gap2, styles.w100, contentContainerStyle]}
-                showsHorizontalScrollIndicator={false}
-                CellRendererComponent={CellRendererComponent}
-            />
+            {filterItems.map((item) => (
+                <FilterItemRenderer
+                    key={item.key}
+                    item={item}
+                />
+            ))}
         </View>
     );
 }
@@ -115,6 +113,7 @@ function FilterItemRenderer({item}: FilterItemRendererProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldShowResponsiveLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+
     return (
         <DropdownButton
             label={item.label}
@@ -126,23 +125,6 @@ function FilterItemRenderer({item}: FilterItemRendererProps) {
             caretWrapperStyle={styles.gap2}
             medium
         />
-    );
-}
-
-/**
- * Custom cell renderer for responsive layout adjustments.
- */
-function CellRendererComponent({children, style, ...props}: {children: ReactNode; style: StyleProp<ViewStyle>}) {
-    const styles = useThemeStyles();
-    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const shouldShowResponsiveLayout = shouldUseNarrowLayout || isMediumScreenWidth;
-    return (
-        <View
-            {...props}
-            style={[style, shouldShowResponsiveLayout && styles.flex1]}
-        >
-            {children}
-        </View>
     );
 }
 

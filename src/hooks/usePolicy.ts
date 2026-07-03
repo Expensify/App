@@ -1,13 +1,8 @@
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import useOnyx from './useOnyx';
+import {getPolicyIDOrDefault} from '@libs/PolicyUtils';
 
-function getPolicyIDOrDefault(policyID?: string) {
-    if (!policyID || policyID === CONST.POLICY.OWNER_EMAIL_FAKE) {
-        return '-1';
-    }
-    return policyID;
-}
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import useOnyx from './useOnyx';
 
 function usePolicy(policyID?: string) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDOrDefault(policyID)}`);

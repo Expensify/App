@@ -1,22 +1,44 @@
-import {PixelRatio, Dimensions as RNDimensions, StyleSheet} from 'react-native';
+import type ImageSVGProps from '@components/ImageSVG/types';
+
+import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/letterAvatarPalette';
+import {isMobile, isMobileChrome} from '@libs/Browser';
+import getPlatform from '@libs/getPlatform';
+import {hashText} from '@libs/UserUtils';
+
+import colors from '@styles/theme/colors';
+import type {ThemeColors} from '@styles/theme/types';
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+import type {Transaction} from '@src/types/onyx';
+import type {Dimensions} from '@src/types/utils/Layout';
+import type Nullable from '@src/types/utils/Nullable';
+
 // eslint-disable-next-line no-restricted-imports
 import type {AnimatableNumericValue, Animated, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
-import type ImageSVGProps from '@components/ImageSVG/types';
-import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/letterAvatarPalette';
-import {isMobile, isMobileChrome} from '@libs/Browser';
-import getPlatform from '@libs/getPlatform';
-import {hashText} from '@libs/UserUtils';
-import colors from '@styles/theme/colors';
-import type {ThemeColors} from '@styles/theme/types';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
-import type {Transaction} from '@src/types/onyx';
-import type {Dimensions} from '@src/types/utils/Layout';
-import type Nullable from '@src/types/utils/Nullable';
+
+import {PixelRatio, Dimensions as RNDimensions, StyleSheet} from 'react-native';
+
 import type {ThemeStyles} from '..';
+import type {
+    AllStyles,
+    AvatarSize,
+    AvatarSizeName,
+    AvatarSizeValue,
+    AvatarStyle,
+    ButtonSizeValue,
+    ButtonStateName,
+    ButtonVariantStyles,
+    EReceiptColorName,
+    EreceiptColorStyle,
+    ParsableStyle,
+    SVGAvatarColorStyle,
+    TextColorStyle,
+} from './types';
+
 import shouldPreventScrollOnAutoCompleteSuggestion from './autoCompleteSuggestion';
 import getCardStyles from './cardStyles';
 import containerComposeStyles from './containerComposeStyles';
@@ -36,21 +58,6 @@ import positioning from './positioning';
 import searchHeaderDefaultOffset from './searchHeaderDefaultOffset';
 import getSearchPageNarrowHeaderStyles from './searchPageNarrowHeaderStyles';
 import splitPercentageInputStyles from './splitPercentageInputStyles';
-import type {
-    AllStyles,
-    AvatarSize,
-    AvatarSizeName,
-    AvatarSizeValue,
-    AvatarStyle,
-    ButtonSizeValue,
-    ButtonStateName,
-    ButtonVariantStyles,
-    EReceiptColorName,
-    EreceiptColorStyle,
-    ParsableStyle,
-    SVGAvatarColorStyle,
-    TextColorStyle,
-} from './types';
 
 type GetReportTableColumnStylesParams = {
     isDateColumnWide?: boolean;
@@ -1956,6 +1963,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {...getWidthStyle(variables.w92)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE:
+            case CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE:
                 columnWidth = {...getWidthStyle(variables.w130), ...styles.flex1};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
@@ -1978,6 +1986,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.FEED:
             case CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT:
             case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
+            case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID:
+            case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID:
+            case CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS:
             case CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME:
             case CONST.SEARCH.TABLE_COLUMNS.CARD:
             case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:

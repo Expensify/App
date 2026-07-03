@@ -1,8 +1,11 @@
-import {useCallback, useEffect, useRef} from 'react';
 import {containsOnlyEmojis, convertEmojiShortcodesToUnicode} from '@libs/EmojiUtils';
 import {isStandaloneURL, toMarkdownLink} from '@libs/MarkdownLinkHelpers';
 import Parser from '@libs/Parser';
+
 import CONST from '@src/CONST';
+
+import {useCallback, useEffect, useRef} from 'react';
+
 import type UseHtmlPaste from './types';
 
 const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: number) => {
