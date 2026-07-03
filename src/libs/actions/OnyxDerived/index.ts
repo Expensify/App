@@ -6,8 +6,10 @@
  * The primary purpose is to optimize performance by reducing redundant computations. More info can be found in the README.
  */
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import OnyxKeys from 'react-native-onyx/dist/OnyxKeys';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import getCollectionDelta from '@libs/getCollectionDelta';
 import Log from '@libs/Log';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
@@ -65,7 +67,12 @@ function init() {
             // next macrotask. setTimeout(0), not queueMicrotask: Onyx spreads an update's broadcasts
             // across microtasks, so a microtask flush would split the batch.
             let flushScheduled = false;
-            let pendingSourceValues: Record<string, unknown> | undefined;
+            // Dependency indexes that fired since the last flush; their deltas are reconstructed at flush time.
+            const pendingDependencyIndexes = new Set<number>();
+            // Snapshot of each collection dependency captured at the last flush. We diff the current snapshot
+            // against it to reconstruct the changed-member delta, instead of relying on Onyx's sourceValue.
+            const lastFlushedCollectionValues = new Array<OnyxCollection<unknown>>(totalConnections);
+            let hasFlushedOnce = false;
 
             const runCompute = (sourceValues: Record<string, unknown> | undefined) => {
                 context.currentValue = derivedValue;
@@ -90,32 +97,56 @@ function init() {
                 }
             };
 
+            // dependencyValues is a heterogeneous tuple typed to compute's params; reading a collection entry
+            // by runtime index yields a union, so we narrow it back to a collection in one place.
+            const readCollectionDependency = (index: number) => dependencyValues[index] as OnyxCollection<unknown>;
+
             const flushRecompute = () => {
                 flushScheduled = false;
-                const sourceValues = pendingSourceValues;
-                pendingSourceValues = undefined;
+
+                // Reconstruct the source values at flush time by diffing each dependency that fired since the
+                // last flush against its last-flushed snapshot. On the very first flush we have no baselines, so
+                // we compute from scratch (undefined sourceValues) and capture snapshots for future diffs.
+                let sourceValues: Record<string, unknown> | undefined;
+                if (hasFlushedOnce) {
+                    for (const index of pendingDependencyIndexes) {
+                        const dependencyOnyxKey = dependencies[index];
+                        if (OnyxKeys.isCollectionKey(dependencyOnyxKey)) {
+                            const currentValue = readCollectionDependency(index);
+                            // Structural sharing keeps unchanged members reference-equal, so this is a cheap scan.
+                            const delta = getCollectionDelta<unknown>(currentValue, lastFlushedCollectionValues.at(index));
+                            lastFlushedCollectionValues[index] = currentValue;
+                            if (delta !== undefined) {
+                                sourceValues ??= {};
+                                sourceValues[dependencyOnyxKey] = delta;
+                            }
+                        } else {
+                            // Non-collection dependency: pass the entire value as the source value. A cleared value
+                            // carries no incremental delta (the compute reads it live), so skip it.
+                            const value = dependencyValues[index];
+                            if (value !== undefined) {
+                                sourceValues ??= {};
+                                sourceValues[dependencyOnyxKey] = value;
+                            }
+                        }
+                    }
+                } else {
+                    // Capture baselines for every collection dependency so the next flush can diff against them.
+                    for (let index = 0; index < totalConnections; index++) {
+                        if (OnyxKeys.isCollectionKey(dependencies[index])) {
+                            lastFlushedCollectionValues[index] = readCollectionDependency(index);
+                        }
+                    }
+                    hasFlushedOnce = true;
+                }
+
+                pendingDependencyIndexes.clear();
                 runCompute(sourceValues);
             };
 
-            const accumulateSourceValue = (sourceKey?: string, sourceValue?: unknown) => {
-                // A trigger with no partial value (e.g. a cleared scalar dep) carries no incremental delta —
-                // the compute reads such state live. Skip it; the flush still runs.
-                if (sourceKey === undefined || sourceValue === undefined) {
-                    return;
-                }
-                pendingSourceValues ??= {};
-                const existing = pendingSourceValues[sourceKey];
-                // Collection sourceValues are partial — merge members so a window doesn't drop changed keys.
-                if (existing && typeof existing === 'object' && typeof sourceValue === 'object') {
-                    pendingSourceValues[sourceKey] = {...existing, ...sourceValue};
-                } else {
-                    pendingSourceValues[sourceKey] = sourceValue;
-                }
-            };
-
-            const recomputeDerivedValue = (sourceKey?: string, sourceValue?: unknown, triggeredByIndex?: number) => {
+            const recomputeDerivedValue = (triggeredByIndex: number) => {
                 // If this recompute was triggered by a connection callback, check if it initializes the connection
-                if (!areAllConnectionsSet && triggeredByIndex !== undefined) {
+                if (!areAllConnectionsSet) {
                     checkAndMarkConnectionInitialized(triggeredByIndex);
                 }
 
@@ -128,7 +159,7 @@ function init() {
                     return;
                 }
 
-                accumulateSourceValue(sourceKey, sourceValue);
+                pendingDependencyIndexes.add(triggeredByIndex);
                 if (flushScheduled) {
                     return;
                 }
@@ -144,10 +175,10 @@ function init() {
                     Onyx.connectWithoutView({
                         key: dependencyOnyxKey,
                         waitForCollectionCallback: true,
-                        callback: (value, collectionKey, sourceValue) => {
+                        callback: (value, collectionKey) => {
                             Log.info(`[OnyxDerived] dependency ${collectionKey} for derived key ${key} changed, recomputing`);
                             setDependencyValue(dependencyIndex, value as Parameters<typeof compute>[0][typeof dependencyIndex]);
-                            recomputeDerivedValue(dependencyOnyxKey, sourceValue, dependencyIndex);
+                            recomputeDerivedValue(dependencyIndex);
                         },
                     });
                 } else if (dependencyOnyxKey === ONYXKEYS.NVP_PREFERRED_LOCALE) {
@@ -167,7 +198,7 @@ function init() {
                             }
                             Log.info(`[OnyxDerived] dependency ${dependencyOnyxKey} for derived key ${key} changed, recomputing`);
                             setDependencyValue(dependencyIndex, localeValue as Parameters<typeof compute>[0][typeof dependencyIndex]);
-                            recomputeDerivedValue(dependencyOnyxKey, localeValue, dependencyIndex);
+                            recomputeDerivedValue(dependencyIndex);
                         },
                     });
                 } else {
@@ -176,8 +207,7 @@ function init() {
                         callback: (value) => {
                             Log.info(`[OnyxDerived] dependency ${dependencyOnyxKey} for derived key ${key} changed, recomputing`);
                             setDependencyValue(dependencyIndex, value as Parameters<typeof compute>[0][typeof dependencyIndex]);
-                            // if the dependency is not a collection, pass the entire value as the source value
-                            recomputeDerivedValue(dependencyOnyxKey, value, dependencyIndex);
+                            recomputeDerivedValue(dependencyIndex);
                         },
                     });
                 }
