@@ -1,38 +1,49 @@
-import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
-import type {PropsWithChildren} from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import type {FilterConfig, FilteringMethods, IsItemInFilterCallback} from './middlewares/filtering';
-import type {HighlightingMethods} from './middlewares/highlight';
-import type {IsItemInSearchCallback, SearchingMethods} from './middlewares/searching';
-import type {SelectionMethods} from './middlewares/selection';
-import type {CompareItemsCallback, SortingMethods} from './middlewares/sorting';
+import type { FlashListProps, FlashListRef } from "@shopify/flash-list";
+import type { PropsWithChildren } from "react";
+import type { StyleProp, TextStyle, ViewStyle } from "react-native";
+
+import type {
+  FilterConfig,
+  FilteringMethods,
+  IsItemInFilterCallback,
+} from "./middlewares/filtering";
+import type { HighlightingMethods } from "./middlewares/highlight";
+import type {
+  IsItemInSearchCallback,
+  SearchingMethods,
+} from "./middlewares/searching";
+import type { SelectionMethods } from "./middlewares/selection";
+import type {
+  CompareItemsCallback,
+  SortingMethods,
+} from "./middlewares/sorting";
 
 /**
  * Defines the required minimum shape for each row of data in the table
  */
 type TableData = {
-    /** A unique identifier for the row */
-    keyForList: string;
+  /** A unique identifier for the row */
+  keyForList: string;
 
-    /** Whether or not the row is disabled. Prevents clicking the row & renders it with disabled styles. */
-    disabled?: boolean;
+  /** Whether or not the row is disabled. Prevents clicking the row & renders it with disabled styles. */
+  disabled?: boolean;
 
-    /** Optionally disable a specific row from selection, when selection is enabled */
-    isSelectionDisabled?: boolean;
+  /** Optionally disable a specific row from selection, when selection is enabled */
+  isSelectionDisabled?: boolean;
 };
 
 /**
  * Styling options for a table column.
  */
 type TableColumnStyling = {
-    /** Optional flex value to control the column's width relative to other columns. */
-    flex?: number;
+  /** Optional flex value to control the column's width relative to other columns. */
+  flex?: number;
 
-    /** Optional custom styles for the column container. */
-    containerStyles?: StyleProp<ViewStyle>;
+  /** Optional custom styles for the column container. */
+  containerStyles?: StyleProp<ViewStyle>;
 
-    /** Optional custom styles for the column header label. */
-    labelStyles?: StyleProp<TextStyle>;
+  /** Optional custom styles for the column header label. */
+  labelStyles?: StyleProp<TextStyle>;
 };
 
 /**
@@ -41,28 +52,37 @@ type TableColumnStyling = {
  * @template ColumnKey - A string literal type representing the valid column keys.
  */
 type TableColumn<ColumnKey extends string = string> = {
-    /** Unique identifier for the column, used for sorting and data binding. */
-    key: ColumnKey;
+  /** Unique identifier for the column, used for sorting and data binding. */
+  key: ColumnKey;
 
-    /** Display label shown in the table header. */
-    label: string;
+  /** Display label shown in the table header. */
+  label: string;
 
-    /** Whether the column is sortable or not */
-    sortable: boolean;
+  /** Whether the column is sortable or not */
+  sortable: boolean;
 
-    /** Optional fixed width for the column */
-    width?: number | string;
+  /** Optional fixed width for the column */
+  width?: number | string;
 
-    /** Optional styling configuration for the column. */
-    styling?: TableColumnStyling;
+  /** Optional styling configuration for the column. */
+  styling?: TableColumnStyling;
 };
 
 type TableRow<DataType extends TableData> = DataType & {
-    /** Whether or not the row is selected or not */
-    selected?: boolean;
+  /** Whether or not the row is selected or not */
+  selected?: boolean;
 
-    /** Whether or not the row should animate in highlighted */
-    shouldAnimateInHighlight?: boolean;
+  /** Whether or not the row should animate in highlighted */
+  shouldAnimateInHighlight?: boolean;
+};
+
+/**
+ * Props passed to table row render callbacks.
+ */
+type TableRenderRowProps<TItem extends TableData> = {
+  item: TItem;
+  rowIndex: number;
+  shouldUseNarrowTableLayout: boolean;
 };
 
 /**
@@ -72,11 +92,14 @@ type TableRow<DataType extends TableData> = DataType & {
  * @template ColumnKey - A string literal type representing the valid column keys.
  * @template FilterKey - A string literal type representing the valid filter keys.
  */
-type TableMethods<ColumnKey extends string = string, FilterKey extends string = string> = SortingMethods<ColumnKey> &
-    FilteringMethods<FilterKey> &
-    SearchingMethods &
-    SelectionMethods &
-    HighlightingMethods;
+type TableMethods<
+  ColumnKey extends string = string,
+  FilterKey extends string = string,
+> = SortingMethods<ColumnKey> &
+  FilteringMethods<FilterKey> &
+  SearchingMethods &
+  SelectionMethods &
+  HighlightingMethods;
 
 /**
  * The ref handle type for the Table component.
@@ -86,18 +109,25 @@ type TableMethods<ColumnKey extends string = string, FilterKey extends string = 
  * @template ColumnKey - A string literal type representing the valid column keys.
  * @template FilterKey - A string literal type representing the valid filter keys.
  */
-type TableHandle<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string> = FlashListRef<DataType> &
-    TableMethods<ColumnKey, FilterKey> & {
-        /** Method to get all of the processed data after filtering, searching, and sorting have been applied. */
-        getProcessedData: () => Array<TableRow<DataType>>;
-    };
+type TableHandle<
+  DataType extends TableData,
+  ColumnKey extends string = string,
+  FilterKey extends string = string,
+> = FlashListRef<DataType> &
+  TableMethods<ColumnKey, FilterKey> & {
+    /** Method to get all of the processed data after filtering, searching, and sorting have been applied. */
+    getProcessedData: () => Array<TableRow<DataType>>;
+  };
 
 /**
  * FlashList props with the 'data' prop omitted, as the Table manages data internally.
  *
  * @template DataType - The type of items in the table's data array.
  */
-type SharedListProps<DataType extends TableData> = Omit<FlashListProps<DataType>, 'data'>;
+type SharedListProps<DataType extends TableData> = Omit<
+  FlashListProps<DataType>,
+  "data"
+>;
 
 /**
  * Props for the Table component.
@@ -126,62 +156,87 @@ type SharedListProps<DataType extends TableData> = Omit<FlashListProps<DataType>
  * </Table>
  * ```
  */
-type TableProps<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string> = SharedListProps<DataType> &
-    PropsWithChildren<{
-        /** The title for the table when shown on smaller screens */
-        title?: string;
+type TableProps<
+  DataType extends TableData,
+  ColumnKey extends string = string,
+  FilterKey extends string = string,
+> = SharedListProps<DataType> &
+  PropsWithChildren<{
+    /** The title for the table when shown on smaller screens */
+    title?: string;
 
-        /** Array of data items to display in the table. */
-        data: DataType[] | undefined;
+    /** Array of data items to display in the table. */
+    data: DataType[] | undefined;
 
-        /** Whether multi selection is enabled */
-        selectionEnabled?: boolean;
+    /** Whether multi selection is enabled */
+    selectionEnabled?: boolean;
 
-        /** Column configuration defining what columns to display and how. */
-        columns: Array<TableColumn<ColumnKey>>;
+    /**
+     * Whether the selection UX (checkboxes / long-press selection mode) should be driven by the real screen size
+     * (isSmallScreenWidth) instead of shouldUseNarrowLayout. Set this for tables rendered inside a narrow pane modal
+     * (RHP), where shouldUseNarrowLayout is always true and would otherwise suppress selection entirely. Defaults to
+     * false so central-pane tables keep their existing behavior.
+     */
+    shouldEnableSelectionInNarrowPaneModal?: boolean;
 
-        /** Optional filter configuration for dropdown filters. */
-        filters?: FilterConfig<FilterKey>;
+    /** Column configuration defining what columns to display and how. */
+    columns: Array<TableColumn<ColumnKey>>;
 
-        /** Optional initial filter values to apply on mount. */
-        initialFilters?: FilterKey[];
+    /** Optional filter configuration for dropdown filters. */
+    filters?: FilterConfig<FilterKey>;
 
-        /** Optional initial column to sort by on mount. */
-        initialSortColumn?: ColumnKey;
+    /** Optional initial filter values to apply on mount. */
+    initialFilters?: FilterKey[];
 
-        /** Optional column to force-sort by when the table switches to narrow layout. The wide-layout sorting is restored when leaving narrow layout. */
-        narrowLayoutSortColumn?: ColumnKey;
+    /** Optional initial column to sort by on mount. */
+    initialSortColumn?: ColumnKey;
 
-        /** Optional initial search string to apply on mount. */
-        initialSearchString?: string;
+    /** Optional column to force-sort by when the table switches to narrow layout. The wide-layout sorting is restored when leaving narrow layout. */
+    narrowLayoutSortColumn?: ColumnKey;
 
-        /** The list of selected keys for the table, if selection is enabled */
-        selectedKeys?: string[];
+    /** Optional initial search string to apply on mount. */
+    initialSearchString?: string;
 
-        /**
-         * Comparison function for sorting items.
-         * Receives two items and the current sorting configuration, returns a number
-         * indicating sort order (negative = a before b, positive = b before a, 0 = equal).
-         */
-        compareItems?: CompareItemsCallback<DataType, ColumnKey>;
+    /** The list of selected keys for the table, if selection is enabled */
+    selectedKeys?: string[];
 
-        /**
-         * Predicate function to determine if an item matches the active filters.
-         * Receives an item and an array of active filter values.
-         */
-        isItemInFilter?: IsItemInFilterCallback<DataType>;
+    /**
+     * Comparison function for sorting items.
+     * Receives two items and the current sorting configuration, returns a number
+     * indicating sort order (negative = a before b, positive = b before a, 0 = equal).
+     */
+    compareItems?: CompareItemsCallback<DataType, ColumnKey>;
 
-        /**
-         * Predicate function to determine if an item matches the search string.
-         * Receives an item and the current search string.
-         */
-        isItemInSearch?: IsItemInSearchCallback<DataType>;
+    /**
+     * Predicate function to determine if an item matches the active filters.
+     * Receives an item and an array of active filter values.
+     */
+    isItemInFilter?: IsItemInFilterCallback<DataType>;
 
-        /** Ref to access table methods programmatically. */
-        ref?: React.Ref<TableHandle<DataType, ColumnKey, FilterKey>>;
+    /**
+     * Predicate function to determine if an item matches the search string.
+     * Receives an item and the current search string.
+     */
+    isItemInSearch?: IsItemInSearchCallback<DataType>;
 
-        /** Callback when an option is selected */
-        onRowSelectionChange?: (selectedRowKeys: string[]) => void;
-    }>;
+    /** Ref to access table methods programmatically. */
+    ref?: React.Ref<TableHandle<DataType, ColumnKey, FilterKey>>;
 
-export type {TableData, TableRow, TableColumn, TableMethods, TableHandle, TableProps, SharedListProps, CompareItemsCallback, IsItemInFilterCallback, IsItemInSearchCallback, FilterConfig};
+    /** Callback when an option is selected */
+    onRowSelectionChange?: (selectedRowKeys: string[]) => void;
+  }>;
+
+export type {
+  TableData,
+  TableRow,
+  TableColumn,
+  TableRenderRowProps,
+  TableMethods,
+  TableHandle,
+  TableProps,
+  SharedListProps,
+  CompareItemsCallback,
+  IsItemInFilterCallback,
+  IsItemInSearchCallback,
+  FilterConfig,
+};

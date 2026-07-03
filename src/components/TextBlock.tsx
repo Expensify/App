@@ -1,9 +1,11 @@
+import type {StyleProp, TextStyle} from 'react-native';
+
 /**
  * TextBlock component splits a given text into individual words and displays
  * each word within a Text component.
  */
 import React, {memo, useMemo} from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
+
 import Text from './Text';
 
 type TextBlockProps = {
