@@ -1,6 +1,8 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import React from 'react';
 import {View} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
+
 import Badge from './Badge';
 import Tooltip from './Tooltip';
 

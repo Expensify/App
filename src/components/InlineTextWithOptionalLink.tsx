@@ -1,6 +1,8 @@
 import type {KeyboardEvent} from 'react';
-import React from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle} from 'react-native';
+
+import React from 'react';
+
 import Text from './Text';
 import TextLink from './TextLink';
 

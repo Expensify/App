@@ -1,11 +1,14 @@
-import type {KeyboardEvent as ReactKeyboardEvent} from 'react';
-import React from 'react';
-import type {GestureResponderEvent} from 'react-native';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {KeyboardEvent as ReactKeyboardEvent} from 'react';
+import type {GestureResponderEvent} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Button from './Button';
 import Icon from './Icon';
 import InlineTextWithOptionalLink from './InlineTextWithOptionalLink';
