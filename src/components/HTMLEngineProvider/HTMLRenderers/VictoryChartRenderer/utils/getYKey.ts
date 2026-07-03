@@ -1,6 +1,8 @@
-import type {TNode} from 'react-native-render-html';
 import {Y_KEY_PREFIX} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import type {YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+
+import type {TNode} from 'react-native-render-html';
+
 import getHierarchyID from './getHierarchyID';
 
 /**

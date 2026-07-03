@@ -1,7 +1,9 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolation} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 let previousViolations: OnyxCollection<TransactionViolation[]> = {};
 const transactionReportIDMapping: Record<string, string> = {};
