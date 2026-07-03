@@ -19584,7 +19584,7 @@ describe('ReportUtils', () => {
 
     describe('canMergeReports', () => {
         const OWNER_ID = 10;
-        const owerEmail = 'owner@example.com';
+        const ownerEmail = 'owner@example.com';
         const MANAGER_ID = 20;
         const POLICY_ID = 'p1';
         const USER_ID = OWNER_ID;
@@ -19628,7 +19628,7 @@ describe('ReportUtils', () => {
         });
 
         beforeEach(async () => {
-            await Onyx.set(ONYXKEYS.SESSION, {email: owerEmail, accountID: USER_ID});
+            await Onyx.set(ONYXKEYS.SESSION, {email: ownerEmail, accountID: USER_ID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
             return waitForBatchedUpdates();
         });
