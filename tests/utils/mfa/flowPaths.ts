@@ -125,7 +125,9 @@ function getDrivingJourneyPaths() {
  * harmless while the executor table still forces an executor for every application event.
  */
 function getWalkedPaths() {
-    return [...mfaTestModel.getPaths(() => getMfaShortestPaths(), {allowDuplicatePaths: true}), ...getDrivingJourneyPaths().flatMap((journey) => journey.paths)].filter(isUiDrivablePath);
+    const coveragePaths = mfaTestModel.getPaths(() => getMfaShortestPaths(), {allowDuplicatePaths: true});
+    const journeyPaths = getDrivingJourneyPaths().flatMap((journey) => journey.paths);
+    return [...coveragePaths, ...journeyPaths].filter(isUiDrivablePath);
 }
 
 type UiDrivableTransition = {
