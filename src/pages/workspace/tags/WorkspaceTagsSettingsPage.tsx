@@ -8,6 +8,7 @@ import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -64,6 +65,8 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
     const policyData = usePolicyData(policyID);
     const {tags: policyTags} = policyData;
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [getTagListsUtil(policyTags), isMultiLevelTagsUtil(policyTags)], [policyTags]);
     const isLoading = !getTagListsUtil(policyTags)?.at(0) || Object.keys(policyTags ?? {}).at(0) === 'undefined';
     const {isOffline} = useNetwork();
@@ -99,44 +102,48 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                     />
                 </OfflineWithFeedback>
             )}
-            <OfflineWithFeedback
-                errors={policy?.errorFields?.requiresTag}
-                pendingAction={policy?.pendingFields?.requiresTag}
-                errorRowStyles={styles.mh5}
-            >
-                <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    <Text
-                        style={[styles.textNormal, styles.flex1, styles.mr2]}
-                        accessible={false}
-                        aria-hidden
+            {!isRulesRevampEnabled && (
+                <>
+                    <OfflineWithFeedback
+                        errors={policy?.errorFields?.requiresTag}
+                        pendingAction={policy?.pendingFields?.requiresTag}
+                        errorRowStyles={styles.mh5}
                     >
-                        {translate('workspace.tags.requiresTag')}
-                    </Text>
-                    <Switch
-                        isOn={policy?.requiresTag ?? false}
-                        accessibilityLabel={translate('workspace.tags.requiresTag')}
-                        onToggle={updateWorkspaceRequiresTag}
-                        disabled={!policy?.areTagsEnabled || !hasEnabledOptions}
-                    />
-                </View>
-            </OfflineWithFeedback>
-            <OfflineWithFeedback pendingAction={billableExpensesPending(policy)}>
-                <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    <Text
-                        style={[styles.textNormal, styles.flex1, styles.mr2]}
-                        accessible={false}
-                        aria-hidden
-                    >
-                        {translate('workspace.tags.trackBillable')}
-                    </Text>
-                    <Switch
-                        isOn={!(policy?.disabledFields?.defaultBillable ?? false)}
-                        accessibilityLabel={translate('workspace.tags.trackBillable')}
-                        onToggle={() => toggleBillableExpenses(policy)}
-                        disabled={!policy?.areTagsEnabled}
-                    />
-                </View>
-            </OfflineWithFeedback>
+                        <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                            <Text
+                                style={[styles.textNormal, styles.flex1, styles.mr2]}
+                                accessible={false}
+                                aria-hidden
+                            >
+                                {translate('workspace.tags.requiresTag')}
+                            </Text>
+                            <Switch
+                                isOn={policy?.requiresTag ?? false}
+                                accessibilityLabel={translate('workspace.tags.requiresTag')}
+                                onToggle={updateWorkspaceRequiresTag}
+                                disabled={!policy?.areTagsEnabled || !hasEnabledOptions}
+                            />
+                        </View>
+                    </OfflineWithFeedback>
+                    <OfflineWithFeedback pendingAction={billableExpensesPending(policy)}>
+                        <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                            <Text
+                                style={[styles.textNormal, styles.flex1, styles.mr2]}
+                                accessible={false}
+                                aria-hidden
+                            >
+                                {translate('workspace.tags.trackBillable')}
+                            </Text>
+                            <Switch
+                                isOn={!(policy?.disabledFields?.defaultBillable ?? false)}
+                                accessibilityLabel={translate('workspace.tags.trackBillable')}
+                                onToggle={() => toggleBillableExpenses(policy)}
+                                disabled={!policy?.areTagsEnabled}
+                            />
+                        </View>
+                    </OfflineWithFeedback>
+                </>
+            )}
         </View>
     );
     return (
