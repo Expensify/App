@@ -167,6 +167,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const isInLockedState = isBusinessBankAccountLocked(item);
     const showThreeDotsMenu = item.shouldShowThreeDotsMenu !== false && !!threeDotsMenuItems && !isInLockedState;
     const isNeedingAction = isAccountNeedingAction(item);
+    const connectionStatus = item.connectionStatus;
 
     // Check if this is a Chase personal bank account connected via Plaid
     const isChaseAccountConnectedViaPlaid =
@@ -256,71 +257,116 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
             pendingAction={item.pendingAction}
             errors={item.errors}
             errorRowStyles={styles.paymentMethodErrorRow}
-            shouldShowErrorMessages={!!item.errors && !item.connectionStatus?.message}
+            shouldShowErrorMessages={!!item.errors && !connectionStatus?.message}
         >
-            <Hoverable>
-                {(isHovered) => (
-                    <View style={[isHovered && styles.hoveredComponentBG]}>
-                        <MenuItem
-                            onPress={handleRowPress}
-                            title={item.title}
-                            description={item.description}
-                            descriptionAddon={descriptionAddon}
-                            icon={item.icon}
-                            plaidUrl={item.plaidUrl}
-                            disabled={item.disabled}
-                            iconType={item.plaidUrl ? CONST.ICON_TYPE_PLAID : CONST.ICON_TYPE_ICON}
-                            displayInDefaultIconColor={!item.iconFill}
-                            iconHeight={item.iconHeight ?? item.iconSize}
-                            iconWidth={item.iconWidth ?? item.iconSize}
-                            iconStyles={item.iconStyles}
-                            iconFill={item.iconFill}
-                            badgeText={badgeText}
-                            badgeIcon={badgeIcon}
-                            isBadgeSuccess={!item.connectionStatus && isNeedingAction ? true : undefined}
-                            isBadgeError={!item.connectionStatus && isInLockedState}
-                            wrapperStyle={[styles.paymentMethod, listItemStyle]}
-                            iconRight={isNeedingAction ? undefined : item.iconRight}
-                            shouldShowRightIcon={!showThreeDotsMenu && item.shouldShowRightIcon}
-                            shouldShowRightComponent={showThreeDotsMenu}
-                            rightComponent={
-                                showThreeDotsMenu ? (
-                                    <View style={styles.alignSelfCenter}>
-                                        <ThreeDotsMenu
-                                            shouldSelfPosition
-                                            onIconPress={item.onThreeDotsMenuPress ?? item.onPress}
-                                            menuItems={threeDotsMenuItems}
-                                            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                                            shouldOverlay
-                                            isNested
-                                            threeDotsMenuRef={threeDotsMenuRef}
-                                            disabled={item.disabled}
-                                        />
-                                    </View>
-                                ) : undefined
-                            }
-                            interactive={item.interactive}
-                            shouldRemoveBackground
-                            shouldRemoveHoverBackground
-                            brickRoadIndicator={item.connectionStatus?.message ? undefined : item.brickRoadIndicator}
-                            success={item.isMethodActive}
-                        />
-                        {!!item.connectionStatus?.message && (
-                            <View style={styles.mb2}>
-                                <ConnectionStatusMessage
-                                    message={item.connectionStatus?.message}
-                                    actionText={item.connectionStatus?.actionText}
-                                    onActionPress={item.connectionStatus?.onActionPress ? () => item.connectionStatus?.onActionPress?.(undefined) : undefined}
-                                    isActionDisabled={item.connectionStatus?.isActionDisabled}
-                                    statusTone={item.connectionStatus?.statusTone}
-                                    linkText={item.connectionStatus?.linkText}
-                                    onLinkPress={item.connectionStatus?.onLinkPress}
+            {connectionStatus ? (
+                <Hoverable>
+                    {(isHovered) => (
+                        <View style={[isHovered && styles.hoveredComponentBG]}>
+                            <MenuItem
+                                onPress={handleRowPress}
+                                title={item.title}
+                                description={item.description}
+                                descriptionAddon={descriptionAddon}
+                                icon={item.icon}
+                                plaidUrl={item.plaidUrl}
+                                disabled={item.disabled}
+                                iconType={item.plaidUrl ? CONST.ICON_TYPE_PLAID : CONST.ICON_TYPE_ICON}
+                                displayInDefaultIconColor={!item.iconFill}
+                                iconHeight={item.iconHeight ?? item.iconSize}
+                                iconWidth={item.iconWidth ?? item.iconSize}
+                                iconStyles={item.iconStyles}
+                                iconFill={item.iconFill}
+                                badgeText={badgeText}
+                                badgeIcon={badgeIcon}
+                                isBadgeSuccess={!connectionStatus && isNeedingAction ? true : undefined}
+                                isBadgeError={!connectionStatus && isInLockedState}
+                                wrapperStyle={[styles.paymentMethod, listItemStyle]}
+                                iconRight={isNeedingAction ? undefined : item.iconRight}
+                                shouldShowRightIcon={!showThreeDotsMenu && item.shouldShowRightIcon}
+                                shouldShowRightComponent={showThreeDotsMenu}
+                                rightComponent={
+                                    showThreeDotsMenu ? (
+                                        <View style={styles.alignSelfCenter}>
+                                            <ThreeDotsMenu
+                                                shouldSelfPosition
+                                                onIconPress={item.onThreeDotsMenuPress ?? item.onPress}
+                                                menuItems={threeDotsMenuItems}
+                                                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                                                shouldOverlay
+                                                isNested
+                                                threeDotsMenuRef={threeDotsMenuRef}
+                                                disabled={item.disabled}
+                                            />
+                                        </View>
+                                    ) : undefined
+                                }
+                                interactive={item.interactive}
+                                shouldRemoveBackground
+                                shouldRemoveHoverBackground
+                                brickRoadIndicator={connectionStatus.message ? undefined : item.brickRoadIndicator}
+                                success={item.isMethodActive}
+                            />
+                            {!!connectionStatus.message && (
+                                <View style={styles.mb2}>
+                                    <ConnectionStatusMessage
+                                        message={connectionStatus.message}
+                                        actionText={connectionStatus.actionText}
+                                        onActionPress={connectionStatus.onActionPress ? () => connectionStatus.onActionPress?.(undefined) : undefined}
+                                        isActionDisabled={connectionStatus.isActionDisabled}
+                                        statusTone={connectionStatus.statusTone}
+                                        linkText={connectionStatus.linkText}
+                                        onLinkPress={connectionStatus.onLinkPress}
+                                    />
+                                </View>
+                            )}
+                        </View>
+                    )}
+                </Hoverable>
+            ) : (
+                <MenuItem
+                    onPress={handleRowPress}
+                    title={item.title}
+                    description={item.description}
+                    descriptionAddon={descriptionAddon}
+                    icon={item.icon}
+                    plaidUrl={item.plaidUrl}
+                    disabled={item.disabled}
+                    iconType={item.plaidUrl ? CONST.ICON_TYPE_PLAID : CONST.ICON_TYPE_ICON}
+                    displayInDefaultIconColor={!item.iconFill}
+                    iconHeight={item.iconHeight ?? item.iconSize}
+                    iconWidth={item.iconWidth ?? item.iconSize}
+                    iconStyles={item.iconStyles}
+                    iconFill={item.iconFill}
+                    badgeText={badgeText}
+                    badgeIcon={badgeIcon}
+                    isBadgeSuccess={isNeedingAction ? true : undefined}
+                    isBadgeError={isInLockedState}
+                    wrapperStyle={[styles.paymentMethod, listItemStyle]}
+                    iconRight={isNeedingAction ? undefined : item.iconRight}
+                    shouldShowRightIcon={!showThreeDotsMenu && item.shouldShowRightIcon}
+                    shouldShowRightComponent={showThreeDotsMenu}
+                    rightComponent={
+                        showThreeDotsMenu ? (
+                            <View style={styles.alignSelfCenter}>
+                                <ThreeDotsMenu
+                                    shouldSelfPosition
+                                    onIconPress={item.onThreeDotsMenuPress ?? item.onPress}
+                                    menuItems={threeDotsMenuItems}
+                                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                                    shouldOverlay
+                                    isNested
+                                    threeDotsMenuRef={threeDotsMenuRef}
+                                    disabled={item.disabled}
                                 />
                             </View>
-                        )}
-                    </View>
-                )}
-            </Hoverable>
+                        ) : undefined
+                    }
+                    interactive={item.interactive}
+                    brickRoadIndicator={item.brickRoadIndicator}
+                    success={item.isMethodActive}
+                />
+            )}
             {!!item.shouldShowMissingPersonalDetailsAction && !!item.cardID && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1, styles.mr2]}>
