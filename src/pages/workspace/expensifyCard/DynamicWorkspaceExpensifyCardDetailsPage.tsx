@@ -52,9 +52,9 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-type WorkspaceExpensifyCardDetailsPageProps = PlatformStackScreenProps<
+type DynamicWorkspaceExpensifyCardDetailsPageProps = PlatformStackScreenProps<
     SettingsNavigatorParamList,
-    typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS | typeof SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS
+    typeof SCREENS.WORKSPACE.DYNAMIC_EXPENSIFY_CARD_DETAILS | typeof SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS
 >;
 
 type LimitHintTranslationKey = 'cardPage.smartLimit.title' | 'cardPage.monthlyLimit.title' | 'cardPage.fixedLimit.title';
@@ -72,11 +72,13 @@ function getLimitHintTranslationKey(limitType?: string): LimitHintTranslationKey
     }
 }
 
-function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetailsPageProps) {
+function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpensifyCardDetailsPageProps) {
     const navigation = useNavigation<NavigationProp<SettingsNavigatorParamList>>();
-    const {policyID, cardID, backTo} = route.params;
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.EXPENSIFY_CARD_DETAILS.path);
+    const {policyID, cardID} = route.params;
+    const quickSettingsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.EXPENSIFY_CARD_DETAILS.path);
+    const workspaceBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.path);
     const isQuickSettingsFlow = route.name === SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS;
+    const backPath = isQuickSettingsFlow ? quickSettingsBackPath : workspaceBackPath;
     const {convertToDisplayString} = useCurrencyListActions();
     const defaultFundID = useDefaultFundID(policyID);
 
@@ -270,11 +272,11 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID="WorkspaceExpensifyCardDetailsPage"
+                testID="DynamicWorkspaceExpensifyCardDetailsPage"
             >
                 <HeaderWithBackButton
                     title={translate('cardPage.expensifyCard')}
-                    onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? backPath : backTo)}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <ScrollView addBottomSafeAreaPadding>
                     {canManageCardFreeze && isCardFrozen(card) ? (
@@ -425,4 +427,4 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     );
 }
 
-export default WorkspaceExpensifyCardDetailsPage;
+export default DynamicWorkspaceExpensifyCardDetailsPage;
