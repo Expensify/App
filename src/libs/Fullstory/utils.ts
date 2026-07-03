@@ -1,12 +1,16 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {filterObject} from '@libs/ObjectUtils';
 import {getActivePolicies, isControlPolicy} from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Account, IntroSelected, Onboarding, Policy, Session, UserMetadata} from '@src/types/onyx';
-import FS from '.';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
 import type {FullstoryEventName, FullstoryEventPropertiesMap, FullstoryUserVars} from './types';
+
+import FS from '.';
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 const EXPIRED_THRESHOLD_DAYS = -30;

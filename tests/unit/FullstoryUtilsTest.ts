@@ -2,6 +2,7 @@
 import CONST from '@src/CONST';
 import {buildFullstoryUserVars, buildPageViewedEvent, getOnboardingStep} from '@src/libs/Fullstory/utils';
 import ROUTES from '@src/ROUTES';
+
 import createRandomPolicy from '../utils/collections/policies';
 
 describe('FullstoryUtils', () => {

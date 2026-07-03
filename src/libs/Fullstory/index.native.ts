@@ -1,100 +1,94 @@
-import getEnvironment from "@src/libs/Environment/getEnvironment";
-import {
-  getChatFSClass,
-  normalizeFullstoryPropertiesForNative,
-  shouldInitializeFullstory,
-} from "./common";
+import getEnvironment from '@src/libs/Environment/getEnvironment';
 
-import FullStory, { FSPage } from "@fullstory/react-native";
+import FullStory, {FSPage} from '@fullstory/react-native';
 
-import type { Fullstory } from "./types";
+import type {Fullstory} from './types';
+
+import {getChatFSClass, normalizeFullstoryPropertiesForNative, shouldInitializeFullstory} from './common';
 
 const FS: Fullstory = {
-  Page: FSPage,
+    Page: FSPage,
 
-  getChatFSClass,
+    getChatFSClass,
 
-  init: (userMetadata) => FS.consentAndIdentify(userMetadata),
+    init: (userMetadata) => FS.consentAndIdentify(userMetadata),
 
-  onReady: async () => FullStory.onReady(),
+    onReady: async () => FullStory.onReady(),
 
-  shouldInitialize: shouldInitializeFullstory,
+    shouldInitialize: shouldInitializeFullstory,
 
-  consent: (shouldConsent) => FullStory.consent(shouldConsent),
+    consent: (shouldConsent) => FullStory.consent(shouldConsent),
 
-  identify: (userMetadata, envName) => {
-    const localMetadata = { ...userMetadata, environment: envName };
-    FullStory.identify(
-      String(localMetadata.accountID),
-      normalizeFullstoryPropertiesForNative(localMetadata, {
-        preserveKeys: ["displayName", "email"],
-      }),
-    );
-  },
+    identify: (userMetadata, envName) => {
+        const localMetadata = {...userMetadata, environment: envName};
+        FullStory.identify(
+            String(localMetadata.accountID),
+            normalizeFullstoryPropertiesForNative(localMetadata, {
+                preserveKeys: ['displayName', 'email'],
+            }),
+        );
+    },
 
-  consentAndIdentify: (userMetadata) => {
-    // On the first subscribe for UserMetadata, this function will be called. We need
-    // to confirm that we actually have any value here before proceeding.
-    if (!userMetadata?.accountID) {
-      return;
-    }
-
-    try {
-      // We only use FullStory in production environment. We need to check this here
-      // after the init function since this function is also called on updates for
-      // UserMetadata onyx key.
-      getEnvironment().then((envName: string) => {
-        if (!FS.shouldInitialize(userMetadata, envName)) {
-          return;
+    consentAndIdentify: (userMetadata) => {
+        // On the first subscribe for UserMetadata, this function will be called. We need
+        // to confirm that we actually have any value here before proceeding.
+        if (!userMetadata?.accountID) {
+            return;
         }
 
-        FullStory.restart();
-        FullStory.consent(true);
-        FS.identify(userMetadata, envName);
-      });
-    } catch (e) {
-      // error handler
-    }
-  },
+        try {
+            // We only use FullStory in production environment. We need to check this here
+            // after the init function since this function is also called on updates for
+            // UserMetadata onyx key.
+            getEnvironment().then((envName: string) => {
+                if (!FS.shouldInitialize(userMetadata, envName)) {
+                    return;
+                }
 
-  anonymize: () => FullStory.anonymize(),
+                FullStory.restart();
+                FullStory.consent(true);
+                FS.identify(userMetadata, envName);
+            });
+        } catch (e) {
+            // error handler
+        }
+    },
 
-  getSessionId: async () => {
-    return FullStory.getCurrentSession();
-  },
+    anonymize: () => FullStory.anonymize(),
 
-  getSessionURL: async () => {
-    return FullStory.getCurrentSessionURL();
-  },
+    getSessionId: async () => {
+        return FullStory.getCurrentSession();
+    },
 
-  event: (eventName, eventProperties) => {
-    FullStory.event(
-      eventName,
-      normalizeFullstoryPropertiesForNative(eventProperties ?? {}),
-    );
-  },
+    getSessionURL: async () => {
+        return FullStory.getCurrentSessionURL();
+    },
 
-  log: (level, message) => {
-    const logLevelMap = {
-      log: FullStory.LogLevel.Log,
-      info: FullStory.LogLevel.Info,
-      warn: FullStory.LogLevel.Warn,
-      error: FullStory.LogLevel.Error,
-    };
-    FullStory.log(logLevelMap[level] ?? FullStory.LogLevel.Log, message);
-  },
+    event: (eventName, eventProperties) => {
+        FullStory.event(eventName, normalizeFullstoryPropertiesForNative(eventProperties ?? {}));
+    },
 
-  setUserVars: (userVars) => {
-    FullStory.setUserVars(
-      normalizeFullstoryPropertiesForNative(userVars, {
-        preserveKeys: ["displayName", "email"],
-      }),
-    );
-  },
+    log: (level, message) => {
+        const logLevelMap = {
+            log: FullStory.LogLevel.Log,
+            info: FullStory.LogLevel.Info,
+            warn: FullStory.LogLevel.Warn,
+            error: FullStory.LogLevel.Error,
+        };
+        FullStory.log(logLevelMap[level] ?? FullStory.LogLevel.Log, message);
+    },
 
-  resetIdleTimer: () => {
-    FullStory.resetIdleTimer();
-  },
+    setUserVars: (userVars) => {
+        FullStory.setUserVars(
+            normalizeFullstoryPropertiesForNative(userVars, {
+                preserveKeys: ['displayName', 'email'],
+            }),
+        );
+    },
+
+    resetIdleTimer: () => {
+        FullStory.resetIdleTimer();
+    },
 };
 
 export default FS;
