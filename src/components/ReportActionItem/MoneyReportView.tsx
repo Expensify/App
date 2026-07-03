@@ -151,7 +151,11 @@ function MoneyReportView({
         const sorted = Object.values(byName)
             .filter((field) => field.target === report?.type)
             .sort(({orderWeight: a}, {orderWeight: b}) => a - b);
-        return {sortedPolicyReportFields: sorted, fieldValues: values, fieldsByName: byName};
+        return {
+            sortedPolicyReportFields: sorted,
+            fieldValues: values,
+            fieldsByName: byName,
+        };
     }, [policy?.fieldList, report]);
 
     const enabledReportFields = sortedPolicyReportFields.filter(
@@ -159,7 +163,7 @@ function MoneyReportView({
     );
     const isOnlyTitleFieldEnabled = enabledReportFields.length === 1 && isReportFieldOfTypeTitle(enabledReportFields.at(0));
     const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesReportUtils(report);
-    const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report);
+    const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report, policy?.type);
     const isInvoiceReport = isInvoiceReportUtils(report);
 
     const shouldShowReportField =
@@ -282,10 +286,26 @@ function MoneyReportView({
                         {!!shouldShowBreakdown && (
                             <>
                                 {[
-                                    {label: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, show: shouldShowReimbursabilityRow},
-                                    {label: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, show: shouldShowReimbursabilityRow},
-                                    {label: 'common.billable', value: formattedBillableAmount, show: shouldShowBillableRow},
-                                    {label: 'common.tax', value: formattedTaxAmount, show: shouldShowTaxRow},
+                                    {
+                                        label: 'cardTransactions.outOfPocket',
+                                        value: formattedOutOfPocketAmount,
+                                        show: shouldShowReimbursabilityRow,
+                                    },
+                                    {
+                                        label: 'cardTransactions.companySpend',
+                                        value: formattedCompanySpendAmount,
+                                        show: shouldShowReimbursabilityRow,
+                                    },
+                                    {
+                                        label: 'common.billable',
+                                        value: formattedBillableAmount,
+                                        show: shouldShowBillableRow,
+                                    },
+                                    {
+                                        label: 'common.tax',
+                                        value: formattedTaxAmount,
+                                        show: shouldShowTaxRow,
+                                    },
                                 ]
                                     .filter(({show}) => show)
                                     .map(({label, value}) => (

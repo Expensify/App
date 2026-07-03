@@ -25,15 +25,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isSafari} from '@libs/Browser';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
-import {
-    canCreateTaskInReport,
-    getPayeeName,
-    hasViolations as hasViolationsReportUtils,
-    isPolicyExpenseChat,
-    isReportInGroupPolicy,
-    isReportOwner,
-    temporary_getMoneyRequestOptions,
-} from '@libs/ReportUtils';
+import {isGroupPolicyByType} from '@libs/PolicyUtils';
+import {canCreateTaskInReport, getPayeeName, hasViolations as hasViolationsReportUtils, isPolicyExpenseChat, isReportOwner, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU/MoneyRequest';
@@ -173,7 +166,9 @@ function AttachmentPickerWithMenuItems({
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: validTransactionDraftIDsSelector,
+    });
     const {isProduction} = useEnvironment();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
@@ -327,7 +322,7 @@ function AttachmentPickerWithMenuItems({
     ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {
-        if (!isPolicyExpenseChat(report) || !isReportInGroupPolicy(report) || !isReportOwner(report)) {
+        if (!isPolicyExpenseChat(report) || !isGroupPolicyByType(policy?.type) || !isReportOwner(report)) {
             return [];
         }
 
@@ -394,12 +389,21 @@ function AttachmentPickerWithMenuItems({
             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
         }).then((position) => {
-            setPopoverAnchorPosition({...position, vertical: position.vertical - CONST.MODAL.POPOVER_MENU_PADDING});
+            setPopoverAnchorPosition({
+                ...position,
+                vertical: position.vertical - CONST.MODAL.POPOVER_MENU_PADDING,
+            });
         });
     }, [isMenuVisible, calculatePopoverPosition, actionButtonRef]);
 
     // 1. Limit the container width to a single column.
-    const outerContainerStyles = [{flexBasis: styles.composerSizeButton.width + styles.composerSizeButton.marginHorizontal * 2}, styles.flexGrow0, styles.flexShrink0];
+    const outerContainerStyles = [
+        {
+            flexBasis: styles.composerSizeButton.width + styles.composerSizeButton.marginHorizontal * 2,
+        },
+        styles.flexGrow0,
+        styles.flexShrink0,
+    ];
 
     // 2. If there isn't enough height for two buttons, the Expand/Collapse button wraps to the next column so that it's intentionally hidden,
     //    and the Create button is centered vertically.

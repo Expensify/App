@@ -36,6 +36,7 @@ import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isGroupPolicyByType} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction, wasActionTakenByCurrentUser} from '@libs/ReportActionsUtils';
 import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
@@ -44,7 +45,6 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getCreationReportErrors,
     isInvoiceReport,
-    isReportInGroupPolicy,
     isTrackExpenseReportNew,
 } from '@libs/ReportUtils';
 import trackExpenseCreationError from '@libs/telemetry/trackExpenseCreationError';
@@ -73,6 +73,7 @@ import {clearError, getLastModifiedExpense, revert} from '@userActions/Transacti
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {policyTypeSelector} from '@src/selectors/Policy';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -151,9 +152,13 @@ function MoneyRequestReceiptView({
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasSeenTourSelector,
+    });
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
+    const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: conciergePersonalDetailSelector,
+    });
     const reportOwnerSelector = useMemo(() => personalDetailsSelector(report?.ownerAccountID), [report?.ownerAccountID]);
     const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: reportOwnerSelector}, [reportOwnerSelector]);
     const chatReportOwnerSelector = useMemo(() => personalDetailsSelector(chatReport?.ownerAccountID), [chatReport?.ownerAccountID]);
@@ -211,7 +216,7 @@ function MoneyRequestReceiptView({
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Expand', 'ReceiptPlus']);
 
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
-
+    const [policyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {selector: policyTypeSelector});
     // Browsers don't fire mouseenter when an element mounts under the cursor
     useEffect(() => {
         if (isLoading) {
@@ -243,7 +248,14 @@ function MoneyRequestReceiptView({
 
     const canEditReceipt =
         isEditable &&
-        canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, isChatReportArchived, transaction, report: moneyRequestReport, policy});
+        canEditFieldOfMoneyRequest({
+            reportAction: parentReportAction,
+            fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+            isChatReportArchived,
+            transaction,
+            report: moneyRequestReport,
+            policy,
+        });
 
     const onAttachmentFilesValidated = (files: FileObject[]) => {
         if (!report?.reportID) {
@@ -367,7 +379,7 @@ function MoneyRequestReceiptView({
         !isTransactionScanning &&
         (hasReceipt || !!receiptRequiredViolation || !!itemizedReceiptRequiredViolation || !!customRulesViolation) &&
         !!(receiptViolations.length || didReceiptScanSucceed) &&
-        isReportInGroupPolicy(report);
+        isGroupPolicyByType(policyType);
     const shouldShowReceiptAudit = !isInvoice && (shouldShowReceiptEmptyState || hasReceipt || hasReceiptUploadError);
 
     const fallbackReceiptError = useMemo(() => {
@@ -700,7 +712,9 @@ function MoneyRequestReceiptView({
                                                         openPicker({
                                                             onPicked: (files) => {
                                                                 onPickerClosed();
-                                                                validateFiles(files, undefined, {isValidatingReceipts: false});
+                                                                validateFiles(files, undefined, {
+                                                                    isValidatingReceipts: false,
+                                                                });
                                                             },
                                                             onCanceled: onPickerClosed,
                                                         });

@@ -83,7 +83,7 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
     const {showConfirmModal} = useConfirmModal();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const isReportFieldTitle = isReportFieldOfTypeTitle(reportField);
-    const reportFieldsEnabled = ((isGroupPolicyExpenseReport(report) || isInvoiceReport(report)) && !!policy?.areReportFieldsEnabled) || isReportFieldTitle;
+    const reportFieldsEnabled = ((isGroupPolicyExpenseReport(report, policy?.type) || isInvoiceReport(report)) && !!policy?.areReportFieldsEnabled) || isReportFieldTitle;
     const hasOtherViolations =
         report?.fieldList && Object.entries(report.fieldList).some(([key, field]) => key !== fieldKey && field.value === '' && !isReportFieldDisabled(report, reportField, policy));
 
