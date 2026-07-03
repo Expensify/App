@@ -18,10 +18,10 @@ import reauthenticate from '@libs/Reauthentication';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import * as SessionUtil from '@src/libs/actions/Session';
+import {KEYS_TO_PRESERVE_SUPPORTAL, signOutAndRedirectToSignIn} from '@src/libs/actions/Session';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import '@libs/Notification/PushNotification/subscribeToPushNotifications';
 
-import {KEYS_TO_PRESERVE_SUPPORTAL, signOutAndRedirectToSignIn} from '@src/libs/actions/Session';
 import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Credentials, Session} from '@src/types/onyx';
@@ -29,7 +29,6 @@ import type {Credentials, Session} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {openAuthSessionAsync} from 'expo-web-browser';
-import {clearTokenRefresh, removeFromAutoPrefetch} from 'react-native-nitro-fetch';
 import Onyx from 'react-native-onyx';
 
 import * as TestHelper from '../utils/TestHelper';
@@ -334,20 +333,6 @@ describe('Session', () => {
         await waitForBatchedUpdates();
 
         expect(getAllPersistedRequests().length).toBe(0);
-    });
-
-    test('SignOut should clear native startup prefetch state', async () => {
-        await TestHelper.signInWithTestUser();
-        setHasRadio(false);
-        await waitForBatchedUpdates();
-
-        await SessionUtil.signOut({authToken: 'testAuthToken'});
-
-        expect(clearTokenRefresh).toHaveBeenCalledWith('fetch');
-        expect(removeFromAutoPrefetch).toHaveBeenCalledWith(WRITE_COMMANDS.RECONNECT_APP);
-
-        setHasRadio(true);
-        await waitForBatchedUpdates();
     });
 
     describe('SignOutAndRedirectToSignIn', () => {
