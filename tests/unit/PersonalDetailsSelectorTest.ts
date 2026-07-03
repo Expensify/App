@@ -1,3 +1,5 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
@@ -83,6 +85,14 @@ describe('PersonalDetailsSelector', () => {
         it('should return default display name if the personalDetailsList is undefined', () => {
             const result = personalDetailsDisplayNameSelector(accountID, translateLocal)(undefined);
             expect(result).toEqual(temporaryGetDisplayNameOrDefault({translate: translateLocal}));
+        });
+
+        it('should resolve the hidden fallback through the provided translate function', () => {
+            const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
+
+            const result = personalDetailsDisplayNameSelector(999, translateWithHiddenMarker)(personalDetailsList);
+
+            expect(result).toBe('HiddenMarker');
         });
     });
 
