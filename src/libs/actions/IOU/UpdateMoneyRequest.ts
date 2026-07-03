@@ -2058,9 +2058,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         });
     }
 
-    // Only amount edits can be patched into the Your spend totals offline. A currency change would require converting
-    // between currencies (rates are only available server-side), so those edits are intentionally left to the next
-    // online search() refresh and handled by the early return in getYourSpendSnapshotTotalUpdates.
+    // Only amount edits can be patched offline; currency changes need server-side FX rates.
     if (hasModifiedAmount && transaction && updatedTransaction && iouReport) {
         const yourSpendSnapshotTotalUpdates = getYourSpendSnapshotTotalUpdates({
             transaction,

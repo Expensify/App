@@ -1812,16 +1812,8 @@ function updateSplitTransactions({
         }
     }
 
-    // A split keeps a SUBMITTED report in the "Awaiting approval" section but changes its reimbursable total
-    // (e.g. split to a lower amount). Home reads that total from the cached snapshot, which is only refreshed
-    // online, so patch the same-currency delta optimistically. `changesInReportTotal` is the signed report-total
-    // delta (new split total minus the pre-split total) in the transaction currency.
-    // The split also changes how many reimbursable transactions the report holds (e.g. one expense becomes several).
-    // `count` drives the Home "Awaiting approval" row visibility, so it must move in lockstep with the membership
-    // change — otherwise a later deletion of one split child decrements a stale `count` to 0 and hides the row even
-    // though split children remain. The replaced set is the original transaction (creation of splits) or the existing
-    // split children (re-splitting); the new set is `splits`. A `reimbursable !== false` transaction counts (matching
-    // the snapshot query convention).
+    // Patch the "Awaiting approval" snapshot total and count for the split (both the reimbursable amount and the
+    // number of reimbursable transactions change). `count` must move in lockstep with membership to keep the row visible.
     const reimbursableSplitsCount = splits.filter((split) => split.reimbursable !== false).length;
     const previousReimbursableCount = isCreationOfSplits
         ? Number(originalTransaction?.reimbursable !== false)

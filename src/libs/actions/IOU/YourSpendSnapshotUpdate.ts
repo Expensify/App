@@ -1,15 +1,18 @@
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 // eslint-disable-next-line no-restricted-imports -- Your spend "Awaiting approval"/"Repaid" totals are a billing/paid-only feature (Collect/Control), so paid-group scoping is intentional here.
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {isExpenseReport, isInvoiceReport as isInvoiceReportReportUtils} from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getAmount, getConvertedAmount, getCurrency} from '@libs/TransactionUtils';
 import {buildAwaitingApprovalQuery, buildRepaidLast30DaysQuery, get30DaysAgoDateString} from '@libs/YourSpendQueryUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
+
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 type YourSpendSnapshotOnyxData = {
     optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>>;
@@ -24,7 +27,6 @@ type GetYourSpendSnapshotTotalUpdatesParams = {
     currentUserAccountID: number;
 };
 
-// connectWithoutView: snapshot/policy reads are for optimistic Your spend total patches only.
 let allSnapshots: OnyxCollection<SearchResults> = {};
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.SNAPSHOT,
@@ -99,10 +101,7 @@ function buildSnapshotTotalUpdatesForHash(snapshotHash: number | undefined, diff
     const currentSnapshot = allSnapshots?.[snapshotKey];
     const search = currentSnapshot?.search;
 
-    // Only bail when the snapshot hasn't been loaded at all — writing into a non-existent snapshot would create a
-    // partial/garbage entry. A loaded-but-empty snapshot (e.g. the section had nothing awaiting approval, so its
-    // `total`/`count`/`currency` are still null) is a valid zero base: the first report submitted offline should
-    // populate and reveal the row.
+    // Skip when the snapshot isn't loaded; a loaded-but-empty snapshot is a valid zero base.
     if (!search) {
         return {optimisticData: [], successData: [], failureData: []};
     }
@@ -116,8 +115,7 @@ function buildSnapshotTotalUpdatesForHash(snapshotHash: number | undefined, diff
     }
 
     const updatedTotal = currentTotal + diff;
-    // `count` drives the Home row's visibility (see getYourSpendRowState): it must move in lockstep with `total`,
-    // otherwise an add into a previously empty bucket stays hidden and a removal of the last item shows a stale $0.00.
+    // `count` drives row visibility, so it must move in lockstep with `total`.
     const updatedCount = Math.max(0, currentCount + countDiff);
     return {
         optimisticData: [
@@ -140,8 +138,6 @@ function buildSnapshotTotalUpdatesForHash(snapshotHash: number | undefined, diff
                 key: snapshotKey,
                 value: {
                     search: {
-                        // Restore the exact prior state. When the section was empty these were null, so rolling back
-                        // to null (Onyx MERGE removes the key) cleanly re-hides the row.
                         total: search.total ?? null,
                         count: search.count ?? null,
                         currency: currentCurrency ?? null,
@@ -167,14 +163,12 @@ function calculateYourSpendTotalDiff(iouReport: OnyxEntry<Report>, updatedTransa
     const currentCurrency = getCurrency(transaction);
     const updatedCurrency = getCurrency(updatedTransaction);
 
-    // A currency change can't be expressed as a simple amount delta on the snapshot total without converting between
-    // currencies, and FX rates aren't available offline (totals are converted server-side). Skip patching in that case.
+    // A currency change can't be patched offline (FX rates are server-side only).
     if (currentCurrency !== updatedCurrency) {
         return null;
     }
 
-    // Signed to match the snapshot `total` convention (spend negative, credits positive), so the delta moves the
-    // snapshot total in the correct direction (e.g. raising a spend amount makes the negative total more negative).
+    // Signed to match the snapshot `total` convention (spend negative, credits positive).
     const currentTotal = getAmount(transaction, isExpenseReportLocal);
     const updatedTotal = getAmount(updatedTransaction, isExpenseReportLocal);
 
@@ -222,11 +216,7 @@ function getSnapshotSearchResults(snapshotHash: number | undefined) {
     return allSnapshots?.[snapshotKey]?.search;
 }
 
-/**
- * Returns a transaction's reimbursable amount in the snapshot currency, or null when conversion is unavailable offline.
- * The value is signed to match the search `total` convention (spend is negative, credits positive), i.e. it mirrors
- * `getAmount(transaction, isFromExpenseReport)` rather than its magnitude.
- */
+/** Returns a transaction's signed reimbursable amount in the snapshot currency, or null when conversion is unavailable offline. */
 function getReimbursableTransactionAmountInCurrency(transaction: Transaction, iouReport: OnyxEntry<Report>, targetCurrency: string): number | null {
     const isExpenseReportLocal = isExpenseReport(iouReport) || isInvoiceReportReportUtils(iouReport);
     const transactionCurrency = getCurrency(transaction);
@@ -234,8 +224,7 @@ function getReimbursableTransactionAmountInCurrency(transaction: Transaction, io
     if (transactionCurrency === targetCurrency) {
         return getAmount(transaction, isExpenseReportLocal);
     }
-    // `convertedAmount` is denominated in the report's policy output currency, not necessarily the snapshot
-    // currency. Only trust it when those match; otherwise we'd add a value in the wrong currency to the total.
+    // `convertedAmount` is in the policy output currency; only trust it when that matches the target currency.
     const policyOutputCurrency = iouReport?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport.policyID}`]?.outputCurrency : undefined;
     if (transaction.convertedAmount != null && policyOutputCurrency === targetCurrency) {
         return getConvertedAmount(transaction, isExpenseReportLocal);
@@ -246,12 +235,8 @@ function getReimbursableTransactionAmountInCurrency(transaction: Transaction, io
 
 type ReportReimbursableAggregate = {
     total: number;
-    // Number of reimbursable transactions contributing to `total`. Kept alongside `total` so the snapshot's
-    // result `count` can be patched in lockstep when the report enters or leaves a Your spend section.
     count: number;
-    // The reimbursable transactions that contributed to `total`. The Home row reads its amount from
-    // `snapshot.search.total`, but the Search page renders its list from `snapshot.data`. These are injected into
-    // `data` so an offline-submitted report's expenses are visible when the user opens the section offline.
+    // Contributing transactions, injected into `snapshot.data` so the Search page isn't empty offline.
     transactions: Transaction[];
 };
 
@@ -289,19 +274,14 @@ function getReportReimbursableTotal(
     return {total, count, transactions};
 }
 
-/**
- * Builds the snapshot `data` writes that add (or remove) a report's reimbursable transactions when it enters (or
- * leaves) a Your spend section. The Home row only needs `search.total`/`count`, but the Search page the row links to
- * renders its list from `snapshot.data`; without these writes an offline-submitted report's section opens empty.
- */
+/** Adds (or removes) a report's reimbursable transactions in `snapshot.data` when it enters (or leaves) a section, so the Search page isn't empty offline. */
 function buildSnapshotDataUpdatesForHash(snapshotHash: number | undefined, transactions: Transaction[], enters: boolean, leaves: boolean): YourSpendSnapshotOnyxData {
-    // Only a section crossing (enter XOR leave) changes membership. Staying put, or no transactions, is a no-op.
+    // Only a section crossing (enter XOR leave) changes membership.
     if (!snapshotHash || transactions.length === 0 || enters === leaves) {
         return {optimisticData: [], successData: [], failureData: []};
     }
 
     const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as const;
-    // Only patch a snapshot that's actually been loaded; writing into a missing one would create a partial entry.
     if (!allSnapshots?.[snapshotKey]?.search) {
         return {optimisticData: [], successData: [], failureData: []};
     }
@@ -314,7 +294,6 @@ function buildSnapshotDataUpdatesForHash(snapshotHash: number | undefined, trans
         absentData[transactionKey] = null;
     }
 
-    // Entering adds the transactions (rollback removes them); leaving removes them (rollback restores them).
     const optimisticDataValue = enters ? presentData : absentData;
     const failureDataValue = enters ? absentData : presentData;
 
@@ -325,11 +304,7 @@ function buildSnapshotDataUpdatesForHash(snapshotHash: number | undefined, trans
     };
 }
 
-/**
- * Optimistically patches Your spend snapshot aggregates when a report moves between states (e.g. submit, retract,
- * reject, unapprove, cancel payment). The report's reimbursable total is added to the section it enters and removed
- * from the section it leaves, since Home reads totals from `snapshot.search.total` which is only refreshed online.
- */
+/** Optimistically patches Your spend snapshot aggregates when a report moves between states (e.g. submit, retract, reject, unapprove, cancel payment). */
 function getYourSpendSnapshotReportMoveUpdates({
     iouReport,
     reportTransactions,
@@ -346,9 +321,7 @@ function getYourSpendSnapshotReportMoveUpdates({
     const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(currentUserAccountID, paidGroupPolicyIDs));
     const approvalSnapshotSearch = getSnapshotSearchResults(approvalQueryJSON?.hash);
     const approvalSnapshotCurrency = approvalSnapshotSearch?.currency;
-    // When the section is currently empty its snapshot has no currency yet, so fall back to the report's currency.
-    // This lets the first report submitted offline populate (and reveal) the row; the backend corrects the
-    // currency/total on the next online refresh.
+    // An empty section's snapshot has no currency yet, so fall back to the report's currency.
     const approvalTargetCurrency = approvalSnapshotCurrency ?? iouReport.currency;
 
     if (reportInAwaitingApprovalScope(iouReport, currentUserAccountID, paidGroupPolicyIDs) && approvalSnapshotSearch && approvalTargetCurrency) {
@@ -393,10 +366,7 @@ type GetYourSpendSnapshotTransactionRemovalUpdatesParams = {
     currentUserAccountID: number;
 };
 
-/**
- * Optimistically patches Your spend snapshot aggregates when a single transaction leaves a report (e.g. delete or
- * reject), subtracting its reimbursable amount from whichever section the report currently belongs to.
- */
+/** Optimistically patches Your spend snapshot aggregates when a single transaction leaves a report (e.g. delete or reject). */
 function getYourSpendSnapshotTransactionRemovalUpdates({transaction, iouReport, currentUserAccountID}: GetYourSpendSnapshotTransactionRemovalUpdatesParams): YourSpendSnapshotOnyxData {
     const result: YourSpendSnapshotOnyxData = {optimisticData: [], successData: [], failureData: []};
     if (!transaction || !iouReport) {
@@ -430,10 +400,7 @@ function getYourSpendSnapshotTransactionRemovalUpdates({transaction, iouReport, 
     return result;
 }
 
-/**
- * Optimistically patches Your spend snapshot aggregates when a transaction amount changes.
- * Home reads totals from `snapshot.search.total`, which is only refreshed via search() while online.
- */
+/** Optimistically patches Your spend snapshot aggregates when a transaction amount changes. */
 function getYourSpendSnapshotTotalUpdates({transaction, updatedTransaction, iouReport, currentUserAccountID}: GetYourSpendSnapshotTotalUpdatesParams): YourSpendSnapshotOnyxData {
     const emptyResult: YourSpendSnapshotOnyxData = {optimisticData: [], successData: [], failureData: []};
     if (!transaction || !updatedTransaction || !iouReport) {
@@ -465,25 +432,14 @@ function getYourSpendSnapshotTotalUpdates({transaction, updatedTransaction, iouR
 type GetYourSpendSnapshotSplitUpdatesParams = {
     iouReport: OnyxEntry<Report>;
     originalTransaction: OnyxEntry<Transaction>;
-    // Signed change to the report's reimbursable total, in the transaction/report currency
-    // (new split total minus the pre-split total). Negative when the expense is split to a lower amount.
+    // Signed change to the report's reimbursable total, in the report currency.
     reimbursableDiff: number;
-    // Signed change to the number of reimbursable transactions in the report caused by the split
-    // (e.g. splitting one expense into two reimbursable children is +1). `count` drives the Home row's
-    // visibility, so it must move in lockstep with the membership change even when `reimbursableDiff` is 0
-    // (an equal-amount split leaves the total unchanged but still adds transactions).
+    // Signed change to the number of reimbursable transactions in the report; drives row visibility in lockstep with the total.
     reimbursableCountDiff: number;
     currentUserAccountID: number;
 };
 
-/**
- * Optimistically patches the "Awaiting approval" snapshot when a SUBMITTED expense is split. A split keeps the report
- * in the awaiting-approval section but changes both its reimbursable total (e.g. split to a lower amount) and the number
- * of reimbursable transactions it contains (one expense becomes several). Home reads `snapshot.search.total`/`count`,
- * which are only refreshed online, and `count` drives the row's visibility — so both must be patched, even when the
- * total is unchanged (an equal-amount split still changes `count`). Mirrors the amount-edit path: same-currency only
- * (the currency guard in `buildSnapshotTotalUpdatesForHash` skips a mismatch, since FX conversion isn't available offline).
- */
+/** Optimistically patches the "Awaiting approval" snapshot when a SUBMITTED expense is split (same-currency only). */
 function getYourSpendSnapshotSplitUpdates({
     iouReport,
     originalTransaction,

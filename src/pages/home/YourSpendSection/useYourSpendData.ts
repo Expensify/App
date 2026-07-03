@@ -119,11 +119,8 @@ function getOutstandingReportsSignature(reports: OnyxCollection<Report> | undefi
     return ids.sort().join(',');
 }
 
-// Signature of the reports the user owns that are currently REPAID (reimbursed). The home query results are
-// cached snapshots that are not patched when a report's state changes, so without this the cached "Repaid"
-// total can be resurrected after the user cancels the payment of their last repaid expense (the snapshot count
-// gets wiped to null by `shouldCalculateTotals: false` searches, which would otherwise re-show the stale total).
-// Mirrors `getOutstandingReportsSignature` for the "Awaiting approval" row.
+// Signature of the reports the user owns that are currently REPAID, used to drop the stale cached "Repaid" total
+// once the user no longer owns any repaid report. Mirrors `getOutstandingReportsSignature`.
 function getRepaidReportsSignature(reports: OnyxCollection<Report> | undefined, accountID: number): string {
     if (!reports) {
         return '';
@@ -182,8 +179,6 @@ function useYourSpendData(): UseYourSpendDataReturn {
         selector: (reports) => getOutstandingReportsSignature(reports, paidGroupPolicyIDs, accountID),
     });
 
-    // Signature of the reports the user owns that are currently REPAID. Lets the "Repaid" cached-total fallback
-    // drop its stale value once the user no longer owns any repaid report (e.g. after cancelling a payment).
     const [repaidReportsSignature] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: (reports) => getRepaidReportsSignature(reports, accountID),
     });
@@ -385,10 +380,8 @@ function useYourSpendData(): UseYourSpendDataReturn {
         cachedApprovalReady !== null &&
         cachedApprovalHash === approvalHash &&
         outstandingReportsSignature !== '';
-    // Only bridge a wiped/missing count with the cached total while the user still owns a REPAID report.
-    // An empty signature means nothing is repaid, so the row must hide immediately after cancelling the
-    // payment of the last repaid expense — otherwise the stale cached total is resurrected when a
-    // `shouldCalculateTotals: false` search wipes the snapshot count to null.
+    // Only bridge a wiped/missing count with the cached total while the user still owns a REPAID report,
+    // so the row hides immediately after cancelling the payment of the last repaid expense.
     const shouldUseCachedPayment =
         paymentRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY &&
         paymentCountIsMissing &&

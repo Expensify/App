@@ -512,9 +512,7 @@ function getPayMoneyRequestParams({
         optimisticHoldReportExpenseActionIDs = JSON.stringify(holdReportOnyxData.optimisticHoldReportExpenseActionIDs);
     }
 
-    // Paying a report moves it out of "Awaiting approval" and into "Repaid (last 30 days)" in the Your spend widget.
-    // Home reads those section totals from cached snapshots that are only refreshed online, and the linked Search page
-    // renders its list from `snapshot.data` — so without this optimistic patch the repaid section opens empty offline.
+    // Paying a report moves it from "Awaiting approval" to "Repaid" in the Your spend widget; patch both snapshots offline.
     const yourSpendSnapshotUpdates = getYourSpendSnapshotReportMoveUpdates({
         iouReport,
         reportTransactions,
