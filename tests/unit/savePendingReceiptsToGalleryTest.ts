@@ -3,7 +3,9 @@ import hasGalleryWritePermission from '@libs/fileDownload/hasGalleryWritePermiss
 import saveLocalFileToGallery from '@libs/fileDownload/saveLocalFileToGallery';
 import getPendingReceiptRequests, {getSaveablePendingReceiptRequests} from '@libs/savePendingReceiptsToGallery/getPendingReceiptRequests';
 import saveReceiptsToGallery from '@libs/savePendingReceiptsToGallery/saveReceiptsToGallery';
+
 import * as PersistedRequests from '@userActions/PersistedRequests';
+
 import type {AnyRequest} from '@src/types/onyx/Request';
 
 jest.mock('@userActions/PersistedRequests', () => ({

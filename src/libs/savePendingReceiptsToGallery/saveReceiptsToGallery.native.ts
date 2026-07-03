@@ -2,6 +2,7 @@ import {appendTimeToFileName, getFileName} from '@libs/fileDownload/FileUtils';
 import hasGalleryWritePermission from '@libs/fileDownload/hasGalleryWritePermission';
 import saveLocalFileToGallery from '@libs/fileDownload/saveLocalFileToGallery';
 import Log from '@libs/Log';
+
 import type {PendingReceipt, SaveReceiptsResult} from './types';
 
 /** Writes each file with `Promise.allSettled` so one failure does not sink the rest, and swallows every throw so it can never block sign-out. */

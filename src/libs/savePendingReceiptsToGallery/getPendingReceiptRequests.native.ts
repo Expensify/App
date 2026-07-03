@@ -1,7 +1,9 @@
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import {isRecord} from '@libs/ObjectUtils';
+
 import {getAll, getOngoingRequest} from '@userActions/PersistedRequests';
+
 import type {PendingReceipt} from './types';
 
 const RECEIPT_BEARING_COMMANDS = new Set<string>([
