@@ -1,5 +1,5 @@
-import {isActingAsDelegateSelector} from '@selectors/Account';
 import useOnyx from '@hooks/useOnyx';
+
 import {
     isActionableVirtualExpensifyCard,
     isCard,
@@ -12,9 +12,12 @@ import {
 } from '@libs/CardUtils';
 import {areAddressAndPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {getUnresolvedCardFraudAlertAction} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
+
+import {isActingAsDelegateSelector} from '@selectors/Account';
 
 function useTimeSensitiveCards() {
     const [cards] = useOnyx(ONYXKEYS.CARD_LIST);

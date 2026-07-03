@@ -1,7 +1,9 @@
+import Log from '@libs/Log';
+
+import CONST from '@src/CONST';
+
 import noop from 'lodash/noop';
 import React, {useContext, useRef, useState} from 'react';
-import Log from '@libs/Log';
-import CONST from '@src/CONST';
 
 const ModalActions = {
     CONFIRM: 'CONFIRM',

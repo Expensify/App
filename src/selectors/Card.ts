@@ -1,10 +1,12 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getExpensifyCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {isCard, isCardHiddenFromSearch, isCSVFeedOrExpensifyCard, isExpensifyCard, isPersonalCard} from '@libs/CardUtils';
 import {filterObject} from '@libs/ObjectUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList, NonPersonalAndWorkspaceCardListDerivedValue, WorkspaceCardsList} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 /**
  * Builds a lightweight map of "${domainID}_${feedName}" keys that have card entries.

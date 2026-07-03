@@ -1,9 +1,12 @@
 import {act, renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import useAttendees from '@src/hooks/useAttendees';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 describe('useAttendees', () => {
@@ -59,8 +62,13 @@ describe('useAttendees', () => {
 
         expect(result.current).toEqual([
             {
+                accountID: ownerDetails.accountID,
+                login: ownerDetails.login,
                 displayName: ownerDetails.displayName,
+                selected: true,
                 email: ownerDetails.login,
+                text: ownerDetails.displayName,
+                searchText: ownerDetails.displayName,
                 avatarUrl: ownerDetails.avatar,
             },
         ]);
@@ -68,9 +76,11 @@ describe('useAttendees', () => {
 
     it('should return existing attendees if transaction already has attendees', async () => {
         const attendee: Attendee = {
-            email: 'attendee@test.com',
+            accountID: 1,
+            login: 'attendee@test.com',
             displayName: 'Attendee',
             avatarUrl: '',
+            selected: true,
         };
 
         const mockTransaction: Transaction = {

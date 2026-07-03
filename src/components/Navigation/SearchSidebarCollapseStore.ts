@@ -1,10 +1,15 @@
+import useOnyx from '@hooks/useOnyx';
+
+import SearchSidebarActions from '@libs/actions/SearchSidebar';
+
+import variables from '@styles/variables';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ViewStyle} from 'react-native';
+
 import {useCallback, useMemo, useSyncExternalStore} from 'react';
 import {Platform} from 'react-native';
-import type {ViewStyle} from 'react-native';
-import useOnyx from '@hooks/useOnyx';
-import SearchSidebarActions from '@libs/actions/SearchSidebar';
-import variables from '@styles/variables';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 const SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS = 220;
 const SEARCH_SIDEBAR_COLLAPSE_TRANSLATE_X = -8;

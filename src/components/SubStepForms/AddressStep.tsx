@@ -1,20 +1,26 @@
-import React, {useCallback, useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormRef} from '@components/Form/types';
 import PatriotActLink from '@components/PatriotActLink';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import {getCountryZipRegexDetails, getFieldRequiredErrors, getInvalidAddressErrorTranslationPath, isValidZipCode, isValidZipCodeForCountry} from '@libs/ValidationUtils';
+
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
+
 import {setDraftValues} from '@userActions/FormActions';
+
 import type {Country} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
+
+import React, {useCallback, useEffect, useRef} from 'react';
+import {View} from 'react-native';
 
 type AddressValues = {
     street: string;

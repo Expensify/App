@@ -1,3 +1,8 @@
+import generateTranslations, {GENERATED_FILE_PREFIX} from '@scripts/generateTranslations';
+import Git from '@scripts/utils/Git';
+import DummyTranslator from '@scripts/utils/Translator/DummyTranslator';
+import Translator from '@scripts/utils/Translator/Translator';
+
 /**
  * @jest-environment node
  */
@@ -5,10 +10,6 @@ import {Str} from 'expensify-common';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import generateTranslations, {GENERATED_FILE_PREFIX} from '@scripts/generateTranslations';
-import Git from '@scripts/utils/Git';
-import DummyTranslator from '@scripts/utils/Translator/DummyTranslator';
-import Translator from '@scripts/utils/Translator/Translator';
 
 let processExitSpy: jest.SpyInstance;
 let consoleErrorSpy: jest.SpyInstance;
@@ -113,7 +114,6 @@ describe('generateTranslations', () => {
             expect(itContent).toStrictEqual(
                 `${GENERATED_FILE_PREFIX}${Str.dedent(`
                 import type en from './en';
-
                 const strings = {
                     greeting: '[it] Hello',
                     farewell: '[it] Goodbye',
@@ -170,9 +170,10 @@ describe('generateTranslations', () => {
             expect(itContent).toStrictEqual(
                 `${GENERATED_FILE_PREFIX}${Str.dedent(`
                 import Log from '@libs/Log';
-                import CONST from '@src/CONST';
-                import type en from './en';
 
+                import CONST from '@src/CONST';
+
+                import type en from './en';
                 if (CONST.REPORT.TYPE.EXPENSE == 'true') {
                     Log.info('This should not be translated');
                     console.log('This should not be translated either');
@@ -246,7 +247,6 @@ describe('generateTranslations', () => {
             expect(itContent).toStrictEqual(
                 `${GENERATED_FILE_PREFIX}${Str.dedent(`
                 import type en from './en';
-
                 const strings = {
                     simple: (name: string, greeting: string) => \`[it] \${greeting} good sir \${name}!\`,
                     simpleWithDotNotation: (myParams: {name: string; greeting: string}) => \`[it] \${myParams.greeting} good sir \${myParams.greeting}!\`,
@@ -305,7 +305,6 @@ describe('generateTranslations', () => {
             expect(itContent).toStrictEqual(
                 `${GENERATED_FILE_PREFIX}${Str.dedent(`
                 import type en from './en';
-
                 const strings = {
                     updateReportFieldAllOptionsDisabled: (count: number, enabled: boolean, option: string) => {
                         if (toggledOptionsCount > 1) {
@@ -362,7 +361,6 @@ describe('generateTranslations', () => {
             expect(itContent).toStrictEqual(
                 `${GENERATED_FILE_PREFIX}${Str.dedent(`
                 import type en from './en';
-
                 const strings = {
                     bank: '[it][ctx: As in a financial institution] Bank',
                     bankTemplate: \`[it][ctx: As in a financial institution] Bank\`,
@@ -467,7 +465,6 @@ describe('generateTranslations', () => {
             expect(itContent).toStrictEqual(
                 `${GENERATED_FILE_PREFIX}${Str.dedent(`
                 import type en from './en';
-
                 const strings = {
                     greeting: '[it] Hello',
                     farewell: '[it] Goodbye',
@@ -503,7 +500,6 @@ describe('generateTranslations', () => {
             expect(itContent).toStrictEqual(
                 `${GENERATED_FILE_PREFIX}${Str.dedent(`
                 import type en from './en';
-
                 const strings = {
                     myFunc: ({brand}: {brand: 'Apple' | 'Google'}) => \`[it] \${brand} Phone\`,
                 };
@@ -529,7 +525,6 @@ describe('generateTranslations', () => {
             expect(itContent).toStrictEqual(
                 `${GENERATED_FILE_PREFIX}${Str.dedent(`
                 import type en from './en';
-
                 const strings = {
                     hello: '[it] こんにちは',
                     world: '[it] world',
@@ -2301,7 +2296,13 @@ describe('generateTranslations', () => {
             );
 
             // Mock getFailedTranslations to return failures
-            const mockFailures = [{text: 'Hello', targetLang: 'it' as const, error: 'Test error message'}];
+            const mockFailures = [
+                {
+                    text: 'Hello',
+                    targetLang: 'it' as const,
+                    error: 'Test error message',
+                },
+            ];
             jest.spyOn(DummyTranslator.prototype, 'getFailedTranslations').mockReturnValue(mockFailures);
 
             await generateTranslations();
@@ -2348,7 +2349,14 @@ describe('generateTranslations', () => {
             );
 
             // Mock getFailedTranslations with id
-            const mockFailures = [{text: 'Hello', targetLang: 'it' as const, error: 'Test error', id: 'common.greeting'}];
+            const mockFailures = [
+                {
+                    text: 'Hello',
+                    targetLang: 'it' as const,
+                    error: 'Test error',
+                    id: 'common.greeting',
+                },
+            ];
             jest.spyOn(DummyTranslator.prototype, 'getFailedTranslations').mockReturnValue(mockFailures);
 
             await generateTranslations();
