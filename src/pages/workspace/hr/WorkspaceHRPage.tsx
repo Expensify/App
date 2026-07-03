@@ -87,12 +87,17 @@ function WorkspaceHRPage({
 
     const {canWrite: canWriteMoreFeatures, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
 
-    const handleConnect = (setupLink: string | undefined) => {
-        if (!setupLink) {
+    const handleConnect = (card: HRCardDescriptor) => {
+        if (!card.setupLink) {
             return;
         }
 
-        if (connectedCards.length > 0) {
+        if (!canWriteMoreFeatures) {
+            showReadOnlyModal();
+            return;
+        }
+
+        if (!card.isConnected && connectedCards.length > 0) {
             showConfirmModal({
                 title: translate('workspace.hr.alreadyConnectedTitle'),
                 prompt: translate('workspace.hr.alreadyConnectedPrompt'),
@@ -104,7 +109,7 @@ function WorkspaceHRPage({
         }
 
         // eslint-disable-next-line react-hooks/purity -- random key forces remount on every press, even for the same provider
-        setActiveHRFlow({setupLink, key: Math.random()});
+        setActiveHRFlow({setupLink: card.setupLink, key: Math.random()});
     };
 
     return (
@@ -151,7 +156,7 @@ function WorkspaceHRPage({
                                         key={card.key}
                                         card={card}
                                         policy={policy}
-                                        handleConnect={() => handleConnect(card.setupLink)}
+                                        handleConnect={() => handleConnect(card)}
                                         canWriteMoreFeatures={canWriteMoreFeatures}
                                         showReadOnlyModal={showReadOnlyModal}
                                     />
@@ -162,7 +167,7 @@ function WorkspaceHRPage({
                                             key={card.key}
                                             card={card}
                                             policy={policy}
-                                            handleConnect={() => handleConnect(card.setupLink)}
+                                            handleConnect={() => handleConnect(card)}
                                             canWriteMoreFeatures={canWriteMoreFeatures}
                                             showReadOnlyModal={showReadOnlyModal}
                                         />
@@ -181,7 +186,7 @@ function WorkspaceHRPage({
                                             key={card.key}
                                             card={card}
                                             policy={policy}
-                                            handleConnect={() => handleConnect(card.setupLink)}
+                                            handleConnect={() => handleConnect(card)}
                                             canWriteMoreFeatures={canWriteMoreFeatures}
                                             showReadOnlyModal={showReadOnlyModal}
                                         />

@@ -28,6 +28,7 @@ import useEnvironment from './useEnvironment';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import {findSplitPolicyForCustomUnit, getSplitEffectivePolicy} from './useSplitEffectivePolicy';
@@ -85,6 +86,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const personalPolicy = usePersonalPolicy();
     const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const {isOffline} = useNetwork();
     const {isProduction} = useEnvironment();
@@ -169,10 +171,18 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     policyForCustomUnit: findSplitPolicyForCustomUnit(allPolicies, splitExpenseEditTransaction),
                     fallbackPolicy: policyForMovingExpenses,
                 });
-                initSplitExpense(splitExpenseEditTransaction, splitExpenseEditTransactionReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, {
-                    navigateToEditSplitExpense: true,
-                    isProduction,
-                });
+                initSplitExpense(
+                    splitExpenseEditTransaction,
+                    splitExpenseEditTransactionReport,
+                    splitEffectivePolicy,
+                    selfDMReportID,
+                    restrictedActionPolicyID,
+                    personalPolicy?.outputCurrency,
+                    {
+                        navigateToEditSplitExpense: true,
+                        isProduction,
+                    },
+                );
                 return {
                     action: 'redirected',
                 };
@@ -269,7 +279,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
 
                 const parentTransactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
                 const expenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE ? report : parentTransactionReport;
-                const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${expenseReport?.policyID}`] ?? {};
                 const activeGroupSearchHashes =
                     currentSearchHash !== undefined && currentSearchHash >= 0 ? getActiveGroupSearchHashes(currentSearchResults?.data, currentSearchQueryJSON) : [];
 
@@ -279,6 +288,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     allReportActionsList: allReportActions,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     allSnapshots,
+                    allPolicyTags,
                     transactionData: {
                         reportID: report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
                         originalTransactionID: transactionID,
@@ -301,7 +311,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     quickAction,
                     iouReportNextStep,
                     betas,
-                    policyTags,
                     personalDetails,
                     transactionReport: report,
                     expenseReport,
@@ -377,6 +386,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             getSplitExpenseEditTransactionOnDelete,
             isOffline,
             isProduction,
+            personalPolicy?.outputCurrency,
         ],
     );
 

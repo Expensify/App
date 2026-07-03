@@ -139,6 +139,7 @@ import {
     isInviteOrRemovedAction,
     isLeavePolicyAction,
     isOldDotReportAction,
+    isPolicyCopyReportAction,
     isRenamedAction,
     isTagModificationAction,
     isTaskAction,
@@ -156,6 +157,7 @@ import {
     getIcons,
     getMovedTransactionMessage,
     getParticipantsAccountIDsForDisplay,
+    getPolicyChangeLogCopyMessage,
     getPolicyName,
     getReceiptUploadErrorReason,
     getReportDescription,
@@ -1257,6 +1259,8 @@ function getOptionData({
             result.alternateText = getUpdatedIndividualBudgetNotificationMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SHARED_BUDGET_NOTIFICATION) {
             result.alternateText = getUpdatedSharedBudgetNotificationMessage(translate, lastAction);
+        } else if (isPolicyCopyReportAction(lastAction)) {
+            result.alternateText = Parser.htmlToText(getPolicyChangeLogCopyMessage(translate, lastAction));
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
             result.alternateText = translate('iou.retracted');
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {

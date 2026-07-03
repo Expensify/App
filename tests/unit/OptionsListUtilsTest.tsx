@@ -799,6 +799,52 @@ describe('OptionsListUtils', () => {
             expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length - 1);
         });
 
+        it('should include a policy expense chat when the current user notification preference is hidden', () => {
+            // Given a member's workspace chat where the current user (admin) is a participant with a hidden notification preference
+            const memberWorkspaceChat: OnyxCollection<Report> = {
+                '20': {
+                    lastReadTime: '2021-01-14 11:25:39.200',
+                    lastVisibleActionCreated: '2022-11-22 03:26:02.001',
+                    reportID: '20',
+                    participants: {
+                        [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                        3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                    reportName: "Spider-Man's expenses",
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    ownerAccountID: 3,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    policyID,
+                    policyName: POLICY.name,
+                },
+            };
+            const optionsWithMemberWorkspaceChat = createOptionList(
+                PERSONAL_DETAILS,
+                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                memberWorkspaceChat,
+                undefined,
+                createMockReportAttributesDerived(memberWorkspaceChat, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID),
+            );
+
+            // When we call getSearchOptions
+            const results = getSearchOptions({
+                options: optionsWithMemberWorkspaceChat,
+                reportAttributesDerived: createMockReportAttributesDerived(memberWorkspaceChat, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID),
+                draftComments: {},
+                loginList,
+                betas: [CONST.BETAS.ALL],
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
+                personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
+                conciergeReportID: undefined,
+            });
+
+            // Then the member's workspace chat should still be included in the search results
+            expect(results.recentReports.some((report) => report.reportID === '20')).toBe(true);
+        });
+
         it('should include current user when includeCurrentUser is true for type:chat from suggestions', () => {
             // Given a set of options where the current user is Iron Man (accountID: 2)
             // When we call getSearchOptions with includeCurrentUser set to true

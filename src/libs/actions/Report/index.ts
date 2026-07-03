@@ -175,6 +175,7 @@ import {
 import {buildOptimisticSnapshotData, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {getAmount, getCurrency, getNegatedAmountTransaction, isOnHold, recalculateUnreportedTransactionDetails, shouldClearConvertedAmount} from '@libs/TransactionUtils';
+import {getSearchParamFromPath} from '@libs/Url';
 import {buildSecureDownloadURL} from '@libs/UrlUtils';
 import Visibility from '@libs/Visibility';
 import {cacheAttachment, removeCachedAttachment} from '@userActions/Attachment';
@@ -203,6 +204,7 @@ import type {OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
     AnyRequest,
@@ -4723,6 +4725,21 @@ function navigateToMostRecentReport(
     }
 }
 
+function getSearchThreadLeaveRoute(report: Report, activeRoute: string): Route | undefined {
+    if (!isSearchTopmostFullScreenRoute() || !isChatThreadReportUtils(report) || !report.parentReportID || !report.parentReportActionID) {
+        return undefined;
+    }
+
+    const parentBackTo = getSearchParamFromPath(activeRoute, 'backTo');
+    const nestedBackTo = parentBackTo ? getSearchParamFromPath(parentBackTo, 'backTo') : undefined;
+
+    return ROUTES.SEARCH_REPORT.getRoute({
+        reportID: report.parentReportID,
+        reportActionID: report.parentReportActionID,
+        backTo: nestedBackTo ?? parentBackTo ?? undefined,
+    });
+}
+
 function getMostRecentReportID(currentReport: OnyxEntry<Report>, conciergeReportID: string | undefined) {
     const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID)?.reportID;
     return lastAccessedReportID ?? conciergeReportID;
@@ -4815,6 +4832,7 @@ function leaveRoom(
 ) {
     const reportID = report.reportID;
     const isChatThread = isChatThreadReportUtils(report);
+    const activeRoute = Navigation.getActiveRoute();
 
     // Pusher's leavingStatus should be sent earlier.
     // Place the broadcast before calling the LeaveRoom API to prevent a race condition
@@ -4908,6 +4926,12 @@ function leaveRoom(
     };
 
     API.write(WRITE_COMMANDS.LEAVE_ROOM, parameters, {optimisticData, successData, failureData});
+
+    const searchThreadLeaveRoute = getSearchThreadLeaveRoute(report, activeRoute);
+    if (searchThreadLeaveRoute) {
+        Navigation.goBack(searchThreadLeaveRoute, {compareParams: false});
+        return;
+    }
 
     // If this is the leave action from a workspace room, simply dismiss the modal, i.e., allow the user to view the room and join again immediately.
     // If this is the leave action from a chat thread (even if the chat thread is in a room), do not allow the user to stay in the thread after leaving.
