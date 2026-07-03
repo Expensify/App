@@ -1,8 +1,10 @@
-import NetInfo from '@react-native-community/netinfo';
-import Onyx from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import NetInfo from '@react-native-community/netinfo';
+import Onyx from 'react-native-onyx';
+
 import {getCommandURL} from './ApiUtils';
 import getEnvironment from './Environment/getEnvironment';
 import {onSustainedFailureChange, reset as resetFailureCounters} from './FailureTracker';

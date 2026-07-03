@@ -1,6 +1,9 @@
 import {renderHook} from '@testing-library/react-native';
+
 import useFilterSelectedTransactions from '@hooks/useFilterSelectedTransactions';
+
 import type {Transaction} from '@src/types/onyx';
+
 import createRandomTransaction from '../../utils/collections/transaction';
 
 // Mock variables that can be modified in tests

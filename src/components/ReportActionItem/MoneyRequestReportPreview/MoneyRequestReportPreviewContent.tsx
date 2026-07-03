@@ -1,7 +1,9 @@
 import React from 'react';
+
+import type {MoneyRequestReportPreviewContentProps} from './types';
+
 import MoneyRequestReportPreviewBody from './MoneyRequestReportPreviewBody';
 import MoneyRequestReportPreviewProvider from './MoneyRequestReportPreviewProvider';
-import type {MoneyRequestReportPreviewContentProps} from './types';
 
 /**
  * Entry point for the money request report preview. Sets up the context provider (which owns all state/derivations)

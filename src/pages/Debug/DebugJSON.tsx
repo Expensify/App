@@ -1,15 +1,18 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
 import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
+
 import Clipboard from '@libs/Clipboard';
 import DebugUtils from '@libs/DebugUtils';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
 
 type DebugJSONProps = {
     /** The JSON data to be previewed. */
