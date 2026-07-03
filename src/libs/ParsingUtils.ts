@@ -1,7 +1,10 @@
+import CONST from '@src/CONST';
+
 import type {MarkdownRange} from '@expensify/react-native-live-markdown';
+
 import {parseExpensiMark} from '@expensify/react-native-live-markdown';
 import {Str} from 'expensify-common';
-import CONST from '@src/CONST';
+
 import Parser from './Parser';
 import {addSMSDomainIfPhoneNumber} from './PhoneNumber';
 

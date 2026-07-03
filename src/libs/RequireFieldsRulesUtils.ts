@@ -1,7 +1,9 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {TableData} from '@components/Table';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type PolicyData from '@hooks/usePolicyData/types';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -10,6 +12,7 @@ import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
 import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
 import {
     removePolicyCategoryItemizedReceiptsRequired,
     removePolicyCategoryReceiptsRequired,

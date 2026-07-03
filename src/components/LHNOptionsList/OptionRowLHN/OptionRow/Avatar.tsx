@@ -1,13 +1,18 @@
-import React from 'react';
-import type {ColorValue} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import LHNAvatar from '@components/LHNOptionsList/LHNAvatar';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {shouldOptionShowTooltip} from '@libs/OptionsListUtils';
 import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
+
+import type {ColorValue} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
 

@@ -1,15 +1,18 @@
-import type {LinkingOptions} from '@react-navigation/native';
 import collectScreensWithTabNavigator from '@libs/Navigation/helpers/collectScreensWithTabNavigator';
 import type {ScreenConfigEntry} from '@libs/Navigation/helpers/collectScreensWithTabNavigator';
 import type {RouteConfig} from '@libs/Navigation/helpers/createNormalizedConfigs';
 import createNormalizedConfigs from '@libs/Navigation/helpers/createNormalizedConfigs';
+
 import type {RootNavigatorParamList} from '@navigation/types';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import EXPENSE_RULE_INPUT_IDS from '@src/types/form/ExpenseRuleForm';
+
+import type {LinkingOptions} from '@react-navigation/native';
 
 // Moved to a separate file to avoid cyclic dependencies.
 const config: LinkingOptions<RootNavigatorParamList>['config'] = {
@@ -2381,6 +2384,10 @@ const normalizedConfigs = Object.keys(config.screens)
         {} as Record<Screen, RouteConfig>,
     );
 
-const screensWithOnyxTabNavigator = collectScreensWithTabNavigator(config.screens as Record<string, ScreenConfigEntry>);
+const {
+    screensWithTabNavigator: screensWithOnyxTabNavigator,
+    dynamicTabPatternToTabPaths,
+    dynamicTabScreensByHost,
+} = collectScreensWithTabNavigator(config.screens as Record<string, ScreenConfigEntry>);
 
-export {normalizedConfigs, config, screensWithOnyxTabNavigator};
+export {normalizedConfigs, config, screensWithOnyxTabNavigator, dynamicTabPatternToTabPaths, dynamicTabScreensByHost};

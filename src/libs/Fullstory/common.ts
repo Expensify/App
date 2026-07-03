@@ -1,11 +1,15 @@
-import {Str} from 'expensify-common';
-import type {OnyxCollection} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {chatIncludesConcierge} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
 import type {GetChatFSClass, ShouldInitialize} from './types';
 
 // This data is only used for Fullstory to determine if a chat-related element should be

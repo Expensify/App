@@ -1,10 +1,5 @@
-/**
- * This file contains utility functions for managing and computing report names
- */
-import {Str} from 'expensify-common';
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -22,6 +17,15 @@ import type {
 } from '@src/types/onyx';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+/**
+ * This file contains utility functions for managing and computing report names
+ */
+import {Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
 import {convertToDisplayString} from './CurrencyUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
@@ -113,6 +117,7 @@ import {
     isMovedAction,
     isOldDotReportAction,
     isOriginalReportDeleted,
+    isPolicyCopyReportAction,
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRejectedAction,
@@ -131,6 +136,7 @@ import {
     getMovedActionMessage,
     getMovedTransactionMessage,
     getParentReport,
+    getPolicyChangeLogCopyMessage,
     getPolicyChangeMessage,
     getPolicyName,
     getReimbursementDeQueuedOrCanceledActionMessage,
@@ -819,6 +825,9 @@ function computeReportNameBasedOnReportAction(
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_EXPENSIFY_CARD_RULE)) {
         return getRemoveExpensifyCardRuleMessage(translate, parentReportAction);
+    }
+    if (isPolicyCopyReportAction(parentReportAction)) {
+        return Parser.htmlToText(getPolicyChangeLogCopyMessage(translate, parentReportAction));
     }
 
     return undefined;
