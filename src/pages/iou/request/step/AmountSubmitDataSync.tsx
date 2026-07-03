@@ -1,18 +1,22 @@
-import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
-import {useLayoutEffect} from 'react';
-import type {RefObject} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useSelfDMReport from '@hooks/useSelfDMReport';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {SubmitAmountArgs} from '@libs/IOUAmountSubmission';
 import {getExistingTransactionID} from '@libs/IOUUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {RefObject} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
+import {useLayoutEffect} from 'react';
 
 type AmountSubmitData = Pick<
     SubmitAmountArgs,

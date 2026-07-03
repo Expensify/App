@@ -1,5 +1,3 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -9,6 +7,13 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+
+import type {WriteOverrides} from './Navigation/helpers/submitWithDismissFirst';
+
 import {
     getMoneyRequestParticipantsFromReport,
     setMoneyRequestAmount,
@@ -32,7 +37,6 @@ import {
     resolveOptimisticChatReportID,
 } from './IOUUtils';
 import cleanupAfterSkipConfirmSubmit from './Navigation/helpers/cleanupAfterSkipConfirmSubmit';
-import type {WriteOverrides} from './Navigation/helpers/submitWithDismissFirst';
 import {submitWithDismissFirst} from './Navigation/helpers/submitWithDismissFirst';
 import Navigation from './Navigation/Navigation';
 import {rand64} from './NumberUtils';
