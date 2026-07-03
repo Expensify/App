@@ -286,9 +286,8 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
                 <DotIndicatorMessage
                     style={[styles.mv2]}
                     type="success"
-                    messages={{
-                        0: closeAccount?.success ? closeAccount.success : accountMessage,
-                    }}
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    messages={{0: closeAccount?.success ? closeAccount.success : accountMessage}}
                 />
             )}
             {
