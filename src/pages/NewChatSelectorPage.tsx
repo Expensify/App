@@ -1,19 +1,25 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setNewRoomFormLoading} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
+
 import CONST from '@src/CONST';
 import KeyboardUtils from '@src/utils/keyboard';
+
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+
+import type {WorkspaceNewRoomPageRef} from './workspace/WorkspaceNewRoomPage';
+
 import NewChatPage from './NewChatPage';
 import WorkspaceNewRoomPage from './workspace/WorkspaceNewRoomPage';
-import type {WorkspaceNewRoomPageRef} from './workspace/WorkspaceNewRoomPage';
 
 function NewChatSelectorPage() {
     const {translate} = useLocalize();
