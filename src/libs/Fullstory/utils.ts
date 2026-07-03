@@ -73,12 +73,11 @@ function buildUserTypePath(choice: OnyxEntry<ValueOf<typeof CONST.ONBOARDING_CHO
     return segments.join('_');
 }
 
-function getDaysTillDate(dateString: string | undefined): number | undefined {
-    if (!dateString) {
+function getDaysTillDate(endDate: Date | undefined): number | undefined {
+    if (!endDate) {
         return;
     }
 
-    const endDate = new Date(dateString);
     if (Number.isNaN(endDate.getTime())) {
         return;
     }
@@ -179,7 +178,8 @@ function buildFullstoryUserVars({
     const hasCompletedOnboarding = onboarding?.hasCompletedGuidedSetupFlow;
     const currentOnboardingChoice = introSelected?.choice ?? onboardingPurposeSelected;
     const companySize = introSelected?.companySize ?? onboardingCompanySize;
-    const daysTillTrialEnd = getDaysTillDate(userMetadata?.freeTrialEndDate);
+    const freeTrialEndDate = getFreeTrialEndDate(userMetadata?.freeTrialEndDate);
+    const daysTillTrialEnd = getDaysTillDate(freeTrialEndDate);
     let userStatus: FullstoryUserVars['user_status'];
 
     if (hasCompletedOnboarding !== undefined) {
@@ -198,7 +198,7 @@ function buildFullstoryUserVars({
             workspace_state: activePolicies.length > 0 ? 'has_workspaces' : 'no_workspaces',
             workspace_count: activePolicies.length,
             workspace_member_count: activePolicy ? Object.keys(activePolicy.employeeList ?? {}).length : undefined,
-            free_trial_end_date: getFreeTrialEndDate(userMetadata?.freeTrialEndDate),
+            free_trial_end_date: freeTrialEndDate,
             days_till_trial_end: daysTillTrialEnd,
             free_trial_status: getFreeTrialStatus(daysTillTrialEnd),
             plan_type: getPlanType(activePolicies),
