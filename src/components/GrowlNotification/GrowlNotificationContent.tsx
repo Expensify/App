@@ -33,7 +33,10 @@ type GrowlNotificationContentProps = {
     type: GrowlType;
     duration: number;
     action?: GrowlAction;
-    onDismissed: () => void;
+
+    /** Identifies this growl instance; passed back through onDismissed so the parent can ignore stale dismissals. */
+    nonce: number;
+    onDismissed: (dismissedNonce: number) => void;
 };
 
 // Every growl variant must have an icon mapping; keeping this map exhaustive over GrowlType.
@@ -45,7 +48,7 @@ type GrowlIconTypes = Record<
     }
 >;
 
-function GrowlNotificationContent({bodyText, type, duration, action, onDismissed}: GrowlNotificationContentProps) {
+function GrowlNotificationContent({bodyText, type, duration, action, nonce, onDismissed}: GrowlNotificationContentProps) {
     // Normalized: 0 = fully offscreen for the current anchor, 1 = fully visible. The container
     // multiplies this against the live `inactiveY`, so the offscreen position stays correct
     // even when the responsive layout flips after the growl is dismissed.
@@ -87,8 +90,10 @@ function GrowlNotificationContent({bodyText, type, duration, action, onDismissed
         progress.set(
             withSpring(targetProgress, {overshootClamping: false}, (finished) => {
                 // Reanimated calls this with finished=false if the spring is interrupted
-                // (e.g. new growl content slides in before this slide-out completes), so a
-                // stale slide-out can't unmount a freshly-shown growl.
+                // (e.g. a new withSpring on this shared value before the slide-out completes).
+                // A replacement growl remounts with its own shared value though, so this guard
+                // alone can't stop a stale slide-out from settling; the parent additionally
+                // ignores dismissals whose nonce no longer matches the current growl.
                 if (!finished || !onSettled) {
                     return;
                 }
@@ -98,10 +103,11 @@ function GrowlNotificationContent({bodyText, type, duration, action, onDismissed
     };
 
     /**
-     * Slide the growl off-screen; the spring's completion callback invokes onDismissed.
+     * Slide the growl off-screen; the spring's completion callback reports this growl's
+     * nonce through onDismissed so the parent can ignore it if a newer growl took over.
      */
     const triggerDismiss = () => {
-        fling(0, onDismissed);
+        fling(0, () => onDismissed(nonce));
     };
 
     useEffect(() => {

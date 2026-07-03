@@ -40,8 +40,10 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
         setIsReady();
     }, []);
 
-    const handleDismissed = () => {
-        setContent(null);
+    // Nonce-guarded: a stale dismiss (e.g. a slide-out completion callback from a previous
+    // growl that was replaced mid-animation) must not clear a newer growl.
+    const handleDismissed = (dismissedNonce: number) => {
+        setContent((prev) => (prev?.nonce === dismissedNonce ? null : prev));
     };
 
     if (!content) {
@@ -55,6 +57,7 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
             type={content.type}
             duration={content.duration}
             action={content.action}
+            nonce={content.nonce}
             onDismissed={handleDismissed}
         />
     );
