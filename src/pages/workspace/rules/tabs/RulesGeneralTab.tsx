@@ -1,13 +1,18 @@
-import React from 'react';
 import AgentPromotionalBanner from '@components/AgentPromotionalBanner';
+
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
+
 import IndividualExpenseRulesSectionRevamp from '@pages/workspace/rules/IndividualExpenseRulesSectionRevamp';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
 
 type RulesGeneralTabProps = {
     policyID: string;

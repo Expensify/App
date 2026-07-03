@@ -1,3 +1,13 @@
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -11,13 +21,7 @@
  */
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
-import type {ValueOf} from 'type-fest';
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -846,7 +850,7 @@ const translations: TranslationDeepObject<typeof en> = {
         joinThread: 'Entrar na conversa',
         leaveThread: 'Sair da conversa',
         copyOnyxData: 'Copiar dados do Onyx',
-        copyAgentZeroRequestID: 'Copiar ID de solicitação do AgentZero',
+        viewAgentZeroTrace: 'Ver rastreamento do AgentZero',
         flagAsOffensive: 'Sinalizar como ofensivo',
         menu: 'Menu',
     },
@@ -982,6 +986,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalTitle: 'Sua conta bancária foi bloqueada',
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Carteira',
+            },
+            addVirtualCardPersonalDetails: {
+                title: 'Adicione seus dados pessoais',
+                subtitle: 'Adicione seus dados para visualizar e começar a usar seu Cartão Expensify.',
+                cta: 'Adicionar detalhes',
             },
             enterSignerInfo: {title: 'Informações do signatário necessárias', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Conta bancária ${bankAccountLastFour}`},
         },
@@ -1221,7 +1230,7 @@ const translations: TranslationDeepObject<typeof en> = {
         approved: 'Aprovado',
         cash: 'Dinheiro',
         card: 'Cartão',
-        original: 'Original',
+        purchase: 'Compra',
         split: 'Dividir',
         splitExpense: 'Dividir despesa',
         splitDates: 'Dividir datas',
@@ -2503,6 +2512,10 @@ const translations: TranslationDeepObject<typeof en> = {
         cardInactive: 'Inativo',
         assignedCards: 'Cartões',
         assignedCardsDescription: 'As transações de cartões atribuídos são sincronizadas automaticamente.',
+        addVirtualCardPersonalDetails: {
+            subtitle: 'Por favor, insira seus dados pessoais para começar a usar seu cartão',
+            cta: 'Adicionar detalhes',
+        },
         expensifyCard: 'Cartão Expensify',
         walletActivationPending: 'Estamos analisando suas informações. Volte a conferir em alguns minutos!',
         walletActivationFailed: 'Infelizmente, sua carteira não pode ser ativada neste momento. Converse com o Concierge para obter mais ajuda.',
@@ -5713,6 +5726,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             changeCardMonthlyLimitTypeWarning: (limit: number | string) =>
                 `Se você alterar o tipo de limite deste cartão para Mensal, novas transações serão recusadas porque o limite mensal de ${limit} já foi atingido.`,
             addShippingDetails: 'Adicionar detalhes de envio',
+            addPersonalDetails: 'Adicionar dados pessoais',
             issuedCard: (assignee: string) => `emitiu um Cartão Expensify para ${assignee}! O cartão chegará em 2-3 dias úteis.`,
             issuedCardNoShippingDetails: (assignee: string) => `emitiu um Cartão Expensify para ${assignee}! O cartão será enviado assim que os dados de envio forem confirmados.`,
             issuedCardVirtual: (assignee: string, link: string) => `emitiu um Cartão Expensify virtual para ${assignee}! O ${link} já pode ser usado imediatamente.`,
@@ -7768,6 +7782,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     `<muted-text-label>Conectado. ${setupLink ? `<a href="${setupLink}">Concluir configuração</a>` : 'Concluir configuração'} para importar funcionários.</muted-text-label>`,
                 groups: {title: 'Grupos', description: 'Escolha os grupos de funcionários que você gostaria de sincronizar com este workspace'},
             },
+            notSync: 'Não sincronizado',
+            authenticationError: (providerName: string) => `Não é possível conectar a ${providerName} devido a uma conexão expirada.`,
+            reconnect: 'Reconectar',
+            reconnectLink: 'Reconectar.',
         },
         emptyDomain: {
             title: 'Aumente sua segurança com domínios',
@@ -8374,6 +8392,46 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         customUnitRateDateRangeFrom: (date: string) => `de ${date}`,
         customUnitRateDateRangeUntilEnd: (date: string) => `até ${date}`,
         customUnitRateDateRangeAllDates: () => `para todas as datas`,
+        policyCopy: {
+            overview: (sourcePolicyName: string, sourcePolicyURL: string) => `visão geral copiada de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            employees: (sourcePolicyName: string, sourcePolicyURL: string) => `copiou membros de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copiou 1 campo de relatório de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copiou ${count} campos de relatório de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            accounting: (sourcePolicyName: string, sourcePolicyURL: string) => `configurações de contabilidade copiadas de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            receiptPartners: (sourcePolicyName: string, sourcePolicyURL: string) => `configurações de parceiro de recibos copiadas de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            hr: (sourcePolicyName: string, sourcePolicyURL: string) => `copiou as configurações de RH de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            categories: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copiou 1 categoria de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copiou ${count} categorias de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            tags: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copiou 1 etiqueta de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copiou ${count} tags de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            taxes: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copiou 1 alíquota de imposto de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copiou ${count} taxas de imposto de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            timeTracking: (sourcePolicyName: string, sourcePolicyURL: string) => `copiou as configurações de controle de horas de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            workflows: (sourcePolicyName: string, sourcePolicyURL: string) => `fluxos de trabalho copiados de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            rules: (sourcePolicyName: string, sourcePolicyURL: string) => `regras copiadas de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            codingRules: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copiou 1 regra de comerciante de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copiou ${count} regras de comerciante de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            distanceRates: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copiou 1 taxa de distância de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copiou ${count} taxas de distância de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            perDiem: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copiou 1 tarifa de diária de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copiou ${count} taxas de diária de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            }),
+            invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `configurações de fatura copiadas de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            travel: (sourcePolicyName: string, sourcePolicyURL: string) => `configurações de viagem copiadas de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
@@ -8573,6 +8631,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             past: 'Passado',
             submitted: 'Enviado',
             approved: 'Aprovado',
+            firstApprover: 'Primeira pessoa aprovadora',
+            firstApproved: 'Primeira aprovada',
             paid: 'Pago',
             exported: 'Exportado',
             posted: 'Publicado',
@@ -9802,6 +9862,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             theresAProblemWithYourWalletTerms: 'Há um problema com os termos da sua carteira',
             aBankAccountIsLocked: 'Uma conta bancária está bloqueada',
             completeHrSetup: 'Concluir configuração de RH',
+            theresAProblemWithAnHRConnection: 'Há um problema com uma conexão de RH',
         },
     },
     emptySearchView: {
