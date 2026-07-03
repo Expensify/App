@@ -1,5 +1,5 @@
 import {act, fireEvent, screen} from '@testing-library/react-native';
-import {isTestScenarioInitEvent} from 'tests/utils/mfa/flowFixtures';
+import {describeTraversalEvent, isTestScenarioInitEvent} from 'tests/utils/mfa/flowFixtures';
 import getWalkedPaths, {getDrivingJourneyPaths, getExercisedTransitionKeys, getInitEdgeLandings, getMfaShortestPaths, getUiDrivableTransitions} from 'tests/utils/mfa/flowPaths';
 import {getMfaControls, renderMfaUi} from 'tests/utils/mfa/realUi/harness';
 import {pendingModalClose, resetMfaUiMocks} from 'tests/utils/mfa/realUi/mocks';
@@ -124,12 +124,16 @@ const testConfig = {
 
 const walkedPaths = getWalkedPaths();
 
-// `path.description` serializes the complete event payload, so test names use only driven event types.
-// The synthetic `xstate.init` event is excluded because it is not part of `MfaEvent`.
+// `path.description` serializes the complete event payload, so test names use the short labels from
+// `describeTraversalEvent` instead. The synthetic `xstate.init` event is excluded because it is not part
+// of `MfaEvent`.
 const INIT_STEP_EVENT_TYPE = 'xstate.init';
 function describeDrivenEvents(steps: ReadonlyArray<{event: {type: string}}>): string {
-    const drivenEventTypes = steps.map((step) => step.event.type).filter((type) => type !== INIT_STEP_EVENT_TYPE);
-    return drivenEventTypes.length > 0 ? drivenEventTypes.join(' -> ') : 'no driven events';
+    const drivenEventLabels = steps
+        .map((step) => step.event)
+        .filter((event) => event.type !== INIT_STEP_EVENT_TYPE)
+        .map(describeTraversalEvent);
+    return drivenEventLabels.length > 0 ? drivenEventLabels.join(' -> ') : 'no driven events';
 }
 
 describe('the real MFA modal matches the machine at every step of every generated path', () => {

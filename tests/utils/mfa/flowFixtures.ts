@@ -34,5 +34,17 @@ function isTestScenarioInitEvent(event: {type: string}): event is MultifactorAut
     return event.type === 'INIT' && 'scenarioName' in event && event.scenarioName === MFA_TEST_SCENARIO_NAME;
 }
 
+/**
+ * Names a traversal event in path titles and transition descriptions. The INIT fixtures differ only in
+ * their payload, which the titles otherwise erase, so a failure would not tell which fixture broke. The
+ * label lists the payload keys instead of the serialized payload to stay short and stable.
+ */
+function describeTraversalEvent(event: {type: string}): string {
+    if (!isTestScenarioInitEvent(event)) {
+        return event.type;
+    }
+    return event.payload === undefined ? 'INIT(bare)' : `INIT(${Object.keys(event.payload).join(', ')})`;
+}
+
 export default createInitEvent;
-export {isTestScenarioInitEvent, MFA_TEST_PAYLOAD, MFA_TEST_SCENARIO_NAME};
+export {describeTraversalEvent, isTestScenarioInitEvent, MFA_TEST_PAYLOAD, MFA_TEST_SCENARIO_NAME};

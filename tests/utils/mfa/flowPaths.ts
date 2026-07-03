@@ -5,7 +5,7 @@ import {adjacencyMapToArray, getAdjacencyMap, getShortestPaths, serializeSnapsho
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
 import type {MfaEvent} from '@components/MultifactorAuthentication/machine/types';
 import CONST from '@src/CONST';
-import createInitEvent, {MFA_TEST_PAYLOAD} from './flowFixtures';
+import createInitEvent, {describeTraversalEvent, MFA_TEST_PAYLOAD} from './flowFixtures';
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
@@ -149,7 +149,7 @@ function getUiDrivableTransitions(): UiDrivableTransition[] {
         .filter((edge) => !edge.event.type.startsWith(DELAYED_EVENT_PREFIX))
         .map((edge) => ({
             key: getTransitionKey(serializeSnapshot(edge.state), edge.event),
-            description: `${JSON.stringify(edge.state.value)} --${edge.event.type}--> ${JSON.stringify(edge.nextState.value)}`,
+            description: `${JSON.stringify(edge.state.value)} --${describeTraversalEvent(edge.event)}--> ${JSON.stringify(edge.nextState.value)}`,
         }));
 }
 
