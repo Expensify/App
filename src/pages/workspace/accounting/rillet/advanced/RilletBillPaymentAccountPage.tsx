@@ -26,7 +26,7 @@ function RilletCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
     const rilletConfig = policy?.connections?.rillet?.config;
     const rilletData = policy?.connections?.rillet?.data;
     const companyCardAccount = rilletData?.accounts?.find((account) => account.code === rilletConfig?.export?.creditCardAccountCode);
-    const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.getRoute(policyID) : undefined;
+    const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_ADVANCED.getRoute(policyID) : undefined;
 
     const data: AccountListItem[] =
         rilletData?.accounts?.map((accountItem) => ({

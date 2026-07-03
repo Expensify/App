@@ -6,7 +6,13 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearRilletErrorField} from '@libs/actions/connections/Rillet';
+import {
+    clearRilletErrorField,
+    updateRilletAutoSync,
+    updateRilletSyncExpensifyCardSettlements,
+    updateRilletSyncReimbursedReports,
+    updateRilletSyncTravelInvoicingSettlements,
+} from '@libs/actions/connections/Rillet';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
