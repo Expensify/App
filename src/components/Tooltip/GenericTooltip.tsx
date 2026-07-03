@@ -1,17 +1,24 @@
-import React, {memo, useCallback, useEffect, useState} from 'react';
-import type {LayoutRectangle} from 'react-native';
-import {cancelAnimation, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import Log from '@libs/Log';
 import StringUtils from '@libs/StringUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import callOrReturn from '@src/types/utils/callOrReturn';
+
+import type {LayoutRectangle} from 'react-native';
+
+import React, {memo, useCallback, useEffect, useState} from 'react';
+import {cancelAnimation, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
+
+import type {GenericTooltipProps} from './types';
+
 import BaseGenericTooltip from './BaseGenericTooltip';
 import TooltipSense from './TooltipSense';
-import type {GenericTooltipProps} from './types';
 
 /**
  * The generic tooltip implementation, exposing the tooltip's state

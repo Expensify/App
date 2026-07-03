@@ -1,3 +1,8 @@
+import CONST from '@src/CONST';
+import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
 import {
     activeAdminPoliciesSelector,
     adminPoliciesConnectedToQBDSelector,
@@ -8,9 +13,7 @@ import {
     hasReusablePoliciesConnectedToSelector,
     reusablePoliciesConnectedToSelector,
 } from '@selectors/Policy';
-import type {OnyxCollection} from 'react-native-onyx';
-import CONST from '@src/CONST';
-import type {Policy} from '@src/types/onyx';
+
 import createRandomPolicy from '../../utils/collections/policies';
 
 const OWNER_ACCOUNT_ID = 1;

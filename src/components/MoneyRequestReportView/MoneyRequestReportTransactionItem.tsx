@@ -1,12 +1,10 @@
-import React, {useEffect, useRef} from 'react';
-import type {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
+
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -15,13 +13,22 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
+
 import ControlSelection from '@libs/ControlSelection';
 import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
 import {hasFlexColumn} from '@libs/SearchUIUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {CardList, Policy, PolicyCategories, PolicyTagLists, Report, TransactionViolations} from '@src/types/onyx';
+
+import type {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect, useRef} from 'react';
+
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
 
 type MoneyRequestReportTransactionItemProps = {

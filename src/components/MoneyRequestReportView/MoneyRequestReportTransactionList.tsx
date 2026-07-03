@@ -1,9 +1,3 @@
-import {findFocusedRoute, useFocusEffect} from '@react-navigation/native';
-import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import isEmpty from 'lodash/isEmpty';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
@@ -15,6 +9,7 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
+
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -32,6 +27,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {getReportLayoutGroupBy, getReportLayoutSelection, setReportLayout} from '@libs/actions/ReportLayout';
 import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {resolveTransactionCardFields} from '@libs/CardUtils';
@@ -60,10 +56,14 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 import {transactionHasRBR} from '@libs/TransactionPreviewUtils';
 import {getTransactionPendingAction, getVisibleTransactionViolations, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
+
 import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperWideRHP';
 import Navigation from '@navigation/Navigation';
+
 import type {FlatListRefType} from '@pages/inbox/ReportScreenContext';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -73,12 +73,22 @@ import SCREENS from '@src/SCREENS';
 import type {StableReport} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
+
+import {findFocusedRoute, useFocusEffect} from '@react-navigation/native';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import isEmpty from 'lodash/isEmpty';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
+import type {MoneyRequestReportTransactionLongPressModalHandle} from './MoneyRequestReportTransactionLongPressModal';
+
 import MoneyRequestReportGroupHeader from './MoneyRequestReportGroupHeader';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 import MoneyRequestReportTotalSpend from './MoneyRequestReportTotalSpend';
 import MoneyRequestReportTransactionItem from './MoneyRequestReportTransactionItem';
 import MoneyRequestReportTransactionLongPressModal from './MoneyRequestReportTransactionLongPressModal';
-import type {MoneyRequestReportTransactionLongPressModalHandle} from './MoneyRequestReportTransactionLongPressModal';
 import MoneyRequestReportUnifiedList from './MoneyRequestReportUnifiedList';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 

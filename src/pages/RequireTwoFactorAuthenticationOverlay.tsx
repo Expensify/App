@@ -1,11 +1,8 @@
-import {useNavigation} from '@react-navigation/core';
-import React, {useCallback} from 'react';
-import {StyleSheet, View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import Button from '@components/Button';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -13,12 +10,21 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
+
 import Navigation, {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {emailSelector} from '@src/selectors/Session';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useNavigation} from '@react-navigation/core';
+import React, {useCallback} from 'react';
+import {StyleSheet, View} from 'react-native';
 
 /**
  * Checks if the 2FA is required because of Xero.

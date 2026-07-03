@@ -1,5 +1,6 @@
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import type {CustomStateHookProps} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import ensureTabNavigatorRoutes from './ensureTabNavigatorRoutes';
 import restoreTabNavigatorRoutes from './restoreTabNavigatorRoutes';
 

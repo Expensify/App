@@ -1,7 +1,3 @@
-import {useRoute} from '@react-navigation/native';
-import {useContext, useEffect, useEffectEvent, useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {isSafari} from '@libs/Browser';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
@@ -10,16 +6,27 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isReportPreviewAction, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {getReportLastVisibleActionCreated, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
+
 import useReportActionsNewActionLiveTail from '@pages/inbox/report/useReportActionsNewActionLiveTail';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
+
 import {openReport} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useRoute} from '@react-navigation/native';
+import {useContext, useEffect, useEffectEvent, useState} from 'react';
+
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';

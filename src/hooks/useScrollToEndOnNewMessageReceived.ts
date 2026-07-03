@@ -1,6 +1,9 @@
-import {useEffect, useLayoutEffect, useRef} from 'react';
-import type React from 'react';
 import CONST from '@src/CONST';
+
+import type React from 'react';
+
+import {useEffect, useLayoutEffect, useRef} from 'react';
+
 import usePrevious from './usePrevious';
 
 type UseScrollToEndOnPaginationMergeParams = {
