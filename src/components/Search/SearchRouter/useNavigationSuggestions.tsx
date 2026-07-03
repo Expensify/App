@@ -54,6 +54,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {primaryLoginSelector} from '@src/selectors/Account';
+import {isAdminSelector} from '@src/selectors/Domain';
 import {emailSelector, sessionEmailAndAccountIDSelector} from '@src/selectors/Session';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -164,6 +165,8 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
         'Basket',
         'ReceiptMultiple',
         'Buildings',
+        'UserLock',
+        'UserShield',
         'Gear',
         'Profile',
         'Wallet',
@@ -209,6 +212,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
     ]);
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [connectionSyncProgress] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
@@ -254,6 +258,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
         const inboxText = translate('common.inbox');
         const spendText = translate('common.spend');
         const workspacesText = translate('common.workspacesTabTitle');
+        const domainsText = translate('common.domains');
         const accountText = translate('initialSettingsPage.account');
 
         return [
@@ -284,6 +289,13 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
                 action: () => Navigation.navigate(ROUTES.WORKSPACES_LIST.route),
                 keyForList: 'topLevelWorkspaces',
                 matchTerms: [workspacesText],
+            },
+            {
+                text: getGoToText(translate, domainsText),
+                singleIcon: icons.Buildings,
+                action: () => Navigation.navigate(ROUTES.DOMAINS_LIST.route),
+                keyForList: 'topLevelDomains',
+                matchTerms: [domainsText],
             },
             {
                 text: getGoToText(translate, accountText),
@@ -398,6 +410,59 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
         shouldUseNarrowLayout,
         translate,
     ]);
+
+    const domainItems = useMemo(() => {
+        const domainMenuItems = [
+            {
+                translationKey: 'domain.domainMembers' as const,
+                icon: icons.User,
+                getRoute: ROUTES.DOMAIN_MEMBERS.getRoute,
+                key: 'members',
+            },
+            {
+                translationKey: 'domain.domainAdmins' as const,
+                icon: icons.UserShield,
+                getRoute: ROUTES.DOMAIN_ADMINS.getRoute,
+                key: 'admins',
+            },
+            {
+                translationKey: 'domain.groups.title' as const,
+                icon: icons.Users,
+                getRoute: ROUTES.DOMAIN_GROUPS.getRoute,
+                key: 'groups',
+            },
+            {
+                translationKey: 'domain.saml' as const,
+                icon: icons.UserLock,
+                getRoute: ROUTES.DOMAIN_SAML.getRoute,
+                key: 'saml',
+            },
+        ];
+
+        return Object.values(allDomains ?? {})
+            .filter((domain): domain is OnyxTypes.Domain => !!domain?.accountID && !!domain.email && isAdminSelector(currentUserPersonalDetails.accountID)(domain))
+            .flatMap((domain) => {
+                const domainName = Str.extractEmailDomain(domain.email);
+                const domainContext = (
+                    <RightSideContext
+                        label={domainName}
+                        icon={icons.Buildings}
+                    />
+                );
+
+                return domainMenuItems.map((item) => {
+                    const itemText = translate(item.translationKey);
+                    return {
+                        text: getGoToText(translate, itemText),
+                        singleIcon: item.icon,
+                        action: () => Navigation.navigate(item.getRoute(domain.accountID)),
+                        keyForList: `domain_${domain.accountID}_${item.key}`,
+                        rightElement: domainContext,
+                        matchTerms: [itemText, domainName],
+                    };
+                });
+            });
+    }, [allDomains, currentUserPersonalDetails.accountID, icons.Buildings, icons.User, icons.UserLock, icons.Users, icons.UserShield, translate]);
 
     const allPoliciesCollection = (allPolicies ?? {}) as OnyxCollection<OnyxTypes.Policy>;
     const groupPoliciesWithChatEnabled = [...getGroupPoliciesWhereReportCanBeCreated(allPoliciesCollection, isBetaEnabled(CONST.BETAS.SUBMIT_2026))];
@@ -549,11 +614,11 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
     return useMemo(() => {
         const trimmedQuery = query.trim();
         const isNavigationIntentOnly = isNavigationIntentOnlyQuery(trimmedQuery);
-        if (trimmedQuery.length < MIN_NAVIGATION_QUERY_LENGTH && !isNavigationIntentOnly) {
+        const matchQuery = stripNavigationIntentPrefix(trimmedQuery) || trimmedQuery;
+        const isAllowedShortQuery = /^hr$/i.test(matchQuery);
+        if (trimmedQuery.length < MIN_NAVIGATION_QUERY_LENGTH && !isNavigationIntentOnly && !isAllowedShortQuery) {
             return [];
         }
-
-        const matchQuery = stripNavigationIntentPrefix(trimmedQuery) || trimmedQuery;
 
         const buildItem = (
             item: SearchQueryItem & {
@@ -571,11 +636,11 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
             };
         };
 
-        return [...topLevelItems, ...spendItems, ...accountItems, ...workspaceItems, ...createItems]
+        return [...topLevelItems, ...spendItems, ...accountItems, ...workspaceItems, ...domainItems, ...createItems]
             .map(buildItem)
             .filter((item): item is SearchQueryItem => !!item)
             .slice(0, MAX_NAVIGATION_SUGGESTIONS);
-    }, [accountItems, createItems, query, spendItems, topLevelItems, workspaceItems]);
+    }, [accountItems, createItems, domainItems, query, spendItems, topLevelItems, workspaceItems]);
 }
 
 export default useNavigationSuggestions;
