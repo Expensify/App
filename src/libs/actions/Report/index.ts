@@ -5841,10 +5841,11 @@ function resolveActionableMentionWhisper(
     };
 
     if (isInviteResolution && originalMessage?.inviteeEmails?.length) {
-        // Only forward emails for invitees not already in the room (matching the optimistic participant update
-        // above), so resolving a stale whisper doesn't re-invite someone added to the room in the meantime.
+        // inviteeEmails[i] pairs with inviteeAccountIDs[i] (parallel arrays from the backend whisper). Forward
+        // only invitees not already in the room — the same skip-existing test as buildParticipantsInviteData
+        // above — so a stale whisper doesn't re-invite a member; an email with no accountID (new user) is kept.
         const inviteeEmailsToInvite = originalMessage.inviteeEmails.filter((email, index) => {
-            const inviteeAccountID = originalMessage.inviteeAccountIDs?.at(index);
+            const inviteeAccountID = inviteeAccountIDs.at(index);
             return inviteeAccountID === undefined || !(inviteeAccountID in (report?.participants ?? {}));
         });
         if (inviteeEmailsToInvite.length > 0) {
