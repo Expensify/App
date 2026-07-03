@@ -39,12 +39,13 @@ describe('PromotedActions.message', () => {
             personalDetails: {},
             introSelected,
             isSelfTourViewed: false,
+            hasCompletedGuidedSetupFlow: undefined,
             betas: undefined,
         });
 
         action.onSelected();
 
-        expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith(['test@example.com'], {}, 1, introSelected, false, undefined, false, true);
+        expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith(['test@example.com'], {}, 1, introSelected, false, undefined, undefined, false, true);
     });
 
     it('should pass introSelected to navigateToAndOpenReportWithAccountIDs when accountID is provided', () => {
@@ -55,6 +56,7 @@ describe('PromotedActions.message', () => {
             personalDetails: {},
             introSelected,
             isSelfTourViewed: false,
+            hasCompletedGuidedSetupFlow: undefined,
             betas: undefined,
         });
 
@@ -70,6 +72,7 @@ describe('PromotedActions.message', () => {
             personalDetails: {},
             introSelected: undefined,
             isSelfTourViewed: undefined,
+            hasCompletedGuidedSetupFlow: undefined,
             betas: undefined,
         });
 
@@ -85,6 +88,7 @@ describe('PromotedActions.message', () => {
             personalDetails: {},
             introSelected: undefined,
             isSelfTourViewed: undefined,
+            hasCompletedGuidedSetupFlow: undefined,
             betas: undefined,
         });
 
@@ -104,12 +108,13 @@ describe('PromotedActions.message', () => {
             currentUserAccountID: 1,
             introSelected,
             isSelfTourViewed: false,
+            hasCompletedGuidedSetupFlow: undefined,
             betas: undefined,
         });
 
         action.onSelected();
 
-        expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith(['test@example.com'], {}, 1, introSelected, false, undefined, false, true);
+        expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith(['test@example.com'], {}, 1, introSelected, false, undefined, undefined, false, true);
         expect(mockNavigateToAndOpenReportWithAccountIDs).not.toHaveBeenCalled();
     });
 
@@ -122,6 +127,7 @@ describe('PromotedActions.message', () => {
             currentUserAccountID: 1,
             introSelected,
             isSelfTourViewed: false,
+            hasCompletedGuidedSetupFlow: undefined,
             betas,
         });
 
@@ -137,6 +143,7 @@ describe('PromotedActions.message', () => {
             currentUserAccountID: 1,
             introSelected,
             isSelfTourViewed: true,
+            hasCompletedGuidedSetupFlow: undefined,
             betas: undefined,
             personalDetails: {},
         });
@@ -155,12 +162,13 @@ describe('PromotedActions.message', () => {
             introSelected,
             personalDetails: {},
             isSelfTourViewed: false,
+            hasCompletedGuidedSetupFlow: undefined,
             betas,
         });
 
         action.onSelected();
 
-        expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith(['test@example.com'], {}, 1, introSelected, false, betas, false, true);
+        expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith(['test@example.com'], {}, 1, introSelected, false, undefined, betas, false, true);
     });
 
     it('should prefer reportID for self profile message action', () => {
@@ -171,6 +179,7 @@ describe('PromotedActions.message', () => {
             personalDetails: {},
             introSelected: undefined,
             isSelfTourViewed: undefined,
+            hasCompletedGuidedSetupFlow: undefined,
             betas: undefined,
         });
 

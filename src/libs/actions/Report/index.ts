@@ -2291,6 +2291,7 @@ function navigateToAndOpenReport(
     currentUserAccountID: number,
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
+    hasCompletedGuidedSetupFlow: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
     shouldDismissModal = true,
     shouldRevalidateExistingChat = false,
@@ -2317,6 +2318,7 @@ function navigateToAndOpenReport(
             personalDetails,
             newReportObject: fallbackChat,
             isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
             betas,
         });
 
@@ -3967,6 +3969,7 @@ function navigateToConciergeChat(
                 currentUserAccountID,
                 introSelected,
                 isSelfTourViewed,
+                undefined,
                 betas,
                 shouldDismissModal,
                 false,
