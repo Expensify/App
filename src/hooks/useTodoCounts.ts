@@ -1,10 +1,12 @@
+import createTodosReportsAndTransactions from '@libs/TodosUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import {useState} from 'react';
 // We need direct access to useOnyx from react-native-onyx to avoid reading search snapshots instead of live to-do data
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
-import createTodosReportsAndTransactions from '@libs/TodosUtils';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 type TodoCounts = {
     [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: number;
