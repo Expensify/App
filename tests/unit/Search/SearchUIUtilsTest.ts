@@ -9057,9 +9057,9 @@ describe('SearchUIUtils', () => {
 
             // EXCHANGE_RATE is selected, so it shows even when no transaction has exchange rate data
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE);
-            // Always-shown columns should still be present; TOTAL is conversion-driven and hidden here
+            // Selected custom columns should still be present
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.DATE);
-            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL);
         });
 
         test('Should show EXCHANGE_RATE column when transaction has exchange rate data', () => {
