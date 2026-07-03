@@ -1,5 +1,6 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import type {PolicyTagLists} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 /**
  * A passthrough selector for `useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS)`.
