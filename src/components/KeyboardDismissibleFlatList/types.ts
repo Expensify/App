@@ -1,6 +1,7 @@
+import type CONST from '@src/CONST';
+
 import type {ScrollHandlerProcessed, SharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
 
 type ListBehavior = ValueOf<typeof CONST.LIST_BEHAVIOR>;
 

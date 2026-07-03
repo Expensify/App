@@ -1,10 +1,14 @@
-import {useEffect, useState} from 'react';
-import {DeviceEventEmitter} from 'react-native';
 import {wasMessageReceivedWhileOffline} from '@libs/ReportActionsUtils';
 import Visibility from '@libs/Visibility';
+
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import {useEffect, useState} from 'react';
+import {DeviceEventEmitter} from 'react-native';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsAnonymousUser from './useIsAnonymousUser';
 import useLocalize from './useLocalize';

@@ -1,7 +1,8 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {Section as SelectionListSection} from '@components/SelectionList/SelectionListWithSections/types';
+
 import type {OptionData} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import type {IOUAction} from '@src/CONST';
 import type {
     Beta,
@@ -17,6 +18,8 @@ import type {
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 /**
  * IMPORTANT: This type is a performance-optimized subset of OptionData.
