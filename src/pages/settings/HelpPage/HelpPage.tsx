@@ -90,7 +90,7 @@ function HelpPage() {
               onPress: () => navigateToAndOpenReportWithAccountIDs([accountManagerDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas, personalDetails),
               shouldShowRightIcon: !accountManagerCalendarLink,
               shouldShowRightComponent: !!accountManagerCalendarLink,
-              // Ungroup the row so screen readers can reach the nested Book a call button as its own element
+              // Disable the row's accessibility grouping so screen readers can reach the nested Book a call button as its own element
               shouldBeAccessible: !accountManagerCalendarLink,
               rightComponent: accountManagerCalendarLink ? (
                   <AccountManagerBookCallButton
