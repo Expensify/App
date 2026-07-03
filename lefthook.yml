@@ -4,7 +4,10 @@ pre-commit:
   commands:
     oxfmt:
       priority: 1
-      glob: '*.{js,mjs,cjs,ts,tsx,mts,cts}'
+      glob:
+        - '*.{j,mj,cj}s'
+        - '*.{ts,tsx,mts,cts}'
+        - '*.{yml,yaml}'
       run: npx oxfmt --write {staged_files}
       stage_fixed: true
 

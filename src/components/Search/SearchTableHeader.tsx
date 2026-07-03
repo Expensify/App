@@ -146,7 +146,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT,
-        translationKey: 'common.originalAmount',
+        translationKey: 'common.purchaseAmount',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
@@ -257,6 +257,14 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.APPROVED,
         translationKey: 'search.filters.approved',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER,
+        translationKey: 'search.filters.firstApprover',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED,
+        translationKey: 'search.filters.firstApproved',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED,
