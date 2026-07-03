@@ -29,7 +29,7 @@ let observedActiveOnboardingThisSession = false;
  */
 function useAIFeaturesPromoModal(session: OnyxEntry<Session>) {
     const [isLoadingApp = true, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
+    const [isActingAsDelegate, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector});
     const [onboarding, onboardingMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -63,7 +63,7 @@ function useAIFeaturesPromoModal(session: OnyxEntry<Session>) {
         observedActiveOnboardingThisSession = true;
     }, [hasCompletedOnboarding]);
 
-    const isAllOnyxLoaded = !isLoadingOnyxValue(isLoadingAppMetadata, dismissedProductTrainingMetadata, tryNewDotMetadata, onboardingMetadata);
+    const isAllOnyxLoaded = !isLoadingOnyxValue(isLoadingAppMetadata, accountMetadata, dismissedProductTrainingMetadata, tryNewDotMetadata, onboardingMetadata);
 
     const isEligible =
         isAllOnyxLoaded &&
@@ -90,7 +90,6 @@ function useAIFeaturesPromoModal(session: OnyxEntry<Session>) {
                         return;
                     }
                     const lastRoute = navigationRef.getRootState?.()?.routes.at(-1)?.name;
-                    console.log('lastRoute', lastRoute);
                     if (lastRoute === NAVIGATORS.SHARE_MODAL_NAVIGATOR || lastRoute === SCREENS.NOT_FOUND) {
                         return;
                     }
