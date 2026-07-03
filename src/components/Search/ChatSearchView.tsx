@@ -1,19 +1,25 @@
-import React, {useImperativeHandle} from 'react';
-import type {ForwardedRef} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
+
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
+
+import type {ForwardedRef} from 'react';
+import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+
+import React, {useImperativeHandle} from 'react';
+
+import type {SearchListItem} from './SearchList/ListItem/types';
+import type {SearchColumnType, SearchQueryJSON} from './types';
+
 import useSearchListViewState from './hooks/useSearchListViewState';
 import AnimatedExitRow from './primitives/AnimatedExitRow';
 import SelectionTopBar from './primitives/SelectionTopBar';
 import BaseSearchList from './SearchList/BaseSearchList';
 import ChatListItem from './SearchList/ListItem/ChatListItem';
-import type {SearchListItem} from './SearchList/ListItem/types';
 import SearchListViewLayout from './SearchListViewLayout';
-import type {SearchColumnType, SearchQueryJSON} from './types';
 
 /** Imperative handle the router uses for highlight-driven scrolling (mirrors SearchList's handle). */
 type SearchListHandle = {
@@ -196,7 +202,5 @@ function ChatSearchView({
         </SearchListViewLayout>
     );
 }
-
-ChatSearchView.displayName = 'ChatSearchView';
 
 export default ChatSearchView;

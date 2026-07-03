@@ -1,10 +1,12 @@
-import {useEffect, useRef} from 'react';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import {useEffect, useRef} from 'react';
 
 /**
  * Pre-inserts the destination report under the RHP on narrow layout for skip-confirmation

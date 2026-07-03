@@ -1,9 +1,12 @@
-import type {CONST as COMMON_CONST} from 'expensify-common';
-import type {ValueOf} from 'type-fest';
 import type HrSyncResult from '@libs/API/HrSyncResult';
+
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
+
+import type {CONST as COMMON_CONST} from 'expensify-common';
+import type {ValueOf} from 'type-fest';
+
 import type * as OnyxTypes from '.';
 import type * as OnyxCommon from './OnyxCommon';
 import type {WorkspaceTravelSettings} from './TravelSettings';
@@ -2858,6 +2861,7 @@ export type {
     CommuterExclusions,
     NetSuiteConnectionData,
     MergeHRConnectionConfig,
+    MergeHRConnectionLastSync,
     GustoConnectionConfig,
     ZenefitsConnectionConfig,
     Vendor,

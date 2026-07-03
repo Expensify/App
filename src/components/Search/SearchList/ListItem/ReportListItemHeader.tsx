@@ -1,10 +1,3 @@
-import React, {useMemo} from 'react';
-import type {ColorValue} from 'react-native';
-import {View} from 'react-native';
-// Use the original useOnyx hook to get the real-time personal details list data from Onyx and not from the snapshot
-// eslint-disable-next-line no-restricted-imports
-import {useOnyx as originalUseOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import Checkbox from '@components/Checkbox';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
@@ -19,6 +12,7 @@ import {
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -28,18 +22,32 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+
 import {handleActionButtonPress} from '@userActions/Search';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report} from '@src/types/onyx';
+
+import type {ColorValue} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+// Use the original useOnyx hook to get the real-time personal details list data from Onyx and not from the snapshot
+// eslint-disable-next-line no-restricted-imports
+import {useOnyx as originalUseOnyx} from 'react-native-onyx';
+
+import type {SearchListActionProps, TransactionReportGroupListItemType} from './types';
+
 import ActionCell from './ActionCell';
 import TotalCell from './TotalCell';
-import type {SearchListActionProps, TransactionReportGroupListItemType} from './types';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
 type ReportListItemHeaderProps<TItem extends ListItem> = SearchListActionProps & {
