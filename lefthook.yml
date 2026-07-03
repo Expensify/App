@@ -7,7 +7,9 @@ pre-commit:
       glob: '*.{js,mjs,cjs,ts,tsx,mts,cts}'
       run: npx oxfmt --write {staged_files}
       stage_fixed: true
+
     gh-actions-build:
       priority: 2
       glob: '.github/**/*.ts'
+      # stage_fixed doesn't work for files not originally modified and staged by the developer
       run: npm run gh-actions-build && git add .github/actions/javascript/*/index.js
