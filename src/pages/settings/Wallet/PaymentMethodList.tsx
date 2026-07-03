@@ -13,7 +13,7 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getBankAccountConnectionStatus, isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
+import {getBankAccountConnectionStatus, getBankAccountState, isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import type {BankAccountConnectionStatus} from '@libs/BankAccountUtils';
 import {
     getAssignedCardSortKey,
@@ -157,15 +157,6 @@ function shouldShowDefaultBadge(filteredPaymentMethods: PaymentMethod[], isDefau
 
 function isPaymentMethodActive(actionPaymentMethodType: string, activePaymentMethodID: string | number, paymentMethod: PaymentMethod) {
     return paymentMethod.accountType === actionPaymentMethodType && paymentMethod.methodID === activePaymentMethodID;
-}
-
-function getBankAccountState(accountData: PaymentMethod['accountData']): string | undefined {
-    if (typeof accountData !== 'object' || accountData === null) {
-        return undefined;
-    }
-
-    const state = (accountData as Record<string, unknown>).state;
-    return typeof state === 'string' ? state : undefined;
 }
 
 function keyExtractor(item: PaymentMethod | string) {

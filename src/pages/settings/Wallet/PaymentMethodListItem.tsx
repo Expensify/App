@@ -18,7 +18,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openExternalLink} from '@libs/actions/Link';
-import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import {getBankAccountState, hasBankAccountAllowDebit, isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -133,23 +133,6 @@ function isAccountInSetupState(account: PaymentMethodItem) {
 
 function isBusinessBankAccountLocked(account: PaymentMethodItem) {
     return getBankAccountState(account.accountData) === CONST.BANK_ACCOUNT.STATE.LOCKED && hasBankAccountAllowDebit(account.accountData);
-}
-
-function getBankAccountState(accountData: PaymentMethodItem['accountData']): string | undefined {
-    if (typeof accountData !== 'object' || accountData === null) {
-        return undefined;
-    }
-
-    const state = (accountData as Record<string, unknown>).state;
-    return typeof state === 'string' ? state : undefined;
-}
-
-function hasBankAccountAllowDebit(accountData: PaymentMethodItem['accountData']): boolean {
-    if (typeof accountData !== 'object' || accountData === null) {
-        return false;
-    }
-
-    return !!(accountData as Record<string, unknown>).allowDebit;
 }
 
 function isAccountNeedingAction(account: PaymentMethodItem) {

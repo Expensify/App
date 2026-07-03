@@ -49,6 +49,26 @@ function isBankAccountPartiallySetup(state: string | undefined) {
     return state === CONST.BANK_ACCOUNT.STATE.SETUP || state === CONST.BANK_ACCOUNT.STATE.VERIFYING || state === CONST.BANK_ACCOUNT.STATE.PENDING;
 }
 
+function getBankAccountState(accountData: AccountData | undefined): string | undefined {
+    if (!accountData) {
+        return undefined;
+    }
+
+    if (typeof accountData.state !== 'string') {
+        return undefined;
+    }
+
+    return accountData.state;
+}
+
+function hasBankAccountAllowDebit(accountData: AccountData | undefined): boolean {
+    if (!accountData) {
+        return false;
+    }
+
+    return !!accountData.allowDebit;
+}
+
 function getBankAccountConnectionStatus(state: string | undefined): BankAccountConnectionStatus | undefined {
     switch (state) {
         case CONST.BANK_ACCOUNT.STATE.OPEN:
@@ -256,6 +276,8 @@ export {
     getBankAccountSearchLabel,
     isFilterableBankAccount,
     getDefaultCompanyWebsite,
+    getBankAccountState,
+    hasBankAccountAllowDebit,
     getBankAccountConnectionStatus,
     getRequiredKYBDocuments,
     getLastFourDigits,
