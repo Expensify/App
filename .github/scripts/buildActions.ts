@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+
 /**
  * Precompiles all GitHub Action TypeScript sources with esbuild, bundling them with their
  * dependencies into a single executable node.js script per action.
