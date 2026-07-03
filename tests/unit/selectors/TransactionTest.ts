@@ -1,5 +1,7 @@
-import {originalTransactionIDSelector} from '@selectors/Transaction';
 import type {Transaction} from '@src/types/onyx';
+
+import {originalTransactionIDSelector} from '@selectors/Transaction';
+
 import createRandomTransaction from '../../utils/collections/transaction';
 
 describe('originalTransactionIDSelector', () => {
