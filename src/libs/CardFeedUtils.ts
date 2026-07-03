@@ -3,8 +3,6 @@ import type {AdditionalCardProps} from '@components/SelectionList/ListItem/CardL
 
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 
-import {isAdminSelector} from '@selectors/Domain';
-
 import type IllustrationsType from '@styles/theme/illustrations/types';
 
 import CONST from '@src/CONST';
@@ -15,6 +13,8 @@ import type {CardFeedsStatus, CardFeedsStatusByDomainID, CardFeedWithNumber, Com
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection} from 'react-native-onyx';
+
+import {isAdminSelector} from '@selectors/Domain';
 
 import type {CompanyCardFeedIcons} from './CardUtils';
 import type {OptionData} from './ReportUtils';
