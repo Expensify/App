@@ -1,4 +1,5 @@
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
+
 import CONST from '@src/CONST';
 
 /**

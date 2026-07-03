@@ -1,8 +1,10 @@
 import {getOnboardingStepCounter} from '@libs/getOnboardingStepCounter';
 import type {OnboardingScreen, OnboardingStepResult} from '@libs/getOnboardingStepCounter';
 import {getVisibleJoinablePoliciesCount} from '@libs/OnboardingUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 

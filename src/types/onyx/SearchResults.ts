@@ -1,12 +1,15 @@
-import type {ValueOf} from 'type-fest';
 import type ChatListItem from '@components/Search/SearchList/ListItem/ChatListItem';
 import type TransactionGroupListItem from '@components/Search/SearchList/ListItem/TransactionGroupListItem';
 import type TransactionListItem from '@components/Search/SearchList/ListItem/TransactionListItem';
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchStatus} from '@components/Search/types';
+
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
+
+import type {ValueOf} from 'type-fest';
+
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';

@@ -1,6 +1,7 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {JoinablePolicies, OnboardingPurpose} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 /**
  * Returns true when the onboarding choice is one of the "track" variants
