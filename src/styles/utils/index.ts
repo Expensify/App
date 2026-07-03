@@ -278,7 +278,7 @@ function getAvatarWidthStyle(size: AvatarSizeName): ViewStyle {
 function getAvatarExtraFontSizeStyle(size: AvatarSizeName): TextStyle {
     return {
         // Fall back to the default (MEDIUM) avatar overlay font.
-        fontSize: avatarFontSizes[size] ?? variables.fontSizeNormal,
+        fontSize: avatarFontSizes[size] ?? avatarFontSizes[CONST.AVATAR_SIZE.DEFAULT],
     };
 }
 
@@ -288,7 +288,7 @@ function getAvatarExtraFontSizeStyle(size: AvatarSizeName): TextStyle {
 function getAvatarBorderWidth(size: AvatarSizeName): ViewStyle {
     return {
         // Fall back to the default (MEDIUM) avatar border width.
-        borderWidth: avatarBorderWidths[size] ?? 3,
+        borderWidth: avatarBorderWidths[size] ?? avatarBorderWidths[CONST.AVATAR_SIZE.DEFAULT],
     };
 }
 
@@ -298,6 +298,7 @@ function getAvatarBorderWidth(size: AvatarSizeName): ViewStyle {
 function getAvatarBorderRadius(size: AvatarSizeName, type?: string): ViewStyle {
     if (type === CONST.ICON_TYPE_WORKSPACE) {
         // Fall back to the default (MEDIUM) avatar border radius.
+        return {borderRadius: avatarBorderSizes[size] ?? avatarBorderSizes[CONST.AVATAR_SIZE.DEFAULT]};
     }
 
     // Default to rounded border
