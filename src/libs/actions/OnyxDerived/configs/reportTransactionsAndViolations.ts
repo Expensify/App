@@ -26,6 +26,7 @@ export default createOnyxDerivedValueConfig({
         const reportTransactionsAndViolations = isPartialUpdate && currentValue ? {...currentValue} : {};
 
         if (context.isInitialDependencyLoad && currentValue) {
+            previousViolations = violations;
             context.shouldSkipUpdate = true;
             return currentValue;
         }
@@ -140,11 +141,12 @@ export default createOnyxDerivedValueConfig({
             const previousTransactionViolations = previousViolations?.[violationKey];
 
             const violationInSourceValues = transactionViolationsUpdates?.[violationKey];
+            const hasExplicitViolationClear = Array.isArray(violationInSourceValues) && violationInSourceValues.length === 0;
 
             // If violations exist and have length > 0, add them to the structure
             if (transactionViolations && transactionViolations.length > 0) {
                 reportTransactionsAndViolations[reportID].violations[violationKey] = transactionViolations;
-            } else if (violationInSourceValues === undefined || (previousTransactionViolations && previousTransactionViolations.length > 0)) {
+            } else if (violationInSourceValues === undefined || hasExplicitViolationClear || (previousTransactionViolations && previousTransactionViolations.length > 0)) {
                 // If violations were removed (previous had violations but current doesn't) or explicitly set to undefined, remove them from the structure
                 delete reportTransactionsAndViolations[reportID].violations[violationKey];
             }

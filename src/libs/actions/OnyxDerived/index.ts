@@ -89,7 +89,11 @@ function init() {
                 }
 
                 if (!hasSyncedDerivedValueFromOnyx) {
-                    pendingRecomputeAfterDerivedValueSync = {sourceKey, sourceValue, triggeredByIndex};
+                    pendingRecomputeAfterDerivedValueSync = {
+                        sourceKey,
+                        sourceValue,
+                        triggeredByIndex,
+                    };
                     Log.info(`[OnyxDerived] waiting for current value sync before recomputing ${key}`);
                     return;
                 }
