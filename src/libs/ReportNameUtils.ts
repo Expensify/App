@@ -1,14 +1,8 @@
-/**
- * This file contains utility functions for managing and computing report names
- */
-import {Str} from 'expensify-common';
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
-    IntroSelected,
     PersonalDetails,
     PersonalDetailsList,
     Policy,
@@ -23,12 +17,20 @@ import type {
 } from '@src/types/onyx';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+/**
+ * This file contains utility functions for managing and computing report names
+ */
+import {Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
 import {convertToDisplayString} from './CurrencyUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 // eslint-disable-next-line import/no-cycle
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
-import isTrackOnboardingChoice from './OnboardingUtils';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, isPolicyAdmin, isPolicyFieldListEmpty} from './PolicyUtils';
@@ -115,6 +117,7 @@ import {
     isMovedAction,
     isOldDotReportAction,
     isOriginalReportDeleted,
+    isPolicyCopyReportAction,
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRejectedAction,
@@ -133,6 +136,7 @@ import {
     getMovedActionMessage,
     getMovedTransactionMessage,
     getParentReport,
+    getPolicyChangeLogCopyMessage,
     getPolicyChangeMessage,
     getPolicyName,
     getReimbursementDeQueuedOrCanceledActionMessage,
@@ -185,6 +189,7 @@ type ComputeReportName = {
     // TODO: Make this required when https://github.com/Expensify/App/issues/66411 is done
     conciergeReportID?: string;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
+    isTrackIntentUser: boolean | undefined;
 };
 
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
@@ -194,15 +199,6 @@ Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
         allPersonalDetails = value;
-    },
-});
-
-let introSelected: OnyxEntry<IntroSelected>;
-// eslint-disable-next-line rulesdir/no-onyx-connect -- NextStepUtils is a pure utility called from action files that cannot use hooks
-Onyx.connect({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (value) => {
-        introSelected = value;
     },
 });
 
@@ -436,6 +432,7 @@ function computeReportNameBasedOnReportAction(
     parentReport: Report | undefined,
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
     reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
+    isTrackIntentUser: boolean | undefined,
 ): string | undefined {
     if (!parentReportAction) {
         return undefined;
@@ -451,7 +448,7 @@ function computeReportNameBasedOnReportAction(
         }
         if (
             shouldShowMarkAsDone({
-                isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice),
+                isTrackIntentUser,
                 policy: reportPolicy,
                 report: parentReport,
             })
@@ -829,6 +826,9 @@ function computeReportNameBasedOnReportAction(
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_EXPENSIFY_CARD_RULE)) {
         return getRemoveExpensifyCardRuleMessage(translate, parentReportAction);
     }
+    if (isPolicyCopyReportAction(parentReportAction)) {
+        return Parser.htmlToText(getPolicyChangeLogCopyMessage(translate, parentReportAction));
+    }
 
     return undefined;
 }
@@ -933,6 +933,7 @@ function computeReportName({
     allPolicyTags,
     conciergeReportID,
     reportAttributes,
+    isTrackIntentUser,
 }: ComputeReportName): string {
     if (!report?.reportID) {
         return '';
@@ -951,6 +952,7 @@ function computeReportName({
         parentReport,
         personalDetailsList,
         reportAttributes,
+        isTrackIntentUser,
     );
 
     if (parentReportActionBasedName) {
@@ -976,6 +978,7 @@ function computeReportName({
             currentUserLogin,
             conciergeReportID,
             reportAttributes,
+            isTrackIntentUser,
         });
         return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isOriginalReportDeleted(parentReportAction, originalReport), translateLocal);
     }

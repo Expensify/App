@@ -1,7 +1,10 @@
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
+
 import {getSearchValueForConnection, getStandardExportTemplateDisplayName} from '@libs/AccountingUtils';
 import {getTrimmedUserSearchQueryPreservingComma, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
+
 import CONST from '@src/CONST';
+
 import createSharedValueMock from '../utils/createSharedValueMock';
 
 describe('SearchAutocompleteUtils', () => {
@@ -294,6 +297,27 @@ describe('SearchAutocompleteUtils', () => {
 
         it('should handle queries with only free text (no filters)', () => {
             const input = 'just some random text without filters';
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            expect(result).toEqual([]);
+        });
+
+        it('should highlight bankAccount filter when value is in substitution map', () => {
+            const input = 'bankAccount:Chase';
+            const substitutionMapWithBankAccount: SubstitutionMap = {
+                ...mockSubstitutionMap,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'bankAccount:Chase': '42',
+            };
+
+            const result = parseForLiveMarkdown(input, currentUserName, substitutionMapWithBankAccount, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            expect(result).toEqual([{start: 12, type: 'mention-user', length: 5}]);
+        });
+
+        it('should not highlight bankAccount filter when value is missing from substitution map', () => {
+            const input = 'bankAccount:99';
 
             const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
 
