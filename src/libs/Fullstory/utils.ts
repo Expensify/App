@@ -86,6 +86,19 @@ function getDaysTillDate(dateString: string | undefined): number | undefined {
     return Math.ceil((endDate.getTime() - Date.now()) / MS_PER_DAY);
 }
 
+function getFreeTrialEndDate(dateString: string | undefined): Date | undefined {
+    if (!dateString) {
+        return;
+    }
+
+    const endDate = new Date(`${dateString}Z`);
+    if (Number.isNaN(endDate.getTime())) {
+        return;
+    }
+
+    return endDate;
+}
+
 function getFreeTrialStatus(daysTillTrialEnd: number | undefined): FullstoryUserVars['free_trial_status'] {
     if (daysTillTrialEnd === undefined) {
         return;
@@ -185,7 +198,7 @@ function buildFullstoryUserVars({
             workspace_state: activePolicies.length > 0 ? 'has_workspaces' : 'no_workspaces',
             workspace_count: activePolicies.length,
             workspace_member_count: activePolicy ? Object.keys(activePolicy.employeeList ?? {}).length : undefined,
-            free_trial_end_date: userMetadata?.freeTrialEndDate,
+            free_trial_end_date: getFreeTrialEndDate(userMetadata?.freeTrialEndDate),
             days_till_trial_end: daysTillTrialEnd,
             free_trial_status: getFreeTrialStatus(daysTillTrialEnd),
             plan_type: getPlanType(activePolicies),

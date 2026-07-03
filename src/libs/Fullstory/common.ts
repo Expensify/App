@@ -33,7 +33,7 @@ const allowedReportChatTypes = new Set<ValueOf<typeof CONST.REPORT.CHAT_TYPE>>([
 
 const allowedReportTypes = new Set<ValueOf<typeof CONST.REPORT.TYPE>>([CONST.REPORT.TYPE.IOU, CONST.REPORT.TYPE.EXPENSE, CONST.REPORT.TYPE.INVOICE]);
 
-type FullstoryPropertyValue = string | number | boolean | null | undefined;
+type FullstoryPropertyValue = string | number | boolean | Date | null | undefined;
 
 type NormalizeFullstoryPropertiesForNativeOptions = {
     preserveKeys?: readonly string[];
@@ -96,7 +96,12 @@ function normalizeFullstoryPropertiesForNative(
         }
 
         if (preservedKeys.has(key)) {
-            normalizedProperties[key] = value;
+            normalizedProperties[key] = value instanceof Date ? value.toISOString() : value;
+            continue;
+        }
+
+        if (value instanceof Date) {
+            normalizedProperties[`${key}_date`] = value.toISOString();
             continue;
         }
 

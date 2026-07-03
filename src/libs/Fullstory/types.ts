@@ -19,7 +19,7 @@ type FullstoryUserVars = {
     workspace_state?: 'has_workspaces' | 'no_workspaces';
     workspace_count?: number;
     workspace_member_count?: number;
-    free_trial_end_date?: string;
+    free_trial_end_date?: Date;
     days_till_trial_end?: number;
     free_trial_status?: 'active' | 'expiring_soon' | 'expired' | 'expired_last30days';
     plan_type?: 'collect' | 'control';

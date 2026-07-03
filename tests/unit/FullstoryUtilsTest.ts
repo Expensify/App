@@ -7,6 +7,8 @@ import createRandomPolicy from '../utils/collections/policies';
 
 describe('FullstoryUtils', () => {
     it('builds expected FullStory user vars from onboarding and workspace context', () => {
+        const freeTrialEndDate = new Date('2099-05-31T23:59:59Z');
+
         const policy = {
             ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM, 'Test Workspace'),
             role: CONST.POLICY.ROLE.ADMIN,
@@ -51,7 +53,7 @@ describe('FullstoryUtils', () => {
             workspace_state: 'has_workspaces',
             workspace_count: 1,
             workspace_member_count: 2,
-            free_trial_end_date: '2099-05-31 23:59:59',
+            free_trial_end_date: freeTrialEndDate,
             free_trial_status: 'active',
             plan_type: 'collect',
             paid_member: true,

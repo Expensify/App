@@ -29,6 +29,7 @@ function FullstoryUserContextHandler() {
     const activePolicy = activePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`] : undefined;
 
     const previousUserVars = useRef<OnyxEntry<FullstoryUserVars>>(undefined);
+    const previousAccountID = useRef<number | undefined>(undefined);
     const sessionURLRetryAttempts = useRef(0);
 
     useEffect(() => {
@@ -62,6 +63,11 @@ function FullstoryUserContextHandler() {
                         }
 
                         sessionURLRetryAttempts.current = 0;
+
+                        if (previousAccountID.current !== userMetadata.accountID) {
+                            previousAccountID.current = userMetadata.accountID;
+                            previousUserVars.current = undefined;
+                        }
 
                         const userVars = buildFullstoryUserVars({
                             account,
