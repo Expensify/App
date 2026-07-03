@@ -196,9 +196,6 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     const isAtLeastOneAdminSelected = selectedMembers.some((accountId) => participantsForDisplayMap[accountId]?.role === CONST.REPORT.ROLE.ADMIN);
     const isAtLeastOneMemberSelected = selectedMembers.some((accountId) => participantsForDisplayMap[accountId]?.role === CONST.REPORT.ROLE.MEMBER);
 
-    // We use spread to define this array in one statement because the onSelected callbacks reference values computed during render.
-    // React Compiler can't tell that onSelected is a callback (not invoked during render), so modifying this array
-    // in a separate statement (e.g. with .push() or .filter()) can trigger render-time errors.
     const bulkActionsButtonOptions: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [
         {
             text: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
@@ -206,27 +203,25 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
             icon: icons.RemoveMembers,
             onSelected: showRemoveMembersModal,
         },
-        ...(isAtLeastOneAdminSelected
-            ? [
-                  {
-                      text: translate('workspace.people.makeMember', {count: selectedMembers.length}),
-                      value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
-                      icon: icons.User,
-                      onSelected: () => changeUserRole(CONST.REPORT.ROLE.MEMBER),
-                  },
-              ]
-            : []),
-        ...(isAtLeastOneMemberSelected
-            ? [
-                  {
-                      text: translate('workspace.people.makeGroupAdmin', {count: selectedMembers.length}),
-                      value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
-                      icon: icons.MakeAdmin,
-                      onSelected: () => changeUserRole(CONST.REPORT.ROLE.ADMIN),
-                  },
-              ]
-            : []),
     ];
+
+    if (isAtLeastOneAdminSelected) {
+        bulkActionsButtonOptions.push({
+            text: translate('workspace.people.makeMember', {count: selectedMembers.length}),
+            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
+            icon: icons.User,
+            onSelected: () => changeUserRole(CONST.REPORT.ROLE.MEMBER),
+        });
+    }
+
+    if (isAtLeastOneMemberSelected) {
+        bulkActionsButtonOptions.push({
+            text: translate('workspace.people.makeGroupAdmin', {count: selectedMembers.length}),
+            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
+            icon: icons.MakeAdmin,
+            onSelected: () => changeUserRole(CONST.REPORT.ROLE.ADMIN),
+        });
+    }
 
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
 
