@@ -32,12 +32,14 @@ function RilletExpensifyCardSettlementAccountPage({policy}: WithPolicyConnection
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
-
     const policyID = policy?.id;
     const rilletConfig = policy?.connections?.rillet?.config;
     const rilletData = policy?.connections?.rillet?.data;
     const settlementsBankAccountID = rilletConfig?.sync?.settlementsBankAccountID;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_ADVANCED.getRoute(policyID) : undefined;
+
+    const syncExpensifyCardSettlements = rilletConfig?.sync?.syncExpensifyCardSettlements ?? true;
+    const shouldBeBlocked = !syncExpensifyCardSettlements;
 
     const data: BankAccountListItem[] =
         rilletData?.bankAccounts
@@ -78,6 +80,7 @@ function RilletExpensifyCardSettlementAccountPage({policy}: WithPolicyConnection
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            shouldBeBlocked={shouldBeBlocked}
             displayName="RilletExpensifyCardSettlementAccountPage"
             title="workspace.rillet.settlementAccount.label"
             data={data}

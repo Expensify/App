@@ -38,6 +38,9 @@ function RilletTravelInvoicingSettlementAccountPage({policy}: WithPolicyConnecti
     const travelInvoicingSettlementsBankAccountID = rilletConfig?.sync?.travelInvoicingSettlementsBankAccountID;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_ADVANCED.getRoute(policyID) : undefined;
 
+    const syncTravelInvoicingSettlements = rilletConfig?.sync?.syncTravelInvoicingSettlements ?? true;
+    const shouldBeBlocked = !syncTravelInvoicingSettlements;
+
     const data: BankAccountListItem[] =
         rilletData?.bankAccounts
             ?.filter((bankAccountItem) => bankAccountItem.status === CONST.RILLET_ACCOUNT_STATUS.ACTIVE)
@@ -77,6 +80,7 @@ function RilletTravelInvoicingSettlementAccountPage({policy}: WithPolicyConnecti
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            shouldBeBlocked={shouldBeBlocked}
             displayName="RilletTravelInvoicingSettlementAccountPage"
             title="workspace.rillet.travelInvoicingSettlementAccount.label"
             data={data}

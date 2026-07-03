@@ -38,6 +38,9 @@ function RilletBillPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
     const billPaymentAccountCode = rilletConfig?.sync?.billPaymentAccountCode;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_ADVANCED.getRoute(policyID) : undefined;
 
+    const syncReimbursedReports = rilletConfig?.sync?.syncReimbursedReports ?? true;
+    const shouldBeBlocked = !syncReimbursedReports;
+
     const data: AccountListItem[] =
         rilletData?.accounts
             ?.filter((accountItem) => accountItem.type === CONST.RILLET_ACCOUNT_TYPE.ASSET && accountItem.status === CONST.RILLET_ACCOUNT_STATUS.ACTIVE)
@@ -77,6 +80,7 @@ function RilletBillPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            shouldBeBlocked={shouldBeBlocked}
             displayName="RilletBillPaymentAccountPage"
             title="workspace.rillet.billPaymentAccount.label"
             data={data}
