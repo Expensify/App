@@ -44,15 +44,15 @@ The table below summarizes the most important differences. For the complete, up-
 
 | Feature                | **Collect Plan**                             | **Control Plan**                                 |
 |------------------------|----------------------------------------------|--------------------------------------------------|
-| **Best for**           | Small teams with up to 10 members            | Mid-size to large teams with 10–1,000 members    |
-| **Base cost**¹         | $5 per unique member/month                   | $9–36 per active member/month                    |
+| **Base cost**         | $5 per unique member/month                   | $9–$36 per active member/month                    |
 | **SmartScans**         | ✅ Unlimited                                 | ✅  Unlimited                                    |
 | **Expensify Card**     | ✅  Smart Limits and 1–2% cash back          | ✅  Smart Limits and 1–2% cash back              |
 | **Expense approvals**  | ✅  Single approver                          | ✅  Multiple approvers                           |
-| **ACH reimbursements** | ✅  Unlimited                                | ✅  Unlimited                                    |
-| **Bank feed support**  | ❌ Not available                             | ✅  Card feeds and reconciliation                |
-| **Accounting sync**    | ✅  QuickBooks Online, Xero                  | ✅  NetSuite, Sage Intacct, QuickBooks Desktop   |
+| **ACH reimbursements** | ✅  Unlimited                                | ✅  Unlimited                                   |
+| **Corporate card management**  | ✅ One direct bank connection             | ✅  Unlimited direct bank connections                |
+| **Accounting sync**    | ✅  QuickBooks, Xero                  | ✅  ERP integrations (NetSuite, Sage Intacct) |
 | **HR & payroll sync**  | ❌ Not available                             | ✅  Gusto, TriNet, Certinia, Workday             |
+| **Custom expense rules** | ❌ Not available                             | ✅  Fully customizable expense rules         |
 | **Security & control** | ❌ Not available                             | ✅  SAML/SSO and admin-enforced controls         |
 
 
