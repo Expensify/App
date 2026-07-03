@@ -22,7 +22,8 @@
                 {% include section-card.html platform=activePlatform hub=hub.href section=subsection.href title=subsection.title %}
             {% endfor %}
         {% endif %}
-        {% assign sortedArticles = section.articles | default: empty %}
+        {% assign emptyItems = "" | split: "," %}
+        {% assign sortedArticles = section.articles | default: emptyItems %}
         {% for article in sortedArticles %}
             {% assign article_href = section.href | append: '/' | append: article.href %}
             {% include article-card.html hub=hub.href href=article_href title=article.title platform=activePlatform %}

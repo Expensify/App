@@ -23,7 +23,7 @@
 <section>
     <div class="cards-group">
         {% for item in sortedSectionsAndArticles %}
-            {% if item.articles %}
+            {% if item.articles or item.sections %}
                 {% include section-card.html platform=activePlatform hub=hub.href section=item.href title=item.title %}
             {% else %}
                 {% include article-card.html hub=hub.href href=item.href title=item.title platform=activePlatform %}
