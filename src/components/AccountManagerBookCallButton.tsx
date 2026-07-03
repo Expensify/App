@@ -50,30 +50,27 @@ function AccountManagerBookCallButton({calendarLink, accountManagerAccountID, sh
 
     const label = translate('videoChatButtonAndMenu.tooltip');
 
+    const commonProps = {
+        onPress: callFunctionIfActionIsAllowed(() => openExternalLink(calendarLink)),
+        sentryLabel: CONST.SENTRY_LABEL.ACCOUNT_MANAGER_BOOK_CALL.BUTTON,
+        accessibilityLabel: label,
+        isNested,
+        medium: true as const,
+        style,
+    };
+
     if (!shouldShowAvatar) {
         return (
             <Button
                 text={label}
                 icon={icons.Phone}
-                onPress={callFunctionIfActionIsAllowed(() => openExternalLink(calendarLink))}
-                sentryLabel={CONST.SENTRY_LABEL.ACCOUNT_MANAGER_BOOK_CALL.BUTTON}
-                accessibilityLabel={label}
-                isNested={isNested}
-                medium
-                style={style}
+                {...commonProps}
             />
         );
     }
 
     return (
-        <Button
-            accessibilityLabel={label}
-            onPress={callFunctionIfActionIsAllowed(() => openExternalLink(calendarLink))}
-            sentryLabel={CONST.SENTRY_LABEL.ACCOUNT_MANAGER_BOOK_CALL.BUTTON}
-            isNested={isNested}
-            medium
-            style={style}
-        >
+        <Button {...commonProps}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap2]}>
                 <Avatar
                     source={accountManagerDetails?.avatar}
