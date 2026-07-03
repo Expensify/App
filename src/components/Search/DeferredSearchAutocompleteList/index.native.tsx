@@ -1,11 +1,15 @@
-import React, {useRef, useState, useTransition} from 'react';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {SearchAutocompleteListProps} from '@components/Search/SearchAutocompleteList';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
+
 import useIsFocusedUntilTransitionEnd from '@hooks/useIsFocusedUntilTransitionEnd';
+
 import {endSpan} from '@libs/telemetry/activeSpans';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
+
+import React, {useRef, useState, useTransition} from 'react';
 
 /**
  * This component acts as a wrapper for a SearchAutocompleteList, waiting for the navigation to be ready and deferring it,

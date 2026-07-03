@@ -10,8 +10,6 @@ vendor
 package.json
 package-lock.json
 *.html
-*.yml
-*.yaml
 *.css
 *.scss
 *.md
