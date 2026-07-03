@@ -1,11 +1,11 @@
 import type {SnapshotFrom} from 'xstate';
 import {matchesState} from 'xstate';
 import type {StatePath} from 'xstate/graph';
-import {adjacencyMapToArray, getAdjacencyMap, getShortestPaths, serializeSnapshot, TestModel} from 'xstate/graph';
+import {getShortestPaths, TestModel} from 'xstate/graph';
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
 import type {MfaEvent} from '@components/MultifactorAuthentication/machine/types';
 import CONST from '@src/CONST';
-import createInitEvent, {describeTraversalEvent, MFA_TEST_PAYLOAD} from './flowFixtures';
+import createInitEvent, {MFA_TEST_PAYLOAD} from './flowFixtures';
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
@@ -130,62 +130,6 @@ function getWalkedPaths() {
     return [...coveragePaths, ...journeyPaths].filter(isUiDrivablePath);
 }
 
-type UiDrivableTransition = {
-    key: string;
-    description: string;
-};
-
-function getTransitionKey(sourceVertex: string, event: unknown): string {
-    return `${sourceVertex} | ${JSON.stringify(event)}`;
-}
-
-/**
- * Returns every transition the walk is expected to drive: one entry per (source vertex, event) pair from
- * the full adjacency map. Delayed transitions and no-op edges that land back in the identical vertex are
- * excluded because the walk cannot observe them.
- */
-function getUiDrivableTransitions(): UiDrivableTransition[] {
-    const edges = adjacencyMapToArray(getAdjacencyMap(mfaMachine, {events: getTraversalEvents}));
-    return edges
-        .filter((edge) => serializeSnapshot(edge.nextState) !== serializeSnapshot(edge.state))
-        .filter((edge) => !edge.event.type.startsWith(DELAYED_EVENT_PREFIX))
-        .map((edge) => ({
-            key: getTransitionKey(serializeSnapshot(edge.state), edge.event),
-            description: `${JSON.stringify(edge.state.value)} --${describeTraversalEvent(edge.event)}--> ${JSON.stringify(edge.nextState.value)}`,
-        }));
-}
-
-/**
- * Returns the state-changing INIT edges of the full adjacency map as (serialized event, serialized landing
- * vertex) pairs. The payload fixture is meant to give the payload flow its own context vertices, and the
- * guard built on these pairs fails when the machine stops copying the payload and the landings merge.
- */
-function getInitEdgeLandings(): Array<{eventKey: string; landingKey: string}> {
-    const edges = adjacencyMapToArray(getAdjacencyMap(mfaMachine, {events: getTraversalEvents}));
-    return edges
-        .filter((edge) => edge.event.type === 'INIT')
-        .filter((edge) => serializeSnapshot(edge.nextState) !== serializeSnapshot(edge.state))
-        .map((edge) => ({eventKey: JSON.stringify(edge.event), landingKey: serializeSnapshot(edge.nextState)}));
-}
-
-/**
- * Returns the (source vertex, event) pairs a set of walked paths drives. A step holds the state its event
- * produced, so the source of step `i` is the state of step `i - 1`.
- */
-function getExercisedTransitionKeys(paths: ReadonlyArray<Pick<MfaStatePath, 'steps'>>): Set<string> {
-    const keys = new Set<string>();
-    for (const path of paths) {
-        for (let i = 1; i < path.steps.length; i++) {
-            const source = path.steps.at(i - 1);
-            const step = path.steps.at(i);
-            if (!source || !step) {
-                continue;
-            }
-            keys.add(getTransitionKey(serializeSnapshot(source.state), step.event));
-        }
-    }
-    return keys;
-}
-
 export default getWalkedPaths;
-export {getDrivingJourneyPaths, getExercisedTransitionKeys, getInitEdgeLandings, getMfaShortestPaths, getUiDrivableTransitions};
+export {DELAYED_EVENT_PREFIX, getDrivingJourneyPaths, getMfaShortestPaths, getTraversalEvents};
+export type {MfaStatePath};
