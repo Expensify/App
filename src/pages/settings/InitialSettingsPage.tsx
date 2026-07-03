@@ -1,11 +1,3 @@
-import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
-import {differenceInDays} from 'date-fns';
-import {stopLocationUpdatesAsync} from 'expo-location';
-import React, {useContext, useEffect, useLayoutEffect, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import Icon from '@components/Icon';
@@ -21,6 +13,7 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -37,10 +30,11 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
-import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
+import {hasPendingExpensifyCardAction, hasVirtualExpensifyCardMissingPersonalDetails} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
@@ -51,14 +45,19 @@ import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUt
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 import {expensifyLoginsSelector, getProfilePageBrickRoadIndicator, hasDeviceManagementError} from '@libs/UserUtils';
+
 import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_TO_RHP';
+
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import {stopGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
+
 import variables from '@styles/variables';
+
 import {openExternalLink, openOldDotLink} from '@userActions/Link';
 import {hasPaymentMethodError} from '@userActions/PaymentMethods';
 import {hasStashedSession, isSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {openInitialSettingsPage} from '@userActions/Wallet';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -66,12 +65,24 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {isActingAsDelegateSelector} from '@src/selectors/Account';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
+import {differenceInDays} from 'date-fns';
+import {stopLocationUpdatesAsync} from 'expo-location';
+import React, {useContext, useEffect, useLayoutEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import SettingsMenuItem from './SettingsMenuItem';
 
 type InitialSettingsPageProps = WithCurrentUserPersonalDetailsProps;
@@ -101,7 +112,11 @@ type MenuData = WithSentryLabel & {
     isBadgeCondensed?: boolean;
 };
 
-type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
+type Menu = {
+    sectionStyle: StyleProp<ViewStyle>;
+    sectionTranslationKey: TranslationPaths;
+    items: MenuData[];
+};
 
 export type {MenuData};
 
@@ -130,8 +145,12 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
-    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
-    const [hasDeviceManagementErrorValue] = useOnyx(ONYXKEYS.LOGINS, {selector: hasDeviceManagementError});
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {
+        selector: expensifyLoginsSelector,
+    });
+    const [hasDeviceManagementErrorValue] = useOnyx(ONYXKEYS.LOGINS, {
+        selector: hasDeviceManagementError,
+    });
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
     const allCards = useNonPersonalCardList();
@@ -158,7 +177,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const hasLockedBankAccount = bankAccountList ? Object.values(bankAccountList).some((bankAccount) => bankAccount.accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) : false;
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
-    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
+    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {
+        selector: isTrackingSelector,
+    });
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const [unsharedBankAccount] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT);
     const [stashedCredentials] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
@@ -180,6 +201,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         personalCard: {shouldShowRBR: shouldShowRBRForPersonalCard},
     } = useCardFeedErrors();
     const hasPendingCardAction = hasPendingExpensifyCardAction(allCards, privatePersonalDetails);
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: isActingAsDelegateSelector,
+    });
+    const hasVirtualCardMissingDetails = hasVirtualExpensifyCardMissingPersonalDetails(allCards, privatePersonalDetails, isActingAsDelegate);
     let walletBrickRoadIndicator;
     if (
         hasLockedBankAccount ||
@@ -190,7 +215,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         shouldShowRBRForPersonalCard
     ) {
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    } else if (hasPartiallySetupBankAccount(bankAccountList) || hasPersonalBankAccountMissingInfo(bankAccountList) || hasPendingCardAction) {
+    } else if (hasPartiallySetupBankAccount(bankAccountList) || hasPersonalBankAccountMissingInfo(bankAccountList) || hasPendingCardAction || hasVirtualCardMissingDetails) {
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
 
@@ -227,7 +252,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const showSaveReceiptsModal = (pendingReceiptCount: number) => {
         return showConfirmModal({
             title: translate('initialSettingsPage.saveReceiptsConfirmation.title'),
-            prompt: translate('initialSettingsPage.saveReceiptsConfirmation.prompt', {count: pendingReceiptCount}),
+            prompt: translate('initialSettingsPage.saveReceiptsConfirmation.prompt', {
+                count: pendingReceiptCount,
+            }),
             confirmText: translate('initialSettingsPage.saveReceiptsConfirmation.confirm'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,

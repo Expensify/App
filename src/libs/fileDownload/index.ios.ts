@@ -1,13 +1,18 @@
-import {CameraRoll} from '@react-native-camera-roll/camera-roll';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
+import CONST from '@src/CONST';
+
 import type {PhotoIdentifier} from '@react-native-camera-roll/camera-roll';
+
+import {CameraRoll} from '@react-native-camera-roll/camera-roll';
 import RNFetchBlob from 'react-native-blob-util';
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import CONST from '@src/CONST';
+
+import type {FileDownload} from './types';
+
 import {appendTimeToFileName, getFileName, getFileType, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert} from './FileUtils';
 import saveLocalFileToGallery from './saveLocalFileToGallery';
-import type {FileDownload} from './types';
 
 const isUserCancelled = (err: unknown) => {
     let msg = '';

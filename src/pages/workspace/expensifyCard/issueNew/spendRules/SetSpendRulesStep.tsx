@@ -1,7 +1,3 @@
-import {format, toZonedTime} from 'date-fns-tz';
-import React, {useCallback, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -13,24 +9,34 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SpendRuleRestrictionTypeToggle from '@components/SpendRules/SpendRuleRestrictionTypeToggle';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import Text from '@components/Text';
+
 import useDefaultFundID from '@hooks/useDefaultFundID';
-import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setIssueNewCardData, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getSpendRuleFormValuesFromCardRule, getSpendRuleSummaryText, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 import type {IssueNewCardData} from '@src/types/onyx/Card';
+
+import type {ValueOf} from 'type-fest';
+
+import {format, toZonedTime} from 'date-fns-tz';
+import React, {useCallback, useMemo, useState} from 'react';
+import {View} from 'react-native';
 
 type SetSpendRulesStepProps = {
     /* The policy that the card will be issued under */
@@ -46,7 +52,6 @@ type SetSpendRulesStepProps = {
 function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isDevelopment} = useEnvironment();
     const personalDetails = usePersonalDetails();
     const domainAccountID = useDefaultFundID(policyID);
     const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Pencil']);
@@ -307,19 +312,17 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                                                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MAX_AMOUNT.path));
                                             }}
                                         />
-                                        {isDevelopment && (
-                                            <MenuItemWithTopDescription
-                                                description={translate('workspace.rules.spendRules.permittedCurrencies')}
-                                                onPress={() => {
-                                                    setSpendRuleErrorMessage('');
-                                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CURRENCY.path));
-                                                }}
-                                                shouldShowRightIcon
-                                                title={currenciesTitle}
-                                                titleStyle={styles.flex1}
-                                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.CURRENCY_SELECTOR}
-                                            />
-                                        )}
+                                        <MenuItemWithTopDescription
+                                            description={translate('workspace.rules.spendRules.permittedCurrencies')}
+                                            onPress={() => {
+                                                setSpendRuleErrorMessage('');
+                                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CURRENCY.path));
+                                            }}
+                                            shouldShowRightIcon
+                                            title={currenciesTitle}
+                                            titleStyle={styles.flex1}
+                                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.CURRENCY_SELECTOR}
+                                        />
 
                                         <View style={[styles.ph5, styles.pv3]}>
                                             <SpendRuleRestrictionTypeToggle

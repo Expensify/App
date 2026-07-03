@@ -4,21 +4,27 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import * as OdometerTransactionUtils from '@libs/actions/OdometerTransactionUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import TabSwitchGuardContext from '@libs/Navigation/TabSwitchGuardContext';
 import type {RegisterTabSwitchGuard, TabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
+
 import IOURequestStepDistanceOdometer from '@pages/iou/request/step/IOURequestStepDistanceOdometer';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {OdometerDraft, Report, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import createRandomTransaction from '../utils/collections/transaction';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';

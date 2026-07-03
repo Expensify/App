@@ -1,7 +1,6 @@
-import React, {Fragment} from 'react';
-import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
+import {ReportSubmitToPopoverMeasurableAnchor} from '@components/ReportSubmitToPopoverAnchor';
 import DeferredActionCell from '@components/Search/SearchList/ListItem/ActionCell/DeferredActionCell';
 import DateCell from '@components/Search/SearchList/ListItem/DateCell';
 import ExportedIconCell from '@components/Search/SearchList/ListItem/ExportedIconCell';
@@ -11,15 +10,24 @@ import TotalCell from '@components/Search/SearchList/ListItem/TotalCell';
 import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
 import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getBase62ReportID from '@libs/getBase62ReportID';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
-import ExpenseReportListItemAvatar from './ExpenseReportListItemAvatar';
+
+import React, {Fragment} from 'react';
+import {View} from 'react-native';
+
 import type {ExpenseReportListItemRowWideProps} from './types';
+
+import ExpenseReportListItemAvatar from './ExpenseReportListItemAvatar';
 
 function ExpenseReportListItemRowWide({
     item,
@@ -38,6 +46,7 @@ function ExpenseReportListItemRowWide({
     isHovered = false,
     isFocused = false,
     isPendingDelete = false,
+    shouldDisableActionPointerEvents = false,
     isMarkAsDone,
 }: ExpenseReportListItemRowWideProps) {
     const StyleUtils = useStyleUtils();
@@ -210,19 +219,21 @@ function ExpenseReportListItemRowWide({
         ),
         [CONST.SEARCH.TABLE_COLUMNS.ACTION]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
-                <DeferredActionCell
-                    action={item.action}
-                    onButtonPress={onButtonPress}
-                    isSelected={isSelected}
-                    isLoading={isActionLoading}
-                    policyID={item.policyID}
-                    reportID={item.reportID}
-                    hash={item.hash}
-                    amount={item.total}
-                    chatReport={chatReport}
-                    shouldDisablePointerEvents={isPendingDelete}
-                    isMarkAsDone={isMarkAsDone}
-                />
+                <ReportSubmitToPopoverMeasurableAnchor>
+                    <DeferredActionCell
+                        action={item.action}
+                        onButtonPress={onButtonPress}
+                        isSelected={isSelected}
+                        isLoading={isActionLoading}
+                        policyID={item.policyID}
+                        reportID={item.reportID}
+                        hash={item.hash}
+                        amount={item.total}
+                        chatReport={chatReport}
+                        isMarkAsDone={isMarkAsDone}
+                        shouldDisablePointerEvents={isPendingDelete || shouldDisableActionPointerEvents}
+                    />
+                </ReportSubmitToPopoverMeasurableAnchor>
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: (

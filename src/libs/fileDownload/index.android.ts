@@ -1,12 +1,17 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
+import CONST from '@src/CONST';
+
 import type {FetchBlobResponse} from 'react-native-blob-util';
+
 import RNFetchBlob from 'react-native-blob-util';
 import RNFS from 'react-native-fs';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import CONST from '@src/CONST';
+
+import type {FileDownload} from './types';
+
 import {appendTimeToFileName, getFileName, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert} from './FileUtils';
 import hasGalleryWritePermission from './hasGalleryWritePermission';
 import saveLocalFileToGallery from './saveLocalFileToGallery';
-import type {FileDownload} from './types';
 
 /**
  * Handling the download
