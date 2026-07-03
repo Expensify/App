@@ -1,6 +1,8 @@
 import {renderHook} from '@testing-library/react-native';
-import {useSharedValue} from 'react-native-reanimated';
+
 import {findClosestPoint, findClosestPointAnyOrder, getRightTooltipAnchorX, TOOLTIP_BAR_GAP, useChartInteractions} from '@components/Charts/hooks/useChartInteractions';
+
+import {useSharedValue} from 'react-native-reanimated';
 
 /**
  * findClosestPoint — binary search for the nearest canvas-x index
