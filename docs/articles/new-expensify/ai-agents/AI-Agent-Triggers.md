@@ -854,4 +854,4 @@ Example phrases for your agent's instructions:
 
 ---
 
-*This reference covers all 116 events your Agent can react to.*
+*This reference covers all 116 events AI Agents can react to.*
