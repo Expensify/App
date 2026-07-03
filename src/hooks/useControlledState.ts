@@ -1,4 +1,4 @@
-import {useLayoutEffect, useRef, useState} from 'react';
+import {useInsertionEffect, useRef, useState} from 'react';
 import type {Dispatch, SetStateAction} from 'react';
 import Log from '@libs/Log';
 
@@ -12,7 +12,7 @@ function useControlledState<T>(controlledValue: T | undefined, defaultValue: T, 
     const onChangeRef = useRef(onChange);
     const isControlledRef = useRef(isControlled);
 
-    useLayoutEffect(() => {
+    useInsertionEffect(() => {
         currentRef.current = current;
         cachedRef.current = current;
         onChangeRef.current = onChange;

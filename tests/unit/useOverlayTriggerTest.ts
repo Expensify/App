@@ -11,13 +11,13 @@ describe('useOverlayTrigger', () => {
                 isOpen: true,
                 triggerID: 'trig-1',
                 contentID: 'content-1',
-                popupRole: 'dialog',
+                popupRole: 'menu',
             }),
         );
         expect(result.current.triggerProps).toEqual({
             nativeID: 'trig-1',
             accessibilityState: {expanded: true},
-            accessibilityHasPopup: 'dialog',
+            accessibilityHasPopup: 'menu',
             accessibilityControls: 'content-1',
         });
     });
@@ -46,17 +46,14 @@ describe('useOverlayTrigger', () => {
         expect(result.current.triggerProps.accessibilityControls).toBe('c');
     });
 
-    it('passes through each supported popup role unchanged', () => {
-        for (const role of ['dialog', 'menu', 'listbox', 'tree', 'grid'] as const) {
-            const {result} = renderHook(() =>
-                useOverlayTrigger({
-                    isOpen: false,
-                    triggerID: 't',
-                    contentID: 'c',
-                    popupRole: role,
-                }),
-            );
+    it('emits accessibilityHasPopup only for screen-reader-safe roles (menu, listbox) and omits dialog/tree/grid', () => {
+        for (const role of ['menu', 'listbox'] as const) {
+            const {result} = renderHook(() => useOverlayTrigger({isOpen: false, triggerID: 't', contentID: 'c', popupRole: role}));
             expect(result.current.triggerProps.accessibilityHasPopup).toBe(role);
+        }
+        for (const role of ['dialog', 'grid'] as const) {
+            const {result} = renderHook(() => useOverlayTrigger({isOpen: false, triggerID: 't', contentID: 'c', popupRole: role}));
+            expect(result.current.triggerProps.accessibilityHasPopup).toBeUndefined();
         }
     });
 });
