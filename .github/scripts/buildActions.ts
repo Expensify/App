@@ -41,46 +41,43 @@ const GITHUB_ACTIONS = [
 ].map((relativePath) => path.join(ACTIONS_DIR, relativePath));
 
 // This will be prepended to the top of all compiled files as a warning to devs.
-const NOTE_DONT_EDIT = `/**
+const COMPILED_FILE_BANNER = `/**
  * NOTE: This is a compiled file. DO NOT directly edit this file.
  */
 `;
 
-async function buildAction(actionPath: string): Promise<void> {
+async function buildAction(actionPath: string): Promise<boolean> {
     const actionDir = path.dirname(actionPath);
     const outfile = path.join(actionDir, 'index.js');
 
-    await build({
-        entryPoints: [actionPath],
-        outfile,
-        bundle: true,
-        platform: 'node',
-        target: 'node24',
-        format: 'cjs',
-        splitting: false,
-        sourcemap: false,
-        external: ['encoding'],
-        tsconfig: TSCONFIG,
-        logLevel: 'silent',
-    });
+    try {
+        await build({
+            entryPoints: [actionPath],
+            outfile,
+            bundle: true,
+            platform: 'node',
+            target: 'node24',
+            format: 'cjs',
+            splitting: false,
+            sourcemap: false,
+            external: ['encoding'],
+            tsconfig: TSCONFIG,
+            logLevel: 'silent',
+        });
 
-    const bundled = await readFile(outfile, 'utf8');
-    await writeFile(outfile, NOTE_DONT_EDIT + bundled);
+        const bundled = await readFile(outfile, 'utf8');
+        await writeFile(outfile, COMPILED_FILE_BANNER + bundled);
+        return true;
+    } catch (error) {
+        console.error(`❌ ${actionPath} failed to build:`, error);
+        return false;
+    }
 }
 
 async function main() {
-    const results = await Promise.allSettled(GITHUB_ACTIONS.map(buildAction));
+    const results = await Promise.all(GITHUB_ACTIONS.map(buildAction));
 
-    let hasFailure = false;
-    for (let i = 0; i < results.length; i++) {
-        const result = results[i];
-        if (result.status === 'rejected') {
-            hasFailure = true;
-            console.error(`❌ ${GITHUB_ACTIONS[i]} failed to build:`, result.reason);
-        }
-    }
-
-    if (hasFailure) {
+    if (results.includes(false)) {
         process.exit(1);
     }
 }
