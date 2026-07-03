@@ -5090,7 +5090,7 @@ function canEditMultipleTransactions(
     return true;
 }
 
-function canUnreportedPerDiemBeMoved(transaction: OnyxEntry<Transaction>, policies: OnyxCollection<Policy>): boolean {
+function canUnreportedBeMoved(transaction: OnyxEntry<Transaction>, policies: OnyxCollection<Policy>): boolean {
     if (!isPerDiemRequest(transaction)) {
         return true;
     }
@@ -5145,7 +5145,7 @@ function canEditFieldOfMoneyRequest({
     // Legacy/imported unreported transactions may not have an IOU report action, so bypass the action guard and allow moving them to a report.
     const isUnreportedLegacyTransaction = !reportAction && (!transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT && isUnreportedLegacyTransaction) {
-        return canUnreportedPerDiemBeMoved(transaction, allPolicies);
+        return canUnreportedBeMoved(transaction, allPolicies);
     }
 
     if (!isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, transaction, isChatReportArchived, report, policy)) {
@@ -5222,7 +5222,7 @@ function canEditFieldOfMoneyRequest({
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
         if (isUnreportedExpense) {
-            return canUnreportedPerDiemBeMoved(transaction, allPolicies);
+            return canUnreportedBeMoved(transaction, allPolicies);
         }
 
         if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, reportNameValuePairs)) {
