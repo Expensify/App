@@ -1,15 +1,20 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import reportAttributes from '@libs/actions/OnyxDerived/configs/reportAttributes';
+
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import * as OnyxDerivedUtils from '@userActions/OnyxDerived/utils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
+
+import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+
 import {createRandomCompanyCard, createRandomExpensifyCard} from '../utils/collections/card';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -128,9 +133,17 @@ describe('OnyxDerived', () => {
 
                 // One logical update touching 3 different reportAttributes dependencies at once.
                 const updates: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
-                    {onyxMethod: Onyx.METHOD.MERGE_COLLECTION, key: ONYXKEYS.COLLECTION.REPORT, value: {[`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`]: {reportName: 'Renamed report'}}},
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+                        key: ONYXKEYS.COLLECTION.REPORT,
+                        value: {[`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`]: {reportName: 'Renamed report'}},
+                    },
                     {onyxMethod: Onyx.METHOD.MERGE_COLLECTION, key: ONYXKEYS.COLLECTION.TRANSACTION, value: {[`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: createRandomTransaction(1)}},
-                    {onyxMethod: Onyx.METHOD.MERGE_COLLECTION, key: ONYXKEYS.COLLECTION.REPORT_METADATA, value: {[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockReport.reportID}`]: {isOptimisticReport: false}}},
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+                        key: ONYXKEYS.COLLECTION.REPORT_METADATA,
+                        value: {[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockReport.reportID}`]: {isOptimisticReport: false}},
+                    },
                 ];
                 await Onyx.update(updates);
                 await waitForBatchedUpdates();
