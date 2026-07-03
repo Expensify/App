@@ -17,7 +17,6 @@ import {
     createFilteredOptionList,
     createOption,
     createOptionFromReport,
-    createOptionList,
     filterAndOrderOptions,
     filterReports,
     filterSelfDMChat,
@@ -740,28 +739,38 @@ describe('OptionsListUtils', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
         await waitForBatchedUpdates();
 
-        OPTIONS = createOptionList(PERSONAL_DETAILS, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS, allPolicies, MOCK_REPORT_ATTRIBUTES_DERIVED);
-        OPTIONS_WITH_CONCIERGE = createOptionList(
+        OPTIONS = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {isSearching: true});
+        OPTIONS_WITH_CONCIERGE = createFilteredOptionList(
             PERSONAL_DETAILS_WITH_CONCIERGE,
-            EMPTY_PRIVATE_IS_ARCHIVED_MAP,
             REPORTS_WITH_CONCIERGE,
-            undefined,
             MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CONCIERGE,
+            EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+            undefined,
+            {isSearching: true},
         );
-        OPTIONS_WITH_CHRONOS = createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_CHRONOS, undefined, MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHRONOS);
-        OPTIONS_WITH_RECEIPTS = createOptionList(
+        OPTIONS_WITH_CHRONOS = createFilteredOptionList(
+            PERSONAL_DETAILS_WITH_CHRONOS,
+            REPORTS_WITH_CHRONOS,
+            MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHRONOS,
+            EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+            undefined,
+            {isSearching: true},
+        );
+        OPTIONS_WITH_RECEIPTS = createFilteredOptionList(
             PERSONAL_DETAILS_WITH_RECEIPTS,
-            EMPTY_PRIVATE_IS_ARCHIVED_MAP,
             REPORTS_WITH_RECEIPTS,
-            undefined,
             MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_RECEIPTS,
-        );
-        OPTIONS_WITH_WORKSPACE_ROOM = createOptionList(
-            PERSONAL_DETAILS,
             EMPTY_PRIVATE_IS_ARCHIVED_MAP,
-            REPORTS_WITH_WORKSPACE_ROOMS,
             undefined,
+            {isSearching: true},
+        );
+        OPTIONS_WITH_WORKSPACE_ROOM = createFilteredOptionList(
+            PERSONAL_DETAILS,
+            REPORTS_WITH_WORKSPACE_ROOMS,
             MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_WORKSPACE_ROOM,
+            EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+            undefined,
+            {isSearching: true},
         );
     });
 
@@ -788,6 +797,52 @@ describe('OptionsListUtils', () => {
 
             // Then all of the reports should be shown including the archived rooms, except for the thread report with notificationPreferences hidden.
             expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length - 1);
+        });
+
+        it('should include a policy expense chat when the current user notification preference is hidden', () => {
+            // Given a member's workspace chat where the current user (admin) is a participant with a hidden notification preference
+            const memberWorkspaceChat: OnyxCollection<Report> = {
+                '20': {
+                    lastReadTime: '2021-01-14 11:25:39.200',
+                    lastVisibleActionCreated: '2022-11-22 03:26:02.001',
+                    reportID: '20',
+                    participants: {
+                        [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                        3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                    reportName: "Spider-Man's expenses",
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    ownerAccountID: 3,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    policyID,
+                    policyName: POLICY.name,
+                },
+            };
+            const optionsWithMemberWorkspaceChat = createOptionList(
+                PERSONAL_DETAILS,
+                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                memberWorkspaceChat,
+                undefined,
+                createMockReportAttributesDerived(memberWorkspaceChat, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID),
+            );
+
+            // When we call getSearchOptions
+            const results = getSearchOptions({
+                options: optionsWithMemberWorkspaceChat,
+                reportAttributesDerived: createMockReportAttributesDerived(memberWorkspaceChat, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID),
+                draftComments: {},
+                loginList,
+                betas: [CONST.BETAS.ALL],
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
+                personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
+                conciergeReportID: undefined,
+            });
+
+            // Then the member's workspace chat should still be included in the search results
+            expect(results.recentReports.some((report) => report.reportID === '20')).toBe(true);
         });
 
         it('should include current user when includeCurrentUser is true for type:chat from suggestions', () => {
@@ -2203,7 +2258,7 @@ describe('OptionsListUtils', () => {
             const archivedMap: PrivateIsArchivedMap = {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`]: !!reportNameValuePairs.private_isArchived,
             };
-            const OPTIONS_WITH_ARCHIVED = createOptionList(PERSONAL_DETAILS, archivedMap, REPORTS, undefined, MOCK_REPORT_ATTRIBUTES_DERIVED);
+            const OPTIONS_WITH_ARCHIVED = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, archivedMap, undefined, {isSearching: true});
             // When we call getSearchOptions with all betas
             const {options} = getSearchOptions({
                 options: OPTIONS_WITH_ARCHIVED,
@@ -2231,7 +2286,7 @@ describe('OptionsListUtils', () => {
             // cspell:disable-next-line
             const searchText = 'barryallen';
             // Given a set of options created from PERSONAL_DETAILS_WITH_PERIODS
-            const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS, undefined);
+            const OPTIONS_WITH_PERIODS = createFilteredOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {isSearching: true});
             // When we call getSearchOptions with all betas
             const {options} = getSearchOptions({
                 options: OPTIONS_WITH_PERIODS,
@@ -2310,12 +2365,13 @@ describe('OptionsListUtils', () => {
             const searchText = 'spider';
             // Given a set of options with chat rooms
             const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHAT_ROOM = createMockReportAttributesDerived(REPORTS_WITH_CHAT_ROOM, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID);
-            const OPTIONS_WITH_CHAT_ROOMS = createOptionList(
+            const OPTIONS_WITH_CHAT_ROOMS = createFilteredOptionList(
                 PERSONAL_DETAILS,
-                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 REPORTS_WITH_CHAT_ROOM,
-                undefined,
                 MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHAT_ROOM,
+                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                undefined,
+                {isSearching: true},
             );
             // When we call getSearchOptions with all betas
             const {options} = getSearchOptions({
@@ -2666,7 +2722,7 @@ describe('OptionsListUtils', () => {
                 },
             };
 
-            const OPTIONS_WITH_GROUP_CHAT = createOptionList(PERSONAL_DETAILS, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_GROUP_CHAT, undefined);
+            const OPTIONS_WITH_GROUP_CHAT = createFilteredOptionList(PERSONAL_DETAILS, REPORTS_WITH_GROUP_CHAT, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {isSearching: true});
 
             // When we call getSearchOptions with a search query that matches a participant display name
             const {options} = getSearchOptions({
@@ -2708,7 +2764,7 @@ describe('OptionsListUtils', () => {
                 },
             };
 
-            const OPTIONS_WITH_GROUP_CHAT = createOptionList(PERSONAL_DETAILS, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_GROUP_CHAT, undefined);
+            const OPTIONS_WITH_GROUP_CHAT = createFilteredOptionList(PERSONAL_DETAILS, REPORTS_WITH_GROUP_CHAT, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {isSearching: true});
 
             // When we call getSearchOptions with a search query that matches a participant login
             const {options} = getSearchOptions({
@@ -2750,7 +2806,7 @@ describe('OptionsListUtils', () => {
                 },
             };
 
-            const OPTIONS_WITH_GROUP_CHAT = createOptionList(PERSONAL_DETAILS, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_GROUP_CHAT, undefined);
+            const OPTIONS_WITH_GROUP_CHAT = createFilteredOptionList(PERSONAL_DETAILS, REPORTS_WITH_GROUP_CHAT, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {isSearching: true});
 
             // When we call getSearchOptions with a search query that matches a participant name
             const {options} = getSearchOptions({
@@ -2792,7 +2848,7 @@ describe('OptionsListUtils', () => {
                 },
             };
 
-            const OPTIONS_WITH_GROUP_CHAT = createOptionList(PERSONAL_DETAILS, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_GROUP_CHAT, undefined);
+            const OPTIONS_WITH_GROUP_CHAT = createFilteredOptionList(PERSONAL_DETAILS, REPORTS_WITH_GROUP_CHAT, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {isSearching: true});
 
             // When we call getSearchOptions with a search query that does not match any participant
             const {options} = getSearchOptions({
@@ -2831,7 +2887,14 @@ describe('OptionsListUtils', () => {
                 },
             };
 
-            const OPTIONS_WITH_GROUP_CHAT_NO_PARTICIPANTS = createOptionList(PERSONAL_DETAILS, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_GROUP_CHAT_NO_PARTICIPANTS, undefined);
+            const OPTIONS_WITH_GROUP_CHAT_NO_PARTICIPANTS = createFilteredOptionList(
+                PERSONAL_DETAILS,
+                REPORTS_WITH_GROUP_CHAT_NO_PARTICIPANTS,
+                undefined,
+                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                undefined,
+                {isSearching: true},
+            );
 
             // When we call getSearchOptions with all betas
             const {options} = getSearchOptions({
@@ -3195,7 +3258,7 @@ describe('OptionsListUtils', () => {
                 .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS_WITH_PERIODS))
                 .then(() => {
                     // Given a set of options with periods
-                    const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS, undefined);
+                    const OPTIONS_WITH_PERIODS = createFilteredOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {isSearching: true});
                     // When we call getSearchOptions
                     const {options: results} = getSearchOptions({
                         options: OPTIONS_WITH_PERIODS,
@@ -3261,7 +3324,7 @@ describe('OptionsListUtils', () => {
 
         it('should order self dm always on top if the search matches with the self dm login', () => {
             const searchTerm = 'tonystark@expensify.com';
-            const OPTIONS_WITH_SELF_DM = createOptionList(PERSONAL_DETAILS, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_SELF_DM, undefined);
+            const OPTIONS_WITH_SELF_DM = createFilteredOptionList(PERSONAL_DETAILS, REPORTS_WITH_SELF_DM, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {isSearching: true});
 
             // Given a set of options with self dm and all betas
             const {options} = getSearchOptions({
@@ -3320,11 +3383,11 @@ describe('OptionsListUtils', () => {
             expect(canCreate).toBe(false);
         });
 
-        it('createOptionList() localization', async () => {
+        it('createFilteredOptionList() localization', async () => {
             renderLocaleContextProvider();
             // Given a set of reports and personal details
-            // When we call createOptionList and extract the reports
-            const reports = createOptionList(PERSONAL_DETAILS, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS, allPolicies).reports;
+            // When we call createFilteredOptionList and extract the reports
+            const reports = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {isSearching: true}).reports;
 
             // Then the returned reports should match the expected values
             expect(reports.at(10)?.subtitle).toBe(`Submits to Mister Fantastic`);
@@ -3333,8 +3396,8 @@ describe('OptionsListUtils', () => {
 
             await waitForBatchedUpdates();
 
-            // When we call createOptionList again
-            const newReports = createOptionList(PERSONAL_DETAILS, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS, allPolicies).reports;
+            // When we call createFilteredOptionList again
+            const newReports = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {isSearching: true}).reports;
             // Then the returned reports should change to Spanish
             // cspell:disable-next-line
             expect(newReports.at(10)?.subtitle).toBe('Se envía a Mister Fantastic');
@@ -3413,17 +3476,19 @@ describe('OptionsListUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            // When we call createOptionList with report 10 marked as archived
+            // When we call createFilteredOptionList with report 10 marked as archived
             const archivedMap: PrivateIsArchivedMap = {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`]: !!reportNameValuePairs.private_isArchived,
             };
-            const reports = createOptionList(PERSONAL_DETAILS, archivedMap, REPORTS, undefined).reports;
+            const reports = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, archivedMap, undefined, {isSearching: true}).reports;
             const archivedReport = reports.find((report) => report.reportID === '10');
 
             // Then the returned report should contain default archived reason
             expect(archivedReport?.lastMessageText).toBe('This chat room has been archived.');
         });
+    });
 
+    describe('createFilteredOptionList()', () => {
         it('should set private_isArchived on personal details options when privateIsArchivedMap is provided', () => {
             renderLocaleContextProvider();
             // Given a privateIsArchivedMap with an archived report for a 1:1 chat
@@ -3432,28 +3497,28 @@ describe('OptionsListUtils', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}3`]: true,
             };
 
-            // When we call createOptionList with this privateIsArchivedMap
-            const result = createOptionList(PERSONAL_DETAILS, privateIsArchivedMap, REPORTS, undefined);
+            // When we call createFilteredOptionList with this privateIsArchivedMap
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, privateIsArchivedMap, undefined, {isSearching: true});
 
             // Then the personal detail option for account 1 (Mister Fantastic) should have private_isArchived set
             const misterFantasticOption = result.personalDetails.find((pd) => pd.item?.accountID === 1);
             expect(misterFantasticOption?.private_isArchived).toBe(true);
         });
 
-        it('should not set private_isArchived when privateIsArchivedMap is empty', () => {
+        it('should not set private_isArchived on personal details options when privateIsArchivedMap is empty', () => {
             renderLocaleContextProvider();
             // Given an empty privateIsArchivedMap
             const emptyMap: PrivateIsArchivedMap = {};
 
-            // When we call createOptionList with an empty privateIsArchivedMap
-            const result = createOptionList(PERSONAL_DETAILS, emptyMap, REPORTS, undefined);
+            // When we call createFilteredOptionList with an empty privateIsArchivedMap
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, emptyMap, undefined, {isSearching: true});
 
             // Then no personal details options should have private_isArchived set
             const optionsWithArchived = result.personalDetails.filter((pd) => pd.private_isArchived);
             expect(optionsWithArchived.length).toBe(0);
         });
 
-        it('should correctly map multiple archived reports in privateIsArchivedMap', () => {
+        it('should correctly map multiple archived reports to personal details options', () => {
             renderLocaleContextProvider();
             // Given a privateIsArchivedMap with multiple archived reports
             const privateIsArchivedMap: PrivateIsArchivedMap = {
@@ -3461,8 +3526,8 @@ describe('OptionsListUtils', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}5`]: true, // Report for account 5
             };
 
-            // When we call createOptionList with this privateIsArchivedMap
-            const result = createOptionList(PERSONAL_DETAILS, privateIsArchivedMap, REPORTS, undefined);
+            // When we call createFilteredOptionList with this privateIsArchivedMap
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, privateIsArchivedMap, undefined, {isSearching: true});
 
             // Then the personal detail options should have the correct private_isArchived values
             const misterFantasticOption = result.personalDetails.find((pd) => pd.item?.accountID === 1);
@@ -3472,30 +3537,6 @@ describe('OptionsListUtils', () => {
             expect(invisibleWomanOption?.private_isArchived).toBe(true);
         });
 
-        it('should set private_isArchived on report options when privateIsArchivedMap is provided', () => {
-            renderLocaleContextProvider();
-            // Given a privateIsArchivedMap with archived reports
-            const privateIsArchivedMap: PrivateIsArchivedMap = {
-                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}3`]: true,
-                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}5`]: true,
-            };
-
-            // When we call createOptionList with this privateIsArchivedMap
-            const result = createOptionList(PERSONAL_DETAILS, privateIsArchivedMap, REPORTS, undefined);
-
-            // Then the report options should have the correct private_isArchived values
-            const report3Option = result.reports.find((r) => r.item?.reportID === '3');
-            const report5Option = result.reports.find((r) => r.item?.reportID === '5');
-            const report1Option = result.reports.find((r) => r.item?.reportID === '1');
-
-            expect(report3Option?.private_isArchived).toBe(true);
-            expect(report5Option?.private_isArchived).toBe(true);
-            // Report 1 should not have private_isArchived since it's not in the map
-            expect(report1Option?.private_isArchived).toBeUndefined();
-        });
-    });
-
-    describe('createFilteredOptionList()', () => {
         it('should set private_isArchived on report options when privateIsArchivedMap is provided', () => {
             renderLocaleContextProvider();
             // Given a privateIsArchivedMap with archived reports
@@ -7987,13 +8028,6 @@ describe('OptionsListUtils', () => {
     });
 
     describe('policy parameter passing', () => {
-        it('createOptionList should accept policiesCollection parameter', () => {
-            const result = createOptionList(PERSONAL_DETAILS, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS, allPolicies, MOCK_REPORT_ATTRIBUTES_DERIVED);
-            expect(result).toBeDefined();
-            expect(result.reports).toBeDefined();
-            expect(result.personalDetails).toBeDefined();
-        });
-
         it('createFilteredOptionList should accept policiesCollection parameter', () => {
             const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies);
             expect(result).toBeDefined();

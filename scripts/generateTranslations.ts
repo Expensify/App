@@ -4,6 +4,8 @@
  */
 import {execFileSync} from 'child_process';
 import * as dotenv from 'dotenv';
+import {Str} from 'expensify-common';
+import CLI from 'expensify-common/CLI';
 import fs from 'fs';
 // eslint-disable-next-line you-dont-need-lodash-underscore/get
 import get from 'lodash/get';
@@ -12,13 +14,11 @@ import type {TemplateExpression} from 'typescript';
 import ts from 'typescript';
 import GitHubUtils from '@github/libs/GithubUtils';
 import decodeUnicode from '@libs/StringUtils/decodeUnicode';
-import dedent from '@libs/StringUtils/dedent';
 import hashStr from '@libs/StringUtils/hash';
 import {isTranslationTargetLocale, TRANSLATION_TARGET_LOCALES} from '@src/CONST/LOCALES';
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 import en from '@src/languages/en';
 import type {TranslationPaths} from '@src/languages/types';
-import CLI from './utils/CLI';
 import COLORS from './utils/COLORS';
 import Git from './utils/Git';
 import type {DiffResult} from './utils/Git';
@@ -31,7 +31,7 @@ import type {StringWithContext} from './utils/Translator/types';
 import TSCompilerUtils, {TransformerAction} from './utils/TSCompilerUtils';
 import type {TransformerResult} from './utils/TSCompilerUtils';
 
-const GENERATED_FILE_PREFIX = dedent(`
+const GENERATED_FILE_PREFIX = Str.dedent(`
     /**
      *   _____                      __         __
      *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -166,10 +166,27 @@ class TranslationGenerator {
             verbose: {description: string};
         };
         namedArgs: {
-            locales: {description: string; default: TranslationTargetLocale[]; parse: (val: string) => TranslationTargetLocale[]};
-            'compare-ref': {description: string; default: string; parse: (val: string) => string};
-            'pr-number': {description: string; default: number; parse: (val: string) => number};
-            paths: {description: string; parse: (val: string) => Set<TranslationPaths>; supersedes: string[]; required: false};
+            locales: {
+                description: string;
+                default: TranslationTargetLocale[];
+                parse: (val: string) => TranslationTargetLocale[];
+            };
+            'compare-ref': {
+                description: string;
+                default: string;
+                parse: (val: string) => string;
+            };
+            'pr-number': {
+                description: string;
+                default: number;
+                parse: (val: string) => number;
+            };
+            paths: {
+                description: string;
+                parse: (val: string) => Set<TranslationPaths>;
+                supersedes: string[];
+                required: false;
+            };
         };
     }>;
     /* eslint-enable @typescript-eslint/naming-convention */
@@ -182,7 +199,7 @@ class TranslationGenerator {
     private readonly translatedSpanHashToEnglishSpanHash = new Map<number, number>();
 
     /**
-     * Set of translation keys for strings that are arguments to dedent() calls.
+     * Set of translation keys for strings that are arguments to Str.dedent() calls.
      * These need special handling to preserve whitespace structure.
      */
     private readonly dedentStringKeys = new Set<number>();
@@ -398,7 +415,7 @@ class TranslationGenerator {
                 let hadLeadingNewline = false;
                 if (this.dedentStringKeys.has(key)) {
                     hadLeadingNewline = text.startsWith('\n');
-                    textToTranslate = dedent(text);
+                    textToTranslate = Str.dedent(text);
                 }
 
                 let result = await this.translator.translate(targetLanguage, textToTranslate, context, id);
@@ -512,7 +529,7 @@ class TranslationGenerator {
         const estimatedCost = await this.translator.estimateCost(Array.from(stringsToTranslate.values()), this.targetLanguages);
         if (estimatedCost > COST_CONFIRMATION_THRESHOLD) {
             console.warn(
-                `${COLORS.YELLOW}${dedent(`
+                `${COLORS.YELLOW}${Str.dedent(`
                     ⚠️  Warning: This translation will cost approximately $${estimatedCost.toFixed(2)} USD.
                        Strings to translate: ${stringsToTranslate.size.toLocaleString()}
                        Target locales: ${numLocales}
@@ -653,7 +670,18 @@ class TranslationGenerator {
     }
 
     /**
-     * Check if a node is a direct argument to a dedent() call.
+     * Check if a call expression is a dedent() call (either standalone or Str.dedent()).
+     */
+    private isDedentCallExpression(expression: ts.LeftHandSideExpression): boolean {
+        if (ts.isIdentifier(expression) && expression.text === 'dedent') {
+            return true;
+        }
+
+        return ts.isPropertyAccessExpression(expression) && ts.isIdentifier(expression.expression) && expression.expression.text === 'Str' && expression.name.text === 'dedent';
+    }
+
+    /**
+     * Check if a node is a direct argument to a Str.dedent() call.
      */
     private isArgumentToDedent(node: ts.Node): boolean {
         if (!node.parent || !ts.isCallExpression(node.parent)) {
@@ -661,7 +689,7 @@ class TranslationGenerator {
         }
 
         const callExpression = node.parent;
-        return ts.isIdentifier(callExpression.expression) && callExpression.expression.text === 'dedent' && callExpression.arguments.includes(node as ts.Expression);
+        return this.isDedentCallExpression(callExpression.expression) && callExpression.arguments.includes(node as ts.Expression);
     }
 
     /**
@@ -783,20 +811,28 @@ class TranslationGenerator {
             const context = this.getContextForNode(node);
             const translationKey = this.getTranslationKey(node);
 
-            // Track if this node is an argument to dedent()
+            // Track if this node is an argument to Str.dedent()
             if (this.isArgumentToDedent(node)) {
                 this.dedentStringKeys.add(translationKey);
             }
 
             // String literals and no-substitution templates can be translated directly
             if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
-                stringsToTranslate.set(translationKey, {text: node.text, context, id: currentPath});
+                stringsToTranslate.set(translationKey, {
+                    text: node.text,
+                    context,
+                    id: currentPath,
+                });
             }
 
             // Template expressions must be encoded directly before they can be translated
             else if (ts.isTemplateExpression(node)) {
                 if (this.isSimpleTemplateExpression(node)) {
-                    stringsToTranslate.set(translationKey, {text: this.templateExpressionToString(node), context, id: currentPath});
+                    stringsToTranslate.set(translationKey, {
+                        text: this.templateExpressionToString(node),
+                        context,
+                        id: currentPath,
+                    });
                 } else {
                     if (this.verbose) {
                         console.debug('😵‍💫 Encountered complex template, recursively translating its spans first:', node.getText());
@@ -804,7 +840,11 @@ class TranslationGenerator {
                     for (const span of node.templateSpans) {
                         this.extractStringsToTranslate(span, stringsToTranslate, currentPath);
                     }
-                    stringsToTranslate.set(translationKey, {text: this.templateExpressionToString(node), context, id: currentPath});
+                    stringsToTranslate.set(translationKey, {
+                        text: this.templateExpressionToString(node),
+                        context,
+                        id: currentPath,
+                    });
                 }
             }
         }
@@ -1238,7 +1278,7 @@ class TranslationGenerator {
     }
 
     /**
-     * Format all dedent() calls in a file to ensure proper indentation.
+     * Format all Str.dedent() calls in a file to ensure proper indentation.
      * This should be called after Prettier has formatted the file.
      */
     private formatDedentCallsInFile(filePath: string): void {
@@ -1257,14 +1297,14 @@ class TranslationGenerator {
     }
 
     /**
-     * Create a transformer that formats dedent() call arguments with proper indentation.
-     * This runs after translation to ensure that template strings inside dedent() calls
+     * Create a transformer that formats Str.dedent() call arguments with proper indentation.
+     * This runs after translation to ensure that template strings inside Str.dedent() calls
      * have the correct indentation structure.
      */
     private createDedentFormattingTransformer(): ts.TransformerFactory<ts.SourceFile> {
         return (context: ts.TransformationContext) => (sourceFile: ts.SourceFile) => {
             const visit = (node: ts.Node): ts.Node => {
-                if (!ts.isCallExpression(node) || !ts.isIdentifier(node.expression) || node.expression.text !== 'dedent' || !node.arguments[0]) {
+                if (!ts.isCallExpression(node) || !this.isDedentCallExpression(node.expression) || !node.arguments[0]) {
                     return ts.visitEachChild(node, visit, context);
                 }
 
@@ -1299,7 +1339,7 @@ class TranslationGenerator {
     }
 
     /**
-     * Format the content of a template literal inside a dedent() call.
+     * Format the content of a template literal inside a Str.dedent() call.
      * Adds proper indentation while preserving relative indentation (e.g., bullet points with extra spaces).
      *
      * @param isTail - True if this is the last fragment before closing backtick (adds trailing newline if needed)

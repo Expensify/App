@@ -16,6 +16,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import {getReportIDFromLink} from '@libs/ReportUtils';
+import {registerPusherReinitializeHandler} from '@libs/requestPusherReinitialize';
+import type {PusherReinitializeHandlerParams} from '@libs/requestPusherReinitialize';
 import * as SessionUtils from '@libs/SessionUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getSearchParamFromUrl} from '@libs/Url';
@@ -74,6 +76,23 @@ function AuthScreensInitHandler() {
     reportAttributesRef.current = reportAttributes;
 
     useReconcileHighContrastIntent();
+
+    useEffect(() => {
+        registerPusherReinitializeHandler(({accountID, email}: PusherReinitializeHandlerParams = {}) => {
+            const currentAccountID = accountID ?? session?.accountID;
+            const currentEmail = email ?? session?.email ?? '';
+
+            if (currentAccountID === undefined) {
+                return Promise.resolve();
+            }
+
+            return initializePusher(currentAccountID, currentEmail, () => reportAttributesRef.current);
+        });
+
+        return () => {
+            registerPusherReinitializeHandler(null);
+        };
+    }, [session?.accountID, session?.email]);
 
     useEffect(() => {
         if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {

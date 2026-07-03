@@ -1,7 +1,5 @@
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -9,9 +7,10 @@ import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import {canIOUBePaid as canIOUBePaidAction} from '@libs/actions/IOU/ReportWorkflow';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
+import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils, hasUpdatedTotal, shouldShowMarkAsDone} from '@libs/ReportUtils';
@@ -172,51 +171,45 @@ function useSelectionModeReportActions({
 
     const allExpensesSelected = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactions.length;
 
-    // Shared payment hook
-    const {
-        confirmPayment,
-        shouldBlockAction,
-        onSelectionModePaymentSelect: basePaymentSelect,
-        selectionModeKYCSuccess,
-        paymentSubMenuItems,
-        hasPayInSelectionMode,
-        isAnyTransactionOnHold,
-        isInvoiceReport,
-        kycWallRef,
-    } = useSelectionModePayment({
-        reportID: report?.reportID,
-        transactions,
-        formattedAmount: totalAmount,
-        shouldHidePaymentOptions: !shouldShowPayButton,
-        onlyShowPayElsewhere,
-        hasPayAction,
-        allExpensesSelected,
-        onHoldMenuOpen: ({requestType: rt, paymentType: pt, methodID}) => {
-            setRequestType(rt);
-            setPaymentType(pt);
-            setSelectedVBBAToPayFromHoldMenu(methodID);
-            if (getPlatform() === CONST.PLATFORM.IOS) {
-                InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
-            } else {
-                setIsHoldMenuVisible(true);
-            }
-        },
-        onPaymentComplete: () => {
-            clearSelectedTransactions(true);
-            turnOffMobileSelectionMode();
-        },
-        confirmApproval,
-    });
+    const selectedTransactions = transactions.filter((transaction) => selectedTransactionIDs.includes(transaction.transactionID));
+    const hasSelectedTransactionsOnSubmitPolicy = isSubmitPolicy(policy) && selectedTransactions.length > 0;
+    const isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy = hasSelectedTransactionsOnSubmitPolicy && selectedTransactions.length > 1;
+    const effectiveShouldBlockSubmit = shouldBlockSubmit || isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy;
 
-    // Wrap payment select with InteractionManager for mobile performance
-    // Note: shouldBlockAction is checked synchronously for immediate modal feedback,
-    // and also inside basePaymentSelect (for the desktop path that uses it directly).
+    // Shared payment hook
+    const {confirmPayment, shouldBlockAction, invokePaymentSelect, selectionModeKYCSuccess, paymentSubMenuItems, hasPayInSelectionMode, isAnyTransactionOnHold, isInvoiceReport, kycWallRef} =
+        useSelectionModePayment({
+            reportID: report?.reportID,
+            transactions,
+            formattedAmount: totalAmount,
+            shouldHidePaymentOptions: !shouldShowPayButton,
+            onlyShowPayElsewhere,
+            hasPayAction,
+            allExpensesSelected,
+            onHoldMenuOpen: ({requestType: rt, paymentType: pt, methodID}) => {
+                setRequestType(rt);
+                setPaymentType(pt);
+                setSelectedVBBAToPayFromHoldMenu(methodID);
+                setIsHoldMenuVisible(true);
+            },
+            onPaymentComplete: () => {
+                clearSelectedTransactions(true);
+                turnOffMobileSelectionMode();
+            },
+            confirmApproval,
+        });
+
+    // Defer payment select until the popover dismiss animation completes. Blocking modals are shown
+    // synchronously inside the callback (popover already closed) to avoid double-defer on Android.
     const onSelectionModePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
-        if (shouldBlockAction(iouPaymentType)) {
-            return;
-        }
-        InteractionManager.runAfterInteractions(() => {
-            basePaymentSelect(event, iouPaymentType, triggerKYCFlow);
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                if (shouldBlockAction(iouPaymentType)) {
+                    return;
+                }
+                invokePaymentSelect(event, iouPaymentType, triggerKYCFlow);
+            },
+            waitForUpcomingTransition: true,
         });
     };
 
@@ -224,7 +217,7 @@ function useSelectionModeReportActions({
     const selectionModeReportLevelActions = (() => {
         const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuItems'>> = [];
         let idx = 0;
-        if (hasSubmitAction && !shouldBlockSubmit) {
+        if (hasSubmitAction && !effectiveShouldBlockSubmit) {
             actions[idx++] = {
                 text: shouldShowMarkAsDone({policy, report, isTrackIntentUser}) ? translate('common.markAsDone') : translate('common.submit'),
                 icon: expensifyIcons.Send,
@@ -267,7 +260,7 @@ function useSelectionModeReportActions({
     return {
         selectionModeReportLevelActions,
         allExpensesSelected,
-        shouldBlockSubmit,
+        shouldBlockSubmit: effectiveShouldBlockSubmit,
         isBlockSubmitDueToPreventSelfApproval,
 
         // Hold menu state
@@ -285,6 +278,7 @@ function useSelectionModeReportActions({
         hasPayAction,
         hasPayInSelectionMode,
         hasSubmitAction,
+        hasSelectedTransactionsOnSubmitPolicy,
         hasApproveAction,
         totalAmount,
         canAllowSettlement,

@@ -41,7 +41,7 @@ import type {
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
+import type {Message, OldDotReportAction, OriginalMessage, PolicyChangeLogCopyReportActionNames, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getBankName, isCardPendingActivate} from './CardUtils';
@@ -207,7 +207,8 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER ||
-        isCardIssuedAction(reportAction)
+        isCardIssuedAction(reportAction) ||
+        isPolicyCopyReportAction(reportAction)
     ) {
         return false;
     }
@@ -2795,6 +2796,10 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
                     // The first three characters in a Salesforce ID is the expense type
                     url = nonReimbursableUrls.at(0)?.substring(0, SALESFORCE_EXPENSES_URL_PREFIX.length + 3) ?? '';
                     break;
+                case CONST.EXPORT_LABELS.RILLET:
+                    // TODO Test in R3 https://github.com/Expensify/App/issues/94848
+                    url = '';
+                    break;
                 default:
                     url = QBO_EXPENSES_URL;
             }
@@ -4728,6 +4733,28 @@ function hasReasoning(action: OnyxInputOrEntry<ReportAction>): boolean {
     return !!originalMessage && typeof originalMessage === 'object' && 'reasoning' in originalMessage && !!originalMessage.reasoning;
 }
 
+function isPolicyCopyReportAction(action: OnyxInputOrEntry<ReportAction>): action is ReportAction<PolicyChangeLogCopyReportActionNames> {
+    return [
+        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW,
+        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_EMPLOYEES,
+        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_REPORT_FIELDS,
+        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_ACCOUNTING,
+        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_RECEIPT_PARTNERS,
+        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_HR,
+        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CATEGORIES,
+        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAGS,
+        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAXES,
+        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TIME_TRACKING,
+        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_WORKFLOWS,
+        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_RULES,
+        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CODING_RULES,
+        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_DISTANCE,
+        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_PER_DIEM,
+        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_INVOICES,
+        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TRAVEL,
+    ].some((actionName) => actionName === action?.actionName);
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -4983,6 +5010,7 @@ export {
     stripFollowupListFromHtml,
     getDynamicExternalWorkflowSubmitFailedActionMessage,
     getDynamicExternalWorkflowApproveFailedActionMessage,
+    isPolicyCopyReportAction,
 };
 
 export type {LastVisibleMessage};

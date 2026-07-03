@@ -259,6 +259,15 @@ function getPersonalDetailByEmail(email: string | undefined): PersonalDetails | 
 }
 
 /**
+ * Returns the accountID for a login only when it exists in personal details.
+ * Unlike getAccountIDsByLogins, does not fabricate optimistic account IDs for unknown logins.
+ */
+function getKnownAccountIDByLogin(login: string | undefined): number | undefined {
+    const accountID = getPersonalDetailByEmail(login)?.accountID;
+    return accountID !== undefined ? Number(accountID) : undefined;
+}
+
+/**
  * Given a list of logins, find the associated personal detail and return related accountIDs.
  *
  * @param logins Array of user logins
@@ -285,16 +294,19 @@ function getLoginByAccountID(accountID: number | undefined, personalDetails: Ony
  * Given a list of accountIDs, find the associated personal detail and return related logins.
  *
  * @param accountIDs Array of user accountIDs
+ * @param personalDetailsList Record of user personal details, indexed by user id
  * @returns Array of logins according to passed accountIDs
  */
-function getLoginsByAccountIDs(accountIDs: number[]): string[] {
-    return accountIDs.reduce((foundLogins: string[], accountID) => {
-        const currentLogin = getLoginByAccountID(accountID);
-        if (currentLogin) {
-            foundLogins.push(currentLogin);
-        }
-        return foundLogins;
-    }, []);
+function getLoginsByAccountIDs(accountIDs: number[] | undefined, personalDetailsList: OnyxEntry<PersonalDetailsList> = allPersonalDetails): string[] {
+    return (
+        accountIDs?.reduce((foundLogins: string[], accountID) => {
+            const currentLogin = getLoginByAccountID(accountID, personalDetailsList);
+            if (currentLogin) {
+                foundLogins.push(currentLogin);
+            }
+            return foundLogins;
+        }, []) ?? []
+    );
 }
 
 /**
@@ -579,6 +591,21 @@ function arePersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePers
 }
 
 /**
+ * Checks whether the personal details required for Expensify Card flows (ship + reveal)
+ * are missing. Stricter than {@link arePersonalDetailsMissing}: also requires individual
+ * address sub-fields (street, city, zip, country) that the backend asserts on those
+ * commands. Without this, a user whose `addresses[0]` exists but has empty fields would
+ * skip the missing-details prompt and hit a backend error on submit.
+ */
+function areAddressAndPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
+    if (arePersonalDetailsMissing(privatePersonalDetails)) {
+        return true;
+    }
+    const currentAddress = getCurrentAddress(privatePersonalDetails);
+    return !currentAddress?.street || !currentAddress?.city || !currentAddress?.state || !currentAddress?.zip || !currentAddress?.country;
+}
+
+/**
  * Checks if the user has a legal first and last name.
  */
 function areTravelPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
@@ -594,6 +621,7 @@ export {
     getPersonalDetailsListByIDs,
     getDisplayNameOrYou,
     getPersonalDetailByEmail,
+    getKnownAccountIDByLogin,
     getAccountIDsByLogins,
     getLoginsByAccountIDs,
     getPersonalDetailsOnyxDataForOptimisticUsers,
@@ -611,6 +639,7 @@ export {
     getLoginByAccountID,
     getPhoneNumber,
     arePersonalDetailsMissing,
+    areAddressAndPersonalDetailsMissing,
     areTravelPersonalDetailsMissing,
     createPersonalDetailsLookupByAccountID,
     temporaryGetDisplayNameOrDefault,

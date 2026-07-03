@@ -8,6 +8,7 @@ import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalMod
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
+import {ReportSubmitToPopoverAnchor} from '@components/ReportSubmitToPopoverAnchor';
 import BulkDuplicateHandler from '@components/Search/BulkDuplicateHandler';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -247,24 +248,26 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                     <View
                         style={[isInLandscapeMode ? [styles.flexRowReverse, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap6, styles.pb3, styles.ph5] : styles.flexColumn]}
                     >
-                        <SelectionDropdown
-                            hasPayInSelectionMode={hasPayInSelectionMode}
-                            chatReport={chatReport}
-                            report={report}
-                            onSelectionModePaymentSelect={onSelectionModePaymentSelect}
-                            selectionModeKYCSuccess={selectionModeKYCSuccess}
-                            onWorkspacePolicySelect={(selectedPolicy, triggerKYCFlow) => {
-                                if (shouldBlockAction()) {
-                                    return;
-                                }
-                                triggerKYCFlow({policy: selectedPolicy});
-                            }}
-                            primaryAction={primaryAction}
-                            selectedTransactionsOptions={selectedTransactionsOptions}
-                            selectedTransactionIDs={selectedTransactionIDs}
-                            kycWallRef={kycWallRef}
-                            shouldPopoverUseScrollView={popoverUseScrollView}
-                        />
+                        <ReportSubmitToPopoverAnchor reportID={reportID}>
+                            <SelectionDropdown
+                                hasPayInSelectionMode={hasPayInSelectionMode}
+                                chatReport={chatReport}
+                                report={report}
+                                onSelectionModePaymentSelect={onSelectionModePaymentSelect}
+                                selectionModeKYCSuccess={selectionModeKYCSuccess}
+                                onWorkspacePolicySelect={(selectedPolicy, triggerKYCFlow) => {
+                                    if (shouldBlockAction(undefined, true)) {
+                                        return;
+                                    }
+                                    triggerKYCFlow({policy: selectedPolicy});
+                                }}
+                                primaryAction={primaryAction}
+                                selectedTransactionsOptions={selectedTransactionsOptions}
+                                selectedTransactionIDs={selectedTransactionIDs}
+                                kycWallRef={kycWallRef}
+                                shouldPopoverUseScrollView={popoverUseScrollView}
+                            />
+                        </ReportSubmitToPopoverAnchor>
 
                         <SelectAllCheckbox
                             isSelectAllChecked={isSelectAllChecked}
