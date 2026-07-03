@@ -8790,11 +8790,11 @@ describe('actions/Report', () => {
                 reportID: REPORT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
                 created: '2024-11-19 08:04:13.730',
-                message: [{html: 'Mentioned @already and @brandnew', text: 'Mentioned @already and @brandnew', type: 'COMMENT'}],
+                message: [{html: 'Mentioned @already and @new', text: 'Mentioned @already and @new', type: 'COMMENT'}],
                 originalMessage: {
                     // The brand-new user has no accountID yet, so inviteeAccountIDs is shorter than inviteeEmails.
                     inviteeAccountIDs: [ALREADY_MEMBER_ID],
-                    inviteeEmails: ['already@example.com', 'brandnew@example.com'],
+                    inviteeEmails: ['already@example.com', 'new@example.com'],
                     whisperedTo: [100],
                 },
             });
@@ -8802,14 +8802,14 @@ describe('actions/Report', () => {
             Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false);
             await waitForBatchedUpdates();
 
-            // already@example.com (index 0, accountID 200) is an existing member and is dropped; brandnew@example.com
+            // already@example.com (index 0, accountID 200) is an existing member and is dropped; new@example.com
             // (index 1, no matching accountID) is still forwarded so the new user gets invited.
             expect(writeSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER,
                 expect.objectContaining({
                     resolution: CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE,
                     reportID: REPORT_ID,
-                    inviteeEmails: ['brandnew@example.com'],
+                    inviteeEmails: ['new@example.com'],
                 }),
                 expect.anything(),
             );
