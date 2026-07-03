@@ -130,7 +130,7 @@ describe('OnyxDerived', () => {
                 const updates: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
                     {onyxMethod: Onyx.METHOD.MERGE_COLLECTION, key: ONYXKEYS.COLLECTION.REPORT, value: {[`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`]: {reportName: 'Renamed report'}}},
                     {onyxMethod: Onyx.METHOD.MERGE_COLLECTION, key: ONYXKEYS.COLLECTION.TRANSACTION, value: {[`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: createRandomTransaction(1)}},
-                    {onyxMethod: Onyx.METHOD.MERGE_COLLECTION, key: ONYXKEYS.COLLECTION.REPORT_METADATA, value: {[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockReport.reportID}`]: {isLoadingInitialReportActions: false}}},
+                    {onyxMethod: Onyx.METHOD.MERGE_COLLECTION, key: ONYXKEYS.COLLECTION.REPORT_METADATA, value: {[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockReport.reportID}`]: {isOptimisticReport: false}}},
                 ];
                 await Onyx.update(updates);
                 await waitForBatchedUpdates();
@@ -154,7 +154,7 @@ describe('OnyxDerived', () => {
                 // Separate merges to different dependencies, fired synchronously (not awaited between).
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, {reportName: 'Renamed again'});
                 Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, createRandomTransaction(1));
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockReport.reportID}`, {isLoadingInitialReportActions: false});
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockReport.reportID}`, {isOptimisticReport: false});
                 await waitForBatchedUpdates();
 
                 expect(countRecomputes(setDerivedValueSpy, ONYXKEYS.DERIVED.REPORT_ATTRIBUTES)).toBe(1);

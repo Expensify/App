@@ -63,9 +63,7 @@ function init() {
                 sourceValues: undefined,
             };
 
-            // Coalesce per-dependency recomputes from one logical change into a single compute on the
-            // next macrotask. setTimeout(0), not queueMicrotask: Onyx spreads an update's broadcasts
-            // across microtasks, so a microtask flush would split the batch.
+            // Coalesce per-dependency recomputes from one logical change into a single compute on the next macrotask.
             let flushScheduled = false;
             // Dependency indexes that fired since the last flush; their deltas are reconstructed at flush time.
             const pendingDependencyIndexes = new Set<number>();
@@ -99,6 +97,7 @@ function init() {
 
             // dependencyValues is a heterogeneous tuple typed to compute's params; reading a collection entry
             // by runtime index yields a union, so we narrow it back to a collection in one place.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const readCollectionDependency = (index: number) => dependencyValues[index] as OnyxCollection<unknown>;
 
             const flushRecompute = () => {
@@ -113,7 +112,6 @@ function init() {
                         const dependencyOnyxKey = dependencies[index];
                         if (OnyxKeys.isCollectionKey(dependencyOnyxKey)) {
                             const currentValue = readCollectionDependency(index);
-                            // Structural sharing keeps unchanged members reference-equal, so this is a cheap scan.
                             const delta = getCollectionDelta<unknown>(currentValue, lastFlushedCollectionValues.at(index));
                             lastFlushedCollectionValues[index] = currentValue;
                             if (delta !== undefined) {
@@ -145,7 +143,7 @@ function init() {
             };
 
             const recomputeDerivedValue = (triggeredByIndex: number) => {
-                // If this recompute was triggered by a connection callback, check if it initializes the connection
+                // If this recompute was triggered by a connection callback, check if it initializes the connection.
                 if (!areAllConnectionsSet) {
                     checkAndMarkConnectionInitialized(triggeredByIndex);
                 }
