@@ -1,16 +1,24 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
-import {View} from 'react-native';
 import Table from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
-import WorkspaceSpendRulesTableRow from './WorkspaceSpendRulesTableRow';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {SpendRuleTableItem} from './WorkspaceSpendRulesTableRow';
+
+import WorkspaceSpendRulesTableRow from './WorkspaceSpendRulesTableRow';
 
 type SpendRulesTableColumnKey = 'type' | 'card' | 'rule' | 'actions';
 
