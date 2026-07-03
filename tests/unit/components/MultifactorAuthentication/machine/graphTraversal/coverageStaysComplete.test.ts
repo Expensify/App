@@ -10,12 +10,13 @@ import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine
 
 const walkedPaths = getWalkedPaths();
 
-// Every settleable leaf must end a path that the UI walk drives, not only appear in the middle of one.
+// Every settleable leaf must occur in a path that the UI walk drives. `path.test` asserts every step,
+// so paths removed as prefixes of longer paths do not reduce state coverage.
 describe('every settleable MFA state is reachable through the real UI', () => {
-    const walkedLeafValues = walkedPaths.map((path) => path.state.value);
+    const walkedStateValues = walkedPaths.flatMap((path) => path.steps.map((step) => step.state.value));
 
     it.each(getSettleableLeafStates(mfaMachine.root))('$description can be reached through the real UI', ({description}) => {
-        expect(walkedLeafValues.some((reached) => matchesState(description, reached))).toBe(true);
+        expect(walkedStateValues.some((reached) => matchesState(description, reached))).toBe(true);
     });
 });
 

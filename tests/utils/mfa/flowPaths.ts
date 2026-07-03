@@ -115,15 +115,15 @@ function getDrivingJourneyPaths() {
 /**
  * Returns the generated coverage paths plus the explicit driving journeys. The journeys are needed
  * because a shortest path can be empty, such as the path to the initial `closed` state, so the
- * generated paths alone would never drive the teardown. Duplicate paths are retained so every
- * settleable leaf remains a path endpoint. Paths with a delayed step are filtered out because the walk
- * cannot drive a timer, and the reachability guards catch a state that loses every drivable route.
+ * generated paths alone would never drive the teardown. Paths with a delayed step are filtered out
+ * because the walk cannot drive a timer, and the reachability guards catch a state that loses every
+ * drivable route.
  *
  * `path.test` skips a step whose event has no executor, which keeps framework steps such as
  * `xstate.init` harmless while the executor table still forces an executor for every application event.
  */
 function getWalkedPaths() {
-    const coveragePaths = mfaTestModel.getPaths(() => getMfaShortestPaths(), {allowDuplicatePaths: true});
+    const coveragePaths = mfaTestModel.getPaths(() => getMfaShortestPaths());
     const journeyPaths = getDrivingJourneyPaths().flatMap((journey) => journey.paths);
     return [...coveragePaths, ...journeyPaths].filter(isUiDrivablePath);
 }
