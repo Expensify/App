@@ -6,7 +6,7 @@ internalScope: Audience is workspace owners. Explains the terminology used throu
 retrievalIntent: Define common Expensify billing terminology, including subscriptions, plans, subscription types, members, seats, payment methods, and billing settings.
 contentType: topic
 platform: new
-order: 2
+order: 3
 ---
 
 # Learn About Billing Terms and Definitions
