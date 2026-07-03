@@ -78,7 +78,8 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
         [CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.ALWAYS_NON_REIMBURSABLE]: translate('workspace.rules.generalTab.cashExpensesAlwaysNonReimbursable'),
     };
     const reimbursableModeText = reimbursableModeTextMap[reimbursableMode];
-    const billableModeText = translate(`workspace.rules.generalTab.${policy?.defaultBillable ? 'billableExpensesBillable' : 'billableExpensesNonBillable'}`);
+    const isBillableTrackingEnabled = policy?.disabledFields?.defaultBillable !== true;
+    const billableModeText = isBillableTrackingEnabled ? translate(`workspace.rules.generalTab.${policy?.defaultBillable ? 'billableExpensesBillable' : 'billableExpensesNonBillable'}`) : '';
 
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
     const isAttendeeTrackingEnabledForPolicy = isAttendeeTrackingEnabled(policy);
@@ -155,7 +156,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             description: billableModeText,
             icon: icons.Cash,
             action: () => Navigation.navigate(ROUTES.RULES_BILLABLE_DEFAULT.getRoute(policyID)),
-            pendingAction: policy?.pendingFields?.defaultBillable,
+            pendingAction: policy?.pendingFields?.defaultBillable ?? policy?.pendingFields?.disabledFields,
         },
     ];
 
