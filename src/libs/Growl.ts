@@ -1,5 +1,6 @@
-import React from 'react';
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 type GrowlAction = {
     label: string;

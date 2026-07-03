@@ -1,5 +1,6 @@
-import type {SharedValue} from 'react-native-reanimated';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import type {SharedValue} from 'react-native-reanimated';
 
 type GrowlNotificationContainerProps = ChildrenProps & {
     /** Normalized visibility (0 = fully offscreen, 1 = fully visible). Translated to a pixel offset at render time. */

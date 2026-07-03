@@ -1,7 +1,9 @@
-import React from 'react';
-import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+import Animated, {useAnimatedStyle} from 'react-native-reanimated';
+
 import type GrowlNotificationContainerProps from './types';
 
 function GrowlNotificationContainer({children, progress, inactiveY, useBottomPosition}: GrowlNotificationContainerProps) {
