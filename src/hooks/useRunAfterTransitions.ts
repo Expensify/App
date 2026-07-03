@@ -1,5 +1,6 @@
-import {useEffect, useState} from 'react';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
+import {useEffect, useState} from 'react';
 
 /**
  * Defers `active` from `false` to `true` until after navigation transitions finish, once `ready` becomes true.

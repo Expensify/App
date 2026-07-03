@@ -1,5 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
+
 import useRunAfterTransitions from '@hooks/useRunAfterTransitions';
+
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 jest.mock('@libs/Navigation/TransitionTracker', () => ({
