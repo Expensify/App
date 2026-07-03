@@ -1,15 +1,21 @@
-import React, {useCallback, useEffect, useEffectEvent, useRef} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import {cancelResetBankAccount, resetNonUSDBankAccount, resetUSDBankAccount} from '@userActions/BankAccounts';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useCallback, useEffect, useEffectEvent, useRef} from 'react';
+import {View} from 'react-native';
+
 import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';

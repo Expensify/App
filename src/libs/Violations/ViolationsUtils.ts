@@ -1,10 +1,7 @@
-import isEmpty from 'lodash/isEmpty';
-import keyBy from 'lodash/keyBy';
-import reject from 'lodash/reject';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import {convertAttendeesToArray, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isPersonalCard} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
@@ -15,6 +12,7 @@ import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {
+    arePolicyRulesEnabled,
     getDistanceRateCustomUnitRate,
     getMatchingVendorByID,
     getPerDiemRateCustomUnitRate,
@@ -22,11 +20,13 @@ import {
     hasVendorFeature,
     isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy,
     isDefaultTagName,
+    isMatchingVendorListLoaded,
     isTaxTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {isCurrentUserSubmitter} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
@@ -34,6 +34,14 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import isEmpty from 'lodash/isEmpty';
+import keyBy from 'lodash/keyBy';
+import reject from 'lodash/reject';
+import Onyx from 'react-native-onyx';
+
 import type ViolationFixParams from './types';
 
 let allBetas: OnyxEntry<Beta[]>;
@@ -264,6 +272,14 @@ function getTagViolationMessagesForMultiLevelTags(tagName: string | undefined, e
     return errorIndexes.map((i) => translate('violations.someTagLevelsRequired', tagsWithIndexes[i]?.name)).join('. ');
 }
 
+function formatViolationDate(date?: string): string | undefined {
+    if (!date) {
+        return undefined;
+    }
+
+    return DateUtils.formatWithUTCTimeZone(date, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
+}
+
 /**
  * Extracts unique error messages from errors and actions
  */
@@ -306,7 +322,21 @@ function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: Repo
  * Returns true if the violation should be cleared, false if it should persist.
  */
 function getIsViolationFixed(violationError: string, params: ViolationFixParams): boolean {
-    const {category, tag, taxCode, taxValue, policyCategories, policyTagLists, policyTaxRates, iouAttendees, currentUserPersonalDetails, isAttendeeTrackingEnabled, isControlPolicy} = params;
+    const {
+        category,
+        tag,
+        taxCode,
+        taxValue,
+        policyCategories,
+        policyTagLists,
+        policyTaxRates,
+        iouAttendees,
+        currentUserPersonalDetails,
+        isAttendeeTrackingEnabled,
+        isControlPolicy,
+        mileageRate,
+        expenseDate,
+    } = params;
 
     const violationValidators: Record<string, () => boolean> = {
         [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY}`]: () => {
@@ -342,10 +372,78 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
             // Attendees violation is fixed if getIsMissingAttendeesViolation returns false
             return !getIsMissingAttendeesViolation(policyCategories, category, iouAttendees, currentUserPersonalDetails, isAttendeeTrackingEnabled, isControlPolicy);
         },
+        [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE}`]: () => {
+            if (!expenseDate || !mileageRate) {
+                return true;
+            }
+            return DistanceRequestUtils.isRateEligibleForDate(mileageRate, expenseDate);
+        },
     };
 
     const validator = violationValidators[violationError];
     return validator ? validator() : false;
+}
+
+/**
+ * Returns whether a violation should be shown when filtering to hard violations only.
+ * customUnitRateOutOfDateRange is a WARNING but must still render for date-bound mileage rates.
+ */
+function isHardViolationOrRateDateWarning(violation: TransactionViolation): boolean {
+    return violation.type === CONST.VIOLATION_TYPES.VIOLATION || violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE;
+}
+
+/**
+ * Syncs the customUnitRateOutOfDateRange violation with the current transaction rate and expense date.
+ * Adds, removes, or updates the violation so the rate field reflects the selected rate's date bounds.
+ */
+function syncCustomUnitRateOutOfDateRangeViolation(violations: TransactionViolation[], transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>): TransactionViolation[] {
+    if (!transaction || !TransactionUtils.isDistanceRequest(transaction)) {
+        return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE);
+    }
+
+    const customUnitRateID = transaction.comment?.customUnit?.customUnitRateID;
+    const expenseDate = TransactionUtils.getCreated(transaction);
+    const isOutOfDateRange = DistanceRequestUtils.isCustomUnitRateOutOfDateRange({customUnitRateID, policy, expenseDate});
+    const hasViolation = violations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE);
+
+    if (!isOutOfDateRange && !hasViolation) {
+        return violations;
+    }
+
+    if (!isOutOfDateRange) {
+        return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE);
+    }
+
+    if (!customUnitRateID) {
+        return violations;
+    }
+
+    const mileageRate = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID, policy});
+    const violationData = {
+        startDate: mileageRate?.startDate ?? undefined,
+        endDate: mileageRate?.endDate ?? undefined,
+    };
+
+    if (!hasViolation) {
+        return [
+            ...violations,
+            {
+                name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                type: CONST.VIOLATION_TYPES.WARNING,
+                showInReview: true,
+                data: violationData,
+            },
+        ];
+    }
+
+    return violations.map((violation) =>
+        violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE
+            ? {
+                  ...violation,
+                  data: violationData,
+              }
+            : violation,
+    );
 }
 
 const ViolationsUtils = {
@@ -365,6 +463,7 @@ const ViolationsUtils = {
         iouReport,
         isFromExpenseReport,
         shouldRemoveRejectedExpenseViolation,
+        distanceOriginalPolicy,
     }: {
         updatedTransaction: Transaction;
         transactionViolations: TransactionViolation[];
@@ -377,6 +476,7 @@ const ViolationsUtils = {
         iouReport?: OnyxEntry<Report>;
         isFromExpenseReport?: boolean;
         shouldRemoveRejectedExpenseViolation?: boolean;
+        distanceOriginalPolicy?: OnyxEntry<Policy>;
     }): OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> {
         const isScanning = TransactionUtils.isScanning(updatedTransaction);
         const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
@@ -476,26 +576,43 @@ const ViolationsUtils = {
                 if (hasInactiveVendorViolation) {
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
                 }
-            } else if (transactionVendorID) {
+            } else if (transactionVendorID && isMatchingVendorListLoaded(policy)) {
+                // Only mutate INACTIVE_VENDOR once the active integration's vendor list has actually
+                // hydrated. While `policy.connections.*.data.vendors` is still `undefined`,
+                // `getMatchingVendorByID` returns `undefined` for every ID — pushing the violation
+                // would persist a false positive in Onyx, and rejecting it would strip a legitimate
+                // one. Leave the existing violation state untouched until the list arrives.
                 const matchedVendor = getMatchingVendorByID(policy, transactionVendorID);
                 if (!matchedVendor && !hasInactiveVendorViolation) {
                     newTransactionViolations.push({name: CONST.VIOLATIONS.INACTIVE_VENDOR, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
                 } else if (matchedVendor && hasInactiveVendorViolation) {
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
                 }
-            } else if (hasInactiveVendorViolation) {
+            } else if (!transactionVendorID && hasInactiveVendorViolation) {
                 // Vendor was cleared while the feature is still active — drop the now-stale violation.
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
             }
         }
 
         const customUnitRateID = updatedTransaction?.comment?.customUnit?.customUnitRateID;
-        if (customUnitRateID && customUnitRateID.length > 0 && !isSelfDM) {
+        const isDistanceRequestForCustomUnit = TransactionUtils.isDistanceRequest(updatedTransaction);
+        if (customUnitRateID && customUnitRateID.length > 0 && (!isSelfDM || isDistanceRequestForCustomUnit)) {
             const isPerDiem = TransactionUtils.isPerDiemRequest(updatedTransaction);
-            const customRate = isPerDiem ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : getDistanceRateCustomUnitRate(policy, customUnitRateID);
+            let policyForCustomUnitRate = policy;
+
+            if (!isPerDiem && isDistanceRequestForCustomUnit && !getDistanceRateCustomUnitRate(policy, customUnitRateID)) {
+                policyForCustomUnitRate = distanceOriginalPolicy ?? policy;
+            }
+
+            const customRate = isPerDiem ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : getDistanceRateCustomUnitRate(policyForCustomUnitRate, customUnitRateID);
             if (customRate && customRate.enabled !== false) {
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
+                newTransactionViolations = syncCustomUnitRateOutOfDateRangeViolation(newTransactionViolations, updatedTransaction, policyForCustomUnitRate);
+            } else if (isSelfDM && isDistanceRequestForCustomUnit) {
+                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE});
+                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
             } else {
+                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE});
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
                     type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -585,7 +702,11 @@ const ViolationsUtils = {
         const shouldCategoryShowOverLimitViolation =
             canCalculateAmountViolations && !isInvoiceTransaction && typeof categoryOverLimit === 'number' && expenseAmount > categoryOverLimit && isControlPolicy;
         const shouldShowMissingComment =
-            !isInvoiceTransaction && policyCategories?.[categoryName ?? '']?.areCommentsRequired && !updatedTransaction.comment?.comment && isControlPolicy && policy?.areRulesEnabled;
+            !isInvoiceTransaction &&
+            policyCategories?.[categoryName ?? '']?.areCommentsRequired &&
+            !updatedTransaction.comment?.comment &&
+            isControlPolicy &&
+            arePolicyRulesEnabled(policy, policyCategories);
         const rawAttendees = updatedTransaction.modifiedAttendees ?? updatedTransaction.comment?.attendees;
         const attendees = convertAttendeesToArray(rawAttendees);
         const isAttendeeTrackingEnabled = isAttendeeTrackingEnabledForPolicy(policy);
@@ -801,6 +922,21 @@ const ViolationsUtils = {
                 return translate('violations.conversionSurcharge', surcharge);
             case 'customUnitOutOfPolicy':
                 return translate('violations.customUnitOutOfPolicy');
+            case CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE: {
+                const {startDate, endDate} = violation.data ?? {};
+                const formattedStartDate = formatViolationDate(startDate);
+                const formattedEndDate = formatViolationDate(endDate);
+                if (formattedStartDate && formattedEndDate) {
+                    return translate('violations.customUnitRateOutOfDateRange', {startDate: formattedStartDate, endDate: formattedEndDate});
+                }
+                if (formattedStartDate) {
+                    return translate('violations.customUnitRateOutOfDateRangeStartOnly', {startDate: formattedStartDate});
+                }
+                if (formattedEndDate) {
+                    return translate('violations.customUnitRateOutOfDateRangeEndOnly', {endDate: formattedEndDate});
+                }
+                return '';
+            }
             case 'duplicatedTransaction':
                 return translate('violations.duplicatedTransaction');
             case 'fieldRequired':
@@ -1001,6 +1137,6 @@ const ViolationsUtils = {
     },
 };
 
-export {getIsViolationFixed};
+export {getIsViolationFixed, isHardViolationOrRateDateWarning, syncCustomUnitRateOutOfDateRangeViolation};
 export default ViolationsUtils;
 export {filterReceiptViolations};

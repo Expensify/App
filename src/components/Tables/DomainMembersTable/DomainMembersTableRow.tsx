@@ -1,15 +1,20 @@
-import React from 'react';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Table from '@components/Table';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {DomainMemberRowData} from '.';
 
 type DomainMembersTableRowProps = {
@@ -51,7 +56,6 @@ export default function DomainMembersTableRow({item, rowIndex, shouldUseNarrowTa
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
-            skeletonReasonAttributes={{context: 'domainMembersTableRow'}}
             sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.ROW}
             offlineWithFeedback={{
                 errors: item.errors,

@@ -1,19 +1,26 @@
-import React, {useRef} from 'react';
-import {View} from 'react-native';
-import type {ViewProps} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
-import {useTableContext} from './TableContext';
+
+import type {ViewProps} from 'react-native';
+
+import React, {useRef} from 'react';
+import {View} from 'react-native';
+
 import type {TableColumn, TableData} from './types';
+
+import {useTableContext} from './TableContext';
 
 /**
  * Number of times a column can be toggled before sorting is reset.
@@ -89,11 +96,11 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         <View
             style={[
                 styles.pv2,
-                shouldUseNarrowTableLayout && !isSelectionCheckboxVisible ? styles.ph4 : styles.ph3,
                 styles.mh5,
                 styles.highlightBG,
                 styles.borderBottom,
                 styles.tableTopRadius,
+                shouldUseNarrowLayout && !isSelectionCheckboxVisible ? styles.ph4 : styles.ph3,
                 // Flexbox fallback for browsers / native devices wider than 1024px which don't support grid
                 styles.dFlex,
                 styles.flexRow,
