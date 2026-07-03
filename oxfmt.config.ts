@@ -77,6 +77,6 @@ export default defineConfig({
     "src/libs/SearchParser/autocompleteParser.js",
     "Mobile-Expensify",
     "modules/group-ib-fp",
-    ".oxfmtrc.ts",
+    "oxfmt.config.ts",
   ],
 });
