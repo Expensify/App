@@ -28,7 +28,7 @@ const PLIST_BUDDY = '/usr/libexec/PlistBuddy';
 
 /**
  * This is a utility function to get the repo root.
- * It's a helpful alternative to __dirname, which doesn't work with ncc-compiled scripts.
+ * It's a helpful alternative to __dirname, which doesn't work with bundled/compiled scripts.
  * __dirname doesn't work, because:
  *   - if it's evaluated at compile time it will include an absolute path in the computer in which the file was compiled
  *   - if it's evaluated at runtime, it won't refer to the directory of the imported module, because the code will have moved to wherever it's bundled

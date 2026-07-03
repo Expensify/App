@@ -297,7 +297,6 @@
     "@types/webpack": "^5.28.5",
     "@types/webpack-bundle-analyzer": "^4.7.0",
     "@typescript/native-preview": "^7.0.0-dev.20260219.1",
-    "@vercel/ncc": "0.38.1",
     "@vitest/mocker": "4.0.16",
     "@vue/preload-webpack-plugin": "^2.0.0",
     "@welldone-software/why-did-you-render": "7.0.1",
