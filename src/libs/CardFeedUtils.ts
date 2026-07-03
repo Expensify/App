@@ -1,14 +1,22 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {AdditionalCardProps} from '@components/SelectionList/ListItem/CardListItem';
+
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
+
 import type IllustrationsType from '@styles/theme/illustrations/types';
+
 import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {CardFeedsStatus, CardFeedsStatusByDomainID, CardFeedWithNumber, CombinedCardFeed} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import type {CompanyCardFeedIcons} from './CardUtils';
+import type {OptionData} from './ReportUtils';
+
 import {
     feedHasCards,
     getBankName,
@@ -26,14 +34,31 @@ import {
     isDirectFeed,
     isPersonalCard,
 } from './CardUtils';
-import type {CompanyCardFeedIcons} from './CardUtils';
 import {getDescriptionForPolicyDomainCard, getPolicyIDFromDomainName} from './PolicyUtils';
-import type {OptionData} from './ReportUtils';
 
-type CardFilterItem = Partial<OptionData> & AdditionalCardProps & {isCardFeed?: boolean; correspondingCards?: string[]; cardFeedKey: string; plaidUrl?: string; keyForList: string};
-type DomainFeedData = {bank: CardFeedWithNumber; domainName: string; correspondingCardIDs: string[]; fundID?: string; feedCountry?: string};
+type CardFilterItem = Partial<OptionData> &
+    AdditionalCardProps & {
+        isCardFeed?: boolean;
+        correspondingCards?: string[];
+        cardFeedKey: string;
+        plaidUrl?: string;
+        keyForList: string;
+    };
+type DomainFeedData = {
+    bank: CardFeedWithNumber;
+    domainName: string;
+    correspondingCardIDs: string[];
+    fundID?: string;
+    feedCountry?: string;
+};
 type CardFeedNamesWithType = Record<string, {name: string; type: 'domain' | 'workspace'}>;
-type CardFeedData = {cardName: string; bank: CardFeedWithNumber; label?: string; type: 'domain' | 'workspace'; feedCountry?: string};
+type CardFeedData = {
+    cardName: string;
+    bank: CardFeedWithNumber;
+    label?: string;
+    type: 'domain' | 'workspace';
+    feedCountry?: string;
+};
 type GetCardFeedData = {
     workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined;
     translate: LocaleContextProps['translate'];
@@ -233,7 +258,10 @@ function getWorkspaceCardFeedData(
     const fullCardName =
         cardFeedBankName === CONST.COMPANY_CARDS.CARD_TYPE.CSV
             ? translate('search.filters.card.cardFeedNameCSV', {cardFeedLabel})
-            : translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel});
+            : translate('search.filters.card.cardFeedName', {
+                  cardFeedBankName,
+                  cardFeedLabel,
+              });
 
     return {
         cardName: fullCardName,
@@ -252,7 +280,10 @@ function getDomainCardFeedData(domainFeed: DomainFeedData, policies: OnyxCollect
     const cardName =
         cardFeedBankName === CONST.COMPANY_CARDS.CARD_TYPE.CSV
             ? translate('search.filters.card.cardFeedNameCSV', {cardFeedLabel})
-            : translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel});
+            : translate('search.filters.card.cardFeedName', {
+                  cardFeedBankName,
+                  cardFeedLabel,
+              });
     return {
         cardName,
         bank,

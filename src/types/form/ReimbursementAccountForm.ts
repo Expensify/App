@@ -1,6 +1,7 @@
 import type {Country} from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
 import type Form from './Form';
 
 const INPUT_IDS = {

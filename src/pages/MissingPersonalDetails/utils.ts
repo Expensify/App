@@ -1,10 +1,13 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import {getCountryCode} from '@libs/CountryUtils';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import {isValidPastDate, meetsMaximumAgeRequirement, meetsMinimumAgeRequirement} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
 import type {PersonalDetailsForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 function getSubPageValues(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>, personalDetailsDraft: OnyxEntry<PersonalDetailsForm>): PersonalDetailsForm {
     const address = getCurrentAddress(privatePersonalDetails);
@@ -50,4 +53,23 @@ function getInitialSubPage(values: PersonalDetailsForm, shouldCollectPin = false
     return CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM;
 }
 
-export {getSubPageValues, getInitialSubPage};
+/**
+ * Builds the `PersonalDetailsForm` values used to populate the reveal payload from the
+ * stored private details only, and normalizes the country code so legacy "United States"-
+ * style data is converted to "US". Intentionally ignores `PERSONAL_DETAILS_FORM_DRAFT` —
+ * the reveal flow shouldn't silently submit stale drafts left over from an abandoned
+ * Profile > Private edit.
+ */
+function getNormalizedSubPageValues(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): PersonalDetailsForm {
+    const values = getSubPageValues(privatePersonalDetails, undefined);
+    if (!values[INPUT_IDS.COUNTRY]) {
+        return values;
+    }
+    const normalizedCountry = getCountryCode(values[INPUT_IDS.COUNTRY]);
+    if (!normalizedCountry) {
+        return values;
+    }
+    return {...values, [INPUT_IDS.COUNTRY]: normalizedCountry};
+}
+
+export {getSubPageValues, getInitialSubPage, getNormalizedSubPageValues};

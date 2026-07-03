@@ -1,9 +1,5 @@
-import type {KeyboardEvent as ReactKeyboardEvent} from 'react';
-import React, {useMemo, useRef} from 'react';
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
+import Button from '@components/Button';
 import ConnectionStatusBadge from '@components/ConnectionStatusBadge';
 import ConnectionStatusMessage from '@components/ConnectionStatusMessage';
 import Hoverable from '@components/Hoverable';
@@ -14,23 +10,37 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {openExternalLink} from '@libs/actions/Link';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import {clearAddPaymentMethodError, clearDeletePaymentMethodError} from '@userActions/PaymentMethods';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {BankIcon} from '@src/types/onyx/Bank';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {KeyboardEvent as ReactKeyboardEvent} from 'react';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import React, {useMemo, useRef} from 'react';
+import {View} from 'react-native';
 
 type ConnectionStatusDetails = {
     statusText: string;
@@ -67,6 +77,8 @@ type PaymentMethodItem = PaymentMethod & {
     /** Whether the personal bank account is missing required personal info (name, address, phone) */
     isMissingPersonalInfo?: boolean;
     connectionStatus?: ConnectionStatusDetails;
+    /** Whether to show the "Add details" CTA row below a virtual Expensify Card when personal details are missing */
+    shouldShowMissingPersonalDetailsAction?: boolean;
 } & BankIcon;
 
 type PaymentMethodListItemProps = {
@@ -309,6 +321,24 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                     </View>
                 )}
             </Hoverable>
+            {!!item.shouldShowMissingPersonalDetailsAction && !!item.cardID && (
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1, styles.mr2]}>
+                        <Icon
+                            src={icons.DotIndicator}
+                            fill={theme.success}
+                            additionalStyles={[styles.mr2]}
+                        />
+                        <Text style={[styles.mutedNormalTextLabel, styles.label, styles.flexShrink1]}>{translate('walletPage.addVirtualCardPersonalDetails.subtitle')}</Text>
+                    </View>
+                    <Button
+                        small
+                        success
+                        text={translate('walletPage.addVirtualCardPersonalDetails.cta')}
+                        onPress={() => Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(item.cardID)))}
+                    />
+                </View>
+            )}
             {isChaseAccountConnectedViaPlaid && (
                 <View style={[styles.pb3, shouldUseNarrowLayout ? styles.pl5 : styles.pl8]}>
                     <PressableWithFeedback

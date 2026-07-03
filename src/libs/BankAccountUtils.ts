@@ -1,12 +1,14 @@
-import {Str} from 'expensify-common';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
 import type {ACHData} from '@src/types/onyx/ReimbursementAccount';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {Str} from 'expensify-common';
 
 /** Responses of the additional KYB verification checks, hinting at which documents the user still needs to upload */
 type KYBVerificationResponses = NonNullable<ACHData['verifications']>['externalApiResponses'];
@@ -50,7 +52,10 @@ function isBankAccountPartiallySetup(state: string | undefined) {
 function getBankAccountConnectionStatus(state: string | undefined): BankAccountConnectionStatus | undefined {
     switch (state) {
         case CONST.BANK_ACCOUNT.STATE.OPEN:
-            return {labelKey: 'walletPage.bankAccountStatus.active', tone: 'success'};
+            return {
+                labelKey: 'walletPage.bankAccountStatus.active',
+                tone: 'success',
+            };
         case CONST.BANK_ACCOUNT.STATE.SETUP:
         case undefined:
             return {
@@ -69,7 +74,11 @@ function getBankAccountConnectionStatus(state: string | undefined): BankAccountC
                 brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
             };
         case CONST.BANK_ACCOUNT.STATE.VERIFYING:
-            return {labelKey: 'walletPage.bankAccountStatus.verifying', tooltipKey: 'walletPage.bankAccountStatus.reviewingDocumentation', tone: 'default'};
+            return {
+                labelKey: 'walletPage.bankAccountStatus.verifying',
+                tooltipKey: 'walletPage.bankAccountStatus.reviewingDocumentation',
+                tone: 'default',
+            };
         case CONST.BANK_ACCOUNT.STATE.LOCKED:
             return {
                 labelKey: 'common.locked',
