@@ -67,6 +67,7 @@ import Parser from '@libs/Parser';
 import {
     canSubmitPerDiemExpenseFromWorkspace,
     findVendorByID,
+    getDistanceRateCustomUnitRate,
     getLengthOfTag,
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
@@ -76,6 +77,7 @@ import {
     isAttendeeTrackingEnabled,
     isGroupPolicyByType,
     isMultiLevelTags,
+    isPerDiemEnabled,
     isPolicyAccessible,
     isTaxTrackingEnabled,
 } from '@libs/PolicyUtils';
@@ -176,7 +178,7 @@ const perDiemPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => 
             const perDiemCustomUnit = getPerDiemCustomUnit(policy);
             const hasPolicyPerDiemRates = !isEmptyObject(perDiemCustomUnit?.rates);
 
-            return policy?.arePerDiemRatesEnabled && hasPolicyPerDiemRates;
+            return isPerDiemEnabled(policy) && hasPolicyPerDiemRates;
         }),
     );
 };
@@ -231,9 +233,9 @@ function MoneyRequestView({
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
     const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, policiesWithPerDiem);
 
-    const distanceOriginalPolicy = useDistanceRateOriginalPolicy(
-        isDistanceRequestTransactionUtils(transaction) && isExpenseUnreported ? transaction?.comment?.customUnit?.customUnitRateID : undefined,
-    );
+    const customUnitRateID = isDistanceRequestTransactionUtils(transaction) ? transaction?.comment?.customUnit?.customUnitRateID : undefined;
+    const shouldLookupDistancePolicy = !!customUnitRateID && !getDistanceRateCustomUnitRate(expensePolicy, customUnitRateID);
+    const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
 
     let policy;
     let policyID;
@@ -262,7 +264,7 @@ function MoneyRequestView({
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${getNonEmptyStringOnyxID(linkedTransactionID)}`);
-    const transactionViolations = useTransactionViolations(transaction?.transactionID);
+    const transactionViolations = useTransactionViolations(transaction?.transactionID, true, distanceOriginalPolicy ?? policy);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -1138,7 +1140,9 @@ function MoneyRequestView({
                             }
 
                             if (shouldShowSplitIndicator && isSplitAvailable) {
-                                initSplitExpense(transaction, transactionThreadReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, {isProduction});
+                                initSplitExpense(transaction, transactionThreadReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, personalPolicy?.outputCurrency, {
+                                    isProduction,
+                                });
                                 return;
                             }
 

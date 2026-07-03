@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -58,12 +59,11 @@ function BaseVacationDelegateSelectionComponent({
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
 
     const currentVacationDelegate = vacationDelegate?.delegate ?? '';
-    const delegatePersonalDetails = getPersonalDetailByEmail(currentVacationDelegate);
+    const initialVacationDelegate = useInitialSelection(currentVacationDelegate || undefined, {resetOnFocus: true});
     const hasActiveDelegations = !!vacationDelegate?.delegatorFor?.length;
 
     const excludeLogins = {
         ...CONST.EXPENSIFY_EMAILS_OBJECT,
-        ...(currentVacationDelegate && {[currentVacationDelegate]: true}),
         ...additionalExcludeLogins,
     };
 
@@ -80,66 +80,73 @@ function BaseVacationDelegateSelectionComponent({
         searchUserInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
-    const sectionsList = (() => {
-        const list = [];
-
-        const delegateOption =
-            currentVacationDelegate && delegatePersonalDetails
-                ? {
-                      ...delegatePersonalDetails,
-                      text: delegatePersonalDetails?.displayName ?? currentVacationDelegate,
-                      alternateText: delegatePersonalDetails?.login ?? currentVacationDelegate,
-                      login: delegatePersonalDetails.login ?? currentVacationDelegate,
-                      keyForList: `vacationDelegate-${delegatePersonalDetails.login}`,
-                      isDisabled: false,
-                      isSelected: true,
-                      shouldShowSubscript: undefined,
-                      icons: [
-                          {
-                              source: delegatePersonalDetails?.avatar ?? icons.FallbackAvatar,
-                              name: formatPhoneNumber(delegatePersonalDetails?.login ?? ''),
-                              type: CONST.ICON_TYPE_AVATAR,
-                              id: delegatePersonalDetails?.accountID,
-                          },
-                      ],
-                  }
-                : undefined;
-
-        // Only pin the current delegate when it matches the search term, mirroring how the hook filters the other sections
-        if (delegateOption && filterOption(delegateOption, debouncedSearchTerm)) {
-            list.push({
-                title: undefined,
-                sectionIndex: 0,
-                data: [delegateOption],
-            });
+    const searchValue = debouncedSearchTerm.trim().toLowerCase();
+    const pinnedVacationDelegate = searchValue ? currentVacationDelegate : (initialVacationDelegate ?? '');
+    const pinnedDelegatePersonalDetails = getPersonalDetailByEmail(pinnedVacationDelegate);
+    const pinnedDelegateOption =
+        pinnedVacationDelegate && pinnedDelegatePersonalDetails
+            ? {
+                  ...pinnedDelegatePersonalDetails,
+                  text: pinnedDelegatePersonalDetails?.displayName ?? pinnedVacationDelegate,
+                  alternateText: pinnedDelegatePersonalDetails?.login ?? pinnedVacationDelegate,
+                  login: pinnedDelegatePersonalDetails.login ?? pinnedVacationDelegate,
+                  keyForList: `vacationDelegate-${pinnedDelegatePersonalDetails.login ?? pinnedVacationDelegate}`,
+                  isDisabled: false,
+                  isSelected: pinnedVacationDelegate === currentVacationDelegate,
+                  shouldShowSubscript: undefined,
+                  icons: [
+                      {
+                          source: pinnedDelegatePersonalDetails?.avatar ?? icons.FallbackAvatar,
+                          name: formatPhoneNumber(pinnedDelegatePersonalDetails?.login ?? ''),
+                          type: CONST.ICON_TYPE_AVATAR,
+                          id: pinnedDelegatePersonalDetails?.accountID,
+                      },
+                  ],
+              }
+            : undefined;
+    const shouldShowPinnedVacationDelegate = !!pinnedDelegateOption && (!searchValue || !!filterOption(pinnedDelegateOption, debouncedSearchTerm));
+    const filterPinnedVacationDelegateFromOptions = (options: typeof availableOptions.recentOptions) => {
+        if (!shouldShowPinnedVacationDelegate || !pinnedVacationDelegate) {
+            return options;
         }
+        return options.filter((option) => option.login?.toLowerCase() !== pinnedVacationDelegate.toLowerCase());
+    };
 
-        if (availableOptions.recentOptions.length) {
-            list.push({
-                title: translate('common.recents'),
-                sectionIndex: 1,
-                data: availableOptions.recentOptions,
-            });
-        }
+    const sectionsList = [];
 
-        if (availableOptions.personalDetails.length) {
-            list.push({
-                title: translate('common.contacts'),
-                sectionIndex: 2,
-                data: availableOptions.personalDetails,
-            });
-        }
+    if (pinnedDelegateOption && shouldShowPinnedVacationDelegate) {
+        sectionsList.push({
+            title: undefined,
+            sectionIndex: 0,
+            data: [pinnedDelegateOption],
+        });
+    }
 
-        if (availableOptions.userToInvite) {
-            list.push({
-                title: undefined,
-                sectionIndex: 3,
-                data: [availableOptions.userToInvite],
-            });
-        }
+    const recentOptions = filterPinnedVacationDelegateFromOptions(availableOptions.recentOptions);
+    if (recentOptions.length) {
+        sectionsList.push({
+            title: translate('common.recents'),
+            sectionIndex: 1,
+            data: recentOptions,
+        });
+    }
 
-        return list;
-    })();
+    const personalDetails = filterPinnedVacationDelegateFromOptions(availableOptions.personalDetails);
+    if (personalDetails.length) {
+        sectionsList.push({
+            title: translate('common.contacts'),
+            sectionIndex: 2,
+            data: personalDetails,
+        });
+    }
+
+    if (availableOptions.userToInvite) {
+        sectionsList.push({
+            title: undefined,
+            sectionIndex: 3,
+            data: [availableOptions.userToInvite],
+        });
+    }
 
     const sections = sectionsList.map((section) => ({
         ...section,
@@ -149,13 +156,12 @@ function BaseVacationDelegateSelectionComponent({
             alternateText: option.alternateText ?? option.login ?? undefined,
             keyForList: option.keyForList ?? '',
             isDisabled: option.isDisabled ?? undefined,
-            isSelected: option.isSelected ?? undefined,
+            isSelected: option.login === currentVacationDelegate,
             login: option.login ?? undefined,
             shouldShowSubscript: undefined,
         })),
     }));
 
-    const searchValue = debouncedSearchTerm.trim().toLowerCase();
     const headerMessage = (() => {
         if (sections.length > 0) {
             return '';
@@ -198,6 +204,10 @@ function BaseVacationDelegateSelectionComponent({
                             textInputOptions={textInputOptions}
                             shouldShowLoadingPlaceholder={!areOptionsInitialized}
                             isLoadingNewOptions={!!isSearchingForReports}
+                            searchValueForFocusSync={debouncedSearchTerm}
+                            initiallyFocusedItemKey={initialVacationDelegate ? `vacationDelegate-${initialVacationDelegate}` : undefined}
+                            initialScrollIndex={0}
+                            shouldUpdateFocusedIndex
                             shouldSingleExecuteRowSelect
                             shouldShowTextInput
                         />

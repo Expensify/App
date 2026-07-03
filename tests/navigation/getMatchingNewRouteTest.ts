@@ -144,7 +144,9 @@ describe('getBestMatchingPath', () => {
     });
 
     it('redirects old settings tag routes to the new dynamic suffix shape', () => {
-        expect(getMatchingNewRoute('/settings/p123/tags/10/edit')).toBe('/settings/p123/tags/settings/edit/10');
+        expect(getMatchingNewRoute('/settings/p123/tags/10/edit')).toBe('/settings/p123/tags/settings-tags-edit/10');
+        expect(getMatchingNewRoute('/settings/p123/tags/settings/edit/10')).toBe('/settings/p123/tags/settings/settings-tags-edit/10');
+        expect(getMatchingNewRoute('/settings/p123/tags/tag-list/0/edit/0')).toBe('/settings/p123/tags/tag-list/0/settings-tags-edit/0');
         expect(getMatchingNewRoute('/settings/p123/tags/new')).toBe('/settings/p123/tags/tag-new');
         expect(getMatchingNewRoute('/settings/p123/tag/10/Meals')).toBe('/settings/p123/tags/tag-settings/10/Meals');
         expect(getMatchingNewRoute('/settings/p123/tag/10/Meals/edit')).toBe('/settings/p123/tags/tag-settings/10/Meals/tag-edit/10/Meals');
@@ -152,23 +154,37 @@ describe('getBestMatchingPath', () => {
     });
 
     it('preserves query params when redirecting old settings tag routes', () => {
-        expect(getMatchingNewRoute('/settings/p123/tags/10/edit?backTo=/home')).toBe('/settings/p123/tags/settings/edit/10?backTo=/home');
+        expect(getMatchingNewRoute('/settings/p123/tags/10/edit?backTo=/home')).toBe('/settings/p123/tags/settings-tags-edit/10?backTo=/home');
         expect(getMatchingNewRoute('/settings/p123/tag/10/Meals?parentTagsFilter=Food')).toBe('/settings/p123/tags/tag-settings/10/Meals?parentTagsFilter=Food');
     });
 
     it('redirects old workspace tag routes to the new dynamic suffix shape', () => {
         expect(getMatchingNewRoute('/workspaces/p123/tags/settings')).toBe('/workspaces/p123/tags/tags-settings');
         expect(getMatchingNewRoute('/workspaces/p123/tags/new')).toBe('/workspaces/p123/tags/tag-create');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/10/edit')).toBe('/workspaces/p123/tags/tags-settings/workspace-edit-tags/10');
+        expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals')).toBe('/workspaces/p123/tags/workspace-tag-settings/10/Meals');
+        expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals/edit')).toBe('/workspaces/p123/tags/workspace-tag-settings/10/Meals/workspace-tag-edit');
+        expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals/gl-code')).toBe('/workspaces/p123/tags/workspace-tag-settings/10/Meals/workspace-tag-gl-code');
+        expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals/approver')).toBe('/workspaces/p123/tags/workspace-tag-settings/10/Meals/workspace-tag-approver');
     });
 
     it('preserves query params when redirecting old workspace tag routes', () => {
         expect(getMatchingNewRoute('/workspaces/p123/tags/settings?backTo=/home')).toBe('/workspaces/p123/tags/tags-settings?backTo=/home');
         expect(getMatchingNewRoute('/workspaces/p123/tags/new?backTo=/home')).toBe('/workspaces/p123/tags/tag-create?backTo=/home');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/10/edit?backTo=/home')).toBe('/workspaces/p123/tags/tags-settings/workspace-edit-tags/10?backTo=/home');
+        expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals?parentTagsFilter=Food')).toBe('/workspaces/p123/tags/workspace-tag-settings/10/Meals?parentTagsFilter=Food');
     });
 
     it('does not redirect the new workspace tag dynamic routes', () => {
         expect(getMatchingNewRoute('/workspaces/p123/tags/tags-settings')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/p123/tags/tag-create')).toBe(undefined);
+        expect(getMatchingNewRoute('/workspaces/p123/tags/tags-settings/workspace-edit-tags/10')).toBe(undefined);
+        expect(getMatchingNewRoute('/workspaces/p123/tags/workspace-tag-settings/10/Meals')).toBe(undefined);
+    });
+
+    it('does not redirect the new settings tag dynamic routes', () => {
+        expect(getMatchingNewRoute('/settings/p123/tags/settings-tags-edit/10')).toBe(undefined);
+        expect(getMatchingNewRoute('/settings/p123/tags/tag-list/0/settings-tags-edit/0')).toBe(undefined);
     });
 
     it('redirects old flag comment path to report-based dynamic route', () => {
@@ -265,5 +281,48 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/workspaces/p123/connections/quickbooks-online/advanced/autosync?backTo=/x')).toBe(
             '/workspaces/p123/accounting/quickbooks-online/advanced/quickbooks-online-autosync?backTo=/x',
         );
+    });
+
+    it('redirects legacy workspace company card details paths to dynamic routes', () => {
+        expect(getMatchingNewRoute('/workspaces/D56D50B841F69B0E/company-cards/oauth.mockbank.com%2322298108/6421535706958904')).toBe(
+            '/workspaces/D56D50B841F69B0E/company-cards/company-card-details/oauth.mockbank.com%2322298108/6421535706958904',
+        );
+        expect(getMatchingNewRoute('/workspaces/p123/company-cards/oauth.chase%2099999/456/edit/export')).toBe(
+            '/workspaces/p123/company-cards/company-card-details/oauth.chase%2099999/456/edit/export',
+        );
+    });
+
+    it('does not rewrite already-migrated workspace company card details paths', () => {
+        expect(getMatchingNewRoute('/workspaces/D56D50B841F69B0E/company-cards/company-card-details/oauth.mockbank.com%2322298108/6421535706958904')).toBe(
+            '/workspaces/D56D50B841F69B0E/company-cards/company-card-details/oauth.mockbank.com%2322298108/6421535706958904',
+        );
+        expect(getMatchingNewRoute('/workspaces/p123/company-cards/company-card-details/oauth.chase%2099999/456/edit/export')).toBe(
+            '/workspaces/p123/company-cards/company-card-details/oauth.chase%2099999/456/edit/export',
+        );
+    });
+
+    it('does not rewrite workspace company card static child pages', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/company-cards/oauth.chase%2099999/456/edit/name')).toBe('/workspaces/p123/company-cards/oauth.chase%2099999/456/edit/name');
+        expect(getMatchingNewRoute('/workspaces/p123/company-cards/oauth.chase%2099999/456/edit/transaction-start-date')).toBe(
+            '/workspaces/p123/company-cards/oauth.chase%2099999/456/edit/transaction-start-date',
+        );
+        expect(getMatchingNewRoute('/workspaces/p123/company-cards/oauth.chase%2099999/broken-card-feed-connection')).toBe(
+            '/workspaces/p123/company-cards/oauth.chase%2099999/broken-card-feed-connection',
+        );
+        expect(getMatchingNewRoute('/workspaces/p123/company-cards/oauth.chase%2099999/assign-card/456/card-selection')).toBe(
+            '/workspaces/p123/company-cards/oauth.chase%2099999/assign-card/456/card-selection',
+        );
+    });
+
+    it('does not rewrite dynamic assign-card assignee paths', () => {
+        expect(getMatchingNewRoute('/workspaces/D56D50B841F69B0E/company-cards/assign-card/oauth.mockbank.com%2322298108/Mock%20Credit%20Card%20-%201234/assignee')).toBe(
+            '/workspaces/D56D50B841F69B0E/company-cards/assign-card/oauth.mockbank.com%2322298108/Mock%20Credit%20Card%20-%201234/assignee',
+        );
+    });
+
+    it('redirects corrupted company-card-details assign-card paths to the correct dynamic assign route', () => {
+        expect(
+            getMatchingNewRoute('/workspaces/D56D50B841F69B0E/company-cards/company-card-details/assign-card/oauth.mockbank.com%2322298108/Mock%20Credit%20Card%20-%201234/assignee'),
+        ).toBe('/workspaces/D56D50B841F69B0E/company-cards/assign-card/oauth.mockbank.com%2322298108/Mock%20Credit%20Card%20-%201234/assignee');
     });
 });

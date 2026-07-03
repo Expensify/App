@@ -1,4 +1,4 @@
-import {isUserValidatedSelector} from '@selectors/Account';
+import {isActingAsDelegateSelector, isUserValidatedSelector} from '@selectors/Account';
 import {createPoliciesForDomainCardsSelector} from '@selectors/Policy';
 import {FlashList} from '@shopify/flash-list';
 import lodashSortBy from 'lodash/sortBy';
@@ -26,6 +26,7 @@ import {
     getCardFeedIcon,
     getCardFeedWithDomainID,
     getPlaidInstitutionIconUrl,
+    isActionableVirtualExpensifyCard,
     isCardConnectionBroken,
     isCardFrozen,
     isCardInactive,
@@ -40,6 +41,7 @@ import {
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
+import {areAddressAndPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
 import {getTravelInvoicingCard, isTravelCVVEligible} from '@libs/TravelInvoicingUtils';
 import colors from '@styles/theme/colors';
@@ -188,6 +190,7 @@ function PaymentMethodList({
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: isUserValidatedSelector,
     });
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
@@ -225,6 +228,7 @@ function PaymentMethodList({
             const assignedCardsSorted = lodashSortBy(assignedCards, getAssignedCardSortKey);
             const companyCardsGrouped: PaymentMethodItem[] = [];
             const personalCardsGrouped: PaymentMethodItem[] = [];
+            const hasMissingPersonalDetails = areAddressAndPersonalDetailsMissing(privatePersonalDetails);
             for (const card of assignedCardsSorted) {
                 const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                 const isUserPersonalCard = isPersonalCard(card);
@@ -382,6 +386,7 @@ function PaymentMethodList({
                     iconHeight: variables.cardIconHeight,
                     isInactive: isCardInactive(card),
                     isCardFrozen: isCardFrozen(card),
+                    shouldShowMissingPersonalDetailsAction: !isActingAsDelegate && isActionableVirtualExpensifyCard(card) && hasMissingPersonalDetails,
                 });
             }
 

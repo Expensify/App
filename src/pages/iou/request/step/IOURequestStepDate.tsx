@@ -7,11 +7,13 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
@@ -20,8 +22,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatReportUtil} from '@libs/ReportUtils';
-import {getFormattedCreated, hasReceipt} from '@libs/TransactionUtils';
+import {getFormattedCreated, hasReceipt, isDistanceRequest} from '@libs/TransactionUtils';
 import {setMoneyRequestCreated, updateDistanceRateOnExpenseDateChange} from '@userActions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import {updateMoneyRequestDate} from '@userActions/IOU/UpdateMoneyRequest';
@@ -53,9 +56,14 @@ function IOURequestStepDate({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(report?.policyID);
+    const personalPolicy = usePersonalPolicy();
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
     const policyForTrackExpense = usePolicy(isTrackExpense ? policyForMovingExpensesID : undefined);
+    const effectivePolicy = isTrackExpense ? policyForTrackExpense : policy;
+    const customUnitRateID = isDistanceRequest(transaction) ? transaction?.comment?.customUnit?.customUnitRateID : undefined;
+    const shouldLookupDistancePolicy = !!customUnitRateID && !getDistanceRateCustomUnitRate(effectivePolicy, customUnitRateID);
+    const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
@@ -102,7 +110,6 @@ function IOURequestStepDate({
         const isTransactionDraft = shouldUseTransactionDraft(action);
 
         if (isEditing) {
-            const effectivePolicy = isTrackExpense ? policyForTrackExpense : policy;
             updateMoneyRequestDate({
                 transactionID,
                 transactionThreadReport: report,
@@ -120,6 +127,7 @@ function IOURequestStepDate({
                 parentReportNextStep,
                 isOffline,
                 delegateAccountID,
+                distanceOriginalPolicy,
             });
         } else {
             setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft, hasReceipt(transaction));
@@ -135,6 +143,7 @@ function IOURequestStepDate({
                 policyForTrackExpense,
                 lastSelectedDistanceRates,
                 isDraft: isTransactionDraft,
+                personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             });
         }
 

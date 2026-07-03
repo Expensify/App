@@ -395,7 +395,6 @@ function BaseTextInput({
                                     const elementRef = element as AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null;
                                     input.current = elementRef;
                                 }}
-                                // eslint-disable-next-line
                                 {...inputProps}
                                 autoFocus={isInLandscapeMode && !shouldAllowFocusInLandscapeMode ? false : inputProps.autoFocus}
                                 accessibilityLabel={resolvedAccessibilityLabel}

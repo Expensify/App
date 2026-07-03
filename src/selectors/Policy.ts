@@ -12,7 +12,8 @@ type ReusablePolicyConnectionName =
     | typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE
     | typeof CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT
     | typeof CONST.POLICY.CONNECTIONS.NAME.QBD
-    | typeof CONST.POLICY.CONNECTIONS.NAME.CERTINIA;
+    | typeof CONST.POLICY.CONNECTIONS.NAME.CERTINIA
+    | typeof CONST.POLICY.CONNECTIONS.NAME.RILLET;
 
 const activePolicySelector = (policy: OnyxEntry<Policy>) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined);
 
@@ -246,6 +247,34 @@ const iouRequestPolicyCollectionSelector = (policies: OnyxCollection<Policy>): O
     return result;
 };
 
+type FilteredPoliciesInfo = {
+    /** Number of policies that should be shown to the user (short-circuited at 2) */
+    filteredPoliciesCount: number;
+
+    /** ID of the first policy that should be shown to the user */
+    firstPolicyID: string | undefined;
+};
+
+const createFilteredPoliciesInfoSelector =
+    (email: string | undefined) =>
+    (policies: OnyxCollection<Policy>): FilteredPoliciesInfo => {
+        let filteredPoliciesCount = 0;
+        let firstPolicyID: string | undefined;
+        for (const policy of Object.values(policies ?? {})) {
+            if (!policy || !shouldShowPolicy(policy, false, email)) {
+                continue;
+            }
+            if (filteredPoliciesCount === 0) {
+                firstPolicyID = policy.id;
+            }
+            filteredPoliciesCount++;
+            if (filteredPoliciesCount > 1) {
+                break;
+            }
+        }
+        return {filteredPoliciesCount, firstPolicyID};
+    };
+
 const hasOnlyPersonalPoliciesSelector = (policies: OnyxCollection<Policy>): boolean => {
     return !Object.values(policies ?? {}).some((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 };
@@ -266,11 +295,15 @@ const adminPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Polic
 const adminPoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>) =>
     Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.QBD));
 
+const adminPoliciesConnectedToRilletSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.RILLET));
+
 const reusableConnectionAdminSelectors: Record<ReusablePolicyConnectionName, (policies: OnyxCollection<Policy>) => Policy[]> = {
     [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: adminPoliciesConnectedToNetSuiteSelector,
     [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: adminPoliciesConnectedToSageIntacctSelector,
     [CONST.POLICY.CONNECTIONS.NAME.QBD]: adminPoliciesConnectedToQBDSelector,
     [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: adminPoliciesConnectedToCertiniaSelector,
+    [CONST.POLICY.CONNECTIONS.NAME.RILLET]: adminPoliciesConnectedToRilletSelector,
 };
 
 function isReusablePolicyConnection(policy: Policy, connectionName: ReusablePolicyConnectionName, currentPolicyID?: string) {
@@ -360,6 +393,7 @@ export {
     ownerPoliciesSelector,
     createOwnedPaidPoliciesCountsSelector,
     createCopySettingsEligibleTargetsSelector,
+    createFilteredPoliciesInfoSelector,
     createWorkspaceListPoliciesSelector,
     activeAdminPoliciesSelector,
     hasActiveAdminPoliciesSelector,
