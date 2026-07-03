@@ -1,12 +1,16 @@
 /* eslint-disable @typescript-eslint/naming-convention -- test fixtures use backend-shaped object keys that don't follow camelCase: email addresses for PolicyEmployeeList entries and human-readable names / 'GL Code' for PolicyCategories */
 import {renderHook, waitFor} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import useGettingStartedItems from '@pages/home/GettingStartedSection/hooks/useGettingStartedItems';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyCategories} from '@src/types/onyx';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../../utils/collections/policies';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -625,7 +629,7 @@ describe('useGettingStartedItems', () => {
         it('should be shown when areRulesEnabled is true', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
-                policy: {areRulesEnabled: true},
+                policy: {areRulesEnabled: true, type: CONST.POLICY.TYPE.CORPORATE},
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
@@ -664,7 +668,7 @@ describe('useGettingStartedItems', () => {
         it('should navigate to workspace rules route', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
-                policy: {areRulesEnabled: true},
+                policy: {areRulesEnabled: true, type: CONST.POLICY.TYPE.CORPORATE},
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
@@ -677,7 +681,7 @@ describe('useGettingStartedItems', () => {
         it('should be not completed when workspace has default rules only', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
-                policy: {areRulesEnabled: true, rules: undefined, customRules: undefined},
+                policy: {areRulesEnabled: true, rules: undefined, customRules: undefined, type: CONST.POLICY.TYPE.CORPORATE},
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
@@ -692,6 +696,7 @@ describe('useGettingStartedItems', () => {
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {
                     areRulesEnabled: true,
+                    type: CONST.POLICY.TYPE.CORPORATE,
                     rules: {
                         approvalRules: [
                             {
@@ -716,6 +721,7 @@ describe('useGettingStartedItems', () => {
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {
                     areRulesEnabled: true,
+                    type: CONST.POLICY.TYPE.CORPORATE,
                     customRules: 'All expenses over $500 need manager approval',
                 },
             });
@@ -732,7 +738,7 @@ describe('useGettingStartedItems', () => {
         it('should return items in the correct order: createWorkspace, accounting/categories, companyCards, rules', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
-                policy: {areConnectionsEnabled: true, areCompanyCardsEnabled: true, areRulesEnabled: true},
+                policy: {areConnectionsEnabled: true, areCompanyCardsEnabled: true, areRulesEnabled: true, type: CONST.POLICY.TYPE.CORPORATE},
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
@@ -745,7 +751,7 @@ describe('useGettingStartedItems', () => {
         it('should return items in the correct order with categories instead of connect', async () => {
             await setupManageTeamScenario({
                 accounting: 'none',
-                policy: {areCategoriesEnabled: true, areCompanyCardsEnabled: true, areRulesEnabled: true},
+                policy: {areCategoriesEnabled: true, areCompanyCardsEnabled: true, areRulesEnabled: true, type: CONST.POLICY.TYPE.CORPORATE},
             });
 
             const {result} = renderHook(() => useGettingStartedItems());

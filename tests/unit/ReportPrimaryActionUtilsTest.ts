@@ -1,7 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+
 import useReportIsArchived from '@hooks/useReportIsArchived';
+
 import {getValidConnectedIntegration, isPreferredExporter} from '@libs/PolicyUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {
@@ -13,12 +13,19 @@ import {
     isPrimaryMarkAsResolvedAction,
     isReviewDuplicatesAction,
 } from '@libs/ReportPrimaryActionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import type {InvoiceTestData} from '../data/Invoice';
+
 import {chatReportR14932 as chatReport} from '../../__mocks__/reportData/reports';
 import * as InvoiceData from '../data/Invoice';
-import type {InvoiceTestData} from '../data/Invoice';
 import createMock from '../utils/createMock';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
@@ -78,6 +85,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [],
                 violations: {},
@@ -109,6 +117,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -143,6 +152,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -177,6 +187,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -212,6 +223,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -246,6 +258,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -281,6 +294,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -314,6 +328,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -353,6 +368,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -390,6 +406,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -535,6 +552,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -578,6 +596,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -610,6 +629,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -644,6 +664,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -677,6 +698,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -717,6 +739,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -758,6 +781,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -796,6 +820,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -834,6 +859,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [],
                 violations: {},
@@ -899,6 +925,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -957,6 +984,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -1029,6 +1057,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -1089,6 +1118,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -1130,6 +1160,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
@@ -1168,6 +1199,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
@@ -1206,6 +1238,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
@@ -1244,6 +1277,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
@@ -1283,6 +1317,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
@@ -1319,6 +1354,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -1358,6 +1394,7 @@ describe('getPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport: invoiceChatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -1618,6 +1655,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -1658,6 +1696,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
@@ -1699,6 +1738,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
+                ownerLogin: '',
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
