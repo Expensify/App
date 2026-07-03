@@ -1,5 +1,3 @@
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -9,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
@@ -17,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -34,19 +34,26 @@ import {
     isControlPolicy,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
 } from '@libs/PolicyUtils';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {clearPolicyTagErrors, deletePolicyTags, setWorkspaceTagEnabled} from '@userActions/Policy/Tag';
+
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-type TagSettingsPageProps =
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_SETTINGS>
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+
+type DynamicTagSettingsPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_TAG_SETTINGS>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_SETTINGS>;
 
-function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
+function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps) {
     const {policyID, tagName, parentTagsFilter} = route.params;
     const orderWeight = Number(route.params.orderWeight);
     const styles = useThemeStyles();
@@ -99,7 +106,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
         Navigation.navigate(
             isQuickSettingsFlow
                 ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_EDIT.getRoute(orderWeight, currentPolicyTag.name))
-                : ROUTES.WORKSPACE_TAG_EDIT.getRoute(policyID, orderWeight, currentPolicyTag.name),
+                : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_EDIT.path),
         );
     };
 
@@ -111,7 +118,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                     CONST.UPGRADE_FEATURE_INTRO_MAPPING.glCodes.alias,
                     isQuickSettingsFlow
                         ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, tagName))
-                        : ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policyID, orderWeight, tagName),
+                        : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_GL_CODE.path),
                 ),
             );
             return;
@@ -119,14 +126,12 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
         Navigation.navigate(
             isQuickSettingsFlow
                 ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, currentPolicyTag.name))
-                : ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policyID, orderWeight, currentPolicyTag.name),
+                : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_GL_CODE.path),
         );
     };
 
     const navigateToEditTagApprover = () => {
-        Navigation.navigate(
-            isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_APPROVER.path) : ROUTES.WORKSPACE_TAG_APPROVER.getRoute(policyID, orderWeight, currentPolicyTag.name),
-        );
+        Navigation.navigate(isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_APPROVER.path) : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_APPROVER.path));
     };
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
@@ -146,7 +151,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID="TagSettingsPage"
+                testID="DynamicTagSettingsPage"
             >
                 <HeaderWithBackButton
                     title={getCleanedTagName(tagName)}
@@ -263,4 +268,4 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     );
 }
 
-export default TagSettingsPage;
+export default DynamicTagSettingsPage;

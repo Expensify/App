@@ -1,16 +1,21 @@
 import {act, cleanup, render} from '@testing-library/react-native';
-import {Str} from 'expensify-common';
-import {Linking} from 'react-native';
-import type {OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+
 import * as AppActions from '@libs/actions/App';
 import {hasAuthToken} from '@libs/actions/Session';
 import * as Session from '@libs/actions/Session';
 import {getCurrentUserEmail, setLastShortAuthToken} from '@libs/Network/NetworkStore';
+
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import type {OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import {Linking} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import {createRandomReport} from '../utils/collections/reports';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
@@ -34,6 +39,10 @@ const TEST_AUTH_TOKEN_2 = 'zxcvbnm';
 
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
 jest.setTimeout(120000);
+
+// Full-App integration tests below render <App /> and drain the entire React/Onyx work queue via act().
+// With coverage enabled and other tests in the same CI shard competing for CPU, they can exceed 4 minutes.
+const FULL_APP_UI_TEST_TIMEOUT_MS = 6 * 60 * 1000;
 TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
 
@@ -146,7 +155,7 @@ describe('Deep linking', () => {
     });
 
     // This test renders the full App and processes a deep-link sign-in flow, so it runs
-    // significantly longer than the suite default on loaded CI runners.
+    // significantly longer than the suite default on loaded CI runners (see FULL_APP_UI_TEST_TIMEOUT_MS).
     it(
         'should not remember the report path of the last deep link login after signing out and in again',
         async () => {
@@ -181,11 +190,11 @@ describe('Deep linking', () => {
             await waitForBatchedUpdatesWithAct();
             await waitForNetworkPromises();
         },
-        4 * 60 * 1000,
+        FULL_APP_UI_TEST_TIMEOUT_MS,
     );
 
     // This test renders the full App three times, so it runs significantly longer than
-    // the suite default on loaded CI runners.
+    // the suite default on loaded CI runners (see FULL_APP_UI_TEST_TIMEOUT_MS).
     it(
         'should not reuse the last deep link and log in again when signing out',
         async () => {
@@ -234,7 +243,7 @@ describe('Deep linking', () => {
             await waitForBatchedUpdatesWithAct();
             await waitForNetworkPromises();
         },
-        4 * 60 * 1000,
+        FULL_APP_UI_TEST_TIMEOUT_MS,
     );
 });
 
@@ -269,7 +278,7 @@ describe('Support auth token login', () => {
         setLastShortAuthToken(null);
     });
 
-    // Renders the full App and processes a supportal transition, so it runs longer than the suite default.
+    // Renders the full App and processes a supportal transition, so it runs longer than the suite default (see FULL_APP_UI_TEST_TIMEOUT_MS).
     it(
         'does not fire the support sign-in again when LogOutPreviousUserPage re-processes an already-handled token',
         async () => {
@@ -303,6 +312,6 @@ describe('Support auth token login', () => {
             await waitForBatchedUpdatesWithAct();
             await waitForNetworkPromises();
         },
-        4 * 60 * 1000,
+        FULL_APP_UI_TEST_TIMEOUT_MS,
     );
 });

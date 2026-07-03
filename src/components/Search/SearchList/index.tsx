@@ -1,9 +1,3 @@
-import type {FlashListProps, FlashListRef, ViewToken} from '@shopify/flash-list';
-import React, {useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
-import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import AnimatedExitRow from '@components/Search/primitives/AnimatedExitRow';
 import HorizontalTableScroll from '@components/Search/primitives/HorizontalTableScroll';
 import SelectionTopBar from '@components/Search/primitives/SelectionTopBar';
@@ -13,6 +7,7 @@ import {useSearchRowSelectionActions, useSearchSelectionContext} from '@componen
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
+
 import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -21,21 +16,31 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUndeleteTransactions from '@hooks/useUndeleteTransactions';
+
 import DateUtils from '@libs/DateUtils';
 import getPlatform from '@libs/getPlatform';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {splitGroupsIntoPairs} from '@libs/SearchUIUtils';
+
 import variables from '@styles/variables';
+
 import type {TransactionPreviewData} from '@userActions/Search';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {CardList, PolicyTagLists, Transaction} from '@src/types/onyx';
-import BaseSearchList from './BaseSearchList';
+
+import type {FlashListProps, FlashListRef, ViewToken} from '@shopify/flash-list';
+import type {ForwardedRef} from 'react';
+import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
+
+import React, {useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import type ChatListItem from './ListItem/ChatListItem';
 import type ExpenseReportListItem from './ListItem/ExpenseReportListItem';
-import GroupChildrenContainer from './ListItem/GroupChildrenContainer';
-import GroupHeader from './ListItem/GroupHeader';
 import type TaskListItem from './ListItem/TaskListItem';
 import type TransactionGroupListItem from './ListItem/TransactionGroupListItem';
 import type TransactionListItem from './ListItem/TransactionListItem';
@@ -52,6 +57,10 @@ import type {
     TransactionWeekGroupListItemType,
     TransactionYearGroupListItemType,
 } from './ListItem/types';
+
+import BaseSearchList from './BaseSearchList';
+import GroupChildrenContainer from './ListItem/GroupChildrenContainer';
+import GroupHeader from './ListItem/GroupHeader';
 import {isGroupChildrenContainerItem, isGroupHeaderItem} from './ListItem/types';
 
 type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
@@ -655,3 +664,4 @@ function SearchList({
 }
 
 export default SearchList;
+export {isTransactionMatchWithGroupItem};

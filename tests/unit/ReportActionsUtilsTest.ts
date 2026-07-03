@@ -1,13 +1,19 @@
-import type {KeyValueMapping} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {getTimeOfChronosTimerRunningFromVisibleActions, isChronosStartOrStopMessage, isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import {setHasRadio} from '@libs/NetworkState';
 import {isExpenseReport} from '@libs/ReportUtils';
+
 import IntlStore from '@src/languages/IntlStore';
 import ROUTES from '@src/ROUTES';
+
+import type {KeyValueMapping} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import type {Card, DecisionName, OriginalMessageIOU, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
+
 import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMessage} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import CONST from '../../src/CONST';
@@ -57,7 +63,6 @@ import {
 import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import shouldDisplayNewMarkerOnReportAction, {getUnreadMarkerReportAction} from '../../src/pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
-import type {Card, DecisionName, OriginalMessageIOU, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -5999,6 +6004,51 @@ describe('ReportActionsUtils', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             } as ReportAction;
             expect(getModerationFlagState(action)).toEqual({latestDecision: undefined, hasBeenFlagged: false});
+        });
+    });
+
+    describe('isPolicyCopyReportAction', () => {
+        function buildAction(actionName: ReportAction['actionName']): ReportAction {
+            return {
+                actionName,
+                reportActionID: '1',
+                reportID: '123',
+                created: '2026-05-15 10:00:00.000',
+                message: [],
+            } as unknown as ReportAction;
+        }
+
+        it.each([
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_EMPLOYEES,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_REPORT_FIELDS,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_ACCOUNTING,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_RECEIPT_PARTNERS,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_HR,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CATEGORIES,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAGS,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAXES,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TIME_TRACKING,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_WORKFLOWS,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_RULES,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CODING_RULES,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_DISTANCE,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_PER_DIEM,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_INVOICES,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TRAVEL,
+        ])('returns true for the policy copy action %s', (actionName) => {
+            expect(ReportActionsUtils.isPolicyCopyReportAction(buildAction(actionName))).toBe(true);
+        });
+
+        it.each([CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME, CONST.REPORT.ACTIONS.TYPE.CREATED])(
+            'returns false for the non-copy action %s',
+            (actionName) => {
+                expect(ReportActionsUtils.isPolicyCopyReportAction(buildAction(actionName))).toBe(false);
+            },
+        );
+
+        it('returns false for an undefined action', () => {
+            expect(ReportActionsUtils.isPolicyCopyReportAction(undefined)).toBe(false);
         });
     });
 });
