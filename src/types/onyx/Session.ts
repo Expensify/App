@@ -1,5 +1,7 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type {Errors} from './OnyxCommon';
 
 /** Possible states of the automatic authentication after user clicks on a magic link */
@@ -11,7 +13,7 @@ type Session = {
     email?: string;
 
     /** Currently logged in user authToken */
-    authToken?: string;
+    [CONST.HTTP_HEADER_NAMES.AUTH_TOKEN]?: string;
 
     /** Currently logged in user authToken type */
     authTokenType?: ValueOf<typeof CONST.AUTH_TOKEN_TYPES>;

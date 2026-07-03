@@ -1,16 +1,24 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
-import {View} from 'react-native';
 import Table from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
-import WorkspaceSpendRulesTableRow from './WorkspaceSpendRulesTableRow';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {SpendRuleTableItem} from './WorkspaceSpendRulesTableRow';
+
+import WorkspaceSpendRulesTableRow from './WorkspaceSpendRulesTableRow';
 
 type SpendRulesTableColumnKey = 'type' | 'card' | 'rule' | 'actions';
 
@@ -43,6 +51,11 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
 
     const compareItems: CompareItemsCallback<SpendRuleTableItem, SpendRulesTableColumnKey> = (a, b, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
+
+        // Keep the built-in default rule grouped so section headers stay contiguous when sorting.
+        if (a.isDefault !== b.isDefault) {
+            return a.isDefault ? -1 : 1;
+        }
 
         if (activeSorting.columnKey === 'type') {
             const aVal = a.isBlock ? 0 : 1;
@@ -94,7 +107,7 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
             narrowLayoutSortColumn="card"
             title={translate('workspace.rules.tabs.cardRestrictions')}
         >
-            {isEmpty && !!emptyStateContent && <View style={[styles.flex1, styles.mnh0]}>{emptyStateContent}</View>}
+            {isEmpty && !!emptyStateContent && <View style={[styles.flex1, styles.mnh0, styles.w100]}>{emptyStateContent}</View>}
             {!isEmpty && (
                 <>
                     {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.rules.spendRules.findRule')} />}

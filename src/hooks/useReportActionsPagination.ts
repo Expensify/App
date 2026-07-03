@@ -1,12 +1,17 @@
-import {useMemo, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getCombinedReportActions, getFilteredReportActionsForReportView, isCreatedAction} from '@libs/ReportActionsUtils';
 import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport, isReportTransactionThread as isReportTransactionThreadUtil} from '@libs/ReportUtils';
+
 import getReportActionsToDisplay from '@pages/inbox/report/getReportActionsToDisplay';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useMemo, useState} from 'react';
+
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
@@ -34,6 +39,9 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
 
     const [treatAsNoPaginationAnchor, setTreatAsNoPaginationAnchor] = useState(false);
 
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
+
     const {
         reportActions: unfilteredReportActions,
         hasOlderActions,
@@ -43,13 +51,13 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
     } = usePaginatedReportActions(reportID, reportActionIDFromRoute, {
         shouldLinkToOldestUnreadReportAction: true,
         treatAsNoPaginationAnchor,
+        // Scope the first-defined lastReadTime snapshot to Concierge so the cold-open unread anchor resolves
+        // (https://github.com/Expensify/App/issues/93196) without changing regular inbox chat pagination.
+        shouldSnapshotInitialLastReadTime: isConciergeChat,
     });
     const allReportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
 
     const thread = useTransactionThread({reportID, report, allReportActions, isOffline});
-
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
 
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
 

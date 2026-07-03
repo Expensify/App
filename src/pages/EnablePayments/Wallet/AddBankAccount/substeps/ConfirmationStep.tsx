@@ -1,21 +1,27 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
+import useIsBankAccountAdded from '@pages/EnablePayments/Wallet/utils/useIsBankAccountAdded';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
 
-type ConfirmationStepProps = SubStepProps;
+import React from 'react';
+import {View} from 'react-native';
+
+type ConfirmationStepProps = SubPageProps;
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 const BANK_INFO_STEP_INDEXES = CONST.WALLET.SUBSTEP_INDEXES.BANK_ACCOUNT;
@@ -26,9 +32,13 @@ function ConfirmationStep({onNext, onMove}: ConfirmationStepProps) {
     const {isOffline} = useNetwork();
     const [personalBankAccountDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
+    const {isBankAccountAdded, addedBankAccount} = useIsBankAccountAdded();
 
     const isLoading = personalBankAccount?.isLoading ?? false;
     const error = getLatestErrorMessage(personalBankAccount ?? {});
+
+    const bankName = personalBankAccountDraft?.[BANK_INFO_STEP_KEYS.BANK_NAME] ?? addedBankAccount?.title;
+    const accountNumber = personalBankAccountDraft?.[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER] ?? addedBankAccount?.accountData?.accountNumber ?? '';
 
     const handleModifyAccountNumbers = () => {
         onMove(BANK_INFO_STEP_INDEXES.ACCOUNT_NUMBERS);
@@ -43,9 +53,10 @@ function ConfirmationStep({onNext, onMove}: ConfirmationStepProps) {
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('walletPage.confirmYourBankAccount')}</Text>
             <Text style={[styles.mt3, styles.mb3, styles.ph5, styles.textSupporting]}>{translate('bankAccount.letsDoubleCheck')}</Text>
             <MenuItemWithTopDescription
-                description={personalBankAccountDraft?.[BANK_INFO_STEP_KEYS.BANK_NAME]}
-                title={`${translate('bankAccount.accountEnding')} ${(personalBankAccountDraft?.[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER] ?? '').slice(-4)}`}
-                shouldShowRightIcon
+                description={bankName}
+                title={`${translate('bankAccount.accountEnding')} ${accountNumber.slice(-4)}`}
+                shouldShowRightIcon={!isBankAccountAdded}
+                interactive={!isBankAccountAdded}
                 onPress={handleModifyAccountNumbers}
             />
             <View style={[styles.ph5, styles.pb5, styles.flexGrow1, styles.justifyContentEnd]}>

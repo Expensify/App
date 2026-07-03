@@ -1,7 +1,3 @@
-import type {ReactNode} from 'react';
-import React, {useEffect, useMemo} from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import Accordion from '@components/Accordion';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -10,14 +6,24 @@ import RenderHTML from '@components/RenderHTML';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Parser from '@libs/Parser';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ReactNode} from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React, {useEffect, useMemo} from 'react';
+import {View} from 'react-native';
 
 type ToggleSettingOptionRowProps = {
     /** Icon to be shown for the option */
@@ -168,7 +174,7 @@ function ToggleSettingOptionRow({
         if (typeof subtitle === 'string') {
             if (!!subtitle && shouldParseSubtitle) {
                 return (
-                    <View style={[styles.flexRow, styles.renderHTML, subtitleSpacingStyle]}>
+                    <View style={[styles.flexRow, styles.renderHTML, styles.textAlignLeft, subtitleSpacingStyle]}>
                         <RenderHTML html={processedSubtitle} />
                     </View>
                 );
@@ -195,6 +201,7 @@ function ToggleSettingOptionRow({
         styles.mutedNormalTextLabel,
         styles.flexRow,
         styles.renderHTML,
+        styles.textAlignLeft,
         subtitleSpacingStyle,
         subtitleStyle,
         processedSubtitle,

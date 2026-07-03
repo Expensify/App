@@ -1,29 +1,37 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearMoneyRequestAmount, getMoneyRequestParticipantsFromReport, setMoneyRequestAmount, setMoneyRequestTaxAmount, setMoneyRequestTaxRate} from '@libs/actions/IOU/MoneyRequest';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import {calculateAmount, isMovingTransactionFromTrackExpense, isParticipantP2P} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldEnableNegative} from '@libs/ReportUtils';
 import {calculateTaxAmount, getTaxCode, getTaxValue} from '@libs/TransactionUtils';
+
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
+
 import {resetSplitShares, setDraftSplitTransaction, setSplitShares} from '@userActions/IOU/Split';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import {amountSliceSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -34,6 +42,7 @@ type AmountFieldProps = {
     distanceRateCurrency: string;
     iouCurrencyCode: string | undefined;
     isDistanceRequest: boolean;
+    isNewManualExpenseFlowEnabled: boolean;
     didConfirm: boolean;
     isReadOnly: boolean;
     shouldShowTimeRequestFields: boolean;
@@ -57,6 +66,7 @@ function AmountField({
     distanceRateCurrency,
     iouCurrencyCode,
     isDistanceRequest,
+    isNewManualExpenseFlowEnabled,
     didConfirm,
     isReadOnly,
     shouldShowTimeRequestFields,
@@ -90,7 +100,10 @@ function AmountField({
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
 
     const isAmountFieldDisabled = didConfirm || isReadOnly || shouldShowTimeRequestFields || isDistanceRequest;
-    const isP2P = isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0));
+    const firstParticipant = transactionSlice?.participants?.at(0);
+    const isP2P = isNewManualExpenseFlowEnabled
+        ? isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0))
+        : !!(firstParticipant?.accountID && !firstParticipant?.isPolicyExpenseChat);
     // `common.error.fieldRequired` is shared with the date field, so only surface it on the amount input when the
     // amount itself is the missing value.
     const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && !transactionSlice?.isAmountSet;
@@ -105,20 +118,21 @@ function AmountField({
 
     const effectiveCurrency = isDistanceRequest ? distanceRateCurrency : (iouCurrencyCode ?? CONST.CURRENCY.USD);
     const decimals = getCurrencyDecimals(effectiveCurrency);
-    // In the manual expense flow the amount field starts empty (transaction.amount defaults to 0 before the user
+    // In the new manual expense flow the amount field starts empty (transaction.amount defaults to 0 before the user
     // touches it). Once the user explicitly sets an amount – including 0 – isAmountSet becomes true and we show the
     // real value. This avoids showing "$0.00" as a pre-filled default. Scan and other non-manual flows populate
     // amount programmatically and never set isAmountSet.
-    const shouldShowEmptyAmount = !transactionSlice?.isAmountSet && transactionSlice?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
+    const shouldShowEmptyAmount = isNewManualExpenseFlowEnabled && !transactionSlice?.isAmountSet && transactionSlice?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
     const transactionAmount = shouldShowEmptyAmount ? '' : convertToFrontendAmountAsString(amount, decimals);
-    const allowNegative = shouldEnableNegative(report, policy, iouType, transactionSlice?.participants);
+    const allowNegative = shouldEnableNegative(report, policy, iouType, transactionSlice?.participants, isNewManualExpenseFlowEnabled);
 
     // `autoFocus` on our TextInput only runs on mount. Closing and reopening the RHP often keeps the same mounted
     // instance, so autofocus does not run again. We re-focus when the parent-owned participant picker closes
-    // (visible → hidden) so the amount input gains focus once the user selects a participant. The setTimeout defers
-    // focus past the RHP entry / picker close animation so the input reliably receives focus.
+    // (visible → hidden) so the amount input gains focus once the user selects a participant in the new manual
+    // expense flow. The setTimeout defers focus past the RHP entry / picker close animation so the input reliably
+    // receives focus.
     useEffect(() => {
-        if (!autoFocus || isAmountFieldDisabled || isParticipantPickerVisible) {
+        if (!autoFocus || isAmountFieldDisabled || !isNewManualExpenseFlowEnabled || isParticipantPickerVisible) {
             return;
         }
 
@@ -130,7 +144,7 @@ function AmountField({
             }
             clearTimeout(focusTimeoutRef.current);
         };
-    }, [autoFocus, isAmountFieldDisabled, isParticipantPickerVisible]);
+    }, [autoFocus, isAmountFieldDisabled, isNewManualExpenseFlowEnabled, isParticipantPickerVisible]);
 
     const showCurrencyPicker = () => {
         setIsCurrencyPickerVisible(true);
@@ -291,7 +305,7 @@ function AmountField({
                 value={effectiveCurrency}
                 onInputChange={updateCurrency}
             />
-            {!isAmountFieldDisabled ? (
+            {isNewManualExpenseFlowEnabled && !isAmountFieldDisabled ? (
                 <View style={[styles.mh4, styles.mv2]}>
                     <NumberWithSymbolForm
                         ref={amountInputRef}

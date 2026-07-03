@@ -1,5 +1,3 @@
-import React, {Fragment} from 'react';
-import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import {ReportSubmitToPopoverMeasurableAnchor} from '@components/ReportSubmitToPopoverAnchor';
@@ -12,15 +10,24 @@ import TotalCell from '@components/Search/SearchList/ListItem/TotalCell';
 import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
 import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getBase62ReportID from '@libs/getBase62ReportID';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
-import ExpenseReportListItemAvatar from './ExpenseReportListItemAvatar';
+
+import React, {Fragment} from 'react';
+import {View} from 'react-native';
+
 import type {ExpenseReportListItemRowWideProps} from './types';
+
+import ExpenseReportListItemAvatar from './ExpenseReportListItemAvatar';
 
 function ExpenseReportListItemRowWide({
     item,
@@ -50,6 +57,9 @@ function ExpenseReportListItemRowWide({
 
     const currency = item.currency ?? CONST.CURRENCY.USD;
     const {totalDisplaySpend = 0, nonReimbursableSpend = 0, reimbursableSpend = 0, isAllScanning: isScanning = false} = item;
+    const submitterUserID = item.submitterUserID;
+    const submitterPayrollID = item.submitterPayrollID;
+    const orderDealNumbers = item.orderDealNumbers;
 
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: (
@@ -175,6 +185,21 @@ function ExpenseReportListItemRowWide({
                     currency={currency}
                     isScanning={isScanning}
                 />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID)]}>
+                <TextCell text={submitterUserID} />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID)]}>
+                <TextCell text={submitterPayrollID} />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS)]}>
+                <TextCell text={orderDealNumbers} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: (
