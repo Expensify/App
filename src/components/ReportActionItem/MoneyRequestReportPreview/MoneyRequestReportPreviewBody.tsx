@@ -1,20 +1,27 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import {useReportPreviewActions, useReportPreviewAnimationState, useReportPreviewData, useReportPreviewUIState} from './MoneyRequestReportPreviewContext';
 import ReportPreviewActionButton from './ReportPreviewActionButton';
 import ReportPreviewHeader from './ReportPreviewHeader';

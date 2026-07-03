@@ -1,24 +1,31 @@
-import {reportNameSelector} from '@selectors/ReportAttributes';
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Animated from 'react-native-reanimated';
 import Icon from '@components/Icon';
 import MoneyReportHeaderStatusBarSkeleton from '@components/MoneyReportHeaderStatusBarSkeleton';
 import {PressableWithFeedback} from '@components/Pressable';
 import StatusBadge from '@components/StatusBadge';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation} from '@libs/ReportUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {reportNameSelector} from '@selectors/ReportAttributes';
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
+
 import {useReportPreviewActions, useReportPreviewCarouselState, useReportPreviewData, useReportPreviewUIState} from './MoneyRequestReportPreviewContext';
 
 /**

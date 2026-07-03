@@ -1,11 +1,15 @@
-import React from 'react';
-import {View} from 'react-native';
 import Text from '@components/Text';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import {useReportPreviewData, useReportPreviewUIState} from './MoneyRequestReportPreviewContext';
 
 /**

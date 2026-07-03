@@ -1,11 +1,9 @@
-import {useFocusEffect} from '@react-navigation/native';
-import type {ListRenderItem} from '@shopify/flash-list';
-import React, {useCallback, useDeferredValue, useMemo, useState} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
+
 import useOnyx from '@hooks/useOnyx';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
@@ -23,6 +21,7 @@ import {startSpan} from '@libs/telemetry/activeSpans';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -30,6 +29,15 @@ import {transactionViolationsByIDsSelector} from '@src/selectors/TransactionViol
 import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import type {ListRenderItem} from '@shopify/flash-list';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useDeferredValue, useMemo, useState} from 'react';
+
+import type {MoneyRequestReportPreviewStyleType} from './types';
+
 import {
     ReportPreviewActionsContext,
     ReportPreviewAnimationStateContext,
@@ -40,7 +48,6 @@ import {
     ReportPreviewMetaContext,
     ReportPreviewUIStateContext,
 } from './MoneyRequestReportPreviewContext';
-import type {MoneyRequestReportPreviewStyleType} from './types';
 import usePreviewMessageAnimation from './usePreviewMessageAnimation';
 import useReportPreviewCarousel from './useReportPreviewCarousel';
 
@@ -152,10 +159,16 @@ function MoneyRequestReportPreviewProvider({
     };
     const previewCarouselMinWidth = shouldUseNarrowLayout ? CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_NARROW_WIDTH : CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_WIDE_WIDTH;
 
-    // These read the report's transactions from Onyx by ID and are recomputed each render (the provider re-renders
-    // when `transactions` change), matching the inline `transactionsWithReceipts`/`numberOfPendingRequests` below.
-    const areAllRequestsBeingSmartScanned = areAllRequestsBeingSmartScannedReportUtils(iouReportID, action);
-    const hasNonReimbursableTransactions = hasNonReimbursableTransactionsReportUtils(iouReportID);
+    // These read the report's transactions from Onyx by ID rather than from the `transactions` argument, so they
+    // must recompute when transactions change. `transactions` is intentionally listed as a dependency to force that recomputation
+    const {areAllRequestsBeingSmartScanned, hasNonReimbursableTransactions} = useMemo(
+        () => ({
+            areAllRequestsBeingSmartScanned: areAllRequestsBeingSmartScannedReportUtils(iouReportID, action),
+            hasNonReimbursableTransactions: hasNonReimbursableTransactionsReportUtils(iouReportID),
+        }),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [transactions, iouReportID, action],
+    );
 
     const {isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation, startSubmittingAnimation} =
         usePaymentAnimations();
