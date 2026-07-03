@@ -9,29 +9,29 @@ platform: new
 
 # Fix a billing issue
 
-If Expensify can't process your subscription payment, a message appears at the top of **Account > Subscription** explaining the problem and the action required to resolve it.
+Billing issues occur when Expensify can't successfully process payment for your Workspace subscription.
 
-Only the **Workspace owner** can resolve billing issues.
+When this happens, only the Workspace owner is notified. A message in **Account > Subscription** explains why payment couldn't be processed and what action is required.
 
-For common reasons why billing fails, see [Understand Why Billing Issues Occur](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/resolve-billing-issues/Understand-Why-Billing-Issues-Occur). 
-
----
-
-## Where billing issues appear
-
-When a billing issue occurs, you'll see it in several places throughout the app:
-
- - A red dot on **Account** in the navigation tabs (on the left on web, on the bottom on mobile).
- - A red dot next to **Subscription** under **Account**.
- - A message at the top of **Account > Subscription** explaining the billing issue and any action required.
-
-The notification remains visible until the billing issue is resolved.
+If a billing issue isn't resolved, the Workspace loses access to paid features until payment is successfully processed.
 
 ---
+
+## Check why your payment failed
+
+Go to **Account > Subscription**.
+
+If a billing issue exists, the Workspace owner will see:
+
+- A red dot on **Account** in the navigation tabs (on the left on web, on the bottom on mobile).
+- A red dot next to **Subscription** under **Account**.
+- A message at the top of **Account > Subscription** explaining why payment couldn't be processed and what you need to do next.
+
+The red notification dot remains visible until the billing issue is resolved.
 
 ## How to fix a billing issue
 
-1. Go to **Account > Subscription**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile) go to **Account > Subscription**.
 2. Review the message at the top of the page.
 3. Complete the action shown.
 
@@ -62,8 +62,21 @@ After payment is successfully processed:
 
 ## Why can't I fix the billing issue?
 
-Only the **Workspace owner** can manage subscription payments. If you don't see the payment options, make sure you're signed in as the Workspace owner.
+Only the **Workspace owner** can manage subscription payments. If you don't see the **Subscription** under **Account**, make sure you're signed in as the Workspace owner.
 
-## Can I fix a billing issue from the mobile app?
+## What happens if a billing issue isn't fixed?
 
-No. Subscription management is available on the web only.
+The billing issue remains visible until it's resolved. If payment isn't successfully processed, the Workspace loses access to paid features. Access is restored after payment succeeds.
+
+## Why did my payment fail?
+
+Common reasons include:
+
+- Your payment card couldn't be charged.
+- Your payment card has expired or is about to expire.
+- Your payment requires authentication, such as 3D Secure verification.
+- Your payment information is no longer valid.
+- Your payment is past due.
+- A billing dispute is preventing payment.
+
+To see the specific reason for your Workspace, go to **Account > Subscription**.
