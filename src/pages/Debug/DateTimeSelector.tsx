@@ -33,16 +33,8 @@ type DateTimeSelectorProps = {
     ref?: ForwardedRef<View>;
 };
 
-function DateTimeSelector(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    {
-        errorText = '',
-        name,
-        value,
-        onInputChange,
-        ref,
-    }: DateTimeSelectorProps,
-) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function DateTimeSelector({errorText = '', name, value, onInputChange, ref}: DateTimeSelectorProps) {
     const fieldValue = (useRoute().params as Record<string, string> | undefined)?.[name];
 
     useEffect(() => {

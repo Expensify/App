@@ -18,7 +18,8 @@ function useOpenConciergeAnywhere() {
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
-    const openConciergeAnywhere = () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const openConciergeAnywhere = (_options?: {forceConcierge?: boolean}) => {
         navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
     };
 

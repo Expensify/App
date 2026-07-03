@@ -39,18 +39,8 @@ type ConstantSelectorProps = {
     ref: ForwardedRef<View>;
 };
 
-function ConstantSelector(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    {
-        formType,
-        policyID,
-        errorText = '',
-        name,
-        value,
-        onInputChange,
-        ref,
-    }: ConstantSelectorProps,
-) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function ConstantSelector({formType, policyID, errorText = '', name, value, onInputChange, ref}: ConstantSelectorProps) {
     const fieldValue = (useRoute().params as Record<string, string> | undefined)?.[name];
 
     useEffect(() => {
