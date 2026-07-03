@@ -27,16 +27,12 @@ type AttendeesCellProps = {
 
 function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
     const defaultAvatars = useDefaultAvatars();
-    const [loginToAccountIDMap] = useOnyx(ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP);
-    const attendeeIcons: IconType[] = attendees.map((attendee) => {
-        const accountID = loginToAccountIDMap?.[attendee.email ?? ''] ?? CONST.DEFAULT_NUMBER_ID;
-        return {
-            id: accountID,
-            name: attendee.displayName ?? attendee.email,
-            source: (attendee.avatarUrl || getDefaultAvatar({accountID, accountEmail: attendee.email, defaultAvatars})) ?? '',
-            type: CONST.ICON_TYPE_AVATAR,
-        };
-    });
+    const attendeeIcons: IconType[] = attendees.map((attendee) => ({
+        id: attendee.accountID ?? CONST.DEFAULT_NUMBER_ID,
+        name: attendee.displayName ?? attendee.email,
+        source: (attendee.avatarUrl || getDefaultAvatar({accountID: attendee.accountID, accountEmail: attendee.email, defaultAvatars})) ?? '',
+        type: CONST.ICON_TYPE_AVATAR,
+    }));
 
     const theme = useTheme();
     const styles = useThemeStyles();
