@@ -2873,4 +2873,6 @@ export type {
     RilletConnectionsConfig,
     RilletExport,
     RilletBankAccount,
+    RilletAutoSync,
+    RilletSync,
 };

@@ -4,20 +4,28 @@ import type {ValueOf} from 'type-fest';
 import {write} from '@libs/API';
 import type {
     ConnectPolicyToRilletParams,
+    UpdateRilletAccountingMethodParams,
+    UpdateRilletAutoSyncParams,
+    UpdateRilletBillPaymentAccountParams,
     UpdateRilletCreditCardAccountParams,
     UpdateRilletDefaultVendorParams,
     UpdateRilletEnableNewCategoriesParams,
     UpdateRilletExportDateParams,
     UpdateRilletExporterParams,
     UpdateRilletFieldMappingParams,
+    UpdateRilletSettlementsAccountParams,
     UpdateRilletSubsidiaryParams,
+    UpdateRilletSyncExpensifyCardSettlementsParams,
+    UpdateRilletSyncReimbursedReportsParams,
     UpdateRilletSyncTaxRatesParams,
+    UpdateRilletSyncTravelInvoicingSettlementsParams,
+    UpdateRilletTravelInvoicingSettlementsAccountParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {RilletCoding, RilletConnectionsConfig, RilletExport} from '@src/types/onyx/Policy';
+import type {RilletAutoSync, RilletCoding, RilletConnectionsConfig, RilletExport, RilletSync} from '@src/types/onyx/Policy';
 
 function connectToRillet(policyID: string, apiKey: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
@@ -346,6 +354,151 @@ function prepareRilletExportOptimisticData<TSettingName extends keyof RilletExpo
     return {optimisticData, successData, failureData};
 }
 
+function prepareRilletAutoSyncOptimisticData(policyID: string, enabled: RilletAutoSync['enabled'], oldEnabled?: RilletAutoSync['enabled'] | null) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    rillet: {
+                        config: {
+                            autoSync: {
+                                enabled,
+                            },
+                            pendingFields: {
+                                [CONST.RILLET_CONFIG.AUTO_SYNC]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [CONST.RILLET_CONFIG.AUTO_SYNC]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    rillet: {
+                        config: {
+                            pendingFields: {
+                                [CONST.RILLET_CONFIG.AUTO_SYNC]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    rillet: {
+                        config: {
+                            autoSync: {
+                                enabled: oldEnabled ?? null,
+                            },
+                            pendingFields: {
+                                [CONST.RILLET_CONFIG.AUTO_SYNC]: null,
+                            },
+                            errorFields: {
+                                [CONST.RILLET_CONFIG.AUTO_SYNC]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    return {optimisticData, successData, failureData};
+}
+
+function prepareRilletSyncOptimisticData<TSettingName extends keyof RilletSync>(
+    policyID: string,
+    settingName: TSettingName,
+    settingValue: Partial<RilletSync[TSettingName]>,
+    oldSettingValue: Partial<RilletSync[TSettingName]> | null,
+) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    rillet: {
+                        config: {
+                            sync: {
+                                [settingName]: settingValue ?? null,
+                            },
+                            pendingFields: {
+                                [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [settingName]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    rillet: {
+                        config: {
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    rillet: {
+                        config: {
+                            sync: {
+                                [settingName]: oldSettingValue ?? null,
+                            },
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    return {optimisticData, successData, failureData};
+}
+
 function updateRilletSubsidiary(policyID: string, subsidiaryID: RilletConnectionsConfig['subsidiaryID'], oldSubsidiaryID?: RilletConnectionsConfig['subsidiaryID']) {
     const onyxData = prepareRilletOptimisticData(policyID, CONST.RILLET_CONFIG.SUBSIDIARY_ID, subsidiaryID, oldSubsidiaryID ?? null);
     const params: UpdateRilletSubsidiaryParams = {
@@ -424,6 +577,87 @@ function updateRilletCreditCardAccount(policyID: string, creditCardAccountCode: 
     write(WRITE_COMMANDS.UPDATE_RILLET_CREDIT_CARD_ACCOUNT, parameters, onyxData);
 }
 
+function updateRilletAutoSync(policyID: string, enabled: RilletAutoSync['enabled'], oldEnabled?: RilletAutoSync['enabled']) {
+    const onyxData = prepareRilletAutoSyncOptimisticData(policyID, enabled, oldEnabled ?? null);
+    const parameters: UpdateRilletAutoSyncParams = {
+        policyID,
+        enabled,
+    };
+    write(WRITE_COMMANDS.UPDATE_RILLET_AUTO_SYNC, parameters, onyxData);
+}
+
+function updateRilletAccountingMethod(policyID: string, accountingMethod: RilletExport['accountingMethod'], oldAccountingMethod?: RilletExport['accountingMethod']) {
+    const onyxData = prepareRilletExportOptimisticData(policyID, CONST.RILLET_CONFIG.ACCOUNTING_METHOD, accountingMethod, oldAccountingMethod ?? null);
+    const parameters: UpdateRilletAccountingMethodParams = {
+        policyID,
+        accountingMethod,
+    };
+    write(WRITE_COMMANDS.UPDATE_RILLET_ACCOUNTING_METHOD, parameters, onyxData);
+}
+
+function updateRilletSyncReimbursedReports(policyID: string, enabled: RilletSync['syncReimbursedReports'], oldEnabled?: RilletSync['syncReimbursedReports']) {
+    const onyxData = prepareRilletSyncOptimisticData(policyID, CONST.RILLET_CONFIG.SYNC_REIMBURSED_REPORTS, enabled, oldEnabled ?? null);
+    const parameters: UpdateRilletSyncReimbursedReportsParams = {
+        policyID,
+        enabled,
+    };
+    write(WRITE_COMMANDS.UPDATE_RILLET_SYNC_REIMBURSED_REPORTS, parameters, onyxData);
+}
+
+function updateRilletBillPaymentAccount(policyID: string, accountCode: RilletSync['billPaymentAccountCode'], oldAccountCode?: RilletSync['billPaymentAccountCode']) {
+    const onyxData = prepareRilletSyncOptimisticData(policyID, CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE, accountCode, oldAccountCode ?? null);
+    const parameters: UpdateRilletBillPaymentAccountParams = {
+        policyID,
+        accountCode,
+    };
+    write(WRITE_COMMANDS.UPDATE_RILLET_BILL_PAYMENT_ACCOUNT, parameters, onyxData);
+}
+
+function updateRilletSyncExpensifyCardSettlements(policyID: string, enabled: RilletSync['syncExpensifyCardSettlements'], oldEnabled?: RilletSync['syncExpensifyCardSettlements']) {
+    const onyxData = prepareRilletSyncOptimisticData(policyID, CONST.RILLET_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS, enabled, oldEnabled ?? null);
+    const parameters: UpdateRilletSyncExpensifyCardSettlementsParams = {
+        policyID,
+        enabled,
+    };
+    write(WRITE_COMMANDS.UPDATE_RILLET_SYNC_EXPENSIFY_CARD_SETTLEMENTS, parameters, onyxData);
+}
+
+function updateRilletSettlementsAccount(policyID: string, bankAccountID: RilletSync['settlementsBankAccountID'], oldBankAccountID?: RilletSync['settlementsBankAccountID']) {
+    const onyxData = prepareRilletSyncOptimisticData(policyID, CONST.RILLET_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID, bankAccountID, oldBankAccountID ?? null);
+    const parameters: UpdateRilletSettlementsAccountParams = {
+        policyID,
+        bankAccountID,
+    };
+    write(WRITE_COMMANDS.UPDATE_RILLET_SETTLEMENTS_ACCOUNT, parameters, onyxData);
+}
+
+function updateRilletSyncTravelInvoicingSettlements(policyID: string, enabled: RilletSync['syncTravelInvoicingSettlements'], oldEnabled?: RilletSync['syncTravelInvoicingSettlements']) {
+    const onyxData = prepareRilletSyncOptimisticData(policyID, CONST.RILLET_CONFIG.SYNC_TRAVEL_INVOICING_SETTLEMENTS, enabled, oldEnabled ?? null);
+    const parameters: UpdateRilletSyncTravelInvoicingSettlementsParams = {
+        policyID,
+        enabled,
+    };
+    write(WRITE_COMMANDS.UPDATE_RILLET_SYNC_TRAVEL_INVOICING_SETTLEMENTS, parameters, onyxData);
+}
+
+function updateRilletTravelInvoicingSettlementsAccount(
+    policyID: string,
+    travelInvoicingSettlementsBankAccountID: RilletSync['travelInvoicingSettlementsBankAccountID'],
+    oldTravelInvoicingSettlementsBankAccountID?: RilletSync['travelInvoicingSettlementsBankAccountID'],
+) {
+    const onyxData = prepareRilletSyncOptimisticData(
+        policyID,
+        CONST.RILLET_CONFIG.TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID,
+        travelInvoicingSettlementsBankAccountID,
+        oldTravelInvoicingSettlementsBankAccountID ?? null,
+    );
+    const parameters: UpdateRilletTravelInvoicingSettlementsAccountParams = {
+        policyID,
+        travelInvoicingSettlementsBankAccountID,
+    };
+    write(WRITE_COMMANDS.UPDATE_RILLET_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT, parameters, onyxData);
+}
+
 export {
     connectToRillet,
     clearRilletErrorField,
@@ -435,4 +669,12 @@ export {
     updateRilletExportDate,
     updateRilletDefaultVendor,
     updateRilletCreditCardAccount,
+    updateRilletAutoSync,
+    updateRilletAccountingMethod,
+    updateRilletSyncReimbursedReports,
+    updateRilletBillPaymentAccount,
+    updateRilletSyncExpensifyCardSettlements,
+    updateRilletSettlementsAccount,
+    updateRilletSyncTravelInvoicingSettlements,
+    updateRilletTravelInvoicingSettlementsAccount,
 };
