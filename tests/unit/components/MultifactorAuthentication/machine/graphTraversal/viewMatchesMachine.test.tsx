@@ -1,5 +1,5 @@
 import {act, fireEvent, screen} from '@testing-library/react-native';
-import {describeTraversalEvent, isTestScenarioInitEvent} from 'tests/utils/mfa/flowFixtures';
+import {isTestScenarioInitEvent} from 'tests/utils/mfa/flowFixtures';
 import getWalkedPaths from 'tests/utils/mfa/flowPaths';
 import {getMfaControls, renderMfaUi} from 'tests/utils/mfa/realUi/harness';
 import {pendingModalClose, resetMfaUiMocks} from 'tests/utils/mfa/realUi/mocks';
@@ -17,7 +17,7 @@ import SCREENS from '@src/SCREENS';
 // navigator, drives each machine event as a real gesture, and asserts the UI markers of the reached
 // state at every step of every generated path. A state or event added to the machine appears in the
 // walked paths automatically, and the type checks and guard suites then demand the hand-written
-// pieces it needs, such as an executor, a payload fixture, or a UI assertion. The machine-only suites
+// pieces it needs, such as an executor or a UI assertion. The machine-only suites
 // live in `everyStateReachable.test.ts` and the coverage guards in `coverageStaysComplete.test.ts`.
 
 // This mock forces a wide layout so the navigator renders the backdrop used as the mounted marker.
@@ -46,14 +46,14 @@ const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 type MfaEventType = MfaEvent['type'];
 
 /**
- * The event carries only its `type` here because `xstate/graph` erases the payload from the executor's
- * step type. The INIT executor recovers the payload through `isTestScenarioInitEvent`.
+ * The event carries only its `type` here because `xstate/graph` erases the remaining fields from the
+ * executor's step type. The INIT executor recovers them through `isTestScenarioInitEvent`.
  */
 type MfaEventExecutor = (step: {event: {type: MfaEventType}}) => Promise<void>;
 
 /**
- * `INIT` starts a flow through the public API, using the scenario and payload from the step's own
- * event. `MODAL_CLOSED` runs the navigator's teardown callback. `satisfies Record<MfaEventType, ...>`
+ * `INIT` starts a flow through the public API, using the scenario from the step's own event.
+ * `MODAL_CLOSED` runs the navigator's teardown callback. `satisfies Record<MfaEventType, ...>`
  * requires an explicit executor for every machine event.
  */
 /* eslint-disable @typescript-eslint/naming-convention -- keys mirror the machine's event type union. */
@@ -63,7 +63,7 @@ const mfaEventExecutors = {
             throw new Error(`The INIT executor received an event outside the test-scenario fixtures: ${JSON.stringify(event)}`);
         }
         await act(async () => {
-            await getMfaControls().executeScenario(event.scenarioName, event.payload);
+            await getMfaControls().executeScenario(event.scenarioName);
         });
         await waitForBatchedUpdatesWithAct();
         // The initial screen's `onLayout` does not fire in jsdom, so the test calls the same handler to flush the
@@ -109,15 +109,14 @@ const walkedPaths = getWalkedPaths();
 const INIT_STEP_EVENT_TYPE = 'xstate.init';
 
 /**
- * Builds the event part of a test name. `path.description` would serialize the complete event payload,
- * so the name uses the short labels from `describeTraversalEvent` instead. The synthetic `xstate.init`
- * event is excluded because it is not part of `MfaEvent`.
+ * Builds the event part of a test name. The synthetic `xstate.init` event is excluded because it is
+ * not part of `MfaEvent`.
  */
 function describeDrivenEvents(steps: ReadonlyArray<{event: {type: string}}>): string {
     const drivenEventLabels = steps
         .map((step) => step.event)
         .filter((event) => event.type !== INIT_STEP_EVENT_TYPE)
-        .map(describeTraversalEvent);
+        .map((event) => event.type);
     return drivenEventLabels.length > 0 ? drivenEventLabels.join(' -> ') : 'no driven events';
 }
 

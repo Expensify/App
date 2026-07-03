@@ -5,7 +5,7 @@ import {getShortestPaths, TestModel} from 'xstate/graph';
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
 import type {MfaEvent} from '@components/MultifactorAuthentication/machine/types';
 import CONST from '@src/CONST';
-import createInitEvent, {MFA_TEST_PAYLOAD} from './flowFixtures';
+import createInitEvent from './flowFixtures';
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
@@ -33,13 +33,6 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
         events: [createInitEvent(), {type: 'CLOSE_MODAL'}, {type: 'MODAL_CLOSED'}],
         endState: MFA_STATE.CLOSED,
     },
-    // The payload flow keeps its payload in the context until `closed` wipes it, so the graph treats
-    // its `closing` as a different state and no other journey drives MODAL_CLOSED from there.
-    {
-        description: 'the payload teardown journey ends back in the closed state',
-        events: [createInitEvent(MFA_TEST_PAYLOAD), {type: 'CLOSE_MODAL'}, {type: 'MODAL_CLOSED'}],
-        endState: MFA_STATE.CLOSED,
-    },
     // A completed flow returns to the initial state, so no generated path ever starts a second flow.
     // Only this journey runs a second flow over the module-level state the first one leaves behind,
     // such as the buffered navigation.
@@ -57,11 +50,10 @@ type MfaEventFixtures = {
 /**
  * Concrete graph-traversal fixtures for every application event. The exhaustive keyed type makes a
  * new event fail compilation until its real fixture is added instead of letting XState substitute
- * `{type}` and potentially bypass payload-dependent behavior. INIT has cases with and without a
- * payload so both flows are covered separately.
+ * `{type}` and potentially bypass event-dependent behavior.
  */
 const MFA_GRAPH_EVENT_FIXTURES = {
-    INIT: [createInitEvent(), createInitEvent(MFA_TEST_PAYLOAD)],
+    INIT: [createInitEvent()],
     CLOSE_MODAL: [{type: 'CLOSE_MODAL'}],
     MODAL_CLOSED: [{type: 'MODAL_CLOSED'}],
 } satisfies MfaEventFixtures;

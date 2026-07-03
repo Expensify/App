@@ -1,6 +1,5 @@
 import {adjacencyMapToArray, getAdjacencyMap, serializeSnapshot} from 'xstate/graph';
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
-import {describeTraversalEvent} from './flowFixtures';
 import type {MfaStatePath} from './flowPaths';
 import {DELAYED_EVENT_PREFIX, getTraversalEvents} from './flowPaths';
 
@@ -35,7 +34,7 @@ function getUiDrivableTransitions(): UiDrivableTransition[] {
         .filter((edge) => !edge.event.type.startsWith(DELAYED_EVENT_PREFIX))
         .map((edge) => ({
             key: getTransitionKey(serializeSnapshot(edge.state), edge.event),
-            description: `${JSON.stringify(edge.state.value)} --${describeTraversalEvent(edge.event)}--> ${JSON.stringify(edge.nextState.value)}`,
+            description: `${JSON.stringify(edge.state.value)} --${edge.event.type}--> ${JSON.stringify(edge.nextState.value)}`,
         }));
 }
 
