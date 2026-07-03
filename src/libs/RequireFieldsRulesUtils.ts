@@ -557,16 +557,12 @@ function getRequireFieldsTableData({
 }
 
 export {
-    categoryHasRequireDirectionFields,
-    categoryHasWaiveDirectionFields,
     deleteRequireFieldsRule,
     getEffectiveRequireFieldsRuleForm,
     getRequireFieldsFormFromCategory,
-    getRequireFieldsRuleKey,
     getRequireFieldsTableData,
     inferFieldRequirementsDirection,
     isFieldRequirementsDirection,
-    parseRequireFieldsRuleKey,
     saveRequireFieldsRule,
 };
 export type {FieldRequirementsDirection, RequireFieldsTableItem};
