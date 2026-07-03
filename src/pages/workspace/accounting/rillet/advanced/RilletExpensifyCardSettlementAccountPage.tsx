@@ -5,7 +5,7 @@ import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearRilletErrorField, updateRilletCreditCardAccount} from '@libs/actions/connections/Rillet';
+import {clearRilletErrorField, updateRilletSettlementsAccount} from '@libs/actions/connections/Rillet';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
@@ -13,38 +13,40 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {RilletAccount} from '@src/types/onyx/Policy';
+import type {RilletBankAccount} from '@src/types/onyx/Policy';
 
-type AccountListItem = ListItem & {
-    value: RilletAccount['id'];
+type BankAccountListItem = ListItem & {
+    value: RilletBankAccount['id'];
 };
 
-function RilletCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
+function RilletExpensifyCardSettlementAccountPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
     const rilletConfig = policy?.connections?.rillet?.config;
     const rilletData = policy?.connections?.rillet?.data;
-    const companyCardAccount = rilletData?.accounts?.find((account) => account.code === rilletConfig?.export?.creditCardAccountCode);
+    const settlementsBankAccountID = rilletConfig?.sync?.settlementsBankAccountID;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_ADVANCED.getRoute(policyID) : undefined;
 
-    const data: AccountListItem[] =
-        rilletData?.accounts?.map((accountItem) => ({
-            value: accountItem.id,
-            text: accountItem.name,
-            keyForList: accountItem.id,
-            isSelected: companyCardAccount?.id === accountItem.id,
-        })) ?? [];
+    const data: BankAccountListItem[] =
+        rilletData?.bankAccounts
+            ?.filter((bankAccountItem) => bankAccountItem.status === CONST.RILLET_ACCOUNT_STATUS.ACTIVE)
+            .map((bankAccountItem) => ({
+                value: bankAccountItem.id,
+                text: bankAccountItem.name,
+                keyForList: bankAccountItem.id,
+                isSelected: settlementsBankAccountID === bankAccountItem.id,
+            })) ?? [];
 
     const headerContent = (
         <View>
-            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.rillet.companyCardAccount.description')}</Text>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.rillet.settlementAccount.description')}</Text>
         </View>
     );
 
-    const selectDefaultVendor = (item: AccountListItem) => {
-        if (item.value !== companyCardAccount?.id && policyID) {
-            updateRilletCreditCardAccount(policyID, item.value, companyCardAccount?.id);
+    const setSettlementsAccount = (item: BankAccountListItem) => {
+        if (item.value !== settlementsBankAccountID && policyID) {
+            updateRilletSettlementsAccount(policyID, item.value, settlementsBankAccountID);
         }
         Navigation.goBack(backPath);
     };
@@ -54,21 +56,21 @@ function RilletCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName="RilletCompanyCardAccountPage"
-            title="workspace.rillet.companyCardAccount.label"
+            displayName="RilletExpensifyCardSettlementAccountPage"
+            title="workspace.rillet.settlementAccount.label"
             data={data}
             headerContent={headerContent}
-            onSelectRow={selectDefaultVendor}
+            onSelectRow={setSettlementsAccount}
             shouldSingleExecuteRowSelect
-            initiallyFocusedOptionKey={companyCardAccount?.id}
+            initiallyFocusedOptionKey={settlementsBankAccountID}
             onBackButtonPress={() => Navigation.goBack(backPath)}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.RILLET}
-            pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE], rilletConfig?.pendingFields)}
-            errors={getLatestErrorField(rilletConfig, CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE)}
+            pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID], rilletConfig?.pendingFields)}
+            errors={getLatestErrorField(rilletConfig, CONST.RILLET_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE)}
+            onClose={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID)}
         />
     );
 }
 
-export default withPolicyConnections(RilletCompanyCardAccountPage);
+export default withPolicyConnections(RilletExpensifyCardSettlementAccountPage);
