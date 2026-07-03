@@ -2782,22 +2782,18 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE]: {
+    [SCREENS.WORKSPACE.DYNAMIC_RECEIPT_PARTNERS_INVITE]: {
         policyID: string;
         integration: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT]: {
         policyID: string;
         integration: ValueOf<typeof CONST.POLICY.RECEIPT_PARTNERS.NAME>;
     };
 
-    [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT]: {
+    [SCREENS.WORKSPACE.DYNAMIC_RECEIPT_PARTNERS_INVITE_EDIT]: {
         policyID: string;
         integration: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_COMPANY_CARDS_ADD_NEW]: {
         policyID: string;
