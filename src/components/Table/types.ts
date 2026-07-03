@@ -1,7 +1,9 @@
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import type {PropsWithChildren} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
 import type {FilterConfig, FilteringMethods, IsItemInFilterCallback} from './middlewares/filtering';
+import type {HighlightingMethods} from './middlewares/highlight';
 import type {IsItemInSearchCallback, SearchingMethods} from './middlewares/searching';
 import type {SelectionMethods} from './middlewares/selection';
 import type {ActiveSorting, CompareItemsCallback, SortingMethods} from './middlewares/sorting';
@@ -13,8 +15,11 @@ type TableData = {
     /** A unique identifier for the row */
     keyForList: string;
 
-    /** Whether or not the row is disabled. Prevents row selection when the row is disabled */
+    /** Whether or not the row is disabled. Prevents clicking the row & renders it with disabled styles. */
     disabled?: boolean;
+
+    /** Optionally disable a specific row from selection, when selection is enabled */
+    isSelectionDisabled?: boolean;
 };
 
 /**
@@ -55,7 +60,19 @@ type TableColumn<ColumnKey extends string = string> = {
 
 type TableRow<DataType extends TableData> = DataType & {
     /** Whether or not the row is selected or not */
-    selected: boolean;
+    selected?: boolean;
+
+    /** Whether or not the row should animate in highlighted */
+    shouldAnimateInHighlight?: boolean;
+};
+
+/**
+ * Props passed to table row render callbacks.
+ */
+type TableRenderRowProps<TItem extends TableData> = {
+    item: TItem;
+    rowIndex: number;
+    shouldUseNarrowTableLayout: boolean;
 };
 
 /**
@@ -65,7 +82,11 @@ type TableRow<DataType extends TableData> = DataType & {
  * @template ColumnKey - A string literal type representing the valid column keys.
  * @template FilterKey - A string literal type representing the valid filter keys.
  */
-type TableMethods<ColumnKey extends string = string, FilterKey extends string = string> = SortingMethods<ColumnKey> & FilteringMethods<FilterKey> & SearchingMethods & SelectionMethods;
+type TableMethods<ColumnKey extends string = string, FilterKey extends string = string> = SortingMethods<ColumnKey> &
+    FilteringMethods<FilterKey> &
+    SearchingMethods &
+    SelectionMethods &
+    HighlightingMethods;
 
 /**
  * The ref handle type for the Table component.
@@ -176,6 +197,7 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
 export type {
     TableData,
     TableRow,
+    TableRenderRowProps,
     TableColumn,
     TableMethods,
     TableHandle,

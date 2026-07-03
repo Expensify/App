@@ -1,19 +1,24 @@
-import React, {memo, useCallback, useState} from 'react';
-import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {GestureStateChangeEvent, GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import Animated, {useAnimatedStyle, useDerivedValue} from 'react-native-reanimated';
-import {scheduleOnRN} from 'react-native-worklets';
 import Hoverable from '@components/Hoverable';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {useVolumeActions, useVolumeState} from '@components/VideoPlayerContexts/VolumeContext';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clamp, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+import type {GestureStateChangeEvent, GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
+
+import React, {memo, useCallback, useState} from 'react';
+import {View} from 'react-native';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import Animated, {useAnimatedStyle, useDerivedValue} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 
 type VolumeButtonProps = {
     /** Style for the volume button. */
