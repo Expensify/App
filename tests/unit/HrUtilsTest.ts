@@ -473,7 +473,6 @@ describe('HRUtils', () => {
     });
 
     describe('isMergeHRManualSyncLimitReached', () => {
-        // Builds a UTC DB timestamp ("yyyy-MM-dd HH:mm:ss") for `hoursAgo` hours before now.
         const dbTimeHoursAgo = (hoursAgo: number) => new Date(Date.now() - hoursAgo * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19);
 
         const makeMergePolicyWithSyncTimestamps = (manualSyncTimestamps?: string[]) =>
