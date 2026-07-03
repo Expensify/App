@@ -85,6 +85,7 @@ function RilletExpensifyCardSettlementAccountPage({policy}: WithPolicyConnection
             title="workspace.rillet.settlementAccount.label"
             data={data}
             headerContent={headerContent}
+            listEmptyContent={listEmptyContent}
             onSelectRow={setSettlementsAccount}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={settlementsBankAccountID}

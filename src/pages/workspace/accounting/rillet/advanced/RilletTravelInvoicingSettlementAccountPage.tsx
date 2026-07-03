@@ -85,6 +85,7 @@ function RilletTravelInvoicingSettlementAccountPage({policy}: WithPolicyConnecti
             title="workspace.rillet.travelInvoicingSettlementAccount.label"
             data={data}
             headerContent={headerContent}
+            listEmptyContent={listEmptyContent}
             onSelectRow={setTravelInvoicingSettlementsAccount}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={travelInvoicingSettlementsBankAccountID}
