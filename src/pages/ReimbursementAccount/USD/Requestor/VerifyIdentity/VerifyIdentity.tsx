@@ -1,16 +1,21 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import Onfido from '@components/Onfido';
 import type {OnfidoData} from '@components/Onfido/types';
 import ScrollView from '@components/ScrollView';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Growl from '@libs/Growl';
+
 import {clearOnfidoToken, updateReimbursementAccountDraft, verifyIdentityForBankAccount} from '@userActions/BankAccounts';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 type VerifyIdentityProps = {
     /** Goes to the previous step */

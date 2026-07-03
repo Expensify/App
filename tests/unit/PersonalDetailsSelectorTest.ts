@@ -1,3 +1,8 @@
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+
+import CONST from '@src/CONST';
+import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+
 import {
     createDisplayDetailsByAccountIDsSelector,
     multiPersonalDetailsSelector,
@@ -7,9 +12,6 @@ import {
     personalDetailsLoginsSelector,
     personalDetailsSelector,
 } from '@selectors/PersonalDetails';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import CONST from '@src/CONST';
-import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 describe('PersonalDetailsSelector', () => {
     const accountID = 123;

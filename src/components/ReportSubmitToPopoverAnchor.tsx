@@ -1,11 +1,14 @@
-import type {RefObject} from 'react';
-import React, {createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useReportSubmitToPopover from '@hooks/useReportSubmitToPopover';
 import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPopover';
+
 import CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+
+import type {RefObject} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 /** Positions the submit-to popover below the Search row Submit button (wide layout). */
 const SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT: AnchorAlignment = {
