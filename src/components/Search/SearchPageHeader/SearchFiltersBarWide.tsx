@@ -1,7 +1,10 @@
-import React from 'react';
 import type {SearchQueryJSON} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
+
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
+import React from 'react';
+
 import SearchFilterBar from './SearchFilterBar';
 import SearchFiltersClearButton from './SearchFiltersClearButton';
 import useSearchFiltersBar from './useSearchFiltersBar';

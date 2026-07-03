@@ -1,6 +1,8 @@
-import type {GestureResponderEvent} from 'react-native';
 import type {FormattedSelectedPaymentMethodIcon} from '@hooks/usePaymentMethodState/types';
+
 import type {AccountData, Card} from '@src/types/onyx';
+
+import type {GestureResponderEvent} from 'react-native';
 
 type PaymentMethodPressHandlerParams = {
     event?: GestureResponderEvent | KeyboardEvent;
