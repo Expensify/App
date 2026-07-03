@@ -1,3 +1,30 @@
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+
+import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useOnyx from '@hooks/useOnyx';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
+import useSelfDMReport from '@hooks/useSelfDMReport';
+
+import {navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
+import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
+import {endSpan} from '@libs/telemetry/activeSpans';
+
+import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
+
+import {setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
+import {setTransactionReport} from '@userActions/Transaction';
+
+import CONST from '@src/CONST';
+import type {IOUType} from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type Transaction from '@src/types/onyx/Transaction';
+
+import type {RefObject} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
 /**
  * Owns the post-capture-only Onyx reads used by navigateGlobalCreate.
  *
@@ -6,26 +33,6 @@
  * returns a stable callable.
  */
 import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react';
-import type {RefObject} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
-import useOnyx from '@hooks/useOnyx';
-import usePersonalPolicy from '@hooks/usePersonalPolicy';
-import useSelfDMReport from '@hooks/useSelfDMReport';
-import {navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
-import Navigation from '@libs/Navigation/Navigation';
-import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
-import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
-import {endSpan} from '@libs/telemetry/activeSpans';
-import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
-import {setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
-import {setTransactionReport} from '@userActions/Transaction';
-import CONST from '@src/CONST';
-import type {IOUType} from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type Transaction from '@src/types/onyx/Transaction';
 
 type NavigateGlobalCreateFn = (transactionIDs: string[], isMultiScanEnabled: boolean) => void;
 

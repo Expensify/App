@@ -1,9 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- baseProps is a minimal test fixture; casting via `as unknown` keeps the test focused on mount-stability instead of dragging in every field of WithCurrentUserPersonalDetailsProps */
 import {render} from '@testing-library/react-native';
-import React, {useEffect} from 'react';
+
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+
 import {NavigateGlobalCreateProvider} from '@pages/iou/request/step/IOURequestStepScan/components/NavigateGlobalCreateContext';
+
 import CONST from '@src/CONST';
+
+import React, {useEffect} from 'react';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Stub the heavy hooks the Subscriber pulls in — this test only cares about
