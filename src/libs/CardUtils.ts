@@ -55,7 +55,6 @@ import lodashSortBy from 'lodash/sortBy';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {CARD_FEED_COLORS, GENERIC_CARD_COLORS} from './CardArtworkColors';
 import DateUtils from './DateUtils';
-import {filterObject} from './ObjectUtils';
 import {areAddressAndPersonalDetailsMissing, arePersonalDetailsMissing, getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
 
@@ -1109,28 +1108,34 @@ function checkIfNewFeedConnected(prevFeedsData: CombinedCardFeeds, currentFeedsD
  * Expensify Cards are also kept — these are cards an admin set to a $0 limit, which the backend then
  * transitions to deactivated/suspended. Admins still need to be able to find and manage them.
  */
-function filterAllInactiveCards(cards: CardList | undefined, includeDeactivated = false) {
+function filterAllInactiveCards(cards: WorkspaceCardsList | undefined, includeDeactivated = false, includeCardList = false): CardList {
+    const result: CardList = {};
     if (!cards) {
-        return {};
+        return result;
     }
 
     const closedStates = new Set<number>([CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED]);
-    return filterObject(cards, (_key, card) => {
-        if (card.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED) {
-            return !!card.nameValuePairs?.frozen || includeDeactivated;
+    for (const key of Object.keys(cards)) {
+        const card = cards[key];
+        if (!card || (key === CONST.COMPANY_CARD.CARD_LIST && !includeCardList)) {
+            continue;
         }
-        return !closedStates.has(card.state);
-    });
+
+        if (key === CONST.COMPANY_CARD.CARD_LIST) {
+            result[key] = card;
+            continue;
+        }
+
+        const isKept = card.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED ? !!card.nameValuePairs?.frozen || includeDeactivated : !closedStates.has(card.state);
+        if (isKept) {
+            result[key] = card;
+        }
+    }
+    return result;
 }
 
 function filterInactiveCards(cardsList: WorkspaceCardsList | undefined) {
-    const {cardList, ...assignedCards} = cardsList ?? {};
-    const filteredAssignedCards = filterAllInactiveCards(assignedCards);
-
-    return {
-        ...(cardList ? {cardList} : {}),
-        ...filteredAssignedCards,
-    } as WorkspaceCardsList;
+    return filterAllInactiveCards(cardsList, false, true) as WorkspaceCardsList;
 }
 
 /**
@@ -1138,13 +1143,7 @@ function filterInactiveCards(cardsList: WorkspaceCardsList | undefined) {
  * keeps all suspended cards so admins can view and edit them.
  */
 function filterInactiveCardsForWorkspace(cardsList: WorkspaceCardsList | undefined) {
-    const {cardList, ...assignedCards} = cardsList ?? {};
-    const filteredAssignedCards = filterAllInactiveCards(assignedCards, true);
-
-    return {
-        ...(cardList ? {cardList} : {}),
-        ...filteredAssignedCards,
-    } as WorkspaceCardsList;
+    return filterAllInactiveCards(cardsList, true, true) as WorkspaceCardsList;
 }
 
 function getAllCardsForWorkspace(
@@ -1164,22 +1163,16 @@ function getAllCardsForWorkspace(
         const isWorkspaceAccountCards = workspaceAccountID !== CONST.DEFAULT_NUMBER_ID && key.includes(workspaceAccountID.toString());
         const isCompanyDomainCards = companyCardsDomainFeeds?.some((domainFeed) => domainFeed.domainID && key.includes(domainFeed.domainID.toString()) && key.includes(domainFeed.feedName));
         const isExpensifyDomainCards = expensifyCardsDomainIDs.some((domainID) => key.includes(domainID.toString()) && key.includes(CONST.EXPENSIFY_CARD.BANK));
-        if (isWorkspaceAccountCards || isCompanyDomainCards || isExpensifyDomainCards) {
-            const values = allCardList?.[key];
-            if (values) {
-                const {cardList: assignableCards, ...assignedCards} = values ?? {};
-                const filteredCards = filterAllInactiveCards(assignedCards, includeDeactivated);
-                Object.assign(cards, filteredCards);
-            }
+        if (!isWorkspaceAccountCards && !isCompanyDomainCards && !isExpensifyDomainCards) {
+            continue;
         }
+        Object.assign(cards, filterAllInactiveCards(allCardList?.[key], includeDeactivated));
     }
     return cards;
 }
 
 function isSmartLimitEnabled(cardsList: CardList) {
-    const {cardList, ...assignedCards} = cardsList ?? {};
-
-    return Object.values(assignedCards).some((card) => card.nameValuePairs?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
+    return Object.keys(cardsList ?? {}).some((key) => key !== CONST.COMPANY_CARD.CARD_LIST && cardsList[key]?.nameValuePairs?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
 }
 
 const CUSTOM_FEEDS = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST.COMPANY_CARD.FEED_BANK_NAME.CSV];
@@ -1274,9 +1267,7 @@ function flattenWorkspaceCardsList(allCardsList: OnyxCollection<WorkspaceCardsLi
         if (!key.includes(workspaceAccountID.toString()) || key.includes(CONST.EXPENSIFY_CARD.BANK)) {
             continue;
         }
-        const {cardList, ...feedCards} = allCardsList[key] ?? {};
-        const filteredCards = filterInactiveCards(feedCards);
-        Object.assign(result, filteredCards);
+        Object.assign(result, filterAllInactiveCards(allCardsList[key]));
     }
     return result;
 }
@@ -1655,12 +1646,14 @@ function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: On
             continue;
         }
 
-        const {cardList, ...assignedCards} = workspaceCards;
-        const isAssigned = Object.values(assignedCards).some(
-            (card) => card && card.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isMatchingCard(card, cardNumberToCheck, cardNumberToCheck),
-        );
-        if (isAssigned) {
-            return true;
+        for (const cardKey of Object.keys(workspaceCards)) {
+            if (cardKey === CONST.COMPANY_CARD.CARD_LIST) {
+                continue;
+            }
+            const card = workspaceCards[cardKey];
+            if (card && card.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isMatchingCard(card, cardNumberToCheck, cardNumberToCheck)) {
+                return true;
+            }
         }
     }
     return false;

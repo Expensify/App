@@ -4390,6 +4390,7 @@ const CONST = {
             COMPANY_CARD: 'CompanyCard',
             EXPENSIFY_CARD: 'ExpensifyCard',
         },
+        CARD_LIST: 'cardList',
         FEED_KEY_SEPARATOR: '#',
         CARD_NUMBER_MASK_CHAR: 'X',
         STEP_NAMES: ['1', '2', '3', '4'],
