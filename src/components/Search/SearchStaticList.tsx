@@ -52,7 +52,9 @@ import SearchTableHeader from './SearchTableHeader';
 const STATIC_LIST_MAX_ITEMS = 10;
 const DEFAULT_COLUMNS: SearchColumnType[] = [];
 
-const PENDING_EXPENSE_REASON_ATTRIBUTES = {context: 'SearchStaticList.PendingExpensePlaceholder'} as const;
+const PENDING_EXPENSE_REASON_ATTRIBUTES = {
+    context: 'SearchStaticList.PendingExpensePlaceholder',
+} as const;
 
 type SearchStaticListProps = {
     searchResults: SearchResults | undefined;
@@ -83,8 +85,12 @@ function SearchStaticList({
     const session = useSession();
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const email = session?.email;
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasSeenTourSelector,
+    });
+    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasCompletedGuidedSetupFlowSelector,
+    });
 
     const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(
         () => hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH) || Navigation.getIsFullscreenPreInsertedUnderRHP(),
@@ -183,9 +189,17 @@ function SearchStaticList({
 
         const stateNum = item.report?.stateNum;
         const statusNum = item.report?.statusNum;
-        const statusText = getReportStatusTranslation({stateNum, statusNum, translate});
+        const statusText = getReportStatusTranslation({
+            stateNum,
+            statusNum,
+            translate,
+        });
         const reportStatusColorStyle = getReportStatusColorStyle(theme, stateNum, statusNum);
-        const statusTooltipText = getReportStatusTooltipTranslation({stateNum, statusNum, translate});
+        const statusTooltipText = getReportStatusTooltipTranslation({
+            stateNum,
+            statusNum,
+            translate,
+        });
 
         return (
             <PressableWithoutFeedback
@@ -214,7 +228,7 @@ function SearchStaticList({
                                     participantFromDisplayName={participantFromDisplayName}
                                     participantToDisplayName=""
                                     participantTo={item.to}
-                                    avatarSize={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                                    avatarSize={CONST.AVATAR_SIZE.XXX_SMALL}
                                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
                                     infoCellsTextStyle={styles.mutedNormalTextLabel}
                                     infoCellsAvatarStyle={styles.pr1half}

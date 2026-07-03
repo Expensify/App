@@ -45,7 +45,9 @@ const reportNameValuePartsSelector = (reportNameValuePairs?: ReportNameValuePair
 
 function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldShowRegisterForWebinar, shouldShowGuideBooking, hasActiveScheduledCall}: OnboardingHelpButtonProps) {
     const {translate} = useLocalize();
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {
+        selector: accountIDSelector,
+    });
 
     const [latestScheduledCall] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
         selector: reportNameValuePartsSelector,
@@ -92,12 +94,12 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
             descriptionTextStyle: [styles.themeTextColor, styles.ml2],
             displayInDefaultIconColor: true,
             icon: illustrations.HeadSet,
-            iconWidth: variables.avatarSizeLargeNormal,
-            iconHeight: variables.avatarSizeLargeNormal,
+            iconWidth: variables.avatarSizeLarge,
+            iconHeight: variables.avatarSizeLarge,
             wrapperStyle: [styles.mb3, styles.pl4, styles.pr5, styles.pt3, styles.pb6, styles.borderBottom],
             interactive: false,
             titleStyle: styles.ml2,
-            avatarSize: CONST.AVATAR_SIZE.LARGE_NORMAL,
+            avatarSize: CONST.AVATAR_SIZE.LARGE,
         });
         options.push({
             text: translate('common.reschedule'),

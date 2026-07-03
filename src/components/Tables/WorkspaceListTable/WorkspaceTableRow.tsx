@@ -197,7 +197,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                                     source={item.ownerAvatar}
                                     avatarID={item.ownerAccountID}
                                     type={CONST.ICON_TYPE_AVATAR}
-                                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                                    size={CONST.AVATAR_SIZE.XXX_SMALL}
                                 />
                                 <WorkspacesListRowDisplayName
                                     isDeleted={item.isDeleted}

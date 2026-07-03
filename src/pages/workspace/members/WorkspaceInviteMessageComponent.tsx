@@ -261,7 +261,10 @@ function WorkspaceInviteMessageComponent({
             policyID={policyID}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
+            fullPageNotFoundViewProps={{
+                subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized',
+                onLinkPress: goBackFromInvalidPolicy,
+            }}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -292,7 +295,7 @@ function WorkspaceInviteMessageComponent({
                     )}
                     <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                         <ReportActionAvatars
-                            size={CONST.AVATAR_SIZE.LARGE}
+                            size={CONST.AVATAR_SIZE.XXX_LARGE}
                             accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
                             horizontalStacking={{
                                 displayInRows: true,

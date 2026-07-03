@@ -1,5 +1,4 @@
 import type colors from '@styles/theme/colors';
-import type variables from '@styles/variables';
 
 import type CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
@@ -13,26 +12,6 @@ type ParsableStyle = StyleProp<ViewStyle> | ((state: PressableStateCallbackType)
 type ColorValue = ValueOf<typeof colors>;
 type AvatarSizeName = ValueOf<typeof CONST.AVATAR_SIZE>;
 type EReceiptColorName = ValueOf<typeof CONST.ERECEIPT_COLORS>;
-type AvatarSizeValue = ValueOf<
-    Pick<
-        typeof variables,
-        | 'avatarSizeNormal'
-        | 'avatarSizeSmallSubscript'
-        | 'avatarSizeMidSubscript'
-        | 'avatarSizeSubscript'
-        | 'avatarSizeSmall'
-        | 'avatarSizeSmaller'
-        | 'avatarSizeXLarge'
-        | 'avatarSizeLarge'
-        | 'avatarSizeMedium'
-        | 'avatarSizeMediumLarge'
-        | 'avatarSizeLargeBordered'
-        | 'avatarSizeHeader'
-        | 'avatarSizeMentionIcon'
-        | 'avatarSizeSmallNormal'
-        | 'avatarSizeLargeNormal'
-    >
->;
 
 type AvatarStyle = Dimensions & {
     borderRadius: number;
@@ -49,7 +28,11 @@ type ButtonVariantStyles = {
 type AvatarSize = {width: number};
 
 type SVGAvatarColorStyle = {backgroundColor: ColorValue; fill: ColorValue};
-type EreceiptColorStyle = {backgroundColor: ColorValue; color: ColorValue; titleColor: ColorValue};
+type EreceiptColorStyle = {
+    backgroundColor: ColorValue;
+    color: ColorValue;
+    titleColor: ColorValue;
+};
 type TextColorStyle = {color: string};
 
 export type {
@@ -58,7 +41,6 @@ export type {
     ColorValue,
     AvatarSizeName,
     EReceiptColorName,
-    AvatarSizeValue,
     AvatarStyle,
     ButtonSizeValue,
     ButtonStateName,

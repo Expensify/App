@@ -103,7 +103,10 @@ type CustomPickerStyle = PickerStyle & {icon?: ViewStyle};
 
 type OverlayStylesParams = Animated.AnimatedInterpolation<string | number> | Animated.Value;
 
-type TwoFactorAuthCodesBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
+type TwoFactorAuthCodesBoxParams = {
+    isExtraSmallScreenWidth: boolean;
+    isSmallScreenWidth: boolean;
+};
 type WorkspaceUpgradeIntroBoxParams = {isExtraSmallScreenWidth: boolean};
 
 type OfflineFeedbackStyle = Record<'deleted' | 'pending' | 'default' | 'error' | 'container' | 'textContainer' | 'text' | 'errorDot', ViewStyle | TextStyle>;
@@ -2456,35 +2459,35 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
-        singleAvatar: {
+        singleAvatarXSmall: {
             height: 24,
             width: 24,
             backgroundColor: theme.icon,
             borderRadius: 12,
         },
 
-        singleAvatarSmall: {
+        singleAvatarXxxSmall: {
             height: 16,
             width: 16,
             backgroundColor: theme.icon,
             borderRadius: 8,
         },
 
-        singleAvatarMedium: {
+        singleAvatarXLarge: {
             height: 52,
             width: 52,
             backgroundColor: theme.icon,
             borderRadius: 52,
         },
 
-        singleAvatarMediumLarge: {
+        singleAvatarXxLarge: {
             height: 60,
             width: 60,
             backgroundColor: theme.icon,
             borderRadius: 80,
         },
 
-        secondAvatar: {
+        secondAvatarXSmall: {
             position: 'absolute',
             right: -18,
             bottom: -18,
@@ -2493,7 +2496,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: 'transparent',
         },
 
-        secondAvatarSmall: {
+        secondAvatarXxxSmall: {
             position: 'absolute',
             right: -14,
             bottom: -14,
@@ -2502,7 +2505,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: 'transparent',
         },
 
-        secondAvatarMedium: {
+        secondAvatarXLarge: {
             position: 'absolute',
             right: -36,
             bottom: -36,
@@ -2511,7 +2514,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: 'transparent',
         },
 
-        secondAvatarMediumLarge: {
+        secondAvatarXxLarge: {
             position: 'absolute',
             right: -42,
             bottom: -42,
@@ -2526,22 +2529,16 @@ const staticStyles = (theme: ThemeColors) =>
             bottom: -6,
         },
 
-        secondAvatarSubscriptXLarge: {
+        secondAvatarSubscriptXxxxxLarge: {
             position: 'absolute',
             right: -10,
             bottom: -10,
         },
 
-        secondAvatarSubscriptCompact: {
+        secondAvatarSubscriptSmall: {
             position: 'absolute',
             bottom: -4,
             right: -4,
-        },
-
-        secondAvatarSubscriptSmallNormal: {
-            position: 'absolute',
-            bottom: 0,
-            right: 0,
         },
 
         secondAvatarInline: {
@@ -2553,9 +2550,9 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
         },
 
-        avatarXLarge: {
-            width: variables.avatarSizeXLarge,
-            height: variables.avatarSizeXLarge,
+        avatarXxxxxLarge: {
+            width: variables.avatarSizeXxxxxLarge,
+            height: variables.avatarSizeXxxxxLarge,
         },
 
         avatarInnerText: {
@@ -2576,8 +2573,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         emptyAvatar: {
-            height: variables.avatarSizeNormal,
-            width: variables.avatarSizeNormal,
+            height: variables.avatarSizeMedium,
+            width: variables.avatarSizeMedium,
         },
 
         emptyAvatarSmall: {
@@ -2585,24 +2582,24 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.avatarSizeSmall,
         },
 
-        emptyAvatarSmaller: {
-            height: variables.avatarSizeSmaller,
-            width: variables.avatarSizeSmaller,
-        },
-
-        emptyAvatarMedium: {
-            height: variables.avatarSizeMedium,
-            width: variables.avatarSizeMedium,
-        },
-
-        emptyAvatarLarge: {
-            height: variables.avatarSizeLarge,
-            width: variables.avatarSizeLarge,
+        emptyAvatarXSmall: {
+            height: variables.avatarSizeXSmall,
+            width: variables.avatarSizeXSmall,
         },
 
         emptyAvatarXLarge: {
             height: variables.avatarSizeXLarge,
             width: variables.avatarSizeXLarge,
+        },
+
+        emptyAvatarXxxLarge: {
+            height: variables.avatarSizeXxxLarge,
+            width: variables.avatarSizeXxxLarge,
+        },
+
+        emptyAvatarXxxxxLarge: {
+            height: variables.avatarSizeXxxxxLarge,
+            width: variables.avatarSizeXxxxxLarge,
         },
 
         emptyAvatarMargin: {
@@ -2617,7 +2614,7 @@ const staticStyles = (theme: ThemeColors) =>
             marginRight: variables.avatarChatSpacing - 4,
         },
 
-        emptyAvatarMarginSmaller: {
+        emptyAvatarMarginXSmall: {
             marginRight: variables.avatarChatSpacing - 4,
         },
 
@@ -3287,7 +3284,9 @@ const staticStyles = (theme: ThemeColors) =>
             paddingVertical: 12,
         },
 
-        moneyRequestAmountContainer: {minHeight: variables.inputHeight + 2 * (variables.formErrorLineHeight + 8)},
+        moneyRequestAmountContainer: {
+            minHeight: variables.inputHeight + 2 * (variables.formErrorLineHeight + 8),
+        },
 
         requestPreviewBox: {
             marginTop: 12,
@@ -4373,7 +4372,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         assigneeTextStyle: {
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            minHeight: variables.avatarSizeSubscript,
+            minHeight: variables.avatarSizeXxxSmall,
         },
 
         taskRightIconContainer: {
@@ -4721,7 +4720,12 @@ const staticStyles = (theme: ThemeColors) =>
 
         emojiStatusLHN: {
             fontSize: 9,
-            ...(getBrowser() && !isMobile() && {transform: 'scale(.5)', fontSize: 22, overflow: 'visible'}),
+            ...(getBrowser() &&
+                !isMobile() && {
+                    transform: 'scale(.5)',
+                    fontSize: 22,
+                    overflow: 'visible',
+                }),
             ...(getBrowser() &&
                 isSafari() &&
                 !isMobile() && {
@@ -4877,7 +4881,12 @@ const staticStyles = (theme: ThemeColors) =>
             borderWidth: variables.componentBorderWidth,
             borderColor: theme.appBG,
         },
-        currentPositionDot: {backgroundColor: colors.blue400, width: 16, height: 16, borderRadius: 16},
+        currentPositionDot: {
+            backgroundColor: colors.blue400,
+            width: 16,
+            height: 16,
+            borderRadius: 16,
+        },
 
         mapViewOverlay: {
             flex: 1,
@@ -6445,9 +6454,17 @@ const dynamicStyles = (theme: ThemeColors) =>
             } satisfies ViewStyle;
         },
 
-        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth, flex: 1}) satisfies ViewStyle,
+        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) =>
+            ({
+                marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth,
+                flex: 1,
+            }) satisfies ViewStyle,
 
-        RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
+        RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) =>
+            ({
+                marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth,
+                flex: 1,
+            }) satisfies ViewStyle,
 
         growlNotificationTranslateY: (translateY: SharedValue<number>) => {
             'worklet';
@@ -6544,7 +6561,9 @@ const dynamicStyles = (theme: ThemeColors) =>
             minHeight,
         }),
 
-        aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
+        aspectRatioLottie: (animation: DotLottieAnimation) => ({
+            aspectRatio: animation.w / animation.h,
+        }),
 
         colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
 
@@ -6611,7 +6630,9 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         getPopoverMaxHeight: (windowHeight: number, isInLandscapeMode: boolean) => {
             const heightRatio = isInLandscapeMode ? CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE : CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO;
-            return {maxHeight: Math.min(CONST.POPOVER_DROPDOWN_MAX_HEIGHT, windowHeight * heightRatio)};
+            return {
+                maxHeight: Math.min(CONST.POPOVER_DROPDOWN_MAX_HEIGHT, windowHeight * heightRatio),
+            };
         },
 
         getMoneyRequestViewImage: (showBorderless: boolean) => ({
@@ -6870,9 +6891,21 @@ const plainStyles = (theme: ThemeColors) =>
                 width: '100%',
             }) satisfies ViewStyle,
 
-        homePageLeftColumn: {flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
+        homePageLeftColumn: {
+            flex: 7,
+            flexBasis: '58.333%',
+            maxWidth: variables.homePageLeftColumnMaxWidth,
+            flexDirection: 'column',
+            gap: 20,
+        } satisfies ViewStyle,
 
-        homePageRightColumn: {flex: 5, flexBasis: '41.667%', maxWidth: variables.homePageRightColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
+        homePageRightColumn: {
+            flex: 5,
+            flexBasis: '41.667%',
+            maxWidth: variables.homePageRightColumnMaxWidth,
+            flexDirection: 'column',
+            gap: 20,
+        } satisfies ViewStyle,
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>

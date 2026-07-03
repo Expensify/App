@@ -38,8 +38,8 @@ function AvatarCapture({children, fileName: name, ref}: AvatarCaptureProps) {
                     }
 
                     // Get dimensions and background color
-                    const width = variables.avatarSizeXXLarge;
-                    const height = variables.avatarSizeXXLarge;
+                    const width = variables.avatarPreviewLarge;
+                    const height = variables.avatarPreviewLarge;
                     const backgroundColor = globalThis.getComputedStyle(coloredAvatarElement).backgroundColor;
 
                     // Create canvas with 2x resolution for better quality

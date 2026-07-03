@@ -141,7 +141,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             <View style={styles.ph5}>
                 <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                     <ReportActionAvatars
-                        size={CONST.AVATAR_SIZE.LARGE}
+                        size={CONST.AVATAR_SIZE.XXX_LARGE}
                         accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
                         horizontalStacking={{
                             displayInRows: true,
@@ -150,7 +150,11 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                     />
                 </View>
                 <View style={[styles.mb5]}>
-                    <Text>{translate('spreadsheet.importMemberConfirmation', {count: newMembers?.length ?? 0})}</Text>
+                    <Text>
+                        {translate('spreadsheet.importMemberConfirmation', {
+                            count: newMembers?.length ?? 0,
+                        })}
+                    </Text>
                 </View>
                 <View style={[styles.mb3]}>
                     <View style={[styles.mhn5, styles.mb3]}>

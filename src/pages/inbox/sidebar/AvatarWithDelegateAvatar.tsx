@@ -48,8 +48,12 @@ function AvatarWithDelegateAvatar({delegateEmail, isHovered = false, isSelected 
             <View style={[styles.sidebarStatusAvatar, isHovered && styles.sidebarStatusAvatarHovered]}>
                 <View style={styles.emojiStatusLHN}>
                     <Avatar
-                        size={isSmallScreenWidth ? CONST.AVATAR_SIZE.MID_SUBSCRIPT : CONST.AVATAR_SIZE.SMALL}
-                        source={getSmallSizeAvatar({avatarSource: delegatePersonalDetail?.avatar, accountID: delegatePersonalDetail?.accountID, defaultAvatars})}
+                        size={isSmallScreenWidth ? CONST.AVATAR_SIZE.XXX_SMALL : CONST.AVATAR_SIZE.SMALL}
+                        source={getSmallSizeAvatar({
+                            avatarSource: delegatePersonalDetail?.avatar,
+                            accountID: delegatePersonalDetail?.accountID,
+                            defaultAvatars,
+                        })}
                         fallbackIcon={delegatePersonalDetail?.fallbackIcon}
                         type={CONST.ICON_TYPE_AVATAR}
                     />

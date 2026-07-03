@@ -31,7 +31,7 @@ function AvatarCapture({children, fileName, ref}: AvatarCaptureProps) {
     return (
         <ViewShot
             ref={viewShotRef}
-            options={{fileName, format: 'png', width: variables.avatarSizeXXLarge, height: variables.avatarSizeXXLarge}}
+            options={{fileName, format: 'png', width: variables.avatarPreviewLarge, height: variables.avatarPreviewLarge}}
         >
             {children}
         </ViewShot>

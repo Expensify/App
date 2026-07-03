@@ -27,7 +27,6 @@ import type {
     AllStyles,
     AvatarSize,
     AvatarSizeName,
-    AvatarSizeValue,
     AvatarStyle,
     ButtonSizeValue,
     ButtonStateName,
@@ -72,17 +71,47 @@ type GetReportTableColumnStylesParams = {
     isActionColumnWide?: boolean;
 };
 
-const workspaceColorOptions: SVGAvatarColorStyle[] = LETTER_AVATAR_COLOR_OPTIONS.map(({backgroundColor, fillColor}) => ({backgroundColor, fill: fillColor}));
+const workspaceColorOptions: SVGAvatarColorStyle[] = LETTER_AVATAR_COLOR_OPTIONS.map(({backgroundColor, fillColor}) => ({
+    backgroundColor,
+    fill: fillColor,
+}));
 
-const DEFAULT_WORKSPACE_COLOR = {backgroundColor: colors.blue400, fill: colors.blue700};
+const DEFAULT_WORKSPACE_COLOR = {
+    backgroundColor: colors.blue400,
+    fill: colors.blue700,
+};
 
 const eReceiptColorStyles: Partial<Record<EReceiptColorName, EreceiptColorStyle>> = {
-    [CONST.ERECEIPT_COLORS.YELLOW]: {backgroundColor: colors.yellow800, color: colors.yellow400, titleColor: colors.yellow500},
-    [CONST.ERECEIPT_COLORS.ICE]: {backgroundColor: colors.ice800, color: colors.ice400, titleColor: colors.ice500},
-    [CONST.ERECEIPT_COLORS.BLUE]: {backgroundColor: colors.blue800, color: colors.blue400, titleColor: colors.blue500},
-    [CONST.ERECEIPT_COLORS.GREEN]: {backgroundColor: colors.green800, color: colors.green400, titleColor: colors.green500},
-    [CONST.ERECEIPT_COLORS.TANGERINE]: {backgroundColor: colors.tangerine800, color: colors.tangerine400, titleColor: colors.tangerine500},
-    [CONST.ERECEIPT_COLORS.PINK]: {backgroundColor: colors.pink800, color: colors.pink400, titleColor: colors.pink500},
+    [CONST.ERECEIPT_COLORS.YELLOW]: {
+        backgroundColor: colors.yellow800,
+        color: colors.yellow400,
+        titleColor: colors.yellow500,
+    },
+    [CONST.ERECEIPT_COLORS.ICE]: {
+        backgroundColor: colors.ice800,
+        color: colors.ice400,
+        titleColor: colors.ice500,
+    },
+    [CONST.ERECEIPT_COLORS.BLUE]: {
+        backgroundColor: colors.blue800,
+        color: colors.blue400,
+        titleColor: colors.blue500,
+    },
+    [CONST.ERECEIPT_COLORS.GREEN]: {
+        backgroundColor: colors.green800,
+        color: colors.green400,
+        titleColor: colors.green500,
+    },
+    [CONST.ERECEIPT_COLORS.TANGERINE]: {
+        backgroundColor: colors.tangerine800,
+        color: colors.tangerine400,
+        titleColor: colors.tangerine500,
+    },
+    [CONST.ERECEIPT_COLORS.PINK]: {
+        backgroundColor: colors.pink800,
+        color: colors.pink400,
+        titleColor: colors.pink500,
+    },
 };
 
 const eReceiptColors: EReceiptColorName[] = [
@@ -95,65 +124,61 @@ const eReceiptColors: EReceiptColorName[] = [
 ];
 
 const avatarBorderSizes: Partial<Record<AvatarSizeName, number>> = {
-    [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.componentBorderRadiusSmall,
-    [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.componentBorderRadiusSmall,
-    [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.componentBorderRadiusMedium,
-    [CONST.AVATAR_SIZE.SMALLER]: variables.componentBorderRadiusMedium,
+    [CONST.AVATAR_SIZE.XXXX_SMALL]: variables.componentBorderRadiusSmall,
+    [CONST.AVATAR_SIZE.XXX_SMALL]: variables.componentBorderRadiusSmall,
+    [CONST.AVATAR_SIZE.XX_SMALL]: variables.componentBorderRadiusMedium,
+    [CONST.AVATAR_SIZE.X_SMALL]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.SMALL]: variables.componentBorderRadiusMedium,
-    [CONST.AVATAR_SIZE.HEADER]: variables.componentBorderRadiusNormal,
     [CONST.AVATAR_SIZE.DEFAULT]: variables.componentBorderRadiusNormal,
-    [CONST.AVATAR_SIZE.MEDIUM]: variables.componentBorderRadiusLarge,
-    [CONST.AVATAR_SIZE.LARGE]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.X_LARGE]: variables.componentBorderRadiusLarge,
-    [CONST.AVATAR_SIZE.MEDIUM_LARGE]: variables.componentBorderRadiusLarge,
-    [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.componentBorderRadiusRounded,
-    [CONST.AVATAR_SIZE.SMALL_NORMAL]: variables.componentBorderRadiusMedium,
+    [CONST.AVATAR_SIZE.XX_LARGE]: variables.componentBorderRadiusLarge,
+    [CONST.AVATAR_SIZE.XXX_LARGE]: variables.componentBorderRadiusLarge,
+    [CONST.AVATAR_SIZE.XXXX_LARGE]: variables.componentBorderRadiusRounded,
+    [CONST.AVATAR_SIZE.XXXXX_LARGE]: variables.componentBorderRadiusLarge,
 };
 
-const avatarSizes: Record<AvatarSizeName, AvatarSizeValue> = {
-    [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarSizeNormal,
-    [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.avatarSizeSmallSubscript,
-    [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.avatarSizeMidSubscript,
-    [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.avatarSizeSubscript,
+const avatarSizes = {
+    [CONST.AVATAR_SIZE.XXXX_SMALL]: variables.avatarSizeXxxxSmall,
+    [CONST.AVATAR_SIZE.XXX_SMALL]: variables.avatarSizeXxxSmall,
+    [CONST.AVATAR_SIZE.XX_SMALL]: variables.avatarSizeXxSmall,
+    [CONST.AVATAR_SIZE.X_SMALL]: variables.avatarSizeXSmall,
     [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
-    [CONST.AVATAR_SIZE.SMALLER]: variables.avatarSizeSmaller,
+    [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarSizeMedium,
     [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
     [CONST.AVATAR_SIZE.X_LARGE]: variables.avatarSizeXLarge,
-    [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
-    [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.avatarSizeLargeBordered,
-    [CONST.AVATAR_SIZE.MEDIUM_LARGE]: variables.avatarSizeMediumLarge,
-    [CONST.AVATAR_SIZE.HEADER]: variables.avatarSizeHeader,
-    [CONST.AVATAR_SIZE.MENTION_ICON]: variables.avatarSizeMentionIcon,
-    [CONST.AVATAR_SIZE.SMALL_NORMAL]: variables.avatarSizeSmallNormal,
-    [CONST.AVATAR_SIZE.LARGE_NORMAL]: variables.avatarSizeLargeNormal,
-};
+    [CONST.AVATAR_SIZE.XX_LARGE]: variables.avatarSizeXxLarge,
+    [CONST.AVATAR_SIZE.XXX_LARGE]: variables.avatarSizeXxxLarge,
+    [CONST.AVATAR_SIZE.XXXX_LARGE]: variables.avatarSizeXxxxLarge,
+    [CONST.AVATAR_SIZE.XXXXX_LARGE]: variables.avatarSizeXxxxxLarge,
+} satisfies Record<AvatarSizeName, number>;
+
+type AvatarSizeValue = ValueOf<typeof avatarSizes>;
 
 const avatarFontSizes: Partial<Record<AvatarSizeName, number>> = {
-    [CONST.AVATAR_SIZE.DEFAULT]: variables.fontSizeNormal,
-    [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.fontSizeExtraSmall,
-    [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.fontSizeExtraSmall,
-    [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.fontSizeExtraSmall,
+    [CONST.AVATAR_SIZE.XXXX_SMALL]: variables.fontSizeExtraSmall,
+    [CONST.AVATAR_SIZE.XXX_SMALL]: variables.fontSizeExtraSmall,
+    [CONST.AVATAR_SIZE.XX_SMALL]: variables.fontSizeExtraSmall,
+    [CONST.AVATAR_SIZE.X_SMALL]: variables.fontSizeExtraSmall,
     [CONST.AVATAR_SIZE.SMALL]: variables.fontSizeSmall,
-    [CONST.AVATAR_SIZE.SMALLER]: variables.fontSizeExtraSmall,
-    [CONST.AVATAR_SIZE.LARGE]: variables.fontSizeXLarge,
-    [CONST.AVATAR_SIZE.MEDIUM_LARGE]: variables.fontSizeXLarge,
-    [CONST.AVATAR_SIZE.MEDIUM]: variables.fontSizeMedium,
-    [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.fontSizeXLarge,
+    [CONST.AVATAR_SIZE.DEFAULT]: variables.fontSizeNormal,
+    [CONST.AVATAR_SIZE.X_LARGE]: variables.fontSizeMedium,
+    [CONST.AVATAR_SIZE.XX_LARGE]: variables.fontSizeXLarge,
+    [CONST.AVATAR_SIZE.XXX_LARGE]: variables.fontSizeXLarge,
+    [CONST.AVATAR_SIZE.XXXX_LARGE]: variables.fontSizeXLarge,
 };
 
 const avatarBorderWidths: Partial<Record<AvatarSizeName, number>> = {
-    [CONST.AVATAR_SIZE.DEFAULT]: 3,
-    [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: 2,
-    [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: 2,
-    [CONST.AVATAR_SIZE.SUBSCRIPT]: 2,
+    [CONST.AVATAR_SIZE.XXXX_SMALL]: 2,
+    [CONST.AVATAR_SIZE.XXX_SMALL]: 2,
+    [CONST.AVATAR_SIZE.XX_SMALL]: 2,
+    [CONST.AVATAR_SIZE.X_SMALL]: 2,
     [CONST.AVATAR_SIZE.SMALL]: 2,
-    [CONST.AVATAR_SIZE.SMALLER]: 2,
-    [CONST.AVATAR_SIZE.HEADER]: 2,
-    [CONST.AVATAR_SIZE.LARGE]: 4,
-    [CONST.AVATAR_SIZE.MEDIUM_LARGE]: 3,
-    [CONST.AVATAR_SIZE.X_LARGE]: 4,
-    [CONST.AVATAR_SIZE.MEDIUM]: 3,
-    [CONST.AVATAR_SIZE.LARGE_BORDERED]: 4,
+    [CONST.AVATAR_SIZE.DEFAULT]: 3,
+    [CONST.AVATAR_SIZE.X_LARGE]: 3,
+    [CONST.AVATAR_SIZE.XX_LARGE]: 3,
+    [CONST.AVATAR_SIZE.XXX_LARGE]: 4,
+    [CONST.AVATAR_SIZE.XXXX_LARGE]: 4,
+    [CONST.AVATAR_SIZE.XXXXX_LARGE]: 4,
 };
 
 /**
@@ -233,7 +258,7 @@ function extractValuesFromRGB(color: string): number[] | null {
 /**
  * Return the style size from an avatar size constant
  */
-function getAvatarSize(size: AvatarSizeName): number {
+function getAvatarSize(size: AvatarSizeName): AvatarSizeValue {
     return avatarSizes[size];
 }
 
@@ -252,7 +277,8 @@ function getAvatarWidthStyle(size: AvatarSizeName): ViewStyle {
  */
 function getAvatarExtraFontSizeStyle(size: AvatarSizeName): TextStyle {
     return {
-        fontSize: avatarFontSizes[size],
+        // Fall back to the default (MEDIUM) avatar overlay font.
+        fontSize: avatarFontSizes[size] ?? variables.fontSizeNormal,
     };
 }
 
@@ -261,7 +287,8 @@ function getAvatarExtraFontSizeStyle(size: AvatarSizeName): TextStyle {
  */
 function getAvatarBorderWidth(size: AvatarSizeName): ViewStyle {
     return {
-        borderWidth: avatarBorderWidths[size],
+        // Fall back to the default (MEDIUM) avatar border width.
+        borderWidth: avatarBorderWidths[size] ?? 3,
     };
 }
 
@@ -270,7 +297,7 @@ function getAvatarBorderWidth(size: AvatarSizeName): ViewStyle {
  */
 function getAvatarBorderRadius(size: AvatarSizeName, type?: string): ViewStyle {
     if (type === CONST.ICON_TYPE_WORKSPACE) {
-        return {borderRadius: avatarBorderSizes[size]};
+        // Fall back to the default (MEDIUM) avatar border radius.
     }
 
     // Default to rounded border
@@ -400,7 +427,9 @@ function getPlatformSafeAreaPadding(insets?: EdgeInsets, insetsPercentageProp?: 
  * Takes safe area insets and returns margin to use for a View
  */
 function getSafeAreaMargins(insets?: EdgeInsets): ViewStyle {
-    return {marginBottom: (insets?.bottom ?? 0) * variables.iosSafeAreaInsetsPercentage};
+    return {
+        marginBottom: (insets?.bottom ?? 0) * variables.iosSafeAreaInsetsPercentage,
+    };
 }
 
 type GetZoomSizingStyleParams = {
@@ -581,13 +610,25 @@ function getIconWidthAndHeightStyle(
 ): Pick<ImageSVGProps, 'width' | 'height'> {
     switch (true) {
         case extraSmall:
-            return {width: isButtonIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall, height: isButtonIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall};
+            return {
+                width: isButtonIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall,
+                height: isButtonIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall,
+            };
         case small:
-            return {width: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeSmall, height: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeSmall};
+            return {
+                width: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeSmall,
+                height: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeSmall,
+            };
         case medium:
-            return {width: isButtonIcon ? variables.iconSizeSmall : variables.iconSizeNormal, height: isButtonIcon ? variables.iconSizeSmall : variables.iconSizeNormal};
+            return {
+                width: isButtonIcon ? variables.iconSizeSmall : variables.iconSizeNormal,
+                height: isButtonIcon ? variables.iconSizeSmall : variables.iconSizeNormal,
+            };
         case large:
-            return {width: isButtonIcon ? variables.iconSizeNormal : variables.iconSizeLarge, height: isButtonIcon ? variables.iconSizeNormal : variables.iconSizeLarge};
+            return {
+                width: isButtonIcon ? variables.iconSizeNormal : variables.iconSizeLarge,
+                height: isButtonIcon ? variables.iconSizeNormal : variables.iconSizeLarge,
+            };
         default: {
             return {width, height};
         }
@@ -726,7 +767,9 @@ function getEmojiPickerStyle(isSmallScreenWidth: boolean): ViewStyle {
 
 function getPaymentMethodMenuWidth(isSmallScreenWidth: boolean): ViewStyle {
     const margin = 20;
-    return {width: !isSmallScreenWidth ? variables.sideBarWidth - margin * 2 : undefined};
+    return {
+        width: !isSmallScreenWidth ? variables.sideBarWidth - margin * 2 : undefined,
+    };
 }
 
 /**
@@ -1531,7 +1574,11 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getMarkdownMaxHeight: (maxAutoGrowHeight: number | undefined): TextStyle => {
         // maxHeight is not of the input only but the of the whole input container
         // which also includes the top padding and bottom border
-        return maxAutoGrowHeight ? {maxHeight: maxAutoGrowHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderWidth * 2} : {};
+        return maxAutoGrowHeight
+            ? {
+                  maxHeight: maxAutoGrowHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderWidth * 2,
+              }
+            : {};
     },
 
     /**
@@ -1646,7 +1693,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Select the correct color for text.
      */
-    getColoredBackgroundStyle: (isColored: boolean): StyleProp<TextStyle> => ({backgroundColor: isColored ? theme.mentionBG : undefined}),
+    getColoredBackgroundStyle: (isColored: boolean): StyleProp<TextStyle> => ({
+        backgroundColor: isColored ? theme.mentionBG : undefined,
+    }),
 
     /**
      * Returns link styles based on whether the link is disabled or not
@@ -1738,7 +1787,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Return the height of magic code input container
      */
-    getHeightOfMagicCodeInput: (): ViewStyle => ({height: styles.magicCodeInputContainer.height - styles.textInputContainer.borderWidth * 2}),
+    getHeightOfMagicCodeInput: (): ViewStyle => ({
+        height: styles.magicCodeInputContainer.height - styles.textInputContainer.borderWidth * 2,
+    }),
 
     /**
      * Generate fill color of an icon based on its state.
@@ -1864,8 +1915,12 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         borderBottomWidth: isLastItem ? 0 : 1,
         borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
         ...(isLastItem ? styles.tableBottomRadius : {}),
-        ...(padding?.vertical !== undefined && {paddingVertical: padding.vertical}),
-        ...(padding?.horizontal !== undefined && {paddingHorizontal: padding.horizontal}),
+        ...(padding?.vertical !== undefined && {
+            paddingVertical: padding.vertical,
+        }),
+        ...(padding?.horizontal !== undefined && {
+            paddingHorizontal: padding.horizontal,
+        }),
     }),
 
     getSelectedBorderBottomStyle: (isSelected?: boolean): ViewStyle => ({
@@ -1892,38 +1947,65 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         let columnWidth;
         switch (columnName) {
             case CONST.SEARCH.TABLE_COLUMNS.COMMENTS:
-                columnWidth = {...getWidthStyle(variables.w36), ...styles.alignItemsCenter};
+                columnWidth = {
+                    ...getWidthStyle(variables.w36),
+                    ...styles.alignItemsCenter,
+                };
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
-                columnWidth = {...getWidthStyle(variables.w28), ...styles.alignItemsCenter};
+                columnWidth = {
+                    ...getWidthStyle(variables.w28),
+                    ...styles.alignItemsCenter,
+                };
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.AVATAR:
-                columnWidth = {...getWidthStyle(variables.w28), ...styles.alignItemsCenter};
+                columnWidth = {
+                    ...getWidthStyle(variables.w28),
+                    ...styles.alignItemsCenter,
+                };
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.STATUS:
-                columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
+                columnWidth = {
+                    ...getWidthStyle(variables.w80),
+                    ...styles.alignItemsCenter,
+                };
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS:
-                columnWidth = {...getWidthStyle(variables.w130), ...styles.alignItemsCenter};
+                columnWidth = {
+                    ...getWidthStyle(variables.w130),
+                    ...styles.alignItemsCenter,
+                };
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.SUBMITTED:
-                columnWidth = {...getWidthStyle(isSubmittedColumnWide ? variables.w92 : variables.w72)};
+                columnWidth = {
+                    ...getWidthStyle(isSubmittedColumnWide ? variables.w92 : variables.w72),
+                };
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.APPROVED:
-                columnWidth = {...getWidthStyle(isApprovedColumnWide ? variables.w92 : variables.w72)};
+                columnWidth = {
+                    ...getWidthStyle(isApprovedColumnWide ? variables.w92 : variables.w72),
+                };
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.POSTED:
-                columnWidth = {...getWidthStyle(isPostedColumnWide ? variables.w92 : variables.w72)};
+                columnWidth = {
+                    ...getWidthStyle(isPostedColumnWide ? variables.w92 : variables.w72),
+                };
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.EXPORTED:
-                columnWidth = {...getWidthStyle(isExportedColumnWide ? variables.w92 : variables.w72)};
+                columnWidth = {
+                    ...getWidthStyle(isExportedColumnWide ? variables.w92 : variables.w72),
+                };
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.DATE:
-                columnWidth = {...getWidthStyle(isDateColumnWide ? variables.w102 : variables.w62)};
+                columnWidth = {
+                    ...getWidthStyle(isDateColumnWide ? variables.w102 : variables.w62),
+                };
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
-                columnWidth = {...getWidthStyle(isWithdrawnColumnWide ? variables.w92 : variables.w72)};
+                columnWidth = {
+                    ...getWidthStyle(isWithdrawnColumnWide ? variables.w92 : variables.w72),
+                };
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY:
@@ -1936,7 +2018,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.flex1};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
-                columnWidth = {...getWidthStyle(isTaxAmountColumnWide ? variables.w130 : variables.w96), ...styles.alignItemsEnd};
+                columnWidth = {
+                    ...getWidthStyle(isTaxAmountColumnWide ? variables.w130 : variables.w96),
+                    ...styles.alignItemsEnd,
+                };
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.EXPENSES:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES:
@@ -1949,10 +2034,17 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL:
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE:
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
-                columnWidth = {...getWidthStyle(isAmountColumnWide ? variables.w130 : variables.w96), ...(!shouldRemoveTotalColumnFlex && styles.flex1), ...styles.alignItemsEnd};
+                columnWidth = {
+                    ...getWidthStyle(isAmountColumnWide ? variables.w130 : variables.w96),
+                    ...(!shouldRemoveTotalColumnFlex && styles.flex1),
+                    ...styles.alignItemsEnd,
+                };
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.TYPE:
-                columnWidth = {...getWidthStyle(variables.w16), ...styles.alignItemsCenter};
+                columnWidth = {
+                    ...getWidthStyle(variables.w16),
+                    ...styles.alignItemsCenter,
+                };
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
             case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
@@ -1970,10 +2062,16 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {...getWidthStyle(variables.w92), ...styles.flex1};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.ACTION:
-                columnWidth = {...getWidthStyle(isActionColumnWide ? variables.w80 : variables.w68), ...styles.alignItemsCenter};
+                columnWidth = {
+                    ...getWidthStyle(isActionColumnWide ? variables.w80 : variables.w68),
+                    ...styles.alignItemsCenter,
+                };
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO:
-                columnWidth = {...getWidthStyle(variables.w72), ...styles.alignItemsCenter};
+                columnWidth = {
+                    ...getWidthStyle(variables.w72),
+                    ...styles.alignItemsCenter,
+                };
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.ATTENDEES:
                 columnWidth = {...getWidthStyle(variables.w72)};
@@ -2022,17 +2120,17 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.AVATAR_SIZE.SMALL:
                 containerStyles = [styles.emptyAvatarSmall, styles.emptyAvatarMargin];
                 break;
-            case CONST.AVATAR_SIZE.SMALLER:
-                containerStyles = [styles.emptyAvatarSmaller, styles.emptyAvatarMarginSmaller];
-                break;
-            case CONST.AVATAR_SIZE.MEDIUM:
-                containerStyles = [styles.emptyAvatarMedium, styles.emptyAvatarMargin];
-                break;
-            case CONST.AVATAR_SIZE.LARGE:
-                containerStyles = [styles.emptyAvatarLarge, styles.mb2, styles.mr2];
+            case CONST.AVATAR_SIZE.X_SMALL:
+                containerStyles = [styles.emptyAvatarXSmall, styles.emptyAvatarMarginXSmall];
                 break;
             case CONST.AVATAR_SIZE.X_LARGE:
-                containerStyles = [styles.emptyAvatarXLarge, styles.mb3, styles.mr3];
+                containerStyles = [styles.emptyAvatarXLarge, styles.emptyAvatarMargin];
+                break;
+            case CONST.AVATAR_SIZE.XXX_LARGE:
+                containerStyles = [styles.emptyAvatarXxxLarge, styles.mb2, styles.mr2];
+                break;
+            case CONST.AVATAR_SIZE.XXXXX_LARGE:
+                containerStyles = [styles.emptyAvatarXxxxxLarge, styles.mb3, styles.mr3];
                 break;
             default:
                 containerStyles = [styles.emptyAvatar, isInReportAction ? styles.emptyAvatarMarginChat : styles.emptyAvatarMargin];
@@ -2099,9 +2197,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     }),
 
     getTripReservationIconContainer: (isSmallIcon: boolean): StyleProp<ViewStyle> => ({
-        width: isSmallIcon ? variables.avatarSizeSmallNormal : variables.avatarSizeNormal,
-        height: isSmallIcon ? variables.avatarSizeSmallNormal : variables.avatarSizeNormal,
-        borderRadius: isSmallIcon ? variables.avatarSizeSmallNormal : variables.componentBorderRadiusXLarge,
+        width: isSmallIcon ? variables.avatarSizeSmall : variables.avatarSizeMedium,
+        height: isSmallIcon ? variables.avatarSizeSmall : variables.avatarSizeMedium,
+        borderRadius: isSmallIcon ? variables.avatarSizeSmall : variables.componentBorderRadiusXLarge,
         backgroundColor: theme.border,
         alignItems: 'center',
         justifyContent: 'center',

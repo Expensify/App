@@ -11,6 +11,21 @@ function getValueUsingPixelRatio(defaultValue: number, maxValue: number): number
     return PixelRatio.getFontScale() * defaultValue > maxValue ? maxValue : defaultValue * PixelRatio.getFontScale();
 }
 
+const avatarSizes = {
+    avatarSizeXxxxSmall: 12,
+    avatarSizeXxxSmall: 16,
+    avatarSizeXxSmall: 20,
+    avatarSizeXSmall: 24,
+    avatarSizeSmall: 28,
+    avatarSizeMedium: 40,
+    avatarSizeLarge: 48,
+    avatarSizeXLarge: 52,
+    avatarSizeXxLarge: 60,
+    avatarSizeXxxLarge: 80,
+    avatarSizeXxxxLarge: 88,
+    avatarSizeXxxxxLarge: 100,
+};
+
 export default {
     bottomTabHeight: 72,
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),
@@ -36,23 +51,9 @@ export default {
     componentBorderWidth: 8,
     appModalAppIconSize: 48,
     buttonBorderRadius: 100,
-    avatarSizeLargeBordered: 88,
-    avatarSizeXXLarge: 720,
-    avatarSizeXLarge: 100,
-    avatarSizeLarge: 80,
-    avatarSizeMediumLarge: 60,
-    avatarSizeMedium: 52,
-    avatarSizeHeader: 40,
-    avatarSizeNormal: 40,
-    avatarSizeSmallNormal: 32,
-    avatarSizeLargeNormal: 48,
-    avatarSizeSmall: 28,
-    avatarSizeSmaller: 24,
-    avatarSizeSubscript: 20,
-    avatarSizeMidSubscript: 16,
-    avatarSizeMentionIcon: 16,
-    avatarSizeSmallSubscript: 12,
-    defaultAvatarPreviewSize: 360,
+    ...avatarSizes,
+    avatarPreview: 360,
+    avatarPreviewLarge: 720,
     fabBottom: 25,
     breadcrumbsFontSize: getValueUsingPixelRatio(19, 32),
     fontSizeXXSmall: 7,

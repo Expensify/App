@@ -63,7 +63,9 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Upload']);
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => list?.[accountID]});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: (list) => list?.[accountID],
+    });
 
     const initialBotAvatar = useMemo<AgentAvatarID | null>(() => {
         if (!initialPresetID || !AGENT_AVATARS.isAvatarID(initialPresetID)) {
@@ -76,7 +78,10 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
     const [imageData, setImageData] = useState<ImageData>(EMPTY_IMAGE_DATA);
     const [cropImageData, setCropImageData] = useState<ImageData>(EMPTY_IMAGE_DATA);
     const [isAvatarCropModalOpen, setIsAvatarCropModalOpen] = useState(false);
-    const [errorData, setErrorData] = useState<{validationError: TranslationPaths | null; phraseParam: Record<string, unknown>}>({validationError: null, phraseParam: {}});
+    const [errorData, setErrorData] = useState<{
+        validationError: TranslationPaths | null;
+        phraseParam: Record<string, unknown>;
+    }>({validationError: null, phraseParam: {}});
 
     const isDirty = selectedBotAvatar !== initialBotAvatar || imageData.uri !== '';
 
@@ -95,7 +100,10 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
         validateAvatarImage(image)
             .then((result) => {
                 if (!result.isValid) {
-                    setErrorData({validationError: result.errorKey ?? null, phraseParam: result.errorParams ?? {}});
+                    setErrorData({
+                        validationError: result.errorKey ?? null,
+                        phraseParam: result.errorParams ?? {},
+                    });
                     return;
                 }
                 setIsAvatarCropModalOpen(true);
@@ -108,7 +116,10 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
                 });
             })
             .catch(() => {
-                setErrorData({validationError: 'attachmentPicker.errorWhileSelectingCorruptedAttachment', phraseParam: {}});
+                setErrorData({
+                    validationError: 'attachmentPicker.errorWhileSelectingCorruptedAttachment',
+                    phraseParam: {},
+                });
             });
     };
 
@@ -167,11 +178,11 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
             >
                 <View style={[styles.flexColumn, styles.gap5, styles.alignItemsCenter, styles.pb10]}>
                     <Avatar
-                        containerStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
-                        imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
+                        containerStyles={[styles.avatarXxxxxLarge, styles.alignSelfCenter]}
+                        imageStyles={[styles.avatarXxxxxLarge, styles.alignSelfCenter]}
                         source={previewSource}
                         avatarID={accountID}
-                        size={CONST.AVATAR_SIZE.X_LARGE}
+                        size={CONST.AVATAR_SIZE.XXXXX_LARGE}
                         type={CONST.ICON_TYPE_AVATAR}
                     />
                     <AttachmentPicker
@@ -214,7 +225,7 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
                                     <Avatar
                                         type={CONST.ICON_TYPE_AVATAR}
                                         source={local}
-                                        size={CONST.AVATAR_SIZE.MEDIUM}
+                                        size={CONST.AVATAR_SIZE.X_LARGE}
                                         containerStyles={styles.avatarSelectorContainer}
                                     />
                                 </PressableWithFeedback>
@@ -227,7 +238,9 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
                 {!!errorData.validationError && (
                     <DotIndicatorMessage
                         style={styles.mv5}
-                        messages={{validationError: translate(errorData.validationError, errorData.phraseParam as never)}}
+                        messages={{
+                            validationError: translate(errorData.validationError, errorData.phraseParam as never),
+                        }}
                         type="error"
                     />
                 )}

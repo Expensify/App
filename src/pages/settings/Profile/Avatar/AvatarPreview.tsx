@@ -64,10 +64,10 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart, styles.alignSelfCenter];
+    const avatarStyle = [styles.avatarXxxxxLarge, styles.alignSelfStart, styles.alignSelfCenter];
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {avatarMap: avatars} = useLetterAvatars(currentUserPersonalDetails?.displayName, CONST.AVATAR_SIZE.X_LARGE);
+    const {avatarMap: avatars} = useLetterAvatars(currentUserPersonalDetails?.displayName, CONST.AVATAR_SIZE.XXXXX_LARGE);
 
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
@@ -146,7 +146,7 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
                     source={avatarURL}
                     avatarID={accountID}
                     fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
-                    size={CONST.AVATAR_SIZE.X_LARGE}
+                    size={CONST.AVATAR_SIZE.XXXXX_LARGE}
                     type={CONST.ICON_TYPE_AVATAR}
                 />
             </AvatarCapture>
@@ -178,7 +178,10 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
                             shouldUseOptionIcon
                             isDisabled={isAvatarCropModalOpen}
                             onPress={() => {}}
-                            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                            anchorAlignment={{
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                            }}
                             customText={translate('common.edit')}
                             options={menuItems}
                             isSplitButton={false}
