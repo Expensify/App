@@ -155,4 +155,4 @@ Example phrases for your agent's instructions:
 
 ---
 
-*This reference covers all 11 Custom Agent capabilities.*
+*This reference covers all 11 AI Agent capabilities.*
