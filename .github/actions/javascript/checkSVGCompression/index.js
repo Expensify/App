@@ -20103,8 +20103,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core = __importStar(__nccwpck_require__(2186));
 const compressSvg_1 = __importDefault(__nccwpck_require__(6482));
+const core = __importStar(__nccwpck_require__(2186));
 async function run() {
     try {
         const token = core.getInput('GITHUB_TOKEN', { required: true });
@@ -20701,11 +20701,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const github = __importStar(__nccwpck_require__(5438));
 const fs = __importStar(__nccwpck_require__(7147));
 const path = __importStar(__nccwpck_require__(1017));
 const svgo_1 = __nccwpck_require__(2456);
-const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 // Suffix for files to be ignored from compression eg. file-ignore-compression.svg
 const IGNORE_SUFFIX = '-ignore-compression';
 // SVGO Default plugins

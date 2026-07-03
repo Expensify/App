@@ -1,9 +1,3 @@
-import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import truncate from 'lodash/truncate';
-import React, {useContext, useEffect} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import type {ButtonWithDropdownMenuRef} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
@@ -16,6 +10,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {ReportSubmitToPopoverAnchor} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
+
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -41,6 +36,7 @@ import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotal
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -64,14 +60,24 @@ import {
     navigateToDetailsPage,
 } from '@libs/ReportUtils';
 import {isExpensifyCardTransaction, isPending} from '@libs/TransactionUtils';
+
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 import {canApproveIOU, canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
+import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import truncate from 'lodash/truncate';
+import React, {useContext, useEffect} from 'react';
+import {View} from 'react-native';
 
 type MoneyReportHeaderSecondaryActionsProps = {
     reportID: string | undefined;
@@ -449,7 +455,7 @@ function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction}: {primaryA
     const {shouldUseNarrowLayout, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const shouldTakeRemainingWidth = (shouldUseNarrowLayout || isMediumScreenWidth) && !primaryAction && !isInLandscapeMode;
-    const wrapperStyle = shouldTakeRemainingWidth ? [styles.flex1, styles.w100, styles.mnw0] : undefined;
+    const wrapperStyle = shouldTakeRemainingWidth ? [styles.w100, styles.mnw0] : undefined;
     // Match the inner styles the real ButtonWithDropdownMenu applies when isSplitButton=false so text placement stays put on swap.
     const innerStyles = [StyleUtils.getDropDownButtonHeight(CONST.DROPDOWN_BUTTON_SIZE.MEDIUM), styles.dropDownButtonCartIconView];
     return (
@@ -470,31 +476,28 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const shouldTakeRemainingWidth = (shouldUseNarrowLayout || isMediumScreenWidth) && !primaryAction && !isInLandscapeMode;
-    const layoutWrapperStyle = shouldTakeRemainingWidth ? [styles.flex1, styles.w100, styles.mnw0] : undefined;
 
     return (
-        <View style={layoutWrapperStyle}>
-            <ReportSubmitToPopoverAnchor
-                reportID={reportID}
-                wrapperStyle={styles.w100}
-                anchorAlignment={MORE_MENU_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT}
+        <ReportSubmitToPopoverAnchor
+            reportID={reportID}
+            wrapperStyle={shouldTakeRemainingWidth ? styles.w100 : undefined}
+            anchorAlignment={MORE_MENU_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT}
+        >
+            <NavigationDeferredMount
+                placeholder={<MoneyReportHeaderSecondaryActionsPlaceholder primaryAction={primaryAction} />}
+                // RHPReportScreen remounts this tree on setParams arrow-nav without firing a transition,
+                // so we must not wait for one — see https://github.com/Expensify/App/issues/88931.
+                waitForUpcomingTransition={false}
             >
-                <NavigationDeferredMount
-                    placeholder={<MoneyReportHeaderSecondaryActionsPlaceholder primaryAction={primaryAction} />}
-                    // RHPReportScreen remounts this tree on setParams arrow-nav without firing a transition,
-                    // so we must not wait for one — see https://github.com/Expensify/App/issues/88931.
-                    waitForUpcomingTransition={false}
-                >
-                    <MoneyReportHeaderSecondaryActionsInner
-                        reportID={reportID}
-                        primaryAction={primaryAction}
-                        isReportInSearch={isReportInSearch}
-                        backTo={backTo}
-                        dropdownMenuRef={dropdownMenuRef}
-                    />
-                </NavigationDeferredMount>
-            </ReportSubmitToPopoverAnchor>
-        </View>
+                <MoneyReportHeaderSecondaryActionsInner
+                    reportID={reportID}
+                    primaryAction={primaryAction}
+                    isReportInSearch={isReportInSearch}
+                    backTo={backTo}
+                    dropdownMenuRef={dropdownMenuRef}
+                />
+            </NavigationDeferredMount>
+        </ReportSubmitToPopoverAnchor>
     );
 }
 

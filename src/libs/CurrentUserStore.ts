@@ -1,3 +1,5 @@
+import ONYXKEYS from '@src/ONYXKEYS';
+
 /**
  * Thin store for current user email that has no dependencies on Log.
  * This avoids circular dependency: Log -> NetworkStore -> Log
@@ -5,7 +7,6 @@
  * but Log specifically imports from here to break the cycle.
  */
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 let currentUserEmail: string | null = null;
 

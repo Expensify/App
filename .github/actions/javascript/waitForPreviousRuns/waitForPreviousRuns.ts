@@ -1,6 +1,7 @@
-import * as core from '@actions/core';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
+
+import * as core from '@actions/core';
 
 const DEFAULT_POLL_RATE_S = 20;
 const DEFAULT_QUEUE_LIMIT = 20;

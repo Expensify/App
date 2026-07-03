@@ -1,7 +1,10 @@
-import {Keyboard} from 'react-native';
 import {isMobile, isMobileSafari} from '@libs/Browser';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
 import CONST from '@src/CONST';
+
+import {Keyboard} from 'react-native';
+
 import type {DismissKeyboardOptions} from './types';
 
 let isVisible = false;
