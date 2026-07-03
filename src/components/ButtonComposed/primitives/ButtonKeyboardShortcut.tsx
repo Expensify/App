@@ -1,4 +1,5 @@
 import validateSubmitShortcut from '@components/Button/validateSubmitShortcut';
+import {useButtonContext} from '@components/ButtonComposed/context';
 import type {ButtonKeyboardShortcutProps} from '@components/ButtonComposed/types';
 
 import useActiveElementRole from '@hooks/useActiveElementRole';
@@ -14,25 +15,20 @@ import {useCallback, useMemo} from 'react';
 const accessibilityRoles: string[] = Object.values(CONST.ROLE);
 
 /**
- * Registers an Enter-key keyboard shortcut that triggers the button's onPress handler.
+ * Registers an Enter-key keyboard shortcut that triggers the parent Button's onPress handler.
  * Renders nothing to the DOM — it is a pure-behavior primitive intended to be composed
  * alongside ButtonText, ButtonIconLeft, etc. as a child of Button.
  *
  * Usage:
- *   <Button onPress={submit}>
- *     <ButtonKeyboardShortcut pressOnEnter onPress={submit} isDisabled={isDisabled} />
+ *   <Button onPress={submit} isDisabled={isDisabled}>
+ *     <ButtonKeyboardShortcut pressOnEnter />
  *     <ButtonText>Submit</ButtonText>
  *   </Button>
  */
-function ButtonKeyboardShortcut({
-    isDisabled = false,
-    isLoading = false,
-    onPress = () => {},
-    pressOnEnter,
-    allowBubble,
-    enterKeyEventListenerPriority,
-    isPressOnEnterActive = false,
-}: ButtonKeyboardShortcutProps) {
+function ButtonKeyboardShortcut({pressOnEnter, allowBubble, enterKeyEventListenerPriority, isPressOnEnterActive = false}: ButtonKeyboardShortcutProps) {
+    // The press handler and disabled/loading state come from the parent Button context.
+    const {onPress, isDisabled, isLoading} = useButtonContext();
+
     const isFocused = useIsFocused();
     const activeElementRole = useActiveElementRole();
 

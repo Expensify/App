@@ -112,9 +112,6 @@ function ButtonWithIcons({
                     allowBubble={allowBubble}
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     isPressOnEnterActive={isPressOnEnterActive}
-                    isDisabled={isDisabled}
-                    isLoading={isLoading}
-                    onPress={onPress}
                 />
             )}
             {!!iconLeft && (

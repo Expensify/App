@@ -55,9 +55,7 @@ type ButtonBehaviorProps = {
 };
 
 /**
- * Props for the ButtonKeyboardShortcut primitive.
- * Groups all Enter-key shortcut configuration in one place so the parent Button
- * does not need to know about keyboard-shortcut internals.
+ * Props for the ButtonKeyboardShortcut primitive — the Enter-key shortcut configuration.
  */
 type ButtonKeyboardShortcutProps = {
     /** Call the onPress function when Enter key is pressed */
@@ -71,15 +69,6 @@ type ButtonKeyboardShortcutProps = {
 
     /** Should the press event bubble across multiple instances when Enter key triggers it. */
     allowBubble?: boolean;
-
-    /** Whether the button is disabled — used by validateSubmitShortcut to block the callback */
-    isDisabled?: boolean;
-
-    /** Whether the button is loading — used by validateSubmitShortcut to block the callback */
-    isLoading?: boolean;
-
-    /** The callback to fire when Enter is pressed and the shortcut is active */
-    onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 };
 
 type ButtonStyleProps = {
