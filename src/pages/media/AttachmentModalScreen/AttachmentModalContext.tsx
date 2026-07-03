@@ -1,6 +1,9 @@
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
+
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+
 import type AttachmentModalScreenParams from './routes/types';
 import type {AttachmentModalScreenBaseParams, AttachmentModalScreenType} from './types';
 

@@ -1,15 +1,13 @@
-import {useFocusEffect, useRoute} from '@react-navigation/native';
-import React, {useState} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
+import {ReportSubmitToPopoverAnchor} from '@components/ReportSubmitToPopoverAnchor';
 import BulkDuplicateHandler from '@components/Search/BulkDuplicateHandler';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useExportDownloadStatusModal from '@hooks/useExportDownloadStatusModal';
 import useFilterSelectedTransactions from '@hooks/useFilterSelectedTransactions';
@@ -21,6 +19,7 @@ import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useSelectionModeReportActions from '@hooks/useSelectionModeReportActions';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {dismissRejectUseExplanation} from '@libs/actions/IOU/RejectMoneyRequest';
 import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -30,12 +29,20 @@ import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {ValueOf} from 'type-fest';
+
+import {useFocusEffect, useRoute} from '@react-navigation/native';
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
 import SelectAllCheckbox from './SelectAllCheckbox';
 import SelectionDropdown from './SelectionDropdown';
 
@@ -247,24 +254,26 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                     <View
                         style={[isInLandscapeMode ? [styles.flexRowReverse, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap6, styles.pb3, styles.ph5] : styles.flexColumn]}
                     >
-                        <SelectionDropdown
-                            hasPayInSelectionMode={hasPayInSelectionMode}
-                            chatReport={chatReport}
-                            report={report}
-                            onSelectionModePaymentSelect={onSelectionModePaymentSelect}
-                            selectionModeKYCSuccess={selectionModeKYCSuccess}
-                            onWorkspacePolicySelect={(selectedPolicy, triggerKYCFlow) => {
-                                if (shouldBlockAction()) {
-                                    return;
-                                }
-                                triggerKYCFlow({policy: selectedPolicy});
-                            }}
-                            primaryAction={primaryAction}
-                            selectedTransactionsOptions={selectedTransactionsOptions}
-                            selectedTransactionIDs={selectedTransactionIDs}
-                            kycWallRef={kycWallRef}
-                            shouldPopoverUseScrollView={popoverUseScrollView}
-                        />
+                        <ReportSubmitToPopoverAnchor reportID={reportID}>
+                            <SelectionDropdown
+                                hasPayInSelectionMode={hasPayInSelectionMode}
+                                chatReport={chatReport}
+                                report={report}
+                                onSelectionModePaymentSelect={onSelectionModePaymentSelect}
+                                selectionModeKYCSuccess={selectionModeKYCSuccess}
+                                onWorkspacePolicySelect={(selectedPolicy, triggerKYCFlow) => {
+                                    if (shouldBlockAction(undefined, true)) {
+                                        return;
+                                    }
+                                    triggerKYCFlow({policy: selectedPolicy});
+                                }}
+                                primaryAction={primaryAction}
+                                selectedTransactionsOptions={selectedTransactionsOptions}
+                                selectedTransactionIDs={selectedTransactionIDs}
+                                kycWallRef={kycWallRef}
+                                shouldPopoverUseScrollView={popoverUseScrollView}
+                            />
+                        </ReportSubmitToPopoverAnchor>
 
                         <SelectAllCheckbox
                             isSelectAllChecked={isSelectAllChecked}

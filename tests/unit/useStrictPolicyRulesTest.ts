@@ -1,7 +1,11 @@
 import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('useStrictPolicyRules', () => {
