@@ -26,6 +26,7 @@ import Tab from '@libs/actions/Tab';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {isControlPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
@@ -103,6 +104,14 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         // Fetch once on mount (and when policyID changes). setPolicyCodingRule already updates Onyx — refetching after saves can overwrite a newly added rule with stale data.
         openPolicyRulesPage(policyID);
     }, [policyID]);
+
+    useEffect(() => {
+        if (isControlPolicy(policy) || activeTab === RULES_TAB.GENERAL) {
+            return;
+        }
+
+        Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, RULES_TAB.GENERAL);
+    }, [activeTab, policy]);
 
     const clearAllTableSelection = useCallback(() => {
         setSelectedRuleKeysByTab((prev) => (Object.keys(prev).length > 0 ? {} : prev));
@@ -219,12 +228,32 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         },
     ];
 
+    const rulesUpgradeAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias;
+    const rulesUpgradeBackTo = ROUTES.WORKSPACE_RULES.getRoute(policyID);
+
     const handleNewRule = () => {
         if (!canWriteRules) {
             showReadOnlyModal();
             return;
         }
+        if (tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, rulesUpgradeBackTo)) {
+            return;
+        }
         Navigation.navigate(ROUTES.RULES_NEW.getRoute(policyID));
+    };
+
+    const handleTabPress = (key: string) => {
+        if (!isRulesTab(key)) {
+            return;
+        }
+
+        if (key !== RULES_TAB.GENERAL && tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, rulesUpgradeBackTo)) {
+            return;
+        }
+
+        setSelectedRuleKeysByTab({});
+        turnOffMobileSelectionMode();
+        Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, key);
     };
 
     const getHeaderContent = () => {
@@ -295,14 +324,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                 <TabSelectorBase
                                     tabs={tabs}
                                     activeTabKey={activeTab}
-                                    onTabPress={(key) => {
-                                        if (!isRulesTab(key)) {
-                                            return;
-                                        }
-                                        setSelectedRuleKeysByTab({});
-                                        turnOffMobileSelectionMode();
-                                        Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, key);
-                                    }}
+                                    onTabPress={handleTabPress}
                                 />
                             </TabSelectorContextProvider>
                         </View>

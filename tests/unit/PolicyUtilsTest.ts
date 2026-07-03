@@ -3749,8 +3749,12 @@ describe('arePolicyRulesEnabled', () => {
         expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: undefined})).toBe(false);
     });
 
-    it('returns false for a team policy even when areRulesEnabled is true', () => {
-        expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: true})).toBe(false);
+    it('returns true for a team policy with areRulesEnabled explicitly true', () => {
+        expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: true})).toBe(true);
+    });
+
+    it('returns false for a team policy with areRulesEnabled explicitly false', () => {
+        expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: false})).toBe(false);
     });
 });
 

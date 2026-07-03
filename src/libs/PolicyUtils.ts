@@ -1398,11 +1398,7 @@ function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFe
     if (!isPaidGroupPolicy(policy)) {
         return false;
     }
-    const corporateOnlyFeatures = new Set<PolicyFeatureName>([
-        CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
-        CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
-        CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
-    ]);
+    const corporateOnlyFeatures = new Set<PolicyFeatureName>([CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]);
     if (corporateOnlyFeatures.has(featureName)) {
         return isControlPolicy(policy);
     }
@@ -1411,6 +1407,19 @@ function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFe
 
 function isCollectPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM;
+}
+
+/**
+ * Collect workspaces can access a limited subset of Rules features. When a Collect admin tries to
+ * access a Control-only Rules feature, navigate to the upgrade flow and return true.
+ */
+function tryNavigateToControlPolicyUpgrade(policy: OnyxEntry<Policy>, upgradeFeatureAlias: string, backTo?: string): boolean {
+    if (!policy?.id || isControlPolicy(policy) || !isCollectPolicy(policy)) {
+        return false;
+    }
+
+    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy.id, upgradeFeatureAlias, backTo ?? ROUTES.WORKSPACE_RULES.getRoute(policy.id)));
+    return true;
 }
 
 function isTaxTrackingEnabled(
@@ -1583,7 +1592,7 @@ function canEditTaxRate(policy: Policy, taxID: string): boolean {
 }
 
 function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null): boolean {
-    if (!isControlPolicy(policy)) {
+    if (!isPaidGroupPolicy(policy)) {
         return false;
     }
     if (policy?.areRulesEnabled === true) {
@@ -1592,7 +1601,10 @@ function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: Pol
     if (policy?.areRulesEnabled === false) {
         return false;
     }
-    // areRulesEnabled is undefined - this can happen in case of migrated old policies, in such case users might have set up category rules in Classic and we should show Rules as enabled
+    // areRulesEnabled is undefined - this can happen in case of migrated old Control policies, in such case users might have set up category rules in Classic and we should show Rules as enabled
+    if (!isControlPolicy(policy)) {
+        return false;
+    }
     return hasAnyCategoryRules(policyCategories ?? undefined);
 }
 
@@ -2988,6 +3000,7 @@ export {
     sortPoliciesByName,
     isPolicyApprover,
     tryNavigateToSubmitWorkspaceUpgrade,
+    tryNavigateToControlPolicyUpgrade,
     canAccessSubmitWorkspaceFeatures,
     getRulesDocumentSourceURL,
     isSubmitPolicy,
