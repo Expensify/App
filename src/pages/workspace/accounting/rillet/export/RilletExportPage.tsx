@@ -31,12 +31,13 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
         <ConnectionLayout
             displayName="RilletExportPage"
             headerTitle="workspace.accounting.export"
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.RILLET}
+            shouldBeBlocked
         >
             <View style={[styles.mv3, styles.mh5]}>
                 <Text>{translate('workspace.rillet.exportDescription')}</Text>

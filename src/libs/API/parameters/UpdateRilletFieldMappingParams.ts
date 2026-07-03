@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
 
 type UpdateRilletFieldMappingParams = {
     policyID: string;
