@@ -1,10 +1,13 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 function useFilterUserValue(accountIDs: SearchFilter['value']): string {
     const {translate} = useLocalize();
