@@ -6287,7 +6287,7 @@ function buildOptimisticDeleteParentReportAction(
 }
 
 function clearChatIOUReportID(
-    report: OnyxEntry<Report>,
+    reports: Array<OnyxEntry<Report>>,
     currentUserEmailParam: string,
     currentUserAccountIDParam: number,
     allTransactionViolations: OnyxCollection<TransactionViolations>,
@@ -6297,23 +6297,18 @@ function clearChatIOUReportID(
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
 
-    const reportID = report?.reportID;
-    const chatReport = getReportOrDraftReport(report?.parentReportID);
+    // Multiple reports are currently only used by `mergeReports`.
+    // `mergeReports` currently only supports merging reports with the same policy and the same `ownerAccountID`,
+    // so they will always belong to the same chat report.
+    const chatReport = getReportOrDraftReport(reports.find((report) => !!report?.parentReportID)?.parentReportID);
     // Only clear the pointer when the chat still references the report being deleted, so we don't nullify a different active expense report.
-    const shouldClearChatIOUReportID = chatReport?.iouReportID === reportID;
+    const shouldClearChatIOUReportID = reports.some((report) => chatReport?.iouReportID === report?.reportID);
     if (chatReport) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
-                hasOutstandingChildRequest: hasOutstandingChildRequest(
-                    chatReport,
-                    report?.reportID,
-                    currentUserEmailParam,
-                    currentUserAccountIDParam,
-                    allTransactionViolations,
-                    bankAccountList,
-                ),
+                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, reports, currentUserEmailParam, currentUserAccountIDParam, allTransactionViolations, bankAccountList),
                 ...(shouldClearChatIOUReportID ? {iouReportID: null} : {}),
             },
         });
@@ -6321,9 +6316,9 @@ function clearChatIOUReportID(
 
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
         value: {
-            hasOutstandingChildRequest: report?.hasOutstandingChildRequest,
+            hasOutstandingChildRequest: chatReport?.hasOutstandingChildRequest,
             ...(shouldClearChatIOUReportID ? {iouReportID: chatReport?.iouReportID} : {}),
         },
     });
@@ -6331,7 +6326,9 @@ function clearChatIOUReportID(
     if (hash) {
         // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
         const failureSnapshotData: NullishDeep<SearchResultDataType> = {};
-        failureSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {pendingAction: null};
+        for (const report of reports) {
+            failureSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`] = {pendingAction: null};
+        }
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
@@ -6688,7 +6685,7 @@ function deleteAppReport({
     }
 
     const {optimisticData: clearChatIOUOptimisticData, failureData: clearChatIOUFailureData} = clearChatIOUReportID(
-        report,
+        [report],
         currentUserEmailParam,
         currentUserAccountIDParam,
         allTransactionViolations,
@@ -7995,8 +7992,10 @@ function mergeReports({
     allTransactionViolation,
     allReportsTransactions,
     bankAccountList,
+    allReports: allReportsParam,
 }: MergeReportsProps) {
-    const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
+    const reports = allReportsParam ?? allReports;
+    const destinationReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
 
     const transactionsToMove: Transaction[] = [];
     const transactionIDsToMove: string[] = [];
@@ -8006,14 +8005,7 @@ function mergeReports({
         transactionIDsToMove.push(...transactions.map((t) => t.transactionID));
     }
 
-    const {
-        optimisticData: moveOptimisticData = [],
-        successData: moveSuccessData = [],
-        failureData: moveFailureData = [],
-        transactionIDToReportActionAndThreadData,
-        updatedReportTotals,
-        updatedReportTransactionCounts,
-    } = getChangeTransactionsReportOnyxData({
+    const changeTransactionsReportOnyxData = getChangeTransactionsReportOnyxData({
         transactionIDs: transactionIDsToMove,
         isASAPSubmitBetaEnabled,
         accountID,
@@ -8025,19 +8017,34 @@ function mergeReports({
         policyTagList: policyTagList ?? {},
         transactions: transactionsToMove,
         allTransactionViolation,
-        allReports,
+        allReports: reports,
         skippedReportIDs: sourceReportIDs,
-    }) ?? {};
+    });
+
+    if (!changeTransactionsReportOnyxData) {
+        return;
+    }
+
+    const {
+        optimisticData: moveOptimisticData,
+        successData: moveSuccessData,
+        failureData: moveFailureData,
+        transactionIDToReportActionAndThreadData,
+        updatedReportTotals,
+        updatedReportTransactionCounts,
+    } = changeTransactionsReportOnyxData;
 
     const deleteOptimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
     const deleteSuccessData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const deleteFailureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
 
+    const allSourceReport: Report[] = [];
     for (const sourceReportID of sourceReportIDs) {
-        const sourceReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`];
+        const sourceReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`];
         if (!sourceReport) {
             continue;
         }
+        allSourceReport.push(sourceReport);
 
         // Mark source report as deleted
         deleteOptimisticData.push({
@@ -8091,18 +8098,18 @@ function mergeReports({
             deleteSuccessData.push(...parentSuccessData);
             deleteFailureData.push(...parentFailureData);
         }
-
-        const {optimisticData: clearChatIOUOptimisticData, failureData: clearChatIOUFailureData} = clearChatIOUReportID(
-            sourceReport,
-            email,
-            accountID,
-            allTransactionViolation,
-            bankAccountList,
-            hash,
-        );
-        deleteOptimisticData.push(...clearChatIOUOptimisticData);
-        deleteFailureData.push(...clearChatIOUFailureData);
     }
+
+    const {optimisticData: clearChatIOUOptimisticData, failureData: clearChatIOUFailureData} = clearChatIOUReportID(
+        allSourceReport,
+        email,
+        accountID,
+        allTransactionViolation,
+        bankAccountList,
+        hash,
+    );
+    deleteOptimisticData.push(...clearChatIOUOptimisticData);
+    deleteFailureData.push(...clearChatIOUFailureData);
 
     const optimisticData = [...moveOptimisticData, ...deleteOptimisticData];
     const successData = [...moveSuccessData, ...deleteSuccessData];
@@ -8112,14 +8119,14 @@ function mergeReports({
         const optimisticSnapshotData: SearchResultDataType = {};
         const failureSnapshotData: SearchResultDataType = {};
         for (const sourceReportID of sourceReportIDs) {
-            const sourceReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`];
+            const sourceReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`];
             if (sourceReport) {
                 optimisticSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`] = {
                     ...sourceReport,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 };
 
-                failureSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`] = {...sourceReport};
+                failureSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`] = {...sourceReport, pendingAction: sourceReport.pendingAction ?? null};
             }
         }
         if (destinationReport) {
