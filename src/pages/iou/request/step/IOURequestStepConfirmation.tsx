@@ -1,6 +1,3 @@
-import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -12,6 +9,7 @@ import {usePersonalDetails, usePolicyCategories} from '@components/OnyxListItemP
 import ParticipantPicker from '@components/ParticipantPicker';
 import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultParticipants from '@hooks/useDefaultParticipants';
@@ -32,6 +30,7 @@ import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setMoneyRequestBillable, setMoneyRequestReimbursable} from '@libs/actions/IOU/MoneyRequest';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {isMobileSafari} from '@libs/Browser';
@@ -41,6 +40,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getIsWorkspacesOnlyForTransaction,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
+    isParticipantP2P,
     navigateToStartMoneyRequestStep,
     resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
@@ -66,9 +66,11 @@ import {
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
     isScanRequest,
 } from '@libs/TransactionUtils';
+
 import {getIOURequestPolicyID, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {removeDraftTransaction, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
+
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -80,6 +82,14 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
+import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
+import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
 import CategoryDefaultsSetter from './confirmation/CategoryDefaultsSetter';
 import DraftWorkspaceOpener from './confirmation/DraftWorkspaceOpener';
 import ExpenseDefaultsSetter from './confirmation/ExpenseDefaultsSetter';
@@ -88,9 +98,7 @@ import ReceiptFileValidator from './confirmation/ReceiptFileValidator';
 import SubmitExpenseOrchestrator from './confirmation/SubmitExpenseOrchestrator';
 import TelemetrySpanManager from './confirmation/TelemetrySpanManager';
 import useExpenseSubmission from './confirmation/useExpenseSubmission';
-import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
-import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepConfirmationIncomingRouteName = typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION | typeof SCREENS.MONEY_REQUEST.CREATE;
@@ -313,7 +321,17 @@ function IOURequestStepConfirmation({
             if (!activeTransactionID) {
                 return;
             }
-            if (participantsList.at(0)?.isSelfDM) {
+            const selectedParticipant = participantsList.at(0);
+            // P2P chats don't support negative amounts. When a negative amount was entered before a participant
+            // was selected (e.g. "Submit it to someone" from a self DM), assigning it to a P2P participant would
+            // fail at submit, so keep the expense on the self DM (its default) instead of assigning the P2P
+            // participant, stopping the user at selection rather than at submit. This only applies while the
+            // expense is still on the self DM — a negative expense already bound to a policy expense chat (e.g.
+            // global create auto-assigned the default workspace) must stay on that workspace rather than being
+            // silently converted into a personal track expense.
+            const isTransactionOnPolicyExpenseChat = transaction?.participants?.some((participant) => participant?.isPolicyExpenseChat);
+            const shouldKeepOnSelfDM = !!selectedParticipant?.isSelfDM || ((transaction?.amount ?? 0) < 0 && !isTransactionOnPolicyExpenseChat && isParticipantP2P(selectedParticipant));
+            if (shouldKeepOnSelfDM) {
                 setMoneyRequestParticipantsFromReport(activeTransactionID, selfDMReport, currentUserPersonalDetails.accountID);
                 setTransactionReport(activeTransactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
                 navigation.setParams({iouType: CONST.IOU.TYPE.TRACK});
@@ -331,7 +349,7 @@ function IOURequestStepConfirmation({
                 closeParticipantPicker();
             }
         },
-        [activeTransactionID, closeParticipantPicker, currentUserPersonalDetails.accountID, navigation, selfDMReport, iouType, reportID],
+        [activeTransactionID, closeParticipantPicker, currentUserPersonalDetails.accountID, navigation, selfDMReport, iouType, transaction?.amount, transaction?.participants, reportID],
     );
 
     useEffect(() => {
@@ -472,10 +490,13 @@ function IOURequestStepConfirmation({
         // Only eligible when search pre-insert didn't win, and the flow ends at a report (not Search).
         // When Search is the topmost fullscreen and there's no report context (e.g. QAB from Spend tab),
         // pre-inserting a report is wrong - the user should stay on Search after submission.
-        // Global-create TRACK targets self-DM (a report), so it's also eligible for report
-        // pre-insert, but only when Search is NOT topmost. When on Search/Spend the user
-        // should stay there after submission (navigateAfterExpenseCreate routes to Expenses search).
-        const canUseReportPreInsert = !shouldPreInsertSearch && (isReportTopmostSplitNavigator() || (!isSearchTopmostFullScreenRoute() && (isCreatingTrackExpense || !isFromGlobalCreate)));
+        // Global-create TRACK targets self-DM, PAY and SPLIT target a specific chat report,
+        // so they are also eligible for report pre-insert when Search is NOT topmost.
+        // When on Search/Spend the user should stay there after submission.
+        const isReportBoundGlobalCreate = iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SPLIT;
+        const canUseReportPreInsert =
+            !shouldPreInsertSearch &&
+            (isReportTopmostSplitNavigator() || (!isSearchTopmostFullScreenRoute() && (isCreatingTrackExpense || isReportBoundGlobalCreate || !isFromGlobalCreate)));
 
         // RHP has its own dismiss handler; pre-inserting under it would break the stack.
         const isOutsideRHP = !isReportOpenInRHP(navigationRef.getRootState());
@@ -920,6 +941,7 @@ function IOURequestStepConfirmation({
                             isPerDiemRequest={isPerDiemRequest}
                             isTimeRequest={isTimeRequest}
                             isWorkspacesOnly={getIsWorkspacesOnlyForTransaction(transaction, requestType)}
+                            shouldExcludeP2P={(transaction?.amount ?? 0) < 0}
                             onParticipantsAdded={handleParticipantsAdded}
                             onFinish={closeParticipantPicker}
                             isVisible={isParticipantPickerVisible}

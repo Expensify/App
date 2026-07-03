@@ -1,14 +1,17 @@
-import React from 'react';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList, TabNavigatorParamList} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
+
 import createSearchFullscreenNavigator from '@navigation/AppNavigator/createSearchFullscreenNavigator';
 import FreezeWrapper from '@navigation/AppNavigator/FreezeWrapper';
+
 import type NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+
+import React from 'react';
 
 const loadSearchPage = () => require<ReactComponentModule>('@pages/Search/SearchPage').default;
 

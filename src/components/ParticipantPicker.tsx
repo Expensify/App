@@ -1,9 +1,13 @@
-import React from 'react';
 import useLocalize from '@hooks/useLocalize';
+
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
+
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {Participant} from '@src/types/onyx/IOU';
+
+import React from 'react';
+
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Modal from './Modal';
 import ScreenWrapper from './ScreenWrapper';
@@ -26,6 +30,9 @@ type ParticipantPickerProps = {
 
     /** Whether the IOU is workspaces only */
     isWorkspacesOnly?: boolean;
+
+    /** Whether to exclude P2P recipients (and the invite-by-email option) from the list. Used for negative amounts, which P2P chats don't support. */
+    shouldExcludeP2P?: boolean;
 
     /** Callback fired when participants are updated */
     onParticipantsAdded: (value: Participant[]) => void;
@@ -50,6 +57,7 @@ function ParticipantPicker({
     isPerDiemRequest = false,
     isTimeRequest = false,
     isWorkspacesOnly = false,
+    shouldExcludeP2P = false,
     onParticipantsAdded,
     onFinish,
     isVisible = true,
@@ -71,6 +79,7 @@ function ParticipantPicker({
             isPerDiemRequest={isPerDiemRequest}
             isTimeRequest={isTimeRequest}
             isWorkspacesOnly={isWorkspacesOnly}
+            shouldExcludeP2P={shouldExcludeP2P}
             onRestrictedParticipantSelected={onClose}
             onCloseParticipantPicker={onClose}
             initiallySelectedReportID={selectedParticipant?.reportID}

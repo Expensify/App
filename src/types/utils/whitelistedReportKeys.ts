@@ -51,6 +51,8 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         total: unknown;
         unheldTotal: unknown;
         unheldNonReimbursableTotal: unknown;
+        reimbursableTotal: unknown;
+        unheldReimbursableTotal: unknown;
         currency: unknown;
         errorFields: unknown;
         errors: unknown;
