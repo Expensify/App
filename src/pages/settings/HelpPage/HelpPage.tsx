@@ -1,5 +1,3 @@
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import AccountManagerBookCallButton from '@components/AccountManagerBookCallButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemList from '@components/MenuItemList';
@@ -7,6 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -16,15 +15,21 @@ import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {openHelpPage} from '@libs/actions/Help';
 import {openExternalLink} from '@libs/actions/Link';
 import {navigateToAndOpenReportWithAccountIDs} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+
 import colors from '@styles/theme/colors';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 function HelpPage() {
     const icons = useMemoizedLazyExpensifyIcons(['ConciergeAvatar', 'NewWindow', 'Monitor']);
@@ -104,7 +109,7 @@ function HelpPage() {
         description: hasActiveItem ? undefined : translate('initialSettingsPage.helpPage.conciergeChatDescription'),
         icon: icons.ConciergeAvatar,
         iconType: CONST.ICON_TYPE_AVATAR,
-        onPress: openConciergeAnywhere,
+        onPress: () => openConciergeAnywhere(),
         shouldShowRightIcon: true,
         wrapperStyle: [styles.sectionMenuItemTopDescription],
         sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.CONCIERGE_CHAT,

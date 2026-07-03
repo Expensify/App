@@ -1,26 +1,32 @@
-import React, {useCallback, useMemo} from 'react';
-import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateNetSuiteCustomLists, updateNetSuiteCustomSegments} from '@libs/actions/connections/NetSuiteCommands';
 import {clearNetSuiteErrorField, clearNetSuitePendingField, removeNetSuiteCustomFieldByIndex} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getNameFromNetSuiteCustomField, isNetSuiteCustomFieldPropertyEditable, isNetSuiteCustomSegmentRecord, settingsPendingAction} from '@libs/PolicyUtils';
+
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Policy';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useMemo} from 'react';
 
 type CustomField = NetSuiteCustomList | NetSuiteCustomSegment;
 type ImportCustomFieldsKeys = ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;

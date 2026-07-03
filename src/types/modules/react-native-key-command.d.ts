@@ -25,10 +25,10 @@ declare module 'react-native-key-command' {
 
     type KeyCommand = {input: string; modifierFlags?: string};
 
-    declare function addListener(keyCommand: KeyCommand, callback: (keycommandEvent: KeyCommand, event: KeyboardEvent) => void): () => void;
-    declare function registerKeyCommands(): void;
-    declare function unregisterKeyCommands(): void;
-    declare function eventEmitter(): void;
+    function addListener(keyCommand: KeyCommand, callback: (keycommandEvent: KeyCommand, event: KeyboardEvent) => void): () => void;
+    function registerKeyCommands(): void;
+    function unregisterKeyCommands(): void;
+    function eventEmitter(): void;
 
     export {constants, addListener, registerKeyCommands, unregisterKeyCommands, eventEmitter};
 }
