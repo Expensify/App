@@ -1,11 +1,8 @@
 import useStyleUtils from '@hooks/useStyleUtils';
 
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-
 import variables from '@styles/variables';
 
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {Dimensions} from '@src/types/utils/Layout';
 
 import type {ImageContentFit} from 'expo-image';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -16,7 +13,6 @@ import type {IconSize} from './primitives/types';
 
 import BaseIcon from './primitives/BaseIcon';
 import InlineIcon from './primitives/InlineIcon';
-import MultiGestureIcon from './primitives/MultiGestureIcon';
 import resolveIconSize from './primitives/resolveIconSize';
 
 type IconProps = {
@@ -80,14 +76,11 @@ type IconProps = {
     /** Keeps icon sizing consistent when used inside buttons. */
     isButtonIcon?: boolean;
 
-    /** Wraps the icon in a multi-gesture canvas on touch devices. */
-    enableMultiGestureCanvas?: boolean;
-
     /** When set, exposes the icon to assistive tech. Leave unset for decorative icons. */
     accessibilityLabel?: string;
 };
 
-/** Renders an SVG icon with preset sizes, inline layout, and optional gesture support. */
+/** Renders an SVG icon with preset sizes and inline layout. */
 function Icon({
     src,
     width = variables.iconSizeNormal,
@@ -109,7 +102,6 @@ function Icon({
     testID = '',
     contentFit = 'cover',
     isButtonIcon = false,
-    enableMultiGestureCanvas = false,
     accessibilityLabel,
 }: IconProps) {
     const StyleUtils = useStyleUtils();
@@ -135,24 +127,6 @@ function Icon({
                 isHovered={hovered}
                 isPressed={pressed}
                 contentFit={contentFit}
-            />
-        );
-    }
-
-    if (canUseTouchScreen() && enableMultiGestureCanvas) {
-        const contentSize: Dimensions = {width: iconWidth as number, height: iconHeight as number};
-        return (
-            <MultiGestureIcon
-                testID={testID}
-                additionalStyles={additionalStyles}
-                src={src}
-                iconWidth={iconWidth}
-                iconHeight={iconHeight}
-                fill={fill}
-                isHovered={hovered}
-                isPressed={pressed}
-                contentFit={contentFit}
-                contentSize={contentSize}
             />
         );
     }

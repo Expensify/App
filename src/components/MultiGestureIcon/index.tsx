@@ -1,18 +1,66 @@
 import ImageSVG from '@components/ImageSVG';
 import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCanvas';
 
+import variables from '@styles/variables';
+
+import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ImageContentFit} from 'expo-image';
+import type {StyleProp, ViewStyle} from 'react-native';
+
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
-
-import type {ContentSizedIconProps} from './types';
 
 import useCanvasSize from './useCanvasSize';
 import useIconCarouselPager from './useIconCarouselPager';
 
+type MultiGestureIconProps = {
+    /** The asset to render. */
+    src: IconAsset | undefined;
+
+    /** Custom width when no preset size is selected. */
+    width?: number;
+
+    /** Custom height when no preset size is selected. */
+    height?: number;
+
+    /** Fill color for the SVG. */
+    fill?: string;
+
+    /** Whether the icon is hovered. */
+    hovered?: boolean;
+
+    /** Whether the icon is pressed. */
+    pressed?: boolean;
+
+    /** Additional styles for the icon wrapper. */
+    additionalStyles?: StyleProp<ViewStyle>;
+
+    /** Test identifier for end-to-end tests. */
+    testID?: string;
+
+    /** How the SVG content should fit its container. */
+    contentFit?: ImageContentFit;
+};
+
 /** Renders an icon inside a multi-gesture canvas for pinch, pan, and swipe interactions. */
-function MultiGestureIcon({testID, additionalStyles, src, contentSize, iconWidth, iconHeight, fill, isHovered, isPressed, contentFit}: ContentSizedIconProps) {
+function MultiGestureIcon({
+    src,
+    width = variables.iconSizeNormal,
+    height = variables.iconSizeNormal,
+    fill = undefined,
+    additionalStyles = [],
+    hovered = false,
+    pressed = false,
+    testID = '',
+    contentFit = 'cover',
+}: MultiGestureIconProps) {
     const {canvasSize, isCanvasLoading, updateCanvasSize} = useCanvasSize();
     const {pagerRef, isScrollEnabled, onTap, onSwipeDown} = useIconCarouselPager();
+
+    if (!src) {
+        return null;
+    }
 
     return (
         <View
@@ -23,7 +71,7 @@ function MultiGestureIcon({testID, additionalStyles, src, contentSize, iconWidth
                 <MultiGestureCanvas
                     isActive
                     canvasSize={canvasSize}
-                    contentSize={contentSize}
+                    contentSize={{width, height}}
                     zoomRange={DEFAULT_ZOOM_RANGE}
                     pagerRef={pagerRef}
                     isUsedInCarousel={false}
@@ -37,11 +85,11 @@ function MultiGestureIcon({testID, additionalStyles, src, contentSize, iconWidth
                     >
                         <ImageSVG
                             src={src}
-                            width={iconWidth}
-                            height={iconHeight}
+                            width={width}
+                            height={height}
                             fill={fill}
-                            hovered={isHovered}
-                            pressed={isPressed}
+                            hovered={hovered}
+                            pressed={pressed}
                             contentFit={contentFit}
                         />
                     </View>
@@ -52,3 +100,4 @@ function MultiGestureIcon({testID, additionalStyles, src, contentSize, iconWidth
 }
 
 export default MultiGestureIcon;
+export type {MultiGestureIconProps};

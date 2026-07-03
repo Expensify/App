@@ -4,6 +4,7 @@ import Button from '@components/Button';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
+import MultiGestureIcon from '@components/MultiGestureIcon';
 import {useSession} from '@components/OnyxListItemProvider';
 import PerDiemEReceipt from '@components/PerDiemEReceipt';
 import ScrollView from '@components/ScrollView';
@@ -23,6 +24,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {add as addCachedPDFPaths} from '@libs/actions/CachedPDFPaths';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getFileResolution, isHighResolutionImage} from '@libs/fileDownload/FileUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {hasEReceipt, hasReceiptSource, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
@@ -201,14 +203,15 @@ function AttachmentView({
             additionalStyles = [defaultWorkspaceAvatarColor];
         }
 
+        const IconComponent = canUseTouchScreen() ? MultiGestureIcon : Icon;
+
         return (
-            <Icon
+            <IconComponent
                 src={source}
                 height={variables.defaultAvatarPreviewSize}
                 width={variables.defaultAvatarPreviewSize}
                 fill={iconFillColor}
                 additionalStyles={additionalStyles}
-                enableMultiGestureCanvas
             />
         );
     }

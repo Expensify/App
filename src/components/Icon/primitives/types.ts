@@ -41,7 +41,7 @@ type BaseIconProps = {
 
 /** Shared props for primitives that also receive a measured or layout content size. */
 type ContentSizedIconProps = BaseIconProps & {
-    /** Layout size for inline icons, or intrinsic content size for gesture canvases. */
+    /** Layout size for inline icons. */
     contentSize: Dimensions;
 };
 
