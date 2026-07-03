@@ -29,7 +29,7 @@ function hasConfiguredExpensifyCardFeed(settings: ExpensifyCardSettings | undefi
         return false;
     }
 
-    // We only want to show feeds that have either a US or GB program. 
+    // We only want to show feeds that have either a US or GB program.
     // TRAVEL feeds do not show in the UI and are managed on the backend and CURRENT feeds are deprecated and should not be used to determine if a feed is configured or not.
     for (const programKey of [CONST.COUNTRY.US, CONST.COUNTRY.GB] as const) {
         const nested = settings[programKey];
