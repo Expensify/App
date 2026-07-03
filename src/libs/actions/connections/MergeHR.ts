@@ -60,13 +60,11 @@ function syncMergeHR(policy: OnyxEntry<Policy>) {
             value: {
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
-                        lastSync: previousLastSync
-                            ? {
-                                  syncStatus: previousLastSync.syncStatus ?? null,
-                                  syncType: previousLastSync.syncType ?? null,
-                                  manualSyncTimestamps: previousLastSync.manualSyncTimestamps ?? null,
-                              }
-                            : null,
+                        lastSync: {
+                            syncStatus: CONST.MERGE_HR.SYNC_STATUS.FAILED,
+                            errorMessage: null,
+                            manualSyncTimestamps: previousLastSync?.manualSyncTimestamps ?? null,
+                        },
                     },
                 },
             },
@@ -91,9 +89,7 @@ function updateMergeHRApprovalMode(policyID: string, approvalMode: ValueOf<typeo
                     [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
                         config: {
                             approvalMode,
-                            pendingFields: {
-                                approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            },
+                            pendingFields: {approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                             errorFields: {approvalMode: null},
                         },
                     },
@@ -129,9 +125,7 @@ function updateMergeHRApprovalMode(policyID: string, approvalMode: ValueOf<typeo
                         config: {
                             approvalMode: previousApprovalMode,
                             pendingFields: {approvalMode: null},
-                            errorFields: {
-                                approvalMode: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                            },
+                            errorFields: {approvalMode: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                         },
                     },
                 },
@@ -164,9 +158,7 @@ function updateMergeHRFinalApprover(policyID: string, finalApprover: string | nu
                     [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
                         config: {
                             finalApprover,
-                            pendingFields: {
-                                finalApprover: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            },
+                            pendingFields: {finalApprover: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                             errorFields: {finalApprover: null},
                         },
                     },
@@ -202,9 +194,7 @@ function updateMergeHRFinalApprover(policyID: string, finalApprover: string | nu
                         config: {
                             finalApprover: previousFinalApprover,
                             pendingFields: {finalApprover: null},
-                            errorFields: {
-                                finalApprover: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                            },
+                            errorFields: {finalApprover: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                         },
                     },
                 },
@@ -233,9 +223,7 @@ function updateMergeHRGroups(policyID: string, groups: string[], currentGroups?:
                     [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
                         config: {
                             groups,
-                            pendingFields: {
-                                groups: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            },
+                            pendingFields: {groups: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                             errorFields: {groups: null},
                         },
                     },
@@ -271,9 +259,7 @@ function updateMergeHRGroups(policyID: string, groups: string[], currentGroups?:
                         config: {
                             groups: currentGroups ?? null,
                             pendingFields: {groups: null},
-                            errorFields: {
-                                groups: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                            },
+                            errorFields: {groups: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                         },
                     },
                 },
