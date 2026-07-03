@@ -9325,7 +9325,7 @@ describe('SearchUIUtils', () => {
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL);
         });
 
-        test('Should hide TOTAL from custom expense report columns when there is no conversion', () => {
+        test('Should show selected TOTAL from custom expense report columns when there is no conversion', () => {
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const testTransaction = {
                 ...baseTransaction,
@@ -9340,7 +9340,7 @@ describe('SearchUIUtils', () => {
             const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
 
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
-            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL);
         });
 
         test('Should show TOTAL from custom expense report columns when there is a conversion', () => {

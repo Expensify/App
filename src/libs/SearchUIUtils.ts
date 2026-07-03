@@ -5889,12 +5889,11 @@ function getColumnsToShow({
             }
 
             if (shouldShowCommentsColumn && !addedColumns.has(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)) {
-                const moneyColumnIndexes = [result.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT), result.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL)].filter((index) => index !== -1);
-                const moneyColumnIndex = moneyColumnIndexes.length > 0 ? Math.min(...moneyColumnIndexes) : -1;
-                if (moneyColumnIndex === -1) {
+                const totalAmountIndex = result.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
+                if (totalAmountIndex === -1) {
                     result.push(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
                 } else {
-                    result.splice(moneyColumnIndex, 0, CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
+                    result.splice(totalAmountIndex, 0, CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
                 }
             }
 
@@ -5993,16 +5992,10 @@ function getColumnsToShow({
             if (hasExchangeRate) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE] = true;
             }
-            // Expense report view: TOTAL_AMOUNT (transaction amount) is shown by default. TOTAL
-            // (workspace currency) is added when a conversion exists. ORIGINAL_AMOUNT never
-            // renders by default in report view because it must be explicitly selected.
-            // Search page: ORIGINAL_AMOUNT stays data-driven (shown whenever a conversion exists).
-            if (hasExchangeRate) {
-                if (isExpenseReportView) {
-                    columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL] = true;
-                } else {
-                    columns[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = true;
-                }
+            // Expense report view: TOTAL_AMOUNT (transaction amount) is shown by default.
+            // TOTAL (workspace currency) is added when a conversion exists.
+            if (hasExchangeRate && isExpenseReportView) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL] = true;
             }
 
             if (!Array.isArray(data)) {
@@ -6073,7 +6066,7 @@ function getColumnsToShow({
     }
 
     if (customResult) {
-        return customResult.filter((col) => col !== CONST.SEARCH.TABLE_COLUMNS.TOTAL || columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
+        return customResult;
     }
 
     return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
