@@ -1,17 +1,20 @@
-import {useIsFocused} from '@react-navigation/native';
-import {useEffect, useEffectEvent, useMemo} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+
 import {search} from '@libs/actions/Search';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getAmount, getCreated, getCurrency, getMerchantName, getTransactionPendingAction} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+
+import {useIsFocused} from '@react-navigation/native';
+import {useEffect, useEffectEvent, useMemo} from 'react';
 
 /** A single expense row surfaced by the Recently added slot. */
 type RecentlyAddedExpense = {
@@ -33,18 +36,17 @@ type RecentlyAddedExpense = {
     /** The expense currency */
     currency: string;
 
-    /**
-     * The transaction thread report to open for this expense, resolved from the snapshot's IOU action.
-     * Needed for unreported (tracked) expenses, whose thread lives in the self-DM and is absent from the
-     * main Onyx collection.
-     */
-    threadReportID?: string;
-
     /** Pending action for locally-created expenses not yet synced, so the row can render the offline pending treatment */
     pendingAction?: PendingAction;
 
     /** The full transaction, used to render the receipt thumbnail */
     transaction: Transaction;
+
+    /** The expense's parent IOU report action, from the snapshot */
+    reportAction?: ReportAction;
+
+    /** The expense's parent report, from the snapshot */
+    report?: Report;
 };
 
 /**
@@ -148,9 +150,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
     const transactions = useMemo(() => {
         const data = snapshotData ?? {};
 
-        const reportOwnerByReportID = new Map<string, number | undefined>();
-        const reportTypeByReportID = new Map<string, string | undefined>();
-        const reportChatTypeByReportID = new Map<string, string | undefined>();
+        const reportByReportID = new Map<string, Report>();
         const snapshotTransactions: Transaction[] = [];
         const snapshotReportActions: ReportAction[] = [];
         // Snapshot data is a keyed record where the key prefix determines the value type.
@@ -164,9 +164,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 const report = value as Report;
                 if (report?.reportID) {
-                    reportOwnerByReportID.set(report.reportID, report.ownerAccountID);
-                    reportTypeByReportID.set(report.reportID, report.type);
-                    reportChatTypeByReportID.set(report.reportID, report.chatType);
+                    reportByReportID.set(report.reportID, report);
                 }
                 continue;
             }
@@ -184,7 +182,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
             if (transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 return true;
             }
-            const ownerAccountID = reportOwnerByReportID.get(transaction.reportID);
+            const ownerAccountID = reportByReportID.get(transaction.reportID)?.ownerAccountID;
             return ownerAccountID === undefined || ownerAccountID === accountID;
         });
 
@@ -216,13 +214,13 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
                 // snapshot keeps the stale, pre-edit copy. Prefer the local copy when present so the row reflects the
                 // edit and can render the offline pending treatment, matching how the Search transaction list behaves.
                 const sourceTransaction = localTransactionByID.get(transaction.transactionID) ?? transaction;
-                const reportType = reportTypeByReportID.get(transaction.reportID);
+                const reportType = reportByReportID.get(transaction.reportID)?.type;
                 const isFromExpenseReport = reportType === CONST.REPORT.TYPE.EXPENSE;
                 // Self-DM and unreported (tracked) expenses support signed amounts like expense reports, so their
                 // sign must be preserved too. Without this, a self-DM credit/refund is collapsed to its absolute
                 // value and loses its negative sign.
                 const isFromTrackedExpense =
-                    transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || reportChatTypeByReportID.get(transaction.reportID) === CONST.REPORT.CHAT_TYPE.SELF_DM;
+                    transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || reportByReportID.get(transaction.reportID)?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
                 return {
                     transactionID: transaction.transactionID,
                     reportID: transaction.reportID,
@@ -232,7 +230,8 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
                     // displayed amount must be negated for them (mirrors the Search transaction list).
                     amount: getAmount(sourceTransaction, isFromExpenseReport, isFromTrackedExpense),
                     currency: getCurrency(sourceTransaction),
-                    threadReportID: getIOUActionForTransactionID(snapshotReportActions, transaction.transactionID)?.childReportID,
+                    reportAction: getIOUActionForTransactionID(snapshotReportActions, transaction.transactionID),
+                    report: reportByReportID.get(transaction.reportID),
                     // Derive from the local copy so an offline edit (which sets `pendingFields`, not `pendingAction`)
                     // still surfaces the pending state, alongside offline creates (ADD) and deletes (DELETE).
                     pendingAction: getTransactionPendingAction(sourceTransaction),

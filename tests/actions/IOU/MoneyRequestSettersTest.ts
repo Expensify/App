@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import {format} from 'date-fns';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import {
     initMoneyRequest,
     resetDraftTransactionsCustomUnit,
@@ -17,6 +13,7 @@ import {
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import Log from '@libs/Log';
 import type * as PolicyUtils from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -25,7 +22,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {LastSelectedDistanceRates, Policy, Report} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Transaction from '@src/types/onyx/Transaction';
-import SafeString from '@src/utils/SafeString';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import {format} from 'date-fns';
+import {SafeString} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
 import currencyList from '../../unit/currencyList.json';
 import createPersonalDetails from '../../utils/collections/personalDetails';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../../utils/collections/policies';
@@ -523,6 +527,11 @@ describe('actions/IOU', () => {
                 attendees: [
                     {
                         email: currentUserPersonalDetails.email ?? '',
+                        login: currentUserPersonalDetails.login,
+                        accountID: 3,
+                        text: currentUserPersonalDetails.login,
+                        selected: true,
+                        reportID: '0',
                         avatarUrl: SafeString(currentUserPersonalDetails.avatar) ?? '',
                         displayName: currentUserPersonalDetails.displayName ?? '',
                     },

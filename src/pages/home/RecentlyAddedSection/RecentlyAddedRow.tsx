@@ -1,20 +1,26 @@
-import React from 'react';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import ReceiptCell from '@components/TransactionItemRow/DataCells/ReceiptCell';
 import TypeCell from '@components/TransactionItemRow/DataCells/TypeCell';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {RecentlyAddedExpense} from './useRecentlyAddedData';
 
 /** Width of the date column, shared with the section's column header so labels line up with the values. */
