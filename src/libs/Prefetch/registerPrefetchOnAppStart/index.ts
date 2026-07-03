@@ -1,12 +1,15 @@
-import {clearTokenRefresh, prefetchOnAppStart, registerTokenRefresh} from 'react-native-nitro-fetch';
 import {AUTHENTICATION_COMMAND} from '@libs/API/types';
 import {getApiRoot} from '@libs/ApiUtils';
 import Log from '@libs/Log';
 import {getBaseRequestParameters} from '@libs/Network/enhanceParameters';
 import {getCredentials} from '@libs/Network/NetworkStore';
 import {getPartnerCredentials} from '@libs/SessionUtils';
+
 import CONST from '@src/CONST';
 import type Credentials from '@src/types/onyx/Credentials';
+
+import {clearTokenRefresh, prefetchOnAppStart, registerTokenRefresh} from 'react-native-nitro-fetch';
+
 import type RegisterPrefetchOnAppStart from './types';
 
 const CONTENT_TYPE_HEADER = 'Content-Type';

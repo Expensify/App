@@ -1,10 +1,8 @@
-import {useIsFocused} from '@react-navigation/native';
-import React from 'react';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import WidgetContainer from '@components/WidgetContainer';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -14,6 +12,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,12 +21,19 @@ import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThrea
 import {getReportIDToOpenForExpense} from '@libs/TransactionThreadNavigationUtils';
 import WidgetHeaderMenu from '@pages/home/common/WidgetHeaderMenu/WidgetHeaderMenu';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import {useIsFocused} from '@react-navigation/native';
+import React from 'react';
+import {View} from 'react-native';
+
+import type {RecentlyAddedExpense} from './useRecentlyAddedData';
+
 import EmptyState from './EmptyState';
 import RecentlyAddedRow, {DATE_COLUMN_WIDTH, DATE_COLUMN_WIDTH_WIDE} from './RecentlyAddedRow';
-import type {RecentlyAddedExpense} from './useRecentlyAddedData';
 import {useRecentlyAddedData} from './useRecentlyAddedData';
 
 const HEADER_RECEIPT_ICON_SIZE = 16;
@@ -67,7 +73,12 @@ function RecentlyAddedSection() {
         const siblingTransactionIDs = transactions.map((sibling) => sibling.transactionID);
         const siblingDescriptorsByTransactionID = transactions.reduce<Record<string, TransactionThreadNavigationDescriptor>>((map, sibling) => {
             // eslint-disable-next-line no-param-reassign
-            map[sibling.transactionID] = {reportID: sibling.reportID, threadReportID: sibling.threadReportID, transaction: sibling.transaction};
+            map[sibling.transactionID] = {
+                reportID: sibling.reportID,
+                transaction: sibling.transaction,
+                reportAction: sibling.reportAction,
+                report: sibling.report,
+            };
             return map;
         }, {});
 

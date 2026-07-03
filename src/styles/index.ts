@@ -1,26 +1,32 @@
-/* eslint-disable max-lines */
-/* eslint-disable @typescript-eslint/naming-convention */
-import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
-import lodashClamp from 'lodash/clamp';
-import type {LineLayerSpecification} from 'react-map-gl/mapbox';
-// eslint-disable-next-line no-restricted-imports
-import type {Animated, DimensionValue, ImageStyle, TextStyle, ViewStyle} from 'react-native';
-import {Platform, StyleSheet} from 'react-native';
-import type {PickerStyle} from 'react-native-picker-select';
-import type {SharedValue} from 'react-native-reanimated';
-import {interpolate} from 'react-native-reanimated';
-import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
-import type {ValueOf} from 'type-fest';
 import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
 import {animatedReceiptPaneRHPWidth, animatedSuperWideRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
+
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
+
 import CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
-import colors from './theme/colors';
+
+/* eslint-disable max-lines */
+/* eslint-disable @typescript-eslint/naming-convention */
+import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
+import type {LineLayerSpecification} from 'react-map-gl/mapbox';
+// eslint-disable-next-line no-restricted-imports
+import type {Animated, DimensionValue, ImageStyle, TextStyle, ViewStyle} from 'react-native';
+import type {PickerStyle} from 'react-native-picker-select';
+import type {SharedValue} from 'react-native-reanimated';
+import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
+import type {ValueOf} from 'type-fest';
+
+import lodashClamp from 'lodash/clamp';
+import {Platform, StyleSheet} from 'react-native';
+import {interpolate} from 'react-native-reanimated';
+
 import type {ThemeColors} from './theme/types';
+
+import colors from './theme/colors';
 import addOutlineWidth from './utils/addOutlineWidth';
 import addToWalletButtonStyles from './utils/addToWalletButtonStyles';
 import borders from './utils/borders';
@@ -5516,6 +5522,11 @@ const staticStyles = (theme: ThemeColors) =>
         cardRulesEmptyStateIllustration: {
             width: variables.cardRulesEmptyStateIllustrationWidth,
             height: variables.cardRulesEmptyStateIllustrationHeight,
+        },
+
+        sortingMachineRulesEmptyStateIllustration: {
+            width: variables.sortingMachineRulesEmptyStateIllustrationWidth,
+            height: variables.sortingMachineRulesEmptyStateIllustrationHeight,
         },
 
         emptyStateSamlIllustration: {

@@ -1,7 +1,3 @@
-import {Str} from 'expensify-common';
-import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {ViewStyle} from 'react-native';
 import ReceiptImage from '@components/ReceiptImage';
 import ReceiptPreview from '@components/TransactionItemRow/ReceiptPreview';
 import type {AnchorPosition} from '@components/TransactionItemRow/types';
@@ -10,11 +6,20 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {hasReceiptSource, isPerDiemRequest} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+
 import variables from '@styles/variables';
+
 import type {Transaction} from '@src/types/onyx';
+
+import type {ViewStyle} from 'react-native';
+
+import {Str} from 'expensify-common';
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
 
 function ReceiptCell({
     transactionItem,
