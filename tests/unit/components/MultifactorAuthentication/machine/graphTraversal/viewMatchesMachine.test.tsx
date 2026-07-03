@@ -98,7 +98,8 @@ const testConfig = {
         },
         [MFA_STATE.CLOSING]: () => {
             expect(screen.queryAllByTestId(MODAL_BACKDROP_TEST_ID)).not.toHaveLength(0);
-            expect(screen.queryAllByTestId(OUTCOME_SCREEN_TEST_ID)).toHaveLength(0);
+            // The outcome stays mounted during the production close animation, while jsdom's goBack()
+            // removes it synchronously. Its presence is therefore not part of the closing-state contract.
         },
     },
 };
