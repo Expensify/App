@@ -29,6 +29,7 @@ function SelectableListItem<TItem extends ListItem>({
     return (
         <BaseListItem
             {...baseProps}
+            wrapperStyle={[baseProps.wrapperStyle, item.isDisabled && styles.opacitySemiTransparent]}
             item={item}
             isFocused={isFocused}
             isDisabled={isDisabled}
