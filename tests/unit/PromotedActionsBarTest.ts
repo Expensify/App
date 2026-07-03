@@ -39,6 +39,7 @@ describe('PromotedActions.message', () => {
             personalDetails: {},
             introSelected,
             isSelfTourViewed: false,
+            hasCompletedGuidedSetupFlow: undefined,
             betas: undefined,
         });
 
@@ -55,12 +56,13 @@ describe('PromotedActions.message', () => {
             personalDetails: {},
             introSelected,
             isSelfTourViewed: false,
+            hasCompletedGuidedSetupFlow: undefined,
             betas: undefined,
         });
 
         action.onSelected();
 
-        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, false, undefined, {}, true);
+        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, false, undefined, undefined, {}, true);
     });
 
     it('should pass undefined introSelected when not provided', () => {
@@ -70,12 +72,13 @@ describe('PromotedActions.message', () => {
             personalDetails: {},
             introSelected: undefined,
             isSelfTourViewed: undefined,
+            hasCompletedGuidedSetupFlow: undefined,
             betas: undefined,
         });
 
         action.onSelected();
 
-        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, undefined, undefined, undefined, {}, true);
+        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, undefined, undefined, undefined, undefined, {}, true);
     });
 
     it('should navigate to report directly when reportID is provided', () => {
@@ -85,6 +88,7 @@ describe('PromotedActions.message', () => {
             personalDetails: {},
             introSelected: undefined,
             isSelfTourViewed: undefined,
+            hasCompletedGuidedSetupFlow: undefined,
             betas: undefined,
         });
 
@@ -104,6 +108,7 @@ describe('PromotedActions.message', () => {
             currentUserAccountID: 1,
             introSelected,
             isSelfTourViewed: false,
+            hasCompletedGuidedSetupFlow: undefined,
             betas: undefined,
         });
 
@@ -122,12 +127,13 @@ describe('PromotedActions.message', () => {
             currentUserAccountID: 1,
             introSelected,
             isSelfTourViewed: false,
+            hasCompletedGuidedSetupFlow: undefined,
             betas,
         });
 
         action.onSelected();
 
-        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, false, betas, {}, true);
+        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, false, undefined, betas, {}, true);
     });
 
     it('should call navigateToAndOpenReportWithAccountIDs with isSelfTourViewed=true when self tour has been viewed and accountID is provided', () => {
@@ -137,13 +143,14 @@ describe('PromotedActions.message', () => {
             currentUserAccountID: 1,
             introSelected,
             isSelfTourViewed: true,
+            hasCompletedGuidedSetupFlow: undefined,
             betas: undefined,
             personalDetails: {},
         });
 
         action.onSelected();
 
-        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, true, undefined, {}, true);
+        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, true, undefined, undefined, {}, true);
     });
 
     it('should pass betas to navigateToAndOpenReport when login is provided', () => {
@@ -155,6 +162,7 @@ describe('PromotedActions.message', () => {
             introSelected,
             personalDetails: {},
             isSelfTourViewed: false,
+            hasCompletedGuidedSetupFlow: undefined,
             betas,
         });
 
@@ -171,6 +179,7 @@ describe('PromotedActions.message', () => {
             personalDetails: {},
             introSelected: undefined,
             isSelfTourViewed: undefined,
+            hasCompletedGuidedSetupFlow: undefined,
             betas: undefined,
         });
 

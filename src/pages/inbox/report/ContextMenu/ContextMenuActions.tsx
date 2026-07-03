@@ -330,6 +330,7 @@ type ContextMenuActionPayload = {
     harvestReportOriginalID?: string;
     introSelected: OnyxEntry<IntroSelected>;
     isSelfTourViewed: boolean | undefined;
+    hasCompletedGuidedSetupFlow: boolean | undefined;
     betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     isDelegateAccessRestricted?: boolean;
@@ -743,7 +744,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
-        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, betas, personalDetails}) => {
+        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
@@ -755,6 +756,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         originalReport,
                         introSelected,
                         isSelfTourViewed,
+                        hasCompletedGuidedSetupFlow,
                         betas,
                         childReportNotificationPreference,
                         personalDetails,
@@ -771,6 +773,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 originalReport,
                 introSelected,
                 isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
                 betas,
                 childReportNotificationPreference,
                 personalDetails,
@@ -802,7 +805,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
-        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, betas, personalDetails}) => {
+        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
@@ -814,6 +817,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         originalReport,
                         introSelected,
                         isSelfTourViewed,
+                        hasCompletedGuidedSetupFlow,
                         betas,
                         childReportNotificationPreference,
                         personalDetails,
@@ -830,6 +834,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 originalReport,
                 introSelected,
                 isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
                 betas,
                 childReportNotificationPreference,
                 personalDetails,
@@ -1106,7 +1111,13 @@ const ContextMenuActions: ContextMenuAction[] = [
                     );
                 } else if (isReimbursementQueuedAction(reportAction)) {
                     Clipboard.setString(
-                        getReimbursementQueuedActionMessage({reportAction, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils, report, shouldUseShortDisplayName: false}),
+                        getReimbursementQueuedActionMessage({
+                            reportAction,
+                            translate,
+                            formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                            report,
+                            shouldUseShortDisplayName: false,
+                        }),
                     );
                 } else if (isActionableMentionWhisper(reportAction)) {
                     const targetAccountIDs = getOriginalMessage(reportAction)?.inviteeAccountIDs;
@@ -1204,7 +1215,14 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isCardIssuedAction(reportAction)) {
                     const shouldNavigateToCardDetails = isPolicyAdmin(policy, currentUserPersonalDetails.login);
                     setClipboardMessage(
-                        getCardIssuedMessage({reportAction, shouldRenderHTML: true, shouldNavigateToCardDetails, policyID: report?.policyID, expensifyCard: card, translate}),
+                        getCardIssuedMessage({
+                            reportAction,
+                            shouldRenderHTML: true,
+                            shouldNavigateToCardDetails,
+                            policyID: report?.policyID,
+                            expensifyCard: card,
+                            translate,
+                        }),
                     );
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION)) {
                     setClipboardMessage(getAddedConnectionMessage(translate, reportAction));
@@ -1316,7 +1334,12 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
                     const iouAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
                     const missingFields = getOriginalMessage(reportAction)?.missingFields;
-                    setClipboardMessage(translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction), missingFields}));
+                    setClipboardMessage(
+                        translate('violations.smartscanFailed', {
+                            canEdit: wasActionTakenByCurrentUser(iouAction),
+                            missingFields,
+                        }),
+                    );
                 } else if (content) {
                     setClipboardMessage(
                         content.replaceAll(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {

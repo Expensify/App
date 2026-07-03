@@ -25,7 +25,7 @@ import colors from '@styles/theme/colors';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {hasSeenTourSelector} from '@src/selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@src/selectors/Onboarding';
 
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
@@ -45,7 +45,9 @@ function HelpPage() {
     const partnerManagerDetails = account?.partnerManagerAccountID ? personalDetails?.[account.partnerManagerAccountID] : null;
     const guideDetails = account?.guideDetails?.email ? getPersonalDetailByEmail(account.guideDetails.email) : null;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: guidedSetupAndTourStatusSelector,
+    });
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
@@ -57,7 +59,16 @@ function HelpPage() {
               description: isApprovedAccountant ? translate('initialSettingsPage.helpPage.partnerManagerDescription') : undefined,
               icon: partnerManagerDetails.avatar,
               iconType: CONST.ICON_TYPE_AVATAR,
-              onPress: () => navigateToAndOpenReportWithAccountIDs([partnerManagerDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas, personalDetails),
+              onPress: () =>
+                  navigateToAndOpenReportWithAccountIDs(
+                      [partnerManagerDetails.accountID],
+                      currentUserAccountID,
+                      introSelected,
+                      guidedSetupAndTourStatus?.isSelfTourViewed,
+                      guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                      betas,
+                      personalDetails,
+                  ),
               shouldShowRightIcon: true,
               wrapperStyle: [styles.sectionMenuItemTopDescription],
               sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.PARTNER_MANAGER,
@@ -71,7 +82,16 @@ function HelpPage() {
               description: isApprovedAccountant ? translate('initialSettingsPage.helpPage.accountExecutiveDescription') : undefined,
               icon: guideDetails.avatar,
               iconType: CONST.ICON_TYPE_AVATAR,
-              onPress: () => navigateToAndOpenReportWithAccountIDs([guideDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas, personalDetails),
+              onPress: () =>
+                  navigateToAndOpenReportWithAccountIDs(
+                      [guideDetails.accountID],
+                      currentUserAccountID,
+                      introSelected,
+                      guidedSetupAndTourStatus?.isSelfTourViewed,
+                      guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                      betas,
+                      personalDetails,
+                  ),
               shouldShowRightIcon: true,
               wrapperStyle: [styles.sectionMenuItemTopDescription],
               sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.GUIDE,
@@ -85,7 +105,16 @@ function HelpPage() {
               description: isApprovedAccountant ? translate('initialSettingsPage.helpPage.accountManagerDescription') : undefined,
               icon: accountManagerDetails.avatar,
               iconType: CONST.ICON_TYPE_AVATAR,
-              onPress: () => navigateToAndOpenReportWithAccountIDs([accountManagerDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas, personalDetails),
+              onPress: () =>
+                  navigateToAndOpenReportWithAccountIDs(
+                      [accountManagerDetails.accountID],
+                      currentUserAccountID,
+                      introSelected,
+                      guidedSetupAndTourStatus?.isSelfTourViewed,
+                      guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                      betas,
+                      personalDetails,
+                  ),
               shouldShowRightIcon: true,
               wrapperStyle: [styles.sectionMenuItemTopDescription],
               sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.ACCOUNT_MANAGER,
