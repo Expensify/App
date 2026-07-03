@@ -1,5 +1,6 @@
-import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
 
 function setIsGPSInProgressModalOpen(isOpen: boolean) {
     Onyx.merge(ONYXKEYS.IS_GPS_IN_PROGRESS_MODAL_OPEN, isOpen);

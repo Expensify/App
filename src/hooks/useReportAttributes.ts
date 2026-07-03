@@ -1,7 +1,10 @@
-import {reportNameSelector} from '@selectors/ReportAttributes';
-import type {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {reportNameSelector} from '@selectors/ReportAttributes';
+
 import useOnyx from './useOnyx';
 
 /**

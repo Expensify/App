@@ -1,4 +1,3 @@
-import type {ValueOf} from 'type-fest';
 import type {
     ReportFieldDateKey,
     ReportFieldKey,
@@ -12,8 +11,12 @@ import type {
     SearchWithdrawalStatus,
     SearchWithdrawalType,
 } from '@components/Search/types';
+
 import CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+
+import type {ValueOf} from 'type-fest';
+
 import type Form from './Form';
 
 const DATE_FILTER_KEYS: SearchDateFilterKeys[] = [
