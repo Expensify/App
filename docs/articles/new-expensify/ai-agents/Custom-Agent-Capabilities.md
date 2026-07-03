@@ -1,8 +1,8 @@
 ---
 title: Agent Capability Reference
 description: Every action your Agent can take, with ready-to-copy instruction phrases and disambiguation notes to avoid common mis-routings.
-keywords: [Custom Agent, Agent, agent capabilities, agent actions, submit report, approve report, reject report, add comment, analyze expenses, agent instructions, workspace automation, Expensify automation]
-internalScope: Audience is workspace admins configuring Agents. Covers all supported ManageReport sub-actions, AddComment, and AnalyzeExpenses. Does not cover read-only report context or NoResponse behavior.
+keywords: [Custom Agent, Agent, agent capabilities, agent actions, submit report, approve report, reject report, add comment, analyze expenses, agent instructions, workspace automation, Expensify automation, Rulebot, rule bot]
+internalScope: Audience is all members configuring Agents. Covers all supported ManageReport sub-actions, AddComment, and AnalyzeExpenses. Does not cover read-only report context or NoResponse behavior.
 ---
 
 An Agent acts on expense reports using the actions described below. This reference helps you phrase your instructions so your agent reliably does what you intend — and doesn't accidentally take the wrong action.
@@ -12,7 +12,7 @@ An Agent acts on expense reports using the actions described below. This referen
 ---
 ## How to write instructions that submit expense reports
 
-Sends an open (draft) expense report forward to the approver for review.
+Sends a Draft (open) expense report forward to the approver for review.
 
 Example phrases for your agent's instructions:
 - Submit expense reports for approval
@@ -26,7 +26,7 @@ Example phrases for your agent's instructions:
 
 ## How to write instructions that approve expense reports
 
-Marks a submitted expense report as approved, moving it to the reimbursement queue.
+Marks Outstanding (submitted) expense report as Approved, moving it to the reimbursement queue as **Ready to Pay** .
 
 Example phrases for your agent's instructions:
 - Approve expense reports that meet my workspace rules
@@ -40,7 +40,7 @@ Example phrases for your agent's instructions:
 
 ## How to write instructions that reject expense reports
 
-Sends a submitted expense report back to the submitter with a user-facing rejection comment explaining why.
+Sends an Outstanding (submitted) expense report back to the submitter with a user-facing rejection comment explaining why.
 
 Example phrases for your agent's instructions:
 - Reject reports that have violations
@@ -54,7 +54,7 @@ Example phrases for your agent's instructions:
 
 ## How to write instructions that un-submit expense reports
 
-Unsubmits a submitted expense report, returning it to draft so the submitter can edit it.
+Unsubmits a submitted expense report, returning it to Draft so the submitter can edit it.
 
 Example phrases for your agent's instructions:
 - Retract my submitted report so I can edit it
@@ -66,7 +66,7 @@ Example phrases for your agent's instructions:
 
 ## How to write instructions that take over a report as approver
 
-Reassigns the agent as the current approver on a report that was routed to someone else, giving the agent the authority to approve or reject it. Requires workspace-admin role.
+Reassigns the agent as the current approver on a report that was routed to someone else, giving the agent the authority to approve or reject it. Requires Workspace Admin role.
 
 Example phrases for your agent's instructions:
 - Take over reports over $10,000 regardless of who they were submitted to
@@ -78,7 +78,7 @@ Example phrases for your agent's instructions:
 
 ## How to write instructions that route reports to a specific approver
 
-Routes a submitted report to a specific approver by email, replacing the current approver in the workflow. Requires workspace-admin role.
+Routes a submitted report to a specific approver by email, replacing the current approver in the workflow. Requires Workspace Admin role.
 
 Example phrases for your agent's instructions:
 - Route reports over $5,000 to the finance manager
@@ -143,7 +143,7 @@ Example phrases for your agent's instructions:
 
 ## How to write instructions that manage workspace settings and members
 
-Inspects workspace configuration, answers membership questions, and — for workspace admins — adds or removes members and modifies workspace settings such as categories and approval rules.
+Inspects Workspace configuration, answers membership questions, and — for Workspace Admins — adds or removes members and modifies workspace settings such as categories and approval rules.
 
 Example phrases for your agent's instructions:
 - Add new employees to the workspace when they join
