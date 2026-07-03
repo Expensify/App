@@ -1,18 +1,23 @@
-import {useIsFocused} from '@react-navigation/native';
-import type {ForwardedRef} from 'react';
-import React, {useMemo, useState} from 'react';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import SelectionList from '@components/SelectionList';
 import type {ListItem, SelectionListHandle, SelectionListProps} from '@components/SelectionList/types';
+
 import useHandleSelectionMode from '@hooks/useHandleSelectionMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+
 import CONST from '@src/CONST';
+
+import type {ForwardedRef} from 'react';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useMemo, useState} from 'react';
 
 type SelectionListWithModalProps<TItem extends ListItem> = SelectionListProps<TItem> & {
     turnOnSelectionModeOnLongPress?: boolean;

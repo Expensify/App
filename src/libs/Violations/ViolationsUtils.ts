@@ -1,10 +1,7 @@
-import isEmpty from 'lodash/isEmpty';
-import keyBy from 'lodash/keyBy';
-import reject from 'lodash/reject';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import {convertAttendeesToArray, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isPersonalCard} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
@@ -14,7 +11,6 @@ import {isReceiptError} from '@libs/ErrorUtils';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
-import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {
     arePolicyRulesEnabled,
     getDistanceRateCustomUnitRate,
@@ -30,6 +26,7 @@ import {
 import {isCurrentUserSubmitter} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
@@ -37,6 +34,14 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import isEmpty from 'lodash/isEmpty';
+import keyBy from 'lodash/keyBy';
+import reject from 'lodash/reject';
+import Onyx from 'react-native-onyx';
+
 import type ViolationFixParams from './types';
 
 let allBetas: OnyxEntry<Beta[]>;
@@ -706,19 +711,28 @@ const ViolationsUtils = {
         const attendees = convertAttendeesToArray(rawAttendees);
         const isAttendeeTrackingEnabled = isAttendeeTrackingEnabledForPolicy(policy);
         // Filter out the owner/creator when checking attendance count - expense is valid if at least one non-owner attendee is present
+        const ownerAccountID = iouReport?.ownerAccountID;
+        // Calculate attendees minus owner. When ownerAccountID is known, filter by accountID.
+        // When ownerAccountID is undefined (offline split where iouReport is unavailable),
+        // fallback to using login/email to identify the owner (similar to AttendeeUtils approach).
         let attendeesMinusOwnerCount: number;
-        // Prefer the actual report owner's login; fall back to the current user when the report is unavailable (e.g. an offline-created expense)
-        const ownerLogin = getLoginByAccountID(iouReport?.ownerAccountID) ?? getCurrentUserEmail();
-        if (ownerLogin) {
-            // Filter by login or email to identify owner
-            attendeesMinusOwnerCount = attendees.filter((a) => {
-                const attendeeIdentifier = a?.email;
-                return attendeeIdentifier !== ownerLogin;
-            }).length;
+        if (ownerAccountID !== undefined) {
+            // Normal case: filter by accountID
+            attendeesMinusOwnerCount = attendees.filter((a) => a?.accountID !== ownerAccountID).length;
         } else {
-            // Can't identify owner at all - if there are attendees, assume owner is one of them
-            // This means we need at least 2 attendees to have a non-owner attendee
-            attendeesMinusOwnerCount = Math.max(0, attendees.length - 1);
+            // Offline scenario: ownerAccountID unavailable, use login/email as fallback
+            const currentUserEmail = getCurrentUserEmail();
+            if (currentUserEmail) {
+                // Filter by login or email to identify owner
+                attendeesMinusOwnerCount = attendees.filter((a) => {
+                    const attendeeIdentifier = a?.login ?? a?.email;
+                    return attendeeIdentifier !== currentUserEmail;
+                }).length;
+            } else {
+                // Can't identify owner at all - if there are attendees, assume owner is one of them
+                // This means we need at least 2 attendees to have a non-owner attendee
+                attendeesMinusOwnerCount = Math.max(0, attendees.length - 1);
+            }
         }
 
         const shouldShowMissingAttendees =
