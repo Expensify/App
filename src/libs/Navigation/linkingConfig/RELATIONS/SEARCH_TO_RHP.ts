@@ -1,4 +1,5 @@
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
+
 import SCREENS from '@src/SCREENS';
 
 // This file is used to define RHP screens that are in relation to the search screen.
