@@ -56,6 +56,8 @@ After payment is successfully processed:
 - A receipt for the successful payment appears under **View payment history**
 - Access to paid features is restored.
 
+To learn how to view your billing receipt, see Find Your Expensify Bllling Receipt.
+
 ---
 
 # FAQ
