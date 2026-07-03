@@ -1,6 +1,9 @@
-import type {FlashListProps} from '@shopify/flash-list';
-import React from 'react';
 import type {FlatListRefType} from '@pages/inbox/ReportScreenContext';
+
+import type {FlashListProps} from '@shopify/flash-list';
+
+import React from 'react';
+
 import FlashList from '..';
 import CellRendererComponent from './CellRendererComponent';
 

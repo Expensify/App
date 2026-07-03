@@ -1,27 +1,33 @@
-import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceMembersSelectionList from '@components/WorkspaceMembersSelectionList';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setPolicyTagApprover} from '@libs/actions/Policy/Tag';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getTagApproverRule} from '@libs/PolicyUtils';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-type TagApproverPageProps =
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_APPROVER>
+import React from 'react';
+
+type DynamicTagApproverPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_TAG_APPROVER>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_APPROVER>;
 
-function TagApproverPage({route}: TagApproverPageProps) {
-    const {policyID, tagName, orderWeight} = route.params;
+function DynamicTagApproverPage({route}: DynamicTagApproverPageProps) {
+    const {policyID, tagName} = route.params;
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -29,10 +35,10 @@ function TagApproverPage({route}: TagApproverPageProps) {
 
     const tagApprover = getTagApproverRule(policy, tagName)?.approver;
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_APPROVER;
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAG_APPROVER.path);
+    const backPath = useDynamicBackPath(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_APPROVER.path : DYNAMIC_ROUTES.WORKSPACE_TAG_APPROVER.path);
 
     const goBack = () => {
-        Navigation.goBack(isQuickSettingsFlow ? backPath : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, orderWeight, tagName));
+        Navigation.goBack(backPath);
     };
 
     return (
@@ -44,7 +50,7 @@ function TagApproverPage({route}: TagApproverPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID="TagApproverPage"
+                testID="DynamicTagApproverPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -64,4 +70,4 @@ function TagApproverPage({route}: TagApproverPageProps) {
     );
 }
 
-export default TagApproverPage;
+export default DynamicTagApproverPage;

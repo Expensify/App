@@ -1,7 +1,3 @@
-import {companyCardCustomNamesSelector} from '@selectors/Card';
-import {format, parseISO} from 'date-fns';
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
@@ -12,10 +8,12 @@ import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -24,6 +22,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isUsingStagingApi} from '@libs/ApiUtils';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {
@@ -38,29 +37,42 @@ import {
     maskCardNumber,
 } from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CardDetailsActionButtons, {CardDetailsActionButton} from '@pages/settings/Wallet/CardDetailsActionButtons';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import variables from '@styles/variables';
+
 import {clearCompanyCardErrorField, unassignWorkspaceCompanyCard, updateWorkspaceCompanyCard} from '@userActions/CompanyCards';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {companyCardCustomNamesSelector} from '@selectors/Card';
+import {format, parseISO} from 'date-fns';
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
 import {getExportMenuItem} from './utils';
 
-type WorkspaceCompanyCardDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_DETAILS>;
+type DynamicWorkspaceCompanyCardDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS>;
 
-function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPageProps) {
-    const {policyID, cardID, backTo} = route.params;
+function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompanyCardDetailsPageProps) {
+    const {policyID, cardID} = route.params;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.path);
     const feedName = decodeURIComponent(route.params.feed) as CompanyCardFeedWithDomainID;
     const bank = getCompanyCardFeed(feedName);
 
@@ -148,11 +160,11 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID="WorkspaceCompanyCardDetailsPage"
+                testID="DynamicWorkspaceCompanyCardDetailsPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.moreFeatures.companyCards.cardDetails')}
-                    onBackButtonPress={() => Navigation.goBack(backTo)}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <ScrollView addBottomSafeAreaPadding>
                     <View style={[styles.walletCard, styles.mb3]}>
@@ -246,7 +258,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                 title={exportMenuItem.title}
                                 numberOfLinesTitle={2}
                                 shouldShowRightIcon={canWriteCompanyCards}
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID, feedName, backTo))}
+                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.path))}
                                 interactive={canWriteCompanyCards}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.CARD_EXPORT}
                             />
@@ -306,4 +318,4 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     );
 }
 
-export default WorkspaceCompanyCardDetailsPage;
+export default DynamicWorkspaceCompanyCardDetailsPage;

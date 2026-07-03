@@ -1,22 +1,27 @@
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
-import {useState} from 'react';
-import type {PermissionStatus} from 'react-native-permissions';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useFilteredOptions from '@hooks/useFilteredOptions';
 import useOnyx from '@hooks/useOnyx';
 import useSortedActions from '@hooks/useSortedActions';
+
 import type {GetOptionsConfig, Option, OptionList, Options, SearchOption} from '@libs/OptionsListUtils';
 import {getEmptyOptions, getSearchOptions, getSearchValueForPhoneOrEmail, getValidOptions} from '@libs/OptionsListUtils';
 import {getPersonalDetailSearchTerms} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {PermissionStatus} from 'react-native-permissions';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
+import {useState} from 'react';
 
 type SearchSelectorContext = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<
     typeof CONST.SEARCH_SELECTOR,

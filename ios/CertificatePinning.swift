@@ -80,7 +80,7 @@ enum CertificatePinning {
         #endif
     }
 
-    private static func reportPinningFailure(hostname: String, evaluationResult: TSKPinningValidationResult) {
+    private static func reportPinningFailure(hostname: String, evaluationResult: TSKTrustEvaluationResult) {
         let error = NSError(
             domain: "CertificatePinning",
             code: evaluationResult.rawValue,
