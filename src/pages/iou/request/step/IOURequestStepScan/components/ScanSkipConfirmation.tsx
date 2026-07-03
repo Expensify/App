@@ -25,7 +25,8 @@ import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismiss
 import {rand64} from '@libs/NumberUtils';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import {getPickerCaptureSource, type ReceiptCaptureSource} from '@libs/telemetry/ReceiptObservability';
+import type {ReceiptCaptureSource} from '@libs/telemetry/ReceiptObservability';
+import {getPickerCaptureSource} from '@libs/telemetry/ReceiptObservability';
 import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
 
 import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
@@ -83,7 +84,9 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: (value: OnyxEntry<Record<string, unknown>>) => !!value?.hasSeenTour});
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: (value: OnyxEntry<Record<string, unknown>>) => !!value?.hasSeenTour,
+    });
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
@@ -91,7 +94,9 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: validTransactionDraftIDsSelector,
+    });
     const [shouldStartLocationPermissionFlow] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {
         selector: shouldStartLocationPermissionFlowSelector,
     });
@@ -144,7 +149,10 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                     if (ignore) {
                         return;
                     }
-                    setUserLocation({longitude: successData.coords.longitude, latitude: successData.coords.latitude});
+                    setUserLocation({
+                        longitude: successData.coords.longitude,
+                        latitude: successData.coords.latitude,
+                    });
                 },
                 () => {},
             );

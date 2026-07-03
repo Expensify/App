@@ -4,6 +4,7 @@ import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
+
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 

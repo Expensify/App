@@ -1,5 +1,6 @@
-import * as Sentry from '@sentry/react-native';
 import forwardLogsToSentry from '@libs/telemetry/forwardLogsToSentry';
+
+import * as Sentry from '@sentry/react-native';
 
 jest.mock('@sentry/react-native', () => ({
     logger: {debug: jest.fn(), info: jest.fn(), warn: jest.fn(), error: jest.fn()},

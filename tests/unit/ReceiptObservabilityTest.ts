@@ -2,6 +2,7 @@ import * as PersistedRequests from '@libs/actions/PersistedRequests';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import {logReceiptCaptured, logReceiptQueueSnapshot, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
+
 import type {FileObject} from '@src/types/utils/Attachment';
 
 type CapturedLogLine = {message: string; sendNow?: boolean; params: Record<string, unknown>};

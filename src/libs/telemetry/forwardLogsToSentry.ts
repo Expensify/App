@@ -1,6 +1,7 @@
-import * as Sentry from '@sentry/react-native';
 import type {SeverityLevel} from '@sentry/react-native';
 import type {TupleToUnion} from 'type-fest';
+
+import * as Sentry from '@sentry/react-native';
 
 type SentryLogLevel = 'debug' | 'info' | 'warn' | 'error';
 
