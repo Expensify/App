@@ -1,4 +1,5 @@
 import type {CancellationType, FeedbackSurveyOptionID} from '@src/CONST';
+
 import type * as OnyxCommon from './OnyxCommon';
 import type PrivateSubscription from './PrivateSubscription';
 

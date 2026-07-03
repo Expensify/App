@@ -1,19 +1,28 @@
-import React from 'react';
-import {View} from 'react-native';
+import BlockingView from '@components/BlockingViews/BlockingView';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
+
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearRilletErrorField, updateRilletDefaultVendor} from '@libs/actions/connections/Rillet';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {RilletVendor} from '@src/types/onyx/Policy';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type VendorListItem = ListItem & {
     value: RilletVendor['id'];
@@ -22,6 +31,7 @@ type VendorListItem = ListItem & {
 function RilletDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const policyID = policy?.id;
     const rilletConfig = policy?.connections?.rillet?.config;
     const rilletData = policy?.connections?.rillet?.data;
@@ -42,6 +52,17 @@ function RilletDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsProps
         </View>
     );
 
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.rillet.noVendorsFound')}
+            subtitle={translate('workspace.rillet.noVendorsFoundDescription')}
+            containerStyle={styles.pb10}
+        />
+    );
+
     const selectDefaultVendor = (item: VendorListItem) => {
         if (item.value !== defaultCompanyCardVendorID && policyID) {
             updateRilletDefaultVendor(policyID, item.value, defaultCompanyCardVendorID);
@@ -58,6 +79,7 @@ function RilletDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsProps
             title="workspace.rillet.defaultCompanyCardVendor.label"
             data={data}
             headerContent={headerContent}
+            listEmptyContent={listEmptyContent}
             onSelectRow={selectDefaultVendor}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={defaultCompanyCardVendorID}

@@ -1,6 +1,7 @@
-import React, {useEffect, useRef, useState} from 'react';
 import LocationPermissionModal from '@components/LocationPermissionModal';
+
 import useOnyx from '@hooks/useOnyx';
+
 import DateUtils from '@libs/DateUtils';
 import {cancelDeferredWrite, flushDeferredWrite, reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -14,7 +15,9 @@ import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
+
 import {updateLastLocationPermissionPrompt} from '@userActions/IOU/MoneyRequest';
+
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -22,8 +25,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Receipt} from '@src/types/onyx/Transaction';
-import {getSubmitHandler, SUBMIT_HANDLER} from './getSubmitHandler';
+
+import React, {useEffect, useRef, useState} from 'react';
+
 import type {SubmitHandler, SubmitNavigationSnapshot} from './getSubmitHandler';
+
+import {getSubmitHandler, SUBMIT_HANDLER} from './getSubmitHandler';
 import {dismissOnly, dismissRHPToReport, dismissSuperWideRHP, dismissWideToNewSearchType, executeDismissModalStrategy} from './submitDismissStrategies';
 
 type SubmitExpenseOrchestratorRenderProps = {

@@ -1,4 +1,5 @@
 import {NitroModules} from 'react-native-nitro-modules';
+
 import type AppStartTimeModule from './specs/AppStartTimeModule.nitro';
 import type * as ContactsModuleSpec from './specs/ContactsModule.nitro';
 

@@ -1,4 +1,5 @@
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
