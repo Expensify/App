@@ -1152,8 +1152,13 @@ function getReportOwnerAsAttendee(creatorDetails: OnyxEntry<PersonalDetails>): A
     const creatorDisplayName = creatorDetails?.displayName ?? creatorLogin;
     return {
         email: creatorLogin,
+        login: creatorLogin,
         displayName: creatorDisplayName,
+        accountID: creatorDetails?.accountID,
+        text: creatorDisplayName,
+        searchText: creatorDisplayName,
         avatarUrl: (creatorDetails?.avatarThumbnail ?? creatorDetails?.avatar ?? '') as string,
+        selected: true,
     };
 }
 
@@ -1203,7 +1208,7 @@ function getAttendees(transaction: OnyxInputOrEntry<Transaction>, reportOwnerAsA
  * Strips the SMS domain so phone-login attendees render the same as in the rendered pills.
  */
 function getAttendeesListDisplayString(attendees: Attendee[], localeCompare?: LocaleContextProps['localeCompare']): string {
-    const getName = (a: Attendee) => Str.removeSMSDomain(a.displayName ?? a.email ?? '');
+    const getName = (a: Attendee) => Str.removeSMSDomain(a.displayName ?? a.login ?? '');
     const ordered = localeCompare
         ? // Lowercase to match sortAlphabetically (the pill sort) so joined string and pill order never disagree on case.
           [...attendees].sort((a, b) => localeCompare(getName(a).toLowerCase(), getName(b).toLowerCase()))
