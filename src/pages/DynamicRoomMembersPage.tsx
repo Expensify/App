@@ -31,7 +31,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
-import {isPersonalDetailsReady, isSearchStringMatchUserDetails} from '@libs/OptionsListUtils';
+import {isPersonalDetailsReady} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isPolicyAdmin, isPolicyEmployee as isPolicyEmployeeUtils} from '@libs/PolicyUtils';
@@ -77,7 +77,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     const reportAttributes = useReportAttributes();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`);
-    const {formatPhoneNumber, translate} = useLocalize();
+    const {formatPhoneNumber, translate, localeCompare} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
@@ -124,6 +124,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
+    const isLoading = !isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers;
 
     const getRoomMembers = useCallback(() => {
         if (!report) {
@@ -191,11 +192,11 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     }, [participants, reportMetadata?.pendingChatMembers, personalDetails, isOffline]);
 
     useEffect(() => {
-        if (!isFocusedScreen || !shouldShowSearchBar) {
+        if (!isFocusedScreen || !shouldShowSearchBar || isLoading) {
             return;
         }
         tableRef.current?.updateSearchString(userSearchPhrase ?? '');
-    }, [isFocusedScreen, shouldShowSearchBar, userSearchPhrase]);
+    }, [isFocusedScreen, isLoading, shouldShowSearchBar, userSearchPhrase]);
 
     useEffect(() => {
         if (!isFocusedScreen) {
@@ -256,10 +257,11 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
             });
         }
 
-        return result.sort((value1, value2) => value1.name.localeCompare(value2.name));
+        return result.sort((value1, value2) => localeCompare(value1.name.toLowerCase(), value2.name.toLowerCase()));
     }, [
         formatPhoneNumber,
         isPolicyExpenseChat,
+        localeCompare,
         openRoomMemberDetails,
         participants,
         personalDetails,
@@ -322,7 +324,6 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers.length, styles, translate, canSelectMultiple, shouldUseNarrowLayout, icons.Plus]);
 
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
-    const isLoading = !isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers;
     const reasonAttributes = {
         context: 'DynamicRoomMembersPage',
         didLoadRoomMembers,

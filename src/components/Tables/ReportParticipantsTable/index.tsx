@@ -2,6 +2,7 @@ import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableDat
 import Table from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -66,6 +67,7 @@ type ReportParticipantsTableProps = {
 };
 
 export default function ReportParticipantsTable({ref, members, isGroupChat, selectionEnabled, selectedKeys, shouldShowSearchBar, onRowSelectionChange}: ReportParticipantsTableProps) {
+    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
 
     const columns: Array<TableColumn<ReportParticipantsTableColumnKey>> = [
@@ -126,7 +128,7 @@ export default function ReportParticipantsTable({ref, members, isGroupChat, sele
         >
             {shouldShowSearchBar && <Table.SearchBar label={translate('selectionList.findMember')} />}
             <Table.Header />
-            <Table.Body />
+            <Table.Body contentContainerStyle={styles.flexGrow1} />
         </Table>
     );
 }

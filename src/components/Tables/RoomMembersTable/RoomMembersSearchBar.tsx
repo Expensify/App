@@ -1,4 +1,5 @@
 import SearchBar from '@components/SearchBar';
+import {useTableContext} from '@components/Table/TableContext';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
@@ -8,8 +9,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 
 import React, {useEffect, useLayoutEffect, useRef} from 'react';
-
-import {useTableContext} from '../../Table/TableContext';
 
 type RoomMembersSearchBarProps = {
     /** Label and accessibility label for the search input. */

@@ -10,7 +10,9 @@ import type {ReportFieldListValueRowData} from '@components/Tables/WorkspaceRepo
 import WorkspaceReportFieldListValuesTable from '@components/Tables/WorkspaceReportFieldListValuesTable';
 import Text from '@components/Text';
 
+import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useFilteredSelection from '@hooks/useFilteredSelection';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -45,7 +47,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 
 type ReportFieldsListValuesPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES>;
@@ -68,7 +70,6 @@ function ReportFieldsListValuesPage({
     const {showConfirmModal} = useConfirmModal();
     const {canWrite: canWriteReportFields, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS);
 
-    const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
 
     const canSelectMultiple = canWriteReportFields && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
@@ -111,13 +112,6 @@ function ReportFieldsListValuesPage({
         [disabledListValues, policy, reportFieldID],
     );
 
-    useSearchBackPress({
-        onClearSelection: () => {
-            setSelectedKeys([]);
-        },
-        onNavigationCallBack: () => Navigation.goBack(),
-    });
-
     const openListValuePage = useCallback(
         (valueIndex: number) => {
             Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_VALUE_SETTINGS.getRoute(policyID, valueIndex, reportFieldID));
@@ -128,7 +122,7 @@ function ReportFieldsListValuesPage({
     const listValueRows = useMemo<ReportFieldListValueRowData[]>(
         () =>
             listValues.map((value, index) => ({
-                keyForList: value,
+                keyForList: String(index),
                 value,
                 name: value,
                 index,
@@ -142,20 +136,34 @@ function ReportFieldsListValuesPage({
         [canWriteReportFields, disabledListValues, listValues, openListValuePage, updateReportFieldListValueEnabled, withReadOnlyFallback],
     );
 
+    const listValueRowsKeyed = useMemo(
+        () =>
+            listValueRows.reduce<Record<string, ReportFieldListValueRowData>>((acc, row) => {
+                acc[row.keyForList] = row;
+                return acc;
+            }, {}),
+        [listValueRows],
+    );
+
+    const filterListValueRow = useCallback((row?: ReportFieldListValueRowData) => !!row, []);
+
+    const [selectedKeys, setSelectedKeys] = useFilteredSelection(listValueRowsKeyed, filterListValueRow);
+
+    const clearTableSelection = useCallback(() => {
+        setSelectedKeys((prevSelectedKeys) => (prevSelectedKeys.length > 0 ? [] : prevSelectedKeys));
+    }, [setSelectedKeys]);
+
+    useCleanupSelectedOptions(clearTableSelection);
+
+    useSearchBackPress({
+        onClearSelection: clearTableSelection,
+        onNavigationCallBack: () => Navigation.goBack(),
+    });
+
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Plus', 'Trashcan']);
 
-    const selectedValuesArray = selectedKeys.filter((key) => listValues.includes(key));
-
     const handleDeleteValues = useCallback(() => {
-        const valuesToDelete = selectedValuesArray.reduce<number[]>((acc, valueName) => {
-            const index = listValues?.indexOf(valueName) ?? -1;
-
-            if (index !== -1) {
-                acc.push(index);
-            }
-
-            return acc;
-        }, []);
+        const valuesToDelete = selectedKeys.map(Number);
 
         if (reportFieldID) {
             removeReportFieldListValue({
@@ -171,8 +179,8 @@ function ReportFieldsListValuesPage({
             });
         }
 
-        setSelectedKeys([]);
-    }, [disabledListValues, listValues, policy, reportFieldID, selectedValuesArray]);
+        clearTableSelection();
+    }, [clearTableSelection, disabledListValues, listValues, policy, reportFieldID, selectedKeys]);
 
     const shouldShowEmptyState = listValues.length === 0;
 
@@ -180,17 +188,17 @@ function ReportFieldsListValuesPage({
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
-        if (canWriteReportFields && (isSmallScreenWidth ? isMobileSelectionModeEnabled : selectedValuesArray.length > 0)) {
-            if (selectedValuesArray.length > 0 && !hasAccountingConnections) {
+        if (canWriteReportFields && (isSmallScreenWidth ? isMobileSelectionModeEnabled : selectedKeys.length > 0)) {
+            if (selectedKeys.length > 0 && !hasAccountingConnections) {
                 options.push({
                     icon: icons.Trashcan,
-                    text: translate(selectedValuesArray.length === 1 ? 'workspace.reportFields.deleteValue' : 'workspace.reportFields.deleteValues'),
+                    text: translate(selectedKeys.length === 1 ? 'workspace.reportFields.deleteValue' : 'workspace.reportFields.deleteValues'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                     onSelected: () => {
                         showConfirmModal({
                             danger: true,
-                            title: translate(selectedValuesArray.length === 1 ? 'workspace.reportFields.deleteValue' : 'workspace.reportFields.deleteValues'),
-                            prompt: translate(selectedValuesArray.length === 1 ? 'workspace.reportFields.deleteValuePrompt' : 'workspace.reportFields.deleteValuesPrompt'),
+                            title: translate(selectedKeys.length === 1 ? 'workspace.reportFields.deleteValue' : 'workspace.reportFields.deleteValues'),
+                            prompt: translate(selectedKeys.length === 1 ? 'workspace.reportFields.deleteValuePrompt' : 'workspace.reportFields.deleteValuesPrompt'),
                             confirmText: translate('common.delete'),
                             cancelText: translate('common.cancel'),
                         }).then((result) => {
@@ -203,15 +211,12 @@ function ReportFieldsListValuesPage({
                     },
                 });
             }
-            const enabledValues = selectedValuesArray.filter((valueName) => {
-                const index = listValues?.indexOf(valueName) ?? -1;
-                return !disabledListValues?.at(index);
-            });
+            const enabledValues = selectedKeys.filter((key) => !disabledListValues?.at(Number(key)));
 
             if (enabledValues.length > 0) {
-                const valuesToDisable = selectedValuesArray.reduce<number[]>((acc, valueName) => {
-                    const index = listValues?.indexOf(valueName) ?? -1;
-                    if (!disabledListValues?.at(index) && index !== -1) {
+                const valuesToDisable = selectedKeys.reduce<number[]>((acc, key) => {
+                    const index = Number(key);
+                    if (!disabledListValues?.at(index)) {
                         acc.push(index);
                     }
 
@@ -223,7 +228,7 @@ function ReportFieldsListValuesPage({
                     text: translate(enabledValues.length === 1 ? 'workspace.reportFields.disableValue' : 'workspace.reportFields.disableValues'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                     onSelected: () => {
-                        setSelectedKeys([]);
+                        clearTableSelection();
 
                         if (reportFieldID) {
                             updateReportFieldListValueEnabledReportField({
@@ -244,15 +249,12 @@ function ReportFieldsListValuesPage({
                 });
             }
 
-            const disabledValues = selectedValuesArray.filter((valueName) => {
-                const index = listValues?.indexOf(valueName) ?? -1;
-                return disabledListValues?.at(index);
-            });
+            const disabledValues = selectedKeys.filter((key) => disabledListValues?.at(Number(key)));
 
             if (disabledValues.length > 0) {
-                const valuesToEnable = selectedValuesArray.reduce<number[]>((acc, valueName) => {
-                    const index = listValues?.indexOf(valueName) ?? -1;
-                    if (disabledListValues?.at(index) && index !== -1) {
+                const valuesToEnable = selectedKeys.reduce<number[]>((acc, key) => {
+                    const index = Number(key);
+                    if (disabledListValues?.at(index)) {
                         acc.push(index);
                     }
 
@@ -264,7 +266,7 @@ function ReportFieldsListValuesPage({
                     text: translate(disabledValues.length === 1 ? 'workspace.reportFields.enableValue' : 'workspace.reportFields.enableValues'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
-                        setSelectedKeys([]);
+                        clearTableSelection();
 
                         if (reportFieldID) {
                             updateReportFieldListValueEnabledReportField({
@@ -291,12 +293,12 @@ function ReportFieldsListValuesPage({
                     shouldAlwaysShowDropdownMenu
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                     customText={translate('workspace.common.selected', {
-                        count: selectedValuesArray.length,
+                        count: selectedKeys.length,
                     })}
                     options={options}
                     isSplitButton={false}
                     style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
-                    isDisabled={!selectedValuesArray.length}
+                    isDisabled={!selectedKeys.length}
                 />
             );
         }
@@ -335,6 +337,8 @@ function ReportFieldsListValuesPage({
         </ScrollView>
     );
 
+    const headerButtons = getHeaderButtons();
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -352,16 +356,16 @@ function ReportFieldsListValuesPage({
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.reportFields.listValues')}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
-                            setSelectedKeys([]);
+                            clearTableSelection();
                             turnOffMobileSelectionMode();
                             return;
                         }
                         Navigation.goBack();
                     }}
                 >
-                    {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
+                    {!shouldDisplayButtonsInSeparateLine && headerButtons}
                 </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
                 {!shouldShowEmptyState && headerContent}
                 <WorkspaceReportFieldListValuesTable
                     listValues={listValueRows}

@@ -343,6 +343,8 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
 
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
 
+    const headerButtons = getHeaderButtons();
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -366,9 +368,9 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         Navigation.goBack(isQuickSettingsFlow ? backPath : undefined);
                     }}
                 >
-                    {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
+                    {!shouldDisplayButtonsInSeparateLine && headerButtons}
                 </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && !!getHeaderButtons() && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
                 {!hasDependentTags && (
                     <View style={[styles.pv4, styles.ph5]}>
                         <ToggleSettingOptionRow

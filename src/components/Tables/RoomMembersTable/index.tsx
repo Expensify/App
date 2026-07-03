@@ -8,7 +8,6 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -16,6 +15,7 @@ import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
 
 import RoomMembersSearchBar from './RoomMembersSearchBar';
+import RoomMembersTableBody from './RoomMembersTableBody';
 import RoomMembersTableRow from './RoomMembersTableRow';
 
 type RoomMembersTableColumnKey = 'member' | 'actions';
@@ -102,7 +102,7 @@ export default function RoomMembersTable({ref, members, selectionEnabled, select
         >
             {shouldShowSearchBar && <RoomMembersSearchBar label={translate('selectionList.findMember')} />}
             <Table.Header />
-            <Table.Body contentContainerStyle={styles.flexGrow1} />
+            <RoomMembersTableBody contentContainerStyle={styles.flexGrow1} />
         </Table>
     );
 }

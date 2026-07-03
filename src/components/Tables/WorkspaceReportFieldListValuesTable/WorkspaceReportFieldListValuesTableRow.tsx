@@ -10,6 +10,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -37,6 +39,7 @@ export default function WorkspaceReportFieldListValuesTableRow({item, rowIndex}:
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.LIST_VALUE_ROW}
             onPress={item.action}
         >
             {({hovered}) => (

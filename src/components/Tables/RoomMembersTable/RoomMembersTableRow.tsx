@@ -11,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -45,6 +44,7 @@ export default function RoomMembersTableRow({item, rowIndex}: RoomMembersTableRo
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.ROOM_MEMBERS_ROW}
             onPress={item.action}
             offlineWithFeedback={{
                 errors: item.errors,
