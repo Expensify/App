@@ -225,7 +225,7 @@ function PaymentMethodList({
 
     const {shouldShowRbrForFeedNameWithDomainID} = useCardFeedErrors();
     const shouldShowListFooterComponent = shouldShowAddBankAccount;
-    const shouldShowConnectionStatus = true;
+    const shouldShowConnectionStatus = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
 
     const appendCardLastSync = (description: string | undefined, lastSyncText: string) => [description, lastSyncText].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `);
 
