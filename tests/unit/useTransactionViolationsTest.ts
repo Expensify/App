@@ -1,12 +1,27 @@
 import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import useTransactionViolations from '@hooks/useTransactionViolations';
+
 import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
+import type * as ViolationsUtilsExports from '@libs/Violations/ViolationsUtils';
+
 import type CONST_TYPE from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+jest.mock('@libs/Violations/ViolationsUtils', () => {
+    const actual: typeof ViolationsUtilsExports = jest.requireActual('@libs/Violations/ViolationsUtils');
+
+    return {
+        ...actual,
+        syncCustomUnitRateOutOfDateRangeViolation: (violations: TransactionViolation[]) => violations,
+    };
+});
 
 jest.mock('@libs/TransactionUtils', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -60,6 +75,7 @@ jest.mock('@libs/TransactionUtils', () => {
         );
 
     return {
+        isDistanceRequest: (transaction: Transaction | undefined) => transaction?.iouRequestType === CONST_MOCK.IOU.REQUEST_TYPE.DISTANCE,
         isViolationDismissed: mockIsViolationDismissed,
         shouldShowViolation: mockShouldShowViolation,
         mergeProhibitedViolations,

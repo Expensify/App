@@ -1,5 +1,3 @@
-import React, {Fragment} from 'react';
-import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import {ReportSubmitToPopoverMeasurableAnchor} from '@components/ReportSubmitToPopoverAnchor';
@@ -12,15 +10,24 @@ import TotalCell from '@components/Search/SearchList/ListItem/TotalCell';
 import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
 import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getBase62ReportID from '@libs/getBase62ReportID';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
-import ExpenseReportListItemAvatar from './ExpenseReportListItemAvatar';
+
+import React, {Fragment} from 'react';
+import {View} from 'react-native';
+
 import type {ExpenseReportListItemRowWideProps} from './types';
+
+import ExpenseReportListItemAvatar from './ExpenseReportListItemAvatar';
 
 function ExpenseReportListItemRowWide({
     item,

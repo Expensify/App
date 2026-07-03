@@ -1,6 +1,8 @@
-import type {ValueOf} from 'type-fest';
 import type {ButtonVariant} from '@styles/utils/types';
+
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
 
 /** Values published by the parent `Button` for its child primitives (Text/Icon/...) to consume via `useButtonContext`. */
 type ButtonContextValue = {

@@ -1,5 +1,6 @@
-import Direction from './Direction';
 import type {Coordinate, GPSDirectionProps} from './MapViewTypes';
+
+import Direction from './Direction';
 import useAnimatedLeadingDirectionCoordinate from './useAnimatedLeadingDirectionCoordinate';
 
 function GPSDirection({directionCoordinates, isTrackingGPS, lastLocation, belowLayerID}: GPSDirectionProps) {
