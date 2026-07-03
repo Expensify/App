@@ -30,15 +30,13 @@ Depending on your workspace plan, you may have an Annual subscription or a Pay-p
 
 To learn more, see How Subscriptions Work.
 
-## How Expensify Card pricing works
+## How the Expensify Card can reduce your bill
 
-For Control Workspaces, your organization's Expensify Card usage may reduce the amount you pay for your subscription.
+For Control Workspaces on an Annual subscription, your organization's Expensify Card usage can reduce the amount you pay for Expensify by up to 50%.
 
-Organizations with an annual subscription qualify for different pricing tiers based on how much of their approved spend is made using the Expensify Card. Greater card adoption results in lower subscription pricing.
+Using the Expensify Card also earns up to 2% cash back on all USD transactions, which can optionally be applied to your Expensify bill to reduce it even further. 
 
-Using the Expensify Card also allows eligible organizations to earn cash back on qualifying purchases.
-
-To learn more, see [Understand Expensify Pricing](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Understand-Expensify-Pricing).
+To learn more, see [How the Expensify Card Discount Works](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Understand-Expensify-Pricing#how-the-expensify-card-discount-works).
 
 ## How your monthly bill is calculated
 
