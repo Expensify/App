@@ -155,8 +155,8 @@ import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} fr
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
+import {formatInTimeZone} from 'date-fns-tz';
 import {addDays} from 'date-fns/addDays';
-import {formatDate} from 'date-fns/format';
 import {subMinutes} from 'date-fns/subMinutes';
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
@@ -5888,8 +5888,12 @@ function upgradeSubmit(
     type UpgradeSubmitOnyxKey = typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL | typeof ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL;
 
     const now = new Date();
-    const optimisticFirstDayFreeTrial = formatDate(subMinutes(now, 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
-    const optimisticLastDayFreeTrial = formatDate(addDays(now, 30), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+    // The backend stores `firstDayFreeTrial`/`lastDayFreeTrial` as UTC DB timestamps, and every consumer parses
+    // them as UTC (see SubscriptionUtils and isWithinGettingStartedPeriod). Format the optimistic values in UTC too
+    // so a pending/offline upgrade doesn't leave a local-clock string that gets misread as UTC (which would hide the
+    // Getting Started section / skew trial calculations for users east of UTC).
+    const optimisticFirstDayFreeTrial = formatInTimeZone(subMinutes(now, 1), 'UTC', CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+    const optimisticLastDayFreeTrial = formatInTimeZone(addDays(now, 30), 'UTC', CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
 
     const policyID = policy?.id ?? CONST.POLICY.ID_FAKE;
     const currentUserLogin = currentUserEmail ?? '';
