@@ -1928,6 +1928,10 @@ function getChangeTransactionsReportOnyxData({
         transactionIDToUpdatedCustomUnitRateID,
         updatedReportTotals,
         updatedReportTransactionCounts,
+        updatedReportNonReimbursableTotals,
+        updatedReportUnheldNonReimbursableTotals,
+        updatedReportReimbursableTotals,
+        updatedReportUnheldReimbursableTotals,
     };
 }
 
