@@ -422,7 +422,8 @@ type MergeReportsProps = {
     allTransactionViolation?: OnyxCollection<TransactionViolation[]>;
     allReports: OnyxCollection<Report>;
     allReportsTransactions?: Record<string, Transaction[]>;
-    hash?: string;
+    hash?: number;
+    bankAccountList: OnyxEntry<BankAccountList>;
 };
 
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
@@ -6285,6 +6286,64 @@ function buildOptimisticDeleteParentReportAction(
     return {optimisticData, successData, failureData};
 }
 
+function clearChatIOUReportID(
+    report: OnyxEntry<Report>,
+    currentUserEmailParam: string,
+    currentUserAccountIDParam: number,
+    allTransactionViolations: OnyxCollection<TransactionViolations>,
+    bankAccountList: OnyxEntry<BankAccountList>,
+    hash?: number,
+) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
+
+    const reportID = report?.reportID;
+    const chatReport = getReportOrDraftReport(report?.parentReportID);
+    // Only clear the pointer when the chat still references the report being deleted, so we don't nullify a different active expense report.
+    const shouldClearChatIOUReportID = chatReport?.iouReportID === reportID;
+    if (chatReport) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`,
+            value: {
+                hasOutstandingChildRequest: hasOutstandingChildRequest(
+                    chatReport,
+                    report?.reportID,
+                    currentUserEmailParam,
+                    currentUserAccountIDParam,
+                    allTransactionViolations,
+                    bankAccountList,
+                ),
+                ...(shouldClearChatIOUReportID ? {iouReportID: null} : {}),
+            },
+        });
+    }
+
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`,
+        value: {
+            hasOutstandingChildRequest: report?.hasOutstandingChildRequest,
+            ...(shouldClearChatIOUReportID ? {iouReportID: chatReport?.iouReportID} : {}),
+        },
+    });
+
+    if (hash) {
+        // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+        const failureSnapshotData: NullishDeep<SearchResultDataType> = {};
+        failureSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {pendingAction: null};
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                data: failureSnapshotData,
+            },
+        });
+    }
+
+    return {optimisticData, failureData};
+}
+
 /** Deletes a report and un-reports all transactions on the report along with its reportActions, any linked reports and any linked IOU report actions. */
 function deleteAppReport({
     report,
@@ -6628,48 +6687,16 @@ function deleteAppReport({
         failureData.push(...parentFailureData);
     }
 
-    const chatReport = getReportOrDraftReport(report?.parentReportID);
-    // Only clear the pointer when the chat still references the report being deleted, so we don't nullify a different active expense report.
-    const shouldClearChatIOUReportID = chatReport?.iouReportID === reportID;
-    if (chatReport) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`,
-            value: {
-                hasOutstandingChildRequest: hasOutstandingChildRequest(
-                    chatReport,
-                    report?.reportID,
-                    currentUserEmailParam,
-                    currentUserAccountIDParam,
-                    allTransactionViolations,
-                    bankAccountList,
-                ),
-                ...(shouldClearChatIOUReportID ? {iouReportID: null} : {}),
-            },
-        });
-    }
-
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`,
-        value: {
-            hasOutstandingChildRequest: report?.hasOutstandingChildRequest,
-            ...(shouldClearChatIOUReportID ? {iouReportID: chatReport?.iouReportID} : {}),
-        },
-    });
-
-    if (hash) {
-        // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
-        const failureSnapshotData: NullishDeep<SearchResultDataType> = {};
-        failureSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {pendingAction: null};
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-            value: {
-                data: failureSnapshotData,
-            },
-        });
-    }
+    const {optimisticData: clearChatIOUOptimisticData, failureData: clearChatIOUFailureData} = clearChatIOUReportID(
+        report,
+        currentUserEmailParam,
+        currentUserAccountIDParam,
+        allTransactionViolations,
+        bankAccountList,
+        hash,
+    );
+    optimisticData.push(...clearChatIOUOptimisticData);
+    failureData.push(...clearChatIOUFailureData);
 
     const parameters: DeleteAppReportParams = {
         reportID,
@@ -7967,6 +7994,7 @@ function mergeReports({
     policyTagList,
     allTransactionViolation,
     allReportsTransactions,
+    bankAccountList,
 }: MergeReportsProps) {
     const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
 
@@ -7982,6 +8010,7 @@ function mergeReports({
         optimisticData: moveOptimisticData = [],
         successData: moveSuccessData = [],
         failureData: moveFailureData = [],
+        transactionIDToReportActionAndThreadData,
         updatedReportTotals,
         updatedReportTransactionCounts,
     } = getChangeTransactionsReportOnyxData({
@@ -8062,6 +8091,17 @@ function mergeReports({
             deleteSuccessData.push(...parentSuccessData);
             deleteFailureData.push(...parentFailureData);
         }
+
+        const {optimisticData: clearChatIOUOptimisticData, failureData: clearChatIOUFailureData} = clearChatIOUReportID(
+            sourceReport,
+            email,
+            accountID,
+            allTransactionViolation,
+            bankAccountList,
+            hash,
+        );
+        deleteOptimisticData.push(...clearChatIOUOptimisticData);
+        deleteFailureData.push(...clearChatIOUFailureData);
     }
 
     const optimisticData = [...moveOptimisticData, ...deleteOptimisticData];
@@ -8111,6 +8151,7 @@ function mergeReports({
     const parameters: MergeReportsParams = {
         destinationReportID,
         sourceReportIDs,
+        transactionIDToReportActionAndThreadData: JSON.stringify(transactionIDToReportActionAndThreadData),
     };
 
     API.write(WRITE_COMMANDS.MERGE_REPORTS, parameters, {

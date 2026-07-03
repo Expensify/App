@@ -8694,7 +8694,7 @@ describe('actions/Report', () => {
         const REPORT_PREVIEW_ACTION_2_ID = 'preview_action_202';
         const TRANSACTION_1_ID = 'transaction_301';
         const TRANSACTION_2_ID = 'transaction_302';
-        const SNAPSHOT_HASH = 'snapshot_hash_401';
+        const SNAPSHOT_HASH = 999;
 
         const policy = createMock<OnyxTypes.Policy>({
             ...createRandomPolicy(1),
@@ -8847,6 +8847,7 @@ describe('actions/Report', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`]: sourceReport1,
                     [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_2_ID}`]: sourceReport2,
                 },
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -8910,6 +8911,7 @@ describe('actions/Report', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`]: sourceReport1,
                     [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_2_ID}`]: sourceReport2,
                 },
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -8963,6 +8965,7 @@ describe('actions/Report', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_2_ID}`]: sourceReport2,
                 },
                 hash: SNAPSHOT_HASH,
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
