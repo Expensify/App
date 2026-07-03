@@ -32,53 +32,51 @@ Select your billing currency to view the subscription prices.
 
 <div class="currency-block" data-currency="usd" markdown="1">
 
-| Workspace plan | Subscription | Price |
-| -------------- | ------------ | ----- |
-| **Collect** | Pay-per-use | **$5** per unique member/month |
-| **Control** | Annual | **$18** per member included in your subscription size/month, plus **$36** per active member above your subscription size/month |
-| **Control** | Pay-per-use | **$36** per active member/month |
-
-<p><small>*Annual Control subscriptions may qualify for an Expensify Card discount.</small></p>
+| Workspace plan | Subscription | Standard price | With Expensify Card* |
+| -------------- | ------------ | -------------: | -------------------: |
+| **Collect** | Pay-per-use | **$5** per unique member/month | — |
+| **Control** | Annual | **$18** per member included in your subscription size/month, plus **$36** per active member above your subscription size/month | **As low as $9** per member included in your subscription size/month |
+| **Control** | Pay-per-use | **$36** per active member/month | — |
 
 </div>
 
 <div class="currency-block" data-currency="gbp" style="display:none;" markdown="1">
 
-| Workspace plan | Subscription | Price |
-| -------------- | ------------ | ----- |
-| **Collect** | Pay-per-use | **£5** per unique member/month |
-| **Control** | Annual | **£14** per member included in your subscription size/month, plus **£28** per active member above your subscription size/month |
-| **Control** | Pay-per-use | **£28** per active member/month |
+| Workspace plan | Subscription | Standard price | With Expensify Card |
+| -------------- | ------------ | -------------: | -------------------: |
+| **Collect** | Pay-per-use | **£5** per unique member/month | — |
+| **Control** | Annual | **£14** per member included in your subscription size/month, plus **£28** per active member above your subscription size/month | **As low as £7** per member included in your subscription size/month |
+| **Control** | Pay-per-use | **£28** per active member/month | — |
 
 </div>
 
 <div class="currency-block" data-currency="eur" style="display:none;" markdown="1">
 
-| Workspace plan | Subscription | Price |
-| -------------- | ------------ | ----- |
-| **Collect** | Pay-per-use | **€5** per unique member/month |
-| **Control** | Annual | **€16** per member included in your subscription size/month, plus **€32** per active member above your subscription size/month |
-| **Control** | Pay-per-use | **€32** per active member/month |
+| Workspace plan | Subscription | Standard price | With Expensify Card |
+| -------------- | ------------ | -------------: | -------------------: |
+| **Collect** | Pay-per-use | **€5** per unique member/month | — |
+| **Control** | Annual | **€16** per member included in your subscription size/month, plus **€32** per active member above your subscription size/month | **As low as €8** per member included in your subscription size/month |
+| **Control** | Pay-per-use | **€32** per active member/month | — |
 
 </div>
 
 <div class="currency-block" data-currency="aud" style="display:none;" markdown="1">
 
-| Workspace plan | Subscription | Price |
-| -------------- | ------------ | ----- |
-| **Collect** | Pay-per-use | **AU$8** per unique member/month |
-| **Control** | Annual | **AU$30** per member included in your subscription size/month, plus **AU$60** per active member above your subscription size/month |
-| **Control** | Pay-per-use | **AU$60** per active member/month |
+| Workspace plan | Subscription | Standard price | With Expensify Card |
+| -------------- | ------------ | -------------: | -------------------: |
+| **Collect** | Pay-per-use | **AU$8** per unique member/month | — |
+| **Control** | Annual | **AU$30** per member included in your subscription size/month, plus **AU$60** per active member above your subscription size/month | **As low as AU$15** per member included in your subscription size/month |
+| **Control** | Pay-per-use | **AU$60** per active member/month | — |
 
 </div>
 
 <div class="currency-block" data-currency="nzd" style="display:none;" markdown="1">
 
-| Workspace plan | Subscription | Price |
-| -------------- | ------------ | ----- |
-| **Collect** | Pay-per-use | **NZ$9** per unique member/month |
-| **Control** | Annual | **NZ$32** per member included in your subscription size/month, plus **NZ$64** per active member above your subscription size/month |
-| **Control** | Pay-per-use | **NZ$64** per active member/month |
+| Workspace plan | Subscription | Standard price | With Expensify Card |
+| -------------- | ------------ | -------------: | -------------------: |
+| **Collect** | Pay-per-use | **NZ$9** per unique member/month | — |
+| **Control** | Annual | **NZ$32** per member included in your subscription size/month, plus **NZ$64** per active member above your subscription size/month | **As low as NZ$16** per member included in your subscription size/month |
+| **Control** | Pay-per-use | **NZ$64** per active member/month | — |
 
 </div>
 
@@ -119,15 +117,13 @@ For more information about managing an Annual subscription, see Manage Annual Su
 
 ## How the Expensify Card discount works
 
-Control Workspaces with an Annual subscription can receive up to 50% off their subscription price.
+Control Workspaces with an Annual subscription can receive up to a 50% discount on their subscription pricing based on Expensify Card usage.
 
-If at least 25% of workspace spend is incurred on the Expensify Card, your subscription discount matches that percentage, up to a maximum discount of 50%. If less than 25% of workspace spend is incurred on the Expensify Card, no discount is applied.
+Your discount is calculated each billing month based on the percentage of qualifying USD spend that is incurred on the Expensify Card. As your Expensify Card usage increases, your discount increases proportionally, up to a maximum of 50%.
 
-For example, on USD billing:
- - If 50% of your qualifying spend is on the Expensify Card, you receive a 50% discount and your price is $9 per member in your subscription size.
- - If 35% of your qualifying spend is on the Expensify Card, you receive a 35% discount and your subscription price is $11.70 per member in your subscription size. 
+With the full discount, subscription prices are reduced by 50%. For example, on USD billing, the price for members included in your subscription size is reduced from $18 to $9 per member/month, and the price for active members above your subscription size is reduced from $36 to $18 per member/month.
 
-To qualify for the discount, Expensify Card spend must be incurred in USD and approved during the billing month.
+Only approved USD spend incurred on the Expensify Card during the billing month counts toward the discount calculation.
 
 ## Understand legacy Collect pricing 
 
