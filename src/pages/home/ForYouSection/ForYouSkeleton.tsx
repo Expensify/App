@@ -1,12 +1,15 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import SkeletonRect from '@components/SkeletonRect';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
+
 import useContainerWidth from '@hooks/useContainerWidth';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
+
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
 
 type Props = {
     reasonAttributes: SkeletonSpanReasonAttributes;

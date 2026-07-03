@@ -1,17 +1,22 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import {ChartFontsProvider} from '@components/Charts/hooks';
 import useChartFonts from '@components/Charts/hooks/useChartFonts';
 import getVictoryChartTreeTypeface from '@components/Charts/utils/getVictoryChartTreeTypeface';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Log from '@libs/Log';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
+import type {VictoryChartRendererProps} from './types';
+
 import VictoryChartContainer from './components/VictoryChartContainer';
 import VictoryChartContent from './components/VictoryChartContent';
 import VictoryChartExpandButton from './components/VictoryChartExpandButton';
 import VictoryChartExpandModal from './components/VictoryChartExpandModal';
 import {VictoryChartProvider} from './context/VictoryChartContext';
 import processVictoryChartTree from './parsers/processVictoryChartTree';
-import type {VictoryChartRendererProps} from './types';
 import resolveVictoryChartType from './utils/resolveVictoryChartType';
 
 function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {

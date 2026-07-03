@@ -1,5 +1,3 @@
-import {useEffect, useRef} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {READ_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -10,6 +8,7 @@ import {isGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isDistanceRequest} from '@libs/TransactionUtils';
+
 import {
     resetDraftTransactionsCustomUnit,
     setCustomUnitRateID,
@@ -20,6 +19,7 @@ import {
 } from '@userActions/IOU/MoneyRequest';
 import {setSplitShares} from '@userActions/IOU/Split';
 import {createDraftWorkspace, generateDefaultWorkspaceName} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,11 +28,17 @@ import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {Policy, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import KeyboardUtils from '@src/utils/keyboard';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect, useRef} from 'react';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useMappedPolicies from './useMappedPolicies';
 import useOnyx from './useOnyx';
 import useOptimisticDraftTransactions from './useOptimisticDraftTransactions';
+import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import useTransactionsByID from './useTransactionsByID';
 
@@ -74,6 +80,7 @@ function useParticipantSubmission({
     isFocused,
 }: UseParticipantSubmissionParams) {
     const {translate} = useLocalize();
+    const personalPolicy = usePersonalPolicy();
 
     const [allPolicies] = useMappedPolicies(policyMapper);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
@@ -188,7 +195,7 @@ function useParticipantSubmission({
                 lastSelectedDistanceRates: distanceRates,
                 expenseDate: transaction.created,
             });
-            setCustomUnitRateID(transaction.transactionID, rateID, transaction, movingPolicy);
+            setCustomUnitRateID(transaction.transactionID, rateID, transaction, movingPolicy, false, personalPolicy?.outputCurrency);
             const shouldSetParticipantAutoAssignment = iouType === CONST.IOU.TYPE.CREATE;
             setMoneyRequestParticipantsFromReport(transaction.transactionID, dmReport, userDetails.accountID, shouldSetParticipantAutoAssignment ? isActiveRequest : false);
             setTransactionReport(transaction.transactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
@@ -260,7 +267,7 @@ function useParticipantSubmission({
                         lastSelectedDistanceRates: distanceRates,
                         expenseDate: transaction.created,
                     });
-                    setCustomUnitRateID(transaction.transactionID, rateID, transaction, policy);
+                    setCustomUnitRateID(transaction.transactionID, rateID, transaction, policy, false, personalPolicy?.outputCurrency);
                 }
             } else {
                 // Fallback to using initialTransactionID directly
@@ -270,7 +277,9 @@ function useParticipantSubmission({
                     policy,
                     lastSelectedDistanceRates: distanceRates,
                 });
-                setCustomUnitRateID(initialTransactionID, rateID, undefined, policy);
+                // personalPolicyOutputCurrency is intentionally omitted: setCustomUnitRateID only resolves a (P2P) rate when a transaction is passed,
+                // and no transaction is passed here, so the currency is never read.
+                setCustomUnitRateID(initialTransactionID, rateID, undefined, policy, false, undefined);
             }
         }
 

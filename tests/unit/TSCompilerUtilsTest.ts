@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
 import ts from 'typescript';
+
 import TSCompilerUtils from '../../scripts/utils/TSCompilerUtils';
 
 function createSourceFile(content: string): ts.SourceFile {
