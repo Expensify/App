@@ -21,6 +21,7 @@ import {
     getAllTaxRatesNamesAndValues,
     getConnectedIntegrationNamesForPolicies,
     getCustomUnitsForDuplication,
+    getDefaultChatEnabledPolicy,
     getDefaultTimeTrackingRate,
     getEligibleBankAccountShareRecipients,
     getExcludedUsers,
@@ -3744,5 +3745,42 @@ describe('arePolicyRulesEnabled', () => {
 
     it('returns false for a team policy even when areRulesEnabled is true', () => {
         expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: true})).toBe(false);
+    });
+});
+
+describe('getDefaultChatEnabledPolicy', () => {
+    const submitPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT), id: 'submit1'};
+    const teamPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: 'team1'};
+    const corporatePolicy = {...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE), id: 'corporate1'};
+    const personalPolicy = {...createRandomPolicy(4, CONST.POLICY.TYPE.PERSONAL), id: 'personal1'};
+
+    it('returns the active policy when it is a Submit workspace, even with multiple eligible workspaces', () => {
+        // Regression: a Submit active policy must be recognized as the report-creation default. Previously
+        // isPaidGroupPolicy excluded it, returning undefined here and wrongly forcing the workspace selector.
+        expect(getDefaultChatEnabledPolicy([submitPolicy, teamPolicy], submitPolicy)).toBe(submitPolicy);
+    });
+
+    it('returns the active policy when it is a paid (Collect/Control) workspace', () => {
+        expect(getDefaultChatEnabledPolicy([teamPolicy, corporatePolicy], teamPolicy)).toBe(teamPolicy);
+    });
+
+    it('returns the only eligible workspace when the active policy is personal', () => {
+        expect(getDefaultChatEnabledPolicy([submitPolicy], personalPolicy)).toBe(submitPolicy);
+    });
+
+    it('returns undefined when the active policy is not a group policy and there are multiple eligible workspaces', () => {
+        expect(getDefaultChatEnabledPolicy([submitPolicy, teamPolicy], personalPolicy)).toBeUndefined();
+    });
+
+    it('returns undefined when there are no eligible workspaces', () => {
+        expect(getDefaultChatEnabledPolicy([], undefined)).toBeUndefined();
+    });
+
+    it('does not return the active policy when it is not in the eligible list (e.g. Submit beta off), falling back to the eligible workspace', () => {
+        expect(getDefaultChatEnabledPolicy([teamPolicy], submitPolicy)).toBe(teamPolicy);
+    });
+
+    it('returns undefined when the active policy is ineligible and there are multiple eligible workspaces', () => {
+        expect(getDefaultChatEnabledPolicy([teamPolicy, corporatePolicy], submitPolicy)).toBeUndefined();
     });
 });

@@ -251,11 +251,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             return;
         }
         Navigation.navigate(
-            ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(
-                policyID,
-                getCardFeedWithDomainID(card.bank, card.fundID) as CompanyCardFeedWithDomainID,
-                card.cardID.toString(),
-                Navigation.getActiveRoute(),
+            createDynamicRoute(
+                DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(getCardFeedWithDomainID(card.bank, card.fundID) as CompanyCardFeedWithDomainID, card.cardID.toString()),
             ),
         );
     };
