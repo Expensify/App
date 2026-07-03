@@ -1,13 +1,10 @@
-import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import type {IconProps} from '@components/Icon';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import Text from '@components/Text';
+
 import useCreateReport from '@hooks/useCreateReport';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -21,6 +18,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {createNewReport, startNewChat} from '@libs/actions/Report';
@@ -43,11 +41,15 @@ import {
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
+
 import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
+
 import useInitialSettingsPageMenuData from '@pages/settings/useInitialSettingsPageMenuData';
 import getWorkspaceMenuItems from '@pages/workspace/getWorkspaceMenuItems';
+
 import {clearLastSearchParams} from '@userActions/ReportNavigation';
 import {setSearchContext} from '@userActions/Search';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,6 +60,13 @@ import {isAdminSelector} from '@src/selectors/Domain';
 import {emailSelector, sessionEmailAndAccountIDSelector} from '@src/selectors/Session';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
 import navigateToWorkspaceSettingsRoute from './navigateToWorkspaceSettingsRoute';
 
 type RightSideContextProps = {
@@ -89,6 +98,11 @@ const MAX_NAVIGATION_SUGGESTIONS = 8;
 const MIN_NAVIGATION_QUERY_LENGTH = 3;
 const EXCLUDED_SETTINGS_ITEMS = new Set<string>(['initialSettingsPage.whatIsNew', 'sidebarScreen.saveTheWorld', 'initialSettingsPage.signOut', 'initialSettingsPage.restoreStashed']);
 const ACCOUNT_NAVIGATION_KEYWORDS = new Map<TranslationPaths, string[]>([['initialSettingsPage.security', ['password', '2fa', 'two factor', 'two-factor']]]);
+
+type NavigationSuggestionSourceItem = SearchQueryItem & {
+    action?: () => void;
+    matchTerms?: string[];
+};
 
 function WorkspaceContext({policy}: WorkspaceContextProps) {
     const styles = useThemeStyles();
@@ -139,6 +153,19 @@ function getGoToText(translate: LocaleContextProps['translate'], destination: st
     return translate('search.goTo', {destination});
 }
 
+function sortNavigationSuggestionItems<T extends NavigationSuggestionSourceItem>(items: T[], localeCompare: LocaleContextProps['localeCompare']): T[] {
+    return [...items].sort((firstItem, secondItem) => {
+        const firstText = StringUtils.normalizeAccents(firstItem.text ?? '').toLowerCase();
+        const secondText = StringUtils.normalizeAccents(secondItem.text ?? '').toLowerCase();
+        const textComparison = localeCompare(firstText, secondText);
+        if (textComparison !== 0) {
+            return textComparison;
+        }
+
+        return localeCompare(firstItem.keyForList ?? '', secondItem.keyForList ?? '');
+    });
+}
+
 function replaceTopmostModalWithAction(action: () => void) {
     if (!Navigation.isTopmostRouteModalScreen()) {
         action();
@@ -149,7 +176,7 @@ function replaceTopmostModalWithAction(action: () => void) {
 }
 
 function useNavigationSuggestions(query: string): SearchQueryItem[] {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {convertToDisplayString} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -215,13 +242,19 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [connectionSyncProgress] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: validTransactionDraftIDsSelector,
+    });
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: sessionEmailAndAccountIDSelector});
-    const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {
+        selector: sessionEmailAndAccountIDSelector,
+    });
+    const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: primaryLoginSelector,
+    });
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
     const [cardFeedErrors] = useOnyx(ONYXKEYS.DERIVED.CARD_FEED_ERRORS);
@@ -249,9 +282,13 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
         [icons.Gear, translate],
     );
 
-    const defaultSpendQuery = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE});
+    const defaultSpendQuery = buildCannedSearchQuery({
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+    });
     const lastSpendQuery = lastSearchParams?.queryJSON ? buildSearchQueryString(lastSearchParams.queryJSON) : undefined;
-    const spendRoute = ROUTES.SEARCH_ROOT.getRoute({query: lastSpendQuery ?? defaultSpendQuery});
+    const spendRoute = ROUTES.SEARCH_ROOT.getRoute({
+        query: lastSpendQuery ?? defaultSpendQuery,
+    });
 
     const topLevelItems = useMemo(() => {
         const homeText = translate('common.home');
@@ -488,13 +525,18 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
                 false,
                 shouldDismissEmptyReportsConfirmation,
             );
-            Navigation.navigate(getReportsRootRoute(), {forceReplace: isReportInSearch});
+            Navigation.navigate(getReportsRootRoute(), {
+                forceReplace: isReportInSearch,
+            });
             Navigation.setNavigationActionToMicrotaskQueue(() => {
                 Navigation.navigate(getCreateReportRoute({reportID: createdReportID}), {forceReplace: isReportInSearch});
             });
         },
         groupPoliciesWithChatEnabled,
-        onNavigateToWorkspaceSelection: () => navigateToCreateReportWorkspaceSelection({forceReplace: isOnSearchMoneyRequestReportPage()}),
+        onNavigateToWorkspaceSelection: () =>
+            navigateToCreateReportWorkspaceSelection({
+                forceReplace: isOnSearchMoneyRequestReportPage(),
+            }),
         shouldHandleNavigationBack: false,
     });
 
@@ -594,7 +636,13 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
                 },
             ]
                 .filter((item) => item.visible)
-                .map((item) => ({text: item.text, singleIcon: item.icon, action: item.action, keyForList: item.keyForList, matchTerms: [item.text]})),
+                .map((item) => ({
+                    text: item.text,
+                    singleIcon: item.icon,
+                    action: item.action,
+                    keyForList: item.keyForList,
+                    matchTerms: [item.text],
+                })),
         [
             canSendInvoice,
             createReport,
@@ -620,12 +668,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
             return [];
         }
 
-        const buildItem = (
-            item: SearchQueryItem & {
-                action?: () => void;
-                matchTerms?: string[];
-            },
-        ): SearchQueryItem | null => {
+        const buildItem = (item: NavigationSuggestionSourceItem): SearchQueryItem | null => {
             if (!isNavigationIntentOnly && !matchesNavigationQuery(matchQuery, item.text, ...(item.matchTerms ?? []))) {
                 return null;
             }
@@ -636,11 +679,18 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
             };
         };
 
-        return [...topLevelItems, ...spendItems, ...accountItems, ...workspaceItems, ...domainItems, ...createItems]
+        return [
+            ...sortNavigationSuggestionItems(topLevelItems, localeCompare),
+            ...sortNavigationSuggestionItems(spendItems, localeCompare),
+            ...sortNavigationSuggestionItems(accountItems, localeCompare),
+            ...sortNavigationSuggestionItems(workspaceItems, localeCompare),
+            ...sortNavigationSuggestionItems(domainItems, localeCompare),
+            ...sortNavigationSuggestionItems(createItems, localeCompare),
+        ]
             .map(buildItem)
             .filter((item): item is SearchQueryItem => !!item)
             .slice(0, MAX_NAVIGATION_SUGGESTIONS);
-    }, [accountItems, createItems, domainItems, query, spendItems, topLevelItems, workspaceItems]);
+    }, [accountItems, createItems, domainItems, localeCompare, query, spendItems, topLevelItems, workspaceItems]);
 }
 
 export default useNavigationSuggestions;
