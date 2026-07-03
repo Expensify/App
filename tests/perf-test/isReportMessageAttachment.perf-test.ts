@@ -1,5 +1,7 @@
-import {measureFunction} from 'reassure';
 import type {Message} from '@src/types/onyx/ReportAction';
+
+import {measureFunction} from 'reassure';
+
 import {isReportMessageAttachment} from '../../src/libs/isReportMessageAttachment';
 
 const SAMPLE_MESSAGES: Message[] = [

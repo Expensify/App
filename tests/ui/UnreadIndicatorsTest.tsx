@@ -1,14 +1,5 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
-import {toZonedTime} from 'date-fns-tz';
-import React from 'react';
-import {AppState, DeviceEventEmitter} from 'react-native';
-import type {TextStyle, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+
 import {setSidebarLoaded} from '@libs/actions/App';
 import {trackExpense} from '@libs/actions/IOU/TrackExpense';
 import {addComment, deleteReportComment, markCommentAsUnread, readNewestAction} from '@libs/actions/Report';
@@ -19,12 +10,28 @@ import {setHasRadio} from '@libs/NetworkState';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
 import {getReportActionText} from '@libs/ReportActionsUtils';
+
 import FontUtils from '@styles/utils/FontUtils';
+
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentWaypoint, ReportAction, ReportActions} from '@src/types/onyx';
+
+import type {TextStyle, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import * as NativeNavigation from '@react-navigation/native';
+import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
+import {toZonedTime} from 'date-fns-tz';
+import React from 'react';
+import {AppState, DeviceEventEmitter} from 'react-native';
+import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
+
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import PusherHelper from '../utils/PusherHelper';
@@ -449,7 +456,7 @@ describe('Unread Indicators', () => {
                 });
                 // It's difficult to trigger marking a report comment as unread since we would have to mock the long press event and then
                 // another press on the context menu item so we will do it via the action directly and then test if the UI has updated properly
-                markCommentAsUnread(REPORT_ID, reportActions, createdReportAction, USER_A_ACCOUNT_ID);
+                markCommentAsUnread(REPORT_ID, reportActions, createdReportAction, USER_A_ACCOUNT_ID, false);
                 return waitForBatchedUpdates();
             })
             .then(async () => {
@@ -571,7 +578,7 @@ describe('Unread Indicators', () => {
                     });
                 });
                 // Mark a previous comment as unread and verify the unread action indicator returns
-                markCommentAsUnread(REPORT_ID, reportActions, createdReportAction, USER_A_ACCOUNT_ID);
+                markCommentAsUnread(REPORT_ID, reportActions, createdReportAction, USER_A_ACCOUNT_ID, false);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -672,7 +679,7 @@ describe('Unread Indicators', () => {
         const firstNewReportAction = reportActions ? lastItem(reportActions) : undefined;
 
         if (firstNewReportAction) {
-            markCommentAsUnread(REPORT_ID, reportActions, firstNewReportAction, USER_A_ACCOUNT_ID);
+            markCommentAsUnread(REPORT_ID, reportActions, firstNewReportAction, USER_A_ACCOUNT_ID, false);
 
             await waitForBatchedUpdates();
 
@@ -841,7 +848,7 @@ describe('Unread Indicators', () => {
                 },
             });
         });
-        markCommentAsUnread(REPORT_ID, reportActions, {reportActionID: -1} as unknown as ReportAction, USER_A_ACCOUNT_ID); // Marking the chat as unread from LHN passing a dummy reportActionID
+        markCommentAsUnread(REPORT_ID, reportActions, {reportActionID: -1} as unknown as ReportAction, USER_A_ACCOUNT_ID, false); // Marking the chat as unread from LHN passing a dummy reportActionID
 
         await waitForBatchedUpdates();
         const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
@@ -880,7 +887,7 @@ describe('Unread Indicators', () => {
             });
         });
         // Then USER_A mark the report as unread
-        markCommentAsUnread(REPORT_ID, reportActions, {reportActionID: -1} as unknown as ReportAction, USER_A_ACCOUNT_ID);
+        markCommentAsUnread(REPORT_ID, reportActions, {reportActionID: -1} as unknown as ReportAction, USER_A_ACCOUNT_ID, false);
         await waitForBatchedUpdates();
 
         // Then the lastReadTime of report should same as last action from USER_B

@@ -1,22 +1,27 @@
-import type {VideoPlayer, VideoView} from 'expo-video';
-import type {RefObject} from 'react';
-import React, {useCallback, useMemo, useState} from 'react';
-import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import Animated from 'react-native-reanimated';
-import type {AnimatedStyle} from 'react-native-reanimated';
-import type {ValueOf} from 'type-fest';
 import {Trigger as PopoverMenuTrigger} from '@components/PopoverMenu/v2';
 import Text from '@components/Text';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {convertSecondsToTime} from '@components/VideoPlayer/utils';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import {useVideoPopoverMenuActions} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import type {VideoPlayer, VideoView} from 'expo-video';
+import type {RefObject} from 'react';
+import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+import type {AnimatedStyle} from 'react-native-reanimated';
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
+
 import ProgressBar from './ProgressBar';
 import VolumeButton from './VolumeButton';
 

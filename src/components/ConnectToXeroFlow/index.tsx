@@ -1,12 +1,17 @@
-import React, {useEffect, useState} from 'react';
 import RequireTwoFactorAuthenticationModal from '@components/RequireTwoFactorAuthenticationModal';
+
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
+
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {openLink} from '@userActions/Link';
+
+import React, {useEffect, useState} from 'react';
+
 import type {ConnectToXeroFlowProps} from './types';
 
 function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {

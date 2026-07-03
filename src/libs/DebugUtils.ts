@@ -1,14 +1,17 @@
 /* eslint-disable default-case */
 /* eslint-disable max-classes-per-file */
-import {isMatch, isValid} from 'date-fns';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Beta, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Comment} from '@src/types/onyx/Transaction';
-import SafeString from '@src/utils/SafeString';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {TupleToUnion} from 'type-fest';
+
+import {isMatch, isValid} from 'date-fns';
+import {SafeString} from 'expensify-common';
+
 import {getLinkedTransactionID} from './ReportActionsUtils';
 import {getReasonAndReportActionThatRequiresAttention, reasonForReportToBeInOptionList} from './ReportUtils';
 import SidebarUtils from './SidebarUtils';
@@ -16,7 +19,9 @@ import {getTransactionID as TransactionUtilsGetTransactionID} from './Transactio
 
 class NumberError extends SyntaxError {
     constructor() {
-        super('debug.invalidValue', {cause: {expectedValues: 'number | undefined | ""'}});
+        super('debug.invalidValue', {
+            cause: {expectedValues: 'number | undefined | ""'},
+        });
     }
 }
 
@@ -56,7 +61,9 @@ type ObjectElement<TOnyx, K extends keyof TOnyx, TCollectionKey extends string |
     Required<TOnyx>[K] extends Record<string | number, infer ValueType>
         ? TCollectionKey extends string | number
             ? {[ValueTypeKey in KeysOfUnion<ValueType>]: ValueType[ValueTypeKey]}
-            : {[ElementKey in KeysOfUnion<Required<TOnyx>[K]>]: Required<Required<TOnyx>[K]>[ElementKey]}
+            : {
+                  [ElementKey in KeysOfUnion<Required<TOnyx>[K]>]: Required<Required<TOnyx>[K]>[ElementKey];
+              }
         : never;
 
 const OPTIONAL_BOOLEAN_STRINGS = ['true', 'false', 'undefined'];
@@ -225,7 +232,9 @@ function validateBoolean(value: string) {
         return;
     }
 
-    throw new SyntaxError('debug.invalidValue', {cause: {expectedValues: OPTIONAL_BOOLEAN_STRINGS.join(' | ')}});
+    throw new SyntaxError('debug.invalidValue', {
+        cause: {expectedValues: OPTIONAL_BOOLEAN_STRINGS.join(' | ')},
+    });
 }
 
 /**
@@ -236,7 +245,9 @@ function validateDate(value: string) {
         return;
     }
 
-    throw new SyntaxError('debug.invalidValue', {cause: {expectedValues: CONST.DATE.FNS_DB_FORMAT_STRING}});
+    throw new SyntaxError('debug.invalidValue', {
+        cause: {expectedValues: CONST.DATE.FNS_DB_FORMAT_STRING},
+    });
 }
 
 /**
@@ -254,7 +265,9 @@ function validateConstantEnum(value: string, constEnum: ConstantEnum) {
         return;
     }
 
-    throw new SyntaxError('debug.invalidValue', {cause: {expectedValues: `${enumValues.join(' | ')} | undefined`}});
+    throw new SyntaxError('debug.invalidValue', {
+        cause: {expectedValues: `${enumValues.join(' | ')} | undefined`},
+    });
 }
 
 /**
@@ -383,7 +396,9 @@ function validateString(value: string) {
         const parsedValue = parseJSON(value);
 
         if (typeof parsedValue === 'object') {
-            throw new SyntaxError('debug.invalidValue', {cause: {expectedValues: 'string | undefined'}});
+            throw new SyntaxError('debug.invalidValue', {
+                cause: {expectedValues: 'string | undefined'},
+            });
         }
     } catch (e) {
         // Only propagate error if value is a string representation of an object or array
@@ -469,6 +484,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'unheldTotal':
         case 'nonReimbursableTotal':
         case 'unheldNonReimbursableTotal':
+        case 'reimbursableTotal':
+        case 'unheldReimbursableTotal':
         case 'transactionCount':
             return validateNumber(value);
         case 'chatType':
@@ -621,6 +638,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 total: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 unheldTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 unheldNonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                reimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                unheldReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isWaitingOnBankAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isCancelledIOU: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasReportBeenRetracted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1362,6 +1381,8 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 comment: 'string',
                 cardID: 'number',
                 missingFields: 'array',
+                startDate: 'string',
+                endDate: 'string',
             });
         case 'showInReview':
             return validateBoolean(value);
@@ -1378,7 +1399,9 @@ function validateReportActionJSON(json: string) {
             continue;
         }
 
-        throw new SyntaxError('debug.missingProperty', {cause: {propertyName: key}});
+        throw new SyntaxError('debug.missingProperty', {
+            cause: {propertyName: key},
+        });
     }
     for (const [key, val] of Object.entries(parsedReportAction)) {
         try {
@@ -1387,8 +1410,12 @@ function validateReportActionJSON(json: string) {
             }
             validateReportActionDraftProperty(key as keyof ReportAction, onyxDataToString(val));
         } catch (e) {
-            const {cause} = e as SyntaxError & {cause: {expectedValues: string}};
-            throw new SyntaxError('debug.invalidProperty', {cause: {propertyName: key, expectedType: cause.expectedValues}});
+            const {cause} = e as SyntaxError & {
+                cause: {expectedValues: string};
+            };
+            throw new SyntaxError('debug.invalidProperty', {
+                cause: {propertyName: key, expectedType: cause.expectedValues},
+            });
         }
     }
 }
@@ -1400,14 +1427,20 @@ function validateTransactionViolationJSON(json: string) {
             continue;
         }
 
-        throw new SyntaxError('debug.missingProperty', {cause: {propertyName: key}});
+        throw new SyntaxError('debug.missingProperty', {
+            cause: {propertyName: key},
+        });
     }
     for (const [key, val] of Object.entries(parsedTransactionViolation)) {
         try {
             validateTransactionViolationDraftProperty(key as keyof TransactionViolation, onyxDataToString(val));
         } catch (e) {
-            const {cause} = e as SyntaxError & {cause: {expectedValues: string}};
-            throw new SyntaxError('debug.invalidProperty', {cause: {propertyName: key, expectedType: cause.expectedValues}});
+            const {cause} = e as SyntaxError & {
+                cause: {expectedValues: string};
+            };
+            throw new SyntaxError('debug.invalidProperty', {
+                cause: {propertyName: key, expectedType: cause.expectedValues},
+            });
         }
     }
 }
@@ -1426,6 +1459,7 @@ function getReasonForShowingRowInLHN({
     draftComment,
     currentUserLogin,
     currentUserAccountID,
+    conciergeReportID,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
@@ -1437,6 +1471,7 @@ function getReasonForShowingRowInLHN({
     draftComment: string | undefined;
     currentUserLogin?: string;
     currentUserAccountID?: number;
+    conciergeReportID?: string;
 }): TranslationPaths | null {
     if (!report) {
         return null;
@@ -1456,6 +1491,7 @@ function getReasonForShowingRowInLHN({
         draftComment,
         currentUserLogin,
         currentUserAccountID,
+        conciergeReportID,
     });
 
     if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {

@@ -1,9 +1,6 @@
-import {useIsFocused} from '@react-navigation/core';
-import type {ListRenderItem} from '@shopify/flash-list';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
+
 import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
@@ -13,19 +10,31 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {isIOUReport} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
+
 import Navigation from '@navigation/Navigation';
+
 import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {hasOnceLoadedReportActionsSelector, pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
 import type {Transaction} from '@src/types/onyx';
-import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
+
+import type {ListRenderItem} from '@shopify/flash-list';
+import type {LayoutChangeEvent} from 'react-native';
+
+import {useIsFocused} from '@react-navigation/core';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
+
 import type {MoneyRequestReportPreviewProps} from './types';
+
+import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
 
 function MoneyRequestReportPreview({
     iouReportID,

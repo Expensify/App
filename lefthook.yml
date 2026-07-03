@@ -1,0 +1,6 @@
+pre-commit:
+  commands:
+    oxfmt:
+      glob: '*.{js,mjs,cjs,ts,tsx,mts,cts}'
+      run: npx oxfmt --write {staged_files}
+      stage_fixed: true
