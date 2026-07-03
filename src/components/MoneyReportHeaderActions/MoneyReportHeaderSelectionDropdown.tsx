@@ -97,7 +97,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(PAYMENT_ICONS);
 
-    const {beginExportWithTemplate, showOfflineModal, showDownloadErrorModal, exportDownloadStatusModal} = useExportActions({
+    const {beginExportWithTemplate, showOfflineModal, showDownloadErrorModal} = useExportActions({
         reportID,
         policy,
     });
@@ -324,7 +324,6 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
         return (
             <>
                 {bulkDuplicateHandler}
-                {exportDownloadStatusModal}
                 <MoneyReportHeaderKYCDropdown
                     chatReportID={chatReport?.reportID}
                     iouReport={moneyRequestReport}
@@ -349,7 +348,6 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     return (
         <>
             {bulkDuplicateHandler}
-            {exportDownloadStatusModal}
             <ButtonWithDropdownMenu
                 onPress={() => null}
                 options={selectedTransactionsOptions}
