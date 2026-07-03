@@ -103,11 +103,6 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
         setFocusedCellId(null);
     };
 
-    const handleEditIconMouseDown = () => {
-        setIsEditIconFocused(true);
-        setFocusedCellId(cellId);
-    };
-
     // Architectural exclusion (e.g. narrow layout) — no container, no padding.
     if (!isEditable) {
         return children;
@@ -160,7 +155,6 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
                                 accessibilityRole={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.edit')}
                                 sentryLabel={CONST.SENTRY_LABEL.TABLE.EDITABLE_CELL}
-                                onMouseDown={handleEditIconMouseDown}
                                 onPress={onStartEditing}
                                 onFocus={handleEditIconFocus}
                                 onBlur={handleEditIconBlur}
