@@ -1,6 +1,9 @@
-import Onyx from 'react-native-onyx';
 import type {Init, IsClientTheLeader, IsReady, PromoteToLeader} from '@libs/ActiveClientManager/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Load the web implementation explicitly. Jest defaults to the native platform, and the native

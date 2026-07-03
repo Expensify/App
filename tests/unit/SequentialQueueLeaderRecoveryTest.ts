@@ -1,11 +1,16 @@
-import Onyx from 'react-native-onyx';
 import * as NetworkState from '@libs/NetworkState';
+
 import {clear as clearPersistedRequests, save as savePersistedRequest, updateOngoingRequest} from '@userActions/PersistedRequests';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
+
+import Onyx from 'react-native-onyx';
+
 import type Request from '../../src/types/onyx/Request';
 import type {MockFetch} from '../utils/TestHelper';
+
+import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
