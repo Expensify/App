@@ -1,8 +1,11 @@
-import type {Color} from '@shopify/react-native-skia';
-import React from 'react';
-import type {PieSliceData} from 'victory-native';
 import type {LabelItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import convertDegreeToRadian from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/convertDegreeToRadian';
+
+import type {Color} from '@shopify/react-native-skia';
+import type {PieSliceData} from 'victory-native';
+
+import React from 'react';
+
 import VictoryChartLabel from './VictoryChartLabel';
 import VictoryChartPieLabelIndicator from './VictoryChartPieLabelIndicator';
 

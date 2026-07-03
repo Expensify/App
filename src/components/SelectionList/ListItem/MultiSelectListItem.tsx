@@ -1,11 +1,16 @@
-import React from 'react';
-import {View} from 'react-native';
 import Avatar from '@components/Avatar';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
-import BaseSelectListItem from './BaseSelectListItem';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {ListItem, MultiSelectListItemProps} from './types';
+
+import BaseSelectListItem from './BaseSelectListItem';
 
 /**
  * A compact row with a checkbox and optional avatar, used in multi-choice picker lists
