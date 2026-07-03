@@ -133,6 +133,19 @@ If you make any changes to an action's implementation, you must always recompile
 
 In order to bundle actions with their dependencies into a single Node.js executable script, we use [`esbuild`](https://esbuild.github.io/). In order to make this easier, we've added an `npm` script to `package.json`, so you can just run `npm run gh-actions-build`, which runs `.github/scripts/buildActions.ts` via `bun`. If you create a new action, make sure that you update `.github/scripts/buildActions.ts` to include your new action. Also, be sure that you always run `npm install` before recompiling if you added new dependencies, or they won't be included in the bundled executable. :)
 
+The compiled `index.js` files are real [ECMAScript modules](https://nodejs.org/api/esm.html) (see the `"type": "module"` in [`.github/actions/javascript/package.json`](../actions/javascript/package.json)), not CommonJS. In practice this only matters if you're writing a new action from scratch:
+
+- `@actions/core`, `@actions/github`, and the `@octokit/*` plugin chain are ESM-only as of the major versions this repo uses, so importing them "just works" the same as any other dependency.
+- If an action needs its own CLI entry-point guard (i.e. code that should only run when the file is executed directly, not when it's imported elsewhere, like from a test), use the ESM idiom instead of `require.main === module`:
+  ```ts
+  import {pathToFileURL} from 'url';
+
+  if (import.meta.url === pathToFileURL(process.argv.at(1) ?? '').href) {
+      run();
+  }
+  ```
+- Avoid giving a file both an entry guard *and* letting it be imported by another bundled entry point (e.g. a test helper imported by both an action and its unit test) — esbuild flattens every bundled file into one shared module scope, so if two guarded files end up in the same bundle, both guards fire. If a file needs to be both a library (importable, no side effects) and a script (runnable directly), split it into a guard-free library file plus a separate, unconditionally-executing `*-cli.ts`/`*-cli.mts` entry point that only the CLI ever imports (see `scripts/compressSvg.mts` / `scripts/compressSvg-cli.mts` and `scripts/bumpVersion.ts` / `scripts/bumpVersion-cli.ts` for examples of this pattern).
+
 **Note:** If you have a Windows machine, the compiled output will be different than on a Unix machine, which will cause test failures in your PR. So you'll need to run the compilation script on a Mac or Linux machine instead, using whatever means suits you (i.e: another physical device, Docker container, EC2 instance, etc...)
 
 ### Important tips about creating GitHub Actions

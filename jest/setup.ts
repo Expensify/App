@@ -9,12 +9,12 @@ import type * as RNKeyboardController from 'react-native-keyboard-controller';
 import 'react-native-gesture-handler/jestSetup';
 import type Animated from 'react-native-reanimated';
 
-// Polyfill necessary for Onyx.init in jest/setupAfterEnv.ts
+// Needed to mock Onyx's CI logging in jest/setupAfterEnv.ts. Requires jest/setupGlobalPolyfills.ts to have
+// already run (see that file for why).
 import * as core from '@actions/core';
 import {useMemo} from 'react';
 import 'setimmediate';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
-import {TextDecoder, TextEncoder} from 'util';
 import '@src/polyfills/PromiseWithResolvers';
 import '@src/polyfills/requestIdleCallback';
 
@@ -29,8 +29,6 @@ if (!('GITHUB_REPOSITORY' in process.env)) {
 
 setupMockImages();
 mockFSLibrary();
-
-Object.assign(global, {TextDecoder, TextEncoder});
 
 // This mock is required as per setup instructions for react-navigation testing
 // https://reactnavigation.org/docs/testing/#mocking-native-modules

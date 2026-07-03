@@ -131,7 +131,10 @@ const metro = {
             plugins: [['transform-remove-console', {exclude: ['error', 'warn']}]],
         },
         test: {
-            plugins: ['@babel/plugin-transform-dynamic-import'],
+            // GH Action entry guards use `import.meta.url` (real ESM idiom), but Jest runs everything through
+            // babel-jest to CommonJS, where bare `import.meta` is a syntax error at runtime. This rewrites it to a
+            // CJS-safe equivalent (based on `__filename`) so those guards still evaluate correctly under Jest.
+            plugins: ['@babel/plugin-transform-dynamic-import', 'babel-plugin-transform-import-meta'],
         },
     },
 };
