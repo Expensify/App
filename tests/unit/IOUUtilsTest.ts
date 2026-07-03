@@ -1081,7 +1081,7 @@ describe('formatCurrentUserToAttendee', () => {
                 displayName: 'John Smith',
                 avatarUrl: '',
                 accountID: 2840332,
-                text: 'john.smith@example.com',
+                text: 'John Smith',
                 selected: true,
                 reportID: undefined,
             },
